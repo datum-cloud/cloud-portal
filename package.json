@@ -45,7 +45,6 @@
     "react-dom": "^19.0.0",
     "react-i18next": "^15.4.0",
     "remix-auth": "^4.1.0",
-    "remix-auth-github": "^3.0.2",
     "remix-auth-oauth2": "^3.2.2",
     "remix-auth-github": "^3.0.2",
     "remix-i18next": "^7.0.2",
