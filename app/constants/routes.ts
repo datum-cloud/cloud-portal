@@ -2,6 +2,8 @@ export const routes = {
   auth: {
     root: '/auth',
     signIn: '/auth/sign-in',
-    signUp: '/auth/sign-up',
+    signOut: '/auth/sign-out',
+    callback: (provider: string) => `/auth/${provider}/callback`,
   },
+  home: '/',
 }

@@ -1,15 +1,29 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import GoogleIcon from '@/components/icons/google'
-import { Form } from '@remix-run/react'
-import { ActionFunctionArgs } from '@remix-run/node'
-import { authenticator } from '@/modules/auth/auth.server'
-
+import { Form, useNavigation } from '@remix-run/react'
+import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
+import { authenticator, getUserSession } from '@/modules/auth/auth.server'
+import { routes } from '@/constants/routes'
 export async function action({ request }: ActionFunctionArgs) {
-  return authenticator.authenticate('google', request)
+  try {
+    return authenticator.authenticate('google', request)
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error('Authentication failed')
+    }
+
+    throw error // Re-throw other values or unhandled errors
+  }
+}
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  return getUserSession(request, routes.home)
 }
 
 export default function Login() {
+  const navigation = useNavigation()
+
   return (
     <div className="flex flex-col gap-6">
       <Card className="overflow-hidden">
@@ -23,7 +37,10 @@ export default function Login() {
             </div>
             <div className="grid w-full grid-cols-1 gap-4">
               <Form method="POST" className="w-full">
-                <Button variant="outline" className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  isLoading={navigation.state === 'submitting'}>
                   <GoogleIcon className="size-4" />
                   <span>Sign in with Google</span>
                 </Button>
