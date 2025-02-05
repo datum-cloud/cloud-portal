@@ -16,7 +16,7 @@ async function main() {
     .use(I18nextBrowserLanguageDetector)
     .init({
       ...i18n,
-      ns: getInitialNamespaces(),
+      ns: i18n.defaultNS ?? getInitialNamespaces(),
       detection: {
         // Enable HTML tag detection only by detecting the language server-side.
         // Using `<html lang>` attribute to communicate the detected language to the client.

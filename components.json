@@ -11,8 +11,8 @@
     "prefix": ""
   },
   "aliases": {
-    "components": "#components",
-    "utils": "#utils/misc.ts"
+    "components": "@/components/ui",
+    "utils": "@/utils/misc"
   },
   "iconLibrary": "lucide"
 }
