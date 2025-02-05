@@ -65,7 +65,7 @@
         "postcss": "^8.4.49",
         "prettier": "^3.4.2",
         "prettier-plugin-tailwindcss": "^0.6.11",
-        "remix-flat-routes": "^0.6.5",
+        "remix-flat-routes": "^0.8.0",
         "tailwindcss": "^3.4.4",
         "typescript": "^5.7.2",
         "vite": "^5.4.11",
@@ -343,8 +343,6 @@
     "@remix-run/serve": ["@remix-run/serve@2.15.3", "", { "dependencies": { "@remix-run/express": "2.15.3", "@remix-run/node": "2.15.3", "chokidar": "^3.5.3", "compression": "^1.7.4", "express": "^4.20.0", "get-port": "5.1.1", "morgan": "^1.10.0", "source-map-support": "^0.5.21" }, "bin": { "remix-serve": "dist/cli.js" } }, "sha512-7P0FWeNu1NEaSJpL2Xn8fZbr4zxkrOR6Qg03p7iYbipcQ1L0zr9Nxe5KKG4m9n8EyRWWxDV2L+wXHI7Ul9HiMw=="],
 
     "@remix-run/server-runtime": ["@remix-run/server-runtime@2.15.3", "", { "dependencies": { "@remix-run/router": "1.22.0", "@types/cookie": "^0.6.0", "@web3-storage/multipart-parser": "^1.0.0", "cookie": "^0.6.0", "set-cookie-parser": "^2.4.8", "source-map": "^0.7.3", "turbo-stream": "2.4.0" }, "peerDependencies": { "typescript": "^5.1.0" }, "optionalPeers": ["typescript"] }, "sha512-taHBe1DEqxZNjjj6OfkSYbup+sZPjbTgUhykaI+nHqrC2NDQuTiisBXhLwtx60GctONR/x0lWhF7R9ZGC5WsHw=="],
-
-    "@remix-run/v1-route-convention": ["@remix-run/v1-route-convention@0.1.4", "", { "dependencies": { "minimatch": "^7.4.3" }, "peerDependencies": { "@remix-run/dev": "^1.15.0 || ^2.0.0" } }, "sha512-fVTr9YlNLWfaiM/6Y56sOtcY8x1bBJQHY0sDWO5+Z/vjJ2Ni7fe2fwrzs1jUFciMPXqBQdFGePnkuiYLz3cuUA=="],
 
     "@remix-run/web-blob": ["@remix-run/web-blob@3.1.0", "", { "dependencies": { "@remix-run/web-stream": "^1.1.0", "web-encoding": "1.1.5" } }, "sha512-owGzFLbqPH9PlKb8KvpNJ0NO74HWE2euAn61eEiyCXX/oteoVzTVSN8mpLgDjaxBf2btj5/nUllSUgpyd6IH6g=="],
 
@@ -1510,7 +1508,7 @@
 
     "remix-auth-totp": ["remix-auth-totp@3.4.2", "", { "dependencies": { "@epic-web/totp": "^2.0.0", "base32-encode": "^2.0.0", "jose": "^5.8.0" }, "peerDependencies": { "remix-auth": "^3.6.0" } }, "sha512-ICZonmC1erCdZIh/M3f4TQ2v+Es8sQYgblnAQ9MbZMO/fXiCyU3bNwLTq/Cygg/JCDIIROiGjhl0WihwlH7JhA=="],
 
-    "remix-flat-routes": ["remix-flat-routes@0.6.5", "", { "dependencies": { "@remix-run/v1-route-convention": "^0.1.3", "fs-extra": "^11.1.1", "minimatch": "^5.1.0" }, "peerDependencies": { "@remix-run/dev": "^1.15.0 || ^2" }, "bin": { "migrate-flat-routes": "dist/cli.js" } }, "sha512-VvPak+LCxL4Fm6Kb/nqPLipB71k9p+GXpzRNPVxs9FmCeJ7hxVmQ3HQMpStzuRQyAh0PMkaX6mBiRlCRHTCYHw=="],
+    "remix-flat-routes": ["remix-flat-routes@0.8.4", "", { "dependencies": { "fs-extra": "^11.2.0", "minimatch": "^10.0.1" }, "peerDependencies": { "react-router": "^7" }, "optionalPeers": ["react-router"], "bin": { "migrate-flat-routes": "dist/cli.cjs" } }, "sha512-W+kwaICoFwzKS14j3bixoOGlQ2WZ3PNo18QGADpBGxjcXDfZAZ6OnHJT8SU2Q+/r83YPGvu4yijjIRlBcfokxA=="],
 
     "remix-i18next": ["remix-i18next@6.4.1", "", { "peerDependencies": { "@remix-run/cloudflare": "^2.0.0", "@remix-run/deno": "^2.0.0", "@remix-run/node": "^2.0.0", "@remix-run/react": "^2.0.0", "i18next": "^23.1.0", "react": "^16.8.0 || ^17.0.0 || ^18.0.0", "react-i18next": "^13.0.0 || ^14.0.0 || ^15.0.0" }, "optionalPeers": ["@remix-run/cloudflare", "@remix-run/deno", "@remix-run/node"] }, "sha512-Ma4ESNj8uZmm/Fjq2ZHEbsGvYYO2rV1BtqwIFPAYUeitBaED+r0pNXktUzvsHEanvbFOZPAhEcp5f17vDslmeA=="],
 
@@ -1864,8 +1862,6 @@
 
     "@remix-run/server-runtime/cookie": ["cookie@0.6.0", "", {}, "sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw=="],
 
-    "@remix-run/v1-route-convention/minimatch": ["minimatch@7.4.6", "", { "dependencies": { "brace-expansion": "^2.0.1" } }, "sha512-sBz8G/YjVniEz6lKPNpKxXwazJe4c19fEfV2GDMX6AjFz+MX9uDWIZW8XreVhkFW3fkIdTv/gxWr/Kks5FFAVw=="],
-
     "@typescript-eslint/typescript-estree/minimatch": ["minimatch@9.0.3", "", { "dependencies": { "brace-expansion": "^2.0.1" } }, "sha512-RHiac9mvaRw0x3AYRgDC1CxAP7HTcNrrECeA8YYJeWnpo+2Q5CegtZjaotWTWxDG3UeGA1coE05iH1mPjT/2mg=="],
 
     "@vanilla-extract/css/lru-cache": ["lru-cache@10.4.3", "", {}, "sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ=="],
@@ -1968,7 +1964,7 @@
 
     "remix-flat-routes/fs-extra": ["fs-extra@11.3.0", "", { "dependencies": { "graceful-fs": "^4.2.0", "jsonfile": "^6.0.1", "universalify": "^2.0.0" } }, "sha512-Z4XaCL6dUDHfP/jT25jJKMmtxvuwbkrD1vNSMFlo9lNLY2c5FHYSQgHPRZUjAB26TpDEoW9HCOgplrdbaPV/ew=="],
 
-    "remix-flat-routes/minimatch": ["minimatch@5.1.6", "", { "dependencies": { "brace-expansion": "^2.0.1" } }, "sha512-lKwV/1brpG6mBUFHtb7NUmtABCb2WZZmm2wNiOA5hAb8VdCS4B3dtMWyvcoViccwAW/COERjXLt0zP1zXUN26g=="],
+    "remix-flat-routes/minimatch": ["minimatch@10.0.1", "", { "dependencies": { "brace-expansion": "^2.0.1" } }, "sha512-ethXTt3SGGR+95gudmqJ1eNhRO7eGEGIgYA9vnPatK4/etz2MEVDno5GMCibdMTuBMyElzIlgxMna3K94XDIDQ=="],
 
     "rimraf/glob": ["glob@7.2.3", "", { "dependencies": { "fs.realpath": "^1.0.0", "inflight": "^1.0.4", "inherits": "2", "minimatch": "^3.1.1", "once": "^1.3.0", "path-is-absolute": "^1.0.0" } }, "sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q=="],
 
