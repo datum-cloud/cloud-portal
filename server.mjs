@@ -1,19 +1,33 @@
+/**
+ * @file Express server setup and configuration
+ * @description Main server file that configures Express with security, performance and routing middleware
+ */
+
 import { createRequestHandler } from '@remix-run/express'
 import { installGlobals } from '@remix-run/node'
-import crypto from 'crypto'
-import express from 'express'
-import compression from 'compression'
-import morgan from 'morgan'
-import helmet from 'helmet'
-import rateLimit from 'express-rate-limit'
+import crypto from 'crypto' // For generating CSP nonces
+import express from 'express' // Web framework
+import compression from 'compression' // Response compression
+import morgan from 'morgan' // HTTP request logger
+import helmet from 'helmet' // Security headers
+import rateLimit from 'express-rate-limit' // Rate limiting
 
-// Info about Single Fetch and `installGlobals`:
-// https://remix.run/docs/en/main/guides/single-fetch#enabling-single-fetch
+/**
+ * Enable single fetch functionality for Remix
+ * @see https://remix.run/docs/en/main/guides/single-fetch#enabling-single-fetch
+ */
 installGlobals({ nativeFetch: true })
 
+/**
+ * Server configuration
+ */
 const PORT = process.env.PORT || 3000
 const NODE_ENV = process.env.NODE_ENV ?? 'development'
 
+/**
+ * Configure Vite dev server in development
+ * @type {import('vite').ViteDevServer|undefined}
+ */
 const viteDevServer =
   process.env.NODE_ENV === 'production'
     ? undefined
@@ -26,16 +40,23 @@ const viteDevServer =
 const app = express()
 
 /**
- * Good practices: Disable x-powered-by.
+ * Disable x-powered-by header for security
  * @see http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
  */
 app.disable('x-powered-by')
 
+/**
+ * Enable response compression
+ */
 app.use(compression())
+
+/**
+ * Enable request logging
+ */
 app.use(morgan('tiny'))
 
 /**
- * Content Security Policy.
+ * Generate CSP nonce for each request
  * Implementation based on github.com/epicweb-dev/epic-stack
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
  */
@@ -44,6 +65,9 @@ app.use((_, res, next) => {
   next()
 })
 
+/**
+ * Configure security headers with Helmet
+ */
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -78,7 +102,8 @@ app.use(
 )
 
 /**
- * Clean route paths. (No ending slashes, Better SEO)
+ * Clean route paths by removing trailing slashes
+ * Improves SEO by preventing duplicate content URLs
  */
 app.use((req, res, next) => {
   if (req.path.endsWith('/') && req.path.length > 1) {
@@ -91,10 +116,9 @@ app.use((req, res, next) => {
 })
 
 /**
- * Rate Limit.
+ * Rate limiting configuration
  * Implementation based on github.com/epicweb-dev/epic-stack
- *
- * NOTE: Running in development or tests, we want to disable rate limiting.
+ * Disabled in development/test environments
  */
 const MAX_LIMIT_MULTIPLE = NODE_ENV !== 'production' ? 10_000 : 1
 
@@ -104,18 +128,33 @@ const defaultRateLimit = {
   standardHeaders: true,
   legacyHeaders: false,
 }
+
+/**
+ * Strongest rate limit - 10 requests per minute
+ */
 const strongestRateLimit = rateLimit({
   ...defaultRateLimit,
   windowMs: 60 * 1000,
   max: 10 * MAX_LIMIT_MULTIPLE,
 })
+
+/**
+ * Strong rate limit - 100 requests per minute
+ */
 const strongRateLimit = rateLimit({
   ...defaultRateLimit,
   windowMs: 60 * 1000,
   max: 100 * MAX_LIMIT_MULTIPLE,
 })
+
+/**
+ * General rate limit - 1000 requests per minute
+ */
 const generalRateLimit = rateLimit(defaultRateLimit)
 
+/**
+ * Apply rate limits based on request path and method
+ */
 app.use((req, res, next) => {
   const STRONG_PATHS = ['/auth/login']
 
@@ -129,26 +168,34 @@ app.use((req, res, next) => {
   return generalRateLimit(req, res, next)
 })
 
-// Handle assets requests.
+/**
+ * Static asset handling
+ */
 if (viteDevServer) {
   app.use(viteDevServer.middlewares)
 } else {
+  // Cache assets for 1 year
   app.use(
     '/assets',
     express.static('build/client/assets', { immutable: true, maxAge: '1y' }),
   )
 }
-// Everything else (like favicon.ico) is cached for an hour.
-// You may want to be more aggressive with this caching.
+
+/**
+ * Cache other static files for 1 hour
+ */
 app.use(express.static('build/client', { maxAge: '1h' }))
 
+/**
+ * Handle 404s for missing image/favicon requests
+ */
 app.get(['/img/*', '/favicons/*'], (req, res) => {
-  // If we've gone beyond express.static for these, it means something is missing.
-  // In this case, we'll simply send a 404 and skip calling other middleware.
   return res.status(404).send('Not found')
 })
 
-// Handle SSR requests.
+/**
+ * Handle server-side rendering with Remix
+ */
 app.all(
   '*',
   createRequestHandler({
@@ -162,6 +209,9 @@ app.all(
   }),
 )
 
+/**
+ * Start the server
+ */
 app.listen(PORT, () =>
   console.log(`Express server listening at http://localhost:${PORT}`),
 )
