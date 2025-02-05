@@ -60,7 +60,7 @@ export default function Login() {
                   }
                   disabled={navigation.state === 'submitting'}>
                   <GithubIcon className="size-4" />
-                  <span>Sign in with Github</span>
+                  <span>Sign in with GitHub</span>
                 </Button>
               </Form>
             </div>
