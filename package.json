@@ -47,7 +47,7 @@
     "remix-auth": "^4.1.0",
     "remix-auth-oauth2": "^3.2.2",
     "remix-i18next": "^7.0.2",
-    "remix-utils": "8.1.0",
+    "remix-utils": "7.7.0",
     "sonner": "^1.7.4",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
