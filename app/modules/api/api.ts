@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 export const api = axios.create({
-  baseURL: process.env.API_URL,
+  baseURL: `${process.env.API_URL}/datum-os`,
   timeout: 30 * 1000, // 30 seconds
   headers: {
     'Content-Type': 'application/json',

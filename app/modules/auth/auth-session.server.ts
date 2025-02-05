@@ -5,7 +5,7 @@ export const authSessionStorage = createCookieSessionStorage({
   cookie: {
     name: AUTH_SESSION_KEY,
     path: '/',
-    domain: 'localhost',
+    domain: process.env.APP_URL ? new URL(process.env.APP_URL).hostname : 'localhost',
     sameSite: 'lax',
     httpOnly: true,
     maxAge: 60 * 60 * 24 * 1, // 1 days
