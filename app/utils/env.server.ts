@@ -3,8 +3,14 @@ import { z } from 'zod'
 const schema = z.object({
   NODE_ENV: z.enum(['production', 'development', 'test'] as const),
   SESSION_SECRET: z.string().optional(),
-  DEV_HOST_URL: z.string().optional(),
-  PROD_HOST_URL: z.string().optional(),
+  APP_URL: z.string().optional(),
+  // Auth providers
+  // Github
+  AUTH_GITHUB_ID: z.string().optional(),
+  AUTH_GITHUB_SECRET: z.string().optional(),
+  // Google
+  AUTH_GOOGLE_ID: z.string().optional(),
+  AUTH_GOOGLE_SECRET: z.string().optional(),
 })
 
 declare global {
@@ -29,8 +35,7 @@ export function initEnvs() {
  */
 export function getSharedEnvs() {
   return {
-    DEV_HOST_URL: process.env.DEV_HOST_URL,
-    PROD_HOST_URL: process.env.PROD_HOST_URL,
+    APP_URL: process.env.APP_URL,
   }
 }
 

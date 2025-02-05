@@ -2,10 +2,6 @@
 /**
  * HTTP.
  */
-export const HOST_URL =
-  process.env.NODE_ENV === 'development'
-    ? process.env.DEV_HOST_URL
-    : process.env.PROD_HOST_URL
 
 export function getDomainUrl(request: Request) {
   const host = request.headers.get('X-Forwarded-Host') ?? request.headers.get('Host')

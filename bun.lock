@@ -32,7 +32,7 @@
         "react-dom": "^19.0.0",
         "react-i18next": "^15.4.0",
         "remix-auth": "^4.1.0",
-        "remix-auth-github": "^3.0.2",
+        "remix-auth-oauth2": "^3.2.2",
         "remix-i18next": "^7.0.2",
         "remix-utils": "8.1.0",
         "sonner": "^1.7.4",
@@ -140,6 +140,8 @@
     "@conform-to/react": ["@conform-to/react@1.2.2", "", { "dependencies": { "@conform-to/dom": "1.2.2" }, "peerDependencies": { "react": ">=18" } }, "sha512-1JBECb3NKi5/IlexaYLgnAxGJ55MRuO2sEQ10cJfUK2bfltNbTIQnYUDG6pU886A4lda/q6UH/adPsjiB/4Gkg=="],
 
     "@conform-to/zod": ["@conform-to/zod@1.2.2", "", { "dependencies": { "@conform-to/dom": "1.2.2" }, "peerDependencies": { "zod": "^3.21.0" } }, "sha512-mNCzh0XsF2vhCtD8bfHYMYayEJ9dP6/KsGjmq8DFcO1ykDTNQZwfi1MIm4evGYVempSS3poYr4xZjd7cXEbtaw=="],
+
+    "@edgefirst-dev/data": ["@edgefirst-dev/data@0.0.2", "", {}, "sha512-kvw7RRDW9TJtOYHhzMYQ4g9x+ji87o02CROTnS9qCl2SZXauAPRpTiIQMGC5YLwvgzxV76Y2uMavQK4TQB1z0Q=="],
 
     "@emotion/hash": ["@emotion/hash@0.9.2", "", {}, "sha512-MyqliTZGuOm3+5ZRSaaBGP3USLw6+EGykkwZns2EPC5g8jJ4z9OrdZY9apkl3+UP9+sdz76YYkwCKP5gh8iY3g=="],
 
@@ -1471,7 +1473,7 @@
 
     "remix-auth": ["remix-auth@4.1.0", "", {}, "sha512-Xdy42clt+g79GCn+Wl1+B6S/yWnvrStnk62vo1pGuRuUwHC+pjmeEE52ZRkRPuhLGqsQnoDD9TVz/wfEJAGF8g=="],
 
-    "remix-auth-github": ["remix-auth-github@3.0.2", "", { "dependencies": { "@mjackson/headers": "^0.9.0", "arctic": "^3.0.0", "debug": "^4.3.7" }, "peerDependencies": { "remix-auth": "^4.0.0" } }, "sha512-3XxykdwMrcPSyMsdGtBDl3DBc19gJM3t7q/1uzfz3g/SJRsxEytjGiQ17ztKykebCGM454Z0lVJMvSb+LF/yHA=="],
+    "remix-auth-oauth2": ["remix-auth-oauth2@3.2.2", "", { "dependencies": { "@edgefirst-dev/data": "^0.0.2", "@mjackson/headers": "^0.9.0", "arctic": "^3.0.0", "debug": "^4.3.7" }, "peerDependencies": { "remix-auth": "^4.0.0" } }, "sha512-m4jb7ZTFau4UcTEfuZQ+SPrXvXQSR8nrcAxww4ddxyvGHZglSeSYPqdwC81gMeEgIxDEgHULZgRfklV4wqJ4fA=="],
 
     "remix-flat-routes": ["remix-flat-routes@0.8.4", "", { "dependencies": { "fs-extra": "^11.2.0", "minimatch": "^10.0.1" }, "peerDependencies": { "react-router": "^7" }, "optionalPeers": ["react-router"], "bin": { "migrate-flat-routes": "dist/cli.cjs" } }, "sha512-W+kwaICoFwzKS14j3bixoOGlQ2WZ3PNo18QGADpBGxjcXDfZAZ6OnHJT8SU2Q+/r83YPGvu4yijjIRlBcfokxA=="],
 
