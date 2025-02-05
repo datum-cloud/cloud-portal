@@ -4,6 +4,8 @@ export const routes = {
     signIn: '/auth/sign-in',
     signOut: '/auth/sign-out',
     callback: (provider: string) => `/auth/${provider}/callback`,
+    google: '/auth/google',
+    github: '/auth/github',
   },
   home: '/',
 }

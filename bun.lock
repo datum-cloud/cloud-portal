@@ -35,6 +35,7 @@
         "react-dom": "^19.0.0",
         "react-i18next": "^15.4.0",
         "remix-auth": "^4.1.0",
+        "remix-auth-github": "^3.0.2",
         "remix-auth-oauth2": "^3.2.2",
         "remix-i18next": "^7.0.2",
         "remix-utils": "8.1.0",
@@ -1491,6 +1492,8 @@
     "remark-rehype": ["remark-rehype@10.1.0", "", { "dependencies": { "@types/hast": "^2.0.0", "@types/mdast": "^3.0.0", "mdast-util-to-hast": "^12.1.0", "unified": "^10.0.0" } }, "sha512-EFmR5zppdBp0WQeDVZ/b66CWJipB2q2VLNFMabzDSGR66Z2fQii83G5gTBbgGEnEEA0QRussvrFHxk1HWGJskw=="],
 
     "remix-auth": ["remix-auth@4.1.0", "", {}, "sha512-Xdy42clt+g79GCn+Wl1+B6S/yWnvrStnk62vo1pGuRuUwHC+pjmeEE52ZRkRPuhLGqsQnoDD9TVz/wfEJAGF8g=="],
+
+    "remix-auth-github": ["remix-auth-github@3.0.2", "", { "dependencies": { "@mjackson/headers": "^0.9.0", "arctic": "^3.0.0", "debug": "^4.3.7" }, "peerDependencies": { "remix-auth": "^4.0.0" } }, "sha512-3XxykdwMrcPSyMsdGtBDl3DBc19gJM3t7q/1uzfz3g/SJRsxEytjGiQ17ztKykebCGM454Z0lVJMvSb+LF/yHA=="],
 
     "remix-auth-oauth2": ["remix-auth-oauth2@3.2.2", "", { "dependencies": { "@edgefirst-dev/data": "^0.0.2", "@mjackson/headers": "^0.9.0", "arctic": "^3.0.0", "debug": "^4.3.7" }, "peerDependencies": { "remix-auth": "^4.0.0" } }, "sha512-m4jb7ZTFau4UcTEfuZQ+SPrXvXQSR8nrcAxww4ddxyvGHZglSeSYPqdwC81gMeEgIxDEgHULZgRfklV4wqJ4fA=="],
 

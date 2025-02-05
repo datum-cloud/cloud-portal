@@ -7,6 +7,14 @@ export interface IGoogleProfile {
   email: string
 }
 
+export interface IGithubProfile {
+  id: string
+  login: string
+  name: string
+  email: string
+  avatar_url: string
+}
+
 export interface IUser {
   id: string
   email: string
