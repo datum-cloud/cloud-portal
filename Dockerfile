@@ -1,9 +1,7 @@
 # syntax = docker/dockerfile:1
 
 # Use the latest Bun version
-FROM oven/bun:latest as base
-
-LABEL fly_launch_runtime="Datum"
+FROM oven/bun:latest AS base
 
 # Remix app lives here
 WORKDIR /app
