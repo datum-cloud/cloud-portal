@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import GoogleIcon from '@/components/icons/google'
+import { GoogleIcon, GithubIcon } from '@/components/icons'
 import { Form, useNavigation } from '@remix-run/react'
 import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
 import { authenticator, getUserSession } from '@/modules/auth/auth.server'
@@ -36,13 +36,31 @@ export default function Login() {
               </p>
             </div>
             <div className="grid w-full grid-cols-1 gap-4">
-              <Form method="POST" className="w-full">
+              <Form action={routes.auth.google} method="POST" className="w-full">
                 <Button
                   variant="outline"
                   className="w-full"
-                  isLoading={navigation.state === 'submitting'}>
+                  isLoading={
+                    navigation.state === 'submitting' &&
+                    navigation.formAction === routes.auth.google
+                  }
+                  disabled={navigation.state === 'submitting'}>
                   <GoogleIcon className="size-4" />
                   <span>Sign in with Google</span>
+                </Button>
+              </Form>
+
+              <Form action={routes.auth.github} method="POST" className="w-full">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  isLoading={
+                    navigation.state === 'submitting' &&
+                    navigation.formAction === routes.auth.github
+                  }
+                  disabled={navigation.state === 'submitting'}>
+                  <GithubIcon className="size-4" />
+                  <span>Sign in with GitHub</span>
                 </Button>
               </Form>
             </div>
