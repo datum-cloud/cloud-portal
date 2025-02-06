@@ -10,7 +10,7 @@ WORKDIR /app
 ENV NODE_ENV="production"
 
 # Throw-away build stage to reduce size of final image
-FROM base as build
+FROM base AS build
 
 # Install dependencies
 COPY --link package.json bun.lock ./
