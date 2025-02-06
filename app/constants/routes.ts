@@ -7,5 +7,9 @@ export const routes = {
     google: '/auth/google',
     github: '/auth/github',
   },
+  onboard: {
+    root: '/onboard',
+    project: '/onboard/project',
+  },
   home: '/',
 }

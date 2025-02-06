@@ -1,4 +1,17 @@
-import { Outlet } from '@remix-run/react'
+import { routes } from '@/constants/routes'
+import { getDomainPathname } from '@/utils/misc.server'
+import { LoaderFunctionArgs } from '@remix-run/node'
+import { Outlet, redirect } from '@remix-run/react'
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const pathname = getDomainPathname(request)
+
+  if (pathname === routes.auth.root) {
+    return redirect(routes.auth.signIn)
+  }
+
+  return {}
+}
 
 export default function AuthLayout() {
   return (

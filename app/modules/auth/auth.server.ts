@@ -129,11 +129,25 @@ authenticator
     'github',
   )
 
-export async function getUserSession(request: Request, redirectTo?: string) {
+export async function getUserSession(
+  request: Request,
+  redirectTo?: string,
+  noAuthRedirect?: boolean,
+) {
   const session = await getSession(request.headers.get('cookie'))
   const user = session.get('user')
 
-  if (!user) return null
+  if (!user) {
+    if (noAuthRedirect) {
+      return redirect(routes.auth.signIn, {
+        headers: {
+          'Set-Cookie': await commitSession(session),
+        },
+      })
+    }
+
+    return null
+  }
 
   if (redirectTo) {
     return redirect(redirectTo, {

@@ -17,6 +17,7 @@ export default defineConfig({
 			'react-dom/server': 'react-dom/server.node',
 		},
   },
+  assetsInclude: ['**/*.woff2'], // Add font formats you're using
   plugins: [
     remix({
       serverModuleFormat: 'esm',

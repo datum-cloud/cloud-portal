@@ -45,6 +45,7 @@ export default function Index() {
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-300">{t('description')}</p>
         <p className="text-lg text-gray-600 dark:text-gray-300">{t('description2')}</p>
+        <p className="text-lg text-gray-600 dark:text-gray-300">{JSON.stringify(user)}</p>
       </div>
 
       <div className="flex items-center gap-2">

@@ -3,6 +3,7 @@ import { z } from 'zod'
 const schema = z.object({
   NODE_ENV: z.enum(['production', 'development', 'test'] as const),
   SESSION_SECRET: z.string().optional(),
+  HONEYPOT_ENCRYPTION_SEED: z.string().optional(),
   APP_URL: z.string().optional(),
   API_URL: z.string().optional(),
   // Auth providers

@@ -12,6 +12,7 @@ import type { LinksFunction, LoaderFunctionArgs, TypedResponse } from '@remix-ru
 import { useChangeLanguage } from 'remix-i18next/react'
 
 import { AuthenticityTokenProvider } from 'remix-utils/csrf/react'
+import { HoneypotProvider } from 'remix-utils/honeypot/react'
 
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
@@ -28,6 +29,8 @@ import { ClientHintCheck } from '@/components/misc/ClientHints'
 import { useNonce } from '@/hooks/useNonce'
 import { useToast } from '@/hooks/useToast'
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { honeypot } from '@/utils/honeypot.server'
 
 export const handle = { i18n: ['translation'] }
 
@@ -65,6 +68,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       locale,
       toast,
       csrfToken,
+      honeypotProps: honeypot.getInputProps(),
       requestInfo: {
         hints: getHints(request),
         origin: getDomainUrl(request),
@@ -109,7 +113,7 @@ function Document({
         <Links />
       </head>
       <body className="h-auto w-full">
-        {children}
+        <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <Toaster closeButton position="top-right" theme={theme} />
@@ -119,7 +123,7 @@ function Document({
 }
 
 export default function AppWithProviders() {
-  const { locale, toast, csrfToken } = useLoaderData<typeof loader>()
+  const { locale, toast, csrfToken, honeypotProps } = useLoaderData<typeof loader>()
 
   const nonce = useNonce()
   const theme = useTheme()
@@ -133,7 +137,9 @@ export default function AppWithProviders() {
   return (
     <Document nonce={nonce} theme={theme} lang={locale ?? 'en'}>
       <AuthenticityTokenProvider token={csrfToken}>
-        <Outlet />
+        <HoneypotProvider {...honeypotProps}>
+          <Outlet />
+        </HoneypotProvider>
       </AuthenticityTokenProvider>
     </Document>
   )
