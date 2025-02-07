@@ -14,7 +14,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './app'),
-    },
+			'react-dom/server': 'react-dom/server.node',
+		},
   },
   plugins: [
     remix({
