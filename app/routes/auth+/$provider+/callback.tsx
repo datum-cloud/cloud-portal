@@ -1,5 +1,5 @@
 import { authenticator } from '@/modules/auth/auth.server'
-import { LoaderFunctionArgs, redirect } from 'react-router';
+import { LoaderFunctionArgs, redirect } from 'react-router'
 import { routes } from '@/constants/routes'
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
 export async function loader({ request, params }: LoaderFunctionArgs) {

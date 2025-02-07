@@ -1,12 +1,10 @@
-import { Outlet, redirect } from 'react-router';
+import { LoaderFunctionArgs, Outlet, redirect } from 'react-router'
 import { Header } from '@/components/header/header.component'
 import { routes } from '@/constants/routes'
 
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { authenticateSession } from '@/modules/middleware/auth-middleware'
 import { getDomainPathname } from '@/utils/misc.server'
 
-export const loader = withMiddleware(async ({ request }) => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   const pathname = getDomainPathname(request)
 
   // TODO: Check if user has already onboarded
@@ -16,8 +14,8 @@ export const loader = withMiddleware(async ({ request }) => {
     return redirect(routes.onboarding.project)
   }
 
-  return {}
-}, authenticateSession)
+  return null
+}
 
 export default function OnboardLayout() {
   return (

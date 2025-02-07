@@ -1,4 +1,4 @@
-import { createCookie, createCookieSessionStorage } from 'react-router';
+import { createCookie, createCookieSessionStorage } from 'react-router'
 
 export const AUTH_SESSION_KEY = '_auth'
 export const authCookie = createCookie(AUTH_SESSION_KEY, {

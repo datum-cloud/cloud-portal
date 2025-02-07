@@ -1,5 +1,5 @@
 import type { loader as rootLoader } from '@/root'
-import { useRouteLoaderData } from 'react-router';
+import { useRouteLoaderData } from 'react-router'
 
 /**
  * Returns the request info from the Root loader.

@@ -1,32 +1,24 @@
-import { authenticateSession } from '@/modules/middleware/auth-middleware'
+import { authMiddleware } from '@/modules/middleware/auth-middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { getSession, updateSession } from '@/modules/auth/auth-session.server'
-import { redirect } from 'react-router';
+import { Outlet, useLoaderData, redirect } from 'react-router'
 import { routes } from '@/constants/routes'
 import { AxiosError } from 'axios'
-import { Outlet, useLoaderData } from 'react-router';
-import { authApi } from '@/resources/api/auth'
+import { profileGql } from '@/resources/gql/profile.gql'
+import { getCredentials } from '@/modules/auth/auth.server'
 
 export const loader = withMiddleware(async ({ request }) => {
-  const session = await getSession(request.headers.get('Cookie'))
-  const user = session.get('user')
-
-  if (!user) {
-    return redirect(routes.auth.signIn)
-  }
-
   try {
+    const credentials = await getCredentials(request)
     /* 
     - Update user info based on the access token
     - If the access token is expired or invalid, redirect to the sign-in page
     - If the access token is valid, update the user info 
     */
-    await authApi.setToken(request)
-    const userInfo = await authApi.getUserInfo()
 
-    return {
-      user: userInfo,
-    }
+    await profileGql.setToken(request)
+    const user = await profileGql.getUserProfile(credentials.userId)
+
+    return user
   } catch (error) {
     // TODO: implement best practices for error handle
     if (
@@ -39,10 +31,10 @@ export const loader = withMiddleware(async ({ request }) => {
     }
     throw error
   }
-}, authenticateSession)
+}, authMiddleware)
 
 export default function PrivateLayout() {
-  const { user } = useLoaderData<typeof loader>()
+  const user = useLoaderData<typeof loader>()
   console.log(user)
   return (
     <div>

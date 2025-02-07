@@ -11,7 +11,8 @@ export class AuthApi extends AxiosClient {
     return data
   }
 
-  async getUserInfo(): Promise<IUserProfile> {
+  async getUserInfo(request: Request): Promise<IUserProfile> {
+    await this.setToken(request)
     const { data } = await this.authClient('/oauth/userinfo', 'GET')
     return data
   }

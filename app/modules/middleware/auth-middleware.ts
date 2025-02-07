@@ -1,10 +1,10 @@
-import { redirect } from 'react-router';
+import { redirect } from 'react-router'
 import { getCredentials } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
 import { NextFunction } from './middleware'
 
-export async function authenticateSession(
+export async function authMiddleware(
   request: Request,
   next: NextFunction,
 ): Promise<Response> {

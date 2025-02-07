@@ -1,6 +1,6 @@
-import type { ActionFunctionArgs } from 'react-router';
+import type { ActionFunctionArgs } from 'react-router'
 import { destroySession, getSession } from '@/modules/auth/auth-session.server'
-import { LoaderFunctionArgs, redirect } from 'react-router';
+import { LoaderFunctionArgs, redirect } from 'react-router'
 import { routes } from '@/constants/routes'
 
 export async function action({ request }: ActionFunctionArgs) {

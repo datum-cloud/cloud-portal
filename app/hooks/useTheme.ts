@@ -3,7 +3,7 @@
  */
 import * as cookie from 'cookie'
 import { z } from 'zod'
-import { useFetcher } from 'react-router';
+import { useFetcher } from 'react-router'
 import { useHints } from '@/hooks/useHints'
 import { useRequestInfo } from '@/hooks/useRequestInfo'
 

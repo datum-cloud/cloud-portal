@@ -1,4 +1,4 @@
-import { ActionFunction, data, LoaderFunction, LoaderFunctionArgs } from 'react-router'
+import { ActionFunction, LoaderFunction, LoaderFunctionArgs } from 'react-router'
 
 export type NextFunction = () => Promise<Response>
 

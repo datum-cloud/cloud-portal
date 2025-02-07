@@ -1,4 +1,4 @@
-import { useNavigation, useFormAction } from 'react-router';
+import { useNavigation, useFormAction } from 'react-router'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 

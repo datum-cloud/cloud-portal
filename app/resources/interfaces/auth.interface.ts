@@ -16,6 +16,8 @@ export interface IAuthTokenResponse {
 }
 
 export interface IAuthSession {
+  userId: string
   accessToken: string
   refreshToken?: string
+  userEntityId: string
 }

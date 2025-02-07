@@ -1,10 +1,10 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { GoogleIcon, GithubIcon } from '@/components/icons'
-import { Form, useNavigation } from 'react-router';
-import { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { Form, useNavigation, ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
 import { authenticator, getCredentials } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
+
 export async function action({ request }: ActionFunctionArgs) {
   try {
     return authenticator.authenticate('google', request)

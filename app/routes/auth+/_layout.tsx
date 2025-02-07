@@ -1,7 +1,6 @@
 import { routes } from '@/constants/routes'
 import { getDomainPathname } from '@/utils/misc.server'
-import { LoaderFunctionArgs } from 'react-router';
-import { Outlet, redirect } from 'react-router';
+import { LoaderFunctionArgs, Outlet, redirect } from 'react-router'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const pathname = getDomainPathname(request)

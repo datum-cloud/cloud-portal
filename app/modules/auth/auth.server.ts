@@ -7,7 +7,7 @@ import { redirect } from 'react-router'
 import { GitHubStrategy } from 'remix-auth-github'
 import { IAuthSession } from '@/resources/interfaces/auth.interface'
 import { authApi } from '@/resources/api/auth'
-
+import { jwtDecode } from 'jwt-decode'
 export const authenticator = new Authenticator<IAuthSession>()
 
 async function fetchOauthProfile<T>(url: string, accessToken: string): Promise<T> {
@@ -48,9 +48,13 @@ async function handleOAuthFlow(
     }
 
     // const userInfo = await getUserInfo(data.access_token)
-    // const decoded = jwtDecode<DecodedToken>(data.access_token)
+    const decoded = jwtDecode<{ org: string; user_id: string; user_entity_id: string }>(
+      data.access_token,
+    )
 
     return {
+      userId: decoded.user_id,
+      userEntityId: decoded.user_entity_id,
       accessToken: data.access_token,
     }
   } catch (error) {

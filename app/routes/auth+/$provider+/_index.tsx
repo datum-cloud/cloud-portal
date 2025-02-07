@@ -1,6 +1,6 @@
 import { authenticator } from '@/modules/auth/auth.server'
-import type { ActionFunctionArgs } from 'react-router';
-import { redirect } from 'react-router';
+import type { ActionFunctionArgs } from 'react-router'
+import { redirect } from 'react-router'
 import { routes } from '@/constants/routes'
 
 export async function loader() {

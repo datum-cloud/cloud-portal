@@ -1,4 +1,4 @@
-import type { MetaFunction } from 'react-router';
+import type { MetaFunction } from 'react-router'
 import { HelpCircle } from 'lucide-react'
 import { SITE_CONFIG } from '@/constants/brand'
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'

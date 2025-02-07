@@ -12,13 +12,9 @@ export const AxiosClient = class Api {
   baseURL: string
   token: string | undefined
 
-  constructor(request?: Request) {
+  constructor() {
     this.baseURL = `${process.env.API_URL}/datum-os` as string
-
-    console.log(this.baseURL)
-    if (request) {
-      this.setToken(request)
-    }
+    this.token = ''
   }
 
   initializeInstance = () => {

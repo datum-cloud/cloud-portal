@@ -5,7 +5,7 @@ import { LanguageSwitcher } from '@/components/misc/LanguageSwitcher'
 import { ThemeSwitcher } from '@/components/misc/ThemeSwitcher'
 import { useRequestInfo } from '@/hooks/useRequestInfo'
 import { Form, useLoaderData } from 'react-router'
-import { authenticateSession } from '@/modules/middleware/auth-middleware'
+import { authMiddleware } from '@/modules/middleware/auth-middleware'
 import { getCredentials } from '@/modules/auth/auth.server'
 import { Button } from '@/components/ui/button'
 import { LogOut } from 'lucide-react'
@@ -22,7 +22,7 @@ export const meta: MetaFunction = () => {
 export const loader = withMiddleware(async ({ request }) => {
   const credentials = await getCredentials(request)
   return credentials
-}, authenticateSession)
+}, authMiddleware)
 
 export default function Index() {
   const { t } = useTranslation()
