@@ -12,8 +12,8 @@ export const loader = withMiddleware(async ({ request }) => {
   // @TODO: Check if user has already onboarded
 
   // If user access onboard root, redirect to home
-  if (pathname === routes.onboard.root) {
-    return redirect(routes.onboard.project)
+  if (pathname === routes.onboarding.root) {
+    return redirect(routes.onboarding.project)
   }
 
   return {}

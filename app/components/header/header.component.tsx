@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator'
 export const Header = () => {
   return (
     <header className="sticky top-0 z-50 flex items-center border-b bg-card px-4">
-      <div className="mx-auto flex w-full max-w-screen-xl items-center justify-between py-1">
+      <div className="flex w-full items-center justify-between py-1">
         {/* Left Section */}
         <div className="flex items-center justify-start gap-4">
           <Link to={routes.home}>

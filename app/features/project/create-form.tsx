@@ -12,18 +12,12 @@ import { useHydrated } from 'remix-utils/use-hydrated'
 import { useEffect, useMemo, useRef } from 'react'
 import { generateProjectId, generateRandomId, useIsPending } from '@/utils/misc'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
-import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { Input } from '@/components/ui/input'
-import {
-  FormControl,
-  FormDescription,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { Field } from '@/components/field/field.component'
+
 export const CreateProjectForm = () => {
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
@@ -31,6 +25,8 @@ export const CreateProjectForm = () => {
 
   const [form, { name, description }] = useForm({
     constraint: getZodConstraint(newProjectSchema),
+    shouldValidate: 'onBlur',
+    shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: newProjectSchema })
     },
@@ -53,46 +49,27 @@ export const CreateProjectForm = () => {
       </CardHeader>
       <Form method="POST" autoComplete="off" {...getFormProps(form)}>
         <AuthenticityTokenInput />
-        <HoneypotInputs />
 
         <CardContent className="space-y-4">
-          <FormItem>
-            <FormLabel>Organization</FormLabel>
-            <FormControl>
-              <Input
-                disabled
-                readOnly
-                value="My Organization" // Replace with actual org name from your data
-              />
-            </FormControl>
-          </FormItem>
-          <FormItem>
-            <FormLabel>Name</FormLabel>
-            <FormControl>
-              <Input
-                placeholder="e.g. My Project"
-                {...getInputProps(name, { type: 'text' })}
-                ref={inputRef}
-              />
-            </FormControl>
-            {name.value && (
-              <FormDescription>
-                Project ID: {generateProjectId(name.value, randomId)}
-              </FormDescription>
-            )}
-            <FormMessage />
-          </FormItem>
-          <FormItem>
-            <FormLabel>Description</FormLabel>
-            <FormControl>
-              <Input
-                placeholder="e.g. This is a project for my company"
-                {...getInputProps(description, { type: 'text' })}
-              />
-            </FormControl>
-            <FormDescription>What would best describe your project?</FormDescription>
-            <FormMessage />
-          </FormItem>
+          <Field
+            label="Name"
+            description={name.value && generateProjectId(name.value, randomId)}
+            error={name.errors}>
+            <Input
+              placeholder="e.g. My Project"
+              {...getInputProps(name, { type: 'text' })}
+              ref={inputRef}
+            />
+          </Field>
+          <Field
+            label="Description"
+            description="What would best describe your project?"
+            error={description.errors}>
+            <Input
+              placeholder="e.g. This is a project for my company"
+              {...getInputProps(description, { type: 'text' })}
+            />
+          </Field>
         </CardContent>
         <CardFooter className="flex justify-end">
           <Button variant="default" type="submit" disabled={isPending}>
