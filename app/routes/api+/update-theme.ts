@@ -3,7 +3,7 @@ import { redirect } from 'react-router'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 import { ThemeSchema, setTheme } from '@/hooks/useTheme'
 
-export const ROUTE_PATH = '/resources/update-theme' as const
+export const ROUTE_PATH = '/api/update-theme' as const
 
 export async function action({ request }: ActionFunctionArgs) {
   const formData = Object.fromEntries(await request.formData())

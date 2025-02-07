@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { GoogleIcon, GithubIcon } from '@/components/icons'
 import { Form, useNavigation, ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
-import { authenticator, getCredentials } from '@/modules/auth/auth.server'
+import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -18,7 +18,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  return getCredentials(request, routes.home)
+  return isAuthenticated(request, routes.home)
 }
 
 export default function Login() {

@@ -56,10 +56,10 @@ async function handleOAuthFlow(
       userId: decoded.user_id,
       userEntityId: decoded.user_entity_id,
       accessToken: data.access_token,
+      defaultOrgId: decoded.org,
     }
   } catch (error) {
-    console.log(error)
-    throw new Error('Failed to register oauth')
+    throw new Error(error instanceof Error ? error.message : 'Failed to register oauth')
   }
 }
 
@@ -116,15 +116,15 @@ authenticator
     'github',
   )
 
-export async function getCredentials(
+export async function isAuthenticated(
   request: Request,
   redirectTo?: string,
   noAuthRedirect?: boolean,
 ) {
   const session = await getSession(request.headers.get('cookie'))
-  const credentials = session.get('credentials')
+  const accessToken = session.get('accessToken')
 
-  if (!credentials) {
+  if (!accessToken) {
     if (noAuthRedirect) {
       return redirect(routes.auth.signIn, {
         headers: {
@@ -144,5 +144,5 @@ export async function getCredentials(
     })
   }
 
-  return credentials
+  return true
 }

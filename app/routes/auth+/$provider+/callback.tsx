@@ -2,11 +2,15 @@ import { authenticator } from '@/modules/auth/auth.server'
 import { LoaderFunctionArgs, redirect } from 'react-router'
 import { routes } from '@/constants/routes'
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
+import { authApi } from '@/resources/api/auth'
+import { combineHeaders } from '@/utils/misc.server'
+import { createToastHeaders } from '@/utils/toast.server'
+
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
     const session = await getSession(request.headers.get('Cookie'))
     // check if the user is already authenticated
-    const credsSession = session.get('credentials')
+    const credsSession = session.get('userId')
     if (credsSession) {
       throw redirect(routes.home, {
         headers: {
@@ -23,12 +27,24 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       throw new Error('Authentication failed')
     }
 
-    session.set('credentials', credentials)
+    // Get Control Plane Token from Exchange Token
+    const exchangeToken = await authApi.getExchangeToken(credentials.accessToken)
+
+    session.set('accessToken', credentials.accessToken)
+    session.set('controlPlaneToken', exchangeToken.access_token)
+    session.set('userId', credentials.userId)
+    session.set('defaultOrgId', credentials.defaultOrgId)
 
     return redirect(routes.home, {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
+      headers: combineHeaders(
+        {
+          'Set-Cookie': await commitSession(session),
+        },
+        await createToastHeaders({
+          title: 'Welcome back!',
+          description: 'You have successfully signed in.',
+        }),
+      ),
     })
   } catch (error) {
     if (error instanceof Error) {

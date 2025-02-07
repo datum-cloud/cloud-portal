@@ -8,11 +8,11 @@ const logoStyles = tv({
   },
   variants: {
     theme: {
-      light: {
+      dark: {
         icon: 'fill-white',
         text: 'fill-white',
       },
-      dark: {
+      light: {
         icon: 'fill-[#F27A67]',
         text: 'fill-[#312847]',
       },
@@ -27,7 +27,7 @@ interface LogoProps extends LogoVariants {
   asIcon?: boolean
 }
 
-export const Logo = ({ theme = 'dark', width = 385, asIcon = true }: LogoProps) => {
+export const Logo = ({ theme = 'light', width = 385, asIcon = true }: LogoProps) => {
   const { base, icon, text } = logoStyles({ theme })
 
   return (

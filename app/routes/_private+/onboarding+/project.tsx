@@ -1,6 +1,6 @@
 import { CreateProjectForm } from '@/features/project/create-form'
 import { ActionFunctionArgs, data } from 'react-router'
-import { getCredentials } from '@/modules/auth/auth.server'
+import { isAuthenticated } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
 import { validateCSRF } from '@/utils/csrf.server'
 import { newProjectSchema } from '@/resources/schemas/project.schema'
@@ -8,7 +8,7 @@ import { createToastHeaders } from '@/utils/toast.server'
 
 export async function action({ request }: ActionFunctionArgs) {
   // User Session
-  await getCredentials(request, routes.home, true)
+  await isAuthenticated(request, routes.home, true)
 
   // Validate CSRF token
   const clonedRequest = request.clone()

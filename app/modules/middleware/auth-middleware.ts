@@ -1,5 +1,5 @@
 import { redirect } from 'react-router'
-import { getCredentials } from '@/modules/auth/auth.server'
+import { isAuthenticated } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
 import { NextFunction } from './middleware'
@@ -8,9 +8,9 @@ export async function authMiddleware(
   request: Request,
   next: NextFunction,
 ): Promise<Response> {
-  const credentials = await getCredentials(request)
+  const creds = await isAuthenticated(request)
 
-  if (!credentials) {
+  if (!creds) {
     const session = await getSession(request.headers.get('Cookie'))
     const url = new URL(request.url)
     return redirect(

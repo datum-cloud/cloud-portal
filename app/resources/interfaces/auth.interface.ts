@@ -18,6 +18,12 @@ export interface IAuthTokenResponse {
 export interface IAuthSession {
   userId: string
   accessToken: string
-  refreshToken?: string
   userEntityId: string
+  defaultOrgId: string
+}
+
+export interface IExchangeTokenResponse {
+  success: boolean
+  access_token: string
+  token_type: string
 }

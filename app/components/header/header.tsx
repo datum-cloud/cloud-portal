@@ -1,23 +1,31 @@
 import { Link } from 'react-router'
 import { routes } from '@/constants/routes'
-import { Logo } from '@/components/logo/logo.component'
+import { Logo } from '@/components/logo/logo'
 
-import { UserDropdown } from '@/components/header/user-dropdown.component'
+import { UserDropdown } from '@/components/header/user-dropdown'
 import { Button } from '@/components/ui/button'
-import { ProjectSwitcher } from './project-switcher.component'
+import { ProjectSwitcher } from './project-switcher'
 import { HelpCircleIcon, InboxIcon } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Separator } from '@/components/ui/separator'
-export const Header = () => {
+import { useTheme } from '@/hooks/useTheme'
+
+export const Header = ({
+  hideProjectSwitcher = true,
+}: {
+  hideProjectSwitcher?: boolean
+}) => {
+  const theme = useTheme()
+
   return (
     <header className="sticky top-0 z-50 flex items-center border-b bg-card px-4">
       <div className="flex w-full items-center justify-between py-1">
         {/* Left Section */}
         <div className="flex items-center justify-start gap-4">
           <Link to={routes.home}>
-            <Logo asIcon={false} width={100} />
+            <Logo asIcon={false} width={100} theme={theme} />
           </Link>
-          <ProjectSwitcher />
+          {!hideProjectSwitcher && <ProjectSwitcher />}
         </div>
 
         {/* Right Section */}

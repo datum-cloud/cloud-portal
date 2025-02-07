@@ -3,22 +3,26 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { Outlet, useLoaderData, redirect } from 'react-router'
 import { routes } from '@/constants/routes'
 import { AxiosError } from 'axios'
-import { profileGql } from '@/resources/gql/profile.gql'
-import { getCredentials } from '@/modules/auth/auth.server'
-
+import { userGql } from '@/resources/gql/user.gql'
+import { getSession } from '@/modules/auth/auth-session.server'
+import { organizationGql } from '@/resources/gql/organization.gql'
+import { UserModel } from '@/resources/gql/models/user.model'
+import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { AppProvider } from '@/providers/app.provider'
 export const loader = withMiddleware(async ({ request }) => {
   try {
-    const credentials = await getCredentials(request)
-    /* 
-    - Update user info based on the access token
-    - If the access token is expired or invalid, redirect to the sign-in page
-    - If the access token is valid, update the user info 
-    */
+    const session = await getSession(request.headers.get('Cookie'))
+    const userId = session.get('userId')
+    const defaultOrgId = session.get('defaultOrgId')
 
-    await profileGql.setToken(request)
-    const user = await profileGql.getUserProfile(credentials.userId)
+    // Get user info
+    const user: UserModel = await userGql.getUserProfile(userId, request)
+    const org: OrganizationModel = await organizationGql.getOrganizationDetail(
+      defaultOrgId,
+      request,
+    )
 
-    return user
+    return { user, org }
   } catch (error) {
     // TODO: implement best practices for error handle
     if (
@@ -34,11 +38,11 @@ export const loader = withMiddleware(async ({ request }) => {
 }, authMiddleware)
 
 export default function PrivateLayout() {
-  const user = useLoaderData<typeof loader>()
-  console.log(user)
+  const { user, org } = useLoaderData<typeof loader>()
+
   return (
-    <div>
+    <AppProvider initialUser={user} initialOrganization={org}>
       <Outlet />
-    </div>
+    </AppProvider>
   )
 }

@@ -16,16 +16,17 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { Field } from '@/components/field/field.component'
-
+import { Field } from '@/components/field/field'
+import { useApp } from '@/providers/app.provider'
 export const CreateProjectForm = () => {
+  const { organization } = useApp()
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
   const isPending = useIsPending()
 
   const [form, { name, description }] = useForm({
     constraint: getZodConstraint(newProjectSchema),
-    shouldValidate: 'onBlur',
+    shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: newProjectSchema })
@@ -51,6 +52,14 @@ export const CreateProjectForm = () => {
         <AuthenticityTokenInput />
 
         <CardContent className="space-y-4">
+          <Field label="Organization">
+            <Input
+              placeholder="e.g. My Organization"
+              disabled
+              value={organization?.name}
+              readOnly
+            />
+          </Field>
           <Field
             label="Name"
             description={name.value && generateProjectId(name.value, randomId)}

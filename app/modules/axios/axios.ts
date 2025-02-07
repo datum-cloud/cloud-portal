@@ -30,8 +30,6 @@ export const AxiosClient = class Api {
         return config
       },
       (error) => {
-        console.log(error)
-
         return Promise.reject(error)
       },
     )
@@ -41,7 +39,7 @@ export const AxiosClient = class Api {
 
   async setToken(request: Request) {
     const session = await getSession(request.headers.get('Cookie'))
-    const token = session.get('credentials')?.accessToken
+    const token = session.get('accessToken')
     this.token = token
   }
 

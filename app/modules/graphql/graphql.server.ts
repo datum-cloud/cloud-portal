@@ -14,8 +14,6 @@ export const GraphqlClient = class gqlClient {
   initializeInstance = () => {
     const baseURL = this.baseURL
 
-    console.log(baseURL)
-
     let headers = {}
 
     if (this.token) {
@@ -33,7 +31,7 @@ export const GraphqlClient = class gqlClient {
 
   async setToken(request: Request) {
     const session = await getSession(request.headers.get('Cookie'))
-    const token = session.get('credentials')?.accessToken
+    const token = session.get('accessToken')
     this.token = token
   }
 

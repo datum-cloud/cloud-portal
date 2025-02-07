@@ -1,6 +1,7 @@
 import {
   IAuthTokenPayload,
   IAuthTokenResponse,
+  IExchangeTokenResponse,
 } from '@/resources/interfaces/auth.interface'
 import { IUserProfile } from '@/resources/interfaces/user.interface'
 import { AxiosClient } from '@/modules/axios/axios'
@@ -12,8 +13,16 @@ export class AuthApi extends AxiosClient {
   }
 
   async getUserInfo(request: Request): Promise<IUserProfile> {
-    await this.setToken(request)
+    if (request) {
+      await this.setToken(request)
+    }
     const { data } = await this.authClient('/oauth/userinfo', 'GET')
+    return data
+  }
+
+  async getExchangeToken(accessToken: string): Promise<IExchangeTokenResponse> {
+    this.token = accessToken
+    const { data } = await this.authClient('/oauth/token/exchange', 'GET')
     return data
   }
 }
