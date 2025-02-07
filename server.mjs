@@ -147,6 +147,9 @@ const strongRateLimit = rateLimit({
   max: 100 * MAX_LIMIT_MULTIPLE,
 })
 
+// We'll use a single proxy to expose the portal
+app.set('trust proxy', 1)
+
 /**
  * General rate limit - 1000 requests per minute
  */
