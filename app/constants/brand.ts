@@ -5,11 +5,9 @@
 export const SITE_CONFIG = {
   siteTitle: 'Cloud Portal - Datum',
   siteDescription:
-    'A Lightweight, Production-Ready Remix Stack for your next SaaS Application.',
+    'Run network workloads anywhere and programmatically connect to your unique ecosystem.',
   siteUrl: 'https://cloud.datum.net/',
-  siteImage: '/images/og-image.png',
+  siteImage: '/images/logo.svg',
   favicon: '/favicon.ico',
-  twitterHandle: '@remix_saas',
-  email: 'hello@remix-saas.run',
   address: '',
 }
