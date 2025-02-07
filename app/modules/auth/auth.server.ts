@@ -1,24 +1,14 @@
 import { Authenticator } from 'remix-auth'
-import {
-  IGoogleProfile,
-  IUser,
-  IGithubProfile,
-} from '@/resources/interfaces/user.interface'
+import { IGoogleProfile, IGithubProfile } from '@/resources/interfaces/user.interface'
 import { OAuth2Strategy } from 'remix-auth-oauth2'
-import { getUserInfo, postRegisterOauth } from '@/resources/api/auth'
-import { jwtDecode } from 'jwt-decode'
 import { routes } from '@/constants/routes'
 import { getSession, commitSession } from './auth-session.server'
-import { redirect } from '@remix-run/node'
+import { redirect } from 'react-router'
 import { GitHubStrategy } from 'remix-auth-github'
+import { IAuthSession } from '@/resources/interfaces/auth.interface'
+import { authApi } from '@/resources/api/auth'
 
-export const authenticator = new Authenticator<IUser>()
-
-interface DecodedToken {
-  org: string
-  user_id: string
-  user_entity_id: string
-}
+export const authenticator = new Authenticator<IAuthSession>()
 
 async function fetchOauthProfile<T>(url: string, accessToken: string): Promise<T> {
   const response = await fetch(url, {
@@ -42,37 +32,30 @@ async function handleOAuthFlow(
   authProvider: 'google' | 'github',
   profile: IGoogleProfile | IGithubProfile,
 ) {
-  const payload = {
-    externalUserId: 'id' in profile ? String(profile.id) : profile.sub,
-    email: profile.email,
-    name: profile.name,
-    image: 'picture' in profile ? profile.picture : profile.avatar_url,
-    authProvider,
-    clientToken: accessToken,
-  }
+  try {
+    const payload = {
+      externalUserId: 'id' in profile ? String(profile.id) : profile.sub,
+      email: profile.email,
+      name: profile.name,
+      image: 'picture' in profile ? profile.picture : profile.avatar_url,
+      authProvider,
+      clientToken: accessToken,
+    }
 
-  const data = await postRegisterOauth(payload)
-  if (!data.success) {
+    const data = await authApi.postRegisterOauth(payload)
+    if (!data.success) {
+      throw new Error('Failed to register oauth')
+    }
+
+    // const userInfo = await getUserInfo(data.access_token)
+    // const decoded = jwtDecode<DecodedToken>(data.access_token)
+
+    return {
+      accessToken: data.access_token,
+    }
+  } catch (error) {
+    console.log(error)
     throw new Error('Failed to register oauth')
-  }
-
-  const userInfo = await getUserInfo(data.access_token)
-  const decoded = jwtDecode<DecodedToken>(data.access_token)
-
-  return {
-    id: userInfo.id,
-    email: userInfo.email,
-    fullName: `${userInfo.first_name} ${userInfo.last_name}`,
-    firstName: userInfo.first_name,
-    lastName: userInfo.last_name,
-    avatar: userInfo.avatar_remote_url,
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token,
-    internal: userInfo.internal,
-    sub: userInfo.sub,
-    userId: decoded.user_id,
-    userEntityId: decoded.user_entity_id,
-    organization: decoded.org,
   }
 }
 
@@ -129,15 +112,15 @@ authenticator
     'github',
   )
 
-export async function getUserSession(
+export async function getCredentials(
   request: Request,
   redirectTo?: string,
   noAuthRedirect?: boolean,
 ) {
   const session = await getSession(request.headers.get('cookie'))
-  const user = session.get('user')
+  const credentials = session.get('credentials')
 
-  if (!user) {
+  if (!credentials) {
     if (noAuthRedirect) {
       return redirect(routes.auth.signIn, {
         headers: {
@@ -157,5 +140,5 @@ export async function getUserSession(
     })
   }
 
-  return user
+  return credentials
 }

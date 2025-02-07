@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react'
+import { Link } from 'react-router';
 import { routes } from '@/constants/routes'
 import { Logo } from '@/components/logo/logo.component'
 

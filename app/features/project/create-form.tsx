@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { newProjectSchema } from '@/resources/schemas/project.schema'
-import { Form } from '@remix-run/react'
+import { Form } from 'react-router';
 import { useHydrated } from 'remix-utils/use-hydrated'
 import { useEffect, useMemo, useRef } from 'react'
 import { generateProjectId, generateRandomId, useIsPending } from '@/utils/misc'

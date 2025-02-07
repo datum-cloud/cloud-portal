@@ -1,15 +1,16 @@
-import { redirect } from '@remix-run/node'
-import { getUserSession } from '@/modules/auth/auth.server'
+import { redirect } from 'react-router';
+import { getCredentials } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
 import { NextFunction } from './middleware'
+
 export async function authenticateSession(
   request: Request,
   next: NextFunction,
 ): Promise<Response> {
-  const user = await getUserSession(request)
+  const credentials = await getCredentials(request)
 
-  if (!user) {
+  if (!credentials) {
     const session = await getSession(request.headers.get('Cookie'))
     const url = new URL(request.url)
     return redirect(

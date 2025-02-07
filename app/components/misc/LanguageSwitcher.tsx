@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from '@remix-run/react'
+import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next'
 import { Languages } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'

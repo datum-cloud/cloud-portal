@@ -1,9 +1,9 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { GoogleIcon, GithubIcon } from '@/components/icons'
-import { Form, useNavigation } from '@remix-run/react'
-import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node'
-import { authenticator, getUserSession } from '@/modules/auth/auth.server'
+import { Form, useNavigation } from 'react-router';
+import { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { authenticator, getCredentials } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
 export async function action({ request }: ActionFunctionArgs) {
   try {
@@ -18,7 +18,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  return getUserSession(request, routes.home)
+  return getCredentials(request, routes.home)
 }
 
 export default function Login() {

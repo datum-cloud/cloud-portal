@@ -1,23 +1,20 @@
-import { api } from '@/modules/api/api'
 import {
   IAuthTokenPayload,
   IAuthTokenResponse,
 } from '@/resources/interfaces/auth.interface'
 import { IUserProfile } from '@/resources/interfaces/user.interface'
-async function postRegisterOauth(payload: IAuthTokenPayload) {
-  const { data } = await api.post<IAuthTokenResponse>('/oauth/register', payload)
+import { AxiosClient } from '@/modules/axios/axios'
 
-  return data
+export class AuthApi extends AxiosClient {
+  async postRegisterOauth(payload: IAuthTokenPayload): Promise<IAuthTokenResponse> {
+    const { data } = await this.publicRequest('/oauth/register', 'POST', payload)
+    return data
+  }
+
+  async getUserInfo(): Promise<IUserProfile> {
+    const { data } = await this.authClient('/oauth/userinfo', 'GET')
+    return data
+  }
 }
 
-async function getUserInfo(token: string) {
-  const { data } = await api.get<IUserProfile>('/oauth/userinfo', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
-
-  return data
-}
-
-export { postRegisterOauth, getUserInfo }
+export const authApi = new AuthApi()

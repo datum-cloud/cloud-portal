@@ -1,13 +1,13 @@
 import { authenticator } from '@/modules/auth/auth.server'
-import { LoaderFunctionArgs, redirect } from '@remix-run/node'
+import { LoaderFunctionArgs, redirect } from 'react-router';
 import { routes } from '@/constants/routes'
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
     const session = await getSession(request.headers.get('Cookie'))
     // check if the user is already authenticated
-    const userSession = session.get('user')
-    if (userSession) {
+    const credsSession = session.get('credentials')
+    if (credsSession) {
       throw redirect(routes.home, {
         headers: {
           'Set-Cookie': await commitSession(session),
@@ -17,13 +17,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     if (typeof params.provider !== 'string') throw new Error('Invalid provider.')
 
-    const user = await authenticator.authenticate(params.provider, request)
+    const credentials = await authenticator.authenticate(params.provider, request)
 
-    if (!user) {
+    if (!credentials) {
       throw new Error('Authentication failed')
     }
 
-    session.set('user', user)
+    session.set('credentials', credentials)
 
     return redirect(routes.home, {
       headers: {

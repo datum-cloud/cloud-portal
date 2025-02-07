@@ -1,4 +1,4 @@
-import { Outlet, redirect } from '@remix-run/react'
+import { Outlet, redirect } from 'react-router';
 import { Header } from '@/components/header/header.component'
 import { routes } from '@/constants/routes'
 
@@ -9,7 +9,7 @@ import { getDomainPathname } from '@/utils/misc.server'
 export const loader = withMiddleware(async ({ request }) => {
   const pathname = getDomainPathname(request)
 
-  // @TODO: Check if user has already onboarded
+  // TODO: Check if user has already onboarded
 
   // If user access onboard root, redirect to home
   if (pathname === routes.onboarding.root) {

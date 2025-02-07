@@ -5,6 +5,7 @@ const schema = z.object({
   SESSION_SECRET: z.string().optional(),
   APP_URL: z.string().optional(),
   API_URL: z.string().optional(),
+  GRAPHQL_URL: z.string().optional(),
   // Auth providers
   // Github
   AUTH_GITHUB_ID: z.string().optional(),
@@ -40,6 +41,7 @@ export function getSharedEnvs() {
   return {
     APP_URL: process.env.APP_URL,
     API_URL: process.env.API_URL,
+    GRAPHQL_URL: process.env.GRAPHQL_URL,
   }
 }
 

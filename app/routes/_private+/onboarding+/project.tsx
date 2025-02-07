@@ -1,15 +1,15 @@
 import { CreateProjectForm } from '@/features/project/create-form'
-import { ActionFunctionArgs } from '@remix-run/node'
-import { getUserSession } from '@/modules/auth/auth.server'
+import { ActionFunctionArgs } from 'react-router';
+import { getCredentials } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
 import { validateCSRF } from '@/utils/csrf.server'
 import { newProjectSchema } from '@/resources/schemas/project.schema'
-import { data } from '@remix-run/react'
+import { data } from 'react-router';
 import { createToastHeaders } from '@/utils/toast.server'
 
 export async function action({ request }: ActionFunctionArgs) {
   // User Session
-  await getUserSession(request, routes.home, true)
+  await getCredentials(request, routes.home, true)
 
   // Validate CSRF token
   const clonedRequest = request.clone()

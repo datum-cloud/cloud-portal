@@ -1,4 +1,4 @@
-import { ActionFunction, json, LoaderFunction, LoaderFunctionArgs } from '@remix-run/node'
+import { ActionFunction, data, LoaderFunction, LoaderFunctionArgs } from 'react-router'
 
 export type NextFunction = () => Promise<Response>
 
@@ -47,9 +47,9 @@ export function withMiddleware(
   return async ({ request, ...rest }: LoaderFunctionArgs) => {
     const next = async () => {
       const result = await handler({ request, ...rest })
-      return result instanceof Response ? result : json(result)
+      return result
     }
 
-    return createMiddleware(...middleware)(request, next)
+    return createMiddleware(...middleware)(request, next as NextFunction)
   }
 }

@@ -1,13 +1,12 @@
-import type { MetaFunction } from '@remix-run/node'
+import type { MetaFunction } from 'react-router'
 import { SITE_CONFIG } from '@/constants/brand'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '@/components/misc/LanguageSwitcher'
 import { ThemeSwitcher } from '@/components/misc/ThemeSwitcher'
 import { useRequestInfo } from '@/hooks/useRequestInfo'
-import { Form, useLoaderData } from '@remix-run/react'
+import { Form, useLoaderData } from 'react-router'
 import { authenticateSession } from '@/modules/middleware/auth-middleware'
-import { getUserSession } from '@/modules/auth/auth.server'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getCredentials } from '@/modules/auth/auth.server'
 import { Button } from '@/components/ui/button'
 import { LogOut } from 'lucide-react'
 import { routes } from '@/constants/routes'
@@ -21,13 +20,13 @@ export const meta: MetaFunction = () => {
 }
 
 export const loader = withMiddleware(async ({ request }) => {
-  const user = await getUserSession(request)
-  return user
+  const credentials = await getCredentials(request)
+  return credentials
 }, authenticateSession)
 
 export default function Index() {
   const { t } = useTranslation()
-  const user = useLoaderData<typeof loader>()
+  const credentials = useLoaderData<typeof loader>()
 
   const requestInfo = useRequestInfo()
 
@@ -45,21 +44,9 @@ export default function Index() {
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-300">{t('description')}</p>
         <p className="text-lg text-gray-600 dark:text-gray-300">{t('description2')}</p>
-        <p className="text-lg text-gray-600 dark:text-gray-300">{JSON.stringify(user)}</p>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Avatar className="size-10">
-          <AvatarImage src={user?.avatar} />
-          <AvatarFallback>{user?.email.charAt(0).toUpperCase()}</AvatarFallback>
-        </Avatar>
-
-        <div className="flex flex-col">
-          <p className="text-lg">{user?.fullName}</p>
-          <p className="text-sm text-gray-600 dark:text-gray-300">{user?.email}</p>
-        </div>
-      </div>
-
+      {JSON.stringify(credentials)}
       {/* GitHub Button */}
       <Form method="POST" action={routes.auth.signOut}>
         <Button variant="destructive">

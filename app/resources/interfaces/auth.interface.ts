@@ -14,3 +14,8 @@ export interface IAuthTokenResponse {
   session: string
   token_type: string
 }
+
+export interface IAuthSession {
+  accessToken: string
+  refreshToken?: string
+}

@@ -7,8 +7,8 @@ import {
   ScrollRestoration,
   data,
   useLoaderData,
-} from '@remix-run/react'
-import type { LinksFunction, LoaderFunctionArgs, TypedResponse } from '@remix-run/node'
+} from 'react-router'
+import type { LinksFunction, LoaderFunctionArgs } from 'react-router'
 import { useChangeLanguage } from 'remix-i18next/react'
 
 import { AuthenticityTokenProvider } from 'remix-utils/csrf/react'
@@ -29,7 +29,6 @@ import { useNonce } from '@/hooks/useNonce'
 import { useToast } from '@/hooks/useToast'
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
 import { TooltipProvider } from '@/components/ui/tooltip'
-
 export const handle = { i18n: ['translation'] }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -48,13 +47,9 @@ export const links: LinksFunction = () => {
   return [{ rel: 'stylesheet', href: RootCSS }]
 }
 
-export type LoaderData = Exclude<
-  Awaited<ReturnType<typeof loader>>,
-  Response | TypedResponse<unknown>
->
-
 export async function loader({ request }: LoaderFunctionArgs) {
-  const user = null
+  // const session = await getSession(request.headers.get('Cookie'))
+  // const user = session.get('user')
 
   const locale = await i18nServer.getLocale(request)
   const { toast, headers: toastHeaders } = await getToastSession(request)
@@ -62,7 +57,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   return data(
     {
-      user,
+      // user,
       locale,
       toast,
       csrfToken,
