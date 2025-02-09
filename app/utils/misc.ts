@@ -26,6 +26,19 @@ export function useIsPending({
   )
 }
 
+export function getInitials(name: string): string {
+  if (!name) return ''
+
+  // Split on whitespace and get first letter of each part
+  const parts = name.trim().split(/\s+/)
+  const initials = parts
+    .map((part) => part.charAt(0).toUpperCase())
+    .slice(0, 2) // Take max 2 initials
+    .join('')
+
+  return initials
+}
+
 export function generateProjectId(name: string, suffix?: string): string {
   const randomSuffix = suffix ?? Math.random().toString(36).substring(2, 8)
   const baseId = name

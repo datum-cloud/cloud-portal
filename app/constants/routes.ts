@@ -7,6 +7,27 @@ export const routes = {
     google: '/auth/google',
     github: '/auth/github',
   },
+  org: {
+    root: '/dashboard',
+    askAi: '/ask-ai',
+    docs: '/docs',
+    settings: {
+      root: '/settings',
+      general: '/settings/general',
+      members: '/settings/members',
+      billing: '/settings/billing',
+    },
+    account: {
+      root: '/account',
+      profile: '/account/profile',
+    },
+  },
+  projects: {
+    root: '/projects',
+    new: '/projects/new',
+    detail: (id: string) => `/projects/${id}`,
+    locations: (id: string) => `/projects/${id}/locations`,
+  },
   onboarding: {
     root: '/onboarding',
     project: '/onboarding/project',

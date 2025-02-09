@@ -1,10 +1,10 @@
 import { CreateProjectForm } from '@/features/project/create-form'
-import { ActionFunctionArgs, data } from 'react-router'
-import { isAuthenticated } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
+import { data, ActionFunctionArgs } from 'react-router'
+import { isAuthenticated } from '@/modules/auth/auth.server'
 import { validateCSRF } from '@/utils/csrf.server'
 import { newProjectSchema } from '@/resources/schemas/project.schema'
-import { createToastHeaders } from '@/utils/toast.server'
+import { createToastHeaders, redirectWithToast } from '@/utils/toast.server'
 
 export async function action({ request }: ActionFunctionArgs) {
   // User Session
@@ -21,19 +21,15 @@ export async function action({ request }: ActionFunctionArgs) {
     const entries = Object.fromEntries(formData)
     const validated = newProjectSchema.parse(entries)
 
-    // Process the validated data
+    // TODO: Process the validated data
     // e.g., save to database, send email, etc.
 
-    return data(
-      { success: true, validated },
-      {
-        status: 200,
-        headers: await createToastHeaders({
-          title: 'Success!',
-          description: 'Project created successfully.',
-        }),
-      },
-    )
+    console.log(validated)
+
+    return redirectWithToast(routes.projects.detail('my-project-123'), {
+      title: 'Project created successfully!',
+      description: 'You have successfully created a project.',
+    })
   } catch (error) {
     if (error instanceof Error) {
       return data(
@@ -60,6 +56,12 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
-export default function OnboardProject() {
-  return <CreateProjectForm />
+export default function NewProject() {
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <div className="flex w-full max-w-2xl flex-col items-center gap-4">
+        <CreateProjectForm />
+      </div>
+    </div>
+  )
 }

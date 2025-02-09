@@ -10,15 +10,18 @@ import { newProjectSchema } from '@/resources/schemas/project.schema'
 import { Form } from 'react-router'
 import { useHydrated } from 'remix-utils/use-hydrated'
 import { useEffect, useMemo, useRef } from 'react'
-import { generateProjectId, generateRandomId, useIsPending } from '@/utils/misc'
+import { generateProjectId, generateRandomId, useIsPending, cn } from '@/utils/misc'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { Field } from '@/components/field/field'
 import { useApp } from '@/providers/app.provider'
-export const CreateProjectForm = () => {
+import { SelectOrganization } from '@/components/select-organization/select-organization'
+import { RocketIcon } from 'lucide-react'
+
+export const CreateProjectForm = ({ className }: { className?: string }) => {
   const { organization } = useApp()
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
@@ -40,8 +43,10 @@ export const CreateProjectForm = () => {
 
   const randomId = useMemo(() => generateRandomId(), [])
 
+  const nameControl = useInputControl(name)
+
   return (
-    <Card>
+    <Card className={cn('w-full', className)}>
       <CardHeader>
         <CardTitle className="text-xl leading-none">Create a new project</CardTitle>
         <CardDescription>
@@ -52,37 +57,45 @@ export const CreateProjectForm = () => {
         <AuthenticityTokenInput />
 
         <CardContent className="space-y-4">
-          <Field label="Organization">
+          <Field label="Choose organization">
+            {/* TODO: Add handle for organization switcher. 
+            set the selected organization to the form data */}
+            <SelectOrganization currentOrg={organization!} onSelect={() => {}} />
+          </Field>
+          <Field
+            label="Description"
+            description="A short description for your project that can be changed at any time."
+            errors={description.errors}>
             <Input
-              placeholder="e.g. My Organization"
-              disabled
-              value={organization?.name}
-              readOnly
+              placeholder="e.g. My Project"
+              ref={inputRef}
+              onBlur={(e) => {
+                if (e.target.value && !nameControl.value) {
+                  nameControl.change(generateProjectId(e.target.value, randomId))
+                }
+              }}
+              {...getInputProps(description, { type: 'text' })}
             />
           </Field>
           <Field
             label="Name"
-            description={name.value && generateProjectId(name.value, randomId)}
-            error={name.errors}>
+            description="A globally unique stable identifier for your project. This cannot be changed once the project is created."
+            errors={name.errors}>
             <Input
-              placeholder="e.g. My Project"
+              placeholder="e.g. my-project-343j33"
               {...getInputProps(name, { type: 'text' })}
-              ref={inputRef}
-            />
-          </Field>
-          <Field
-            label="Description"
-            description="What would best describe your project?"
-            error={description.errors}>
-            <Input
-              placeholder="e.g. This is a project for my company"
-              {...getInputProps(description, { type: 'text' })}
             />
           </Field>
         </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button variant="default" type="submit" disabled={isPending}>
-            Create new project
+        <CardFooter className="">
+          <Button
+            variant="default"
+            type="submit"
+            disabled={isPending}
+            isLoading={isPending}
+            className="w-full">
+            Create project
+            <RocketIcon className="size-4" />
           </Button>
         </CardFooter>
       </Form>

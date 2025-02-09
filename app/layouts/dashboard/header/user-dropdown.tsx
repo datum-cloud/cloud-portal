@@ -8,20 +8,42 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown'
 import { Button } from '@/components/ui/button'
-import { ChevronDownIcon, LogOut, Sparkles } from 'lucide-react'
+import { ChevronDownIcon, LogOut, UserIcon, KeyIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useApp } from '@/providers/app.provider'
 import { UserModel } from '@/resources/gql/models/user.model'
 import { OrganizationSwitcher } from './org-switcher'
 import { Form } from 'react-router'
 import { routes } from '@/constants/routes'
+import { getInitials, cn } from '@/utils/misc'
+const UserItem = ({
+  user,
+  description,
+  className,
+}: {
+  user: UserModel
+  description?: string
+  className?: string
+}) => {
+  const fullName = `${user?.firstName} ${user?.lastName}`
 
-const UserAvatar = ({ user }: { user: UserModel }) => {
   return (
-    <Avatar className="size-8 rounded-lg">
-      <AvatarImage src={user?.avatarRemoteURL} alt={user?.displayName} />
-      <AvatarFallback>CN</AvatarFallback>
-    </Avatar>
+    <div
+      className={cn('flex items-center gap-2 px-1 py-1.5 text-left text-sm', className)}>
+      <Avatar className="size-8 rounded-lg">
+        <AvatarImage src={user?.avatarRemoteURL} alt={fullName} />
+        <AvatarFallback>{getInitials(fullName)}</AvatarFallback>
+      </Avatar>
+
+      <div className="grid flex-1 text-left text-sm leading-tight">
+        <span className="truncate font-semibold">
+          {user?.firstName} {user?.lastName}
+        </span>
+        {description && (
+          <span className="truncate text-xs text-muted-foreground">{description}</span>
+        )}
+      </div>
+    </div>
   )
 }
 export const UserDropdown = () => {
@@ -35,18 +57,7 @@ export const UserDropdown = () => {
           variant="ghost"
           size="sm"
           className="h-11 gap-4 p-2 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-primary/5">
-          <div className="flex max-w-52 items-center gap-2">
-            <UserAvatar user={user!} />
-
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">
-                {user?.firstName} {user?.lastName}
-              </span>
-              <span className="truncate text-xs text-muted-foreground">
-                {organization?.name}
-              </span>
-            </div>
-          </div>
+          <UserItem user={user!} description={organization?.name} className="max-w-52" />
           <ChevronDownIcon className="size-4 text-primary/60" />
         </Button>
       </DropdownMenuTrigger>
@@ -55,25 +66,21 @@ export const UserDropdown = () => {
         align="end"
         sideOffset={4}>
         <DropdownMenuLabel className="p-0 font-normal">
-          <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-            <UserAvatar user={user!} />
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">
-                {user?.firstName} {user?.lastName}
-              </span>
-              <span className="truncate text-xs">{user?.email}</span>
-            </div>
-          </div>
+          <UserItem user={user!} description={user?.email} />
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuLabel>User Profile</DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem>
-            <Sparkles />
-            Upgrade to Pro
+            <UserIcon />
+            Edit Profile
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <KeyIcon />
+            API Access
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-
         <OrganizationSwitcher />
         <DropdownMenuSeparator />
         <Form method="POST" action={routes.auth.signOut}>
@@ -81,9 +88,9 @@ export const UserDropdown = () => {
             <Button
               type="submit"
               variant="link"
-              className="flex h-8 w-full justify-start text-left hover:bg-transparent hover:no-underline focus-visible:ring-0 focus-visible:ring-offset-0">
+              className="flex h-8 w-full justify-start text-left hover:bg-transparent hover:no-underline focus:text-destructive focus-visible:ring-0 focus-visible:ring-offset-0">
               <LogOut />
-              Log out
+              Sign out
             </Button>
           </DropdownMenuItem>
         </Form>

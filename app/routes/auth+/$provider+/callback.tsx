@@ -35,7 +35,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     session.set('userId', credentials.userId)
     session.set('defaultOrgId', credentials.defaultOrgId)
 
-    return redirect(routes.home, {
+    // TODO: Check if the organization has a project.
+    // If not, redirect to the project creation page and hide the sidebar.
+    // If yes, redirect to the home page.
+    const hasProject = false
+
+    const redirectPath = hasProject ? routes.home : `${routes.projects.new}?sidebar=false`
+
+    return redirect(redirectPath, {
       headers: combineHeaders(
         {
           'Set-Cookie': await commitSession(session),

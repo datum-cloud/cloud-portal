@@ -9,6 +9,7 @@ import { organizationGql } from '@/resources/gql/organization.gql'
 import { UserModel } from '@/resources/gql/models/user.model'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { AppProvider } from '@/providers/app.provider'
+
 export const loader = withMiddleware(async ({ request }) => {
   try {
     const session = await getSession(request.headers.get('Cookie'))
@@ -37,7 +38,7 @@ export const loader = withMiddleware(async ({ request }) => {
   }
 }, authMiddleware)
 
-export default function PrivateLayout() {
+export default function MainLayout() {
   const { user, org } = useLoaderData<typeof loader>()
 
   return (

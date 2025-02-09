@@ -1,5 +1,5 @@
 import { type VariantProps, tv } from 'tailwind-variants'
-
+import { cn } from '@/utils/misc'
 const logoStyles = tv({
   slots: {
     base: 'block max-w-full max-h-full',
@@ -25,15 +25,21 @@ type LogoVariants = VariantProps<typeof logoStyles>
 interface LogoProps extends LogoVariants {
   width?: number
   asIcon?: boolean
+  className?: string
 }
 
-export const Logo = ({ theme = 'light', width = 385, asIcon = true }: LogoProps) => {
+export const Logo = ({
+  theme = 'light',
+  width = 385,
+  asIcon = true,
+  className,
+}: LogoProps) => {
   const { base, icon, text } = logoStyles({ theme })
 
   return (
     <svg
       width={width}
-      className={base()}
+      className={cn(base(), className)}
       viewBox={asIcon ? '0 0 147 148' : '0 0 555 148'}
       fill="none"
       xmlns="http://www.w3.org/2000/svg">
