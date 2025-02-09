@@ -6,7 +6,7 @@ import { getSession, commitSession } from './auth-session.server'
 import { redirect } from 'react-router'
 import { GitHubStrategy } from 'remix-auth-github'
 import { IAuthSession } from '@/resources/interfaces/auth.interface'
-import { authApi } from '@/resources/api/auth'
+import { authApi } from '@/resources/api/auth.api'
 import { jwtDecode } from 'jwt-decode'
 export const authenticator = new Authenticator<IAuthSession>()
 

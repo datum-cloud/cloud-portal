@@ -6,7 +6,7 @@ export const OrganizationItem = ({
   org,
   className,
 }: {
-  org: OrganizationModel
+  org: Partial<OrganizationModel>
   className?: string
 }) => {
   return (
@@ -14,7 +14,7 @@ export const OrganizationItem = ({
       <Avatar className="size-8 rounded-lg">
         {/* <AvatarImage src={currentOrg?.avatarRemoteURL} alt={currentOrg?.name} /> */}
         <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
-          {getInitials(org?.name)}
+          {getInitials(org?.name ?? '')}
         </AvatarFallback>
       </Avatar>
 

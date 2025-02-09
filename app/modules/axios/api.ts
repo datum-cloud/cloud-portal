@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios'
 import { getSession } from '../auth/auth-session.server'
+import { toast } from 'sonner'
 
 export interface IApiResponse<T> {
   data: T
@@ -8,7 +9,7 @@ export interface IApiResponse<T> {
   status: number
 }
 
-export const AxiosClient = class Api {
+export const APIClient = class Api {
   baseURL: string
   token: string | undefined
 
@@ -54,6 +55,15 @@ export const AxiosClient = class Api {
         return config
       },
       (error) => {
+        // Handle errors and redirect to sign out if unauthorized
+        const statusCode = error.response?.status || 500
+        if (statusCode >= 400 && statusCode < 500) {
+          toast.error('Session Expired', {
+            description: 'Please sign in again to continue.',
+          })
+          window.location.href = '/auth/sign-out'
+          return
+        }
         return Promise.reject(error)
       },
     )

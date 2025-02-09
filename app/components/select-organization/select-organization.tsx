@@ -11,14 +11,14 @@ import {
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { useFetcher } from 'react-router'
 import { useEffect } from 'react'
-import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organization+/list'
+import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/list'
 import { OrganizationItem } from './organization-item'
 
 export const SelectOrganization = ({
   currentOrg,
   onSelect,
 }: {
-  currentOrg: OrganizationModel
+  currentOrg: Partial<OrganizationModel>
   onSelect?: (org: OrganizationModel) => void
 }) => {
   const fetcher = useFetcher({ key: 'org-list' })

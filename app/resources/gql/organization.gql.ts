@@ -29,6 +29,7 @@ export class OrganizationGql extends GraphqlClient {
     if (request) {
       await this.setToken(request)
     }
+
     const query = typedQuery('GetOrganizationDetail($organizationId: ID!)', {
       [alias('organization', 'organization(id: $organizationId)')]: OrganizationModel,
     })

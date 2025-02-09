@@ -1,14 +1,16 @@
 import { CreateProjectForm } from '@/features/project/create-form'
 import { routes } from '@/constants/routes'
-import { data, ActionFunctionArgs } from 'react-router'
+import { ActionFunctionArgs } from 'react-router'
 import { isAuthenticated } from '@/modules/auth/auth.server'
 import { validateCSRF } from '@/utils/csrf.server'
 import { newProjectSchema } from '@/resources/schemas/project.schema'
-import { createToastHeaders, redirectWithToast } from '@/utils/toast.server'
+import { redirectWithToast } from '@/utils/toast.server'
+import { projectsControl } from '@/resources/control-plane/projects.control'
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 
 export async function action({ request }: ActionFunctionArgs) {
   // User Session
-  await isAuthenticated(request, routes.home, true)
+  await isAuthenticated(request, routes.org.root, true)
 
   // Validate CSRF token
   const clonedRequest = request.clone()
@@ -21,38 +23,20 @@ export async function action({ request }: ActionFunctionArgs) {
     const entries = Object.fromEntries(formData)
     const validated = newProjectSchema.parse(entries)
 
-    // TODO: Process the validated data
-    // e.g., save to database, send email, etc.
+    const project: IProjectControlResponse = await projectsControl.createProject(
+      validated.orgEntityId,
+      validated,
+    )
 
-    console.log(validated)
-
-    return redirectWithToast(routes.projects.detail('my-project-123'), {
+    return redirectWithToast(routes.projects.detail(project.name), {
       title: 'Project created successfully!',
       description: 'You have successfully created a project.',
     })
   } catch (error) {
-    if (error instanceof Error) {
-      return data(
-        { error: error.message },
-        {
-          status: 400,
-          headers: await createToastHeaders({
-            title: 'Error!',
-            description: error.message,
-          }),
-        },
-      )
-    }
-    return data(
-      { error: 'Something went wrong' },
-      {
-        status: 500,
-        headers: await createToastHeaders({
-          title: 'Error!',
-          description: 'Something went wrong',
-        }),
-      },
-    )
+    return redirectWithToast(routes.projects.new, {
+      title: 'Error!',
+      description: error instanceof Error ? error.message : 'Something went wrong',
+    })
   }
 }
 

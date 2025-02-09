@@ -2,10 +2,13 @@ import { authenticator } from '@/modules/auth/auth.server'
 import { LoaderFunctionArgs, redirect } from 'react-router'
 import { routes } from '@/constants/routes'
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
-import { authApi } from '@/resources/api/auth'
+import { authApi } from '@/resources/api/auth.api'
 import { combineHeaders } from '@/utils/misc.server'
 import { createToastHeaders } from '@/utils/toast.server'
-
+import { organizationGql } from '@/resources/gql/organization.gql'
+import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { projectsControl } from '@/resources/control-plane/projects.control'
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
     const session = await getSession(request.headers.get('Cookie'))
@@ -33,15 +36,29 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     session.set('accessToken', credentials.accessToken)
     session.set('controlPlaneToken', exchangeToken.access_token)
     session.set('userId', credentials.userId)
-    session.set('defaultOrgId', credentials.defaultOrgId)
 
-    // TODO: Check if the organization has a project.
+    // Get the default organization id
+    await organizationGql.setToken(request, credentials.accessToken)
+    const org: OrganizationModel = await organizationGql.getOrganizationDetail(
+      credentials.defaultOrgId,
+    )
+    // Set current organization in session
+    session.set('currentOrg', org)
+
+    // Check if the organization has a project.
     // If not, redirect to the project creation page and hide the sidebar.
     // If yes, redirect to the home page.
-    const hasProject = false
+    await projectsControl.setToken(request, exchangeToken.access_token)
+    const projects: IProjectControlResponse[] = await projectsControl.getProjects(
+      org.userEntityID,
+    )
+    const hasProject = projects.length > 0
 
-    const redirectPath = hasProject ? routes.home : `${routes.projects.new}?sidebar=false`
-
+    // Redirect to the home page if the organization has a project.
+    // Otherwise, redirect to the project creation page and hide the sidebar.
+    const redirectPath = hasProject
+      ? routes.org.root
+      : `${routes.projects.new}?sidebar=false`
     return redirect(redirectPath, {
       headers: combineHeaders(
         {

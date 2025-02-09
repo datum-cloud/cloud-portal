@@ -8,9 +8,41 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Link } from 'react-router'
+import { Link, useLoaderData, Await } from 'react-router'
 import { routes } from '@/constants/routes'
+import { projectsControl } from '@/resources/control-plane/projects.control'
+import { authMiddleware } from '@/modules/middleware/auth-middleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
+import { getSession } from '@/modules/auth/auth-session.server'
+import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
+import { redirectWithToast } from '@/utils/toast.server'
+import { Suspense } from 'react'
+export const loader = withMiddleware(async ({ request }) => {
+  try {
+    const session = await getSession(request.headers.get('Cookie'))
+    if (!session) {
+      throw new Error('No session found')
+    }
+
+    const org: OrganizationModel = session.get('currentOrg')
+    if (!org) {
+      throw new Error('No organization found in session')
+    }
+
+    const projects = await projectsControl.getProjects(org.userEntityID, request)
+    return { projects }
+  } catch (error) {
+    redirectWithToast(routes.projects.root, {
+      title: 'Error!',
+      description: error instanceof Error ? error.message : 'Something went wrong',
+    })
+  }
+}, authMiddleware)
+
 export default function OrgProjects() {
+  const { projects } = useLoaderData<typeof loader>()
+
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex w-full max-w-screen-lg flex-col items-center gap-4">
@@ -41,32 +73,32 @@ export default function OrgProjects() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell>My Project</TableCell>
-              <TableCell>my-project-123</TableCell>
-              <TableCell>January 15th, 2025</TableCell>
-              <TableCell className="flex justify-end">
-                <Link to={routes.projects.detail('my-project-123')}>
-                  <Button variant="secondary" size="sm">
-                    <CircleArrowOutUpRightIcon className="size-4" />
-                    Open Project
-                  </Button>
-                </Link>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>My Project</TableCell>
-              <TableCell>my-project-123</TableCell>
-              <TableCell>January 15th, 2025</TableCell>
-              <TableCell className="flex justify-end">
-                <Link to={routes.projects.detail('my-project-123')}>
-                  <Button variant="secondary" size="sm">
-                    <CircleArrowOutUpRightIcon className="size-4" />
-                    Open Project
-                  </Button>
-                </Link>
-              </TableCell>
-            </TableRow>
+            <Suspense
+              fallback={
+                <TableRow>
+                  <TableCell colSpan={4}>Loading...</TableCell>
+                </TableRow>
+              }>
+              <Await resolve={projects}>
+                {(projects) =>
+                  ((projects ?? []) as IProjectControlResponse[]).map((project) => (
+                    <TableRow key={project.name}>
+                      <TableCell>{project.description}</TableCell>
+                      <TableCell>{project.name}</TableCell>
+                      <TableCell>{project.createdAt}</TableCell>
+                      <TableCell className="flex justify-end">
+                        <Link to={routes.projects.detail(project.name)}>
+                          <Button variant="secondary" size="sm">
+                            <CircleArrowOutUpRightIcon className="size-4" />
+                            Open Project
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                }
+              </Await>
+            </Suspense>
           </TableBody>
         </Table>
       </div>

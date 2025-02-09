@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown'
 import { Button } from '@/components/ui/button'
-import { ChevronDownIcon, LogOut, UserIcon, KeyIcon } from 'lucide-react'
+import { LogOut, UserIcon, KeyIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useApp } from '@/providers/app.provider'
 import { UserModel } from '@/resources/gql/models/user.model'
@@ -47,7 +47,7 @@ const UserItem = ({
   )
 }
 export const UserDropdown = () => {
-  const { user, organization } = useApp()
+  const { user } = useApp()
 
   return (
     <DropdownMenu>
@@ -56,13 +56,18 @@ export const UserDropdown = () => {
           type="button"
           variant="ghost"
           size="sm"
-          className="h-11 gap-4 p-2 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-primary/5">
-          <UserItem user={user!} description={organization?.name} className="max-w-52" />
-          <ChevronDownIcon className="size-4 text-primary/60" />
+          className="h-8 p-2 hover:bg-transparent focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-primary/5">
+          <Avatar className="size-8 rounded-full">
+            <AvatarImage src={user?.avatarRemoteURL} alt={user?.displayName} />
+            <AvatarFallback>
+              {getInitials(`${user?.firstName} ${user?.lastName}`)}
+            </AvatarFallback>
+          </Avatar>
+          {/* <ChevronDownIcon className="size-4 text-primary/60" /> */}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+        className="w-[--radix-dropdown-menu-trigger-width] min-w-64 rounded-lg"
         align="end"
         sideOffset={4}>
         <DropdownMenuLabel className="p-0 font-normal">

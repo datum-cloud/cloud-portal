@@ -27,12 +27,15 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
   const isHydrated = useHydrated()
   const isPending = useIsPending()
 
-  const [form, { name, description }] = useForm({
+  const [form, { name, description, orgEntityId }] = useForm({
     constraint: getZodConstraint(newProjectSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: newProjectSchema })
+    },
+    defaultValue: {
+      orgEntityId: organization?.userEntityID,
     },
   })
 
@@ -44,6 +47,7 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
   const randomId = useMemo(() => generateRandomId(), [])
 
   const nameControl = useInputControl(name)
+  const orgEntityIdControl = useInputControl(orgEntityId)
 
   return (
     <Card className={cn('w-full', className)}>
@@ -58,9 +62,12 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
 
         <CardContent className="space-y-4">
           <Field label="Choose organization">
-            {/* TODO: Add handle for organization switcher. 
-            set the selected organization to the form data */}
-            <SelectOrganization currentOrg={organization!} onSelect={() => {}} />
+            <SelectOrganization
+              currentOrg={organization!}
+              onSelect={(org) => {
+                orgEntityIdControl.change(org.userEntityID)
+              }}
+            />
           </Field>
           <Field
             label="Description"

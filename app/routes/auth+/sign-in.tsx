@@ -18,7 +18,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  return isAuthenticated(request, routes.home)
+  return isAuthenticated(request, routes.org.root)
 }
 
 export default function Login() {

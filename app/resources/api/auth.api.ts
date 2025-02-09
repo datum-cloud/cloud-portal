@@ -4,9 +4,9 @@ import {
   IExchangeTokenResponse,
 } from '@/resources/interfaces/auth.interface'
 import { IUserProfile } from '@/resources/interfaces/user.interface'
-import { AxiosClient } from '@/modules/axios/axios'
+import { APIClient } from '@/modules/axios/api'
 
-export class AuthApi extends AxiosClient {
+export class AuthApi extends APIClient {
   async postRegisterOauth(payload: IAuthTokenPayload): Promise<IAuthTokenResponse> {
     const { data } = await this.publicRequest('/oauth/register', 'POST', payload)
     return data

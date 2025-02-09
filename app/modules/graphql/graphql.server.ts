@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { gql, GraphQLClient as GraphQLClientInstance, Variables } from 'graphql-request'
 import { getSession } from '@/modules/auth/auth-session.server'
+import { toast } from 'sonner'
 
 export const GraphqlClient = class gqlClient {
   baseURL: string
@@ -29,10 +30,14 @@ export const GraphqlClient = class gqlClient {
     return instance
   }
 
-  async setToken(request: Request) {
-    const session = await getSession(request.headers.get('Cookie'))
-    const token = session.get('accessToken')
-    this.token = token
+  async setToken(request: Request, token?: string) {
+    if (token) {
+      this.token = token
+    } else {
+      const session = await getSession(request.headers.get('Cookie'))
+      const token = session.get('accessToken')
+      this.token = token
+    }
   }
 
   async request<T = any, V extends Variables = Variables>(
@@ -53,7 +58,29 @@ export const GraphqlClient = class gqlClient {
           resolve(data)
         })
         .catch((error) => {
-          reject(error)
+          // Handle GraphQL errors and convert to standard format
+          const errorMessage = error.response?.errors?.[0]?.message || error.message
+          const statusCode =
+            error.response?.errors?.[0]?.extensions?.code || error.response?.status || 500
+          const prefix = error.response?.errors
+            ? 'GraphQL Error'
+            : error.response?.status
+              ? 'HTTP Error'
+              : 'Error'
+
+          if (statusCode >= 400 && statusCode < 500) {
+            toast.error('Session Expired', {
+              description: 'Please sign in again to continue.',
+            })
+            window.location.href = '/auth/sign-out'
+            return
+          }
+
+          reject(
+            new Error(`${prefix} - status ${statusCode}: ${errorMessage}`, {
+              cause: error,
+            }),
+          )
         })
     })
   }
