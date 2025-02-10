@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/command'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { useFetcher } from 'react-router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/list'
 import { OrganizationItem } from './organization-item'
 
@@ -22,13 +22,14 @@ export const SelectOrganization = ({
   onSelect?: (org: OrganizationModel) => void
 }) => {
   const fetcher = useFetcher({ key: 'org-list' })
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     fetcher.load(ORG_LIST_PATH)
   }, [])
 
   return (
-    <Popover modal={false}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild className="w-full">
         <Button
           variant="outline"
@@ -53,9 +54,14 @@ export const SelectOrganization = ({
               </CommandItem>
             ) : (
               (fetcher.data ?? [])
-                .filter((org: OrganizationModel) => org.id !== currentOrg.id)
+                .filter((org: OrganizationModel) => org.id !== currentOrg?.id)
                 .map((org: OrganizationModel) => (
-                  <CommandItem key={org.id} onSelect={() => onSelect?.(org)}>
+                  <CommandItem
+                    key={org.id}
+                    onSelect={() => {
+                      setOpen(false)
+                      onSelect?.(org)
+                    }}>
                     <OrganizationItem org={org} />
                   </CommandItem>
                 ))

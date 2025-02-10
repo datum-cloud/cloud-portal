@@ -10,12 +10,14 @@ export function DashboardLayout({
   sidebarHeader,
   headerContent,
   sidebarCollapsible = 'offcanvas',
+  homeLink,
 }: {
   children: React.ReactNode
   navItems: NavItem[]
   sidebarHeader?: React.ReactNode
   headerContent?: React.ReactNode
   sidebarCollapsible?: 'offcanvas' | 'icon' | 'none'
+  homeLink?: string
 }) {
   return (
     <SidebarProvider>
@@ -23,6 +25,7 @@ export function DashboardLayout({
         navItems={navItems}
         sidebarHeader={sidebarHeader}
         collapsible={sidebarCollapsible}
+        homeLink={homeLink}
       />
       <SidebarInset>
         <Header content={headerContent} />

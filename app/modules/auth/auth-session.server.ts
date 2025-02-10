@@ -16,20 +16,4 @@ export const authSessionStorage = createCookieSessionStorage({
 
 const { getSession, commitSession, destroySession } = authSessionStorage
 
-const updateSession = async <TData>(
-  request: Request,
-  key: string,
-  newData: TData,
-  replace: boolean = false,
-) => {
-  const session = await getSession(request.headers.get('Cookie'))
-  if (replace) {
-    session.set(key, newData)
-  } else {
-    const existingData = session.get(key)
-    session.set(key, { ...(existingData ?? {}), ...newData })
-  }
-  return commitSession(session)
-}
-
-export { getSession, commitSession, destroySession, updateSession }
+export { getSession, commitSession, destroySession }

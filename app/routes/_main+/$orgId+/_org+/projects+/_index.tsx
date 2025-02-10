@@ -8,33 +8,35 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Link, useLoaderData, Await } from 'react-router'
+import { Link, useLoaderData, Await, useParams } from 'react-router'
 import { routes } from '@/constants/routes'
 import { projectsControl } from '@/resources/control-plane/projects.control'
 import { authMiddleware } from '@/modules/middleware/auth-middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { getSession } from '@/modules/auth/auth-session.server'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { redirectWithToast } from '@/utils/toast.server'
 import { Suspense } from 'react'
 import { DateFormat } from '@/components/date-format/date-format'
-export const loader = withMiddleware(async ({ request }) => {
+import { getPathWithParams } from '@/utils/path'
+
+export const loader = withMiddleware(async ({ request, params }) => {
   try {
     const session = await getSession(request.headers.get('Cookie'))
     if (!session) {
       throw new Error('No session found')
     }
 
-    const org: OrganizationModel = session.get('currentOrg')
-    if (!org) {
-      throw new Error('No organization found in session')
+    const orgEntityID = session.get('currentOrgEntityID')
+
+    if (!orgEntityID) {
+      throw new Error('No organization entity ID found')
     }
 
-    const projects = await projectsControl.getProjects(org.userEntityID, request)
-    return { projects }
+    const projects = await projectsControl.getProjects(orgEntityID, request)
+    return projects
   } catch (error) {
-    redirectWithToast(routes.projects.root, {
+    redirectWithToast(getPathWithParams(routes.projects.root, { orgId: params?.orgId }), {
       title: 'Error!',
       description: error instanceof Error ? error.message : 'Something went wrong',
     })
@@ -42,7 +44,8 @@ export const loader = withMiddleware(async ({ request }) => {
 }, authMiddleware)
 
 export default function OrgProjects() {
-  const { projects } = useLoaderData<typeof loader>()
+  const { orgId } = useParams()
+  const projects = useLoaderData<typeof loader>()
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -55,7 +58,7 @@ export default function OrgProjects() {
             </p>
           </div>
           <div className="flex justify-end gap-2">
-            <Link to={routes.projects.new}>
+            <Link to={getPathWithParams(routes.projects.new, { orgId })}>
               <Button>
                 <PlusIcon className="h-4 w-4" />
                 New Project
@@ -83,29 +86,46 @@ export default function OrgProjects() {
               }>
               <Await resolve={projects}>
                 {(projects) =>
-                  ((projects ?? []) as IProjectControlResponse[]).map((project) => (
-                    <TableRow key={project.name}>
-                      <TableCell>
-                        <Link
-                          className="font-semibold text-primary underline"
-                          to={routes.projects.detail(project.name)}>
-                          {project.name}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{project.description}</TableCell>
-                      <TableCell>
-                        <DateFormat date={project.createdAt} />
-                      </TableCell>
-                      <TableCell className="flex justify-end">
-                        <Link to={routes.projects.detail(project.name)}>
-                          <Button variant="secondary" size="sm">
-                            <CircleArrowOutUpRightIcon className="size-4" />
-                            Open Project
-                          </Button>
-                        </Link>
+                  ((projects ?? []) as IProjectControlResponse[]).length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="py-8 text-center">
+                        <p className="text-muted-foreground">
+                          No projects found. Create your first project to get started.
+                        </p>
                       </TableCell>
                     </TableRow>
-                  ))
+                  ) : (
+                    ((projects ?? []) as IProjectControlResponse[]).map((project) => (
+                      <TableRow key={project.name}>
+                        <TableCell>
+                          <Link
+                            className="font-semibold text-primary underline"
+                            to={getPathWithParams(routes.projects.detail, {
+                              orgId,
+                              projectId: project.name,
+                            })}>
+                            {project.name}
+                          </Link>
+                        </TableCell>
+                        <TableCell>{project.description}</TableCell>
+                        <TableCell>
+                          <DateFormat date={project.createdAt} />
+                        </TableCell>
+                        <TableCell className="flex justify-end">
+                          <Link
+                            to={getPathWithParams(routes.projects.detail, {
+                              orgId,
+                              projectId: project.name,
+                            })}>
+                            <Button variant="secondary" size="sm">
+                              <CircleArrowOutUpRightIcon className="size-4" />
+                              Open Project
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )
                 }
               </Await>
             </Suspense>

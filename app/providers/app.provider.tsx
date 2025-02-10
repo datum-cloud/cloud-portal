@@ -33,17 +33,11 @@ export function AppProvider({
   )
 
   const updateUserData = (userData: UserModel) => {
-    setUser((currentUser) => {
-      if (!currentUser) return undefined
-      return { ...currentUser, ...userData }
-    })
+    setUser(userData)
   }
 
   const updateOrganizationData = (orgData: OrganizationModel) => {
-    setOrganization((currentOrg) => {
-      if (!currentOrg) return undefined
-      return { ...currentOrg, ...orgData }
-    })
+    setOrganization(orgData)
   }
 
   return (

@@ -15,7 +15,7 @@ import { useEffect } from 'react'
 import { useFetcher, useNavigate } from 'react-router'
 import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api+/projects+/list'
 import { routes } from '@/constants/routes'
-
+import { getPathWithParams } from '@/utils/path'
 const ProjectItem = ({ project }: { project: IProjectControlResponse }) => {
   return (
     <div className="flex items-center gap-2">
@@ -35,8 +35,10 @@ const ProjectItem = ({ project }: { project: IProjectControlResponse }) => {
 
 export const ProjectSwitcher = ({
   currentProject,
+  orgId,
 }: {
   currentProject: IProjectControlResponse
+  orgId: string
 }) => {
   const fetcher = useFetcher({ key: 'project-list' })
   const navigate = useNavigate()
@@ -77,7 +79,12 @@ export const ProjectSwitcher = ({
                     key={project.name}
                     className="gap-2 p-2"
                     onClick={() => {
-                      navigate(routes.projects.detail(project.name))
+                      navigate(
+                        getPathWithParams(routes.projects.detail, {
+                          orgId,
+                          projectId: project.name,
+                        }),
+                      )
                     }}>
                     <ProjectItem project={project} />
                   </DropdownMenuItem>
@@ -86,7 +93,7 @@ export const ProjectSwitcher = ({
                 <DropdownMenuItem
                   className="gap-2 p-2"
                   onClick={() => {
-                    navigate(routes.projects.new)
+                    navigate(getPathWithParams(routes.projects.new, { orgId }))
                   }}>
                   <Plus className="size-4" />
                   <div className="font-medium text-muted-foreground">New project</div>

@@ -16,6 +16,7 @@ import { OrganizationSwitcher } from './org-switcher'
 import { Form } from 'react-router'
 import { routes } from '@/constants/routes'
 import { getInitials, cn } from '@/utils/misc'
+import { useState } from 'react'
 const UserItem = ({
   user,
   description,
@@ -48,9 +49,10 @@ const UserItem = ({
 }
 export const UserDropdown = () => {
   const { user } = useApp()
+  const [open, setOpen] = useState(false)
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
@@ -86,7 +88,7 @@ export const UserDropdown = () => {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <OrganizationSwitcher />
+        <OrganizationSwitcher onSelect={() => setOpen(false)} />
         <DropdownMenuSeparator />
         <Form method="POST" action={routes.auth.signOut}>
           <DropdownMenuItem asChild className="text-destructive">

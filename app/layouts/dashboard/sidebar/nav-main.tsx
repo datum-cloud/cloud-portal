@@ -24,14 +24,14 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { cn } from '@/utils/misc'
-import { ChevronRight, LucideIcon } from 'lucide-react'
+import { ChevronRight, LucideIcon, ExternalLinkIcon } from 'lucide-react'
 import { ComponentProps, forwardRef, Fragment, useCallback, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 
 export type NavItem = {
   title: string
   href: string | null
-  type: 'link' | 'group' | 'collapsible'
+  type: 'link' | 'group' | 'collapsible' | 'externalLink'
   disabled?: boolean
   count?: number
   icon?: LucideIcon
@@ -267,10 +267,24 @@ export const NavMain = forwardRef<
             isActive={isActive && !hasActiveChild}
             onClick={() => hasChildren && toggleItem(item.href as string)}
             className="data-[active=true]:text-primary">
-            <Link to={item.href || ''}>
-              {item?.icon && <item.icon />}
-              <span>{item.title}</span>
-            </Link>
+            {item.type === 'externalLink' ? (
+              <a
+                href={item.href || ''}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {item?.icon && <item.icon className="size-4" />}
+                  <span>{item.title}</span>
+                </div>
+                <ExternalLinkIcon className="ml-auto h-4 w-4" />
+              </a>
+            ) : (
+              <Link to={item.href || ''}>
+                {item?.icon && <item.icon />}
+                <span>{item.title}</span>
+              </Link>
+            )}
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

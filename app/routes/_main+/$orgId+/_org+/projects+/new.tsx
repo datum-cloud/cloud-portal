@@ -7,8 +7,9 @@ import { newProjectSchema } from '@/resources/schemas/project.schema'
 import { redirectWithToast } from '@/utils/toast.server'
 import { projectsControl } from '@/resources/control-plane/projects.control'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
+import { getPathWithParams } from '@/utils/path'
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   // User Session
   await isAuthenticated(request, routes.org.root, true)
 
@@ -28,10 +29,16 @@ export async function action({ request }: ActionFunctionArgs) {
       validated,
     )
 
-    return redirectWithToast(routes.projects.detail(project.name), {
-      title: 'Project created successfully!',
-      description: 'You have successfully created a project.',
-    })
+    return redirectWithToast(
+      getPathWithParams(routes.projects.detail, {
+        orgId: params.orgId,
+        projectId: project.name,
+      }),
+      {
+        title: 'Project created successfully!',
+        description: 'You have successfully created a project.',
+      },
+    )
   } catch (error) {
     return redirectWithToast(routes.projects.new, {
       title: 'Error!',

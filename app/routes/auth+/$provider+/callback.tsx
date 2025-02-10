@@ -9,6 +9,8 @@ import { organizationGql } from '@/resources/gql/organization.gql'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { projectsControl } from '@/resources/control-plane/projects.control'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
+import { getPathWithParams } from '@/utils/path'
+
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
     const session = await getSession(request.headers.get('Cookie'))
@@ -37,13 +39,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     session.set('controlPlaneToken', exchangeToken.access_token)
     session.set('userId', credentials.userId)
 
-    // Get the default organization id
+    // Get the default organization id based on the user's default org id
     await organizationGql.setToken(request, credentials.accessToken)
     const org: OrganizationModel = await organizationGql.getOrganizationDetail(
       credentials.defaultOrgId,
     )
     // Set current organization in session
-    session.set('currentOrg', org)
+    session.set('currentOrgId', org.id)
+    session.set('currentOrgEntityID', org.userEntityID)
 
     // Check if the organization has a project.
     // If not, redirect to the project creation page and hide the sidebar.
@@ -56,9 +59,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     // Redirect to the home page if the organization has a project.
     // Otherwise, redirect to the project creation page and hide the sidebar.
+
     const redirectPath = hasProject
-      ? routes.org.root
-      : `${routes.projects.new}?sidebar=false`
+      ? getPathWithParams(routes.org.root, { orgId: org.id })
+      : `${getPathWithParams(routes.projects.new, { orgId: org.id })}?sidebar=false`
+
     return redirect(redirectPath, {
       headers: combineHeaders(
         {
@@ -71,6 +76,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       ),
     })
   } catch (error) {
+    console.error(error)
     if (error instanceof Error) {
       // here the error related to the authentication process
       throw new Error(error.message ?? 'Authentication Callback failed')
