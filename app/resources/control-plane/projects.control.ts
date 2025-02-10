@@ -17,6 +17,7 @@ export class ProjectsControl extends ControlPlaneClient {
         project.metadata.labels?.['resourcemanager.datumapis.com/organization-id'],
       resourceVersion: project.metadata.resourceVersion,
       uid: project.metadata.uid,
+      status: project.status,
     }
 
     return metadata

@@ -19,6 +19,7 @@ import { getSession } from '@/modules/auth/auth-session.server'
 import { getPathWithParams } from '@/utils/path'
 export const loader = withMiddleware(async ({ request, params }) => {
   const { projectId } = params
+
   if (!projectId) {
     throw new Error('Project ID is required')
   }
@@ -31,12 +32,13 @@ export const loader = withMiddleware(async ({ request, params }) => {
     projectId,
     request,
   )
-  return { project }
+
+  return project
 }, authMiddleware)
 
 export default function ProjectLayout() {
   const { orgId, projectId } = useParams()
-  const { project } = useLoaderData<typeof loader>()
+  const project = useLoaderData<typeof loader>()
 
   const navItems: NavItem[] = useMemo(() => {
     return [

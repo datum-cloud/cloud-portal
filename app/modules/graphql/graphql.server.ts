@@ -7,7 +7,7 @@ export const GraphqlClient = class gqlClient {
   token: string | undefined
 
   constructor() {
-    this.baseURL = process.env.GRAPHQL_URL ?? ''
+    this.baseURL = `${process.env.API_URL}/datum-os/query`
     this.token = undefined
   }
 
