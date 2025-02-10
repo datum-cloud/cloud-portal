@@ -142,4 +142,18 @@ body {
     width: var(--radix-popover-trigger-width);
     max-height: var(--radix-popover-content-available-height);
   }
+  @keyframes ellipsis {
+    0% {
+      content: '.';
+    }
+    33% {
+      content: '..';
+    }
+    66% {
+      content: '...';
+    }
+    100% {
+      content: '.';
+    }
+  }
 }
