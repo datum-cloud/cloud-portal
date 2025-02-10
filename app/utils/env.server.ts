@@ -27,17 +27,20 @@ declare global {
 
 export function initEnvs() {
   const result = dotenv.config()
-  const parsed = schema.safeParse(result.parsed)
+  if (result.error !== undefined) {
+    throw new Error("Could not get configuration file: " + result.error.message);
+  }
 
+  for (const key in result.parsed) {
+    if (Object.prototype.hasOwnProperty.call(result.parsed, key)) {
+      process.env[key] = result.parsed[key]
+    }
+  }
+
+  const parsed = schema.safeParse(process.env)
   if (parsed.success === false) {
     console.error('Invalid environment variables:', parsed.error.flatten().fieldErrors)
     throw new Error('Invalid environment variables.')
-  } else {
-    for (const key in result.parsed) {
-      if (Object.prototype.hasOwnProperty.call(result.parsed, key)) {
-        process.env[key] = result.parsed[key]
-      }
-    }
   }
 }
 

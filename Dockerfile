@@ -25,6 +25,9 @@ RUN bun run build
 # Remove development dependencies
 RUN bun install --production --frozen-lockfile
 
+# Add empty .env file so it can be parsed correctly.
+RUN touch .env
+
 # Final stage for app image
 FROM base
 
