@@ -7,7 +7,7 @@ const aliases: {[key: string]: string} = {
   '@': resolve(__dirname, './app'),
 };
 
-// console.log(process.env);
+console.log(process.env);
 
 // // Workaround for issue with running react router in a production build
 // //
