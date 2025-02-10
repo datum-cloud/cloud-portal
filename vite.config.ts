@@ -12,9 +12,9 @@ console.log(process.env);
 // // Workaround for issue with running react router in a production build
 // //
 // // See: https://github.com/remix-run/react-router/issues/12568#issuecomment-2629986004
-if (import.meta.env.PROD) {
+// if (true) {
   aliases['react-dom/server'] = 'react-dom/server.node';
-}
+// }
 
 export default defineConfig({
   resolve: {
