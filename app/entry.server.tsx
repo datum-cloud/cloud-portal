@@ -36,16 +36,6 @@ export default async function handleRequest(
   const nonce = String(loadContext.cspNonce) ?? undefined
 
   /**
-   * Currently, we're not setting the CSP headers due to lack of support on deferred scripts.
-   * @see https://github.com/remix-run/remix/issues/5156
-   *
-  responseHeaders.set(
-    'Content-Security-Policy',
-    `script-src 'nonce-${nonce}' 'strict-dynamic'; object-src 'none'; base-uri 'none';`,
-  )
-  */
-
-  /**
    * Internationalization (i18n).
    */
   const instance = createInstance()

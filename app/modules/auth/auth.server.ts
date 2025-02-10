@@ -8,6 +8,8 @@ import { GitHubStrategy } from 'remix-auth-github'
 import { IAuthSession } from '@/resources/interfaces/auth.interface'
 import { authApi } from '@/resources/api/auth.api'
 import { jwtDecode } from 'jwt-decode'
+import { safeRedirect } from 'remix-utils/safe-redirect'
+
 export const authenticator = new Authenticator<IAuthSession>()
 
 async function fetchOauthProfile<T>(url: string, accessToken: string): Promise<T> {
@@ -126,7 +128,7 @@ export async function isAuthenticated(
 
   if (!accessToken) {
     if (noAuthRedirect) {
-      return redirect(routes.auth.signIn, {
+      return redirect(safeRedirect(routes.auth.signIn), {
         headers: {
           'Set-Cookie': await commitSession(session),
         },
@@ -137,7 +139,7 @@ export async function isAuthenticated(
   }
 
   if (redirectTo) {
-    return redirect(redirectTo, {
+    return redirect(safeRedirect(redirectTo), {
       headers: {
         'Set-Cookie': await commitSession(session),
       },

@@ -3,7 +3,7 @@ import { isAuthenticated } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
 import { NextFunction } from './middleware'
-
+import { safeRedirect } from 'remix-utils/safe-redirect'
 export async function authMiddleware(
   request: Request,
   next: NextFunction,
@@ -14,7 +14,9 @@ export async function authMiddleware(
     const session = await getSession(request.headers.get('Cookie'))
     const url = new URL(request.url)
     return redirect(
-      `${routes.auth.signIn}?redirectTo=${encodeURIComponent(url.pathname)}`,
+      safeRedirect(
+        `${routes.auth.signIn}?redirectTo=${encodeURIComponent(url.pathname)}`,
+      ),
       {
         headers: {
           'Set-Cookie': await commitSession(session),
