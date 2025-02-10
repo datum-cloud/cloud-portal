@@ -1,62 +1,62 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
-	"name": "Frontend",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
-	"features": {
-		"ghcr.io/devcontainers/features/common-utils": {
-			"installOhMyZsh": true,
-			"configureZshAsDefaultShell": true,
-			"installOhMyZshConfig": true,
-			"installZsh": true,
-			"upgradePackages": true
-		},
-		"ghcr.io/devcontainers/features/docker-in-docker": {},
-		"ghcr.io/audacioustux/devcontainers/bun": {}
-	},
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"patbenatar.advanced-new-file",
-				"task.vscode-task",
-				"bpruitt-goddard.mermaid-markdown-syntax-highlighting",
-				"streetsidesoftware.code-spell-checker",
-				"github.vscode-github-actions"
-			],
-			"settings": {
-				"remote.portsAttributes": {
-					"3000": {
-						"label": "Application",
-						"onAutoForward": "openPreview"
-					},
-				},
-				"rewrap.autoWrap.enabled": true
-			},
-			"cSpell.enabled": true,
-			"cSpell.words": [
-			  "anypb",
-			  "apimachinery",
-			  "apiserver",
-			  "authwebhook",
-			  "datumapis",
-			  "genproto",
-			  "grpctool",
-			  "iampb",
-			  "longrunningpb",
-			  "openfga",
-			  "openfgav",
-			  "protobuf",
-			  "protocolbuffers",
-			  "protojson",
-			  "resourcemanager",
-			  "timestamppb",
-			  "Tupleset",
-			  "Userset",
-			  "Usersets",
-			  "wrapperspb"
-			],
-			"editor.tabSize": 2
-		}
-	}
+  "name": "Frontend",
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils": {
+      "installOhMyZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZshConfig": true,
+      "installZsh": true,
+      "upgradePackages": true
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker": {},
+    "ghcr.io/audacioustux/devcontainers/bun": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "patbenatar.advanced-new-file",
+        "task.vscode-task",
+        "bpruitt-goddard.mermaid-markdown-syntax-highlighting",
+        "streetsidesoftware.code-spell-checker",
+        "github.vscode-github-actions"
+      ],
+      "settings": {
+        "remote.portsAttributes": {
+          "3000": {
+            "label": "Application",
+            "onAutoForward": "openPreview"
+          }
+        },
+        "rewrap.autoWrap.enabled": true
+      },
+      "cSpell.enabled": true,
+      "cSpell.words": [
+        "anypb",
+        "apimachinery",
+        "apiserver",
+        "authwebhook",
+        "datumapis",
+        "genproto",
+        "grpctool",
+        "iampb",
+        "longrunningpb",
+        "openfga",
+        "openfgav",
+        "protobuf",
+        "protocolbuffers",
+        "protojson",
+        "resourcemanager",
+        "timestamppb",
+        "Tupleset",
+        "Userset",
+        "Usersets",
+        "wrapperspb"
+      ],
+      "editor.tabSize": 2
+    }
+  }
 }

@@ -52,6 +52,7 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.474.0",
     "morgan": "^1.10.0",
+    "motion": "^12.4.2",
     "nprogress": "^0.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -101,7 +102,6 @@
     "tailwindcss": "3.4.17",
     "typescript": "^5.7.3",
     "vite": "^6.1.0",
-    "vite-plugin-node-polyfills": "^0.23.0",
     "vite-tsconfig-paths": "^5.1.4"
   },
   "engines": {
