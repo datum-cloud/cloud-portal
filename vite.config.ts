@@ -7,10 +7,12 @@ const aliases: {[key: string]: string} = {
   '@': resolve(__dirname, './app'),
 };
 
+console.log(process.env);
+
 // Workaround for issue with running react router in a production build
 //
 // See: https://github.com/remix-run/react-router/issues/12568#issuecomment-2629986004
-if (process.env.NODE_ENV == 'production') {
+if (process.env.NODE_ENV == undefined || process.env.NODE_ENV == 'production') {
   aliases['react-dom/server'] = 'react-dom/server.node';
 }
 
