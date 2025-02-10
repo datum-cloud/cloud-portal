@@ -1,8 +1,8 @@
-import type { AppLoadContext, EntryContext } from '@remix-run/node'
+import type { AppLoadContext, EntryContext } from 'react-router'
 import { isbot } from 'isbot'
 import { PassThrough } from 'node:stream'
-import { RemixServer } from '@remix-run/react'
-import { createReadableStreamFromReadable } from '@remix-run/node'
+import { ServerRouter } from 'react-router'
+import { createReadableStreamFromReadable } from '@react-router/node'
 import { renderToPipeableStream } from 'react-dom/server'
 import { createInstance } from 'i18next'
 import { I18nextProvider, initReactI18next } from 'react-i18next'
@@ -22,7 +22,7 @@ export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  remixContext: EntryContext,
+  reactRouterContext: EntryContext,
   loadContext: AppLoadContext,
 ) {
   const callbackName = isbot(request.headers.get('user-agent'))
@@ -36,21 +36,11 @@ export default async function handleRequest(
   const nonce = String(loadContext.cspNonce) ?? undefined
 
   /**
-   * Currently, we're not setting the CSP headers due to lack of support on deferred scripts.
-   * @see https://github.com/remix-run/remix/issues/5156
-   *
-  responseHeaders.set(
-    'Content-Security-Policy',
-    `script-src 'nonce-${nonce}' 'strict-dynamic'; object-src 'none'; base-uri 'none';`,
-  )
-  */
-
-  /**
    * Internationalization (i18n).
    */
   const instance = createInstance()
   const lng = await i18nServer.getLocale(request)
-  const ns = i18nServer.getRouteNamespaces(remixContext)
+  const ns = i18nServer.getRouteNamespaces(reactRouterContext)
 
   await instance.use(initReactI18next).init({
     ...i18n,
@@ -64,11 +54,7 @@ export default async function handleRequest(
     const { pipe, abort } = renderToPipeableStream(
       <NonceProvider value={nonce}>
         <I18nextProvider i18n={instance}>
-          <RemixServer
-            context={remixContext}
-            url={request.url}
-            abortDelay={ABORT_DELAY}
-          />
+          <ServerRouter context={reactRouterContext} url={request.url} />
         </I18nextProvider>
       </NonceProvider>,
       {

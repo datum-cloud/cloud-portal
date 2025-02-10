@@ -12,7 +12,7 @@ A list of features that Remix SaaS provides out of the box:
 - 🗺️ **Remix Flat Routes**: Simple Route Definitions.
 - 🍞 **Client & Server Toasts**: Display Toasts on your App.
 - 🛡️ **Server Rate Limiting**: Extra layer of Protection for your App.
-- 🕵️‍♂️ **CSRF and Honeypot Protection**: Prevent Malicious Attacks.
+- 🕵️‍♂️ **CSRF**: Prevent Malicious Attacks.
 - 📋 **Conform**: Type-Safe Form Validation based on Web Fundamentals.
 - 🌐 **I18N**: Internationalization for your App.
 

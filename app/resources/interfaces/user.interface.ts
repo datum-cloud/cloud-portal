@@ -25,7 +25,7 @@ export interface IUser {
   accessToken: string
   refreshToken: string
   internal: boolean
-  organization: string
+  defaultOrganization: string
   sub: string
   userId: string
   userEntityId: string

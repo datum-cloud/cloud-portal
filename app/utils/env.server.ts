@@ -1,10 +1,13 @@
 import { z } from 'zod'
 
+import dotenv from 'dotenv'
+
 const schema = z.object({
   NODE_ENV: z.enum(['production', 'development', 'test'] as const),
   SESSION_SECRET: z.string().optional(),
   APP_URL: z.string().optional(),
   API_URL: z.string().optional(),
+  GRAPHQL_URL: z.string().optional(),
   // Auth providers
   // Github
   AUTH_GITHUB_ID: z.string().optional(),
@@ -24,11 +27,18 @@ declare global {
 }
 
 export function initEnvs() {
-  const parsed = schema.safeParse(process.env)
+  const result = dotenv.config()
+  const parsed = schema.safeParse(result.parsed)
 
   if (parsed.success === false) {
     console.error('Invalid environment variables:', parsed.error.flatten().fieldErrors)
     throw new Error('Invalid environment variables.')
+  } else {
+    for (const key in result.parsed) {
+      if (Object.prototype.hasOwnProperty.call(result.parsed, key)) {
+        process.env[key] = result.parsed[key]
+      }
+    }
   }
 }
 
@@ -40,6 +50,7 @@ export function getSharedEnvs() {
   return {
     APP_URL: process.env.APP_URL,
     API_URL: process.env.API_URL,
+    GRAPHQL_URL: process.env.GRAPHQL_URL,
   }
 }
 

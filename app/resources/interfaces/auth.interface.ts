@@ -14,3 +14,16 @@ export interface IAuthTokenResponse {
   session: string
   token_type: string
 }
+
+export interface IAuthSession {
+  userId: string
+  accessToken: string
+  userEntityId: string
+  defaultOrgId: string
+}
+
+export interface IExchangeTokenResponse {
+  success: boolean
+  access_token: string
+  token_type: string
+}

@@ -1,19 +1,22 @@
-import { redirect } from '@remix-run/node'
-import { getUserSession } from '@/modules/auth/auth.server'
+import { redirect } from 'react-router'
+import { isAuthenticated } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
 import { NextFunction } from './middleware'
-export async function authenticateSession(
+import { safeRedirect } from 'remix-utils/safe-redirect'
+export async function authMiddleware(
   request: Request,
   next: NextFunction,
 ): Promise<Response> {
-  const user = await getUserSession(request)
+  const creds = await isAuthenticated(request)
 
-  if (!user) {
+  if (!creds) {
     const session = await getSession(request.headers.get('Cookie'))
     const url = new URL(request.url)
     return redirect(
-      `${routes.auth.signIn}?redirectTo=${encodeURIComponent(url.pathname)}`,
+      safeRedirect(
+        `${routes.auth.signIn}?redirectTo=${encodeURIComponent(url.pathname)}`,
+      ),
       {
         headers: {
           'Set-Cookie': await commitSession(session),

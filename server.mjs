@@ -3,20 +3,13 @@
  * @description Main server file that configures Express with security, performance and routing middleware
  */
 
-import { createRequestHandler } from '@remix-run/express'
-import { installGlobals } from '@remix-run/node'
+import { createRequestHandler } from '@react-router/express'
 import crypto from 'crypto' // For generating CSP nonces
 import express from 'express' // Web framework
 import compression from 'compression' // Response compression
 import morgan from 'morgan' // HTTP request logger
 import helmet from 'helmet' // Security headers
 import rateLimit from 'express-rate-limit' // Rate limiting
-
-/**
- * Enable single fetch functionality for Remix
- * @see https://remix.run/docs/en/main/guides/single-fetch#enabling-single-fetch
- */
-installGlobals({ nativeFetch: true })
 
 /**
  * Server configuration
@@ -207,7 +200,7 @@ app.all(
     }),
 
     build: viteDevServer
-      ? () => viteDevServer.ssrLoadModule('virtual:remix/server-build')
+      ? () => viteDevServer.ssrLoadModule('virtual:react-router/server-build')
       : await import('./build/server/index.js'),
   }),
 )

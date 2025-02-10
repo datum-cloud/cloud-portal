@@ -8,4 +8,25 @@ export const routes = {
     github: '/auth/github',
   },
   home: '/',
+  org: {
+    root: '/[orgId]/dashboard',
+    docs: '/[orgId]/docs',
+    settings: {
+      root: '/[orgId]/settings',
+      general: '/[orgId]/settings/general',
+      members: '/[orgId]/settings/members',
+      billing: '/[orgId]/settings/billing',
+    },
+  },
+  account: {
+    root: '/account',
+    profile: '/account/profile',
+  },
+  projects: {
+    root: '/[orgId]/projects',
+    new: '/[orgId]/projects/new',
+    detail: '/[orgId]/projects/[projectId]',
+    dashboard: '/[orgId]/projects/[projectId]/dashboard',
+    locations: '/[orgId]/projects/[projectId]/locations',
+  },
 }

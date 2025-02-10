@@ -2,7 +2,7 @@
  * Server-Side Toasts.
  * Implementation based on github.com/epicweb-dev/epic-stack
  */
-import { redirect, createCookieSessionStorage } from '@remix-run/node'
+import { redirect, createCookieSessionStorage } from 'react-router'
 import { z } from 'zod'
 import { combineHeaders } from '@/utils/misc.server'
 
@@ -48,7 +48,9 @@ export async function getToastSession(request: Request) {
 export async function createToastHeaders(toastInput: ToastInput) {
   const session = await toastSessionStorage.getSession()
   const toast = ToastSchema.parse(toastInput)
+
   session.flash(TOAST_SESSION_FLASH_KEY, toast)
+
   const cookie = await toastSessionStorage.commitSession(session)
   return new Headers({ 'Set-Cookie': cookie })
 }
