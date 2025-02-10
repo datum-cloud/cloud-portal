@@ -1,9 +1,7 @@
 # syntax = docker/dockerfile:1
 
 # Use the latest Bun version
-FROM oven/bun:latest as base
-
-LABEL fly_launch_runtime="Datum"
+FROM oven/bun:1.2 AS base
 
 # Remix app lives here
 WORKDIR /app
@@ -12,7 +10,7 @@ WORKDIR /app
 ENV NODE_ENV="production"
 
 # Throw-away build stage to reduce size of final image
-FROM base as build
+FROM base AS build
 
 # Install dependencies
 COPY --link package.json bun.lock ./
