@@ -11,7 +11,11 @@ import { getPathWithParams } from '@/utils/path'
 
 export async function action({ request, params }: ActionFunctionArgs) {
   // User Session
-  await isAuthenticated(request, routes.org.root, true)
+  await isAuthenticated(
+    request,
+    getPathWithParams(routes.org.root, { orgId: params.orgId }),
+    true,
+  )
 
   // Validate CSRF token
   const clonedRequest = request.clone()

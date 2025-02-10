@@ -49,6 +49,10 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
   const nameControl = useInputControl(name)
   const orgEntityIdControl = useInputControl(orgEntityId)
 
+  useEffect(() => {
+    orgEntityIdControl.change(organization?.userEntityID)
+  }, [organization])
+
   return (
     <Card className={cn('w-full', className)}>
       <CardHeader>
@@ -94,7 +98,7 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
             />
           </Field>
         </CardContent>
-        <CardFooter className="">
+        <CardFooter>
           <Button
             variant="default"
             type="submit"

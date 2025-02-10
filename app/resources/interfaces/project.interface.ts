@@ -31,6 +31,20 @@ interface Project {
   kind: 'Project'
   metadata: ProjectMetadata
   spec: ProjectSpec
+  status: ProjectStatus
+}
+
+interface ProjectStatusCondition {
+  lastTransitionTime: string
+  message: string
+  observedGeneration: number
+  reason: string
+  status: string
+  type: string
+}
+
+interface ProjectStatus {
+  conditions: ProjectStatusCondition[]
 }
 
 export type IProjectControl = Project
@@ -42,4 +56,5 @@ export interface IProjectControlResponse {
   organizationId: string
   resourceVersion: string
   uid: string
+  status: ProjectStatus
 }
