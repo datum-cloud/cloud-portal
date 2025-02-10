@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import dotenv from 'dotenv'
+
 const schema = z.object({
   NODE_ENV: z.enum(['production', 'development', 'test'] as const),
   SESSION_SECRET: z.string().optional(),
@@ -25,11 +27,18 @@ declare global {
 }
 
 export function initEnvs() {
-  const parsed = schema.safeParse(process.env)
+  const result = dotenv.config()
+  const parsed = schema.safeParse(result.parsed)
 
   if (parsed.success === false) {
     console.error('Invalid environment variables:', parsed.error.flatten().fieldErrors)
     throw new Error('Invalid environment variables.')
+  } else {
+    for (const key in result.parsed) {
+      if (Object.prototype.hasOwnProperty.call(result.parsed, key)) {
+        process.env[key] = result.parsed[key]
+      }
+    }
   }
 }
 

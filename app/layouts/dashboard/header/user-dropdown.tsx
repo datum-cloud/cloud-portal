@@ -56,7 +56,7 @@ export const UserDropdown = () => {
           type="button"
           variant="ghost"
           size="sm"
-          className="h-8 p-2 hover:bg-transparent focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-primary/5">
+          className="h-8 p-0 hover:bg-transparent focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-transparent">
           <Avatar className="size-8 rounded-full">
             <AvatarImage src={user?.avatarRemoteURL} alt={user?.displayName} />
             <AvatarFallback>

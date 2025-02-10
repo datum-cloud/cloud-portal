@@ -1,4 +1,7 @@
+@import 'nprogress/nprogress.css';
 @import './fonts.css';
+@import './custom.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

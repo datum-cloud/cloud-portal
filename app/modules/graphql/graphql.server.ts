@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { gql, GraphQLClient as GraphQLClientInstance, Variables } from 'graphql-request'
 import { getSession } from '@/modules/auth/auth-session.server'
-import { toast } from 'sonner'
 
 export const GraphqlClient = class gqlClient {
   baseURL: string
@@ -45,7 +44,6 @@ export const GraphqlClient = class gqlClient {
     variables?: V,
   ): Promise<T> {
     const instance = this.initializeInstance()
-
     return new Promise((resolve, reject) => {
       instance
         .request<T>(
@@ -68,19 +66,17 @@ export const GraphqlClient = class gqlClient {
               ? 'HTTP Error'
               : 'Error'
 
+          // TODO: find information about error code from backend related to unauthorized
           if (statusCode >= 400 && statusCode < 500) {
-            toast.error('Session Expired', {
-              description: 'Please sign in again to continue.',
-            })
-            window.location.href = '/auth/sign-out'
-            return
+            // For unauthorized errors, throw a Response that will be caught by Remix
+            reject(
+              new Response('Unauthorized', {
+                status: 401,
+                statusText: 'Unauthorized - Please sign in again',
+              }),
+            )
           }
-
-          reject(
-            new Error(`${prefix} - status ${statusCode}: ${errorMessage}`, {
-              cause: error,
-            }),
-          )
+          reject(new Response(prefix, { status: statusCode, statusText: errorMessage }))
         })
     })
   }

@@ -6,7 +6,9 @@ import {
   Scripts,
   ScrollRestoration,
   data,
+  useFetchers,
   useLoaderData,
+  useNavigation,
 } from 'react-router'
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router'
 import { useChangeLanguage } from 'remix-i18next/react'
@@ -29,6 +31,8 @@ import { useNonce } from '@/hooks/useNonce'
 import { useToast } from '@/hooks/useToast'
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import NProgress from 'nprogress'
+import { useEffect, useMemo } from 'react'
 export const handle = { i18n: ['translation'] }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -115,12 +119,37 @@ export default function AppWithProviders() {
 
   const nonce = useNonce()
   const theme = useTheme()
+  const navigation = useNavigation()
+  const fetchers = useFetchers()
 
   // Updates the i18n instance language.
   useChangeLanguage(locale)
 
   // Renders toast (if any).
   useToast(toast)
+
+  /**
+   * This gets the state of every fetcher active on the app and combine it with
+   * the state of the global transition (Link and Form), then use them to
+   * determine if the app is idle or if it's loading.
+   * Here we consider both loading and submitting as loading.
+   */
+  const state = useMemo<'idle' | 'loading'>(
+    function getGlobalState() {
+      const states = [navigation.state, ...fetchers.map((fetcher) => fetcher.state)]
+      if (states.every((state) => state === 'idle')) return 'idle'
+      return 'loading'
+    },
+    [navigation.state, fetchers],
+  )
+
+  useEffect(() => {
+    // and when it's something else it means it's either submitting a form or
+    // waiting for the loaders of the next location so we start it
+    if (state === 'loading') NProgress.start()
+    // when the state is idle then we can to complete the progress bar
+    if (state === 'idle') NProgress.done()
+  }, [state])
 
   return (
     <Document nonce={nonce} theme={theme} lang={locale ?? 'en'}>

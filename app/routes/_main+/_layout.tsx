@@ -1,14 +1,13 @@
 import { authMiddleware } from '@/modules/middleware/auth-middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { Outlet, useLoaderData, redirect } from 'react-router'
+import { Outlet, useLoaderData } from 'react-router'
 import { routes } from '@/constants/routes'
-import { AxiosError } from 'axios'
 import { userGql } from '@/resources/gql/user.gql'
 import { getSession } from '@/modules/auth/auth-session.server'
 import { UserModel } from '@/resources/gql/models/user.model'
 import { AppProvider } from '@/providers/app.provider'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
-
+import { redirectWithToast } from '@/utils/toast.server'
 export const loader = withMiddleware(async ({ request }) => {
   try {
     const session = await getSession(request.headers.get('Cookie'))
@@ -23,16 +22,11 @@ export const loader = withMiddleware(async ({ request }) => {
     return { user, org }
   } catch (error) {
     // TODO: implement best practices for error handle
-    if (error instanceof Error) {
-      const errorMessage = error.message
-      const isAuthError =
-        errorMessage.includes('status 401') ||
-        errorMessage.includes('status 403') ||
-        (error instanceof AxiosError && error.response?.status === 401)
-
-      if (isAuthError) {
-        return redirect(routes.auth.signOut)
-      }
+    if (error instanceof Response && error.status === 401) {
+      return redirectWithToast(routes.auth.signOut, {
+        title: 'Session Expired!',
+        description: 'Please sign in again to continue.',
+      })
     }
 
     throw new Response('Something went wrong', {

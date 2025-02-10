@@ -153,7 +153,8 @@ export default function ProjectLayout() {
   return (
     <DashboardLayout
       navItems={navItems}
-      sidebarHeader={<ProjectSwitcher currentProject={project} />}>
+      headerContent={<ProjectSwitcher currentProject={project} />}
+      sidebarCollapsible="icon">
       <Outlet />
     </DashboardLayout>
   )

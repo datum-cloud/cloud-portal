@@ -32,7 +32,10 @@ export default function OrgLayout() {
   return (
     <DashboardLayout
       navItems={navItems}
-      sidebarHeader={<OrganizationItem org={organization!} className="p-2" />}>
+      headerContent={
+        <OrganizationItem org={organization!} className="max-w-52 md:max-w-none" />
+      }
+      sidebarCollapsible="icon">
       <Outlet />
     </DashboardLayout>
   )

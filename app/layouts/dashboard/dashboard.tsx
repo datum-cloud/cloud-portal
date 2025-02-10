@@ -8,16 +8,24 @@ export function DashboardLayout({
   children,
   navItems,
   sidebarHeader,
+  headerContent,
+  sidebarCollapsible = 'offcanvas',
 }: {
   children: React.ReactNode
   navItems: NavItem[]
   sidebarHeader?: React.ReactNode
+  headerContent?: React.ReactNode
+  sidebarCollapsible?: 'offcanvas' | 'icon' | 'none'
 }) {
   return (
     <SidebarProvider>
-      <DashboardSidebar navItems={navItems} sidebarHeader={sidebarHeader} />
+      <DashboardSidebar
+        navItems={navItems}
+        sidebarHeader={sidebarHeader}
+        collapsible={sidebarCollapsible}
+      />
       <SidebarInset>
-        <Header />
+        <Header content={headerContent} />
         <div className="flex flex-1 flex-col gap-4 p-5">{children}</div>
       </SidebarInset>
     </SidebarProvider>

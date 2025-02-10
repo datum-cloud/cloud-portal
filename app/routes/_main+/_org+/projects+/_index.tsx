@@ -18,6 +18,7 @@ import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { redirectWithToast } from '@/utils/toast.server'
 import { Suspense } from 'react'
+import { DateFormat } from '@/components/date-format/date-format'
 export const loader = withMiddleware(async ({ request }) => {
   try {
     const session = await getSession(request.headers.get('Cookie'))
@@ -66,8 +67,9 @@ export default function OrgProjects() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Description</TableHead>
               <TableHead>Name</TableHead>
+              <TableHead>Description</TableHead>
+
               <TableHead>Creation Date</TableHead>
               <TableHead></TableHead>
             </TableRow>
@@ -83,9 +85,17 @@ export default function OrgProjects() {
                 {(projects) =>
                   ((projects ?? []) as IProjectControlResponse[]).map((project) => (
                     <TableRow key={project.name}>
+                      <TableCell>
+                        <Link
+                          className="font-semibold text-primary underline"
+                          to={routes.projects.detail(project.name)}>
+                          {project.name}
+                        </Link>
+                      </TableCell>
                       <TableCell>{project.description}</TableCell>
-                      <TableCell>{project.name}</TableCell>
-                      <TableCell>{project.createdAt}</TableCell>
+                      <TableCell>
+                        <DateFormat date={project.createdAt} />
+                      </TableCell>
                       <TableCell className="flex justify-end">
                         <Link to={routes.projects.detail(project.name)}>
                           <Button variant="secondary" size="sm">

@@ -1,6 +1,8 @@
 import type { ErrorResponse } from 'react-router'
-import { isRouteErrorResponse, useParams, useRouteError } from 'react-router'
+import { isRouteErrorResponse, redirect, useParams, useRouteError } from 'react-router'
 import { JSX } from 'react'
+import { routes } from '@/constants/routes'
+import { toast } from 'sonner'
 
 type StatusHandler = (info: {
   error: ErrorResponse
@@ -27,6 +29,11 @@ export function GenericErrorBoundary({
 
   if (typeof document !== 'undefined') {
     console.error(error)
+  }
+
+  if (error instanceof Response && error.status === 401) {
+    toast.error('Session expired')
+    return redirect(routes.auth.signOut)
   }
 
   return (

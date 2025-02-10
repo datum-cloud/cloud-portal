@@ -7,12 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown'
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from '@/components/ui/sidebar'
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 import { getInitials } from '@/utils/misc'
 import { ChevronsUpDown, Loader2, Plus } from 'lucide-react'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
@@ -24,7 +19,7 @@ import { routes } from '@/constants/routes'
 const ProjectItem = ({ project }: { project: IProjectControlResponse }) => {
   return (
     <div className="flex items-center gap-2">
-      <Avatar className="size-8 rounded-lg">
+      <Avatar className="size-7 rounded-lg">
         {/* <AvatarImage src={currentOrg?.avatarRemoteURL} alt={currentOrg?.name} /> */}
         <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
           {getInitials(project.description)}
@@ -43,8 +38,7 @@ export const ProjectSwitcher = ({
 }: {
   currentProject: IProjectControlResponse
 }) => {
-  const { isMobile } = useSidebar()
-  const fetcher = useFetcher({ key: 'org-list' })
+  const fetcher = useFetcher({ key: 'project-list' })
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -58,7 +52,7 @@ export const ProjectSwitcher = ({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              className="focus-visible:ring-0 data-[state=open]:bg-sidebar-accent data-[state=open]:font-semibold data-[state=open]:text-sidebar-accent-foreground">
               <ProjectItem project={currentProject} />
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -66,7 +60,7 @@ export const ProjectSwitcher = ({
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
             align="start"
-            side={isMobile ? 'bottom' : 'right'}
+            side="bottom"
             sideOffset={4}>
             <DropdownMenuLabel className="text-xs text-muted-foreground">
               Choose Project

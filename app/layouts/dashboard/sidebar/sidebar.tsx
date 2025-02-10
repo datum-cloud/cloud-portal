@@ -10,7 +10,8 @@ import { HomeIcon, LibraryIcon, SparklesIcon } from 'lucide-react'
 import { routes } from '@/constants/routes'
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router'
-
+import { Logo } from '@/components/logo/logo'
+import { useTheme } from '@/hooks/useTheme'
 const defaultNav: NavItem[] = [
   {
     title: 'Ask AI',
@@ -40,7 +41,8 @@ export function DashboardSidebar({
   navItems: NavItem[]
   sidebarHeader?: React.ReactNode
 }) {
-  const { setOpen } = useSidebar()
+  const theme = useTheme()
+  const { setOpen, state } = useSidebar()
   const [searchParams] = useSearchParams()
 
   useEffect(() => {
@@ -53,7 +55,17 @@ export function DashboardSidebar({
 
   return (
     <Sidebar collapsible={props.collapsible ?? 'offcanvas'} {...props}>
-      {sidebarHeader && <SidebarHeader>{sidebarHeader}</SidebarHeader>}
+      <SidebarHeader className="flex flex-col gap-2 px-4 pb-2 pt-4">
+        {sidebarHeader ? (
+          sidebarHeader
+        ) : (
+          <Logo
+            asIcon={state === 'collapsed'}
+            width={state === 'collapsed' ? 30 : 100}
+            theme={theme}
+          />
+        )}
+      </SidebarHeader>
       <SidebarContent>
         <NavMain items={[...defaultNav, ...navItems]} />
       </SidebarContent>
