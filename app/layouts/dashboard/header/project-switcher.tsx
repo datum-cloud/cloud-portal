@@ -58,7 +58,7 @@ export const ProjectSwitcher = ({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            className="max-h-[300px] w-[--radix-dropdown-menu-trigger-width] min-w-56 overflow-y-auto rounded-lg"
             align="start"
             side="bottom"
             sideOffset={4}>
@@ -72,21 +72,26 @@ export const ProjectSwitcher = ({
               </DropdownMenuItem>
             ) : (
               <>
-                {fetcher.data?.map((project: IProjectControlResponse) => (
-                  <DropdownMenuItem
-                    key={project.name}
-                    className="gap-2 p-2"
-                    onClick={() => {
-                      navigate(
-                        getPathWithParams(routes.projects.detail, {
-                          orgId,
-                          projectId: project.name,
-                        }),
-                      )
-                    }}>
-                    <ProjectItem project={project} />
-                  </DropdownMenuItem>
-                ))}
+                {fetcher.data
+                  ?.filter(
+                    (project: IProjectControlResponse) =>
+                      project.name !== currentProject.name,
+                  )
+                  .map((project: IProjectControlResponse) => (
+                    <DropdownMenuItem
+                      key={project.name}
+                      className="gap-2 p-2"
+                      onClick={() => {
+                        navigate(
+                          getPathWithParams(routes.projects.detail, {
+                            orgId,
+                            projectId: project.name,
+                          }),
+                        )
+                      }}>
+                      <ProjectItem project={project} />
+                    </DropdownMenuItem>
+                  ))}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="gap-2 p-2"
