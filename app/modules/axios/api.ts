@@ -30,7 +30,14 @@ export const APIClient = class Api {
         return config
       },
       (error) => {
-        return Promise.reject(error)
+        // Handle errors and redirect to sign out if unauthorized
+        return Promise.reject(
+          new Response('Something went wrong', {
+            status: error.response?.status || 500,
+            statusText:
+              error.response?.data?.message || error.message || 'Unknown error occurred',
+          }),
+        )
       },
     )
 

@@ -8,6 +8,9 @@ export const OrganizationModel = {
   description: types.string,
   personalOrg: types.boolean,
   tags: [types.string],
+  verificationState: types.string,
+  createdAt: types.string,
+  updatedAt: types.string,
 }
 
 export type OrganizationModel = typeof OrganizationModel
