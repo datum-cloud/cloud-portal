@@ -96,7 +96,7 @@ export const ProjectSwitcher = ({
                     navigate(getPathWithParams(routes.projects.new, { orgId }))
                   }}>
                   <Plus className="size-4" />
-                  <div className="font-medium text-muted-foreground">New project</div>
+                  <div className="font-medium text-muted-foreground cursor-pointer">New project</div>
                 </DropdownMenuItem>
               </>
             )}

@@ -1,4 +1,4 @@
-import { PlusIcon, CircleArrowOutUpRightIcon } from 'lucide-react'
+import { PlusIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -110,7 +110,7 @@ export default function OrgProjects() {
                         <TableRow key={project.name}>
                           <TableCell>
                             <Link
-                              className="font-semibold text-primary underline"
+                              className="font-semibold text-primary "
                               to={getPathWithParams(routes.projects.detail, {
                                 orgId,
                                 projectId: project.name,
@@ -122,18 +122,7 @@ export default function OrgProjects() {
                           <TableCell>
                             <DateFormat date={project.createdAt} />
                           </TableCell>
-                          <TableCell className="flex justify-end">
-                            <Link
-                              to={getPathWithParams(routes.projects.detail, {
-                                orgId,
-                                projectId: project.name,
-                              })}>
-                              <Button variant="secondary" size="sm">
-                                <CircleArrowOutUpRightIcon className="size-4" />
-                                Open Project
-                              </Button>
-                            </Link>
-                          </TableCell>
+                          
                         </TableRow>
                       ))
                     )
