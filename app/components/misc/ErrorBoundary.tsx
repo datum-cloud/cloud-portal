@@ -30,9 +30,7 @@ type GenericErrorBoundaryProps = {
 export function GenericErrorBoundary({
   statusHandlers,
   defaultStatusHandler = ({ error }) => (
-    <p>
-      {error.status}: {error.statusText ? error.statusText : error.data}
-    </p>
+    <p>{error.statusText ? error.statusText : error.data}</p>
   ),
   unexpectedErrorHandler = (error) => <p>{getErrorMessage(error)}</p>,
 }: GenericErrorBoundaryProps) {
