@@ -4,10 +4,43 @@ on:
   pull_request:
   push:
     branches: ['main']
+    # https://github.com/actions/runner/issues/2324
+    paths-ignore:
+      - 'infra/**'
+      - 'README.md'
 
 jobs:
+  check-files:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.filter.outputs.run_ci }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get changed files
+        id: filter
+        run: |
+          git fetch --no-tags --depth=1 origin ${{ github.event.before }}
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Filter out only Markdown files and infra directory changes
+          NON_IGNORED_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.md$|^infra/' || true)
+
+          if [[ -n "$NON_IGNORED_CHANGES" ]]; then
+            echo "run_ci=true" >> $GITHUB_ENV
+            echo "run_ci=true" >> $GITHUB_OUTPUT
+          else
+            echo "run_ci=false" >> $GITHUB_ENV
+            echo "run_ci=false" >> $GITHUB_OUTPUT
+          fi
   code-quality:
     runs-on: ubuntu-latest
+    needs: check-files
+    if: needs.check-files.outputs.should_run == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
