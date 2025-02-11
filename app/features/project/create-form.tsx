@@ -105,7 +105,7 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
             disabled={isPending}
             isLoading={isPending}
             className="w-full">
-            Create project
+            {isPending ? 'Creating' : 'Create'} Project
             <RocketIcon className="size-4" />
           </Button>
         </CardFooter>

@@ -33,8 +33,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
       validated,
     )
 
+    // TODO: temporary solution for handle delay on new project
+    // https://github.com/datum-cloud/cloud-portal/issues/45
     return redirectWithToast(
-      getPathWithParams(routes.projects.detail, {
+      getPathWithParams(routes.projects.setup, {
         orgId: params.orgId,
         projectId: project.name,
       }),

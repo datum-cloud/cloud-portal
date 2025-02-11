@@ -11,11 +11,6 @@ import { getPathWithParams } from '@/utils/path'
 export default function OrgLayout() {
   const { orgId } = useParams()
   const { org } = useRouteLoaderData('routes/_main+/$orgId+/_layout')
-  const { setOrganization } = useApp()
-
-  useEffect(() => {
-    setOrganization(org)
-  }, [org])
 
   const navItems: NavItem[] = useMemo(() => {
     return [
