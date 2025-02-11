@@ -80,9 +80,11 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
             <Input
               placeholder="e.g. My Project"
               ref={inputRef}
-              onBlur={(e) => {
-                if (e.target.value && !nameControl.value) {
-                  nameControl.change(generateProjectId(e.target.value, randomId))
+              onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                const value = (e.target as HTMLInputElement).value
+
+                if (value) {
+                  nameControl.change(generateProjectId(value, randomId))
                 }
               }}
               {...getInputProps(description, { type: 'text' })}
@@ -105,7 +107,7 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
             disabled={isPending}
             isLoading={isPending}
             className="w-full">
-            Create project
+            {isPending ? 'Creating' : 'Create'} Project
             <RocketIcon className="size-4" />
           </Button>
         </CardFooter>

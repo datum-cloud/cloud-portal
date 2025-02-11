@@ -25,7 +25,7 @@ export const OrganizationSwitcher = ({
         <SelectOrganization
           currentOrg={currentOrg!}
           onSelect={(org: OrganizationModel) => {
-            navigate(getPathWithParams(routes.org.root, { orgId: org.id }))
+            navigate(getPathWithParams(routes.projects.root, { orgId: org.id }))
             onSelect?.(org)
           }}
         />

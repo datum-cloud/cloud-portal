@@ -2,11 +2,17 @@ import { Loader2 } from 'lucide-react'
 import { Logo } from '@/components/logo/logo'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useTheme } from '@/hooks/useTheme'
-
-export default function WaitingPage({ title }: { title: string }) {
+import { cn } from '@/utils/misc'
+export default function WaitingPage({
+  title,
+  className,
+}: {
+  title: string
+  className?: string
+}) {
   const theme = useTheme()
   return (
-    <Card className="overflow-hidden">
+    <Card className={cn('overflow-hidden', className)}>
       <CardContent className="grid min-h-[500px]">
         <div className="flex flex-col items-center justify-center gap-6">
           <Logo asIcon width={64} theme={theme} className="mb-4" />

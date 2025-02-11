@@ -2,10 +2,13 @@ import { routes } from '@/constants/routes'
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { organizationGql } from '@/resources/gql/organization.gql'
-import { data, LoaderFunctionArgs, redirect } from 'react-router'
+import { data, LoaderFunctionArgs, redirect, Outlet, useLoaderData } from 'react-router'
 import { getPathWithParams } from '@/utils/path'
 import { projectsControl } from '@/resources/control-plane/projects.control'
 import { differenceInMinutes } from 'date-fns'
+import { useApp } from '@/providers/app.provider'
+import { useEffect } from 'react'
+
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { orgId } = params
 
@@ -37,7 +40,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     )
   } catch (error) {
     // Handle new org setup
-    // TODO: this is temporary solution for handle delay when create a account for the first time
+    // TODO: this is temporary solution for handle delay on new organization
     // https://github.com/datum-cloud/cloud-portal/issues/43
     // Check if the organization created at is under 2 minute
 
@@ -56,4 +59,15 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     throw error
   }
+}
+
+export default function OrgLayout() {
+  const { org } = useLoaderData<typeof loader>()
+  const { setOrganization } = useApp()
+
+  useEffect(() => {
+    setOrganization(org)
+  }, [org])
+
+  return <Outlet />
 }

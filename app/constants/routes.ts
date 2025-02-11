@@ -22,12 +22,28 @@ export const routes = {
   account: {
     root: '/account',
     profile: '/account/profile',
+    apiKeys: '/account/api-keys',
   },
   projects: {
     root: '/[orgId]/projects',
     new: '/[orgId]/projects/new',
     detail: '/[orgId]/projects/[projectId]',
+    setup: '/[orgId]/projects/setup',
+    // Main Page of the Project
     dashboard: '/[orgId]/projects/[projectId]/dashboard',
     locations: '/[orgId]/projects/[projectId]/locations',
+    networks: '/[orgId]/projects/[projectId]/networks',
+    gateways: '/[orgId]/projects/[projectId]/gateways',
+    services: '/[orgId]/projects/[projectId]/services',
+    workloads: '/[orgId]/projects/[projectId]/workloads',
+    pipelines: '/[orgId]/projects/[projectId]/pipelines',
+    metrics: '/[orgId]/projects/[projectId]/metrics',
+    logs: '/[orgId]/projects/[projectId]/logs',
+    traces: '/[orgId]/projects/[projectId]/traces',
+    exporters: '/[orgId]/projects/[projectId]/exporters',
+    iam: '/[orgId]/projects/[projectId]/iam-policies',
+    roles: '/[orgId]/projects/[projectId]/roles',
+    serviceAccounts: '/[orgId]/projects/[projectId]/service-accounts',
+    settings: '/[orgId]/projects/[projectId]/settings',
   },
 }

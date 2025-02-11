@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +7,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown'
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
-import { getInitials } from '@/utils/misc'
 import { ChevronsUpDown, Loader2, Plus } from 'lucide-react'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { useEffect } from 'react'
@@ -19,12 +17,12 @@ import { getPathWithParams } from '@/utils/path'
 const ProjectItem = ({ project }: { project: IProjectControlResponse }) => {
   return (
     <div className="flex items-center gap-2">
-      <Avatar className="size-7 rounded-lg">
-        {/* <AvatarImage src={currentOrg?.avatarRemoteURL} alt={currentOrg?.name} /> */}
+      {/* <Avatar className="size-7 rounded-lg">
+        <AvatarImage src={project.avatarRemoteURL} alt={project.name} />
         <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
           {getInitials(project.description)}
         </AvatarFallback>
-      </Avatar>
+      </Avatar> */}
       <div className="grid flex-1 text-left text-sm leading-tight">
         <span className="truncate font-semibold">{project.description}</span>
         <span className="truncate text-xs">{project.name}</span>
@@ -96,7 +94,9 @@ export const ProjectSwitcher = ({
                     navigate(getPathWithParams(routes.projects.new, { orgId }))
                   }}>
                   <Plus className="size-4" />
-                  <div className="font-medium text-muted-foreground cursor-pointer">New project</div>
+                  <div className="cursor-pointer font-medium text-muted-foreground">
+                    New project
+                  </div>
                 </DropdownMenuItem>
               </>
             )}

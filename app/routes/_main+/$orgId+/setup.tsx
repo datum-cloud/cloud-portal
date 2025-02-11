@@ -12,6 +12,8 @@ import { useEffect } from 'react'
 import WaitingPage from '@/components/waiting-page/waiting-page'
 import PublicLayout from '@/layouts/public/public'
 
+// TODO: temporary solution for handle delay on new organization
+// https://github.com/datum-cloud/cloud-portal/issues/43
 export const loader = withMiddleware(async ({ request, params }) => {
   try {
     const session = await getSession(request.headers.get('Cookie'))
