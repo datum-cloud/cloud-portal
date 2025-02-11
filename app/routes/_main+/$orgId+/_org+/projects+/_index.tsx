@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Link, useLoaderData, Await, useParams } from 'react-router'
+import { Link, useLoaderData, Await, useParams, useRevalidator } from 'react-router'
 import { routes } from '@/constants/routes'
 import { projectsControl } from '@/resources/control-plane/projects.control'
 import { authMiddleware } from '@/modules/middleware/auth-middleware'
@@ -16,7 +16,7 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { getSession } from '@/modules/auth/auth-session.server'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { redirectWithToast } from '@/utils/toast.server'
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import { DateFormat } from '@/components/date-format/date-format'
 import { getPathWithParams } from '@/utils/path'
 
@@ -43,9 +43,22 @@ export const loader = withMiddleware(async ({ request, params }) => {
   }
 }, authMiddleware)
 
+const TableSkeleton = () => {
+  return (
+    <TableRow>
+      <TableCell colSpan={4}>Loading...</TableCell>
+    </TableRow>
+  )
+}
+
 export default function OrgProjects() {
   const { orgId } = useParams()
   const projects = useLoaderData<typeof loader>()
+  const revalidator = useRevalidator()
+
+  useEffect(() => {
+    revalidator.revalidate()
+  }, [orgId])
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -78,56 +91,55 @@ export default function OrgProjects() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <Suspense
-              fallback={
-                <TableRow>
-                  <TableCell colSpan={4}>Loading...</TableCell>
-                </TableRow>
-              }>
-              <Await resolve={projects}>
-                {(projects) =>
-                  ((projects ?? []) as IProjectControlResponse[]).length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="py-8 text-center">
-                        <p className="text-muted-foreground">
-                          No projects found. Create your first project to get started.
-                        </p>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    ((projects ?? []) as IProjectControlResponse[]).map((project) => (
-                      <TableRow key={project.name}>
-                        <TableCell>
-                          <Link
-                            className="font-semibold text-primary underline"
-                            to={getPathWithParams(routes.projects.detail, {
-                              orgId,
-                              projectId: project.name,
-                            })}>
-                            {project.name}
-                          </Link>
-                        </TableCell>
-                        <TableCell>{project.description}</TableCell>
-                        <TableCell>
-                          <DateFormat date={project.createdAt} />
-                        </TableCell>
-                        <TableCell className="flex justify-end">
-                          <Link
-                            to={getPathWithParams(routes.projects.detail, {
-                              orgId,
-                              projectId: project.name,
-                            })}>
-                            <Button variant="secondary" size="sm">
-                              <CircleArrowOutUpRightIcon className="size-4" />
-                              Open Project
-                            </Button>
-                          </Link>
+            <Suspense fallback={<TableSkeleton />}>
+              {revalidator.state === 'loading' ? (
+                <TableSkeleton />
+              ) : (
+                <Await resolve={projects}>
+                  {(projects) =>
+                    ((projects ?? []) as IProjectControlResponse[]).length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="py-8 text-center">
+                          <p className="text-muted-foreground">
+                            No projects found. Create your first project to get started.
+                          </p>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )
-                }
-              </Await>
+                    ) : (
+                      ((projects ?? []) as IProjectControlResponse[]).map((project) => (
+                        <TableRow key={project.name}>
+                          <TableCell>
+                            <Link
+                              className="font-semibold text-primary underline"
+                              to={getPathWithParams(routes.projects.detail, {
+                                orgId,
+                                projectId: project.name,
+                              })}>
+                              {project.name}
+                            </Link>
+                          </TableCell>
+                          <TableCell>{project.description}</TableCell>
+                          <TableCell>
+                            <DateFormat date={project.createdAt} />
+                          </TableCell>
+                          <TableCell className="flex justify-end">
+                            <Link
+                              to={getPathWithParams(routes.projects.detail, {
+                                orgId,
+                                projectId: project.name,
+                              })}>
+                              <Button variant="secondary" size="sm">
+                                <CircleArrowOutUpRightIcon className="size-4" />
+                                Open Project
+                              </Button>
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )
+                  }
+                </Await>
+              )}
             </Suspense>
           </TableBody>
         </Table>

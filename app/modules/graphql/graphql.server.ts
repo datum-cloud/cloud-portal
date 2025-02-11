@@ -60,11 +60,6 @@ export const GraphqlClient = class gqlClient {
           const errorMessage = error.response?.errors?.[0]?.message || error.message
           const statusCode =
             error.response?.errors?.[0]?.extensions?.code || error.response?.status || 500
-          const prefix = error.response?.errors
-            ? 'GraphQL Error'
-            : error.response?.status
-              ? 'HTTP Error'
-              : 'Error'
 
           // TODO: find information about error code from backend related to unauthorized
           if (statusCode >= 400 && statusCode < 500) {
@@ -76,7 +71,9 @@ export const GraphqlClient = class gqlClient {
               }),
             )
           }
-          reject(new Response(prefix, { status: statusCode, statusText: errorMessage }))
+          reject(
+            new Response(errorMessage, { status: statusCode, statusText: errorMessage }),
+          )
         })
     })
   }

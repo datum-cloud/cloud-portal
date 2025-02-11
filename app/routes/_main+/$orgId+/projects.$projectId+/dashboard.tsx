@@ -105,7 +105,7 @@ export default function ProjectPage() {
         <div className="flex flex-col gap-5">
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-semibold leading-none">{project.name}</h1>
-            <div className="mt-1 flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-sm font-bold text-muted-foreground">
+            <div className="mt-1 flex items-center gap-1 rounded-md border bg-muted px-2 py-1 text-sm font-bold">
               {status.isReady ? (
                 <CircleIcon className="size-3 fill-green-500 text-green-500" />
               ) : (
@@ -221,7 +221,7 @@ export default function ProjectPage() {
                       href="https://docs.datum.net/"
                       target="_blank"
                       rel="noreferrer"
-                      className="ml-2 text-sunglow underline">
+                      className="text-sunglow underline">
                       Documentation
                     </a>
                   </SectionDescription>
