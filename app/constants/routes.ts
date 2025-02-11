@@ -28,7 +28,7 @@ export const routes = {
     root: '/[orgId]/projects',
     new: '/[orgId]/projects/new',
     detail: '/[orgId]/projects/[projectId]',
-    setup: '/[orgId]/projects/[projectId]/setup',
+    setup: '/[orgId]/projects/setup',
     // Main Page of the Project
     dashboard: '/[orgId]/projects/[projectId]/dashboard',
     locations: '/[orgId]/projects/[projectId]/locations',
