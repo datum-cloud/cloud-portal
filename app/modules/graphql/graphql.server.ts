@@ -56,10 +56,16 @@ export const GraphqlClient = class gqlClient {
           resolve(data)
         })
         .catch((error) => {
+          console.error(error)
           // Handle GraphQL errors and convert to standard format
           const errorMessage = error.response?.errors?.[0]?.message || error.message
-          const statusCode =
+          let statusCode =
             error.response?.errors?.[0]?.extensions?.code || error.response?.status || 500
+
+          // Check for "not authorized" in error message
+          if (errorMessage?.toLowerCase().includes('not authorized')) {
+            statusCode = 401
+          }
 
           // TODO: find information about error code from backend related to unauthorized
           if (statusCode >= 400 && statusCode < 500) {

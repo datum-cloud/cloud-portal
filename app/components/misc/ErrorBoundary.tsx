@@ -1,6 +1,7 @@
 import type { ErrorResponse } from 'react-router'
 import {
   isRouteErrorResponse,
+  Link,
   useFetcher,
   useNavigate,
   useParams,
@@ -46,11 +47,11 @@ export function GenericErrorBoundary({
 
   useEffect(() => {
     // Check for 401 Unauthorized error
-    if (isRouteErrorResponse(error) && error.status === 401) {
+    if (isRouteErrorResponse(error) && (error.status === 401 || error.status === 403)) {
       // Perform sign out
       const signOut = async () => {
         try {
-          toast.error('Session expired', {
+          await toast.error('Session expired', {
             description: 'Please sign in again to continue.',
           })
 
@@ -92,10 +93,12 @@ export function GenericErrorBoundary({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="default" size="sm" onClick={() => navigate(routes.home)}>
-              <HomeIcon className="size-4" />
-              Back to Home
-            </Button>
+            <Link to={routes.home}>
+              <Button size="sm">
+                <HomeIcon className="size-4" />
+                Back to Home
+              </Button>
+            </Link>
             <Button
               variant="outline"
               size="sm"

@@ -7,9 +7,9 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { newProjectSchema } from '@/resources/schemas/project.schema'
-import { Form } from 'react-router'
+import { Form, useNavigate } from 'react-router'
 import { useHydrated } from 'remix-utils/use-hydrated'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { generateProjectId, generateRandomId, useIsPending, cn } from '@/utils/misc'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { Input } from '@/components/ui/input'
@@ -20,12 +20,20 @@ import { Field } from '@/components/field/field'
 import { useApp } from '@/providers/app.provider'
 import { SelectOrganization } from '@/components/select-organization/select-organization'
 import { RocketIcon } from 'lucide-react'
+import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { routes } from '@/constants/routes'
+import { getPathWithParams } from '@/utils/path'
 
 export const CreateProjectForm = ({ className }: { className?: string }) => {
   const { organization } = useApp()
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
   const isPending = useIsPending()
+  const navigate = useNavigate()
+
+  const [currentOrg, setCurrentOrg] = useState<OrganizationModel | undefined>(
+    organization,
+  )
 
   const [form, { name, description, orgEntityId }] = useForm({
     constraint: getZodConstraint(newProjectSchema),
@@ -43,6 +51,10 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     isHydrated && inputRef.current?.focus()
   }, [isHydrated])
+
+  useEffect(() => {
+    setCurrentOrg(organization)
+  }, [organization])
 
   const randomId = useMemo(() => generateRandomId(), [])
 
@@ -67,9 +79,11 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
         <CardContent className="space-y-4">
           <Field label="Choose organization">
             <SelectOrganization
-              currentOrg={organization!}
+              currentOrg={currentOrg!}
               onSelect={(org) => {
+                setCurrentOrg(org)
                 orgEntityIdControl.change(org.userEntityID)
+                navigate(getPathWithParams(routes.projects.new, { orgId: org.id }))
               }}
             />
           </Field>

@@ -23,10 +23,14 @@ export const SelectOrganization = ({
 }) => {
   const fetcher = useFetcher({ key: 'org-list' })
   const [open, setOpen] = useState(false)
+  const [hasLoaded, setHasLoaded] = useState(false)
 
   useEffect(() => {
-    fetcher.load(ORG_LIST_PATH)
-  }, [])
+    if (open && !hasLoaded) {
+      fetcher.load(ORG_LIST_PATH)
+      setHasLoaded(true)
+    }
+  }, [open, hasLoaded])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -45,7 +49,7 @@ export const SelectOrganization = ({
             className="h-9 rounded-md border-none focus-visible:ring-0"
             placeholder="Search Organization"
           />
-          <CommandList className="max-h-full">
+          <CommandList className="max-h-[300px] overflow-y-auto">
             <CommandEmpty>No results found.</CommandEmpty>
             {fetcher.state === 'loading' ? (
               <CommandItem disabled>
