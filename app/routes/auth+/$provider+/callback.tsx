@@ -58,7 +58,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     // Determine redirect path based on project existence
     const redirectPath =
       projects.length > 0
-        ? getPathWithParams(routes.org.root, { orgId: org.id })
+        ? getPathWithParams(routes.projects.root, { orgId: org.id })
         : `${getPathWithParams(routes.projects.new, { orgId: org.id })}?sidebar=false`
 
     // Redirect with success toast
