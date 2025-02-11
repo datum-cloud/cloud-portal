@@ -8,15 +8,12 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import {
-  OrganizationModel,
-  OrganizationMemberModel,
-} from '@/resources/gql/models/organization.model'
+import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { useFetcher } from 'react-router'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/list'
 import { OrganizationItem } from './organization-item'
-import { useApp } from '@/providers/app.provider'
+
 export const SelectOrganization = ({
   currentOrg,
   onSelect,
@@ -24,7 +21,6 @@ export const SelectOrganization = ({
   currentOrg: Partial<OrganizationModel>
   onSelect?: (org: OrganizationModel) => void
 }) => {
-  const { user } = useApp()
   const fetcher = useFetcher({ key: 'org-list' })
   const [open, setOpen] = useState(false)
   const [hasLoaded, setHasLoaded] = useState(false)
@@ -35,14 +31,6 @@ export const SelectOrganization = ({
       setHasLoaded(true)
     }
   }, [open, hasLoaded])
-
-  const orgs = useMemo(() => {
-    const filtered = (fetcher.data ?? []).filter((org: OrganizationModel) =>
-      org.members.some((member: OrganizationMemberModel) => member.user.id === user?.id),
-    )
-
-    return filtered
-  }, [fetcher.data, user])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -69,7 +57,7 @@ export const SelectOrganization = ({
                 <span>Loading organizations...</span>
               </CommandItem>
             ) : (
-              orgs
+              (fetcher.data ?? [])
                 .filter((org: OrganizationModel) => org.id !== currentOrg?.id)
                 .map((org: OrganizationModel) => (
                   <CommandItem
