@@ -137,8 +137,7 @@ export default function ProjectPage() {
                   transition={{ delay: 0.2 }}>
                   <SectionTitle>Welcome to your project</SectionTitle>
                   <SectionDescription>
-                    Your project is now ready! You have a dedicated instance with its own
-                    API ready to go.
+                    Your project is now ready! Start configuring and managing resources now.
                   </SectionDescription>
                 </motion.div>
 
