@@ -44,10 +44,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
       },
     )
   } catch (error) {
-    return redirectWithToast(routes.projects.new, {
-      title: 'Error!',
-      description: error instanceof Error ? error.message : 'Something went wrong',
-    })
+    return redirectWithToast(
+      getPathWithParams(routes.projects.new, { orgId: params.orgId }),
+      {
+        title: 'Error!',
+        description: error instanceof Error ? error.message : 'Something went wrong',
+      },
+    )
   }
 }
 
