@@ -21,7 +21,6 @@ export const OrganizationSwitcher = ({
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuLabel asChild>
-        {/* TODO: Add handle for organization switcher. Update the current org session*/}
         <SelectOrganization
           currentOrg={currentOrg!}
           onSelect={(org: OrganizationModel) => {

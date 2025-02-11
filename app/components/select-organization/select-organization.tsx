@@ -23,10 +23,14 @@ export const SelectOrganization = ({
 }) => {
   const fetcher = useFetcher({ key: 'org-list' })
   const [open, setOpen] = useState(false)
+  const [hasLoaded, setHasLoaded] = useState(false)
 
   useEffect(() => {
-    fetcher.load(ORG_LIST_PATH)
-  }, [])
+    if (open && !hasLoaded) {
+      fetcher.load(ORG_LIST_PATH)
+      setHasLoaded(true)
+    }
+  }, [open, hasLoaded])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
