@@ -1,7 +1,10 @@
 import { Logo } from '@/components/logo/logo'
 import { useTheme } from '@/hooks/useTheme'
-
-export const ComingSoon = () => {
+import { Button } from '@/components/ui/button'
+import { Link } from 'react-router'
+import { routes } from '@/constants/routes'
+import { HomeIcon } from 'lucide-react'
+export const ComingSoon = ({ showBackButton = true }: { showBackButton?: boolean }) => {
   const theme = useTheme()
 
   return (
@@ -11,6 +14,15 @@ export const ComingSoon = () => {
       <p className="text-muted-foreground">
         This feature is currently under development. Check back later!
       </p>
+
+      {showBackButton && (
+        <Link to={routes.home}>
+          <Button>
+            <HomeIcon className="size-4" />
+            Back to Home
+          </Button>
+        </Link>
+      )}
     </div>
   )
 }

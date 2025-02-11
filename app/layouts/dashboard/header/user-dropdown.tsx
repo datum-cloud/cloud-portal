@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useApp } from '@/providers/app.provider'
 import { UserModel } from '@/resources/gql/models/user.model'
 import { OrganizationSwitcher } from './org-switcher'
-import { Form } from 'react-router'
+import { Form, useNavigate } from 'react-router'
 import { routes } from '@/constants/routes'
 import { getInitials, cn } from '@/utils/misc'
 import { useState } from 'react'
@@ -48,6 +48,7 @@ const UserItem = ({
   )
 }
 export const UserDropdown = () => {
+  const navigate = useNavigate()
   const { user } = useApp()
   const [open, setOpen] = useState(false)
 
@@ -78,11 +79,15 @@ export const UserDropdown = () => {
         <DropdownMenuSeparator />
         <DropdownMenuLabel>User Profile</DropdownMenuLabel>
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => navigate(routes.account.profile)}>
             <UserIcon />
             Edit Profile
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => navigate(routes.account.apiKeys)}>
             <KeyIcon />
             API Access
           </DropdownMenuItem>

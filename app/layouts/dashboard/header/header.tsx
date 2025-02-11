@@ -6,15 +6,25 @@ import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Logo } from '@/components/logo/logo'
 import { useTheme } from '@/hooks/useTheme'
 
-export const Header = ({ content }: { content: React.ReactNode }) => {
+export const Header = ({
+  content,
+  noSidebar = false,
+}: {
+  content?: React.ReactNode
+  noSidebar?: boolean
+}) => {
   const theme = useTheme()
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b">
       {/* Left Section */}
       <div className="flex items-center px-4">
-        <SidebarTrigger className="-ml-1" />
-        <Separator orientation="vertical" className="mx-2 h-4" />
+        {!noSidebar && (
+          <>
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mx-2 h-4" />
+          </>
+        )}
         {content ? content : <Logo asIcon={false} width={80} theme={theme} />}
       </div>
       {/* Right Section */}

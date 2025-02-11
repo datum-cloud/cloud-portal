@@ -4,8 +4,7 @@ import { NavItem } from '@/layouts/dashboard/sidebar/nav-main'
 import { routes } from '@/constants/routes'
 import { FileIcon, SettingsIcon } from 'lucide-react'
 import { OrganizationItem } from '@/components/select-organization/organization-item'
-import { useApp } from '@/providers/app.provider'
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { getPathWithParams } from '@/utils/path'
 
 export default function OrgLayout() {
