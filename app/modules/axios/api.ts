@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { getSession } from '../auth/auth-session.server'
 
 export interface IApiResponse<T> {
@@ -17,7 +17,7 @@ export const APIClient = class Api {
     this.token = ''
   }
 
-  initializeInstance = () => {
+  initializeInstance() {
     const baseURL = this.baseURL
 
     const instance = axios.create({
@@ -30,17 +30,18 @@ export const APIClient = class Api {
         return config
       },
       (error) => {
-        // Handle errors and redirect to sign out if unauthorized
-        return Promise.reject(
-          new Response('Something went wrong', {
-            status: error.response?.status || 500,
-            statusText:
-              error.response?.data?.message || error.message || 'Unknown error occurred',
-          }),
-        )
+        return this.errorHandler(error)
       },
     )
 
+    instance.interceptors.response.use(
+      (response) => {
+        return response
+      },
+      (error) => {
+        return this.errorHandler(error)
+      },
+    )
     return instance
   }
 
@@ -50,7 +51,7 @@ export const APIClient = class Api {
     this.token = token
   }
 
-  authClient = (url: string, method: string, data?: any) => {
+  authClient(url: string, method: string, data?: any) {
     const instance = this.initializeInstance()
     instance.interceptors.request.use(
       (config: any) => {
@@ -61,14 +62,7 @@ export const APIClient = class Api {
         return config
       },
       (error) => {
-        // Handle errors and redirect to sign out if unauthorized
-        return Promise.reject(
-          new Response('Something went wrong', {
-            status: error.response?.status || 500,
-            statusText:
-              error.response?.data?.message || error.message || 'Unknown error occurred',
-          }),
-        )
+        return this.errorHandler(error)
       },
     )
 
@@ -79,12 +73,24 @@ export const APIClient = class Api {
     })
   }
 
-  publicRequest = (url: string, method: string, data?: any) => {
+  publicRequest(url: string, method: string, data?: any) {
     const instance = this.initializeInstance()
     return instance({
       url,
       method,
       data,
     })
+  }
+
+  errorHandler(error: AxiosError) {
+    const errorMessage =
+      (error.response?.data as any)?.message || error.message || 'Unknown error occurred'
+    const status = error.response?.status || 500
+    return Promise.reject(
+      new Response(errorMessage, {
+        status,
+        statusText: errorMessage,
+      }),
+    )
   }
 }
