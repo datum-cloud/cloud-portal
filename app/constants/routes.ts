@@ -6,6 +6,7 @@ export const routes = {
     callback: (provider: string) => `/auth/${provider}/callback`,
     google: '/auth/google',
     github: '/auth/github',
+    setup: '/auth/setup',
   },
   home: '/',
   org: {

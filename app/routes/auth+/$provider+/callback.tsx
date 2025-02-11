@@ -6,69 +6,65 @@ import { authApi } from '@/resources/api/auth.api'
 import { combineHeaders } from '@/utils/misc.server'
 import { createToastHeaders } from '@/utils/toast.server'
 import { organizationGql } from '@/resources/gql/organization.gql'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { projectsControl } from '@/resources/control-plane/projects.control'
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { getPathWithParams } from '@/utils/path'
+import { differenceInMinutes } from 'date-fns'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
+  const session = await getSession(request.headers.get('Cookie'))
+  const userId = session.get('userId')
+
+  // Redirect if already authenticated
+  if (userId) {
+    return redirect(routes.home, {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    })
+  }
+
+  // Validate provider param
+  if (typeof params.provider !== 'string') {
+    throw new Error('Invalid authentication provider')
+  }
+
+  // Authenticate user
+  const credentials = await authenticator.authenticate(params.provider, request)
+  if (!credentials) {
+    throw new Error('Authentication failed')
+  }
+
+  // Get and store tokens
+  const { access_token: controlPlaneToken } = await authApi.getExchangeToken(
+    credentials.accessToken,
+  )
+
+  session.set('accessToken', credentials.accessToken)
+  session.set('controlPlaneToken', controlPlaneToken)
+  session.set('userId', credentials.userId)
+
+  // Get organization details
+  await organizationGql.setToken(request, credentials.accessToken)
+  const org = await organizationGql.getOrganizationDetail(credentials.defaultOrgId)
+
+  session.set('currentOrgId', org.id)
+  session.set('currentOrgEntityID', org.userEntityID)
+
   try {
-    const session = await getSession(request.headers.get('Cookie'))
-    // check if the user is already authenticated
-    const credsSession = session.get('userId')
-    if (credsSession) {
-      throw redirect(routes.home, {
-        headers: {
-          'Set-Cookie': await commitSession(session),
-        },
-      })
-    }
+    // Check for existing projects
+    await projectsControl.setToken(request, controlPlaneToken)
+    const projects = await projectsControl.getProjects(org.userEntityID)
 
-    if (typeof params.provider !== 'string') throw new Error('Invalid provider.')
+    // Determine redirect path based on project existence
+    const redirectPath =
+      projects.length > 0
+        ? getPathWithParams(routes.projects.root, { orgId: org.id })
+        : `${getPathWithParams(routes.projects.new, { orgId: org.id })}?sidebar=false`
 
-    const credentials = await authenticator.authenticate(params.provider, request)
-
-    if (!credentials) {
-      throw new Error('Authentication failed')
-    }
-
-    // Get Control Plane Token from Exchange Token
-    const exchangeToken = await authApi.getExchangeToken(credentials.accessToken)
-
-    session.set('accessToken', credentials.accessToken)
-    session.set('controlPlaneToken', exchangeToken.access_token)
-    session.set('userId', credentials.userId)
-
-    // Get the default organization id based on the user's default org id
-    await organizationGql.setToken(request, credentials.accessToken)
-    const org: OrganizationModel = await organizationGql.getOrganizationDetail(
-      credentials.defaultOrgId,
-    )
-    // Set current organization in session
-    session.set('currentOrgId', org.id)
-    session.set('currentOrgEntityID', org.userEntityID)
-
-    // Check if the organization has a project.
-    // If not, redirect to the project creation page and hide the sidebar.
-    // If yes, redirect to the home page.
-    await projectsControl.setToken(request, exchangeToken.access_token)
-    const projects: IProjectControlResponse[] = await projectsControl.getProjects(
-      org.userEntityID,
-    )
-    const hasProject = projects.length > 0
-
-    // Redirect to the home page if the organization has a project.
-    // Otherwise, redirect to the project creation page and hide the sidebar.
-
-    const redirectPath = hasProject
-      ? getPathWithParams(routes.org.root, { orgId: org.id })
-      : `${getPathWithParams(routes.projects.new, { orgId: org.id })}?sidebar=false`
-
+    // Redirect with success toast
     return redirect(redirectPath, {
       headers: combineHeaders(
-        {
-          'Set-Cookie': await commitSession(session),
-        },
+        { 'Set-Cookie': await commitSession(session) },
         await createToastHeaders({
           title: 'Welcome back!',
           description: 'You have successfully signed in.',
@@ -76,12 +72,28 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       ),
     })
   } catch (error) {
-    console.error(error)
-    if (error instanceof Error) {
-      // here the error related to the authentication process
-      throw new Error(error.message ?? 'Authentication Callback failed')
+    // Handle new account setup
+    // TODO: this is temporary solution for handle delay when create a account for the first time
+    // https://github.com/datum-cloud/cloud-portal/issues/43
+    // Check if the organization created at is under 2 minute
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((error as any).response?.status === 403) {
+      const isNewAccount = differenceInMinutes(new Date(), new Date(org.createdAt)) < 2
+
+      if (isNewAccount) {
+        return redirect(getPathWithParams(routes.auth.setup), {
+          headers: {
+            'Set-Cookie': await commitSession(session),
+          },
+        })
+      }
     }
 
-    throw error // Re-throw other values or unhandled errors
+    throw error
   }
+}
+
+export default function CallbackPage() {
+  return <div>Callback</div>
 }

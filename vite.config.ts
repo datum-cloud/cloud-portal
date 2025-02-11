@@ -3,15 +3,15 @@ import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { resolve } from 'path'
 
-const aliases: {[key: string]: string} = {
+const aliases: { [key: string]: string } = {
   '@': resolve(__dirname, './app'),
-};
+}
 
 // Workaround for issue with running react router in a production build
 //
 // See: https://github.com/remix-run/react-router/issues/12568#issuecomment-2629986004
 if (process.env.NODE_ENV == 'production') {
-  aliases['react-dom/server'] = 'react-dom/server.node';
+  aliases['react-dom/server'] = 'react-dom/server.node'
 }
 
 export default defineConfig({

@@ -28,7 +28,7 @@ declare global {
 export function initEnvs() {
   const result = dotenv.config()
   if (result.error !== undefined) {
-    throw new Error("Could not get configuration file: " + result.error.message);
+    throw new Error('Could not get configuration file: ' + result.error.message)
   }
 
   for (const key in result.parsed) {
