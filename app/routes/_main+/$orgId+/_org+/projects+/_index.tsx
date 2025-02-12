@@ -1,4 +1,4 @@
-import { PlusIcon } from 'lucide-react'
+import { PlusIcon, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -47,7 +47,12 @@ export const loader = withMiddleware(async ({ request, params }) => {
 const TableSkeleton = () => {
   return (
     <TableRow>
-      <TableCell colSpan={3}>Loading...</TableCell>
+      <TableCell colSpan={4} className="py-8 text-center">
+        <div className="flex items-center justify-center gap-2">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </TableCell>
     </TableRow>
   )
 }
@@ -95,7 +100,7 @@ export default function OrgProjects() {
               <TableSkeleton />
             ) : ((projects ?? []) as IProjectControlResponse[]).length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="py-8 text-center">
+                <TableCell colSpan={4} className="py-8 text-center">
                   <p className="text-muted-foreground">
                     No projects found. Create your first project to get started.
                   </p>

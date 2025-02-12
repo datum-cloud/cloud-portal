@@ -11,7 +11,6 @@ export const routes = {
   org: {
     root: '/[orgId]/dashboard',
     docs: '/[orgId]/docs',
-    setup: '/[orgId]/setup',
     settings: {
       root: '/[orgId]/settings',
       general: '/[orgId]/settings/general',

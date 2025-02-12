@@ -1,13 +1,19 @@
-import { routes } from '@/constants/routes'
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { organizationGql } from '@/resources/gql/organization.gql'
-import { data, LoaderFunctionArgs, redirect, Outlet, useLoaderData } from 'react-router'
-import { getPathWithParams } from '@/utils/path'
-import { projectsControl } from '@/resources/control-plane/projects.control'
+import {
+  data,
+  LoaderFunctionArgs,
+  Outlet,
+  useLoaderData,
+  useRevalidator,
+} from 'react-router'
 import { differenceInMinutes } from 'date-fns'
 import { useApp } from '@/providers/app.provider'
 import { useEffect } from 'react'
+import { projectsControl } from '@/resources/control-plane/projects.control'
+import PublicLayout from '@/layouts/public/public'
+import WaitingPage from '@/components/waiting-page/waiting-page'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { orgId } = params
@@ -31,30 +37,29 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const projects = await projectsControl.getProjects(org.userEntityID)
 
     return data(
-      { org, projects },
+      { org, projects, isReady: true },
       {
         headers: {
           'Set-Cookie': await commitSession(session),
         },
       },
     )
-  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
     // Handle new org setup
     // TODO: this is temporary solution for handle delay on new organization
     // https://github.com/datum-cloud/cloud-portal/issues/43
     // Check if the organization created at is under 2 minute
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((error as any).response?.status === 403) {
-      const isNewAccount = differenceInMinutes(new Date(), new Date(org.createdAt)) < 2
-
-      if (isNewAccount) {
-        return redirect(getPathWithParams(routes.org.setup, { orgId }), {
+    const isNewAccount = differenceInMinutes(new Date(), new Date(org.createdAt)) < 2
+    if (error.status === 403 && isNewAccount) {
+      return data(
+        { org, projects: [], isReady: false },
+        {
           headers: {
             'Set-Cookie': await commitSession(session),
           },
-        })
-      }
+        },
+      )
     }
 
     throw error
@@ -62,12 +67,35 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export default function OrgLayout() {
-  const { org } = useLoaderData<typeof loader>()
+  let interval: NodeJS.Timeout | undefined = undefined
+  const { org, isReady } = useLoaderData<typeof loader>()
+  const { revalidate } = useRevalidator()
+
   const { setOrganization } = useApp()
 
   useEffect(() => {
     setOrganization(org)
   }, [org])
 
-  return <Outlet />
+  useEffect(() => {
+    if (!isReady && !interval) {
+      interval = setInterval(revalidate, 5000)
+    } else if (isReady && interval) {
+      clearInterval(interval)
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval)
+      }
+    }
+  }, [isReady]) // Run only on mount
+
+  return isReady ? (
+    <Outlet />
+  ) : (
+    <PublicLayout>
+      <WaitingPage title="Setting up organization" />
+    </PublicLayout>
+  )
 }
