@@ -57,7 +57,10 @@ export const GraphqlClient = class gqlClient {
         })
         .catch((error) => {
           // Handle GraphQL errors and convert to standard format
-          const errorMessage = error.response?.errors?.[0]?.message || error.message
+          const errorMessage =
+            error.response?.errors?.[0]?.message ||
+            error?.message ||
+            'Unknown error occurred'
           let statusCode =
             error.response?.errors?.[0]?.extensions?.code || error.response?.status || 500
 

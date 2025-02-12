@@ -6,6 +6,7 @@ import { authApi } from '@/resources/api/auth.api'
 import { combineHeaders } from '@/utils/misc.server'
 import { organizationGql } from '@/resources/gql/organization.gql'
 import { getPathWithParams } from '@/utils/path'
+import { redirectWithToast } from '@/utils/toast.server'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
@@ -59,7 +60,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       headers: combineHeaders({ 'Set-Cookie': await commitSession(session) }),
     })
   } catch (error) {
-    console.log(error)
-    return null
+    return redirectWithToast(routes.auth.signIn, {
+      title: 'Authentication failed',
+      description: (error as Error).message || 'Something went wrong',
+      type: 'error',
+    })
   }
 }
