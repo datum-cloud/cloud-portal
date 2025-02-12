@@ -33,6 +33,11 @@ import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import NProgress from 'nprogress'
 import { useEffect, useMemo } from 'react'
+
+// NProgress configuration
+
+NProgress.configure({ showSpinner: false })
+
 export const handle = { i18n: ['translation'] }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -134,6 +139,9 @@ export default function AppWithProviders() {
    * determine if the app is idle or if it's loading.
    * Here we consider both loading and submitting as loading.
    */
+
+  //
+
   const state = useMemo<'idle' | 'loading'>(
     function getGlobalState() {
       const states = [navigation.state, ...fetchers.map((fetcher) => fetcher.state)]

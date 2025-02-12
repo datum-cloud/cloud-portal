@@ -100,7 +100,7 @@ export const UserDropdown = () => {
             <Button
               type="submit"
               variant="link"
-              className="flex h-8 w-full justify-start text-left hover:bg-transparent hover:no-underline focus:text-destructive focus-visible:ring-0 focus-visible:ring-offset-0 cursor-pointer">
+              className="flex h-8 w-full cursor-pointer justify-start text-left hover:bg-transparent hover:no-underline focus:text-destructive focus-visible:ring-0 focus-visible:ring-offset-0">
               <LogOut />
               Sign out
             </Button>

@@ -19,6 +19,7 @@ import { redirectWithToast } from '@/utils/toast.server'
 import { useEffect } from 'react'
 import { DateFormat } from '@/components/date-format/date-format'
 import { getPathWithParams } from '@/utils/path'
+import { ProjectStatus } from '@/components/project-status/project-status'
 
 export const loader = withMiddleware(async ({ request, params }) => {
   try {
@@ -85,7 +86,7 @@ export default function OrgProjects() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
-
+              <TableHead>Status</TableHead>
               <TableHead>Creation Date</TableHead>
             </TableRow>
           </TableHeader>
@@ -114,6 +115,9 @@ export default function OrgProjects() {
                     </Link>
                   </TableCell>
                   <TableCell>{project.description}</TableCell>
+                  <TableCell>
+                    <ProjectStatus status={project.status} />
+                  </TableCell>
                   <TableCell>
                     <DateFormat date={project.createdAt} />
                   </TableCell>

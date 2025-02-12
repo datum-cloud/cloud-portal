@@ -114,7 +114,7 @@ export const NavMain = forwardRef<
     if (state === 'collapsed' && !isMobile && level <= 2 && hasChildren) {
       return (
         <SidebarMenu key={itemKey}>
-          <DropdownMenu open={isOpen}>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 tooltip={item.title}

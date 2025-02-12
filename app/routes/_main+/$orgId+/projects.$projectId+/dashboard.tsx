@@ -1,18 +1,10 @@
 import { useRouteLoaderData, useRevalidator } from 'react-router'
 import { useEffect, useMemo } from 'react'
-import {
-  Loader2,
-  ArrowRight,
-  Mail,
-  Network,
-  Cloud,
-  GlobeLock,
-  Binoculars,
-  CircleIcon,
-} from 'lucide-react'
+import { ArrowRight, Mail, Network, Cloud, GlobeLock, Binoculars } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { motion } from 'framer-motion'
+import { ProjectStatus } from '@/components/project-status/project-status'
 
 const EXPLORER_CARDS = [
   {
@@ -57,7 +49,7 @@ const ArrowListItem = ({ children }: { children: React.ReactNode }) => (
 )
 
 const ExplorerCard = ({ title, description, icon }: (typeof EXPLORER_CARDS)[number]) => (
-  <Card className="flex flex-col gap-3">
+  <Card className="flex h-full flex-col gap-3">
     <CardHeader className="!pb-0">
       <CardTitle className="flex items-center gap-2 text-lg font-semibold">
         {icon}
@@ -105,14 +97,11 @@ export default function ProjectPage() {
         <div className="flex flex-col gap-5">
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-semibold leading-none">{project.name}</h1>
-            <div className="mt-1 flex items-center gap-1 rounded-md border bg-muted px-2 py-1 text-sm font-bold">
-              {status.isReady ? (
-                <CircleIcon className="size-3 fill-green-500 text-green-500" />
-              ) : (
-                <Loader2 className="size-4 animate-spin" />
-              )}
-              {status.isReady ? 'Ready' : 'Setting up project...'}
-            </div>
+            <ProjectStatus
+              className="py-1 font-bold"
+              status={project.status}
+              showTooltip={false}
+            />
           </div>
           {!status.isReady && (
             <SectionDescription>
