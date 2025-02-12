@@ -1,5 +1,5 @@
 import { DashboardLayout } from '@/layouts/dashboard/dashboard'
-import { Outlet, useLoaderData, useParams } from 'react-router'
+import { Outlet, useLoaderData, useParams, redirect } from 'react-router'
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main'
 import { routes } from '@/constants/routes'
 import {
@@ -23,17 +23,31 @@ export const loader = withMiddleware(async ({ request, params }) => {
   if (!projectId) {
     throw new Error('Project ID is required')
   }
+  try {
+    const session = await getSession(request.headers.get('Cookie'))
+    const orgEntityId: string = session.get('currentOrgEntityID')
 
-  const session = await getSession(request.headers.get('Cookie'))
-  const orgEntityId: string = session.get('currentOrgEntityID')
+    const project: IProjectControlResponse = await projectsControl.getProject(
+      orgEntityId,
+      projectId,
+      request,
+    )
 
-  const project: IProjectControlResponse = await projectsControl.getProject(
-    orgEntityId,
-    projectId,
-    request,
-  )
-
-  return project
+    return project
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    // TODO: temporary solution for handle delay on new project
+    // https://github.com/datum-cloud/cloud-portal/issues/45
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((error as any).response?.status === 403) {
+      return redirect(
+        getPathWithParams(`${routes.projects.setup}?projectId=${projectId}`, {
+          orgId: params.orgId,
+        }),
+      )
+    }
+    return null
+  }
 }, authMiddleware)
 
 export default function ProjectLayout() {

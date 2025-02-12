@@ -56,27 +56,23 @@ export const GraphqlClient = class gqlClient {
           resolve(data)
         })
         .catch((error) => {
-          console.error(error)
           // Handle GraphQL errors and convert to standard format
-          const errorMessage = error.response?.errors?.[0]?.message || error.message
+          const errorMessage =
+            error.response?.errors?.[0]?.message ||
+            error?.message ||
+            'Unknown error occurred'
           let statusCode =
             error.response?.errors?.[0]?.extensions?.code || error.response?.status || 500
 
+          // TODO: find information about error code from backend related to unauthorized
           // Check for "not authorized" in error message
-          if (errorMessage?.toLowerCase().includes('not authorized')) {
+          if (
+            errorMessage?.toLowerCase().includes('not authorized') ||
+            (statusCode >= 400 && statusCode < 500)
+          ) {
             statusCode = 401
           }
 
-          // TODO: find information about error code from backend related to unauthorized
-          if (statusCode >= 400 && statusCode < 500) {
-            // For unauthorized errors, throw a Response that will be caught by Remix
-            reject(
-              new Response('Unauthorized', {
-                status: 401,
-                statusText: 'Unauthorized - Please sign in again',
-              }),
-            )
-          }
           reject(
             new Response(errorMessage, { status: statusCode, statusText: errorMessage }),
           )

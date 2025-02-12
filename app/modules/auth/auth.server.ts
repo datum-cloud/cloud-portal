@@ -69,10 +69,18 @@ authenticator
   .use(
     new OAuth2Strategy(
       {
+        cookie: {
+          name: 'oauth2',
+          maxAge: 60 * 60 * 24 * 1, // 1 day
+          path: '/auth',
+          httpOnly: true,
+          sameSite: 'Lax',
+        },
         clientId: process.env.AUTH_GOOGLE_ID ?? '',
         clientSecret: process.env.AUTH_GOOGLE_SECRET ?? '',
         redirectURI: `${process.env.APP_URL ?? 'http://localhost:3000'}${routes.auth.callback('google')}`,
-        authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+        authorizationEndpoint:
+          'https://accounts.google.com/o/oauth2/v2/auth?prompt=login&response_type=code',
         tokenEndpoint: 'https://oauth2.googleapis.com/token',
         scopes: ['email', 'profile', 'openid'],
       },
