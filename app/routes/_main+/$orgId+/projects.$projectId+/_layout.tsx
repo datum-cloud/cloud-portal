@@ -39,7 +39,7 @@ export const loader = withMiddleware(async ({ request, params }) => {
     // TODO: temporary solution for handle delay on new project
     // https://github.com/datum-cloud/cloud-portal/issues/45
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((error as any).response?.status === 403) {
+    if ((error as any).status === 403) {
       return redirect(
         getPathWithParams(`${routes.projects.setup}?projectId=${projectId}`, {
           orgId: params.orgId,

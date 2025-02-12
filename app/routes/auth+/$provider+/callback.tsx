@@ -52,13 +52,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     // TODO: change to the org root when the dashboard is ready
     // Redirect to the Projects root
-    /* return redirect(getPathWithParams(routes.projects.root, { orgId: org.id }), {
-    headers: combineHeaders({ 'Set-Cookie': await commitSession(session) }),
-  }) */
-
-    return redirect(getPathWithParams(routes.org.setup, { orgId: org.id }), {
+    return redirect(getPathWithParams(routes.projects.root, { orgId: org.id }), {
       headers: combineHeaders({ 'Set-Cookie': await commitSession(session) }),
     })
+
+    // return redirect(getPathWithParams(routes.org.setup, { orgId: org.id }), {
+    //   headers: combineHeaders({ 'Set-Cookie': await commitSession(session) }),
+    // })
   } catch (error) {
     return redirectWithToast(routes.auth.signIn, {
       title: 'Authentication failed',
