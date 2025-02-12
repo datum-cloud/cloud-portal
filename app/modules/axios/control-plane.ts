@@ -92,7 +92,13 @@ export const ControlPlaneClient = class Api {
   errorHandler(error: AxiosError) {
     const errorMessage =
       (error.response?.data as any)?.message || error.message || 'Unknown error occurred'
-    const status = error.response?.status || 500
+    let status = error.response?.status || 500
+
+    // Check for "not authorized" in error message
+    if (errorMessage?.toLowerCase().includes('you are not allowed')) {
+      status = 401
+    }
+
     return Promise.reject(
       new Response(errorMessage, {
         status,

@@ -47,7 +47,7 @@ export function GenericErrorBoundary({
 
   useEffect(() => {
     // Check for 401 Unauthorized error
-    if (isRouteErrorResponse(error) && (error.status === 401 || error.status === 403)) {
+    if (isRouteErrorResponse(error) && error.status === 401) {
       // Perform sign out
       const signOut = async () => {
         try {

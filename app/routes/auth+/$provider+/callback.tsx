@@ -8,49 +8,58 @@ import { organizationGql } from '@/resources/gql/organization.gql'
 import { getPathWithParams } from '@/utils/path'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const session = await getSession(request.headers.get('Cookie'))
-  const userId = session.get('userId')
+  try {
+    const session = await getSession(request.headers.get('Cookie'))
+    const userId = session.get('userId')
 
-  // Redirect if already authenticated
-  if (userId) {
-    return redirect(routes.home, {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    })
-  }
+    // Redirect if already authenticated
+    if (userId) {
+      return redirect(routes.home, {
+        headers: {
+          'Set-Cookie': await commitSession(session),
+        },
+      })
+    }
 
-  // Validate provider param
-  if (typeof params.provider !== 'string') {
-    throw new Error('Invalid authentication provider')
-  }
+    // Validate provider param
+    if (typeof params.provider !== 'string') {
+      throw new Error('Invalid authentication provider')
+    }
 
-  // Authenticate user
-  const credentials = await authenticator.authenticate(params.provider, request)
-  if (!credentials) {
-    throw new Error('Authentication failed')
-  }
+    // Authenticate user
+    const credentials = await authenticator.authenticate(params.provider, request)
+    if (!credentials) {
+      throw new Error('Authentication failed')
+    }
 
-  // Get and store tokens
-  const { access_token: controlPlaneToken } = await authApi.getExchangeToken(
-    credentials.accessToken,
-  )
+    // Get and store tokens
+    const { access_token: controlPlaneToken } = await authApi.getExchangeToken(
+      credentials.accessToken,
+    )
 
-  session.set('accessToken', credentials.accessToken)
-  session.set('controlPlaneToken', controlPlaneToken)
-  session.set('userId', credentials.userId)
+    session.set('accessToken', credentials.accessToken)
+    session.set('controlPlaneToken', controlPlaneToken)
+    session.set('userId', credentials.userId)
 
-  // Get organization details
-  await organizationGql.setToken(request, credentials.accessToken)
-  const org = await organizationGql.getOrganizationDetail(credentials.defaultOrgId)
+    // Get organization details
+    await organizationGql.setToken(request, credentials.accessToken)
+    const org = await organizationGql.getOrganizationDetail(credentials.defaultOrgId)
 
-  // Update the current organization in session
-  session.set('currentOrgId', org.id)
-  session.set('currentOrgEntityID', org.userEntityID)
+    // Update the current organization in session
+    session.set('currentOrgId', org.id)
+    session.set('currentOrgEntityID', org.userEntityID)
 
-  // TODO: change to the org root when the dashboard is ready
-  // Redirect to the Projects root
-  return redirect(getPathWithParams(routes.projects.root, { orgId: org.id }), {
+    // TODO: change to the org root when the dashboard is ready
+    // Redirect to the Projects root
+    /* return redirect(getPathWithParams(routes.projects.root, { orgId: org.id }), {
     headers: combineHeaders({ 'Set-Cookie': await commitSession(session) }),
-  })
+  }) */
+
+    return redirect(getPathWithParams(routes.org.setup, { orgId: org.id }), {
+      headers: combineHeaders({ 'Set-Cookie': await commitSession(session) }),
+    })
+  } catch (error) {
+    console.log(error)
+    return null
+  }
 }
