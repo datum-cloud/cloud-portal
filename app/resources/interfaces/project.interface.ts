@@ -31,7 +31,7 @@ interface Project {
   kind: 'Project'
   metadata: ProjectMetadata
   spec: ProjectSpec
-  status: ProjectStatus
+  status: IProjectStatus
 }
 
 interface ProjectStatusCondition {
@@ -43,7 +43,7 @@ interface ProjectStatusCondition {
   type: string
 }
 
-interface ProjectStatus {
+export interface IProjectStatus {
   conditions: ProjectStatusCondition[]
 }
 
@@ -56,5 +56,5 @@ export interface IProjectControlResponse {
   organizationId: string
   resourceVersion: string
   uid: string
-  status: ProjectStatus
+  status: IProjectStatus
 }

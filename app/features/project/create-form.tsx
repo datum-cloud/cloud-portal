@@ -110,6 +110,16 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
             errors={name.errors}>
             <Input
               placeholder="e.g. my-project-343j33"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const value = (e.target as HTMLInputElement).value
+                nameControl.change(value)
+              }}
+              onBlur={(e: React.FormEvent<HTMLInputElement>) => {
+                const value = (e.target as HTMLInputElement).value
+                if (value.length === 0) {
+                  nameControl.change(generateProjectId(description.value ?? '', randomId))
+                }
+              }}
               {...getInputProps(name, { type: 'text' })}
             />
           </Field>
