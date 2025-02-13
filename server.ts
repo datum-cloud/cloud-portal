@@ -209,9 +209,6 @@ async function apiContext(request: Request) {
   const controlPlaneServices = createControlPlaneFactory(controlPlaneToken)
   const gqlFactory = createGqlFactory(authToken)
 
-  console.log('authToken', authToken)
-  console.log('controlPlaneToken', controlPlaneToken)
-
   return {
     ...apiServices,
     ...controlPlaneServices,
