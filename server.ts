@@ -1,35 +1,29 @@
-/**
- * @file Express server setup and configuration
- * @description Main server file that configures Express with security, performance and routing middleware
- */
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import crypto from 'node:crypto'
 import { createRequestHandler } from '@react-router/express'
-import crypto from 'crypto' // For generating CSP nonces
-import express, { Request, Response, NextFunction } from 'express' // Web framework
-import compression from 'compression' // Response compression
-import morgan from 'morgan' // HTTP request logger
-import helmet from 'helmet' // Security headers
-import expressRateLimit from 'express-rate-limit' // Rate limiting
-import { ViteDevServer } from 'vite'
+import compression from 'compression'
+import express from 'express'
+import expressRateLimit from 'express-rate-limit'
+import helmet from 'helmet'
+import morgan from 'morgan'
+import { type ServerBuild } from 'react-router'
+import { getSession } from '@/modules/auth/auth-session.server.js'
+import { createAPIFactory } from '@/resources/api/api-factory.js'
+import { createControlPlaneFactory } from '@/resources/control-plane/control-factory.js'
+import { createGqlFactory } from '@/resources/gql/gql-factory.js'
 
-/**
- * Server configuration
- */
 const PORT = process.env.PORT || 3000
-const NODE_ENV = process.env.NODE_ENV ?? 'development'
+const MODE = process.env.NODE_ENV ?? 'development'
+const IS_PROD = MODE === 'production'
+const IS_DEV = MODE === 'development'
 
-/**
- * Configure Vite dev server in development
- * @type {import('vite').ViteDevServer|undefined}
- */
-const viteDevServer: ViteDevServer | undefined =
-  process.env.NODE_ENV === 'production'
-    ? undefined
-    : await import('vite').then((vite) =>
-        vite.createServer({
-          server: { middlewareMode: true },
-        }),
-      )
+const viteDevServer = IS_PROD
+  ? undefined
+  : await import('vite').then((vite) =>
+      vite.createServer({
+        server: { middlewareMode: true },
+      }),
+    )
 
 const app = express()
 
@@ -54,26 +48,22 @@ app.use(morgan('tiny'))
  * Implementation based on github.com/epicweb-dev/epic-stack
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
  */
-app.use((_req: Request, res: Response, next: NextFunction) => {
+app.use((_, res, next) => {
   res.locals.cspNonce = crypto.randomBytes(16).toString('hex')
   next()
 })
 
-/**
- * Configure security headers with Helmet
- */
 app.use(
   helmet({
+    xPoweredBy: false,
+    referrerPolicy: { policy: 'same-origin' },
+    crossOriginEmbedderPolicy: false,
     contentSecurityPolicy: {
-      referrerPolicy: { policy: 'same-origin' },
-      crossOriginEmbedderPolicy: false,
       // ❗Important: Remove `reportOnly` to enforce CSP. (Development only).
       reportOnly: true,
       directives: {
-        // Controls allowed endpoints for fetch, XHR, WebSockets, etc.
-        'connect-src': [NODE_ENV === 'development' ? 'ws:' : null, "'self'"].filter(
-          Boolean,
-        ),
+        // @ts-expect-error Controls allowed endpoints for fetch, XHR, WebSockets, etc.
+        'connect-src': [IS_DEV ? 'ws:' : null, "'self'"].filter(Boolean),
         // Defines which origins can serve fonts to your site.
         'font-src': ["'self'"],
         // Specifies origins allowed to be embedded as frames.
@@ -84,24 +74,27 @@ app.use(
         'script-src': [
           "'strict-dynamic'",
           "'self'",
-          (_req: Request, res: Response) => `'nonce-${res.locals.cspNonce}'`,
+          // @ts-expect-error Dynamic nonce generation requires function callback
+          (_, res) => `'nonce-${res.locals.cspNonce}'`,
         ],
-        // Controls allowed sources for inline JavaScript event handlers.
         'script-src-attr': [
-          (_req: Request, res: Response) => `'nonce-${res.locals.cspNonce}'`,
+          // @ts-expect-error Dynamic nonce generation requires function callback
+          (_, res) => `'nonce-${res.locals.cspNonce}'`,
         ],
-        // Enforces that requests are made over HTTPS.
         'upgrade-insecure-requests': null,
       },
     },
   }),
 )
 
+// We'll use a single proxy to expose the portal
+app.set('trust proxy', 1)
+
 /**
  * Clean route paths by removing trailing slashes
  * Improves SEO by preventing duplicate content URLs
  */
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req, res, next) => {
   if (req.path.endsWith('/') && req.path.length > 1) {
     const query = req.url.slice(req.path.length)
     const safePath = req.path.slice(0, -1).replace(/\/+/g, '/')
@@ -116,7 +109,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
  * Implementation based on github.com/epicweb-dev/epic-stack
  * Disabled in development/test environments
  */
-const MAX_LIMIT_MULTIPLE = NODE_ENV !== 'production' ? 10_000 : 1
+const MAX_LIMIT_MULTIPLE = !IS_DEV ? 10_000 : 1
 
 const defaultRateLimit = {
   windowMs: 60 * 1000,
@@ -137,24 +130,21 @@ const strongestRateLimit = expressRateLimit({
 /**
  * Strong rate limit - 100 requests per minute
  */
-const strongRateLimit = rateLimit({
+const strongRateLimit = expressRateLimit({
   ...defaultRateLimit,
   windowMs: 60 * 1000,
   max: 100 * MAX_LIMIT_MULTIPLE,
 })
 
-// We'll use a single proxy to expose the portal
-app.set('trust proxy', 1)
-
 /**
  * General rate limit - 1000 requests per minute
  */
-const generalRateLimit = rateLimit(defaultRateLimit)
+const generalRateLimit = expressRateLimit(defaultRateLimit)
 
 /**
  * Apply rate limits based on request path and method
  */
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req, res, next) => {
   const STRONG_PATHS = ['/auth/login']
 
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -188,45 +178,64 @@ app.use(express.static('build/client', { maxAge: '1h' }))
 /**
  * Handle 404s for missing image/favicon requests
  */
-app.get(['/img/*', '/favicons/*'], (req: Request, res: Response) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+app.get(['/img/*', '/favicons/*'], (_req: any, res: any) => {
+  // if we made it past the express.static for these, then we're missing something.
+  // So we'll just send a 404 and won't bother calling other middleware.
   return res.status(404).send('Not found')
 })
 
-const apiContext = async (request: Request) => {
-  // Fetch the token from the session
-  const { getSession } = await import('./app/modules/auth/auth-session.server.ts')
-  const session = await getSession(request.headers.cookie)
+async function getBuild() {
+  try {
+    const build = viteDevServer
+      ? await viteDevServer.ssrLoadModule('virtual:react-router/server-build')
+      : // eslint-disable-next-line import/no-unresolved
+        await import('./build/server/index.js')
+
+    return { build: build as unknown as ServerBuild, error: null }
+  } catch (error) {
+    // Catch error and return null to make express happy and avoid an unrecoverable crash
+    console.error('Error creating build:', error)
+    return { error: error, build: null as unknown as ServerBuild }
+  }
+}
+
+async function apiContext(request: Request) {
+  const session = await getSession((request.headers as any).cookie)
   const authToken = session.get('accessToken')
   const controlPlaneToken = session.get('controlPlaneToken')
 
-  // Create the API services
-  const apiServices = (
-    await import('./app/resources/api/api-factory.ts')
-  ).createAPIFactory(authToken)
-  const controlPlaneServices = (
-    await import('./app/resources/control-plane/control-factory.ts')
-  ).createControlPlaneFactory(controlPlaneToken)
+  const apiServices = createAPIFactory(authToken)
+  const controlPlaneServices = createControlPlaneFactory(controlPlaneToken)
+  const gqlFactory = createGqlFactory(authToken)
+
+  console.log('authToken', authToken)
+  console.log('controlPlaneToken', controlPlaneToken)
 
   return {
     ...apiServices,
     ...controlPlaneServices,
+    ...gqlFactory,
   }
 }
 
-/**
- * Handle server-side rendering with Remix
- */
 app.all(
   '*',
   createRequestHandler({
-    getLoadContext: (req: Request, res: Response) => ({
+    getLoadContext: async (req: any, res: any) => ({
       cspNonce: res.locals.cspNonce,
-      ...apiContext(req),
+      serverBuild: await getBuild(),
+      ...(await apiContext(req)),
     }),
-
-    build: viteDevServer
-      ? () => viteDevServer.ssrLoadModule('virtual:react-router/server-build')
-      : await import('./build/server/index.js'),
+    mode: MODE,
+    build: async () => {
+      const { error, build } = await getBuild()
+      // gracefully "catch" the error
+      if (error) {
+        throw error
+      }
+      return build
+    },
   }),
 )
 

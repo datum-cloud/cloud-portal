@@ -18,6 +18,5 @@ export const loader = withMiddleware(async ({ request }) => {
 
   // TODO: change to the org root when the dashboard is ready
   // Redirect to the organization root
-  const path = getPathWithParams(routes.projects.root, { orgId })
-  return redirect(path)
+  return redirect(getPathWithParams(routes.projects.root, { orgId }))
 }, authMiddleware)

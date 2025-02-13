@@ -8,49 +8,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import {
-  AppLoadContext,
-  Link,
-  useLoaderData,
-  useParams,
-  useRevalidator,
-} from 'react-router'
+import { Link, useParams, useRevalidator, useRouteLoaderData } from 'react-router'
 import { routes } from '@/constants/routes'
-import { authMiddleware } from '@/modules/middleware/auth-middleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { getSession } from '@/modules/auth/auth-session.server'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { useEffect } from 'react'
 import { DateFormat } from '@/components/date-format/date-format'
 import { getPathWithParams } from '@/utils/path'
 import { ProjectStatus } from '@/components/project-status/project-status'
 
-export const loader = withMiddleware(async ({ request, context }) => {
-  const { projectsControl } = context as AppLoadContext
-  const session = await getSession(request.headers.get('Cookie'))
-  if (!session) {
-    throw new Response('No session found', {
-      status: 401,
-      statusText: 'Unauthorized',
-    })
-  }
-
-  const orgEntityID = session.get('currentOrgEntityID')
-
-  if (!orgEntityID) {
-    throw new Response('No organization entity ID found', {
-      status: 404,
-      statusText: 'Not found',
-    })
-  }
-
-  const projects = await projectsControl.getProjects(orgEntityID)
-  return { projects }
-}, authMiddleware)
-
 export default function OrgProjects() {
+  const { projects } = useRouteLoaderData('routes/_main+/$orgId+/_layout')
   const { orgId } = useParams()
-  const { projects } = useLoaderData<typeof loader>()
   const revalidator = useRevalidator()
 
   useEffect(() => {

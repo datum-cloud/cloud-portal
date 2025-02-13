@@ -5,14 +5,13 @@
   "type": "module",
   "scripts": {
     "build": "react-router build",
-    "dev": "cross-env NODE_ENV=development tsx ./server.ts",
+    "dev": "cross-env NODE_ENV=development tsx watch ./server.ts",
     "start": "cross-env NODE_ENV=production node ./build/server.js",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "typecheck": "react-router typegen && tsc",
     "format": "prettier --write .",
     "prepare": "husky",
-    "clean": "rm -rf node_modules && rm -rf .react-router",
-    "build:server": "tsc --project ."
+    "clean": "rm -rf node_modules && rm -rf .react-router"
   },
   "dependencies": {
     "@conform-to/react": "1.2.2",
@@ -68,7 +67,7 @@
     "sonner": "^1.7.4",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
-    "tsx": "4.19.2",
+    "tsx": "^4.19.2",
     "typed-graphqlify": "^3.1.6",
     "zod": "^3.24.1"
   },

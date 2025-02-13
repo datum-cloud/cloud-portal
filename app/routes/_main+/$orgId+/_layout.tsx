@@ -1,6 +1,5 @@
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { organizationGql } from '@/resources/gql/organization.gql'
 import {
   data,
   LoaderFunctionArgs,
@@ -17,17 +16,14 @@ import WaitingPage from '@/components/waiting-page/waiting-page'
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { orgId } = params
-  const { projectsControl } = context as AppLoadContext
+  const { projectsControl, organizationGql } = context as AppLoadContext
 
   if (!orgId) {
     throw new Response('Organization ID is required', { status: 400 })
   }
 
   // TODO: when i remove the request, the token is not set and make the request to the api use token from other user
-  const org: OrganizationModel = await organizationGql.getOrganizationDetail(
-    orgId,
-    request,
-  )
+  const org: OrganizationModel = await organizationGql.getOrganizationDetail(orgId)
 
   // Update the current organization in session
   const session = await getSession(request.headers.get('Cookie'))

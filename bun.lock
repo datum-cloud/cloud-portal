@@ -57,7 +57,7 @@
         "sonner": "^1.7.4",
         "tailwind-merge": "^3.0.1",
         "tailwindcss-animate": "^1.0.7",
-        "tsx": "4.19.2",
+        "tsx": "^4.19.2",
         "typed-graphqlify": "^3.1.6",
         "zod": "^3.24.1",
       },

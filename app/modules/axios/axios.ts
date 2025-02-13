@@ -8,8 +8,12 @@ type ApiClientOptions = {
 
 const errorHandler = (error: AxiosError) => {
   const errorMessage =
-    (error.response?.data as any)?.message || error.message || 'Unknown error occurred'
+    (error.response?.data as any) ||
+    (error.response?.data as any)?.message ||
+    error.message ||
+    'Unknown error occurred'
   const status = error.response?.status || 500
+
   return Promise.reject(
     new Response(errorMessage, {
       status,

@@ -17,8 +17,12 @@ export const createAuthAPIService = (client: AxiosInstance) => {
       const response = await client.get('/oauth/userinfo')
       return response.data
     },
-    async getExchangeToken(): Promise<IExchangeTokenResponse> {
-      const response = await client.get('/oauth/token/exchange')
+    async getExchangeToken(accessToken: string): Promise<IExchangeTokenResponse> {
+      const response = await client.get('/oauth/token/exchange', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
       return response.data
     },
   }

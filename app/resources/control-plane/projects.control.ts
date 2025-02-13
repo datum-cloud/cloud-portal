@@ -28,7 +28,11 @@ export const createProjectsControl = (client: AxiosInstance) => {
       const response = await client.get(
         `/organizations/${orgEntityId}/control-plane/${path}`,
       )
-      return response.data.map(transformProject)
+      return (
+        response?.data?.items?.map((project: IProjectControl) =>
+          transformProject(project),
+        ) ?? []
+      )
     },
     getProject: async (orgEntityId: string, projectName: string) => {
       const response = await client.get(
