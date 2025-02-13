@@ -6,10 +6,9 @@
     "**/.server/**/*.tsx",
     "**/.client/**/*.ts",
     "**/.client/**/*.tsx",
-    ".react-router/types/**/*",
-    "server.ts"
+    ".react-router/types/**/*"
   ],
-  "exclude": ["remix.init/**/*", "node_modules/**/*"],
+  "exclude": ["remix.init/**/*", "node_modules/**/*", "server.ts"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["@react-router/node", "vite/client"],
