@@ -5,11 +5,12 @@
 
 import { createRequestHandler } from '@react-router/express'
 import crypto from 'crypto' // For generating CSP nonces
-import express from 'express' // Web framework
+import express, { Request, Response, NextFunction } from 'express' // Web framework
 import compression from 'compression' // Response compression
 import morgan from 'morgan' // HTTP request logger
 import helmet from 'helmet' // Security headers
-import rateLimit from 'express-rate-limit' // Rate limiting
+import expressRateLimit from 'express-rate-limit' // Rate limiting
+import { ViteDevServer } from 'vite'
 
 /**
  * Server configuration
@@ -21,7 +22,7 @@ const NODE_ENV = process.env.NODE_ENV ?? 'development'
  * Configure Vite dev server in development
  * @type {import('vite').ViteDevServer|undefined}
  */
-const viteDevServer =
+const viteDevServer: ViteDevServer | undefined =
   process.env.NODE_ENV === 'production'
     ? undefined
     : await import('vite').then((vite) =>
@@ -53,7 +54,7 @@ app.use(morgan('tiny'))
  * Implementation based on github.com/epicweb-dev/epic-stack
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
  */
-app.use((_, res, next) => {
+app.use((_req: Request, res: Response, next: NextFunction) => {
   res.locals.cspNonce = crypto.randomBytes(16).toString('hex')
   next()
 })
@@ -83,10 +84,12 @@ app.use(
         'script-src': [
           "'strict-dynamic'",
           "'self'",
-          (_, res) => `'nonce-${res.locals.cspNonce}'`,
+          (_req: Request, res: Response) => `'nonce-${res.locals.cspNonce}'`,
         ],
         // Controls allowed sources for inline JavaScript event handlers.
-        'script-src-attr': [(_, res) => `'nonce-${res.locals.cspNonce}'`],
+        'script-src-attr': [
+          (_req: Request, res: Response) => `'nonce-${res.locals.cspNonce}'`,
+        ],
         // Enforces that requests are made over HTTPS.
         'upgrade-insecure-requests': null,
       },
@@ -98,7 +101,7 @@ app.use(
  * Clean route paths by removing trailing slashes
  * Improves SEO by preventing duplicate content URLs
  */
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   if (req.path.endsWith('/') && req.path.length > 1) {
     const query = req.url.slice(req.path.length)
     const safePath = req.path.slice(0, -1).replace(/\/+/g, '/')
@@ -125,7 +128,7 @@ const defaultRateLimit = {
 /**
  * Strongest rate limit - 10 requests per minute
  */
-const strongestRateLimit = rateLimit({
+const strongestRateLimit = expressRateLimit({
   ...defaultRateLimit,
   windowMs: 60 * 1000,
   max: 10 * MAX_LIMIT_MULTIPLE,
@@ -151,7 +154,7 @@ const generalRateLimit = rateLimit(defaultRateLimit)
 /**
  * Apply rate limits based on request path and method
  */
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   const STRONG_PATHS = ['/auth/login']
 
   if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -185,9 +188,30 @@ app.use(express.static('build/client', { maxAge: '1h' }))
 /**
  * Handle 404s for missing image/favicon requests
  */
-app.get(['/img/*', '/favicons/*'], (req, res) => {
+app.get(['/img/*', '/favicons/*'], (req: Request, res: Response) => {
   return res.status(404).send('Not found')
 })
+
+const apiContext = async (request: Request) => {
+  // Fetch the token from the session
+  const { getSession } = await import('./app/modules/auth/auth-session.server.ts')
+  const session = await getSession(request.headers.cookie)
+  const authToken = session.get('accessToken')
+  const controlPlaneToken = session.get('controlPlaneToken')
+
+  // Create the API services
+  const apiServices = (
+    await import('./app/resources/api/api-factory.ts')
+  ).createAPIFactory(authToken)
+  const controlPlaneServices = (
+    await import('./app/resources/control-plane/control-factory.ts')
+  ).createControlPlaneFactory(controlPlaneToken)
+
+  return {
+    ...apiServices,
+    ...controlPlaneServices,
+  }
+}
 
 /**
  * Handle server-side rendering with Remix
@@ -195,8 +219,9 @@ app.get(['/img/*', '/favicons/*'], (req, res) => {
 app.all(
   '*',
   createRequestHandler({
-    getLoadContext: (_, res) => ({
+    getLoadContext: (req: Request, res: Response) => ({
       cspNonce: res.locals.cspNonce,
+      ...apiContext(req),
     }),
 
     build: viteDevServer

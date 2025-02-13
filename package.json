@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "build": "react-router build",
-    "dev": "cross-env NODE_ENV=development node ./server.mjs",
-    "start": "cross-env NODE_ENV=production node ./server.mjs",
+    "dev": "cross-env NODE_ENV=development tsx ./server.ts",
+    "start": "cross-env NODE_ENV=production node ./build/server.js",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "typecheck": "react-router typegen && tsc",
     "format": "prettier --write .",
     "prepare": "husky",
-    "clean": "rm -rf node_modules && rm -rf .react-router"
+    "clean": "rm -rf node_modules && rm -rf .react-router",
+    "build:server": "tsc --project ."
   },
   "dependencies": {
     "@conform-to/react": "1.2.2",
@@ -76,6 +77,8 @@
     "@react-router/remix-routes-option-adapter": "^7.1.5",
     "@types/compression": "^1.7.5",
     "@types/express": "^5.0.0",
+    "@types/express-rate-limit": "^6.0.2",
+    "@types/helmet": "^4.0.0",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.13.1",
     "@types/nprogress": "^0.2.3",

@@ -7,15 +7,17 @@ import {
   Outlet,
   useLoaderData,
   useRevalidator,
+  AppLoadContext,
 } from 'react-router'
 import { differenceInMinutes } from 'date-fns'
 import { useApp } from '@/providers/app.provider'
 import { useEffect } from 'react'
-import { projectsControl } from '@/resources/control-plane/projects.control'
 import PublicLayout from '@/layouts/public/public'
 import WaitingPage from '@/components/waiting-page/waiting-page'
-export async function loader({ request, params }: LoaderFunctionArgs) {
+
+export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { orgId } = params
+  const { projectsControl } = context as AppLoadContext
 
   if (!orgId) {
     throw new Response('Organization ID is required', { status: 400 })
@@ -32,13 +34,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   session.set('currentOrgId', org.id)
   session.set('currentOrgEntityID', org.userEntityID)
 
-  const controlPlaneToken = session.get('controlPlaneToken')
-
   try {
     // Check for existing projects
-    const prjCtrl = projectsControl
-    await prjCtrl.setToken(request, controlPlaneToken)
-    const projects = await prjCtrl.getProjects(org.userEntityID, request)
+    const projects = await projectsControl.getProjects(org.userEntityID)
 
     return data(
       { org, projects, isReady: true },

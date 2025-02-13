@@ -6,7 +6,8 @@
     "**/.server/**/*.tsx",
     "**/.client/**/*.ts",
     "**/.client/**/*.tsx",
-    ".react-router/types/**/*"
+    ".react-router/types/**/*",
+    "server.ts"
   ],
   "exclude": ["remix.init/**/*", "node_modules/**/*"],
   "compilerOptions": {

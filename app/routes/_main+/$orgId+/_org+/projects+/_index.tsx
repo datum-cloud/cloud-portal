@@ -8,9 +8,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Link, useLoaderData, useParams, useRevalidator } from 'react-router'
+import {
+  AppLoadContext,
+  Link,
+  useLoaderData,
+  useParams,
+  useRevalidator,
+} from 'react-router'
 import { routes } from '@/constants/routes'
-import { projectsControl } from '@/resources/control-plane/projects.control'
 import { authMiddleware } from '@/modules/middleware/auth-middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { getSession } from '@/modules/auth/auth-session.server'
@@ -20,7 +25,8 @@ import { DateFormat } from '@/components/date-format/date-format'
 import { getPathWithParams } from '@/utils/path'
 import { ProjectStatus } from '@/components/project-status/project-status'
 
-export const loader = withMiddleware(async ({ request }) => {
+export const loader = withMiddleware(async ({ request, context }) => {
+  const { projectsControl } = context as AppLoadContext
   const session = await getSession(request.headers.get('Cookie'))
   if (!session) {
     throw new Response('No session found', {
@@ -38,7 +44,7 @@ export const loader = withMiddleware(async ({ request }) => {
     })
   }
 
-  const projects = await projectsControl.getProjects(orgEntityID, request)
+  const projects = await projectsControl.getProjects(orgEntityID)
   return { projects }
 }, authMiddleware)
 

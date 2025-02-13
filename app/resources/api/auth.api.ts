@@ -1,30 +1,27 @@
 import {
-  IAuthTokenPayload,
   IAuthTokenResponse,
   IExchangeTokenResponse,
+  IAuthTokenPayload,
 } from '@/resources/interfaces/auth.interface'
+
+import { AxiosInstance } from 'axios'
 import { IUserProfile } from '@/resources/interfaces/user.interface'
-import { APIClient } from '@/modules/axios/api'
 
-export class AuthApi extends APIClient {
-  async postRegisterOauth(payload: IAuthTokenPayload): Promise<IAuthTokenResponse> {
-    const { data } = await this.publicRequest('/oauth/register', 'POST', payload)
-    return data
-  }
-
-  async getUserInfo(request: Request): Promise<IUserProfile> {
-    if (request) {
-      await this.setToken(request)
-    }
-    const { data } = await this.authClient('/oauth/userinfo', 'GET')
-    return data
-  }
-
-  async getExchangeToken(accessToken: string): Promise<IExchangeTokenResponse> {
-    this.token = accessToken
-    const { data } = await this.authClient('/oauth/token/exchange', 'GET')
-    return data
+export const createAuthAPIService = (client: AxiosInstance) => {
+  return {
+    async postRegisterOauth(payload: IAuthTokenPayload): Promise<IAuthTokenResponse> {
+      const response = await client.post('/oauth/register', payload)
+      return response.data
+    },
+    async getUserInfo(): Promise<IUserProfile> {
+      const response = await client.get('/oauth/userinfo')
+      return response.data
+    },
+    async getExchangeToken(): Promise<IExchangeTokenResponse> {
+      const response = await client.get('/oauth/token/exchange')
+      return response.data
+    },
   }
 }
 
-export const authApi = new AuthApi()
+export type AuthAPIService = ReturnType<typeof createAuthAPIService>
