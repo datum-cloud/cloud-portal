@@ -9,7 +9,6 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 import { ChevronsUpDown, Loader2, Plus } from 'lucide-react'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { useEffect } from 'react'
 import { useFetcher, useNavigate } from 'react-router'
 import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api+/projects+/list'
 import { routes } from '@/constants/routes'
@@ -41,14 +40,15 @@ export const ProjectSwitcher = ({
   const fetcher = useFetcher({ key: 'project-list' })
   const navigate = useNavigate()
 
-  useEffect(() => {
-    fetcher.load(PROJECT_LIST_PATH)
-  }, [])
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu
+          onOpenChange={(open) => {
+            if (open) {
+              fetcher.load(PROJECT_LIST_PATH)
+            }
+          }}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"

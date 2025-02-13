@@ -17,12 +17,10 @@ import { projectsControl } from '@/resources/control-plane/projects.control'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { getSession } from '@/modules/auth/auth-session.server'
 import { getPathWithParams } from '@/utils/path'
+
 export const loader = withMiddleware(async ({ request, params }) => {
   const { projectId } = params
 
-  if (!projectId) {
-    throw new Error('Project ID is required')
-  }
   try {
     const session = await getSession(request.headers.get('Cookie'))
     const orgEntityId: string = session.get('currentOrgEntityID')

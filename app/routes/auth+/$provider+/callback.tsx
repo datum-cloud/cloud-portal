@@ -24,13 +24,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     // Validate provider param
     if (typeof params.provider !== 'string') {
-      throw new Error('Invalid authentication provider')
+      throw new Response('Invalid authentication provider', {
+        status: 400,
+        statusText: 'Bad request',
+      })
     }
 
     // Authenticate user
     const credentials = await authenticator.authenticate(params.provider, request)
     if (!credentials) {
-      throw new Error('Authentication failed')
+      throw new Response('Authentication failed', {
+        status: 401,
+        statusText: 'Unauthorized',
+      })
     }
 
     // Get and store tokens
@@ -43,8 +49,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     session.set('userId', credentials.userId)
 
     // Get organization details
-    await organizationGql.setToken(request, credentials.accessToken)
-    const org = await organizationGql.getOrganizationDetail(credentials.defaultOrgId)
+    const orgGql = organizationGql
+    await orgGql.setToken(request, credentials.accessToken)
+    const org = await orgGql.getOrganizationDetail(credentials.defaultOrgId)
 
     // Update the current organization in session
     session.set('currentOrgId', org.id)
@@ -62,7 +69,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   } catch (error) {
     return redirectWithToast(routes.auth.signIn, {
       title: 'Authentication failed',
-      description: (error as Error).message || 'Something went wrong',
+      description:
+        (error as Error).message || 'Something went wrong with callback from provider',
       type: 'error',
     })
   }

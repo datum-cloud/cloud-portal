@@ -48,13 +48,13 @@ export function GenericErrorBoundary({
   useEffect(() => {
     // Check for 401 Unauthorized error
     if (isRouteErrorResponse(error) && error.status === 401) {
+      toast.error('Session expired', {
+        description: 'Please sign in again to continue.',
+      })
+
       // Perform sign out
       const signOut = async () => {
         try {
-          await toast.error('Session expired', {
-            description: 'Please sign in again to continue.',
-          })
-
           // Call your sign out endpoint
           await fetcher.submit(null, {
             method: 'POST',

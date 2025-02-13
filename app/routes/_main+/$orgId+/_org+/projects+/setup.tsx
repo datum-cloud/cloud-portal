@@ -14,15 +14,13 @@ import WaitingPage from '@/components/waiting-page/waiting-page'
 export const loader = withMiddleware(async ({ request, params }) => {
   try {
     const { orgId } = params
-
-    if (!orgId) {
-      throw new Error('Organization ID is required')
-    }
-
     const projectId = new URL(request.url).searchParams.get('projectId')
 
     if (!projectId) {
-      throw new Error('Project ID is required')
+      throw new Response('No project ID found', {
+        status: 404,
+        statusText: 'No project ID found',
+      })
     }
 
     const session = await getSession(request.headers.get('Cookie'))

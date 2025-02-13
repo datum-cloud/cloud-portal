@@ -64,6 +64,8 @@ export const GraphqlClient = class gqlClient {
           let statusCode =
             error.response?.errors?.[0]?.extensions?.code || error.response?.status || 500
 
+          console.log('graphql token', this.token)
+
           // TODO: find information about error code from backend related to unauthorized
           // Check for "not authorized" in error message
           if (

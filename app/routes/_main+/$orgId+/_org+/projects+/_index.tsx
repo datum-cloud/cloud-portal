@@ -15,47 +15,32 @@ import { authMiddleware } from '@/modules/middleware/auth-middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { getSession } from '@/modules/auth/auth-session.server'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { redirectWithToast } from '@/utils/toast.server'
 import { useEffect } from 'react'
 import { DateFormat } from '@/components/date-format/date-format'
 import { getPathWithParams } from '@/utils/path'
 import { ProjectStatus } from '@/components/project-status/project-status'
 
-export const loader = withMiddleware(async ({ request, params }) => {
-  try {
-    const session = await getSession(request.headers.get('Cookie'))
-    if (!session) {
-      throw new Error('No session found')
-    }
-
-    const orgEntityID = session.get('currentOrgEntityID')
-
-    if (!orgEntityID) {
-      throw new Error('No organization entity ID found')
-    }
-
-    const projects = await projectsControl.getProjects(orgEntityID, request)
-    return { projects, orgId: params.orgId }
-  } catch (error) {
-    redirectWithToast(getPathWithParams(routes.projects.root, { orgId: params?.orgId }), {
-      title: 'Error!',
-      description: error instanceof Error ? error.message : 'Something went wrong',
+export const loader = withMiddleware(async ({ request }) => {
+  const session = await getSession(request.headers.get('Cookie'))
+  if (!session) {
+    throw new Response('No session found', {
+      status: 401,
+      statusText: 'Unauthorized',
     })
   }
-}, authMiddleware)
 
-const TableSkeleton = () => {
-  return (
-    <TableRow>
-      <TableCell colSpan={4} className="py-8 text-center">
-        <div className="flex items-center justify-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </TableCell>
-    </TableRow>
-  )
-}
+  const orgEntityID = session.get('currentOrgEntityID')
+
+  if (!orgEntityID) {
+    throw new Response('No organization entity ID found', {
+      status: 404,
+      statusText: 'Not found',
+    })
+  }
+
+  const projects = await projectsControl.getProjects(orgEntityID, request)
+  return { projects }
+}, authMiddleware)
 
 export default function OrgProjects() {
   const { orgId } = useParams()
@@ -97,7 +82,14 @@ export default function OrgProjects() {
           </TableHeader>
           <TableBody>
             {revalidator.state === 'loading' ? (
-              <TableSkeleton />
+              <TableRow>
+                <TableCell colSpan={4} className="py-8 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <p className="text-muted-foreground">Loading projects...</p>
+                  </div>
+                </TableCell>
+              </TableRow>
             ) : ((projects ?? []) as IProjectControlResponse[]).length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="py-8 text-center">
