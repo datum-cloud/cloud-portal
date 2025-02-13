@@ -6,7 +6,7 @@ import { combineHeaders } from '@/utils/misc.server'
 import { redirectWithToast } from '@/utils/toast.server'
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const { authApi, organizationGql } = context as AppLoadContext
+  const { authApi } = context as AppLoadContext
 
   try {
     const session = await getSession(request.headers.get('Cookie'))
