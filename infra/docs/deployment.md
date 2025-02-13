@@ -16,7 +16,7 @@ For more details, check out the official [Pulumi GitHub](https://github.com/pulu
 
 # Infra
 
-The code that manages how the portal is deployed is located[here](https://github.com/datum-cloud/datum-infra/apps/datum-cloud-portal/index.ts).
+The code that manages how the portal is deployed is located[here](https://github.com/datum-cloud/datum-infra/blob/main/apps/datum-cloud-portal/index.ts).
 
 We have two environments: **Staging** and **Production**. Settings for each environment are stored in:
 
