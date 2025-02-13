@@ -9,11 +9,10 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     return authenticator.authenticate('google', request)
   } catch (error) {
-    if (error instanceof Error) {
-      throw new Error('Authentication failed')
-    }
-
-    throw error // Re-throw other values or unhandled errors
+    throw new Response('Authentication failed', {
+      status: 401,
+      statusText: error instanceof Error ? error.message : 'Authentication failed',
+    })
   }
 }
 

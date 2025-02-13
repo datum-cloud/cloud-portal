@@ -14,15 +14,18 @@ import { useEffect } from 'react'
 import { projectsControl } from '@/resources/control-plane/projects.control'
 import PublicLayout from '@/layouts/public/public'
 import WaitingPage from '@/components/waiting-page/waiting-page'
-
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { orgId } = params
 
   if (!orgId) {
-    throw new Response('No organization ID found', { status: 401 })
+    throw new Response('Organization ID is required', { status: 400 })
   }
 
-  const org: OrganizationModel = await organizationGql.getOrganizationDetail(orgId)
+  // TODO: when i remove the request, the token is not set and make the request to the api use token from other user
+  const org: OrganizationModel = await organizationGql.getOrganizationDetail(
+    orgId,
+    request,
+  )
 
   // Update the current organization in session
   const session = await getSession(request.headers.get('Cookie'))
@@ -33,8 +36,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   try {
     // Check for existing projects
-    await projectsControl.setToken(request, controlPlaneToken)
-    const projects = await projectsControl.getProjects(org.userEntityID)
+    const prjCtrl = projectsControl
+    await prjCtrl.setToken(request, controlPlaneToken)
+    const projects = await prjCtrl.getProjects(org.userEntityID, request)
 
     return data(
       { org, projects, isReady: true },

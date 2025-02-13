@@ -1,4 +1,4 @@
-import { GraphqlClient } from '@/modules/graphql/graphql.server'
+import { GraphqlClient } from '@/modules/graphql/graphql'
 import { UserModel } from '@/resources/gql/models/user.model'
 import { query as typedQuery, alias } from 'typed-graphqlify'
 
@@ -18,4 +18,15 @@ export class UserGql extends GraphqlClient {
   }
 }
 
+// When importing userGql in a server-side function, each function call will create
+// a new instance of UserGql. So calling userGql twice in the same function will
+// create two separate instances. To reuse the same instance within a function,
+// store it in a variable:
+//
+// Example:
+// async function myFunction() {
+//   const gqlClient = userGql; // First initialization
+//   await gqlClient.getUserProfile(...);
+//   await gqlClient.getUserProfile(...); // Reuses same instance
+// }
 export const userGql = new UserGql()

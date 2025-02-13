@@ -31,6 +31,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const project: IProjectControlResponse = await projectsControl.createProject(
       validated.orgEntityId,
       validated,
+      request,
     )
 
     // TODO: temporary solution for handle delay on new project

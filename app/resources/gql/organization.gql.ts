@@ -1,4 +1,4 @@
-import { GraphqlClient } from '@/modules/graphql/graphql.server'
+import { GraphqlClient } from '@/modules/graphql/graphql'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { alias, query as typedQuery } from 'typed-graphqlify'
 
