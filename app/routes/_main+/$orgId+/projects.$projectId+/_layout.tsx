@@ -58,110 +58,103 @@ export default function ProjectLayout() {
   const navItems: NavItem[] = useMemo(() => {
     return [
       {
-        title: 'Platform',
-        href: getPathWithParams(routes.projects.root, { orgId, projectId }),
-        type: 'group',
+        title: 'Locations',
+        href: getPathWithParams(routes.projects.locations, { orgId, projectId }),
+        type: 'link',
+        icon: MapIcon,
+      },
+      {
+        title: 'Connect',
+        href: getPathWithParams(routes.projects.networks, { orgId, projectId }),
+        type: 'collapsible',
+        icon: GlobeIcon,
         children: [
           {
-            title: 'Locations',
-            href: getPathWithParams(routes.projects.locations, { orgId, projectId }),
-            type: 'link',
-            icon: MapIcon,
-          },
-          {
-            title: 'Connect',
+            title: 'Networks',
             href: getPathWithParams(routes.projects.networks, { orgId, projectId }),
-            type: 'collapsible',
-            icon: GlobeIcon,
-            children: [
-              {
-                title: 'Networks',
-                href: getPathWithParams(routes.projects.networks, { orgId, projectId }),
-                type: 'link',
-              },
-              {
-                title: 'Gateways',
-                href: getPathWithParams(routes.projects.gateways, { orgId, projectId }),
-                type: 'link',
-              },
-              {
-                title: 'Services',
-                href: getPathWithParams(routes.projects.services, { orgId, projectId }),
-                type: 'link',
-              },
-            ],
+            type: 'link',
           },
           {
-            title: 'Deploy',
+            title: 'Gateways',
+            href: getPathWithParams(routes.projects.gateways, { orgId, projectId }),
+            type: 'link',
+          },
+          {
+            title: 'Services',
+            href: getPathWithParams(routes.projects.services, { orgId, projectId }),
+            type: 'link',
+          },
+        ],
+      },
+      {
+        title: 'Deploy',
+        href: getPathWithParams(routes.projects.workloads, { orgId, projectId }),
+        type: 'collapsible',
+        icon: TerminalIcon,
+        children: [
+          {
+            title: 'Workloads',
             href: getPathWithParams(routes.projects.workloads, { orgId, projectId }),
-            type: 'collapsible',
-            icon: TerminalIcon,
-            children: [
-              {
-                title: 'Workloads',
-                href: getPathWithParams(routes.projects.workloads, { orgId, projectId }),
-                type: 'link',
-              },
-              {
-                title: 'Pipelines',
-                href: getPathWithParams(routes.projects.pipelines, { orgId, projectId }),
-                type: 'link',
-              },
-            ],
+            type: 'link',
           },
           {
-            title: 'Observe',
+            title: 'Pipelines',
+            href: getPathWithParams(routes.projects.pipelines, { orgId, projectId }),
+            type: 'link',
+          },
+        ],
+      },
+      {
+        title: 'Observe',
+        href: getPathWithParams(routes.projects.metrics, { orgId, projectId }),
+        type: 'collapsible',
+        icon: AreaChartIcon,
+        children: [
+          {
+            title: 'Metrics',
             href: getPathWithParams(routes.projects.metrics, { orgId, projectId }),
-            type: 'collapsible',
-            icon: AreaChartIcon,
-            children: [
-              {
-                title: 'Metrics',
-                href: getPathWithParams(routes.projects.metrics, { orgId, projectId }),
-                type: 'link',
-              },
-              {
-                title: 'Logs',
-                href: getPathWithParams(routes.projects.logs, { orgId, projectId }),
-                type: 'link',
-              },
-              {
-                title: 'Traces',
-                href: getPathWithParams(routes.projects.traces, { orgId, projectId }),
-                type: 'link',
-              },
-              {
-                title: 'Exporters',
-                href: getPathWithParams(routes.projects.exporters, { orgId, projectId }),
-                type: 'link',
-              },
-            ],
+            type: 'link',
           },
           {
-            title: 'Protect',
+            title: 'Logs',
+            href: getPathWithParams(routes.projects.logs, { orgId, projectId }),
+            type: 'link',
+          },
+          {
+            title: 'Traces',
+            href: getPathWithParams(routes.projects.traces, { orgId, projectId }),
+            type: 'link',
+          },
+          {
+            title: 'Exporters',
+            href: getPathWithParams(routes.projects.exporters, { orgId, projectId }),
+            type: 'link',
+          },
+        ],
+      },
+      {
+        title: 'Protect',
+        href: getPathWithParams(routes.projects.iam, { orgId, projectId }),
+        type: 'collapsible',
+        icon: ShieldCheckIcon,
+        children: [
+          {
+            title: 'IAM Policies',
             href: getPathWithParams(routes.projects.iam, { orgId, projectId }),
-            type: 'collapsible',
-            icon: ShieldCheckIcon,
-            children: [
-              {
-                title: 'IAM Policies',
-                href: getPathWithParams(routes.projects.iam, { orgId, projectId }),
-                type: 'link',
-              },
-              {
-                title: 'Roles',
-                href: getPathWithParams(routes.projects.roles, { orgId, projectId }),
-                type: 'link',
-              },
-              {
-                title: 'Service Accounts',
-                href: getPathWithParams(routes.projects.serviceAccounts, {
-                  orgId,
-                  projectId,
-                }),
-                type: 'link',
-              },
-            ],
+            type: 'link',
+          },
+          {
+            title: 'Roles',
+            href: getPathWithParams(routes.projects.roles, { orgId, projectId }),
+            type: 'link',
+          },
+          {
+            title: 'Service Accounts',
+            href: getPathWithParams(routes.projects.serviceAccounts, {
+              orgId,
+              projectId,
+            }),
+            type: 'link',
           },
         ],
       },
@@ -171,7 +164,9 @@ export default function ProjectLayout() {
   return (
     <DashboardLayout
       navItems={navItems}
-      headerContent={<ProjectSwitcher orgId={orgId!} currentProject={project} />}
+      sidebarHeader={
+        <ProjectSwitcher orgId={orgId!} currentProject={project} className="mt-2" />
+      }
       sidebarCollapsible="icon"
       homeLink={getPathWithParams(routes.projects.dashboard, {
         orgId,

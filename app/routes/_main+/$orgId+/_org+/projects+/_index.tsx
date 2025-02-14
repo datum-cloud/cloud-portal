@@ -48,8 +48,8 @@ export default function OrgProjects() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Creation Date</TableHead>
             </TableRow>
@@ -82,10 +82,10 @@ export default function OrgProjects() {
                         orgId,
                         projectId: project.name,
                       })}>
-                      {project.name}
+                      {project.description}
                     </Link>
                   </TableCell>
-                  <TableCell>{project.description}</TableCell>
+                  <TableCell>{project.name}</TableCell>
                   <TableCell>
                     <ProjectStatus status={project.status} />
                   </TableCell>

@@ -6,13 +6,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown'
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
-import { ChevronsUpDown, Loader2, Plus } from 'lucide-react'
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from '@/components/ui/sidebar'
+import { ChevronsUpDown, Loader2, Plus, FileIcon } from 'lucide-react'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { useFetcher, useNavigate } from 'react-router'
 import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api+/projects+/list'
 import { routes } from '@/constants/routes'
 import { getPathWithParams } from '@/utils/path'
+import { cn } from '@/utils/misc'
 const ProjectItem = ({ project }: { project: IProjectControlResponse }) => {
   return (
     <div className="flex items-center gap-2">
@@ -33,10 +39,13 @@ const ProjectItem = ({ project }: { project: IProjectControlResponse }) => {
 export const ProjectSwitcher = ({
   currentProject,
   orgId,
+  className,
 }: {
   currentProject: IProjectControlResponse
   orgId: string
+  className?: string
 }) => {
+  const { state } = useSidebar()
   const fetcher = useFetcher({ key: 'project-list' })
   const navigate = useNavigate()
 
@@ -51,10 +60,23 @@ export const ProjectSwitcher = ({
           }}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
+              tooltip={state === 'collapsed' ? currentProject.description : undefined}
               size="lg"
-              className="focus-visible:ring-0 data-[state=open]:bg-sidebar-accent data-[state=open]:font-semibold data-[state=open]:text-sidebar-accent-foreground">
-              <ProjectItem project={currentProject} />
-              <ChevronsUpDown className="ml-auto" />
+              className={cn(
+                'focus-visible:ring-0',
+                state === 'expanded'
+                  ? 'rounded-md border bg-background data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+                  : 'hover:bg-transparent',
+                className,
+              )}>
+              {state === 'expanded' ? (
+                <>
+                  <ProjectItem project={currentProject} />
+                  <ChevronsUpDown className="ml-auto" />
+                </>
+              ) : (
+                <FileIcon className="size-4" />
+              )}
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent

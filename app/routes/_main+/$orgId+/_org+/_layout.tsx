@@ -14,23 +14,16 @@ export default function OrgLayout() {
   const navItems: NavItem[] = useMemo(() => {
     return [
       {
-        title: 'Platform',
-        href: getPathWithParams(routes.org.root, { orgId }),
-        type: 'group',
-        children: [
-          {
-            title: 'Projects',
-            href: getPathWithParams(routes.projects.root, { orgId }),
-            type: 'link',
-            icon: FileIcon,
-          },
-          {
-            title: 'Settings',
-            href: getPathWithParams(routes.org.settings.root, { orgId }),
-            type: 'link',
-            icon: SettingsIcon,
-          },
-        ],
+        title: 'Projects',
+        href: getPathWithParams(routes.projects.root, { orgId }),
+        type: 'link',
+        icon: FileIcon,
+      },
+      {
+        title: 'Settings',
+        href: getPathWithParams(routes.org.settings.root, { orgId }),
+        type: 'link',
+        icon: SettingsIcon,
       },
     ]
   }, [orgId])
@@ -39,7 +32,7 @@ export default function OrgLayout() {
     <DashboardLayout
       navItems={navItems}
       headerContent={
-        <OrganizationItem org={org!} className="ml-2 max-w-52 md:max-w-none" hideAvatar />
+        <OrganizationItem org={org!} hideAvatar className="ml-2 mr-4 hidden sm:flex" />
       }
       sidebarCollapsible="icon"
       homeLink={getPathWithParams(routes.org.root, {

@@ -6,7 +6,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { NavItem, NavMain } from './nav-main'
-import { HomeIcon, LibraryIcon } from 'lucide-react'
+import { HomeIcon } from 'lucide-react'
 import { routes } from '@/constants/routes'
 import { useEffect, useMemo } from 'react'
 import { useSearchParams, Link } from 'react-router'
@@ -43,12 +43,12 @@ export function DashboardSidebar({
         type: 'link',
         icon: HomeIcon,
       },
-      {
+      /*  {
         title: 'Docs',
         href: 'https://docs.datum.net/',
         type: 'externalLink',
         icon: LibraryIcon,
-      },
+      }, */
       ...navItems,
     ]
   }, [homeLink])
@@ -56,17 +56,14 @@ export function DashboardSidebar({
   return (
     <Sidebar collapsible={props.collapsible ?? 'offcanvas'} {...props}>
       <SidebarHeader className="flex flex-col gap-2 px-4 pb-2 pt-4">
-        {sidebarHeader ? (
-          sidebarHeader
-        ) : (
-          <Link to={routes.home}>
-            <Logo
-              asIcon={state === 'collapsed'}
-              width={state === 'collapsed' ? 16 : 100}
-              theme={theme}
-            />
-          </Link>
-        )}
+        <Link to={routes.home}>
+          <Logo
+            asIcon={state === 'collapsed'}
+            width={state === 'collapsed' ? 16 : 100}
+            theme={theme}
+          />
+        </Link>
+        {sidebarHeader}
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navs} />
