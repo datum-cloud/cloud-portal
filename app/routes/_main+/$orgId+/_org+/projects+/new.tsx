@@ -8,6 +8,10 @@ import { redirectWithToast } from '@/utils/toast.server'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { getPathWithParams } from '@/utils/path'
 
+export const handle = {
+  breadcrumb: () => <>New</>,
+}
+
 export async function action({ request, params, context }: ActionFunctionArgs) {
   const { projectsControl } = context as AppLoadContext
 

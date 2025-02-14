@@ -6,6 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { motion } from 'framer-motion'
 import { ProjectStatus } from '@/components/project-status/project-status'
 
+export const handle = {
+  breadcrumb: () => <>Home</>,
+}
+
 const EXPLORER_CARDS = [
   {
     title: 'Deploy a global workload',
@@ -63,7 +67,9 @@ const ExplorerCard = ({ title, description, icon }: (typeof EXPLORER_CARDS)[numb
 )
 
 export default function ProjectPage() {
-  const project = useRouteLoaderData('routes/_main+/$orgId+/projects.$projectId+/_layout')
+  const project = useRouteLoaderData(
+    'routes/_main+/$orgId+/projects+/$projectId+/_layout',
+  )
 
   const { revalidate } = useRevalidator()
   const REVALIDATE_INTERVAL = 5000

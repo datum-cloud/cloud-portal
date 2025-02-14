@@ -5,7 +5,6 @@ import { getLastPathSegment } from '@/utils/path'
 export const handle = {
   breadcrumb: (match: BreadcrumbMatch) => <>{getLastPathSegment(match.pathname)}</>,
 }
-
 // TODO: temporary Solution for handle development page
 export default function AllRoutes() {
   return <ComingSoon />
