@@ -10,7 +10,6 @@ export const loader = withMiddleware(async ({ request, context }) => {
   const session = await getSession(request.headers.get('Cookie'))
 
   const userId = session.get('userId')
-  // const currentOrgId = session.get('currentOrgId')
 
   // Get user info
   const user: UserModel = await userGql.getUserProfile(userId)
