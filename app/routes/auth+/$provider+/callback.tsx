@@ -52,7 +52,6 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       headers: combineHeaders({ 'Set-Cookie': await commitSession(session) }),
     })
   } catch (error) {
-    console.error(error)
     return redirectWithToast(routes.auth.signIn, {
       title: 'Authentication failed',
       description:

@@ -6,25 +6,25 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { NavItem, NavMain } from './nav-main'
-import { HomeIcon, LibraryIcon } from 'lucide-react'
+import { HomeIcon } from 'lucide-react'
 import { routes } from '@/constants/routes'
 import { useEffect, useMemo } from 'react'
 import { useSearchParams, Link } from 'react-router'
-import { Logo } from '@/components/logo/logo'
 import { useTheme } from '@/hooks/useTheme'
+import { LogoText } from '@/components/logo/logo-text'
+import { LogoIcon } from '@/components/logo/logo-icon'
+import { cn } from '@/utils/misc'
 
 export function DashboardSidebar({
   navItems,
-  sidebarHeader,
   homeLink,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   navItems: NavItem[]
-  sidebarHeader?: React.ReactNode
   homeLink?: string
 }) {
   const theme = useTheme()
-  const { setOpen, state } = useSidebar()
+  const { setOpen, open, state } = useSidebar()
   const [searchParams] = useSearchParams()
 
   useEffect(() => {
@@ -43,33 +43,39 @@ export function DashboardSidebar({
         type: 'link',
         icon: HomeIcon,
       },
-      {
+      /*  {
         title: 'Docs',
         href: 'https://docs.datum.net/',
         type: 'externalLink',
         icon: LibraryIcon,
-      },
+      }, */
       ...navItems,
     ]
   }, [homeLink])
 
   return (
     <Sidebar collapsible={props.collapsible ?? 'offcanvas'} {...props}>
-      <SidebarHeader className="flex flex-col gap-2 px-4 pb-2 pt-4">
-        {sidebarHeader ? (
-          sidebarHeader
-        ) : (
-          <Link to={routes.home}>
-            <Logo
-              asIcon={state === 'collapsed'}
-              width={state === 'collapsed' ? 16 : 100}
+      <SidebarHeader className="flex h-16 flex-col justify-center px-4 py-2">
+        <Link to={routes.home} className="flex items-center gap-2">
+          <LogoIcon
+            width={24}
+            theme={theme}
+            className={cn(
+              'transition-transform duration-500',
+              !open && 'rotate-[360deg]',
+            )}
+          />
+          {state === 'expanded' && (
+            <LogoText
+              width={55}
               theme={theme}
+              className="transition-opacity duration-500"
             />
-          </Link>
-        )}
+          )}
+        </Link>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navs} />
+        <NavMain items={navs} className="pt-0" />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

@@ -22,6 +22,9 @@ module.exports = {
 
   // Base configuration.
   extends: ['eslint:recommended', 'prettier'],
+  rules: {
+    'no-console': ['warn', { allow: ['warn', 'error'] }],
+  },
 
   overrides: [
     // React.

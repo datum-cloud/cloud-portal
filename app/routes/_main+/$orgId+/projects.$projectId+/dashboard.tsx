@@ -95,13 +95,18 @@ export default function ProjectPage() {
       <div className="mx-6 flex flex-col gap-12 space-y-4">
         {/* Project Information */}
         <div className="flex flex-col gap-5">
-          <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-semibold leading-none">{project.name}</h1>
-            <ProjectStatus
-              className="py-1 font-bold"
-              status={project.status}
-              showTooltip={false}
-            />
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-4">
+              <h1 className="text-4xl font-semibold leading-none">
+                {project.description}
+              </h1>
+              <ProjectStatus
+                className="py-1 font-bold"
+                status={project.status}
+                showTooltip={false}
+              />
+            </div>
+            <p className="text-xl text-muted-foreground">{project.name}</p>
           </div>
           {!status.isReady && (
             <SectionDescription>
