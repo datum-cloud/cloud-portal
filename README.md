@@ -2,14 +2,14 @@
 
 # Features
 
-A list of features that Remix SaaS provides out of the box:
+A list of features that Remix (Vite + React Router v7) SaaS provides out of the box:
 
 - 🚄 **Bun**: All-in-one JavaScript runtime & toolkit for building, testing, running and bundling JavaScript & TypeScript projects.
 - ⚡ **Vite**: Next-Gen Frontend Tooling.
 - 🎨 **TailwindCSS**: Utility-First CSS Framework.
 - 📐 **ShadCN**: Composable React components.
 - 🌙 **Easy Theming**: Switch between Light and Dark modes with ease.
-- 🗺️ **Remix Flat Routes**: Simple Route Definitions.
+- 🗺️ **React Router v7**: Latest version with data loading, error handling, and nested routing capabilities
 - 🍞 **Client & Server Toasts**: Display Toasts on your App.
 - 🛡️ **Server Rate Limiting**: Extra layer of Protection for your App.
 - 🕵️‍♂️ **CSRF**: Prevent Malicious Attacks.

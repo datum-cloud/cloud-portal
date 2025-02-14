@@ -1,27 +1,28 @@
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { organizationGql } from '@/resources/gql/organization.gql'
 import {
   data,
   LoaderFunctionArgs,
   Outlet,
   useLoaderData,
   useRevalidator,
+  AppLoadContext,
 } from 'react-router'
 import { differenceInMinutes } from 'date-fns'
 import { useApp } from '@/providers/app.provider'
 import { useEffect } from 'react'
-import { projectsControl } from '@/resources/control-plane/projects.control'
 import PublicLayout from '@/layouts/public/public'
 import WaitingPage from '@/components/waiting-page/waiting-page'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { orgId } = params
+  const { projectsControl, organizationGql } = context as AppLoadContext
 
   if (!orgId) {
-    throw new Response('No organization ID found', { status: 401 })
+    throw new Response('Organization ID is required', { status: 400 })
   }
 
+  // TODO: when i remove the request, the token is not set and make the request to the api use token from other user
   const org: OrganizationModel = await organizationGql.getOrganizationDetail(orgId)
 
   // Update the current organization in session
@@ -29,11 +30,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   session.set('currentOrgId', org.id)
   session.set('currentOrgEntityID', org.userEntityID)
 
-  const controlPlaneToken = session.get('controlPlaneToken')
-
   try {
     // Check for existing projects
-    await projectsControl.setToken(request, controlPlaneToken)
     const projects = await projectsControl.getProjects(org.userEntityID)
 
     return data(

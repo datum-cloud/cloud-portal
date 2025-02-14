@@ -1,14 +1,13 @@
 import { authenticator } from '@/modules/auth/auth.server'
-import { LoaderFunctionArgs, redirect } from 'react-router'
+import { AppLoadContext, LoaderFunctionArgs, redirect } from 'react-router'
 import { routes } from '@/constants/routes'
 import { commitSession, getSession } from '@/modules/auth/auth-session.server'
-import { authApi } from '@/resources/api/auth.api'
 import { combineHeaders } from '@/utils/misc.server'
-import { organizationGql } from '@/resources/gql/organization.gql'
-import { getPathWithParams } from '@/utils/path'
 import { redirectWithToast } from '@/utils/toast.server'
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
+export async function loader({ request, params, context }: LoaderFunctionArgs) {
+  const { authApi } = context as AppLoadContext
+
   try {
     const session = await getSession(request.headers.get('Cookie'))
     const userId = session.get('userId')
@@ -24,13 +23,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     // Validate provider param
     if (typeof params.provider !== 'string') {
-      throw new Error('Invalid authentication provider')
+      throw new Response('Invalid authentication provider', {
+        status: 400,
+        statusText: 'Bad request',
+      })
     }
 
     // Authenticate user
     const credentials = await authenticator.authenticate(params.provider, request)
     if (!credentials) {
-      throw new Error('Authentication failed')
+      throw new Response('Authentication failed', {
+        status: 401,
+        statusText: 'Unauthorized',
+      })
     }
 
     // Get and store tokens
@@ -41,28 +46,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     session.set('accessToken', credentials.accessToken)
     session.set('controlPlaneToken', controlPlaneToken)
     session.set('userId', credentials.userId)
+    session.set('currentOrgId', credentials.defaultOrgId)
 
-    // Get organization details
-    await organizationGql.setToken(request, credentials.accessToken)
-    const org = await organizationGql.getOrganizationDetail(credentials.defaultOrgId)
-
-    // Update the current organization in session
-    session.set('currentOrgId', org.id)
-    session.set('currentOrgEntityID', org.userEntityID)
-
-    // TODO: change to the org root when the dashboard is ready
-    // Redirect to the Projects root
-    return redirect(getPathWithParams(routes.projects.root, { orgId: org.id }), {
+    return redirect(routes.home, {
       headers: combineHeaders({ 'Set-Cookie': await commitSession(session) }),
     })
-
-    // return redirect(getPathWithParams(routes.org.setup, { orgId: org.id }), {
-    //   headers: combineHeaders({ 'Set-Cookie': await commitSession(session) }),
-    // })
   } catch (error) {
+    console.error(error)
     return redirectWithToast(routes.auth.signIn, {
       title: 'Authentication failed',
-      description: (error as Error).message || 'Something went wrong',
+      description:
+        (error as Error).message || 'Something went wrong with callback from provider',
       type: 'error',
     })
   }

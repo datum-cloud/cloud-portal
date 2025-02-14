@@ -10,11 +10,13 @@ export const loader = withMiddleware(async ({ request }) => {
   const orgId = session.get('currentOrgId')
 
   if (!orgId) {
-    throw new Response('No organization ID found', { status: 401 })
+    throw new Response('No organization ID found', {
+      status: 404,
+      statusText: 'No organization ID found',
+    })
   }
 
   // TODO: change to the org root when the dashboard is ready
   // Redirect to the organization root
-  const path = getPathWithParams(routes.projects.root, { orgId })
-  return redirect(path)
+  return redirect(getPathWithParams(routes.projects.root, { orgId }))
 }, authMiddleware)

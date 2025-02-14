@@ -1,21 +1,18 @@
-import { GraphqlClient } from '@/modules/graphql/graphql.server'
-import { UserModel } from '@/resources/gql/models/user.model'
-import { query as typedQuery, alias } from 'typed-graphqlify'
+import { GraphqlClient } from '@/modules/graphql/graphql'
+import { alias, query as typedQuery } from 'typed-graphqlify'
+import { UserModel } from './models/user.model'
 
-export class UserGql extends GraphqlClient {
-  async getUserProfile(id: string, request?: Request): Promise<UserModel> {
-    // Set auth token from request session if provided
-    if (request) {
-      await this.setToken(request)
-    }
+export const createUserGql = (client: GraphqlClient) => {
+  return {
+    getUserProfile: async (id: string) => {
+      const query = typedQuery('GetUserProfile($userId: ID!)', {
+        [alias('user', 'user(id: $userId)')]: UserModel,
+      })
 
-    const query = typedQuery('GetUserProfile($userId: ID!)', {
-      [alias('user', 'user(id: $userId)')]: UserModel,
-    })
-
-    const data = await this.request(query.toString(), { userId: id })
-    return data.user
+      const data = await client.request(query.toString(), { userId: id })
+      return data.user
+    },
   }
 }
 
-export const userGql = new UserGql()
+export type UserGql = ReturnType<typeof createUserGql>

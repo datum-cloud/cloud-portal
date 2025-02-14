@@ -1,15 +1,16 @@
 import { CreateProjectForm } from '@/features/project/create-form'
 import { routes } from '@/constants/routes'
-import { ActionFunctionArgs } from 'react-router'
+import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 import { isAuthenticated } from '@/modules/auth/auth.server'
 import { validateCSRF } from '@/utils/csrf.server'
 import { newProjectSchema } from '@/resources/schemas/project.schema'
 import { redirectWithToast } from '@/utils/toast.server'
-import { projectsControl } from '@/resources/control-plane/projects.control'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { getPathWithParams } from '@/utils/path'
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params, context }: ActionFunctionArgs) {
+  const { projectsControl } = context as AppLoadContext
+
   // User Session
   await isAuthenticated(
     request,

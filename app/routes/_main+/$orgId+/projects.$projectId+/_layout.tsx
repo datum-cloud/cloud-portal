@@ -1,5 +1,5 @@
 import { DashboardLayout } from '@/layouts/dashboard/dashboard'
-import { Outlet, useLoaderData, useParams, redirect } from 'react-router'
+import { Outlet, useLoaderData, useParams, redirect, AppLoadContext } from 'react-router'
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main'
 import { routes } from '@/constants/routes'
 import {
@@ -13,24 +13,25 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { authMiddleware } from '@/modules/middleware/auth-middleware'
 import { useMemo } from 'react'
 import { ProjectSwitcher } from '@/layouts/dashboard/header/project-switcher'
-import { projectsControl } from '@/resources/control-plane/projects.control'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { getSession } from '@/modules/auth/auth-session.server'
 import { getPathWithParams } from '@/utils/path'
-export const loader = withMiddleware(async ({ request, params }) => {
+
+export const loader = withMiddleware(async ({ request, params, context }) => {
+  const { projectsControl } = context as AppLoadContext
   const { projectId } = params
 
-  if (!projectId) {
-    throw new Error('Project ID is required')
-  }
   try {
     const session = await getSession(request.headers.get('Cookie'))
     const orgEntityId: string = session.get('currentOrgEntityID')
 
+    if (!projectId) {
+      throw new Response('Project ID is required', { status: 400 })
+    }
+
     const project: IProjectControlResponse = await projectsControl.getProject(
       orgEntityId,
       projectId,
-      request,
     )
 
     return project

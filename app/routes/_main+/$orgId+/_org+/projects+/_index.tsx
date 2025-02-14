@@ -8,58 +8,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Link, useLoaderData, useParams, useRevalidator } from 'react-router'
+import { Link, useParams, useRevalidator, useRouteLoaderData } from 'react-router'
 import { routes } from '@/constants/routes'
-import { projectsControl } from '@/resources/control-plane/projects.control'
-import { authMiddleware } from '@/modules/middleware/auth-middleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { getSession } from '@/modules/auth/auth-session.server'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { redirectWithToast } from '@/utils/toast.server'
 import { useEffect } from 'react'
 import { DateFormat } from '@/components/date-format/date-format'
 import { getPathWithParams } from '@/utils/path'
 import { ProjectStatus } from '@/components/project-status/project-status'
 
-export const loader = withMiddleware(async ({ request, params }) => {
-  try {
-    const session = await getSession(request.headers.get('Cookie'))
-    if (!session) {
-      throw new Error('No session found')
-    }
-
-    const orgEntityID = session.get('currentOrgEntityID')
-
-    if (!orgEntityID) {
-      throw new Error('No organization entity ID found')
-    }
-
-    const projects = await projectsControl.getProjects(orgEntityID, request)
-    return { projects, orgId: params.orgId }
-  } catch (error) {
-    redirectWithToast(getPathWithParams(routes.projects.root, { orgId: params?.orgId }), {
-      title: 'Error!',
-      description: error instanceof Error ? error.message : 'Something went wrong',
-    })
-  }
-}, authMiddleware)
-
-const TableSkeleton = () => {
-  return (
-    <TableRow>
-      <TableCell colSpan={4} className="py-8 text-center">
-        <div className="flex items-center justify-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </TableCell>
-    </TableRow>
-  )
-}
-
 export default function OrgProjects() {
+  const { projects } = useRouteLoaderData('routes/_main+/$orgId+/_layout')
   const { orgId } = useParams()
-  const { projects } = useLoaderData<typeof loader>()
   const revalidator = useRevalidator()
 
   useEffect(() => {
@@ -97,7 +56,14 @@ export default function OrgProjects() {
           </TableHeader>
           <TableBody>
             {revalidator.state === 'loading' ? (
-              <TableSkeleton />
+              <TableRow>
+                <TableCell colSpan={4} className="py-8 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <p className="text-muted-foreground">Loading projects...</p>
+                  </div>
+                </TableCell>
+              </TableRow>
             ) : ((projects ?? []) as IProjectControlResponse[]).length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="py-8 text-center">

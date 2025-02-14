@@ -6,7 +6,6 @@ import { getSession, commitSession } from './auth-session.server'
 import { redirect } from 'react-router'
 import { GitHubStrategy } from 'remix-auth-github'
 import { IAuthSession } from '@/resources/interfaces/auth.interface'
-import { authApi } from '@/resources/api/auth.api'
 import { jwtDecode } from 'jwt-decode'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 
@@ -44,12 +43,20 @@ async function handleOAuthFlow(
       clientToken: accessToken,
     }
 
-    const data = await authApi.postRegisterOauth(payload)
-    if (!data.success) {
+    // Register the user
+    const register = await fetch(`${process.env.API_URL}/datum-os/oauth/register`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!register.ok) {
       throw new Error('Failed to register oauth')
     }
 
-    // const userInfo = await getUserInfo(data.access_token)
+    const data = await register.json()
     const decoded = jwtDecode<{ org: string; user_id: string; user_entity_id: string }>(
       data.access_token,
     )
