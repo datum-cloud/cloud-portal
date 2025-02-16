@@ -89,7 +89,7 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
           </Field>
           <Field
             label="Description"
-            description="A short description for your project that can be changed at any time."
+            description="Enter a short, human-friendly name. Can be changed later."
             errors={description.errors}>
             <Input
               placeholder="e.g. My Project"
