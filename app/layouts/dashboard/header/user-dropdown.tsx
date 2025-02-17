@@ -76,19 +76,18 @@ export const UserDropdown = () => {
           <UserItem user={user!} description={user?.email} />
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>User Profile</DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={() => navigate(routes.account.profile)}>
             <UserIcon />
-            Edit Profile
+            Your Profile
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={() => navigate(routes.account.apiKeys)}>
             <KeyIcon />
-            API Access
+            API Keys
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
