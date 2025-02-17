@@ -1,28 +1,34 @@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { ChevronsUpDownIcon, Loader2 } from 'lucide-react'
+import { ChevronsUpDownIcon, Loader2, CheckIcon } from 'lucide-react'
+import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { OrganizationItem } from './organization-item'
 import {
   Command,
-  CommandEmpty,
   CommandInput,
-  CommandItem,
   CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
 } from '@/components/ui/command'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { useFetcher } from 'react-router'
 import { useEffect, useState } from 'react'
+import { cn } from '@/utils/misc'
+import { useFetcher } from 'react-router'
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/list'
-import { OrganizationItem } from './organization-item'
 
 export const SelectOrganization = ({
   currentOrg,
   onSelect,
+  selectedContent,
+  triggerClassName,
 }: {
   currentOrg: Partial<OrganizationModel>
   onSelect?: (org: OrganizationModel) => void
+  selectedContent?: React.ReactNode
+  triggerClassName?: string
 }) => {
-  const fetcher = useFetcher({ key: 'org-list' })
   const [open, setOpen] = useState(false)
+  const fetcher = useFetcher({ key: 'org-list' })
   const [hasLoaded, setHasLoaded] = useState(false)
 
   useEffect(() => {
@@ -34,41 +40,55 @@ export const SelectOrganization = ({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild className="w-full">
+      <PopoverTrigger asChild>
         <Button
           variant="outline"
           size="sm"
-          className="flex h-11 w-full justify-between gap-2 border-none p-0 px-2 data-[state=open]:bg-primary/5">
-          <OrganizationItem org={currentOrg} />
+          className={cn(
+            'flex h-full w-full gap-2 border-none p-0 px-2 data-[state=open]:bg-primary/5',
+            triggerClassName,
+          )}>
+          {selectedContent ?? <OrganizationItem org={currentOrg} className="flex-1" />}
           <ChevronsUpDownIcon className="size-4 text-primary/60" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="popover-content-width-full p-0" align="start">
+      <PopoverContent
+        className="popover-content-width-full min-w-[300px] p-0"
+        align="start">
         <Command>
           <CommandInput
             className="h-9 rounded-md border-none focus-visible:ring-0"
-            placeholder="Search Organization"
+            placeholder="Find Organization..."
           />
-          <CommandList className="max-h-[300px] overflow-y-auto">
+          <CommandList className="max-h-none">
             <CommandEmpty>No results found.</CommandEmpty>
-            {fetcher.state === 'loading' ? (
+            {fetcher.state === 'loading' && (
               <CommandItem disabled>
                 <Loader2 className="size-4 animate-spin" />
                 <span>Loading organizations...</span>
               </CommandItem>
-            ) : (
-              (fetcher.data ?? [])
-                .filter((org: OrganizationModel) => org.id !== currentOrg?.id)
-                .map((org: OrganizationModel) => (
-                  <CommandItem
-                    key={org.id}
-                    onSelect={() => {
-                      setOpen(false)
-                      onSelect?.(org)
-                    }}>
-                    <OrganizationItem org={org} />
-                  </CommandItem>
-                ))
+            )}
+            {fetcher.data?.length > 0 && (
+              <CommandGroup className="max-h-[300px] overflow-y-auto">
+                {(fetcher.data ?? []).map((org: OrganizationModel) => {
+                  const isSelected = org.id === currentOrg?.id
+                  return (
+                    <CommandItem
+                      value={`${org.name}-${org.id}`}
+                      key={org.id}
+                      onSelect={() => {
+                        setOpen(false)
+                        if (!isSelected) {
+                          onSelect?.(org)
+                        }
+                      }}
+                      className="justify-between">
+                      <OrganizationItem org={org} />
+                      {isSelected && <CheckIcon className="size-4 text-primary" />}
+                    </CommandItem>
+                  )
+                })}
+              </CommandGroup>
             )}
           </CommandList>
         </Command>

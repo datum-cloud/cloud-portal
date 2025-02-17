@@ -21,3 +21,22 @@ export function getPathWithParams(path: string, params: QueryParams = {}) {
     )
   }, path)
 }
+
+export function getLastPathSegment(pathname: string, isHumanReadable = true): string {
+  // Remove trailing slash if present
+  const cleanPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname
+
+  // Split path into segments and get last non-empty segment
+  const segments = cleanPath.split('/')
+  const lastSegment = segments.filter(Boolean).pop()
+
+  return isHumanReadable
+    ? (lastSegment
+        ?.replace(/[-_]/g, ' ')
+        .replace(/([a-z])([A-Z])/g, '$1 $2')
+        .toLowerCase()
+        .split(' ')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ') ?? '')
+    : (lastSegment ?? '')
+}
