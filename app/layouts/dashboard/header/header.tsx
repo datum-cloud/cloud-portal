@@ -7,7 +7,7 @@ import SearchBar from './search-bar'
 import { OrganizationSwitcher } from './org-switcher'
 import { ProjectSwitcher } from './project-switcher'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { SlashIcon, CircleHelp} from 'lucide-react'
+import { SlashIcon, CircleHelp } from 'lucide-react'
 
 export const Header = ({
   noSidebar = false,
@@ -44,8 +44,7 @@ export const Header = ({
             Feedback
           </Button>
           <Link to="https://docs.datum.net/" target="_blank" rel="noreferrer">
-            <Button variant="ghost"
-              size="sm">
+            <Button variant="ghost" size="sm">
               <CircleHelp />
             </Button>
           </Link>

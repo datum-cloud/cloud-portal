@@ -6,6 +6,7 @@ import {
   AreaChartIcon,
   GlobeIcon,
   MapIcon,
+  SettingsIcon,
   ShieldCheckIcon,
   TerminalIcon,
 } from 'lucide-react'
@@ -156,6 +157,12 @@ export default function ProjectLayout() {
             type: 'link',
           },
         ],
+      },
+      {
+        title: 'Settings',
+        href: getPathWithParams(routes.projects.settings, { orgId, projectId }),
+        type: 'link',
+        icon: SettingsIcon,
       },
     ]
   }, [orgId, projectId])

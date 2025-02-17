@@ -68,7 +68,7 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
   return (
     <Card className={cn('w-full', className)}>
       <CardHeader>
-        <CardTitle className="text-xl leading-none">Create a new project</CardTitle>
+        <CardTitle>Create a new project</CardTitle>
         <CardDescription>
           Create a new project to get started with Datum Cloud.
         </CardDescription>

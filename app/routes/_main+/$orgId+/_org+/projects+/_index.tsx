@@ -1,4 +1,4 @@
-import { PlusIcon, Loader2 } from 'lucide-react'
+import { PlusIcon, Loader2, EllipsisVerticalIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -15,6 +15,12 @@ import { useEffect } from 'react'
 import { DateFormat } from '@/components/date-format/date-format'
 import { getPathWithParams } from '@/utils/path'
 import { ProjectStatus } from '@/components/project-status/project-status'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown'
 
 export default function OrgProjects() {
   const { projects } = useRouteLoaderData('routes/_main+/$orgId+/_layout')
@@ -52,12 +58,13 @@ export default function OrgProjects() {
               <TableHead>Name</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Creation Date</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {revalidator.state === 'loading' ? (
               <TableRow>
-                <TableCell colSpan={4} className="py-8 text-center">
+                <TableCell colSpan={5} className="py-8 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <p className="text-muted-foreground">Loading projects...</p>
@@ -66,7 +73,7 @@ export default function OrgProjects() {
               </TableRow>
             ) : ((projects ?? []) as IProjectControlResponse[]).length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="py-8 text-center">
+                <TableCell colSpan={5} className="py-8 text-center">
                   <p className="text-muted-foreground">
                     No projects found. Create your first project to get started.
                   </p>
@@ -91,6 +98,38 @@ export default function OrgProjects() {
                   </TableCell>
                   <TableCell>
                     <DateFormat date={project.createdAt} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 p-0 focus-visible:ring-0">
+                          <EllipsisVerticalIcon className="size-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>
+                          <Link
+                            to={getPathWithParams(routes.projects.locations, {
+                              orgId,
+                              projectId: project.name,
+                            })}>
+                            Locations
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Link
+                            to={getPathWithParams(routes.projects.settings, {
+                              orgId,
+                              projectId: project.name,
+                            })}>
+                            Settings
+                          </Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))

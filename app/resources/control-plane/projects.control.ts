@@ -59,6 +59,12 @@ export const createProjectsControl = (client: AxiosInstance) => {
 
       return transformProject(response.data)
     },
+    deleteProject: async (orgEntityId: string, projectName: string) => {
+      const response = await client.delete(
+        `/organizations/${orgEntityId}/control-plane/${path}/${projectName}`,
+      )
+      return response.data
+    },
   }
 }
 

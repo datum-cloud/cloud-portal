@@ -4,7 +4,7 @@ import { AppLoadContext, data, Outlet, useLoaderData } from 'react-router'
 import { getSession } from '@/modules/auth/auth-session.server'
 import { UserModel } from '@/resources/gql/models/user.model'
 import { AppProvider } from '@/providers/app.provider'
-
+import { ConfirmationDialogProvider } from '@/providers/confirmation-dialog.provider'
 export const loader = withMiddleware(async ({ request, context }) => {
   const { userGql } = context as AppLoadContext
   const session = await getSession(request.headers.get('Cookie'))
@@ -22,7 +22,9 @@ export default function MainLayout() {
 
   return (
     <AppProvider initialUser={user}>
-      <Outlet />
+      <ConfirmationDialogProvider>
+        <Outlet />
+      </ConfirmationDialogProvider>
     </AppProvider>
   )
 }
