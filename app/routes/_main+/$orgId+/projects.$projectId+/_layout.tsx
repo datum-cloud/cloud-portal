@@ -16,11 +16,6 @@ import { ProjectSwitcher } from '@/layouts/dashboard/header/project-switcher'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { getSession } from '@/modules/auth/auth-session.server'
 import { getPathWithParams } from '@/utils/path'
-import { BreadcrumbMatch } from '@/layouts/dashboard/header/breadcrumb'
-
-export const handle = {
-  breadcrumb: (match: BreadcrumbMatch) => <>{match.data?.name}</>,
-}
 
 export const loader = withMiddleware(async ({ request, params, context }) => {
   const { projectsControl } = context as AppLoadContext

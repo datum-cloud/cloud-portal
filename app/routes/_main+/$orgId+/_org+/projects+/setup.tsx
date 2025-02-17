@@ -8,10 +8,6 @@ import { useEffect } from 'react'
 
 import WaitingPage from '@/components/waiting-page/waiting-page'
 
-export const handle = {
-  breadcrumb: () => <>Setup</>,
-}
-
 // TODO: temporary solution for handle delay on new project
 // https://github.com/datum-cloud/cloud-portal/issues/45
 export const loader = withMiddleware(async ({ request, params, context }) => {

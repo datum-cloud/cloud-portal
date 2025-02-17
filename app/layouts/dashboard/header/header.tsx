@@ -23,24 +23,22 @@ export const Header = ({
           </>
         )}
         {content}
-        <SearchBar />
       </div>
       {/* Right Section */}
-      <div className="flex items-center justify-end pr-4">
-        <div className="flex items-center gap-3">
+      <div className="flex h-9 flex-1 items-center justify-end gap-3 pr-4">
+        <SearchBar />
+        <div className="flex h-full items-center gap-2">
           <Link to="https://docs.datum.net/" target="_blank" rel="noreferrer">
-            <Button variant="outline" size="sm" className="h-7">
-              <LibraryIcon className="size-4" />
-              <span className="hidden sm:flex">Docs</span>
+            <Button variant="outline" size="sm" className="px-2">
+              Docs
             </Button>
           </Link>
-          <Button variant="outline" size="sm" className="mr-1 h-7">
-            <LifeBuoyIcon className="size-4" />
-            <span className="hidden sm:flex">Feedback</span>
+          <Button variant="outline" size="sm" className="px-2">
+            Feedback
           </Button>
         </div>
 
-        <Separator orientation="vertical" className="ml-3 mr-2 h-6" />
+        <Separator orientation="vertical" className="h-full" />
         <UserDropdown />
       </div>
     </header>
