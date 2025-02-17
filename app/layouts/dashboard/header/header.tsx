@@ -1,17 +1,24 @@
 import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown'
 import { Button } from '@/components/ui/button'
-import { LibraryIcon, LifeBuoyIcon } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Link } from 'react-router'
+import { Link, useParams } from 'react-router'
 import SearchBar from './search-bar'
+import { useEffect } from 'react'
+import { OrganizationSwitcher } from './org-switcher'
+import { ProjectSwitcher } from './project-switcher'
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
+import { SlashIcon } from 'lucide-react'
+
 export const Header = ({
   noSidebar = false,
-  content,
+  currentProject,
 }: {
   noSidebar?: boolean
-  content?: React.ReactNode
+  currentProject?: IProjectControlResponse
 }) => {
+  const params = useParams<{ orgId: string; projectId: string }>()
+
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b">
       {/* Left Section */}
@@ -22,7 +29,13 @@ export const Header = ({
             <Separator orientation="vertical" className="mx-2 h-4" />
           </>
         )}
-        {content}
+        {params?.orgId && <OrganizationSwitcher />}
+        {params?.projectId && currentProject && (
+          <>
+            <SlashIcon className="mx-2 max-w-3 text-primary/40" />
+            <ProjectSwitcher currentProject={currentProject} orgId={params.orgId ?? ''} />
+          </>
+        )}
       </div>
       {/* Right Section */}
       <div className="flex h-9 flex-1 items-center justify-end gap-3 pr-4">

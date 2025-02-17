@@ -7,11 +7,13 @@ export const OrganizationItem = ({
   className,
   hideAvatar = false,
   avatarClassName,
+  labelClassName,
 }: {
   org: Partial<OrganizationModel>
   className?: string
   hideAvatar?: boolean
   avatarClassName?: string
+  labelClassName?: string
 }) => {
   return (
     <div className={cn('w-fulll flex items-center gap-2', className)}>
@@ -24,7 +26,7 @@ export const OrganizationItem = ({
         </Avatar>
       )}
 
-      <div className="grid flex-1 text-left text-sm leading-tight">
+      <div className={cn('grid flex-1 text-left text-sm leading-tight', labelClassName)}>
         <span className="truncate font-medium">{org?.name}</span>
         <span className="truncate text-xs text-muted-foreground">
           {org?.personalOrg ? 'Individual' : 'Business'}

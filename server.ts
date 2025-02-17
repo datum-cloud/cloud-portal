@@ -7,7 +7,7 @@ import expressRateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import { type ServerBuild } from 'react-router'
-import { getSession } from '@/modules/auth/auth-session.server.js'
+import { getSession } from '@/modules/auth/auth-session.server'
 import { createAPIFactory } from '@/resources/api/api-factory.js'
 import { createControlPlaneFactory } from '@/resources/control-plane/control-factory.js'
 import { createGqlFactory } from '@/resources/gql/gql-factory.js'
@@ -240,5 +240,6 @@ app.all(
  * Start the server
  */
 app.listen(PORT, () =>
+  // eslint-disable-next-line no-console
   console.log(`Express server listening at http://localhost:${PORT}`),
 )

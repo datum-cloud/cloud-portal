@@ -12,7 +12,6 @@ import { LogOut, UserIcon, KeyIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useApp } from '@/providers/app.provider'
 import { UserModel } from '@/resources/gql/models/user.model'
-import { OrganizationSwitcher } from './org-switcher'
 import { Form, useNavigate } from 'react-router'
 import { routes } from '@/constants/routes'
 import { getInitials, cn } from '@/utils/misc'
@@ -92,8 +91,7 @@ export const UserDropdown = () => {
             API Access
           </DropdownMenuItem>
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <OrganizationSwitcher onSelect={() => setOpen(false)} />
+
         <DropdownMenuSeparator />
         <Form method="POST" action={routes.auth.signOut}>
           <DropdownMenuItem asChild className="text-destructive">

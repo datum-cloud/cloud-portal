@@ -12,7 +12,6 @@ import {
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { authMiddleware } from '@/modules/middleware/auth-middleware'
 import { useMemo } from 'react'
-import { ProjectSwitcher } from '@/layouts/dashboard/header/project-switcher'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { getSession } from '@/modules/auth/auth-session.server'
 import { getPathWithParams } from '@/utils/path'
@@ -164,14 +163,12 @@ export default function ProjectLayout() {
   return (
     <DashboardLayout
       navItems={navItems}
-      sidebarHeader={
-        <ProjectSwitcher orgId={orgId!} currentProject={project} className="mt-2" />
-      }
       sidebarCollapsible="icon"
       homeLink={getPathWithParams(routes.projects.dashboard, {
         orgId,
-        projectId: (project as IProjectControlResponse)?.name,
-      })}>
+        projectId: projectId,
+      })}
+      currentProject={project}>
       <Outlet />
     </DashboardLayout>
   )

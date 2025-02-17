@@ -15,12 +15,10 @@ import { useTheme } from '@/hooks/useTheme'
 
 export function DashboardSidebar({
   navItems,
-  sidebarHeader,
   homeLink,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   navItems: NavItem[]
-  sidebarHeader?: React.ReactNode
   homeLink?: string
 }) {
   const theme = useTheme()
@@ -63,7 +61,6 @@ export function DashboardSidebar({
             theme={theme}
           />
         </Link>
-        {sidebarHeader}
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navs} />
