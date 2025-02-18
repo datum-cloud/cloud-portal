@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="60px" src="infra/assets/logo.png">
+  <img width="60px" src="docs/assets/logo.png">
   
   <h1 align="center">Datum Cloud Portal</h1>
   
@@ -47,6 +47,6 @@ Key Features
 
 # Getting Started
 
-- [Development guide](infra/docs/development.md)
-- [Design guide](infra/docs/design.md)
-- [Deployment guide](infra/docs//deployment.md)
+- [Development guide](docs/development.md)
+- [Design guide](docs/design.md)
+- [Deployment guide](docs//deployment.md)

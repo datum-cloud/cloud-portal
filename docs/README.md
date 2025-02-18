@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="60px" src="../assets/logo.png">
+  <img width="60px" src="assets/logo.png">
   
   <h1 align="center">Datum Cloud Portal</h1>
   

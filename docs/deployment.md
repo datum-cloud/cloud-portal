@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="130px" src="../assets/pulumi.svg">
+  <img width="130px" src="assets/pulumi.svg">
   
   <h1 align="center">Deployment</h1>
   
@@ -35,10 +35,10 @@ Once the environment is ready, please follow the [Deploying to the staging envir
 
 If you want to deploy a branch you are working on or the latest from main, you could simple change the [image tag here](https://github.com/datum-cloud/datum-infra/blob/main/apps/datum-cloud-portal/Pulumi.staging.yaml#L17). You can grab the image tag from the [Publish Portal](https://github.com/datum-cloud/cloud-portal/actions/workflows/publish.yaml) github action.
 
-![image](../assets/build.png)
+![image](assets/build.png)
 
 ## Production
 
 Whenever you want to deploy to production, you must summon our Jedi Lord Scotobi. May the Force be with you.
 
-![scot](../assets/scot.png)
+![scot](assets/scot.png)
