@@ -1,7 +1,7 @@
 import { useApp } from '@/providers/app.provider'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { SelectOrganization } from '@/components/select-organization/select-organization'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { routes } from '@/constants/routes'
 import { getPathWithParams } from '@/utils/path'
 import { Badge } from '@/components/ui/badge'
@@ -14,21 +14,24 @@ export const OrganizationSwitcher = ({
   const navigate = useNavigate()
 
   return (
-    <SelectOrganization
-      triggerClassName="h-9 w-fit"
-      currentOrg={currentOrg!}
-      onSelect={(org: OrganizationModel) => {
-        navigate(getPathWithParams(routes.projects.root, { orgId: org.id }))
-        onSelect?.(org)
-      }}
-      selectedContent={
-        <div className="flex w-fit max-w-[300px] items-center justify-between gap-2 text-left text-sm leading-tight">
-          <span className="truncate font-semibold">{currentOrg?.name}</span>
-          <Badge variant="secondary" className="border">
-            {currentOrg?.personalOrg ? 'Personal' : 'Business'}
-          </Badge>
-        </div>
-      }
-    />
+    <div className="flex items-center gap-1 pl-2">
+      <Link
+        to={getPathWithParams(routes.projects.root, { orgId: currentOrg?.id })}
+        className="flex w-fit max-w-[300px] items-center justify-between gap-2 text-left text-sm leading-tight">
+        <span className="truncate font-semibold">{currentOrg?.name}</span>
+        <Badge variant="secondary" className="border">
+          {currentOrg?.personalOrg ? 'Personal' : 'Business'}
+        </Badge>
+      </Link>
+      <SelectOrganization
+        triggerClassName="h-7 w-fit"
+        currentOrg={currentOrg!}
+        hideContent
+        onSelect={(org: OrganizationModel) => {
+          navigate(getPathWithParams(routes.projects.root, { orgId: org.id }))
+          onSelect?.(org)
+        }}
+      />
+    </div>
   )
 }

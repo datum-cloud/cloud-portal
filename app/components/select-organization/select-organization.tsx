@@ -21,11 +21,13 @@ export const SelectOrganization = ({
   onSelect,
   selectedContent,
   triggerClassName,
+  hideContent = false,
 }: {
   currentOrg: Partial<OrganizationModel>
   onSelect?: (org: OrganizationModel) => void
   selectedContent?: React.ReactNode
   triggerClassName?: string
+  hideContent?: boolean
 }) => {
   const [open, setOpen] = useState(false)
   const fetcher = useFetcher({ key: 'org-list' })
@@ -48,13 +50,14 @@ export const SelectOrganization = ({
             'flex h-full w-full gap-2 border-none p-0 px-2 data-[state=open]:bg-primary/5',
             triggerClassName,
           )}>
-          {selectedContent ?? <OrganizationItem org={currentOrg} className="flex-1" />}
+          {!hideContent &&
+            (selectedContent ?? <OrganizationItem org={currentOrg} className="flex-1" />)}
           <ChevronsUpDownIcon className="size-4 text-primary/60" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
         className="popover-content-width-full min-w-[300px] p-0"
-        align="start">
+        align="center">
         <Command>
           <CommandInput
             className="h-9 rounded-md border-none focus-visible:ring-0"
