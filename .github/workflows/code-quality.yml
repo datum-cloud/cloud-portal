@@ -4,9 +4,8 @@ on:
   pull_request:
   push:
     branches: ['main']
-    # https://github.com/actions/runner/issues/2324
     paths-ignore:
-      - 'infra/**'
+      - 'docs/**'
       - 'README.md'
 
 jobs:

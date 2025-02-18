@@ -5,7 +5,7 @@ on:
   push:
     # https://github.com/actions/runner/issues/2324
     paths-ignore:
-      - 'infra/**'
+      - 'docs/**'
       - 'README.md'
     branches: ['main']
 

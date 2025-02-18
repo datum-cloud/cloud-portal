@@ -3,7 +3,7 @@ name: Publish Portal
 on:
   push:
     paths-ignore:
-      - 'infra/**'
+      - 'docs/**'
       - 'README.md'
 
   release:
