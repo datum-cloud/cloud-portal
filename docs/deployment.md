@@ -37,22 +37,6 @@ If you want to deploy a branch you are working on or the latest from main, you c
 
 ![image](../assets/build.png)
 
-## Troubleshooting
-
-- Grafana: Logs and traces can be shown in [datum grafana instance](https://grafana.prod.env.datum.net/)
-
-- Unable to load schema information from the API server: it means your google cloud token has expired. So you need to re login into the cluster `gcloud auth login` to obtain new credentials.
-
-```
-Diagnostics:
-  kubernetes:helm.sh/v3:Release (datum-cloud-portal):
-    error: can't update Helm Release with unreachable cluster: unable to load schema information from the API server: Get "https://35.230.161.138/openapi/v2?timeout=32s": getting credentials: exec: executable gke-gcloud-auth-plugin failed with exit code 1
-
-  pulumi:pulumi:Stack (datum-cloud-portal-staging):
-    error: update failed
-
-```
-
 ## Production
 
 Whenever you want to deploy to production, you must summon our Jedi Lord Scotobi. May the Force be with you.

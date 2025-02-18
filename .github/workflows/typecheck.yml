@@ -28,7 +28,7 @@ jobs:
           echo "$CHANGED_FILES"
 
           # Filter out only Markdown files and infra directory changes
-          NON_IGNORED_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.md$|^infra/' || true)
+          NON_IGNORED_CHANGES=$(echo "$CHANGED_FILES" | grep -vE '\.md$|^docs/' || true)
 
           if [[ -n "$NON_IGNORED_CHANGES" ]]; then
             echo "run_ci=true" >> $GITHUB_ENV

@@ -26,54 +26,53 @@ The portals we are using today (and the ones we are building at Datum) are no lo
 
 One of the major challenges we have encountered over the years while building APIs and portals is that “The API” often becomes not just the primary channel for user interactions but also an unintended Backend for Frontend (BFF). This introduces several difficulties, as it can significantly impact API design and create conflicts between what should be public-facing versus what should remain internal. As a result, “The API” must serve not only external customers but also multiple internal portals and integrations—responsibilities it should not be burdened with.
 
-
-#### Benefits of using SSR: 
+#### Benefits of using SSR:
 
 - **Improved Performance & Faster First Load**
 
-  * With SSR, the server pre-renders the React components into static HTML before sending them to the client.
-  * This reduces the time it takes for users to see the initial page content (First Contentful Paint), especially on slow networks or devices.
+  - With SSR, the server pre-renders the React components into static HTML before sending them to the client.
+  - This reduces the time it takes for users to see the initial page content (First Contentful Paint), especially on slow networks or devices.
 
 - **Better SEO (Search Engine Optimization)**
 
-  * Search engine crawlers struggle with client-side rendered (CSR) applications because they rely on JavaScript execution.
-  * SSR ensures that fully rendered pages are available for indexing, improving search rankings.
+  - Search engine crawlers struggle with client-side rendered (CSR) applications because they rely on JavaScript execution.
+  - SSR ensures that fully rendered pages are available for indexing, improving search rankings.
 
 - **Improved Perceived Performance (Faster TTFB)**
 
-  * SSR improves **Time to First Byte (TTFB)** since the server responds with pre-rendered HTML instead of waiting for JavaScript to load, execute, and hydrate the page.
+  - SSR improves **Time to First Byte (TTFB)** since the server responds with pre-rendered HTML instead of waiting for JavaScript to load, execute, and hydrate the page.
 
 - **Reduced Client-side JavaScript Load**
 
-  * SSR offloads rendering from the client to the server, reducing the amount of JavaScript processing needed on the client.
-  * This benefits users on low-powered devices.
+  - SSR offloads rendering from the client to the server, reducing the amount of JavaScript processing needed on the client.
+  - This benefits users on low-powered devices.
 
 - **Faster Time-to-Interactive (TTI)**
 
-  * Since the user sees content earlier, they perceive the app as faster.
-  * Hydration (where React attaches event handlers to the server-rendered HTML) enables full interactivity sooner.
+  - Since the user sees content earlier, they perceive the app as faster.
+  - Hydration (where React attaches event handlers to the server-rendered HTML) enables full interactivity sooner.
 
 - **Easier Caching & Performance Optimizations**
 
-  * Since SSR generates static HTML, it can be cached at the **CDN level**, reducing server load and improving response times for subsequent requests.
+  - Since SSR generates static HTML, it can be cached at the **CDN level**, reducing server load and improving response times for subsequent requests.
 
 - **Progressive Enhancement**
 
-  * Users can view and interact with the page even before React fully loads, improving accessibility and user experience.
+  - Users can view and interact with the page even before React fully loads, improving accessibility and user experience.
 
-- **Improved Authentication Handling** 
-  * Since every request **passes through the server**, authentication and permission checks can be **enforced before rendering the page**.
-  * This ensures that unauthorized users **never receive restricted content**, unlike in CSR apps, where the frontend might initially load before checking permissions.
-  * While not exclusive to SSR, it helps improve the user experience for authenticated applications.
+- **Improved Authentication Handling**
+
+  - Since every request **passes through the server**, authentication and permission checks can be **enforced before rendering the page**.
+  - This ensures that unauthorized users **never receive restricted content**, unlike in CSR apps, where the frontend might initially load before checking permissions.
+  - While not exclusive to SSR, it helps improve the user experience for authenticated applications.
 
 - **Secure API Interactions Without Client Exposure**
-  * API keys or sensitive credentials are **only used on the server** and **never exposed to the client**.
-  * For example, if your app queries a **private GraphQL API**, the API key **never** leaves the server, reducing the risk of leakage.
-  * This significantly improves security, as clients do not need to store or transmit sensitive credentials.
-  * Ability to hide integrations with external services– When testing or implementing a new third-party service, SSR allows you to **utilize it on the backend without exposing it to the client**.
-  This means you can experiment with different technologies **without making them visible to customers or requiring frontend updates**.
-  * Useful when integrating **analytics, feature flags, payment providers, or A/B testing services** before making them part of the public API.
-
+  - API keys or sensitive credentials are **only used on the server** and **never exposed to the client**.
+  - For example, if your app queries a **private GraphQL API**, the API key **never** leaves the server, reducing the risk of leakage.
+  - This significantly improves security, as clients do not need to store or transmit sensitive credentials.
+  - Ability to hide integrations with external services– When testing or implementing a new third-party service, SSR allows you to **utilize it on the backend without exposing it to the client**.
+    This means you can experiment with different technologies **without making them visible to customers or requiring frontend updates**.
+  - Useful when integrating **analytics, feature flags, payment providers, or A/B testing services** before making them part of the public API.
 
 ### Component Design and Styling
 
@@ -154,6 +153,7 @@ Instead of using global state, prefer these alternatives:
 ### Deployment and CI/CD
 
 - Use **GitHub Actions** for automated testing and deployment.
-- Ensure proper **environment configuration** (dotenv for API keys and secrets).
+- Ensure proper **environment configuration**. See [env.example](env.example).
 - Implement **feature flags** for rolling out new features gradually.
 - Monitor performance and errors using tools like **Sentry** or **LogRocket**.
+- Integrate OpenTelemetry for distributed tracing, metrics, and logging to improve observability across services.
