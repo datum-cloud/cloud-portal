@@ -35,26 +35,26 @@ interface Project {
 }
 
 interface ProjectStatusCondition {
-  lastTransitionTime: string
+  lastTransitionTime: string | Date
   message: string
-  observedGeneration: number
+  observedGeneration?: bigint | number
   reason: string
   status: string
   type: string
 }
 
 export interface IProjectStatus {
-  conditions: ProjectStatusCondition[]
+  conditions?: ProjectStatusCondition[]
 }
 
 export type IProjectControl = Project
 
 export interface IProjectControlResponse {
-  name: string
-  description: string
-  createdAt: string
-  organizationId: string
-  resourceVersion: string
-  uid: string
-  status: IProjectStatus
+  name?: string
+  description?: string
+  createdAt?: string | Date
+  organizationId?: string
+  resourceVersion?: string
+  uid?: string
+  status?: IProjectStatus
 }

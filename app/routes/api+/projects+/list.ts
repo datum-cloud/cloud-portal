@@ -1,7 +1,8 @@
+import { getSession } from '@/modules/auth/auth-session.server'
 import { authMiddleware } from '@/modules/middleware/auth-middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+
 import { AppLoadContext, data } from 'react-router'
-import { getSession } from '@/modules/auth/auth-session.server'
 
 export const ROUTE_PATH = '/api/projects/list' as const
 

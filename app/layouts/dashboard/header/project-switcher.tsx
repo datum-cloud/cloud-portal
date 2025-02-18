@@ -105,7 +105,7 @@ export const ProjectSwitcher = ({
                 <CommandGroup className="max-h-[300px] overflow-y-auto">
                   {(fetcher.data ?? [])
                     .sort((a: IProjectControlResponse, b: IProjectControlResponse) =>
-                      a.description.localeCompare(b.description),
+                      (a?.description ?? '').localeCompare(b?.description ?? ''),
                     )
                     .map((project: IProjectControlResponse) => {
                       const isSelected = project.uid === currentProject.uid

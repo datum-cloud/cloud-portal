@@ -12,11 +12,11 @@ import { routes } from '@/constants/routes'
 import { toast } from 'sonner'
 import { ROUTE_PATH as LOGOUT_ROUTE_PATH } from '@/routes/api+/sign-out'
 import { Card, CardContent } from '@/components/ui/card'
-import { Logo } from '@/components/logo/logo'
 import { useTheme } from '@/hooks/useTheme'
 import PublicLayout from '@/layouts/public/public'
 import { Button } from '@/components/ui/button'
 import { HomeIcon, RefreshCcwIcon } from 'lucide-react'
+import { LogoIcon } from '@/components/logo/logo-icon'
 type StatusHandler = (info: {
   error: ErrorResponse
   params: Record<string, string | undefined>
@@ -77,7 +77,7 @@ export function GenericErrorBoundary({
     <PublicLayout>
       <Card className="overflow-hidden">
         <CardContent className="flex min-h-[500px] flex-col items-center justify-center gap-6">
-          <Logo asIcon width={64} theme={theme} className="mb-4" />
+          <LogoIcon width={64} theme={theme} className="mb-4" />
           <div className="flex flex-col gap-2">
             <h1 className="w-full text-center text-2xl font-bold">
               Whoops! Something went wrong.

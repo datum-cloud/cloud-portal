@@ -1,8 +1,8 @@
 import { Loader2 } from 'lucide-react'
-import { Logo } from '@/components/logo/logo'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/utils/misc'
+import { LogoIcon } from '@/components/logo/logo-icon'
 export default function WaitingPage({
   title,
   className,
@@ -15,7 +15,7 @@ export default function WaitingPage({
     <Card className={cn('overflow-hidden', className)}>
       <CardContent className="grid min-h-[500px]">
         <div className="flex flex-col items-center justify-center gap-6">
-          <Logo asIcon width={64} theme={theme} className="mb-4" />
+          <LogoIcon width={64} theme={theme} className="mb-4" />
           <h1 className="w-full text-center text-2xl font-bold">{title}</h1>
           <Loader2 className="size-10 animate-spin" />
         </div>
