@@ -1,4 +1,4 @@
-import { commitSession, getSession } from '@/modules/auth/auth-session.server'
+import { commitSession, getSession } from '@/modules/auth/authSession.server'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import {
   data,
@@ -13,13 +13,14 @@ import { useApp } from '@/providers/app.provider'
 import { useEffect } from 'react'
 import PublicLayout from '@/layouts/public/public'
 import WaitingPage from '@/components/waiting-page/waiting-page'
+import { CustomError } from '@/utils/errorHandle'
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { orgId } = params
   const { projectsControl, organizationGql } = context as AppLoadContext
 
   if (!orgId) {
-    throw new Response('Organization ID is required', { status: 400 })
+    throw new CustomError('Organization ID is required', 400)
   }
 
   // TODO: when i remove the request, the token is not set and make the request to the api use token from other user
@@ -32,6 +33,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   try {
     // Check for existing projects
+    // TODO: remove this line when the organization process doesn't need to check the resource manager API
+    // https://github.com/datum-cloud/cloud-portal/issues/43
     const projects = await projectsControl.getProjects(org.userEntityID)
 
     return data(

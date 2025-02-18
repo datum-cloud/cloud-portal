@@ -1,5 +1,5 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
-import { destroySession, getSession } from '@/modules/auth/auth-session.server'
+import { destroySession, getSession } from '@/modules/auth/authSession.server'
 import { redirect } from 'react-router'
 import { routes } from '@/constants/routes'
 

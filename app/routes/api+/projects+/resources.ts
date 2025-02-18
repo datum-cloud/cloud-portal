@@ -1,4 +1,4 @@
-import { authMiddleware } from '@/modules/middleware/auth-middleware'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 

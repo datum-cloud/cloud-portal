@@ -1,22 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createConfig, createClient, ClientOptions } from '@hey-api/client-axios'
 import { AxiosError } from 'axios'
+import { CustomError } from '@/utils/errorHandle'
 
 // Customize the client to add an auth token to the request headers
 const errorHandler = (error: AxiosError) => {
   const errorMessage =
-    (error.response?.data as any) ||
-    (error.response?.data as any)?.message ||
-    error.message ||
-    'Unknown error occurred'
-  const status = error.response?.status || 500
+    (error.response?.data as any)?.message || error.message || 'Unknown error occurred'
 
-  return Promise.reject(
-    new Response(errorMessage, {
-      status,
-      statusText: errorMessage,
-    }),
+  const errorResponse = new CustomError(
+    errorMessage,
+    error.response?.status || 500,
+    error,
   )
+
+  return Promise.reject(errorResponse)
 }
 
 export const createControlPlaneClient = (
@@ -28,6 +26,7 @@ export const createControlPlaneClient = (
     createConfig<ClientOptions>({
       baseURL,
       withCredentials: false,
+      throwOnError: true,
     }),
   )
 

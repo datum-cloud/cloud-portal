@@ -1,7 +1,7 @@
 import { redirect } from 'react-router'
 import { isAuthenticated } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
-import { commitSession, getSession } from '@/modules/auth/auth-session.server'
+import { commitSession, getSession } from '@/modules/auth/authSession.server'
 import { NextFunction } from './middleware'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 export async function authMiddleware(

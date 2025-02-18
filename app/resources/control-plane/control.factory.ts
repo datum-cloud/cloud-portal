@@ -1,9 +1,11 @@
 import { createProjectsControl, ProjectsControl } from './projects.control'
-import { createControlPlaneClient } from '@/modules/control-plane/axios-client'
+import { createLocationsControl, LocationsControl } from './locations.control'
+import { createControlPlaneClient } from '@/modules/control-plane/axiosControl'
 import { Client } from '@hey-api/client-axios'
 // Define factory return type
 export interface ControlPlaneFactory {
   projectsControl: ProjectsControl
+  locationsControl: LocationsControl
 }
 
 export const createControlPlaneFactory = (authToken: string): ControlPlaneFactory => {
@@ -16,5 +18,6 @@ export const createControlPlaneFactory = (authToken: string): ControlPlaneFactor
 
   return {
     projectsControl: createProjectsControl(apiClient),
+    locationsControl: createLocationsControl(apiClient),
   }
 }

@@ -11,19 +11,19 @@ import {
   TerminalIcon,
 } from 'lucide-react'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { authMiddleware } from '@/modules/middleware/auth-middleware'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { useMemo } from 'react'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { getPathWithParams } from '@/utils/path'
-import { getSession } from '@/modules/auth/auth-session.server'
-
-export const loader = withMiddleware(async ({ request, params, context }) => {
+import { getSession } from '@/modules/auth/authSession.server'
+import { CustomError } from '@/utils/errorHandle'
+export const loader = withMiddleware(async ({ params, context, request }) => {
   const { projectsControl } = context as AppLoadContext
   const { projectId } = params
 
   try {
     if (!projectId) {
-      throw new Response('Project ID is required', { status: 400 })
+      throw new CustomError('Project ID is required', 400)
     }
 
     const session = await getSession(request.headers.get('Cookie'))
@@ -59,7 +59,7 @@ export default function ProjectLayout() {
     return [
       {
         title: 'Locations',
-        href: getPathWithParams(routes.projects.locations, { orgId, projectId }),
+        href: getPathWithParams(routes.projects.locations.root, { orgId, projectId }),
         type: 'link',
         icon: MapIcon,
       },

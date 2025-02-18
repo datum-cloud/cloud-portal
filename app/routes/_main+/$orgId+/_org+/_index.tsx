@@ -1,5 +1,5 @@
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { authMiddleware } from '@/modules/middleware/auth-middleware'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { routes } from '@/constants/routes'
 import { redirect } from 'react-router'
 import { getPathWithParams } from '@/utils/path'

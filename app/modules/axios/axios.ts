@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosError, AxiosInstance } from 'axios'
+import { CustomError } from '@/utils/errorHandle'
 
 type ApiClientOptions = {
   baseURL: string
@@ -8,18 +9,15 @@ type ApiClientOptions = {
 
 const errorHandler = (error: AxiosError) => {
   const errorMessage =
-    (error.response?.data as any) ||
-    (error.response?.data as any)?.message ||
-    error.message ||
-    'Unknown error occurred'
-  const status = error.response?.status || 500
+    (error.response?.data as any)?.message || error.message || 'Unknown error occurred'
 
-  return Promise.reject(
-    new Response(errorMessage, {
-      status,
-      statusText: errorMessage,
-    }),
+  const errorResponse = new CustomError(
+    errorMessage,
+    error.response?.status || 500,
+    error,
   )
+
+  return Promise.reject(errorResponse)
 }
 
 export const createAxiosClient = (options: ApiClientOptions): AxiosInstance => {

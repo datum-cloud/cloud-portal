@@ -6,28 +6,30 @@ import {
   deleteResourcemanagerDatumapisComV1AlphaProject,
   listResourcemanagerDatumapisComV1AlphaProject,
   readResourcemanagerDatumapisComV1AlphaProject,
-} from '@/modules/control-plane/projects'
+} from '@/modules/control-plane/resource-manager'
 import { Client } from '@hey-api/client-axios'
-
-const transformProject = (
-  project: ComDatumapisResourcemanagerV1AlphaProject,
-): IProjectControlResponse => {
-  const metadata = {
-    name: project?.metadata?.name ?? '',
-    description: project?.metadata?.annotations?.['kubernetes.io/description'] ?? '',
-    createdAt: project?.metadata?.creationTimestamp ?? new Date(),
-    organizationId:
-      project?.metadata?.labels?.['resourcemanager.datumapis.com/organization-id'] ?? '',
-    resourceVersion: project?.metadata?.resourceVersion ?? '',
-    uid: project?.metadata?.uid ?? '',
-    status: project.status ?? {},
-  }
-
-  return metadata
-}
+import { CustomError } from '@/utils/errorHandle'
 
 export const createProjectsControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
+
+  const transformProject = (
+    project: ComDatumapisResourcemanagerV1AlphaProject,
+  ): IProjectControlResponse => {
+    const metadata = {
+      name: project?.metadata?.name ?? '',
+      description: project?.metadata?.annotations?.['kubernetes.io/description'] ?? '',
+      createdAt: project?.metadata?.creationTimestamp ?? new Date(),
+      organizationId:
+        project?.metadata?.labels?.['resourcemanager.datumapis.com/organization-id'] ??
+        '',
+      resourceVersion: project?.metadata?.resourceVersion ?? '',
+      uid: project?.metadata?.uid ?? '',
+      status: project.status ?? {},
+    }
+
+    return metadata
+  }
 
   return {
     getProjects: async (orgEntityId: string) => {
@@ -51,18 +53,18 @@ export const createProjectsControl = (client: Client) => {
       })
 
       if (!response.data) {
-        throw new Response(`Project ${projectName} not found`, {
-          status: 404,
-          statusText: `Project ${projectName} not found`,
-        })
+        throw new CustomError(`Project ${projectName} not found`, 404)
       }
 
       return transformProject(response.data)
     },
-    createProject: async (payload: NewProjectSchema) => {
+    createProject: async (payload: NewProjectSchema, dryRun: boolean = false) => {
       const response = await createResourcemanagerDatumapisComV1AlphaProject({
         client,
         baseURL: `${baseUrl}/organizations/${payload.orgEntityId}/control-plane`,
+        query: {
+          dryRun: dryRun ? 'All' : undefined,
+        },
         body: {
           apiVersion: 'resourcemanager.datumapis.com/v1alpha',
           kind: 'Project',
@@ -81,10 +83,7 @@ export const createProjectsControl = (client: Client) => {
       })
 
       if (!response.data) {
-        throw new Response('Failed to create project', {
-          status: 500,
-          statusText: 'Failed to create project',
-        })
+        throw new CustomError('Failed to create project', 500)
       }
 
       return transformProject(response.data)
@@ -99,10 +98,7 @@ export const createProjectsControl = (client: Client) => {
       })
 
       if (!response.data) {
-        throw new Response(`Project ${projectName} not found`, {
-          status: 404,
-          statusText: `Project ${projectName} not found`,
-        })
+        throw new CustomError(`Project ${projectName} not found`, 404)
       }
 
       return response.data

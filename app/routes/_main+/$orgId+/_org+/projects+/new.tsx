@@ -1,63 +1,66 @@
 import { CreateProjectForm } from '@/features/project/create-form'
 import { routes } from '@/constants/routes'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
-import { isAuthenticated } from '@/modules/auth/auth.server'
 import { validateCSRF } from '@/utils/csrf.server'
 import { newProjectSchema } from '@/resources/schemas/project.schema'
-import { redirectWithToast } from '@/utils/toast.server'
+import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { getPathWithParams } from '@/utils/path'
+import { withMiddleware } from '@/modules/middleware/middleware'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
 
-export async function action({ request, params, context }: ActionFunctionArgs) {
-  const { projectsControl } = context as AppLoadContext
+export const action = withMiddleware(
+  async ({ request, params, context }: ActionFunctionArgs) => {
+    const { projectsControl } = context as AppLoadContext
 
-  // User Session
-  await isAuthenticated(
-    request,
-    getPathWithParams(routes.org.root, { orgId: params.orgId }),
-    true,
-  )
+    const clonedRequest = request.clone()
+    const formData = await clonedRequest.formData()
 
-  // Validate CSRF token
-  const clonedRequest = request.clone()
-  const formData = await clonedRequest.formData()
+    try {
+      await validateCSRF(formData, clonedRequest.headers)
 
-  try {
-    await validateCSRF(formData, clonedRequest.headers)
+      // Validate form data with Zod
+      const entries = Object.fromEntries(formData)
+      const validated = newProjectSchema.parse(entries)
 
-    // Validate form data with Zod
-    const entries = Object.fromEntries(formData)
-    const validated = newProjectSchema.parse(entries)
+      // Dry run to validate
+      const dryRunRes = await projectsControl.createProject(validated, true)
 
-    await projectsControl.createProject(validated)
+      // If dry run succeeds, create for real
+      if (dryRunRes) {
+        await projectsControl.createProject(validated, false)
+      }
 
-    // TODO: temporary solution for handle delay on new project
-    // https://github.com/datum-cloud/cloud-portal/issues/45
-    return redirectWithToast(
-      getPathWithParams(`${routes.projects.setup}?projectId=${validated.name}`, {
-        orgId: params.orgId,
-      }),
-      {
-        title: 'Project created successfully!',
-        description: 'You have successfully created a project.',
-      },
-    )
-  } catch (error) {
-    return redirectWithToast(
-      getPathWithParams(routes.projects.new, { orgId: params.orgId }),
-      {
-        title: 'Error!',
-        description: error instanceof Error ? error.message : 'Something went wrong',
-      },
-    )
-  }
-}
+      // TODO: temporary solution for handle delay on new project
+      // https://github.com/datum-cloud/cloud-portal/issues/45
+      return redirectWithToast(
+        getPathWithParams(`${routes.projects.setup}?projectId=${validated.name}`, {
+          orgId: params.orgId,
+        }),
+        {
+          title: 'Project created successfully!',
+          description: 'You have successfully created a project.',
+          type: 'success',
+        },
+      )
+    } catch (error) {
+      return dataWithToast(
+        {},
+        {
+          title: 'Error!',
+          description:
+            error instanceof Error ? error.message : (error as Response).statusText,
+          type: 'error',
+        },
+      )
+    }
+  },
+  authMiddleware,
+)
 
 export default function NewProject() {
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="flex w-full max-w-2xl flex-col items-center gap-4">
-        <CreateProjectForm />
-      </div>
+    <div className="mx-auto w-full max-w-2xl py-8">
+      <CreateProjectForm />
     </div>
   )
 }
