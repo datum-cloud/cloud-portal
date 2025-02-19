@@ -5,7 +5,6 @@ import { isAuthenticated } from '@/modules/auth/auth.server'
 import { validateCSRF } from '@/utils/csrf.server'
 import { newProjectSchema } from '@/resources/schemas/project.schema'
 import { redirectWithToast } from '@/utils/toast.server'
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { getPathWithParams } from '@/utils/path'
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
@@ -29,15 +28,12 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     const entries = Object.fromEntries(formData)
     const validated = newProjectSchema.parse(entries)
 
-    const project: IProjectControlResponse = await projectsControl.createProject(
-      validated.orgEntityId,
-      validated,
-    )
+    await projectsControl.createProject(validated)
 
     // TODO: temporary solution for handle delay on new project
     // https://github.com/datum-cloud/cloud-portal/issues/45
     return redirectWithToast(
-      getPathWithParams(`${routes.projects.setup}?projectId=${project.name}`, {
+      getPathWithParams(`${routes.projects.setup}?projectId=${validated.name}`, {
         orgId: params.orgId,
       }),
       {

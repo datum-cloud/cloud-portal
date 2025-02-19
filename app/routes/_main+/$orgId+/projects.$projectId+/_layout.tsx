@@ -14,20 +14,20 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { authMiddleware } from '@/modules/middleware/auth-middleware'
 import { useMemo } from 'react'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { getSession } from '@/modules/auth/auth-session.server'
 import { getPathWithParams } from '@/utils/path'
+import { getSession } from '@/modules/auth/auth-session.server'
 
 export const loader = withMiddleware(async ({ request, params, context }) => {
   const { projectsControl } = context as AppLoadContext
   const { projectId } = params
 
   try {
-    const session = await getSession(request.headers.get('Cookie'))
-    const orgEntityId: string = session.get('currentOrgEntityID')
-
     if (!projectId) {
       throw new Response('Project ID is required', { status: 400 })
     }
+
+    const session = await getSession(request.headers.get('Cookie'))
+    const orgEntityId: string = session.get('currentOrgEntityID')
 
     const project: IProjectControlResponse = await projectsControl.getProject(
       orgEntityId,

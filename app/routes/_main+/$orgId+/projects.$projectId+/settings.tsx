@@ -63,8 +63,8 @@ export default function ProjectSettingsPage() {
       onSubmit: async () => {
         await submit(
           {
-            projectName: project.name,
-            orgId: project.organizationId,
+            projectName: project?.name ?? '',
+            orgId: project?.organizationId ?? '',
           },
           {
             method: 'DELETE',

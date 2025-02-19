@@ -8,12 +8,12 @@ export const DateFormat = ({
   omitAmPm = false,
   className,
 }: {
-  date: string
+  date: string | Date
   format?: string
   omitAmPm?: boolean
   className?: string
 }) => {
-  const parsedDate = new Date(date)
+  const parsedDate = date instanceof Date ? date : new Date(date)
 
   if (!date || isNaN(parsedDate.getTime())) {
     return null

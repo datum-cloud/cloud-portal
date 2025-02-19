@@ -94,10 +94,10 @@ export default function OrgProjects() {
                   </TableCell>
                   <TableCell>{project.name}</TableCell>
                   <TableCell>
-                    <ProjectStatus status={project.status} />
+                    {project?.status && <ProjectStatus status={project?.status} />}
                   </TableCell>
                   <TableCell>
-                    <DateFormat date={project.createdAt} />
+                    {project?.createdAt && <DateFormat date={project?.createdAt} />}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
@@ -110,8 +110,9 @@ export default function OrgProjects() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem asChild>
                           <Link
+                            className="cursor-pointer"
                             to={getPathWithParams(routes.projects.locations, {
                               orgId,
                               projectId: project.name,
@@ -119,8 +120,9 @@ export default function OrgProjects() {
                             Locations
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem asChild>
                           <Link
+                            className="cursor-pointer"
                             to={getPathWithParams(routes.projects.settings, {
                               orgId,
                               projectId: project.name,

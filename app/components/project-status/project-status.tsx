@@ -14,11 +14,11 @@ export function ProjectStatus({
   showTooltip?: boolean
 }) {
   const data = useMemo(() => {
-    if (status) {
-      const condition = status.conditions[0]
+    if (status && (status?.conditions ?? [])?.length > 0) {
+      const condition = status.conditions?.[0]
       return {
-        isReady: condition.status === 'True',
-        message: condition.message,
+        isReady: condition?.status === 'True',
+        message: condition?.message,
       }
     }
 

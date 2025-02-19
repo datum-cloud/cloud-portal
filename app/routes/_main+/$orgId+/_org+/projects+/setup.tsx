@@ -1,12 +1,12 @@
 import { AppLoadContext, redirect, useRevalidator } from 'react-router'
 import { routes } from '@/constants/routes'
-import { getSession } from '@/modules/auth/auth-session.server'
 import { getPathWithParams } from '@/utils/path'
 import { authMiddleware } from '@/modules/middleware/auth-middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useEffect } from 'react'
 
 import WaitingPage from '@/components/waiting-page/waiting-page'
+import { getSession } from '@/modules/auth/auth-session.server'
 
 // TODO: temporary solution for handle delay on new project
 // https://github.com/datum-cloud/cloud-portal/issues/45

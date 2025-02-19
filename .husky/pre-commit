@@ -34,19 +34,19 @@ fi
 
 # Check ESLint Standards
 if [ "$PACKAGE_MANAGER" = "bun" ]; then
-  bun run lint && (
+  bun run format && bun run lint && bun run typecheck && (
     echo '🎉🎉🎉🎉 Yeayy, there is no error in your code... I am committing this now. ✨🚀🏄‍♂️🍻'
   ) || (
-    echo '🙈👷🔨❌ Yoo, your code looks disgusting. Check linter 🙈👷🔨❌'
-    echo 'Run bun run lint, add changes and try commit again.'
+    echo '🙈👷🔨❌ Yoo, your code looks disgusting. Check linter and types 🙈👷🔨❌'
+    echo 'Run bun run lint && bun run typecheck, add changes and try commit again.'
     false
   )
 else
-  npm run lint && (
+  npm run format && npm run lint && npm run typecheck && (
     echo '🎉🎉🎉🎉 Yeayy, there is no error in your code... I am committing this now. ✨🚀🏄‍♂️🍻'
   ) || (
-    echo '🙈👷🔨❌ Yoo, your code looks disgusting. Check linter 🙈👷🔨❌'
-    echo 'Run npm run lint, add changes and try commit again.'
+    echo '🙈👷🔨❌ Yoo, your code looks disgusting. Check linter and types 🙈👷🔨❌'
+    echo 'Run npm run lint && npm run typecheck, add changes and try commit again.'
     false
   )
 fi
