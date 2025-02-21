@@ -3,9 +3,9 @@ declare module '@/*'
 
 // Import required types
 import 'react-router'
-import { APIFactory } from '@/resources/api/api-factory'
-import { ControlPlaneFactory } from '@/resources/control-plane/control-factory'
-import { GqlFactory } from '@/resources/gql/gql-factory'
+import { APIFactory } from '@/resources/api/api.factory'
+import { ControlPlaneFactory } from '@/resources/control-plane/control.factory'
+import { GqlFactory } from '@/resources/gql/gql.factory'
 
 /**
  * Extend the React Router AppLoadContext interface to include our custom factories

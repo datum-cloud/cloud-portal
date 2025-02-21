@@ -2,13 +2,13 @@ import type { MetaFunction } from 'react-router'
 import { HelpCircle } from 'lucide-react'
 import { SITE_CONFIG } from '@/constants/brand'
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
-
+import { CustomError } from '@/utils/errorHandle'
 export const meta: MetaFunction = () => {
   return [{ title: `${SITE_CONFIG.siteTitle} - 404 Not Found!` }]
 }
 
 export async function loader() {
-  throw new Response('Not found', { status: 404 })
+  throw new CustomError('Not found', 404)
 }
 
 export default function NotFound() {

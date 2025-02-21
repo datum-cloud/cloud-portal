@@ -1,13 +1,14 @@
 import { AppLoadContext, redirect, useRevalidator } from 'react-router'
 import { routes } from '@/constants/routes'
 import { getPathWithParams } from '@/utils/path'
-import { authMiddleware } from '@/modules/middleware/auth-middleware'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useEffect } from 'react'
 
 import WaitingPage from '@/components/waiting-page/waiting-page'
-import { getSession } from '@/modules/auth/auth-session.server'
-
+import { getSession } from '@/modules/auth/authSession.server'
+import { CustomError } from '@/utils/errorHandle'
+import { dataWithToast } from '@/utils/toast.server'
 // TODO: temporary solution for handle delay on new project
 // https://github.com/datum-cloud/cloud-portal/issues/45
 export const loader = withMiddleware(async ({ request, params, context }) => {
@@ -18,10 +19,7 @@ export const loader = withMiddleware(async ({ request, params, context }) => {
     const projectId = new URL(request.url).searchParams.get('projectId')
 
     if (!projectId) {
-      throw new Response('No project ID found', {
-        status: 404,
-        statusText: 'No project ID found',
-      })
+      throw new CustomError('No project ID found', 404)
     }
 
     const session = await getSession(request.headers.get('Cookie'))
@@ -38,7 +36,15 @@ export const loader = withMiddleware(async ({ request, params, context }) => {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
-    return null
+    return dataWithToast(
+      null,
+      {
+        title: 'Error',
+        description: 'Error setting up project',
+        type: 'error',
+      },
+      { status: 404 },
+    )
   }
 }, authMiddleware)
 

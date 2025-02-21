@@ -1,144 +1,103 @@
-import { PlusIcon, Loader2, EllipsisVerticalIcon } from 'lucide-react'
+import { PlusIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Link, useParams, useRevalidator, useRouteLoaderData } from 'react-router'
+import { Link, useNavigate, useParams, useRouteLoaderData } from 'react-router'
 import { routes } from '@/constants/routes'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { useEffect } from 'react'
 import { DateFormat } from '@/components/date-format/date-format'
 import { getPathWithParams } from '@/utils/path'
 import { ProjectStatus } from '@/components/project-status/project-status'
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown'
+import { DataTable } from '@/components/data-table/data-table'
+import { ColumnDef } from '@tanstack/react-table'
+import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 
 export default function OrgProjects() {
   const { projects } = useRouteLoaderData('routes/_main+/$orgId+/_layout')
   const { orgId } = useParams()
-  const revalidator = useRevalidator()
+  const navigate = useNavigate()
 
-  useEffect(() => {
-    revalidator.revalidate()
-  }, [orgId])
+  const columns: ColumnDef<IProjectControlResponse>[] = [
+    {
+      header: 'Description',
+      accessorKey: 'description',
+      cell: ({ row }) => {
+        return (
+          <Link
+            className="font-semibold text-primary"
+            to={getPathWithParams(routes.projects.detail, {
+              orgId,
+              projectId: row.original.name,
+            })}>
+            {row.original.description}
+          </Link>
+        )
+      },
+    },
+    {
+      header: 'Name',
+      accessorKey: 'name',
+    },
+    {
+      header: 'Status',
+      accessorKey: 'status',
+      enableSorting: false,
+      cell: ({ row }) => {
+        return row.original.status && <ProjectStatus status={row.original.status} />
+      },
+    },
+    {
+      header: 'Creation Date',
+      accessorKey: 'createdAt',
+      cell: ({ row }) => {
+        return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+      },
+    },
+  ]
+
+  const rowActions: DataTableRowActionsProps<IProjectControlResponse>[] = [
+    {
+      key: 'locations',
+      label: 'Locations',
+      action: (row) => {
+        navigate(
+          getPathWithParams(routes.projects.locations.root, {
+            orgId,
+            projectId: row.name,
+          }),
+        )
+      },
+    },
+    {
+      key: 'settings',
+      label: 'Settings',
+      action: (row) => {
+        navigate(
+          getPathWithParams(routes.projects.settings, { orgId, projectId: row.name }),
+        )
+      },
+    },
+  ]
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="flex w-full max-w-screen-lg flex-col items-center gap-4">
-        <div className="flex w-full items-center justify-between">
-          <div className="flex flex-col justify-start gap-2">
-            <h1 className="text-2xl font-bold">Projects</h1>
-            <p className="text-sm text-muted-foreground">
-              Use projects to organize resources deployed to Datum Cloud
-            </p>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Link to={getPathWithParams(routes.projects.new, { orgId })}>
-              <Button>
-                <PlusIcon className="h-4 w-4" />
-                New Project
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Description</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Creation Date</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {revalidator.state === 'loading' ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <p className="text-muted-foreground">Loading projects...</p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : ((projects ?? []) as IProjectControlResponse[]).length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center">
-                  <p className="text-muted-foreground">
-                    No projects found. Create your first project to get started.
-                  </p>
-                </TableCell>
-              </TableRow>
-            ) : (
-              ((projects ?? []) as IProjectControlResponse[]).map((project) => (
-                <TableRow key={project.name}>
-                  <TableCell>
-                    <Link
-                      className="font-semibold text-primary"
-                      to={getPathWithParams(routes.projects.detail, {
-                        orgId,
-                        projectId: project.name,
-                      })}>
-                      {project.description}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{project.name}</TableCell>
-                  <TableCell>
-                    {project?.status && <ProjectStatus status={project?.status} />}
-                  </TableCell>
-                  <TableCell>
-                    {project?.createdAt && <DateFormat date={project?.createdAt} />}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 p-0 focus-visible:ring-0">
-                          <EllipsisVerticalIcon className="size-5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem asChild>
-                          <Link
-                            className="cursor-pointer"
-                            to={getPathWithParams(routes.projects.locations, {
-                              orgId,
-                              projectId: project.name,
-                            })}>
-                            Locations
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link
-                            className="cursor-pointer"
-                            to={getPathWithParams(routes.projects.settings, {
-                              orgId,
-                              projectId: project.name,
-                            })}>
-                            Settings
-                          </Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+    <DataTable
+      columns={columns}
+      data={projects ?? []}
+      rowActions={rowActions}
+      className="mx-auto max-w-screen-lg"
+      loadingText="Loading projects..."
+      emptyText="No projects found. Create your first project to get started."
+      tableTitle={{
+        title: 'Projects',
+        description: 'Use projects to organize resources deployed to Datum Cloud',
+        actions: (
+          <Link to={getPathWithParams(routes.projects.new, { orgId })}>
+            <Button>
+              <PlusIcon className="h-4 w-4" />
+              New Project
+            </Button>
+          </Link>
+        ),
+      }}
+      defaultSorting={[{ id: 'createdAt', desc: true }]}
+    />
   )
 }

@@ -4,7 +4,7 @@ interface GoogleIconProps extends React.SVGProps<SVGSVGElement> {
   size?: number | string
 }
 
-const GoogleIcon: React.FC<GoogleIconProps> = ({ size = 24, ...props }) => (
+export const GoogleIcon = ({ size = 24, ...props }: GoogleIconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
@@ -17,5 +17,3 @@ const GoogleIcon: React.FC<GoogleIconProps> = ({ size = 24, ...props }) => (
     />
   </svg>
 )
-
-export default GoogleIcon

@@ -1,18 +1,25 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { GoogleIcon, GithubIcon } from '@/components/icons'
 import { Form, useNavigation, ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
 import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
+import { GoogleIcon } from '@/components/icons/google'
+import { GitHubIcon } from '@/components/icons/github'
+import { dataWithToast } from '@/utils/toast.server'
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
     return authenticator.authenticate('google', request)
   } catch (error) {
-    throw new Response('Authentication failed', {
-      status: 401,
-      statusText: error instanceof Error ? error.message : 'Authentication failed',
-    })
+    return dataWithToast(
+      {},
+      {
+        title: 'Authentication failed',
+        description: error instanceof Error ? error.message : 'Authentication failed',
+        type: 'error',
+      },
+      { status: 401 },
+    )
   }
 }
 
@@ -59,7 +66,7 @@ export default function Login() {
                     navigation.formAction === routes.auth.github
                   }
                   disabled={navigation.state === 'submitting'}>
-                  <GithubIcon className="size-4" />
+                  <GitHubIcon className="size-4" />
                   <span>Sign in with GitHub</span>
                 </Button>
               </Form>

@@ -1,9 +1,10 @@
 import { authenticator } from '@/modules/auth/auth.server'
 import { AppLoadContext, LoaderFunctionArgs, redirect } from 'react-router'
 import { routes } from '@/constants/routes'
-import { commitSession, getSession } from '@/modules/auth/auth-session.server'
+import { commitSession, getSession } from '@/modules/auth/authSession.server'
 import { combineHeaders } from '@/utils/misc.server'
 import { redirectWithToast } from '@/utils/toast.server'
+import { CustomError } from '@/utils/errorHandle'
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { authApi } = context as AppLoadContext
@@ -23,19 +24,13 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
     // Validate provider param
     if (typeof params.provider !== 'string') {
-      throw new Response('Invalid authentication provider', {
-        status: 400,
-        statusText: 'Bad request',
-      })
+      throw new CustomError('Invalid authentication provider', 400)
     }
 
     // Authenticate user
     const credentials = await authenticator.authenticate(params.provider, request)
     if (!credentials) {
-      throw new Response('Authentication failed', {
-        status: 401,
-        statusText: 'Unauthorized',
-      })
+      throw new CustomError('Authentication failed', 401)
     }
 
     // Get and store tokens

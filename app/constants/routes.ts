@@ -31,7 +31,11 @@ export const routes = {
     // Main Page of the Project
     detail: '/[orgId]/projects/[projectId]',
     dashboard: '/[orgId]/projects/[projectId]/dashboard',
-    locations: '/[orgId]/projects/[projectId]/locations',
+    locations: {
+      root: '/[orgId]/projects/[projectId]/locations',
+      new: '/[orgId]/projects/[projectId]/locations/new',
+      edit: '/[orgId]/projects/[projectId]/locations/[locationId]/edit',
+    },
     networks: '/[orgId]/projects/[projectId]/networks',
     gateways: '/[orgId]/projects/[projectId]/gateways',
     services: '/[orgId]/projects/[projectId]/services',

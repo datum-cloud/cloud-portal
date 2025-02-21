@@ -1,0 +1,98 @@
+import CreateLocationForm from '@/features/location/form/create-form'
+import { newLocationSchema, NewLocationSchema } from '@/resources/schemas/location.schema'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
+import { validateCSRF } from '@/utils/csrf.server'
+import { CustomError } from '@/utils/errorHandle'
+import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
+import { parseWithZod } from '@conform-to/zod'
+import {
+  AppLoadContext,
+  useLoaderData,
+  LoaderFunctionArgs,
+  ActionFunctionArgs,
+} from 'react-router'
+import { getPathWithParams } from '@/utils/path'
+import { routes } from '@/constants/routes'
+
+export const loader = withMiddleware(async ({ params, context }: LoaderFunctionArgs) => {
+  const { projectId, locationId } = params
+  const { locationsControl } = context as AppLoadContext
+
+  if (!projectId || !locationId) {
+    throw new CustomError('Project ID and location ID are required', 400)
+  }
+
+  const location = await locationsControl.getLocation(projectId, locationId)
+
+  return location
+}, authMiddleware)
+
+export const action = withMiddleware(
+  async ({ request, params, context }: ActionFunctionArgs) => {
+    const { projectId, locationId, orgId } = params
+    const { locationsControl } = context as AppLoadContext
+
+    if (!projectId || !locationId) {
+      throw new CustomError('Project ID and location ID are required', 400)
+    }
+
+    const clonedRequest = request.clone()
+    const formData = await clonedRequest.formData()
+
+    try {
+      await validateCSRF(formData, clonedRequest.headers)
+
+      // Validate form data with Zod
+      const parsed = parseWithZod(formData, { schema: newLocationSchema })
+
+      const payload = parsed.payload as NewLocationSchema
+
+      // First try with dryRun to validate
+      const dryRunRes = await locationsControl.updateLocation(
+        projectId,
+        locationId,
+        payload,
+        true,
+      )
+
+      // If dryRun succeeds, update for real
+      if (dryRunRes) {
+        await locationsControl.updateLocation(projectId, locationId, payload, false)
+      }
+
+      return redirectWithToast(
+        getPathWithParams(routes.projects.locations.root, {
+          orgId,
+          projectId,
+        }),
+        {
+          title: 'Location updated',
+          description: 'Location updated successfully',
+          type: 'success',
+        },
+      )
+    } catch (error) {
+      return dataWithToast(
+        {},
+        {
+          title: 'Error',
+          description:
+            error instanceof Error ? error.message : (error as Response).statusText,
+          type: 'error',
+        },
+      )
+    }
+  },
+  authMiddleware,
+)
+
+export default function DetailLocation() {
+  const location = useLoaderData<typeof loader>()
+
+  return (
+    <div className="mx-auto w-full max-w-2xl py-8">
+      <CreateLocationForm defaultValue={location} />
+    </div>
+  )
+}

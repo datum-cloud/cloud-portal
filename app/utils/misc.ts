@@ -39,18 +39,10 @@ export function getInitials(name: string): string {
   return initials
 }
 
-export function generateProjectId(name: string, suffix?: string): string {
-  const randomSuffix = suffix ?? Math.random().toString(36).substring(2, 8)
-  const baseId = name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s]/g, '') // Keep spaces
-    .replace(/\s+/g, '-') // Replace spaces with dashes
-  return `${baseId}-${randomSuffix}`
-}
-
-export function generateRandomId(length: number = 6): string {
-  return Math.random()
-    .toString(36)
-    .substring(2, 2 + length)
+export function toTitleCase(str: string): string {
+  // Handle camelCase and snake_case by splitting on capitals and underscores
+  return str
+    .split(/(?=[A-Z])|_/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
 }

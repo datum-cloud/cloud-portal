@@ -10,7 +10,7 @@ import { newProjectSchema } from '@/resources/schemas/project.schema'
 import { Form, useNavigate } from 'react-router'
 import { useHydrated } from 'remix-utils/use-hydrated'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { generateProjectId, generateRandomId, useIsPending, cn } from '@/utils/misc'
+import { useIsPending } from '@/utils/misc'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -23,8 +23,9 @@ import { RocketIcon } from 'lucide-react'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { routes } from '@/constants/routes'
 import { getPathWithParams } from '@/utils/path'
+import { generateId, generateRandomString } from '@/utils/idGenerator'
 
-export const CreateProjectForm = ({ className }: { className?: string }) => {
+export const CreateProjectForm = () => {
   const { organization } = useApp()
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
@@ -56,7 +57,7 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
     setCurrentOrg(organization)
   }, [organization])
 
-  const randomId = useMemo(() => generateRandomId(), [])
+  const randomSuffix = useMemo(() => generateRandomString(6), [])
 
   const nameControl = useInputControl(name)
   const orgEntityIdControl = useInputControl(orgEntityId)
@@ -66,7 +67,7 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
   }, [organization])
 
   return (
-    <Card className={cn('w-full', className)}>
+    <Card>
       <CardHeader>
         <CardTitle>Create a new project</CardTitle>
         <CardDescription>
@@ -98,7 +99,7 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
                 const value = (e.target as HTMLInputElement).value
 
                 if (value) {
-                  nameControl.change(generateProjectId(value, randomId))
+                  nameControl.change(generateId(value, { randomText: randomSuffix }))
                 }
               }}
               {...getInputProps(description, { type: 'text' })}
@@ -117,7 +118,9 @@ export const CreateProjectForm = ({ className }: { className?: string }) => {
               onBlur={(e: React.FormEvent<HTMLInputElement>) => {
                 const value = (e.target as HTMLInputElement).value
                 if (value.length === 0) {
-                  nameControl.change(generateProjectId(description.value ?? '', randomId))
+                  nameControl.change(
+                    generateId(description.value ?? '', { randomText: randomSuffix }),
+                  )
                 }
               }}
               {...getInputProps(name, { type: 'text' })}

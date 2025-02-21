@@ -2,7 +2,7 @@
  * Server-Side Toasts.
  * Implementation based on github.com/epicweb-dev/epic-stack
  */
-import { redirect, createCookieSessionStorage } from 'react-router'
+import { redirect, createCookieSessionStorage, data as dataFn } from 'react-router'
 import { z } from 'zod'
 import { combineHeaders } from '@/utils/misc.server'
 
@@ -61,6 +61,13 @@ export async function redirectWithToast(
   init?: ResponseInit,
 ) {
   return redirect(url, {
+    ...init,
+    headers: combineHeaders(init?.headers, await createToastHeaders(toast)),
+  })
+}
+
+export async function dataWithToast<T>(data: T, toast: ToastInput, init?: ResponseInit) {
+  return dataFn(data, {
     ...init,
     headers: combineHeaders(init?.headers, await createToastHeaders(toast)),
   })

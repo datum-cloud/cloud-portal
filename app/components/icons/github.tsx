@@ -4,7 +4,7 @@ interface GitHubIconProps extends React.SVGProps<SVGSVGElement> {
   size?: number | string
 }
 
-const GitHubIcon: React.FC<GitHubIconProps> = ({ size = 24, ...props }) => (
+export const GitHubIcon = ({ size = 24, ...props }: GitHubIconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 98 96"
@@ -19,5 +19,3 @@ const GitHubIcon: React.FC<GitHubIconProps> = ({ size = 24, ...props }) => (
     />
   </svg>
 )
-
-export default GitHubIcon

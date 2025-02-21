@@ -8,6 +8,7 @@ import { OrganizationSwitcher } from './org-switcher'
 import { ProjectSwitcher } from './project-switcher'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { SlashIcon, CircleHelp } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export const Header = ({
   noSidebar = false,
@@ -19,7 +20,7 @@ export const Header = ({
   const params = useParams<{ orgId: string; projectId: string }>()
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background">
       {/* Left Section */}
       <div className="flex flex-1 items-center px-4">
         {!noSidebar && (
@@ -43,11 +44,18 @@ export const Header = ({
           <Button variant="outline" size="sm" className="px-2">
             Feedback
           </Button>
-          <Link to="https://docs.datum.net/" target="_blank" rel="noreferrer">
-            <Button variant="ghost" size="sm">
-              <CircleHelp />
-            </Button>
-          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="https://docs.datum.net/" target="_blank" rel="noreferrer">
+                <Button variant="ghost" size="sm">
+                  <CircleHelp />
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Docs</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         <Separator orientation="vertical" className="h-full" />

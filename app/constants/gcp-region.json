@@ -1,0 +1,163 @@
+[
+  {
+    "name": "asia-east1",
+    "location": "Taiwan",
+    "zones": ["asia-east1-a", "asia-east1-b", "asia-east1-c"]
+  },
+  {
+    "name": "asia-east2",
+    "location": "Hong Kong",
+    "zones": ["asia-east2-a", "asia-east2-b", "asia-east2-c"]
+  },
+  {
+    "name": "asia-northeast1",
+    "location": "Tokyo, Japan",
+    "zones": ["asia-northeast1-a", "asia-northeast1-b", "asia-northeast1-c"]
+  },
+  {
+    "name": "asia-northeast2",
+    "location": "Osaka, Japan",
+    "zones": ["asia-northeast2-a", "asia-northeast2-b", "asia-northeast2-c"]
+  },
+  {
+    "name": "asia-northeast3",
+    "location": "Seoul, South Korea",
+    "zones": ["asia-northeast3-a", "asia-northeast3-b", "asia-northeast3-c"]
+  },
+  {
+    "name": "asia-south1",
+    "location": "Mumbai, India",
+    "zones": ["asia-south1-a", "asia-south1-b", "asia-south1-c"]
+  },
+  {
+    "name": "asia-south2",
+    "location": "Delhi, India",
+    "zones": ["asia-south2-a", "asia-south2-b", "asia-south2-c"]
+  },
+  {
+    "name": "asia-southeast1",
+    "location": "Singapore",
+    "zones": ["asia-southeast1-a", "asia-southeast1-b", "asia-southeast1-c"]
+  },
+  {
+    "name": "asia-southeast2",
+    "location": "Jakarta, Indonesia",
+    "zones": ["asia-southeast2-a", "asia-southeast2-b", "asia-southeast2-c"]
+  },
+  {
+    "name": "australia-southeast1",
+    "location": "Sydney, Australia",
+    "zones": [
+      "australia-southeast1-a",
+      "australia-southeast1-b",
+      "australia-southeast1-c"
+    ]
+  },
+  {
+    "name": "australia-southeast2",
+    "location": "Melbourne, Australia",
+    "zones": [
+      "australia-southeast2-a",
+      "australia-southeast2-b",
+      "australia-southeast2-c"
+    ]
+  },
+  {
+    "name": "europe-central2",
+    "location": "Warsaw, Poland",
+    "zones": ["europe-central2-a", "europe-central2-b", "europe-central2-c"]
+  },
+  {
+    "name": "europe-north1",
+    "location": "Finland",
+    "zones": ["europe-north1-a", "europe-north1-b", "europe-north1-c"]
+  },
+  {
+    "name": "europe-west1",
+    "location": "Belgium",
+    "zones": ["europe-west1-b", "europe-west1-c", "europe-west1-d"]
+  },
+  {
+    "name": "europe-west2",
+    "location": "London, UK",
+    "zones": ["europe-west2-a", "europe-west2-b", "europe-west2-c"]
+  },
+  {
+    "name": "europe-west3",
+    "location": "Frankfurt, Germany",
+    "zones": ["europe-west3-a", "europe-west3-b", "europe-west3-c"]
+  },
+  {
+    "name": "europe-west4",
+    "location": "Netherlands",
+    "zones": ["europe-west4-a", "europe-west4-b", "europe-west4-c"]
+  },
+  {
+    "name": "europe-west6",
+    "location": "Zurich, Switzerland",
+    "zones": ["europe-west6-a", "europe-west6-b", "europe-west6-c"]
+  },
+  {
+    "name": "northamerica-northeast1",
+    "location": "Montreal, Canada",
+    "zones": [
+      "northamerica-northeast1-a",
+      "northamerica-northeast1-b",
+      "northamerica-northeast1-c"
+    ]
+  },
+  {
+    "name": "northamerica-northeast2",
+    "location": "Toronto, Canada",
+    "zones": [
+      "northamerica-northeast2-a",
+      "northamerica-northeast2-b",
+      "northamerica-northeast2-c"
+    ]
+  },
+  {
+    "name": "southamerica-east1",
+    "location": "Sao Paulo, Brazil",
+    "zones": ["southamerica-east1-a", "southamerica-east1-b", "southamerica-east1-c"]
+  },
+  {
+    "name": "southamerica-west1",
+    "location": "Santiago, Chile",
+    "zones": ["southamerica-west1-a", "southamerica-west1-b", "southamerica-west1-c"]
+  },
+  {
+    "name": "us-central1",
+    "location": "Iowa, USA",
+    "zones": ["us-central1-a", "us-central1-b", "us-central1-c", "us-central1-f"]
+  },
+  {
+    "name": "us-east1",
+    "location": "South Carolina, USA",
+    "zones": ["us-east1-b", "us-east1-c", "us-east1-d"]
+  },
+  {
+    "name": "us-east4",
+    "location": "Northern Virginia, USA",
+    "zones": ["us-east4-a", "us-east4-b", "us-east4-c"]
+  },
+  {
+    "name": "us-west1",
+    "location": "Oregon, USA",
+    "zones": ["us-west1-a", "us-west1-b", "us-west1-c"]
+  },
+  {
+    "name": "us-west2",
+    "location": "Los Angeles, USA",
+    "zones": ["us-west2-a", "us-west2-b", "us-west2-c"]
+  },
+  {
+    "name": "us-west3",
+    "location": "Salt Lake City, USA",
+    "zones": ["us-west3-a", "us-west3-b", "us-west3-c"]
+  },
+  {
+    "name": "us-west4",
+    "location": "Las Vegas, USA",
+    "zones": ["us-west4-a", "us-west4-b", "us-west4-c"]
+  }
+]
