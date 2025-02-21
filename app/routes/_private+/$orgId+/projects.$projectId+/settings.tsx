@@ -21,7 +21,9 @@ import { getPathWithParams } from '@/utils/path'
 import { routes } from '@/constants/routes'
 
 export default function ProjectSettingsPage() {
-  const project = useRouteLoaderData('routes/_main+/$orgId+/projects.$projectId+/_layout')
+  const project = useRouteLoaderData(
+    'routes/_private+/$orgId+/projects.$projectId+/_layout',
+  )
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, copy] = useCopyToClipboard()
   const submit = useSubmit()

@@ -12,7 +12,7 @@ import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-r
 export const DataTablePagination = <TData,>({ table }: { table: TTable<TData> }) => {
   return (
     <div className="flex items-center justify-between space-x-4 md:space-x-6 lg:space-x-8">
-      <div className="flex items-center space-x-4 md:space-x-6 lg:space-x-8">
+      <div className="flex items-center space-x-4 md:space-x-6">
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">Rows per page</p>
           <Select

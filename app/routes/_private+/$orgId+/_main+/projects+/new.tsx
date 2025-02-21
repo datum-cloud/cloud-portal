@@ -10,7 +10,7 @@ import { authMiddleware } from '@/modules/middleware/authMiddleware'
 
 export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {
-    const { projectsControl } = context as AppLoadContext
+    const { projectsControl, cache } = context as AppLoadContext
 
     const clonedRequest = request.clone()
     const formData = await clonedRequest.formData()
@@ -20,20 +20,23 @@ export const action = withMiddleware(
 
       // Validate form data with Zod
       const entries = Object.fromEntries(formData)
-      const validated = newProjectSchema.parse(entries)
+      const payload = newProjectSchema.parse(entries)
 
       // Dry run to validate
-      const dryRunRes = await projectsControl.createProject(validated, true)
+      const dryRunRes = await projectsControl.createProject(payload, true)
 
       // If dry run succeeds, create for real
       if (dryRunRes) {
-        await projectsControl.createProject(validated, false)
+        await projectsControl.createProject(payload, false)
       }
+
+      // Invalidate the projects cache
+      await cache.removeItem(`projects:${payload.orgEntityId}`)
 
       // TODO: temporary solution for handle delay on new project
       // https://github.com/datum-cloud/cloud-portal/issues/45
       return redirectWithToast(
-        getPathWithParams(`${routes.projects.setup}?projectId=${validated.name}`, {
+        getPathWithParams(`${routes.projects.setup}?projectId=${payload.name}`, {
           orgId: params.orgId,
         }),
         {

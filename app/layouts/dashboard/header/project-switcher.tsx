@@ -119,7 +119,7 @@ export const ProjectSwitcher = ({
                               onSelect(project)
                             }
                           }}
-                          className="justify-between">
+                          className="cursor-pointer justify-between">
                           <ProjectItem project={project} />
                           {isSelected && <CheckIcon className="size-4 text-primary" />}
                         </CommandItem>
@@ -129,10 +129,10 @@ export const ProjectSwitcher = ({
               )}
 
               <CommandSeparator />
-              <CommandItem>
+              <CommandItem asChild className="cursor-pointer">
                 <Link
                   to={getPathWithParams(routes.projects.new, { orgId })}
-                  className="flex items-center gap-2">
+                  className="flex items-center gap-2 px-3">
                   <PlusIcon className="size-4" />
                   <span>Create Project</span>
                 </Link>

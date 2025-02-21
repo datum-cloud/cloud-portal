@@ -11,7 +11,7 @@ import { ColumnDef } from '@tanstack/react-table'
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 
 export default function OrgProjects() {
-  const { projects } = useRouteLoaderData('routes/_main+/$orgId+/_layout')
+  const { projects } = useRouteLoaderData('routes/_private+/$orgId+/_layout')
   const { orgId } = useParams()
   const navigate = useNavigate()
 

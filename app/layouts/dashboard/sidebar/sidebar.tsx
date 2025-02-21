@@ -6,9 +6,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { NavItem, NavMain } from './nav-main'
-import { HomeIcon } from 'lucide-react'
 import { routes } from '@/constants/routes'
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router'
 import { useTheme } from '@/hooks/useTheme'
 import { LogoText } from '@/components/logo/logo-text'
@@ -17,11 +16,9 @@ import { cn } from '@/utils/misc'
 
 export function DashboardSidebar({
   navItems,
-  homeLink,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   navItems: NavItem[]
-  homeLink?: string
 }) {
   const theme = useTheme()
   const { setOpen, open, state } = useSidebar()
@@ -35,28 +32,10 @@ export function DashboardSidebar({
     }
   }, [searchParams])
 
-  const navs: NavItem[] = useMemo(() => {
-    return [
-      {
-        title: 'Home',
-        href: homeLink ?? routes.org.root,
-        type: 'link',
-        icon: HomeIcon,
-      },
-      /*  {
-        title: 'Docs',
-        href: 'https://docs.datum.net/',
-        type: 'externalLink',
-        icon: LibraryIcon,
-      }, */
-      ...navItems,
-    ]
-  }, [homeLink])
-
   return (
     <Sidebar collapsible={props.collapsible ?? 'offcanvas'} {...props}>
       <SidebarHeader className="flex h-16 flex-col justify-center px-4 py-2">
-        <Link to={routes.home} className="flex items-center gap-2">
+        <Link to={routes.account.root} className="flex items-center gap-2">
           <LogoIcon
             width={24}
             theme={theme}
@@ -75,7 +54,7 @@ export function DashboardSidebar({
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navs} className="pt-0" />
+        <NavMain items={navItems} className="pt-0" />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

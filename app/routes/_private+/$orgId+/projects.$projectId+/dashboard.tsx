@@ -13,7 +13,9 @@ import {
 } from '@/features/project/dashboard'
 
 export default function ProjectDashboardPage() {
-  const project = useRouteLoaderData('routes/_main+/$orgId+/projects.$projectId+/_layout')
+  const project = useRouteLoaderData(
+    'routes/_private+/$orgId+/projects.$projectId+/_layout',
+  )
 
   const { revalidate } = useRevalidator()
   const REVALIDATE_INTERVAL = 5000

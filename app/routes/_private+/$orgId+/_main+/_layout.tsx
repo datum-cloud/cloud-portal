@@ -2,7 +2,7 @@ import { DashboardLayout } from '@/layouts/dashboard/dashboard'
 import { Outlet, useParams } from 'react-router'
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main'
 import { routes } from '@/constants/routes'
-import { FileIcon, SettingsIcon } from 'lucide-react'
+import { FileIcon, HomeIcon, SettingsIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { getPathWithParams } from '@/utils/path'
 
@@ -11,6 +11,14 @@ export default function OrgLayout() {
 
   const navItems: NavItem[] = useMemo(() => {
     return [
+      {
+        title: 'Home',
+        href: getPathWithParams(routes.org.root, {
+          orgId,
+        }),
+        type: 'link',
+        icon: HomeIcon,
+      },
       {
         title: 'Projects',
         href: getPathWithParams(routes.projects.root, { orgId }),
@@ -27,12 +35,7 @@ export default function OrgLayout() {
   }, [orgId])
 
   return (
-    <DashboardLayout
-      navItems={navItems}
-      sidebarCollapsible="icon"
-      homeLink={getPathWithParams(routes.org.root, {
-        orgId,
-      })}>
+    <DashboardLayout navItems={navItems} sidebarCollapsible="icon">
       <Outlet />
     </DashboardLayout>
   )

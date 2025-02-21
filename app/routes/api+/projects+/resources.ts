@@ -5,14 +5,20 @@ import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 export const ROUTE_PATH = '/api/projects/resources' as const
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { projectsControl } = context as AppLoadContext
+  const { projectsControl, cache } = context as AppLoadContext
 
   switch (request.method) {
     case 'DELETE': {
       const formData = Object.fromEntries(await request.formData())
-      const { projectName, orgId } = formData
+      const { projectName, orgId: orgEntityId } = formData
 
-      return await projectsControl.deleteProject(orgId as string, projectName as string)
+      // Invalidate the projects cache
+      await cache.removeItem(`projects:${orgEntityId}`)
+
+      return await projectsControl.deleteProject(
+        orgEntityId as string,
+        projectName as string,
+      )
     }
     default:
       throw new Error('Method not allowed')

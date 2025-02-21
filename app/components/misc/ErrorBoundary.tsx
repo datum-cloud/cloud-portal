@@ -10,7 +10,6 @@ import {
 import { JSX, useEffect } from 'react'
 import { routes } from '@/constants/routes'
 import { toast } from 'sonner'
-import { ROUTE_PATH as LOGOUT_ROUTE_PATH } from '@/routes/api+/sign-out'
 import { Card, CardContent } from '@/components/ui/card'
 import { useTheme } from '@/hooks/useTheme'
 import PublicLayout from '@/layouts/public/public'
@@ -58,7 +57,7 @@ export function GenericErrorBoundary({
           // Call your sign out endpoint
           await fetcher.submit(null, {
             method: 'POST',
-            action: LOGOUT_ROUTE_PATH,
+            action: routes.auth.signOut,
           })
           // Redirect to login page
           navigate(routes.auth.signIn)

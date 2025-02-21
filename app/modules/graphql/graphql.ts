@@ -11,7 +11,7 @@ const errorHandler = (error: any) => {
   const errorMessage =
     error.response?.errors?.[0]?.message || error?.message || 'Unknown error occurred'
   let statusCode =
-    error.response?.errors?.[0]?.extensions?.code || error.response?.status || 500
+    error.response?.status || error.response?.errors?.[0]?.extensions?.code || 500
 
   // TODO: find information about error code from backend related to unauthorized
   // Check for "not authorized" in error message

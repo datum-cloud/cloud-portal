@@ -8,7 +8,6 @@ import { useEffect } from 'react'
 import WaitingPage from '@/components/waiting-page/waiting-page'
 import { getSession } from '@/modules/auth/authSession.server'
 import { CustomError } from '@/utils/errorHandle'
-import { dataWithToast } from '@/utils/toast.server'
 // TODO: temporary solution for handle delay on new project
 // https://github.com/datum-cloud/cloud-portal/issues/45
 export const loader = withMiddleware(async ({ request, params, context }) => {
@@ -36,15 +35,7 @@ export const loader = withMiddleware(async ({ request, params, context }) => {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
-    return dataWithToast(
-      null,
-      {
-        title: 'Error',
-        description: 'Error setting up project',
-        type: 'error',
-      },
-      { status: 404 },
-    )
+    return null
   }
 }, authMiddleware)
 

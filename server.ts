@@ -11,6 +11,7 @@ import { getSession } from '@/modules/auth/authSession.server'
 import { createAPIFactory } from '@/resources/api/api.factory.js'
 import { createControlPlaneFactory } from '@/resources/control-plane/control.factory.js'
 import { createGqlFactory } from '@/resources/gql/gql.factory.js'
+import { createCacheClient } from '@/modules/unstorage/unstorage.js'
 
 const PORT = process.env.PORT || 3000
 const MODE = process.env.NODE_ENV ?? 'development'
@@ -217,12 +218,20 @@ async function apiContext(request: Request) {
   }
 }
 
+async function cacheContext(request: Request) {
+  const session = await getSession((request.headers as any).cookie)
+  const userId = session.get('userId')
+
+  return createCacheClient(userId ?? 'cloud-portal')
+}
+
 app.all(
   '*',
   createRequestHandler({
     getLoadContext: async (req: any, res: any) => ({
       cspNonce: res.locals.cspNonce,
       serverBuild: await getBuild(),
+      cache: await cacheContext(req),
       ...(await apiContext(req)),
     }),
     mode: MODE,

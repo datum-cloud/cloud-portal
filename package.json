@@ -74,6 +74,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.19.2",
     "typed-graphqlify": "^3.1.6",
+    "unstorage": "^1.15.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

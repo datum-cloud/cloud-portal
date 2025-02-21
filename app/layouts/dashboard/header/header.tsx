@@ -1,6 +1,5 @@
 import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Link, useParams } from 'react-router'
 import SearchBar from './search-bar'
@@ -11,10 +10,10 @@ import { SlashIcon, CircleHelp } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export const Header = ({
-  noSidebar = false,
+  hideSidebar = false,
   currentProject,
 }: {
-  noSidebar?: boolean
+  hideSidebar?: boolean
   currentProject?: IProjectControlResponse
 }) => {
   const params = useParams<{ orgId: string; projectId: string }>()
@@ -23,12 +22,7 @@ export const Header = ({
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background">
       {/* Left Section */}
       <div className="flex flex-1 items-center px-4">
-        {!noSidebar && (
-          <>
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mx-2 h-4" />
-          </>
-        )}
+        {!hideSidebar && <SidebarTrigger className="-ml-1" />}
         {params?.orgId && <OrganizationSwitcher />}
         {params?.projectId && currentProject && (
           <>
@@ -58,7 +52,6 @@ export const Header = ({
           </Tooltip>
         </div>
 
-        <Separator orientation="vertical" className="h-full" />
         <UserDropdown />
       </div>
     </header>

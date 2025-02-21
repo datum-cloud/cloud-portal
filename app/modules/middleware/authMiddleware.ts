@@ -12,17 +12,14 @@ export async function authMiddleware(
 
   if (!creds) {
     const session = await getSession(request.headers.get('Cookie'))
-    const url = new URL(request.url)
-    return redirect(
-      safeRedirect(
-        `${routes.auth.signIn}?redirectTo=${encodeURIComponent(url.pathname)}`,
-      ),
-      {
-        headers: {
-          'Set-Cookie': await commitSession(session),
-        },
+    // const url = new URL(
+    //   request.url,
+    // )`${routes.auth.signIn}?redirectTo=${encodeURIComponent(url.pathname)}`
+    return redirect(safeRedirect(`${routes.auth.signIn}`), {
+      headers: {
+        'Set-Cookie': await commitSession(session),
       },
-    )
+    })
   }
 
   return next()

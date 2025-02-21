@@ -14,7 +14,7 @@
     },
     "ghcr.io/devcontainers/features/docker-in-docker": {},
     "ghcr.io/audacioustux/devcontainers/bun": {},
-    "ghcr.io/audacioustux/devcontainers/kustomize": {},
+    "ghcr.io/audacioustux/devcontainers/kustomize": {}
   },
   "customizations": {
     "vscode": {
