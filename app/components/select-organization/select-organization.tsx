@@ -104,7 +104,7 @@ export const SelectOrganization = ({
 
             {!hideNewOrganization && (
               <>
-                <CommandItem className="cursor-pointer m-2" asChild>
+                <CommandItem className="m-2 cursor-pointer" asChild>
                   <Link
                     to={routes.account.organizations.new}
                     className="flex items-center gap-2 px-3">
@@ -113,7 +113,7 @@ export const SelectOrganization = ({
                   </Link>
                 </CommandItem>
                 <CommandSeparator />
-                <CommandItem className="cursor-pointer m-2" asChild>
+                <CommandItem className="m-2 cursor-pointer" asChild>
                   <Link
                     to={routes.account.organizations.root}
                     className="flex items-center gap-2 px-3">
