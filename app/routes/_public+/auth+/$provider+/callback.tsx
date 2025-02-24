@@ -47,7 +47,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       headers: combineHeaders({ 'Set-Cookie': await commitSession(session) }),
     })
   } catch (error) {
-    return redirectWithToast(routes.auth.signIn, {
+    return redirectWithToast(routes.auth.logIn, {
       title: 'Authentication failed',
       description:
         (error as Error).message || 'Something went wrong with callback from provider',

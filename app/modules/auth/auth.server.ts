@@ -8,7 +8,7 @@ import { GitHubStrategy } from 'remix-auth-github'
 import { IAuthSession } from '@/resources/interfaces/auth.interface'
 import { jwtDecode } from 'jwt-decode'
 import { safeRedirect } from 'remix-utils/safe-redirect'
-
+import { getPathWithParams } from '@/utils/path'
 export const authenticator = new Authenticator<IAuthSession>()
 
 async function fetchOauthProfile<T>(url: string, accessToken: string): Promise<T> {
@@ -85,7 +85,7 @@ authenticator
         },
         clientId: process.env.AUTH_GOOGLE_ID ?? '',
         clientSecret: process.env.AUTH_GOOGLE_SECRET ?? '',
-        redirectURI: `${process.env.APP_URL ?? 'http://localhost:3000'}${routes.auth.callback('google')}`,
+        redirectURI: `${process.env.APP_URL ?? 'http://localhost:3000'}${getPathWithParams(routes.auth.callback, { provider: 'google' })}`,
         authorizationEndpoint:
           'https://accounts.google.com/o/oauth2/v2/auth?prompt=login&response_type=code',
         tokenEndpoint: 'https://oauth2.googleapis.com/token',
@@ -113,7 +113,7 @@ authenticator
       {
         clientId: process.env.AUTH_GITHUB_ID ?? '',
         clientSecret: process.env.AUTH_GITHUB_SECRET ?? '',
-        redirectURI: `${process.env.APP_URL ?? 'http://localhost:3000'}${routes.auth.callback('github')}`,
+        redirectURI: `${process.env.APP_URL ?? 'http://localhost:3000'}${getPathWithParams(routes.auth.callback, { provider: 'github' })}`,
       },
       async ({ tokens }) => {
         try {
@@ -143,7 +143,7 @@ export async function isAuthenticated(
 
   if (!accessToken) {
     if (noAuthRedirect) {
-      return redirect(safeRedirect(routes.auth.signIn), {
+      return redirect(safeRedirect(routes.auth.logIn), {
         headers: {
           'Set-Cookie': await commitSession(session),
         },

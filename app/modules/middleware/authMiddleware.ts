@@ -14,8 +14,8 @@ export async function authMiddleware(
     const session = await getSession(request.headers.get('Cookie'))
     // const url = new URL(
     //   request.url,
-    // )`${routes.auth.signIn}?redirectTo=${encodeURIComponent(url.pathname)}`
-    return redirect(safeRedirect(`${routes.auth.signIn}`), {
+    // )`${routes.auth.logIn}?redirectTo=${encodeURIComponent(url.pathname)}`
+    return redirect(safeRedirect(`${routes.auth.logIn}`), {
       headers: {
         'Set-Cookie': await commitSession(session),
       },

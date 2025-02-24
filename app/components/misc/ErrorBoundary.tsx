@@ -57,14 +57,14 @@ export function GenericErrorBoundary({
           // Call your sign out endpoint
           await fetcher.submit(null, {
             method: 'POST',
-            action: routes.auth.signOut,
+            action: routes.auth.logOut,
           })
           // Redirect to login page
-          navigate(routes.auth.signIn)
+          navigate(routes.auth.logIn)
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (e) {
           // Fallback: just redirect to login if the logout request fails
-          navigate(routes.auth.signIn)
+          navigate(routes.auth.logIn)
         }
       }
 

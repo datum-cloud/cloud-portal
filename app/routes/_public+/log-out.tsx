@@ -5,7 +5,7 @@ import { routes } from '@/constants/routes'
 
 const signOut = async (request: Request) => {
   const session = await getSession(request.headers.get('cookie'))
-  return redirect(routes.auth.signIn, {
+  return redirect(routes.auth.logIn, {
     headers: { 'Set-Cookie': await destroySession(session) },
   })
 }
