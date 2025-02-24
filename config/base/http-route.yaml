@@ -16,5 +16,5 @@ spec:
       backendRefs:
         - name: cloud-portal
           kind: Service
-          group: ""
+          group: ''
           port: 3000

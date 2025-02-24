@@ -20,10 +20,11 @@ import { DataTableProvider } from '@/providers/dataTable.provider'
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 import { cn } from '@/utils/misc'
 import { DataTableRowActions } from './data-table-row-actions'
-import { DataTableTitle } from './data-table-title'
 import { Loader2 } from 'lucide-react'
 import { DataTableHeader } from './data-table-header'
 import { DataTablePagination } from './data-table-pagination'
+import { PageTitle } from '@/components/page-title/page-title'
+
 export const DataTable = <TData, TValue>({
   columns,
   data,
@@ -42,7 +43,7 @@ export const DataTable = <TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>(defaultSorting)
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: 20,
   })
 
   // TODO: enable this functionality when you want to use the column visibility feature and search functionality
@@ -120,10 +121,10 @@ export const DataTable = <TData, TValue>({
       isLoading={undefined}>
       <div className={cn('flex h-full w-full flex-col gap-4', className)}>
         {/* Header Section */}
-        {tableTitle && <DataTableTitle {...tableTitle} />}
+        {tableTitle && <PageTitle {...tableTitle} />}
 
         {/* Table Section */}
-        <div className="flex min-h-96 max-w-full flex-col overflow-hidden">
+        <div className="flex max-w-full flex-col overflow-hidden rounded-md border">
           <Table>
             <DataTableHeader table={table} hasRowActions={rowActions.length > 0} />
 
@@ -141,12 +142,12 @@ export const DataTable = <TData, TValue>({
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} className="px-4 py-2">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
                     {rowActions && rowActions.length > 0 && (
-                      <TableCell>
+                      <TableCell className="p-2">
                         <DataTableRowActions row={row.original} actions={rowActions} />
                       </TableCell>
                     )}

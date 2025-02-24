@@ -5,6 +5,7 @@ import { routes } from '@/constants/routes'
 import {
   AreaChartIcon,
   GlobeIcon,
+  HomeIcon,
   MapIcon,
   SettingsIcon,
   ShieldCheckIcon,
@@ -57,6 +58,15 @@ export default function ProjectLayout() {
 
   const navItems: NavItem[] = useMemo(() => {
     return [
+      {
+        title: 'Dashboard',
+        href: getPathWithParams(routes.projects.dashboard, {
+          orgId,
+          projectId,
+        }),
+        type: 'link',
+        icon: HomeIcon,
+      },
       {
         title: 'Locations',
         href: getPathWithParams(routes.projects.locations.root, { orgId, projectId }),
@@ -171,10 +181,6 @@ export default function ProjectLayout() {
     <DashboardLayout
       navItems={navItems}
       sidebarCollapsible="icon"
-      homeLink={getPathWithParams(routes.projects.dashboard, {
-        orgId,
-        projectId: projectId,
-      })}
       currentProject={project}>
       <Outlet />
     </DashboardLayout>

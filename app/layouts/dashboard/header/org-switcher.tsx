@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router'
 import { routes } from '@/constants/routes'
 import { getPathWithParams } from '@/utils/path'
 import { Badge } from '@/components/ui/badge'
+
 export const OrganizationSwitcher = ({
   onSelect,
 }: {
@@ -19,9 +20,11 @@ export const OrganizationSwitcher = ({
         to={getPathWithParams(routes.projects.root, { orgId: currentOrg?.id })}
         className="flex w-fit max-w-[300px] items-center justify-between gap-2 text-left text-sm leading-tight">
         <span className="truncate font-semibold">{currentOrg?.name}</span>
-        <Badge variant="secondary" className="border">
-          {currentOrg?.personalOrg ? 'Personal' : 'Business'}
-        </Badge>
+        {currentOrg?.personalOrg && (
+          <Badge variant="secondary" className="border">
+            Personal
+          </Badge>
+        )}
       </Link>
       <SelectOrganization
         triggerClassName="h-7 w-fit"

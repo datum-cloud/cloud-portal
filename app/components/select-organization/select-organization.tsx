@@ -1,6 +1,12 @@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { ChevronsUpDownIcon, Loader2, CheckIcon } from 'lucide-react'
+import {
+  ChevronsUpDownIcon,
+  Loader2,
+  CheckIcon,
+  SettingsIcon,
+  PlusCircleIcon,
+} from 'lucide-react'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { OrganizationItem } from './organization-item'
 import {
@@ -10,11 +16,13 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandItem,
+  CommandSeparator,
 } from '@/components/ui/command'
 import { useEffect, useState } from 'react'
 import { cn } from '@/utils/misc'
-import { useFetcher } from 'react-router'
+import { Link, useFetcher } from 'react-router'
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/list'
+import { routes } from '@/constants/routes'
 
 export const SelectOrganization = ({
   currentOrg,
@@ -22,23 +30,23 @@ export const SelectOrganization = ({
   selectedContent,
   triggerClassName,
   hideContent = false,
+  hideNewOrganization = false,
 }: {
   currentOrg: Partial<OrganizationModel>
   onSelect?: (org: OrganizationModel) => void
   selectedContent?: React.ReactNode
   triggerClassName?: string
   hideContent?: boolean
+  hideNewOrganization?: boolean
 }) => {
   const [open, setOpen] = useState(false)
   const fetcher = useFetcher({ key: 'org-list' })
-  const [hasLoaded, setHasLoaded] = useState(false)
 
   useEffect(() => {
-    if (open && !hasLoaded) {
+    if (open) {
       fetcher.load(ORG_LIST_PATH)
-      setHasLoaded(true)
     }
-  }, [open, hasLoaded])
+  }, [open])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -65,33 +73,55 @@ export const SelectOrganization = ({
           />
           <CommandList className="max-h-none">
             <CommandEmpty>No results found.</CommandEmpty>
-            {fetcher.state === 'loading' && (
+            {fetcher.state === 'loading' ? (
               <CommandItem disabled>
                 <Loader2 className="size-4 animate-spin" />
                 <span>Loading organizations...</span>
               </CommandItem>
-            )}
-            {fetcher.data?.length > 0 && (
+            ) : (
               <CommandGroup className="max-h-[300px] overflow-y-auto">
-                {(fetcher.data ?? []).map((org: OrganizationModel) => {
-                  const isSelected = org.id === currentOrg?.id
-                  return (
-                    <CommandItem
-                      value={`${org.name}-${org.id}`}
-                      key={org.id}
-                      onSelect={() => {
-                        setOpen(false)
-                        if (!isSelected) {
-                          onSelect?.(org)
-                        }
-                      }}
-                      className="justify-between">
-                      <OrganizationItem org={org} />
-                      {isSelected && <CheckIcon className="size-4 text-primary" />}
-                    </CommandItem>
-                  )
-                })}
+                {fetcher.data?.length > 0 &&
+                  (fetcher.data ?? []).map((org: OrganizationModel) => {
+                    const isSelected = org.id === currentOrg?.id
+                    return (
+                      <CommandItem
+                        value={`${org.name}-${org.id}`}
+                        key={org.id}
+                        onSelect={() => {
+                          setOpen(false)
+                          if (!isSelected) {
+                            onSelect?.(org)
+                          }
+                        }}
+                        className="cursor-pointer justify-between">
+                        <OrganizationItem org={org} />
+                        {isSelected && <CheckIcon className="size-4 text-primary" />}
+                      </CommandItem>
+                    )
+                  })}
               </CommandGroup>
+            )}
+
+            {!hideNewOrganization && (
+              <>
+                <CommandItem className="cursor-pointer" asChild>
+                  <Link
+                    to={routes.account.organizations.new}
+                    className="flex items-center gap-2 px-3">
+                    <PlusCircleIcon className="text-sunglow-900" />
+                    <span>Create Organization</span>
+                  </Link>
+                </CommandItem>
+                <CommandSeparator />
+                <CommandItem className="cursor-pointer" asChild>
+                  <Link
+                    to={routes.account.organizations.root}
+                    className="flex items-center gap-2 px-3">
+                    <SettingsIcon className="" />
+                    <span>Manage Organizations</span>
+                  </Link>
+                </CommandItem>
+              </>
             )}
           </CommandList>
         </Command>

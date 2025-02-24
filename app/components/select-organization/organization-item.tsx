@@ -28,9 +28,9 @@ export const OrganizationItem = ({
 
       <div className={cn('grid flex-1 text-left text-sm leading-tight', labelClassName)}>
         <span className="truncate font-medium">{org?.name}</span>
-        <span className="truncate text-xs text-muted-foreground">
-          {org?.personalOrg ? 'Individual' : 'Business'}
-        </span>
+        {org?.personalOrg && (
+          <span className="truncate text-xs text-muted-foreground">Personal</span>
+        )}
       </div>
     </div>
   )

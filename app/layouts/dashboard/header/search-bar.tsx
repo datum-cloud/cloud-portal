@@ -58,16 +58,20 @@ export default function SearchBar({ className }: { className?: string }) {
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Suggestions">
-            <CommandItem asChild>
-              <Link to={getPathWithParams(routes.projects.root, { orgId })}>
-                Projects
-              </Link>
-            </CommandItem>
-            <CommandItem asChild>
-              <Link to={getPathWithParams(routes.org.settings.root, { orgId })}>
-                Org Settings
-              </Link>
-            </CommandItem>
+            {orgId && (
+              <>
+                <CommandItem asChild>
+                  <Link to={getPathWithParams(routes.projects.root, { orgId })}>
+                    Projects
+                  </Link>
+                </CommandItem>
+                <CommandItem asChild>
+                  <Link to={getPathWithParams(routes.org.settings.root, { orgId })}>
+                    Org Settings
+                  </Link>
+                </CommandItem>
+              </>
+            )}
             <CommandItem asChild>
               <Link to="https://docs.datum.net/" target="_blank" rel="noreferrer">
                 Docs

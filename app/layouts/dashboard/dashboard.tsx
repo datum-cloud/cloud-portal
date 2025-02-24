@@ -9,26 +9,21 @@ export function DashboardLayout({
   children,
   navItems,
   sidebarCollapsible = 'offcanvas',
-  homeLink,
   currentProject,
 }: {
   children: React.ReactNode
   navItems: NavItem[]
 
   sidebarCollapsible?: 'offcanvas' | 'icon' | 'none'
-  homeLink?: string
   currentProject?: IProjectControlResponse
+  hideUserDropdown?: boolean
 }) {
   return (
     <SidebarProvider>
-      <DashboardSidebar
-        navItems={navItems}
-        collapsible={sidebarCollapsible}
-        homeLink={homeLink}
-      />
+      <DashboardSidebar navItems={navItems} collapsible={sidebarCollapsible} />
       <SidebarInset>
         <Header currentProject={currentProject} />
-        <div className="flex flex-1 flex-col gap-4 p-5">{children}</div>
+        <div className="flex max-w-full flex-1 flex-col gap-4 p-5">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )

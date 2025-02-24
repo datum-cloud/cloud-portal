@@ -16,12 +16,12 @@ export const DataTableHeader = <TData,>({
         <TableRow key={headerGroup.id} className="hover:bg-transparent">
           {headerGroup.headers.map((header) => {
             return (
-              <TableHead key={header.id}>
+              <TableHead key={header.id} className="h-10">
                 {header.isPlaceholder ? null : header.column.getCanSort() ? (
                   <div
                     className={cn(
                       header.column.getCanSort() &&
-                        'flex h-full cursor-pointer select-none items-center justify-between gap-2',
+                        'flex h-full cursor-pointer select-none items-center gap-2',
                     )}
                     onClick={header.column.getToggleSortingHandler()}
                     onKeyDown={(e) => {
@@ -70,7 +70,7 @@ export const DataTableHeader = <TData,>({
               </TableHead>
             )
           })}
-          {hasRowActions && <TableHead className="w-[50px]" />}
+          {hasRowActions && <TableHead className="h-10 w-[50px]" />}
         </TableRow>
       ))}
     </TableHeader>

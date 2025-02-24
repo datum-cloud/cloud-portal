@@ -26,7 +26,7 @@ export const DataTableRowActions = <TData,>({
           <EllipsisVerticalIcon className="size-5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent align="end">
         {actions.map((action) => (
           <DropdownMenuItem
             key={action.key}

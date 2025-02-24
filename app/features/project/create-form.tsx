@@ -80,6 +80,7 @@ export const CreateProjectForm = () => {
         <CardContent className="space-y-4">
           <Field label="Choose organization">
             <SelectOrganization
+              hideNewOrganization
               currentOrg={currentOrg!}
               onSelect={(org) => {
                 setCurrentOrg(org)
@@ -127,13 +128,25 @@ export const CreateProjectForm = () => {
             />
           </Field>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="link"
+            disabled={isPending}
+            onClick={() => {
+              navigate(
+                getPathWithParams(routes.projects.root, {
+                  orgId: organization?.id,
+                }),
+              )
+            }}>
+            Cancel
+          </Button>
           <Button
             variant="default"
             type="submit"
             disabled={isPending}
-            isLoading={isPending}
-            className="w-full">
+            isLoading={isPending}>
             {isPending ? 'Creating' : 'Create'} Project
             <RocketIcon className="size-4" />
           </Button>

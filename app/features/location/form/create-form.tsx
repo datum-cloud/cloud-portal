@@ -105,7 +105,7 @@ export default function CreateLocationForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEdit ? 'Update' : 'Create'} location</CardTitle>
+        <CardTitle>{isEdit ? 'Update' : 'Create a new'} location</CardTitle>
         <CardDescription>
           {isEdit
             ? 'Update the location with the new values below.'

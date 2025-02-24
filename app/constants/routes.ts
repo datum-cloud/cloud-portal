@@ -20,8 +20,13 @@ export const routes = {
   },
   account: {
     root: '/account',
-    profile: '/account/profile',
+    organizations: {
+      root: '/account/organizations',
+      new: '/account/organizations/new',
+    },
+    projects: '/account/projects',
     apiKeys: '/account/api-keys',
+    settings: '/account/settings',
   },
   projects: {
     root: '/[orgId]/projects',
