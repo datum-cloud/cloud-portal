@@ -111,9 +111,6 @@ export default function ProjectLocationsPage() {
     {
       header: 'Name',
       accessorKey: 'name',
-      cell: ({ row }) => {
-        return row.original.name
-      },
     },
     {
       header: 'Class',

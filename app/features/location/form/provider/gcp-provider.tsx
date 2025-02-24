@@ -5,7 +5,7 @@ import { LocationProvider } from '@/resources/interfaces/location.interface'
 import { useEffect, useMemo, useState } from 'react'
 import { SelectAutocomplete } from '@/components/select-autocomplete/select-autocomplete'
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
-import GCP_REGIONS from '@/constants/gcp-region.json'
+import GCP_REGIONS from '@/constants/json/gcp-region.json'
 import { Slash } from 'lucide-react'
 
 const SelectRegion = ({

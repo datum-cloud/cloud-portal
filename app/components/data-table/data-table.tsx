@@ -165,7 +165,7 @@ export const DataTable = <TData, TValue>({
         </div>
 
         {/* Pagination Section */}
-        {table.getPageCount() > 0 && <DataTablePagination table={table} />}
+        <DataTablePagination table={table} />
       </div>
     </DataTableProvider>
   )

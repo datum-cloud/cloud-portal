@@ -13,6 +13,7 @@ import {
 } from '@/resources/interfaces/location.interface'
 import { NewLocationSchema } from '@/resources/schemas/location.schema'
 import { CustomError } from '@/utils/errorHandle'
+
 export const createLocationsControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
