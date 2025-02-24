@@ -1,6 +1,12 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Form, useNavigation, ActionFunctionArgs, LoaderFunctionArgs } from 'react-router'
+import {
+  Form,
+  useNavigation,
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  Link,
+} from 'react-router'
 import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
 import { routes } from '@/constants/routes'
 import { GoogleIcon } from '@/components/icons/google'
@@ -25,8 +31,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  // TODO: change to the org root when the dashboard is ready
-  return isAuthenticated(request, routes.org.projects.root)
+  return isAuthenticated(request, routes.home)
 }
 
 export default function Login() {
@@ -73,12 +78,14 @@ export default function Login() {
                 </Button>
               </Form>
             </div>
-            {/* <div className="text-center text-sm">
+            <div className="text-center text-sm">
               Don&apos;t have an account?{' '}
-              <a href="#" className="underline underline-offset-4">
+              <Link
+                to={routes.auth.signUp}
+                className="font-medium underline underline-offset-4 transition-all hover:text-sunglow">
                 Sign up
-              </a>
-            </div> */}
+              </Link>
+            </div>
           </div>
           <div className="relative hidden bg-muted md:block">
             <img
