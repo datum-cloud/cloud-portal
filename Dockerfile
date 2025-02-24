@@ -34,6 +34,10 @@ FROM base
 # Copy built application
 COPY --from=build /app /app
 
+# Add the kustomize manifests to the container so it can be used to deploy the
+# application to an environment.
+COPY config /app/config
+
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
 CMD [ "bun", "run", "start" ]
