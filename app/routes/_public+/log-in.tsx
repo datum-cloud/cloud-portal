@@ -6,6 +6,7 @@ import { routes } from '@/constants/routes'
 import { GoogleIcon } from '@/components/icons/google'
 import { GitHubIcon } from '@/components/icons/github'
 import { dataWithToast } from '@/utils/toast.server'
+import { useTheme } from '@/hooks/useTheme'
 
 export async function action({ request }: ActionFunctionArgs) {
   try {
@@ -29,6 +30,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function Login() {
+  const theme = useTheme()
   const navigation = useNavigation()
 
   return (
@@ -80,9 +82,9 @@ export default function Login() {
           </div>
           <div className="relative hidden bg-muted md:block">
             <img
-              src="/images/abstract-1.png"
+              src={`/images/abstract-1-${theme}.png`}
               alt="Image"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+              className="absolute inset-0 h-full w-full object-cover"
             />
           </div>
         </CardContent>

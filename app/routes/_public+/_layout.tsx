@@ -7,7 +7,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const pathname = getDomainPathname(request)
 
   if (pathname === routes.auth.root) {
-    return redirect(routes.auth.signIn)
+    return redirect(routes.auth.logIn)
   }
 
   return {}

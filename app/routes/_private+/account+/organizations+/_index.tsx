@@ -107,7 +107,7 @@ export default function AccountOrganizations() {
                 <Button
                   variant="link"
                   size="sm"
-                  className="flex h-fit items-center gap-1 px-0 text-sm text-sunglow"
+                  className="flex h-fit cursor-pointer items-center gap-1 px-0 text-sm text-sunglow"
                   onClick={(event) => {
                     event.preventDefault()
                     event.stopPropagation()
@@ -119,7 +119,7 @@ export default function AccountOrganizations() {
                 <Button
                   variant="link"
                   size="sm"
-                  className="flex h-fit items-center gap-1 px-0 text-sm text-sunglow"
+                  className="flex h-fit cursor-pointer items-center gap-1 px-0 text-sm text-sunglow"
                   onClick={(event) => {
                     event.preventDefault()
                     event.stopPropagation()

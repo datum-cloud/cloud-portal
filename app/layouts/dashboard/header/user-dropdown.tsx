@@ -92,14 +92,14 @@ export const UserDropdown = () => {
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
-        <Form method="POST" action={routes.auth.signOut}>
+        <Form method="POST" action={routes.auth.logOut}>
           <DropdownMenuItem asChild className="text-destructive">
             <Button
               type="submit"
               variant="link"
               className="flex h-8 w-full cursor-pointer justify-start text-left hover:bg-transparent hover:no-underline focus:text-destructive focus-visible:ring-0 focus-visible:ring-offset-0">
               <LogOut />
-              Sign out
+              Log out
             </Button>
           </DropdownMenuItem>
         </Form>

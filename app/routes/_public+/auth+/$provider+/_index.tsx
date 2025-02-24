@@ -4,7 +4,7 @@ import { redirect } from 'react-router'
 import { routes } from '@/constants/routes'
 
 export async function loader() {
-  return redirect(routes.auth.signIn)
+  return redirect(routes.auth.logIn)
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
