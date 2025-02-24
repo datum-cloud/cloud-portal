@@ -11,6 +11,7 @@ import {
   useParams,
   useNavigate,
   useSubmit,
+  ActionFunctionArgs,
 } from 'react-router'
 import { Badge } from '@/components/ui/badge'
 import { DateFormat } from '@/components/date-format/date-format'
@@ -26,9 +27,10 @@ import { CustomError } from '@/utils/errorHandle'
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { toast } from 'sonner'
-import { ROUTE_PATH as PROJECT_LOCATIONS_ROUTE_PATH } from '@/routes/api+/projects+/locations'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
 
-export async function loader({ params, context }: LoaderFunctionArgs) {
+export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params
   const { locationsControl } = context as AppLoadContext
 
@@ -38,7 +40,25 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   const locations = await locationsControl.getLocations(projectId)
   return locations
-}
+}, authMiddleware)
+
+export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
+  const { locationsControl } = context as AppLoadContext
+
+  switch (request.method) {
+    case 'DELETE': {
+      const formData = Object.fromEntries(await request.formData())
+      const { locationName, projectId } = formData
+
+      return await locationsControl.deleteLocation(
+        projectId as string,
+        locationName as string,
+      )
+    }
+    default:
+      throw new Error('Method not allowed')
+  }
+}, authMiddleware)
 
 export default function ProjectLocationsPage() {
   const data = useLoaderData<typeof loader>()
@@ -76,14 +96,10 @@ export default function ProjectLocationsPage() {
           },
           {
             method: 'DELETE',
-            action: PROJECT_LOCATIONS_ROUTE_PATH,
             fetcherKey: 'location-resources',
             navigate: false,
           },
         )
-
-        // TODO: add interval to check if the project is deleted. Use the fetcher key to check if the project is deleted
-        // I did't do this because the data already gone after the delete action
 
         toast.success('Location deleted successfully')
       },

@@ -43,6 +43,7 @@ export const routes = {
     },
     networks: {
       root: '/[orgId]/projects/[projectId]/networks',
+      new: '/[orgId]/projects/[projectId]/networks/new',
       edit: '/[orgId]/projects/[projectId]/networks/[networkId]/edit',
     },
     gateways: '/[orgId]/projects/[projectId]/gateways',

@@ -1,10 +1,15 @@
 import {
   ComDatumapisNetworkingV1AlphaNetwork,
+  createNetworkingDatumapisComV1AlphaNamespacedNetwork,
+  deleteNetworkingDatumapisComV1AlphaNamespacedNetwork,
   listNetworkingDatumapisComV1AlphaNamespacedNetwork,
+  readNetworkingDatumapisComV1AlphaNamespacedNetwork,
+  replaceNetworkingDatumapisComV1AlphaNamespacedNetwork,
 } from '@/modules/control-plane/networking'
 import { Client } from '@hey-api/client-axios'
-import { INetworkControlResponse } from '../interfaces/network.interface'
-
+import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
+import { NewNetworkSchema, UpdateNetworkSchema } from '@/resources/schemas/network.schema'
+import { CustomError } from '@/utils/errorHandle'
 export const createNetworksControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
@@ -37,6 +42,108 @@ export const createNetworksControl = (client: Client) => {
       })
 
       return response.data?.items?.map(transformNetwork) ?? []
+    },
+    getNetwork: async (projectId: string, networkId: string) => {
+      const response = await readNetworkingDatumapisComV1AlphaNamespacedNetwork({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { namespace: 'default', name: networkId },
+      })
+
+      if (!response.data) {
+        throw new CustomError(`Network ${networkId} not found`, 404)
+      }
+
+      return transformNetwork(response.data)
+    },
+    createNetwork: async (
+      projectId: string,
+      payload: NewNetworkSchema,
+      dryRun: boolean,
+    ) => {
+      const response = await createNetworkingDatumapisComV1AlphaNamespacedNetwork({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { namespace: 'default' },
+        query: {
+          dryRun: dryRun ? 'All' : undefined,
+        },
+        body: {
+          apiVersion: 'networking.datumapis.com/v1alpha',
+          kind: 'Network',
+          metadata: {
+            name: payload.name,
+            annotations: {
+              'app.kubernetes.io/name': payload.displayName,
+            },
+          },
+          spec: {
+            ipFamilies: [payload.ipFamily],
+            ipam: {
+              mode: payload.ipam,
+            },
+            mtu: payload.mtu,
+          },
+        },
+      })
+
+      if (!response.data) {
+        throw new CustomError('Failed to create location', 500)
+      }
+
+      return dryRun ? response.data : transformNetwork(response.data)
+    },
+    updateNetwork: async (
+      projectId: string,
+      networkId: string,
+      payload: UpdateNetworkSchema,
+      dryRun: boolean,
+    ) => {
+      const response = await replaceNetworkingDatumapisComV1AlphaNamespacedNetwork({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { namespace: 'default', name: networkId },
+        query: {
+          dryRun: dryRun ? 'All' : undefined,
+        },
+        body: {
+          apiVersion: 'networking.datumapis.com/v1alpha',
+          kind: 'Network',
+          metadata: {
+            name: payload.name,
+            annotations: {
+              'app.kubernetes.io/name': payload.displayName,
+            },
+            resourceVersion: payload.resourceVersion,
+          },
+          spec: {
+            ipFamilies: [payload.ipFamily],
+            ipam: {
+              mode: payload.ipam,
+            },
+            mtu: payload.mtu,
+          },
+        },
+      })
+
+      if (!response.data) {
+        throw new CustomError('Failed to update network', 500)
+      }
+
+      return dryRun ? response.data : transformNetwork(response.data)
+    },
+    deleteNetwork: async (projectId: string, networkId: string) => {
+      const response = await deleteNetworkingDatumapisComV1AlphaNamespacedNetwork({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { namespace: 'default', name: networkId },
+      })
+
+      if (!response.data) {
+        throw new CustomError('Failed to delete network', 500)
+      }
+
+      return response.data
     },
   }
 }

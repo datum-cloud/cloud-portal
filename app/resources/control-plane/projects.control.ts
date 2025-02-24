@@ -86,7 +86,7 @@ export const createProjectsControl = (client: Client) => {
         throw new CustomError('Failed to create project', 500)
       }
 
-      return transformProject(response.data)
+      return dryRun ? response.data : transformProject(response.data)
     },
     deleteProject: async (orgEntityId: string, projectName: string) => {
       const response = await deleteResourcemanagerDatumapisComV1AlphaProject({

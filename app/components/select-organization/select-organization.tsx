@@ -104,20 +104,24 @@ export const SelectOrganization = ({
 
             {!hideNewOrganization && (
               <>
-                <CommandItem className="m-2 cursor-pointer" asChild>
+                <CommandItem className="cursor-pointer" asChild>
                   <Link
                     to={routes.account.organizations.new}
                     className="flex items-center gap-2 px-3">
-                    <PlusCircleIcon className="text-blue-400" />
+                    <div className="flex w-6 items-center justify-center">
+                      <PlusCircleIcon className="text-blue-400" />
+                    </div>
                     <span>Create Organization</span>
                   </Link>
                 </CommandItem>
                 <CommandSeparator />
-                <CommandItem className="m-2 cursor-pointer" asChild>
+                <CommandItem className="cursor-pointer" asChild>
                   <Link
                     to={routes.account.organizations.root}
                     className="flex items-center gap-2 px-3">
-                    <SettingsIcon className="" />
+                    <div className="flex w-6 items-center justify-center">
+                      <SettingsIcon />
+                    </div>
                     <span>Manage Organizations</span>
                   </Link>
                 </CommandItem>
