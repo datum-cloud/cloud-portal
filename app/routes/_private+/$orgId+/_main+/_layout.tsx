@@ -21,7 +21,7 @@ export default function OrgLayout() {
       },
       {
         title: 'Projects',
-        href: getPathWithParams(routes.projects.root, { orgId }),
+        href: getPathWithParams(routes.org.projects.root, { orgId }),
         type: 'link',
         icon: FileIcon,
       },

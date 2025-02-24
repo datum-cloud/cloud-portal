@@ -43,7 +43,7 @@ export const loader = withMiddleware(async ({ params, context, request }) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((error as any).status === 403) {
       return redirect(
-        getPathWithParams(`${routes.projects.setup}?projectId=${projectId}`, {
+        getPathWithParams(`${routes.org.projects.setup}?projectId=${projectId}`, {
           orgId: params.orgId,
         }),
       )

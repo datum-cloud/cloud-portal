@@ -36,7 +36,7 @@ export const action = withMiddleware(
       // TODO: temporary solution for handle delay on new project
       // https://github.com/datum-cloud/cloud-portal/issues/45
       return redirectWithToast(
-        getPathWithParams(`${routes.projects.setup}?projectId=${payload.name}`, {
+        getPathWithParams(`${routes.org.projects.setup}?projectId=${payload.name}`, {
           orgId: params.orgId,
         }),
         {

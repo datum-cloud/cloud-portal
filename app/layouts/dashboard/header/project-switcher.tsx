@@ -131,7 +131,7 @@ export const ProjectSwitcher = ({
               <CommandSeparator />
               <CommandItem asChild className="cursor-pointer">
                 <Link
-                  to={getPathWithParams(routes.projects.new, { orgId })}
+                  to={getPathWithParams(routes.org.projects.new, { orgId })}
                   className="flex items-center gap-2 px-3">
                   <PlusIcon className="size-4" />
                   <span>Create Project</span>

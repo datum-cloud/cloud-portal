@@ -82,10 +82,11 @@ export const CreateProjectForm = () => {
             <SelectOrganization
               hideNewOrganization
               currentOrg={currentOrg!}
+              triggerClassName="py-2"
               onSelect={(org) => {
                 setCurrentOrg(org)
                 orgEntityIdControl.change(org.userEntityID)
-                navigate(getPathWithParams(routes.projects.new, { orgId: org.id }))
+                navigate(getPathWithParams(routes.org.projects.new, { orgId: org.id }))
               }}
             />
           </Field>
@@ -135,7 +136,7 @@ export const CreateProjectForm = () => {
             disabled={isPending}
             onClick={() => {
               navigate(
-                getPathWithParams(routes.projects.root, {
+                getPathWithParams(routes.org.projects.root, {
                   orgId: organization?.id,
                 }),
               )

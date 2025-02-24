@@ -14,7 +14,7 @@ import {
   Table as TTable,
   flexRender,
 } from '@tanstack/react-table'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { DataTableProps } from './data-table.types'
 import { DataTableProvider } from '@/providers/dataTable.provider'
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
@@ -106,6 +106,10 @@ export const DataTable = <TData, TValue>({
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [columnFilters])
 
+  const columnsLength = useMemo(() => {
+    return columns.length + (rowActions.length > 0 ? 1 : 0)
+  }, [columns, rowActions])
+
   return (
     <DataTableProvider
       table={table}
@@ -131,7 +135,7 @@ export const DataTable = <TData, TValue>({
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <TableCell colSpan={columnsLength} className="h-24 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       <p className="text-muted-foreground">{loadingText}</p>
@@ -155,7 +159,7 @@ export const DataTable = <TData, TValue>({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                  <TableCell colSpan={columnsLength} className="h-24 text-center">
                     {emptyText}
                   </TableCell>
                 </TableRow>

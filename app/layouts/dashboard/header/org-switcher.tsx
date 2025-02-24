@@ -17,7 +17,7 @@ export const OrganizationSwitcher = ({
   return (
     <div className="flex items-center gap-1 pl-2">
       <Link
-        to={getPathWithParams(routes.projects.root, { orgId: currentOrg?.id })}
+        to={getPathWithParams(routes.org.projects.root, { orgId: currentOrg?.id })}
         className="flex w-fit max-w-[300px] items-center justify-between gap-2 text-left text-sm leading-tight">
         <span className="truncate font-semibold">{currentOrg?.name}</span>
         {currentOrg?.personalOrg && (
@@ -31,7 +31,7 @@ export const OrganizationSwitcher = ({
         currentOrg={currentOrg!}
         hideContent
         onSelect={(org: OrganizationModel) => {
-          navigate(getPathWithParams(routes.projects.root, { orgId: org.id }))
+          navigate(getPathWithParams(routes.org.projects.root, { orgId: org.id }))
           onSelect?.(org)
         }}
       />

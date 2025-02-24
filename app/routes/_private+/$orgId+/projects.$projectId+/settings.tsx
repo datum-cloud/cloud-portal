@@ -81,7 +81,7 @@ export default function ProjectSettingsPage() {
 
         toast.success('Project deleted successfully')
         return navigate(
-          getPathWithParams(routes.projects.root, {
+          getPathWithParams(routes.org.projects.root, {
             orgId: params.orgId,
           }),
         )

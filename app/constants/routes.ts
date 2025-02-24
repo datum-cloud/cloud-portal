@@ -17,6 +17,12 @@ export const routes = {
       members: '/[orgId]/settings/members',
       billing: '/[orgId]/settings/billing',
     },
+
+    projects: {
+      root: '/[orgId]/projects',
+      new: '/[orgId]/projects/new',
+      setup: '/[orgId]/projects/setup',
+    },
   },
   account: {
     root: '/account',
@@ -29,10 +35,6 @@ export const routes = {
     settings: '/account/settings',
   },
   projects: {
-    root: '/[orgId]/projects',
-    new: '/[orgId]/projects/new',
-    setup: '/[orgId]/projects/setup',
-
     // Main Page of the Project
     detail: '/[orgId]/projects/[projectId]',
     dashboard: '/[orgId]/projects/[projectId]/dashboard',
