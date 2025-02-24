@@ -8,8 +8,14 @@ type GraphqlClientOptions = {
 
 const errorHandler = (error: any) => {
   // Handle GraphQL errors and convert to standard format
-  const errorMessage =
-    error.response?.errors?.[0]?.message || error?.message || 'Unknown error occurred'
+  let errorMessage = 'Something went wrong'
+
+  // Show the actual error message in development mode
+  if (process.env.NODE_ENV === 'development') {
+    errorMessage =
+      error.response?.errors?.[0]?.message || error?.message || 'Unknown error occurred'
+  }
+
   let statusCode =
     error.response?.status || error.response?.errors?.[0]?.extensions?.code || 500
 

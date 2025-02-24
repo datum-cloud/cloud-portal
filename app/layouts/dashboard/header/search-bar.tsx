@@ -61,7 +61,7 @@ export default function SearchBar({ className }: { className?: string }) {
             {orgId && (
               <>
                 <CommandItem asChild>
-                  <Link to={getPathWithParams(routes.projects.root, { orgId })}>
+                  <Link to={getPathWithParams(routes.org.projects.root, { orgId })}>
                     Projects
                   </Link>
                 </CommandItem>

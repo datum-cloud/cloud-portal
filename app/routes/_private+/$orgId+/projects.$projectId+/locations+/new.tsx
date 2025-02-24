@@ -41,7 +41,7 @@ export const action = withMiddleware(
         getPathWithParams(routes.projects.locations.edit, {
           orgId,
           projectId,
-          locationId: dryRunRes.name,
+          locationId: payload?.name,
         }),
         {
           title: 'Location created successfully',

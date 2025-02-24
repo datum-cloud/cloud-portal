@@ -25,7 +25,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // TODO: change to the org root when the dashboard is ready
-  return isAuthenticated(request, routes.projects.root)
+  return isAuthenticated(request, routes.org.projects.root)
 }
 
 export default function Login() {

@@ -16,11 +16,10 @@ export const OrganizationItem = ({
   labelClassName?: string
 }) => {
   return (
-    <div className={cn('w-fulll flex items-center gap-2', className)}>
+    <div className={cn('flex w-full items-center gap-2', className)}>
       {!hideAvatar && (
-        <Avatar className={cn('size-6 rounded-lg', avatarClassName)}>
-          {/* <AvatarImage src={currentOrg?.avatarRemoteURL} alt={currentOrg?.name} /> */}
-          <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
+        <Avatar className={cn('size-6 rounded-md', avatarClassName)}>
+          <AvatarFallback className="rounded-md bg-slate-400 text-primary-foreground">
             {getInitials(org?.name ?? '')}
           </AvatarFallback>
         </Avatar>

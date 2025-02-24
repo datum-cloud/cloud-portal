@@ -17,6 +17,12 @@ export const routes = {
       members: '/[orgId]/settings/members',
       billing: '/[orgId]/settings/billing',
     },
+
+    projects: {
+      root: '/[orgId]/projects',
+      new: '/[orgId]/projects/new',
+      setup: '/[orgId]/projects/setup',
+    },
   },
   account: {
     root: '/account',
@@ -29,10 +35,6 @@ export const routes = {
     settings: '/account/settings',
   },
   projects: {
-    root: '/[orgId]/projects',
-    new: '/[orgId]/projects/new',
-    setup: '/[orgId]/projects/setup',
-
     // Main Page of the Project
     detail: '/[orgId]/projects/[projectId]',
     dashboard: '/[orgId]/projects/[projectId]/dashboard',
@@ -41,7 +43,11 @@ export const routes = {
       new: '/[orgId]/projects/[projectId]/locations/new',
       edit: '/[orgId]/projects/[projectId]/locations/[locationId]/edit',
     },
-    networks: '/[orgId]/projects/[projectId]/networks',
+    networks: {
+      root: '/[orgId]/projects/[projectId]/networks',
+      new: '/[orgId]/projects/[projectId]/networks/new',
+      edit: '/[orgId]/projects/[projectId]/networks/[networkId]/edit',
+    },
     gateways: '/[orgId]/projects/[projectId]/gateways',
     services: '/[orgId]/projects/[projectId]/services',
     workloads: '/[orgId]/projects/[projectId]/workloads',

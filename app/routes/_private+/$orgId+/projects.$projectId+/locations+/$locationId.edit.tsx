@@ -87,7 +87,7 @@ export const action = withMiddleware(
   authMiddleware,
 )
 
-export default function DetailLocation() {
+export default function EditLocation() {
   const location = useLoaderData<typeof loader>()
 
   return (

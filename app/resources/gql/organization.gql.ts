@@ -1,5 +1,5 @@
 import { GraphqlClient } from '@/modules/graphql/graphql'
-import { OrganizationModel } from './models/organization.model'
+import { organizationModel } from './models/organization.model'
 import { alias, query as typedQuery, mutation, types } from 'typed-graphqlify'
 
 export const createOrganizationGql = (client: GraphqlClient) => {
@@ -9,7 +9,7 @@ export const createOrganizationGql = (client: GraphqlClient) => {
         [alias('organizations', 'organizations')]: {
           edges: [
             {
-              node: OrganizationModel,
+              node: organizationModel,
             },
           ],
         },
@@ -21,7 +21,7 @@ export const createOrganizationGql = (client: GraphqlClient) => {
     },
     getOrganizationDetail: async (id: string) => {
       const query = typedQuery('GetOrganizationDetail($organizationId: ID!)', {
-        [alias('organization', 'organization(id: $organizationId)')]: OrganizationModel,
+        [alias('organization', 'organization(id: $organizationId)')]: organizationModel,
       })
 
       const data = await client.request(query.toString(), { organizationId: id })

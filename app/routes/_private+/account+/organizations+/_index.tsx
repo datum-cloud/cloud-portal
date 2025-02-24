@@ -5,18 +5,16 @@ import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/list'
 import { Link, useLoaderData, useNavigate } from 'react-router'
 import { PageTitle } from '@/components/page-title/page-title'
 import { Button } from '@/components/ui/button'
-import { PlusIcon } from 'lucide-react'
+import { PlusIcon, HomeIcon, SettingsIcon } from 'lucide-react'
 import { routes } from '@/constants/routes'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from '@/components/ui/card'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { getPathWithParams } from '@/utils/path'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { getInitials } from '@/utils/misc'
+import { AvatarStack } from '@/components/ui/avatar-stack'
+import { useMemo } from 'react'
 
 export const loader = withMiddleware(async ({ request }) => {
   const orgs = await fetch(`${process.env.APP_URL}${ORG_LIST_PATH}`, {
@@ -29,6 +27,23 @@ export const loader = withMiddleware(async ({ request }) => {
   const data = await orgs.json()
   return data
 }, authMiddleware)
+
+const MembersAvatar = ({ org }: { org: OrganizationModel }) => {
+  const members = useMemo(() => {
+    return org.members.map((member) => ({
+      name: `${member.user.firstName} ${member.user.lastName}`,
+      image: member.user.avatarRemoteURL,
+    }))
+  }, [org])
+
+  return (
+    <AvatarStack
+      avatars={members}
+      maxAvatarsAmount={6}
+      avatarClassName="size-8 border border-input"
+    />
+  )
+}
 
 export default function AccountOrganizations() {
   const navigate = useNavigate()
@@ -54,50 +69,68 @@ export default function AccountOrganizations() {
           .map((org) => (
             <Card
               key={org.id}
-              className="h-40 cursor-pointer transition-all hover:bg-accent/50"
+              className="flex h-40 cursor-pointer flex-col justify-between transition-all hover:bg-accent/50"
               onClick={(event) => {
                 event.preventDefault()
                 event.stopPropagation()
-                navigate(getPathWithParams(routes.projects.root, { orgId: org.id }))
+                navigate(getPathWithParams(routes.org.projects.root, { orgId: org.id }))
               }}>
-              <CardHeader className="flex flex-row items-start justify-between space-y-0 px-4 pb-2 pt-4">
-                <div className="space-y-1">
-                  <CardTitle className="text-sm font-semibold">
-                    {org.displayName}
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground">
-                    {org.userEntityID}
-                  </CardDescription>
+              <CardContent className="px-4 py-4">
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-base font-semibold leading-tight text-foreground">
+                        {org?.name}
+                      </h3>
+                      <p className="text-xs font-medium tracking-wide text-muted-foreground">
+                        {org.userEntityID}
+                      </p>
+                    </div>
+                    {org.personalOrg ? (
+                      <Badge variant="secondary" className="shrink-0 border border-input">
+                        Personal
+                      </Badge>
+                    ) : (
+                      <Avatar className="size-6 shrink-0 rounded-md">
+                        <AvatarFallback className="rounded-md bg-slate-400 text-primary-foreground">
+                          {getInitials(org.displayName)}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                  </div>
+                  <div className="pt-2">
+                    <MembersAvatar org={org} />
+                  </div>
                 </div>
-                {/* <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="mt-0 size-5"
-                      onClick={(event) => {
-                        event.preventDefault()
-                        event.stopPropagation()
-
-                        navigate(
-                          getPathWithParams(routes.org.settings.root, { orgId: org.id }),
-                        )
-                      }}>
-                      <SettingsIcon className="size-4 text-muted-foreground" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Settings</p>
-                  </TooltipContent>
-                </Tooltip> */}
-              </CardHeader>
-              <CardContent className="px-4">
-                {org.personalOrg && (
-                  <Badge variant="secondary" className="border">
-                    Personal
-                  </Badge>
-                )}
               </CardContent>
+              <CardFooter className="flex flex-row items-center justify-between gap-2 px-4 pb-4">
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="flex h-fit items-center gap-1 px-0 text-sm text-sunglow"
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    navigate(getPathWithParams(routes.org.root, { orgId: org.id }))
+                  }}>
+                  <HomeIcon className="size-4" />
+                  Dashboard
+                </Button>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="flex h-fit items-center gap-1 px-0 text-sm text-sunglow"
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    navigate(
+                      getPathWithParams(routes.org.settings.root, { orgId: org.id }),
+                    )
+                  }}>
+                  <SettingsIcon className="size-4" />
+                  Settings
+                </Button>
+              </CardFooter>
             </Card>
           ))}
       </div>

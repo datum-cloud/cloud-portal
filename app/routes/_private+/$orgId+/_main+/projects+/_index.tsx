@@ -89,7 +89,7 @@ export default function OrgProjects() {
         title: 'Projects',
         description: 'Use projects to organize resources deployed to Datum Cloud',
         actions: (
-          <Link to={getPathWithParams(routes.projects.new, { orgId })}>
+          <Link to={getPathWithParams(routes.org.projects.new, { orgId })}>
             <Button>
               <PlusIcon className="h-4 w-4" />
               New Project

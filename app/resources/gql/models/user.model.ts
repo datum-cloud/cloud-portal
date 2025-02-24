@@ -1,6 +1,6 @@
 import { types } from 'typed-graphqlify'
 
-export const UserModel = {
+export const userModel = {
   id: types.string,
   firstName: types.string,
   lastName: types.string,
@@ -13,4 +13,4 @@ export const UserModel = {
   lastSeen: types.string,
 }
 
-export type UserModel = typeof UserModel
+export type UserModel = typeof userModel

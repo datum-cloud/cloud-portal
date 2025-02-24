@@ -13,6 +13,7 @@ import {
 } from '@/resources/interfaces/location.interface'
 import { NewLocationSchema } from '@/resources/schemas/location.schema'
 import { CustomError } from '@/utils/errorHandle'
+
 export const createLocationsControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
@@ -74,9 +75,7 @@ export const createLocationsControl = (client: Client) => {
       const response = await createNetworkingDatumapisComV1AlphaNamespacedLocation({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
+        path: { namespace: 'default' },
         query: {
           dryRun: dryRun ? 'All' : undefined,
         },
@@ -105,7 +104,7 @@ export const createLocationsControl = (client: Client) => {
         throw new CustomError('Failed to create location', 500)
       }
 
-      return transformLocation(response.data)
+      return dryRun ? response.data : transformLocation(response.data)
     },
     updateLocation: async (
       projectId: string,
