@@ -18,7 +18,7 @@ export const OrganizationItem = ({
   return (
     <div className={cn('w-fulll flex items-center gap-2', className)}>
       {!hideAvatar && (
-        <Avatar className={cn('size-8 rounded-lg', avatarClassName)}>
+        <Avatar className={cn('size-6 rounded-lg', avatarClassName)}>
           {/* <AvatarImage src={currentOrg?.avatarRemoteURL} alt={currentOrg?.name} /> */}
           <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
             {getInitials(org?.name ?? '')}

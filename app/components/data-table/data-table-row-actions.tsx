@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown'
 import { Button } from '@/components/ui/button'
-import { EllipsisVerticalIcon } from 'lucide-react'
+import { Ellipsis } from 'lucide-react'
 import { cn } from '@/utils/misc'
 
 export const DataTableRowActions = <TData,>({
@@ -23,7 +23,7 @@ export const DataTableRowActions = <TData,>({
           variant="ghost"
           size="icon"
           className="h-7 w-7 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-accent">
-          <EllipsisVerticalIcon className="size-5" />
+          <Ellipsis className="size-5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
