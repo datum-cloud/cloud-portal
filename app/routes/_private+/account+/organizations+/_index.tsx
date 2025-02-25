@@ -106,6 +106,11 @@ export default function AccountOrganizations() {
               <CardFooter className="flex flex-row items-center justify-between gap-2 px-4 pb-4">
                 <Link
                   to={getPathWithParams(routes.org.root, { orgId: org.id })}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    navigate(getPathWithParams(routes.org.root, { orgId: org.id }))
+                  }}
                   className="sm flex h-fit cursor-pointer items-center gap-1 px-0 text-xs text-primary no-underline">
                   <HomeIcon className="size-4" />
                   Dashboard
@@ -113,6 +118,13 @@ export default function AccountOrganizations() {
 
                 <Link
                   to={getPathWithParams(routes.org.settings.root, { orgId: org.id })}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    navigate(
+                      getPathWithParams(routes.org.settings.root, { orgId: org.id }),
+                    )
+                  }}
                   className="sm flex h-fit cursor-pointer items-center gap-1 px-0 text-xs text-primary no-underline">
                   <SettingsIcon className="size-4" />
                   Settings
