@@ -14,6 +14,7 @@ export const loader = withMiddleware(async ({ request, context }) => {
 
   const key = `projects:${orgEntityId}`
   const isCached = await cache.hasItem(key)
+
   if (isCached) {
     const projects = await cache.getItem(key)
     return data(projects)

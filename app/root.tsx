@@ -6,6 +6,7 @@ import {
   Scripts,
   ScrollRestoration,
   data,
+  useBeforeUnload,
   useFetchers,
   useLoaderData,
   useNavigation,
@@ -33,9 +34,9 @@ import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import NProgress from 'nprogress'
 import { useEffect, useMemo } from 'react'
+import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/handle-cache'
 
 // NProgress configuration
-
 NProgress.configure({ showSpinner: false })
 
 export const handle = { i18n: ['translation'] }
@@ -139,9 +140,6 @@ export default function AppWithProviders() {
    * determine if the app is idle or if it's loading.
    * Here we consider both loading and submitting as loading.
    */
-
-  //
-
   const state = useMemo<'idle' | 'loading'>(
     function getGlobalState() {
       const states = [navigation.state, ...fetchers.map((fetcher) => fetcher.state)]
@@ -158,6 +156,17 @@ export default function AppWithProviders() {
     // when the state is idle then we can to complete the progress bar
     if (state === 'idle') NProgress.done()
   }, [state])
+
+  /**
+   * Clears the application cache by making a POST request to the cache route
+   * when the user is about to leave/reload the page.
+   * This ensures that any cached data is properly cleared to maintain data consistency
+   * and prevent stale cache issues on subsequent visits.
+   */
+  useBeforeUnload(() => {
+    // Clear Cache with hit API
+    fetch(CACHE_ROUTE_PATH, { method: 'POST' })
+  })
 
   return (
     <Document nonce={nonce} theme={theme} lang={locale ?? 'en'}>

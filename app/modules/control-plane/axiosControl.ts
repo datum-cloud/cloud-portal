@@ -2,6 +2,7 @@
 import { createConfig, createClient, ClientOptions } from '@hey-api/client-axios'
 import { AxiosError } from 'axios'
 import { CustomError } from '@/utils/errorHandle'
+import curlirize from 'axios-curlirize'
 
 // Customize the client to add an auth token to the request headers
 const errorHandler = (error: AxiosError) => {
@@ -29,6 +30,11 @@ export const createControlPlaneClient = (
       throwOnError: true,
     }),
   )
+
+  // Curlirize the client for debugging purposes
+  if (process.env.NODE_ENV === 'development') {
+    curlirize(client.instance)
+  }
 
   client.instance.interceptors.request.use(
     (config: any) => {

@@ -85,7 +85,7 @@ export const UserDropdown = () => {
           </DropdownMenuItem>
           <DropdownMenuItem
             className="cursor-pointer"
-            onClick={() => navigate(routes.account.apiKeys)}>
+            onClick={() => navigate(routes.account.apiKeys.root)}>
             <KeyIcon />
             API Keys
           </DropdownMenuItem>

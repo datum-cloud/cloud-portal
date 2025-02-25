@@ -34,7 +34,7 @@ export default function AccountLayout() {
           {
             title: 'API Keys',
             type: 'link',
-            href: routes.account.apiKeys,
+            href: routes.account.apiKeys.root,
             icon: KeyIcon,
           },
         ],

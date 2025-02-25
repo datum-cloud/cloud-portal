@@ -28,14 +28,7 @@ export const action = withMiddleware(
       const parsed = parseWithZod(formData, { schema: newNetworkSchema })
 
       if (parsed.status !== 'success') {
-        return dataWithToast(
-          {},
-          {
-            title: 'Error',
-            description: 'Invalid form data',
-            type: 'error',
-          },
-        )
+        throw new Error('Invalid form data')
       }
 
       const payload = parsed.value as NewNetworkSchema
@@ -57,15 +50,12 @@ export const action = withMiddleware(
         },
       )
     } catch (error) {
-      return dataWithToast(
-        {},
-        {
-          title: 'Error',
-          description:
-            error instanceof Error ? error.message : (error as Response).statusText,
-          type: 'error',
-        },
-      )
+      return dataWithToast(null, {
+        title: 'Error',
+        description:
+          error instanceof Error ? error.message : (error as Response).statusText,
+        type: 'error',
+      })
     }
   },
   authMiddleware,

@@ -13,4 +13,24 @@ export const userModel = {
   lastSeen: types.string,
 }
 
+export const userApiKeyModel = {
+  id: types.string,
+  description: types.string,
+  expiresAt: types.string,
+  lastUsedAt: types.string,
+  name: types.string,
+  scopes: types.string,
+  token: types.string,
+  updatedAt: types.string,
+  updatedBy: types.string,
+  createdAt: types.string,
+  organizations: [
+    {
+      id: types.string,
+      name: types.string,
+    },
+  ],
+}
+
 export type UserModel = typeof userModel
+export type UserApiKeyModel = typeof userApiKeyModel

@@ -6,7 +6,7 @@ export const newNetworkSchema = z.object({
     .max(100, { message: 'Display name must be less than 100 characters long.' }),
   name: z
     .string({ required_error: 'Name is required.' })
-    .min(6, { message: 'Name must be at least 4 characters long.' })
+    .min(6, { message: 'Name must be at least 6 characters long.' })
     .regex(/^[a-z][a-z0-9-]*[a-z0-9]$/, {
       message:
         'Name must be kebab-case, start with a letter, and end with a letter or number',
