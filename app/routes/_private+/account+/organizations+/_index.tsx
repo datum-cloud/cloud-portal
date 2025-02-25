@@ -91,7 +91,7 @@ export default function AccountOrganizations() {
                         Personal
                       </Badge>
                     ) : (
-                      <Avatar className="size-6 shrink-0 rounded-md">
+                      <Avatar className="size-8 shrink-0 rounded-md">
                         <AvatarFallback className="rounded-md bg-slate-400 text-primary-foreground">
                           {getInitials(org.displayName)}
                         </AvatarFallback>
@@ -104,32 +104,31 @@ export default function AccountOrganizations() {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-row items-center justify-between gap-2 px-4 pb-4">
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="flex h-fit cursor-pointer items-center gap-1 px-0 text-sm text-sunglow"
+                <Link
+                  to={getPathWithParams(routes.org.root, { orgId: org.id })}
                   onClick={(event) => {
                     event.preventDefault()
                     event.stopPropagation()
                     navigate(getPathWithParams(routes.org.root, { orgId: org.id }))
-                  }}>
+                  }}
+                  className="sm flex h-fit cursor-pointer items-center gap-1 px-0 text-xs text-primary no-underline">
                   <HomeIcon className="size-4" />
                   Dashboard
-                </Button>
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="flex h-fit cursor-pointer items-center gap-1 px-0 text-sm text-sunglow"
+                </Link>
+
+                <Link
+                  to={getPathWithParams(routes.org.settings.root, { orgId: org.id })}
                   onClick={(event) => {
                     event.preventDefault()
                     event.stopPropagation()
                     navigate(
                       getPathWithParams(routes.org.settings.root, { orgId: org.id }),
                     )
-                  }}>
+                  }}
+                  className="sm flex h-fit cursor-pointer items-center gap-1 px-0 text-xs text-primary no-underline">
                   <SettingsIcon className="size-4" />
                   Settings
-                </Button>
+                </Link>
               </CardFooter>
             </Card>
           ))}
