@@ -10,7 +10,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect(routes.auth.logIn)
   }
 
-  return {}
+  return null
 }
 
 export default function layout() {
