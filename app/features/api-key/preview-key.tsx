@@ -7,15 +7,15 @@ import { toast } from 'sonner'
 import { useState } from 'react'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 
-export const PreviewKey = ({ key }: { key: string }) => {
+export const PreviewKey = ({ value }: { value: string }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, copy] = useCopyToClipboard()
-
   const [copied, setCopied] = useState(false)
-  const copyProjectName = () => {
-    if (!key) return
 
-    copy(key).then(() => {
+  const copyProjectName = () => {
+    if (!value) return
+
+    copy(value).then(() => {
       toast.success('API key copied to clipboard')
       setCopied(true)
       setTimeout(() => {
@@ -37,15 +37,15 @@ export const PreviewKey = ({ key }: { key: string }) => {
         </AlertDescription>
         <div className="mt-2 max-w-lg pl-7">
           <InputWithAddons
-            value={key}
+            value={value}
             readOnly
             disabled
             containerClassName="focus-within:ring-0 h-9 bg-muted"
             trailing={
               <Button
-                variant="secondary"
+                variant="outline"
                 size="sm"
-                className="h-6 w-fit gap-1 border px-2 text-xs transition-all hover:border-primary"
+                className="h-6 w-fit gap-1 px-2 text-xs"
                 onClick={copyProjectName}>
                 <CopyIcon className="!size-3" />
                 {copied ? 'Copied' : 'Copy'}

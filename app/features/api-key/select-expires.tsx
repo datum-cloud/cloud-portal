@@ -39,7 +39,7 @@ export const SelectExpires = ({
         description: `Expires ${format(addYears(now, 1), 'MMM d, yyyy')}`,
       },
       {
-        value: '9999', // No expiration
+        value: '0', // No expiration
         label: 'No Expire',
         description: null,
       },

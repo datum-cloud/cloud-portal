@@ -43,15 +43,18 @@ export const createUserGql = (client: GraphqlClient) => {
         },
       )
 
-      const data = await client.request(query.toString(), {
-        input: {
-          name: payload.name,
-          description: payload.description,
-          expiresAt: payload.expiresAt,
-          ownerID: payload.ownerId,
-          organizationIDs: payload.orgIds,
-        },
-      })
+      const input = {
+        name: payload.name,
+        description: payload.description,
+        ownerID: payload.ownerId,
+        organizationIDs: payload.orgIds,
+      }
+
+      if (payload.expiresAt) {
+        Object.assign(input, { expiresAt: payload.expiresAt })
+      }
+
+      const data = await client.request(query.toString(), { input })
       return data.createPersonalAccessToken.personalAccessToken
     },
     deleteUserApiKey: async (apiKeyId: string) => {

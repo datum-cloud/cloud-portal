@@ -28,7 +28,10 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
 
     const apiKey = await userGql.createApiKey({
       ...payload,
-      expiresAt: addDays(new Date(), Number(payload.expiresAt)).toISOString(),
+      expiresAt:
+        payload.expiresAt === 0
+          ? undefined
+          : addDays(new Date(), Number(payload.expiresAt)).toISOString(),
       ownerId: userId,
       // TODO: Need more information, because it's array and on the old portal use default org of user
       orgIds: [orgId],

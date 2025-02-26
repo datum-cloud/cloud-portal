@@ -168,7 +168,7 @@ export default function AccountApiKeys() {
         }
       />
 
-      {apiKey && <PreviewKey key={apiKey} />}
+      {apiKey && <PreviewKey value={apiKey} />}
 
       <DataTable
         columns={columns}
