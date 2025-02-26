@@ -47,7 +47,7 @@ spec:
             # TODO: Specify resource requests
             limits:
               cpu: 1
-              memory: 256Mi
+              memory: 1Gi
           livenessProbe:
             failureThreshold: 3
             initialDelaySeconds: 5
