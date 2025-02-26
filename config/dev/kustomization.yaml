@@ -1,0 +1,7 @@
+resources:
+  - ../base
+secretGenerator:
+  # Create a new kubernetes secret based on the secret that's in the repo.
+  - name: cloud-portal
+    envs:
+      - ../../.env
