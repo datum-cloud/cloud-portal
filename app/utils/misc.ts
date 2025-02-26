@@ -1,3 +1,4 @@
+import { ILabel } from '@/resources/interfaces/label.interface'
 import { type ClassValue, clsx } from 'clsx'
 import { useFormAction, useNavigation } from 'react-router'
 import { twMerge } from 'tailwind-merge'
@@ -45,4 +46,41 @@ export function toTitleCase(str: string): string {
     .split(/(?=[A-Z])|_/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
+}
+
+// Label Utils
+export function splitOption(
+  option: string,
+  separator = ':',
+): { key: string; value: string } {
+  const firstColonIndex = option.indexOf(separator)
+  const key = option.substring(0, firstColonIndex)
+  const value = option.substring(firstColonIndex + 1)
+  return { key, value }
+}
+
+export function convertLabelsToObject(labels: string[]): Record<string, string> {
+  return labels.reduce(
+    (acc, opt) => {
+      const { key, value } = splitOption(opt)
+      acc[key] = value
+      return acc
+    },
+    {} as Record<string, string>,
+  )
+}
+
+export function convertObjectToLabels(labels: ILabel): string[] {
+  return Object.entries(labels).map(([key, value]) => `${key}:${value}`)
+}
+
+export function filterLabels(
+  labels: Record<string, string>,
+  skipPrefixes: string[] = ['resourcemanager'],
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(labels).filter(
+      ([key]) => !skipPrefixes.some((prefix) => key.startsWith(prefix)),
+    ),
+  )
 }

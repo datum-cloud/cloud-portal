@@ -1,4 +1,5 @@
 import { Field } from '@/components/field/field'
+import { SelectLabels } from '@/components/select-labels/select-labels'
 import { SelectOrganization } from '@/components/select-organization/select-organization'
 import { Button } from '@/components/ui/button'
 import {
@@ -36,7 +37,7 @@ export const CreateProjectForm = () => {
     organization,
   )
 
-  const [form, { name, description, orgEntityId }] = useForm({
+  const [form, { name, description, orgEntityId, labels }] = useForm({
     constraint: getZodConstraint(newProjectSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
@@ -61,6 +62,7 @@ export const CreateProjectForm = () => {
 
   const nameControl = useInputControl(name)
   const orgEntityIdControl = useInputControl(orgEntityId)
+  const labelsControl = useInputControl(labels)
 
   useEffect(() => {
     orgEntityIdControl.change(organization?.userEntityID)
@@ -126,6 +128,17 @@ export const CreateProjectForm = () => {
                 }
               }}
               {...getInputProps(name, { type: 'text' })}
+            />
+          </Field>
+          <Field
+            label="Labels"
+            errors={labels.errors}
+            description="Add labels to help identify, organize, and filter your projects.">
+            <SelectLabels
+              defaultValue={labels.value as string[]}
+              onChange={(value) => {
+                labelsControl.change(value)
+              }}
             />
           </Field>
         </CardContent>

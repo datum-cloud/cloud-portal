@@ -1,4 +1,4 @@
-import WaitingPage from '@/components/waiting-page/waiting-page'
+import { WaitingPage } from '@/components/waiting-page/waiting-page'
 import PublicLayout from '@/layouts/public/public'
 import { commitSession, getSession } from '@/modules/auth/authSession.server'
 import { useApp } from '@/providers/app.provider'

@@ -1,0 +1,90 @@
+import { Field } from '@/components/field/field'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { labelFormSchema, LabelFormSchema } from '@/resources/schemas/label.schema'
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { useEffect, useRef } from 'react'
+import { useHydrated } from 'remix-utils/use-hydrated'
+
+export const LabelForm = ({
+  defaultValue,
+  onSubmit,
+  onCancel,
+}: {
+  defaultValue?: LabelFormSchema
+  onSubmit: (label: LabelFormSchema) => void
+  onCancel: () => void
+}) => {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const isHydrated = useHydrated()
+
+  const [form, fields] = useForm({
+    id: 'label-form',
+    constraint: getZodConstraint(labelFormSchema),
+    shouldValidate: 'onInput',
+    shouldRevalidate: 'onInput',
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: labelFormSchema })
+    },
+    onSubmit(event, { formData }) {
+      event.preventDefault()
+      event.stopPropagation()
+      const parsed = parseWithZod(formData, { schema: labelFormSchema })
+      if (parsed.status === 'success') {
+        onSubmit?.(parsed.value)
+      }
+    },
+  })
+
+  // Focus the input when the form is hydrated
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    isHydrated && inputRef.current?.focus()
+  }, [isHydrated])
+
+  useEffect(() => {
+    if (defaultValue) {
+      form.update({ value: defaultValue })
+    }
+  }, [defaultValue])
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    form.onSubmit(event)
+  }
+
+  return (
+    <form method="post" {...getFormProps(form)} onSubmit={handleSubmit}>
+      <div className="space-y-4">
+        <Field label="Key" errors={fields.key.errors}>
+          <Input
+            {...getInputProps(fields.key, { type: 'text' })}
+            key={fields.key.id}
+            placeholder="e.g. app"
+            ref={inputRef}
+          />
+        </Field>
+        <Field label="Value" errors={fields.value.errors}>
+          <Input
+            {...getInputProps(fields.value, { type: 'text' })}
+            key={fields.value.id}
+            placeholder="e.g. Nginx"
+          />
+        </Field>
+      </div>
+      <div className="flex justify-end gap-2 pt-6">
+        <Button
+          type="button"
+          variant="link"
+          onClick={() => {
+            onCancel?.()
+          }}>
+          Cancel
+        </Button>
+        <Button type="submit">Save</Button>
+      </div>
+    </form>
+  )
+}

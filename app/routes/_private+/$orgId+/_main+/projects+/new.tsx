@@ -2,10 +2,11 @@ import { routes } from '@/constants/routes'
 import { CreateProjectForm } from '@/features/project/create-form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { newProjectSchema } from '@/resources/schemas/project.schema'
+import { newProjectSchema, NewProjectSchema } from '@/resources/schemas/project.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
+import { parseWithZod } from '@conform-to/zod'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 
 export const action = withMiddleware(
@@ -19,8 +20,13 @@ export const action = withMiddleware(
       await validateCSRF(formData, clonedRequest.headers)
 
       // Validate form data with Zod
-      const entries = Object.fromEntries(formData)
-      const payload = newProjectSchema.parse(entries)
+      const parsed = parseWithZod(formData, { schema: newProjectSchema })
+
+      if (parsed.status !== 'success') {
+        throw new Error('Invalid form data')
+      }
+
+      const payload = parsed.value as NewProjectSchema
 
       // Dry run to validate
       const dryRunRes = await projectsControl.createProject(payload, true)

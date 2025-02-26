@@ -13,6 +13,7 @@ export const newProjectSchema = z.object({
     .string({ required_error: 'Description is required.' })
     .max(100, { message: 'Description must be less than 100 characters long.' }),
   orgEntityId: z.string({ required_error: 'Organization ID is required.' }),
+  labels: z.array(z.string()).optional(),
 })
 
 export type NewProjectSchema = z.infer<typeof newProjectSchema>

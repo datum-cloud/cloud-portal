@@ -1,4 +1,4 @@
-import ApiKeyForm from '@/features/api-key/form'
+import { ApiKeyForm } from '@/features/api-key/form'
 import { commitSession, getSession } from '@/modules/auth/authSession.server'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { NewApiKeySchema, newApiKeySchema } from '@/resources/schemas/api-key.schema'
