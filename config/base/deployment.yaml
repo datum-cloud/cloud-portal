@@ -44,8 +44,9 @@ spec:
             - secretRef:
                 name: cloud-portal
           resources:
+            # TODO: Specify resource requests
             limits:
-              cpu: 100m
+              cpu: 1
               memory: 256Mi
           livenessProbe:
             failureThreshold: 3
