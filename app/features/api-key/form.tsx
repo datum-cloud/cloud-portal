@@ -1,0 +1,109 @@
+import { useIsPending } from '@/utils/misc'
+import { useEffect, useRef } from 'react'
+import { Form, useNavigate } from 'react-router'
+import { useHydrated } from 'remix-utils/use-hydrated'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { getFormProps, useForm, getInputProps, useInputControl } from '@conform-to/react'
+import { newApiKeySchema } from '@/resources/schemas/api-key.schema'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+import { Field } from '@/components/field/field'
+import { Input } from '@/components/ui/input'
+import { SelectExpires } from './select-expires'
+import { Button } from '@/components/ui/button'
+
+export default function ApiKeyForm() {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const isHydrated = useHydrated()
+  const isPending = useIsPending()
+  const navigate = useNavigate()
+
+  const [form, fields] = useForm({
+    constraint: getZodConstraint(newApiKeySchema),
+    shouldValidate: 'onInput',
+    shouldRevalidate: 'onInput',
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: newApiKeySchema })
+    },
+    defaultValue: {
+      expiresAt: '90',
+    },
+  })
+
+  // Field Controls
+  const expiresAtControl = useInputControl(fields.expiresAt)
+
+  // Focus the input when the form is hydrated
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    isHydrated && inputRef.current?.focus()
+  }, [isHydrated])
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Create a new API key</CardTitle>
+        <CardDescription>
+          Create a new API key to get started with Datum Cloud.
+        </CardDescription>
+      </CardHeader>
+      <Form method="POST" autoComplete="off" {...getFormProps(form)}>
+        <AuthenticityTokenInput />
+
+        <CardContent className="space-y-4">
+          <Field
+            label="Name"
+            description="Enter a short, human-friendly name."
+            errors={fields.name.errors}>
+            <Input
+              {...getInputProps(fields.name, { type: 'text' })}
+              key={fields.name.id}
+              placeholder="e.g. My API Key"
+              ref={inputRef}
+            />
+          </Field>
+          <Field label="Description" errors={fields.description.errors}>
+            <Input
+              {...getInputProps(fields.description, { type: 'text' })}
+              key={fields.description.id}
+              placeholder="e.g. My API Key for Server"
+            />
+          </Field>
+          <Field label="Expiration" errors={fields.expiresAt.errors}>
+            <SelectExpires
+              defaultValue={fields.expiresAt.value}
+              onValueChange={(selected) => {
+                expiresAtControl.change(selected?.value)
+              }}
+            />
+          </Field>
+        </CardContent>
+        <CardFooter className="flex justify-end gap-2">
+          <Button
+            type="button"
+            variant="link"
+            disabled={isPending}
+            onClick={() => {
+              navigate(-1)
+            }}>
+            Cancel
+          </Button>
+          <Button
+            variant="default"
+            type="submit"
+            disabled={isPending}
+            isLoading={isPending}>
+            {isPending ? 'Creating' : 'Create'}
+          </Button>
+        </CardFooter>
+      </Form>
+    </Card>
+  )
+}

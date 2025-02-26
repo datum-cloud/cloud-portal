@@ -74,8 +74,10 @@ export const SelectOrganization = ({
           <CommandList className="max-h-none">
             <CommandEmpty>No results found.</CommandEmpty>
             {fetcher.state === 'loading' ? (
-              <CommandItem disabled>
-                <Loader2 className="size-4 animate-spin" />
+              <CommandItem disabled className="px-3">
+                <div className="flex w-6 items-center justify-center">
+                  <Loader2 className="size-4 animate-spin" />
+                </div>
                 <span>Loading organizations...</span>
               </CommandItem>
             ) : (

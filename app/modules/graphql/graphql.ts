@@ -23,7 +23,8 @@ const errorHandler = (error: any) => {
   // Check for "not authorized" in error message
   if (
     errorMessage?.toLowerCase().includes('not authorized') ||
-    (statusCode >= 400 && statusCode < 500)
+    statusCode === 400 ||
+    statusCode === 401
   ) {
     statusCode = 401
   }

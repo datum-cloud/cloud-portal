@@ -46,15 +46,12 @@ export const action = withMiddleware(
         },
       )
     } catch (error) {
-      return dataWithToast(
-        {},
-        {
-          title: 'Error!',
-          description:
-            error instanceof Error ? error.message : (error as Response).statusText,
-          type: 'error',
-        },
-      )
+      return dataWithToast(null, {
+        title: 'Error!',
+        description:
+          error instanceof Error ? error.message : (error as Response).statusText,
+        type: 'error',
+      })
     }
   },
   authMiddleware,

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosError, AxiosInstance } from 'axios'
 import { CustomError } from '@/utils/errorHandle'
+import curlirize from 'axios-curlirize'
 
 type ApiClientOptions = {
   baseURL: string
@@ -27,6 +28,11 @@ export const createAxiosClient = (options: ApiClientOptions): AxiosInstance => {
     baseURL,
     withCredentials: false,
   })
+
+  // Curlirize the client for debugging purposes
+  if (process.env.NODE_ENV === 'development') {
+    curlirize(instance)
+  }
 
   instance.interceptors.request.use(
     (config: any) => {

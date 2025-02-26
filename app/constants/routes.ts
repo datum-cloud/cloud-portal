@@ -32,7 +32,10 @@ export const routes = {
       new: '/account/organizations/new',
     },
     projects: '/account/projects',
-    apiKeys: '/account/api-keys',
+    apiKeys: {
+      root: '/account/api-keys',
+      new: '/account/api-keys/new',
+    },
     settings: '/account/settings',
   },
   projects: {

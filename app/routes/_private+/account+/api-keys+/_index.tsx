@@ -1,0 +1,184 @@
+import { PageTitle } from '@/components/page-title/page-title'
+import { Button } from '@/components/ui/button'
+import { routes } from '@/constants/routes'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
+import {
+  ActionFunctionArgs,
+  AppLoadContext,
+  data,
+  Link,
+  useLoaderData,
+  useSubmit,
+} from 'react-router'
+import { UserApiKeyModel } from '@/resources/gql/models/user.model'
+import { ColumnDef } from '@tanstack/react-table'
+import { DateFormat } from '@/components/date-format/date-format'
+import { Badge } from '@/components/ui/badge'
+import { DataTable } from '@/components/data-table/data-table'
+import { commitSession, getSession } from '@/modules/auth/authSession.server'
+import { toast } from 'sonner'
+import { PreviewKey } from '@/features/api-key/preview-key'
+import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
+
+export const loader = withMiddleware(async ({ request, context }) => {
+  const { userGql } = context as AppLoadContext
+
+  const apiKeys = await userGql.getUserApiKeys()
+
+  const session = await getSession(request.headers.get('Cookie'))
+  const apiKey = session.get('apiKey')
+
+  // Remove the apiKey from the session
+  session.unset('apiKey')
+
+  return data(
+    { apiKeys, apiKey },
+    {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    },
+  )
+}, authMiddleware)
+
+export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
+  const { userGql } = context as AppLoadContext
+
+  switch (request.method) {
+    case 'DELETE': {
+      const formData = Object.fromEntries(await request.formData())
+      const { apiKeyId } = formData
+
+      return await userGql.deleteUserApiKey(apiKeyId as string)
+    }
+    default:
+      throw new Error('Method not allowed')
+  }
+}, authMiddleware)
+
+export default function AccountApiKeys() {
+  const { apiKeys, apiKey } = useLoaderData<typeof loader>()
+  const { confirm } = useConfirmationDialog()
+  const submit = useSubmit()
+
+  const deleteApiKey = async (apiKey: UserApiKeyModel) => {
+    await confirm({
+      title: 'Delete API Key',
+      description: (
+        <span>
+          Are you sure you want to delete&nbsp;
+          <strong>{apiKey.name}</strong>?
+        </span>
+      ),
+      submitText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      showConfirmInput: true,
+      onSubmit: async () => {
+        await submit(
+          {
+            apiKeyId: apiKey.id ?? '',
+          },
+          {
+            method: 'DELETE',
+            fetcherKey: 'api-key-resources',
+            navigate: false,
+          },
+        )
+
+        toast.success('API key deleted successfully')
+      },
+    })
+  }
+
+  const columns: ColumnDef<UserApiKeyModel>[] = [
+    {
+      header: 'Name',
+      accessorKey: 'name',
+      cell: ({ row }) => {
+        return <span className="font-semibold text-primary">{row.original.name}</span>
+      },
+    },
+    {
+      header: 'Expires At',
+      accessorKey: 'expiresAt',
+      cell: ({ row }) => {
+        return row.original.expiresAt ? (
+          <DateFormat date={row.original.expiresAt} format="MMMM d, yyyy" omitAmPm />
+        ) : (
+          'Never'
+        )
+      },
+    },
+    {
+      header: 'Last Used',
+      accessorKey: 'lastUsedAt',
+      cell: ({ row }) => {
+        return row.original.lastUsedAt ? (
+          <DateFormat date={row.original.lastUsedAt} />
+        ) : (
+          '-'
+        )
+      },
+    },
+    {
+      header: 'Status',
+      accessorKey: 'status',
+      enableSorting: false,
+      cell: ({ row }) => {
+        const expiresAt = new Date(row.original.expiresAt).getTime()
+        const isActive = !row.original.expiresAt || expiresAt > Date.now()
+
+        return (
+          <Badge variant={isActive ? 'outline' : 'destructive'}>
+            {isActive ? 'Active' : 'Expired'}
+          </Badge>
+        )
+      },
+    },
+    {
+      header: 'Created At',
+      accessorKey: 'createdAt',
+      cell: ({ row }) => {
+        return <DateFormat date={row.original.createdAt} />
+      },
+    },
+  ]
+
+  const rowActions: DataTableRowActionsProps<UserApiKeyModel>[] = [
+    {
+      key: 'delete',
+      label: 'Delete',
+      variant: 'destructive',
+      action: (row) => deleteApiKey(row),
+    },
+  ]
+
+  return (
+    <div className="container mx-auto flex max-w-screen-xl flex-col gap-4">
+      <PageTitle
+        title="API Keys"
+        description="Generate and control API keys to securely access your account's resources"
+        actions={
+          <Link to={routes.account.apiKeys.new}>
+            <Button>New API Key</Button>
+          </Link>
+        }
+      />
+
+      {apiKey && <PreviewKey value={apiKey} />}
+
+      <DataTable
+        columns={columns}
+        data={apiKeys ?? []}
+        rowActions={rowActions}
+        className=""
+        loadingText="Loading API keys..."
+        emptyText="No API keys found."
+        defaultSorting={[{ id: 'createdAt', desc: true }]}
+      />
+    </div>
+  )
+}

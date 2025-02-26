@@ -46,16 +46,13 @@ export const action = withMiddleware(
       const parsed = parseWithZod(formData, { schema: updateNetworkSchema })
 
       if (parsed.status !== 'success') {
-        return dataWithToast(
-          {},
-          {
-            title: 'Error',
-            description: Array.isArray(parsed.error)
-              ? parsed.error[0]
-              : (parsed.error ?? 'An error occurred'),
-            type: 'error',
-          },
-        )
+        return dataWithToast(null, {
+          title: 'Error',
+          description: Array.isArray(parsed.error)
+            ? parsed.error[0]
+            : (parsed.error ?? 'An error occurred'),
+          type: 'error',
+        })
       }
 
       const payload = parsed.value
@@ -85,15 +82,12 @@ export const action = withMiddleware(
         },
       )
     } catch (error) {
-      return dataWithToast(
-        {},
-        {
-          title: 'Error',
-          description:
-            error instanceof Error ? error.message : (error as Response).statusText,
-          type: 'error',
-        },
-      )
+      return dataWithToast(null, {
+        title: 'Error',
+        description:
+          error instanceof Error ? error.message : (error as Response).statusText,
+        type: 'error',
+      })
     }
   },
   authMiddleware,
