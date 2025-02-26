@@ -1,11 +1,11 @@
-import { HydratedRouter } from 'react-router/dom'
+import * as i18n from '@/modules/i18n/i18n'
 import i18next from 'i18next'
 import I18nextBrowserLanguageDetector from 'i18next-browser-languagedetector'
 import { startTransition } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { I18nextProvider, initReactI18next } from 'react-i18next'
+import { HydratedRouter } from 'react-router/dom'
 import { getInitialNamespaces } from 'remix-i18next/client'
-import * as i18n from '@/modules/i18n/i18n'
 
 async function main() {
   // eslint-disable-next-line import/no-named-as-default-member

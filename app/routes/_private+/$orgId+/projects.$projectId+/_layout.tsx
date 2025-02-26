@@ -1,7 +1,12 @@
-import { DashboardLayout } from '@/layouts/dashboard/dashboard'
-import { Outlet, useLoaderData, useParams, redirect, AppLoadContext } from 'react-router'
-import { NavItem } from '@/layouts/dashboard/sidebar/nav-main'
 import { routes } from '@/constants/routes'
+import { DashboardLayout } from '@/layouts/dashboard/dashboard'
+import { NavItem } from '@/layouts/dashboard/sidebar/nav-main'
+import { getSession } from '@/modules/auth/authSession.server'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
+import { CustomError } from '@/utils/errorHandle'
+import { getPathWithParams } from '@/utils/path'
 import {
   AreaChartIcon,
   GlobeIcon,
@@ -11,13 +16,9 @@ import {
   ShieldCheckIcon,
   TerminalIcon,
 } from 'lucide-react'
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { useMemo } from 'react'
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { getPathWithParams } from '@/utils/path'
-import { getSession } from '@/modules/auth/authSession.server'
-import { CustomError } from '@/utils/errorHandle'
+import { AppLoadContext, Outlet, redirect, useLoaderData, useParams } from 'react-router'
+
 export const loader = withMiddleware(async ({ params, context, request }) => {
   const { projectsControl } = context as AppLoadContext
   const { projectId } = params

@@ -1,6 +1,6 @@
-import { cn } from '@/utils/misc'
-import { logoStyles } from './logo.styles'
 import { LogoProps } from './logo'
+import { logoStyles } from './logo.styles'
+import { cn } from '@/utils/misc'
 
 export const LogoIcon = ({ theme = 'light', width = 385, className }: LogoProps) => {
   const { base, icon } = logoStyles({ theme })

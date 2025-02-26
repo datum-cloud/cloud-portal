@@ -1,18 +1,18 @@
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import {
-  Form,
-  useNavigation,
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
-  Link,
-} from 'react-router'
-import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
-import { routes } from '@/constants/routes'
-import { GoogleIcon } from '@/components/icons/google'
 import { GitHubIcon } from '@/components/icons/github'
-import { dataWithToast } from '@/utils/toast.server'
+import { GoogleIcon } from '@/components/icons/google'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { routes } from '@/constants/routes'
 import { useTheme } from '@/hooks/useTheme'
+import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
+import { dataWithToast } from '@/utils/toast.server'
+import {
+  ActionFunctionArgs,
+  Form,
+  Link,
+  LoaderFunctionArgs,
+  useNavigation,
+} from 'react-router'
 
 export async function action({ request }: ActionFunctionArgs) {
   try {

@@ -1,3 +1,7 @@
+import { SelectIPFamily } from './select-ip-family'
+import { SelectIPAM } from './select-ipam'
+import { Field } from '@/components/field/field'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -6,21 +10,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useEffect, useMemo, useRef } from 'react'
-import { useHydrated } from 'remix-utils/use-hydrated'
-import { useIsPending } from '@/utils/misc'
-import { Form, useNavigate } from 'react-router'
-import { Field } from '@/components/field/field'
 import { Input } from '@/components/ui/input'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
+import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import { newNetworkSchema, updateNetworkSchema } from '@/resources/schemas/network.schema'
 import { generateId, generateRandomString } from '@/utils/idGenerator'
+import { useIsPending } from '@/utils/misc'
+import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { useEffect, useMemo, useRef } from 'react'
+import { Form, useNavigate } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
-import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
-import { SelectIPFamily } from './select-ip-family'
-import { SelectIPAM } from './select-ipam'
-import { Button } from '@/components/ui/button'
+import { useHydrated } from 'remix-utils/use-hydrated'
 
 export default function NetworkForm({
   defaultValue,

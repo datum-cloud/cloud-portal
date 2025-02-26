@@ -1,3 +1,6 @@
+import { NavItem, NavMain } from './nav-main'
+import { LogoIcon } from '@/components/logo/logo-icon'
+import { LogoText } from '@/components/logo/logo-text'
 import {
   Sidebar,
   SidebarContent,
@@ -5,14 +8,11 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { NavItem, NavMain } from './nav-main'
 import { routes } from '@/constants/routes'
-import { useEffect } from 'react'
-import { useSearchParams, Link } from 'react-router'
 import { useTheme } from '@/hooks/useTheme'
-import { LogoText } from '@/components/logo/logo-text'
-import { LogoIcon } from '@/components/logo/logo-icon'
 import { cn } from '@/utils/misc'
+import { useEffect } from 'react'
+import { Link, useSearchParams } from 'react-router'
 
 export function DashboardSidebar({
   navItems,

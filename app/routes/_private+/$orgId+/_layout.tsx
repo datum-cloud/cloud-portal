@@ -1,19 +1,19 @@
+import WaitingPage from '@/components/waiting-page/waiting-page'
+import PublicLayout from '@/layouts/public/public'
 import { commitSession, getSession } from '@/modules/auth/authSession.server'
+import { useApp } from '@/providers/app.provider'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { CustomError } from '@/utils/errorHandle'
+import { differenceInMinutes } from 'date-fns'
+import { useEffect } from 'react'
 import {
-  data,
+  AppLoadContext,
   LoaderFunctionArgs,
   Outlet,
+  data,
   useLoaderData,
   useRevalidator,
-  AppLoadContext,
 } from 'react-router'
-import { differenceInMinutes } from 'date-fns'
-import { useApp } from '@/providers/app.provider'
-import { useEffect } from 'react'
-import PublicLayout from '@/layouts/public/public'
-import WaitingPage from '@/components/waiting-page/waiting-page'
-import { CustomError } from '@/utils/errorHandle'
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { orgId } = params

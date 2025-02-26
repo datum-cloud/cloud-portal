@@ -4,10 +4,10 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import {
-  DropdownMenuItem,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -24,8 +24,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { cn } from '@/utils/misc'
-import { ChevronRight, LucideIcon, ExternalLinkIcon } from 'lucide-react'
-import { ComponentProps, forwardRef, Fragment, useCallback, useState } from 'react'
+import { ChevronRight, ExternalLinkIcon, LucideIcon } from 'lucide-react'
+import { ComponentProps, Fragment, forwardRef, useCallback, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 
 export type NavItem = {

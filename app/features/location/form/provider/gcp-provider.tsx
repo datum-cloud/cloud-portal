@@ -1,12 +1,12 @@
 import { Field } from '@/components/field/field'
-import { Input } from '@/components/ui/input'
-import { FieldMetadata, getInputProps, useInputControl } from '@conform-to/react'
-import { LocationProvider } from '@/resources/interfaces/location.interface'
-import { useEffect, useMemo, useState } from 'react'
 import { SelectAutocomplete } from '@/components/select-autocomplete/select-autocomplete'
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
+import { Input } from '@/components/ui/input'
 import GCP_REGIONS from '@/constants/json/gcp-region.json'
+import { LocationProvider } from '@/resources/interfaces/location.interface'
+import { FieldMetadata, getInputProps, useInputControl } from '@conform-to/react'
 import { Slash } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
 const SelectRegion = ({
   defaultValue,

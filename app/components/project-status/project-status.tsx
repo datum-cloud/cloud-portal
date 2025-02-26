@@ -1,7 +1,7 @@
-import { Loader2, CircleIcon } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { IProjectStatus } from '@/resources/interfaces/project.interface'
 import { cn } from '@/utils/misc'
+import { CircleIcon, Loader2 } from 'lucide-react'
 import { useMemo } from 'react'
 
 export function ProjectStatus({

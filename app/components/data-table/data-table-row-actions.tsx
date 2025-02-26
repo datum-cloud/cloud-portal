@@ -1,13 +1,13 @@
 import { DataTableRowActionsProps } from './data-table.types'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown'
-import { Button } from '@/components/ui/button'
-import { Ellipsis } from 'lucide-react'
 import { cn } from '@/utils/misc'
+import { Ellipsis } from 'lucide-react'
 
 export const DataTableRowActions = <TData,>({
   row,

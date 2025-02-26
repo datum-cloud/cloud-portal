@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createConfig, createClient, ClientOptions } from '@hey-api/client-axios'
-import { AxiosError } from 'axios'
 import { CustomError } from '@/utils/errorHandle'
+import { ClientOptions, createClient, createConfig } from '@hey-api/client-axios'
+import { AxiosError } from 'axios'
 import curlirize from 'axios-curlirize'
 
 // Customize the client to add an auth token to the request headers

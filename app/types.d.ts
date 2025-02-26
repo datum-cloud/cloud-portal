@@ -1,12 +1,13 @@
-// Enable absolute imports from the root directory
-declare module '@/*'
-
 // Import required types
-import 'react-router'
 import { APIFactory } from '@/resources/api/api.factory'
 import { ControlPlaneFactory } from '@/resources/control-plane/control.factory'
 import { GqlFactory } from '@/resources/gql/gql.factory'
+import 'react-router'
 import { Storage } from 'unstorage'
+
+// Enable absolute imports from the root directory
+declare module '@/*'
+
 /**
  * Extend the React Router AppLoadContext interface to include our custom factories
  */

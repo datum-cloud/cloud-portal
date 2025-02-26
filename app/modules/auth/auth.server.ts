@@ -1,14 +1,15 @@
-import { Authenticator } from 'remix-auth'
-import { IGoogleProfile, IGithubProfile } from '@/resources/interfaces/user.interface'
-import { OAuth2Strategy } from 'remix-auth-oauth2'
+import { commitSession, getSession } from './authSession.server'
 import { routes } from '@/constants/routes'
-import { getSession, commitSession } from './authSession.server'
-import { redirect } from 'react-router'
-import { GitHubStrategy } from 'remix-auth-github'
 import { IAuthSession } from '@/resources/interfaces/auth.interface'
-import { jwtDecode } from 'jwt-decode'
-import { safeRedirect } from 'remix-utils/safe-redirect'
+import { IGithubProfile, IGoogleProfile } from '@/resources/interfaces/user.interface'
 import { getPathWithParams } from '@/utils/path'
+import { jwtDecode } from 'jwt-decode'
+import { redirect } from 'react-router'
+import { Authenticator } from 'remix-auth'
+import { GitHubStrategy } from 'remix-auth-github'
+import { OAuth2Strategy } from 'remix-auth-oauth2'
+import { safeRedirect } from 'remix-utils/safe-redirect'
+
 export const authenticator = new Authenticator<IAuthSession>()
 
 async function fetchOauthProfile<T>(url: string, accessToken: string): Promise<T> {

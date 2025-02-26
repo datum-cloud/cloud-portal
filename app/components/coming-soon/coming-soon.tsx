@@ -1,5 +1,6 @@
-import { useTheme } from '@/hooks/useTheme'
 import { LogoIcon } from '@/components/logo/logo-icon'
+import { useTheme } from '@/hooks/useTheme'
+
 export const ComingSoon = () => {
   const theme = useTheme()
 

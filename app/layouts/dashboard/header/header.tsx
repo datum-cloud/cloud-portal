@@ -1,13 +1,13 @@
-import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown'
-import { Button } from '@/components/ui/button'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Link, useParams } from 'react-router'
-import SearchBar from './search-bar'
 import { OrganizationSwitcher } from './org-switcher'
 import { ProjectSwitcher } from './project-switcher'
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { SlashIcon, CircleHelp } from 'lucide-react'
+import SearchBar from './search-bar'
+import { Button } from '@/components/ui/button'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown'
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
+import { CircleHelp, SlashIcon } from 'lucide-react'
+import { Link, useParams } from 'react-router'
 
 export const Header = ({
   hideSidebar = false,

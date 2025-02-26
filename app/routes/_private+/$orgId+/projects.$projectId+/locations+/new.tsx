@@ -1,13 +1,13 @@
-import CreateLocationForm from '@/features/location/form/create-form'
-import { NewLocationSchema, newLocationSchema } from '@/resources/schemas/location.schema'
-import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
-import { ActionFunctionArgs, AppLoadContext } from 'react-router'
-import { getPathWithParams } from '@/utils/path'
 import { routes } from '@/constants/routes'
+import CreateLocationForm from '@/features/location/form/create-form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { NewLocationSchema, newLocationSchema } from '@/resources/schemas/location.schema'
 import { validateCSRF } from '@/utils/csrf.server'
+import { getPathWithParams } from '@/utils/path'
+import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
+import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 
 export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { gql, GraphQLClient as GraphQLClientInstance, Variables } from 'graphql-request'
+import { GraphQLClient as GraphQLClientInstance, Variables, gql } from 'graphql-request'
 
 type GraphqlClientOptions = {
   baseURL: string

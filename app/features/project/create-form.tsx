@@ -1,3 +1,6 @@
+import { Field } from '@/components/field/field'
+import { SelectOrganization } from '@/components/select-organization/select-organization'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -6,24 +9,21 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { newProjectSchema } from '@/resources/schemas/project.schema'
-import { Form, useNavigate } from 'react-router'
-import { useHydrated } from 'remix-utils/use-hydrated'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useIsPending } from '@/utils/misc'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import { routes } from '@/constants/routes'
+import { useApp } from '@/providers/app.provider'
+import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { newProjectSchema } from '@/resources/schemas/project.schema'
+import { generateId, generateRandomString } from '@/utils/idGenerator'
+import { useIsPending } from '@/utils/misc'
+import { getPathWithParams } from '@/utils/path'
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { Field } from '@/components/field/field'
-import { useApp } from '@/providers/app.provider'
-import { SelectOrganization } from '@/components/select-organization/select-organization'
 import { RocketIcon } from 'lucide-react'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { routes } from '@/constants/routes'
-import { getPathWithParams } from '@/utils/path'
-import { generateId, generateRandomString } from '@/utils/idGenerator'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Form, useNavigate } from 'react-router'
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+import { useHydrated } from 'remix-utils/use-hydrated'
 
 export const CreateProjectForm = () => {
   const { organization } = useApp()

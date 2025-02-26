@@ -1,10 +1,10 @@
-import { authenticator } from '@/modules/auth/auth.server'
-import { AppLoadContext, LoaderFunctionArgs, redirect } from 'react-router'
 import { routes } from '@/constants/routes'
+import { authenticator } from '@/modules/auth/auth.server'
 import { commitSession, getSession } from '@/modules/auth/authSession.server'
+import { CustomError } from '@/utils/errorHandle'
 import { combineHeaders } from '@/utils/misc.server'
 import { redirectWithToast } from '@/utils/toast.server'
-import { CustomError } from '@/utils/errorHandle'
+import { AppLoadContext, LoaderFunctionArgs, redirect } from 'react-router'
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { authApi } = context as AppLoadContext

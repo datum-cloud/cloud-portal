@@ -1,5 +1,4 @@
-'use client'
-
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -9,19 +8,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import * as React from 'react'
-import {
-  useImperativeHandle,
-  useRef,
-  forwardRef,
-  useState,
-  useMemo,
-  useEffect,
-} from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 export interface ConfirmationDialogProps {
   title?: string

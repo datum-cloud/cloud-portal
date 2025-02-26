@@ -1,3 +1,5 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,15 +9,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown'
-import { Button } from '@/components/ui/button'
-import { LogOut, UserIcon, KeyIcon } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { routes } from '@/constants/routes'
 import { useApp } from '@/providers/app.provider'
 import { UserModel } from '@/resources/gql/models/user.model'
-import { Form, useNavigate } from 'react-router'
-import { routes } from '@/constants/routes'
-import { getInitials, cn } from '@/utils/misc'
+import { cn, getInitials } from '@/utils/misc'
+import { KeyIcon, LogOut, UserIcon } from 'lucide-react'
 import { useState } from 'react'
+import { Form, useNavigate } from 'react-router'
+
 const UserItem = ({
   user,
   description,

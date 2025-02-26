@@ -1,8 +1,9 @@
-import type { MetaFunction } from 'react-router'
-import { HelpCircle } from 'lucide-react'
-import { SITE_CONFIG } from '@/constants/brand'
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
+import { SITE_CONFIG } from '@/constants/brand'
 import { CustomError } from '@/utils/errorHandle'
+import { HelpCircle } from 'lucide-react'
+import type { MetaFunction } from 'react-router'
+
 export const meta: MetaFunction = () => {
   return [{ title: `${SITE_CONFIG.siteTitle} - 404 Not Found!` }]
 }

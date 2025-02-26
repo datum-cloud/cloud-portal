@@ -1,12 +1,12 @@
-import { CreateProjectForm } from '@/features/project/create-form'
 import { routes } from '@/constants/routes'
-import { ActionFunctionArgs, AppLoadContext } from 'react-router'
-import { validateCSRF } from '@/utils/csrf.server'
-import { newProjectSchema } from '@/resources/schemas/project.schema'
-import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
-import { getPathWithParams } from '@/utils/path'
-import { withMiddleware } from '@/modules/middleware/middleware'
+import { CreateProjectForm } from '@/features/project/create-form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
+import { newProjectSchema } from '@/resources/schemas/project.schema'
+import { validateCSRF } from '@/utils/csrf.server'
+import { getPathWithParams } from '@/utils/path'
+import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
+import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 
 export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {

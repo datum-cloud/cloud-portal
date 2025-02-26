@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import axios, { AxiosError, AxiosInstance } from 'axios'
 import { CustomError } from '@/utils/errorHandle'
+import axios, { AxiosError, AxiosInstance } from 'axios'
 import curlirize from 'axios-curlirize'
 
 type ApiClientOptions = {

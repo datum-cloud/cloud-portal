@@ -1,7 +1,7 @@
-import type { ActionFunctionArgs, AppLoadContext } from 'react-router'
-import { destroySession, getSession } from '@/modules/auth/authSession.server'
-import { LoaderFunctionArgs, redirect } from 'react-router'
 import { routes } from '@/constants/routes'
+import { destroySession, getSession } from '@/modules/auth/authSession.server'
+import type { ActionFunctionArgs, AppLoadContext } from 'react-router'
+import { LoaderFunctionArgs, redirect } from 'react-router'
 
 const signOut = async (request: Request) => {
   const session = await getSession(request.headers.get('cookie'))

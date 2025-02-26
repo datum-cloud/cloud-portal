@@ -1,6 +1,6 @@
+import { OrganizationGql, createOrganizationGql } from './organization.gql'
+import { UserGql, createUserGql } from './user.gql'
 import { createGraphqlClient } from '@/modules/graphql/graphql'
-import { createOrganizationGql, OrganizationGql } from './organization.gql'
-import { createUserGql, UserGql } from './user.gql'
 
 export interface GqlFactory {
   organizationGql: OrganizationGql

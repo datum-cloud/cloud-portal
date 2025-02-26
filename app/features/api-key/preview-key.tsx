@@ -1,11 +1,11 @@
-import { motion } from 'framer-motion'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { InputWithAddons } from '@/components/ui/input-with-addons'
 import { Button } from '@/components/ui/button'
-import { CopyIcon, Terminal } from 'lucide-react'
-import { toast } from 'sonner'
-import { useState } from 'react'
+import { InputWithAddons } from '@/components/ui/input-with-addons'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
+import { motion } from 'framer-motion'
+import { CopyIcon, Terminal } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 export const PreviewKey = ({ value }: { value: string }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

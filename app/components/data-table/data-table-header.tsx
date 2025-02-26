@@ -1,7 +1,7 @@
-import { flexRender, Table as TTable } from '@tanstack/react-table'
-import { TableRow, TableHeader, TableHead } from '@/components/ui/table'
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react'
+import { TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/utils/misc'
+import { Table as TTable, flexRender } from '@tanstack/react-table'
+import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react'
 
 export const DataTableHeader = <TData,>({
   table,

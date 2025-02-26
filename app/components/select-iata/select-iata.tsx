@@ -1,7 +1,7 @@
+import { SelectAutocomplete } from '@/components/select-autocomplete/select-autocomplete'
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
 import IATA_CODES from '@/constants/json/iata.json'
 import { cn } from '@/utils/misc'
-import { SelectAutocomplete } from '@/components/select-autocomplete/select-autocomplete'
 import { Slash } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 

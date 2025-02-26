@@ -1,8 +1,8 @@
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { routes } from '@/constants/routes'
-import { redirect } from 'react-router'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
 import { getPathWithParams } from '@/utils/path'
+import { redirect } from 'react-router'
 
 export const loader = withMiddleware(async ({ params }) => {
   const { orgId } = params

@@ -1,7 +1,7 @@
+import { routes } from '@/constants/routes'
 import { authenticator } from '@/modules/auth/auth.server'
 import type { ActionFunctionArgs } from 'react-router'
 import { redirect } from 'react-router'
-import { routes } from '@/constants/routes'
 
 export async function loader() {
   return redirect(routes.auth.logIn)

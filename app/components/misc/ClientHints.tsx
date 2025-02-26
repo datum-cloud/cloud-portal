@@ -1,7 +1,7 @@
+import { hintsUtils } from '@/hooks/useHints'
+import { subscribeToSchemeChange } from '@epic-web/client-hints/color-scheme'
 import { useEffect } from 'react'
 import { useRevalidator } from 'react-router'
-import { subscribeToSchemeChange } from '@epic-web/client-hints/color-scheme'
-import { hintsUtils } from '@/hooks/useHints'
 
 /**
  * Injects an inline script that checks/sets CH Cookies (if not present).

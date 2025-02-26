@@ -1,5 +1,4 @@
-import { cn } from '@/utils/misc'
-import { useOs } from '@/hooks/useOs'
+import { Button } from '@/components/ui/button'
 import {
   CommandDialog,
   CommandEmpty,
@@ -8,13 +7,13 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { Search } from 'lucide-react'
 import { routes } from '@/constants/routes'
-import { Link, useParams } from 'react-router'
-
-import { useEffect, useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { useOs } from '@/hooks/useOs'
+import { cn } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
+import { Search } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router'
 
 export default function SearchBar({ className }: { className?: string }) {
   const { orgId } = useParams()

@@ -1,11 +1,10 @@
 import {
+  IAuthTokenPayload,
   IAuthTokenResponse,
   IExchangeTokenResponse,
-  IAuthTokenPayload,
 } from '@/resources/interfaces/auth.interface'
-
-import { AxiosInstance } from 'axios'
 import { IUserProfile } from '@/resources/interfaces/user.interface'
+import { AxiosInstance } from 'axios'
 
 export const createAuthAPIService = (client: AxiosInstance) => {
   return {

@@ -1,4 +1,3 @@
-import { Client } from '@hey-api/client-axios'
 import {
   ComDatumapisNetworkingV1AlphaLocation,
   createNetworkingDatumapisComV1AlphaNamespacedLocation,
@@ -13,6 +12,7 @@ import {
 } from '@/resources/interfaces/location.interface'
 import { NewLocationSchema } from '@/resources/schemas/location.schema'
 import { CustomError } from '@/utils/errorHandle'
+import { Client } from '@hey-api/client-axios'
 
 export const createLocationsControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL

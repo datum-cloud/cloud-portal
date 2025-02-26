@@ -1,3 +1,22 @@
+import { ClientHintCheck } from '@/components/misc/ClientHints'
+import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
+import { Toaster } from '@/components/ui/sonner'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { SITE_CONFIG } from '@/constants/brand'
+import { getHints } from '@/hooks/useHints'
+import { useNonce } from '@/hooks/useNonce'
+import { Theme, getTheme, useTheme } from '@/hooks/useTheme'
+import { useToast } from '@/hooks/useToast'
+import i18nServer, { localeCookie } from '@/modules/i18n/i18n.server'
+import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/handle-cache'
+// Import global CSS styles for the application
+// The ?url query parameter tells the bundler to handle this as a URL import
+import RootCSS from '@/styles/root.css?url'
+import { csrf } from '@/utils/csrf.server'
+import { combineHeaders, getDomainUrl } from '@/utils/misc.server'
+import { getToastSession } from '@/utils/toast.server'
+import NProgress from 'nprogress'
+import { useEffect, useMemo } from 'react'
 import {
   Links,
   Meta,
@@ -13,28 +32,7 @@ import {
 } from 'react-router'
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router'
 import { useChangeLanguage } from 'remix-i18next/react'
-
 import { AuthenticityTokenProvider } from 'remix-utils/csrf/react'
-
-// Import global CSS styles for the application
-// The ?url query parameter tells the bundler to handle this as a URL import
-import RootCSS from '@/styles/root.css?url'
-import { SITE_CONFIG } from '@/constants/brand'
-import { combineHeaders, getDomainUrl } from '@/utils/misc.server'
-import { getToastSession } from '@/utils/toast.server'
-import { csrf } from '@/utils/csrf.server'
-import { getHints } from '@/hooks/useHints'
-import { getTheme, Theme, useTheme } from '@/hooks/useTheme'
-import i18nServer, { localeCookie } from '@/modules/i18n/i18n.server'
-import { Toaster } from '@/components/ui/sonner'
-import { ClientHintCheck } from '@/components/misc/ClientHints'
-import { useNonce } from '@/hooks/useNonce'
-import { useToast } from '@/hooks/useToast'
-import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import NProgress from 'nprogress'
-import { useEffect, useMemo } from 'react'
-import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/handle-cache'
 
 // NProgress configuration
 NProgress.configure({ showSpinner: false })

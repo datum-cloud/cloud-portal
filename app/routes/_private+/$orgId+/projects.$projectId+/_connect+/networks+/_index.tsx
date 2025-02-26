@@ -1,6 +1,17 @@
-import { withMiddleware } from '@/modules/middleware/middleware'
+import { DataTable } from '@/components/data-table/data-table'
+import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
+import { DateFormat } from '@/components/date-format/date-format'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { routes } from '@/constants/routes'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
+import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import { CustomError } from '@/utils/errorHandle'
+import { getPathWithParams } from '@/utils/path'
+import { ColumnDef } from '@tanstack/react-table'
+import { PlusIcon } from 'lucide-react'
 import {
   ActionFunctionArgs,
   AppLoadContext,
@@ -10,17 +21,6 @@ import {
   useParams,
   useSubmit,
 } from 'react-router'
-import { getPathWithParams } from '@/utils/path'
-import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
-import { ColumnDef } from '@tanstack/react-table'
-import { routes } from '@/constants/routes'
-import { Badge } from '@/components/ui/badge'
-import { DataTable } from '@/components/data-table/data-table'
-import { DateFormat } from '@/components/date-format/date-format'
-import { Button } from '@/components/ui/button'
-import { PlusIcon } from 'lucide-react'
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { toast } from 'sonner'
 
 export const loader = withMiddleware(async ({ params, context }) => {

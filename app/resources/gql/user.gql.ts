@@ -1,7 +1,7 @@
-import { GraphqlClient } from '@/modules/graphql/graphql'
-import { alias, mutation, query as typedQuery, types } from 'typed-graphqlify'
 import { userApiKeyModel, userModel } from './models/user.model'
-import { NewApiKeySchema } from '../schemas/api-key.schema'
+import { GraphqlClient } from '@/modules/graphql/graphql'
+import { NewApiKeySchema } from '@/resources/schemas/api-key.schema'
+import { alias, mutation, query as typedQuery, types } from 'typed-graphqlify'
 
 export const createUserGql = (client: GraphqlClient) => {
   return {

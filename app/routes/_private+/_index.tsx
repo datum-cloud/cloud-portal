@@ -1,10 +1,10 @@
-import { redirect } from 'react-router'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
 import { routes } from '@/constants/routes'
 import { getSession } from '@/modules/auth/authSession.server'
-import { getPathWithParams } from '@/utils/path'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
 import { CustomError } from '@/utils/errorHandle'
+import { getPathWithParams } from '@/utils/path'
+import { redirect } from 'react-router'
 
 export const loader = withMiddleware(async ({ request }) => {
   const session = await getSession(request.headers.get('Cookie'))

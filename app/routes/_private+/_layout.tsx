@@ -1,10 +1,11 @@
+import { getSession } from '@/modules/auth/authSession.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { AppLoadContext, data, Outlet, useLoaderData } from 'react-router'
-import { getSession } from '@/modules/auth/authSession.server'
-import { UserModel } from '@/resources/gql/models/user.model'
 import { AppProvider } from '@/providers/app.provider'
 import { ConfirmationDialogProvider } from '@/providers/confirmationDialog.provider'
+import { UserModel } from '@/resources/gql/models/user.model'
+import { AppLoadContext, Outlet, data, useLoaderData } from 'react-router'
+
 export const loader = withMiddleware(async ({ request, context }) => {
   const { userGql } = context as AppLoadContext
   const session = await getSession(request.headers.get('Cookie'))
