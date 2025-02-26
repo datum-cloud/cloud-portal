@@ -1,6 +1,3 @@
-import * as React from 'react'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/utils/misc'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Tooltip,
@@ -8,6 +5,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { cn } from '@/utils/misc'
+import { type VariantProps, cva } from 'class-variance-authority'
+import * as React from 'react'
 
 const avatarStackVariants = cva('flex', {
   variants: {

@@ -1,19 +1,19 @@
+import { routes } from '@/constants/routes'
 import CreateLocationForm from '@/features/location/form/create-form'
-import { newLocationSchema, NewLocationSchema } from '@/resources/schemas/location.schema'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { NewLocationSchema, newLocationSchema } from '@/resources/schemas/location.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { CustomError } from '@/utils/errorHandle'
+import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
 import {
-  AppLoadContext,
-  useLoaderData,
-  LoaderFunctionArgs,
   ActionFunctionArgs,
+  AppLoadContext,
+  LoaderFunctionArgs,
+  useLoaderData,
 } from 'react-router'
-import { getPathWithParams } from '@/utils/path'
-import { routes } from '@/constants/routes'
 
 export const loader = withMiddleware(async ({ params, context }: LoaderFunctionArgs) => {
   const { projectId, locationId } = params

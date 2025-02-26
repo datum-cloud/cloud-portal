@@ -1,9 +1,9 @@
-import type { Theme, ThemeExtended } from '@/hooks/useTheme'
-import { useSubmit, useFetcher } from 'react-router'
-import { Sun, Moon, Monitor } from 'lucide-react'
-import { ROUTE_PATH as THEME_PATH } from '@/routes/api+/update-theme'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
+import type { Theme, ThemeExtended } from '@/hooks/useTheme'
 import { useOptimisticThemeMode } from '@/hooks/useTheme'
+import { ROUTE_PATH as THEME_PATH } from '@/routes/api+/update-theme'
+import { Monitor, Moon, Sun } from 'lucide-react'
+import { useFetcher, useSubmit } from 'react-router'
 
 export function ThemeSwitcher({
   userPreference,

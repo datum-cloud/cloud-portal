@@ -1,11 +1,11 @@
 /**
  * Implementation based on github.com/epicweb-dev/epic-stack
  */
-import * as cookie from 'cookie'
-import { z } from 'zod'
-import { useFetcher } from 'react-router'
 import { useHints } from '@/hooks/useHints'
 import { useRequestInfo } from '@/hooks/useRequestInfo'
+import * as cookie from 'cookie'
+import { useFetcher } from 'react-router'
+import { z } from 'zod'
 
 export const ThemeSchema = z.object({
   theme: z.enum(['system', 'light', 'dark']),

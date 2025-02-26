@@ -1,5 +1,4 @@
-import { CheckIcon } from 'lucide-react'
-import { cn } from '@/utils/misc'
+import { Option } from './select-autocomplete.types'
 import {
   Command,
   CommandEmpty,
@@ -8,10 +7,10 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { useEffect, useRef, useState } from 'react'
+import { cn } from '@/utils/misc'
 import { useVirtualizer } from '@tanstack/react-virtual'
-
-import { Option } from './select-autocomplete.types'
+import { CheckIcon } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 export const VirtualizedList = ({
   options,

@@ -1,5 +1,8 @@
+import {
+  LocationClass,
+  LocationProvider,
+} from '@/resources/interfaces/location.interface'
 import { z } from 'zod'
-import { LocationClass, LocationProvider } from '../interfaces/location.interface'
 
 export const gcpProviderSchema = z.object({
   provider: z.literal(LocationProvider.GCP),

@@ -1,8 +1,9 @@
-import { createProjectsControl, ProjectsControl } from './projects.control'
-import { createLocationsControl, LocationsControl } from './locations.control'
+import { LocationsControl, createLocationsControl } from './locations.control'
+import { NetworksControl, createNetworksControl } from './networks.control'
+import { ProjectsControl, createProjectsControl } from './projects.control'
 import { createControlPlaneClient } from '@/modules/control-plane/axiosControl'
 import { Client } from '@hey-api/client-axios'
-import { createNetworksControl, NetworksControl } from './networks.control'
+
 // Define factory return type
 export interface ControlPlaneFactory {
   projectsControl: ProjectsControl

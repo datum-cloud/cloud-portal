@@ -1,5 +1,5 @@
+import { AuthAPIService, createAuthAPIService } from './auth.api'
 import { createAxiosClient } from '@/modules/axios/axios'
-import { createAuthAPIService, AuthAPIService } from './auth.api'
 
 export interface APIFactory {
   authApi: AuthAPIService

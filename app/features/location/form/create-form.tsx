@@ -1,3 +1,9 @@
+import { GCPProvider } from './provider/gcp-provider'
+import { SelectLocationClass } from './select-class'
+import { SelectLocationProvider } from './select-provider'
+import { Field } from '@/components/field/field'
+import { SelectIATA } from '@/components/select-iata/select-iata'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -6,28 +12,22 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { useRef, useEffect, useMemo } from 'react'
-import { useHydrated } from 'remix-utils/use-hydrated'
-import { Form, useNavigate } from 'react-router'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { getFormProps, useForm, getInputProps, useInputControl } from '@conform-to/react'
-import { newLocationSchema } from '@/resources/schemas/location.schema'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
-import { Field } from '@/components/field/field'
 import { Input } from '@/components/ui/input'
-import { generateId, generateRandomString } from '@/utils/idGenerator'
-import { SelectLocationClass } from './select-class'
-import { SelectIATA } from '@/components/select-iata/select-iata'
-import { SelectLocationProvider } from './select-provider'
 import { Separator } from '@/components/ui/separator'
 import {
-  LocationProvider,
   ILocationControlResponse,
   LocationClass,
+  LocationProvider,
 } from '@/resources/interfaces/location.interface'
-import { GCPProvider } from './provider/gcp-provider'
-import { Button } from '@/components/ui/button'
+import { newLocationSchema } from '@/resources/schemas/location.schema'
+import { generateId, generateRandomString } from '@/utils/idGenerator'
 import { useIsPending } from '@/utils/misc'
+import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { useEffect, useMemo, useRef } from 'react'
+import { Form, useNavigate } from 'react-router'
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+import { useHydrated } from 'remix-utils/use-hydrated'
 
 export default function CreateLocationForm({
   defaultValue,

@@ -1,8 +1,8 @@
-import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
-import { cn } from '@/utils/misc'
 import { SelectAutocomplete } from '@/components/select-autocomplete/select-autocomplete'
-import { useEffect, useMemo, useState } from 'react'
+import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
 import { LOCATION_CLASSES } from '@/constants/location'
+import { cn } from '@/utils/misc'
+import { useEffect, useMemo, useState } from 'react'
 
 export const SelectLocationClass = ({
   defaultValue,

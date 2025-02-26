@@ -1,9 +1,9 @@
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import React from 'react'
-import { DashboardSidebar } from './sidebar/sidebar'
-import { NavItem } from './sidebar/nav-main'
 import { Header } from './header/header'
+import { NavItem } from './sidebar/nav-main'
+import { DashboardSidebar } from './sidebar/sidebar'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
+import React from 'react'
 
 export function DashboardLayout({
   children,

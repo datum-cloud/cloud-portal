@@ -1,10 +1,6 @@
-import { useIsPending } from '@/utils/misc'
-import { useEffect, useRef } from 'react'
-import { Form, useNavigate } from 'react-router'
-import { useHydrated } from 'remix-utils/use-hydrated'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { getFormProps, useForm, getInputProps, useInputControl } from '@conform-to/react'
-import { newApiKeySchema } from '@/resources/schemas/api-key.schema'
+import { SelectExpires } from './select-expires'
+import { Field } from '@/components/field/field'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -13,11 +9,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
-import { Field } from '@/components/field/field'
 import { Input } from '@/components/ui/input'
-import { SelectExpires } from './select-expires'
-import { Button } from '@/components/ui/button'
+import { newApiKeySchema } from '@/resources/schemas/api-key.schema'
+import { useIsPending } from '@/utils/misc'
+import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { useEffect, useRef } from 'react'
+import { Form, useNavigate } from 'react-router'
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+import { useHydrated } from 'remix-utils/use-hydrated'
 
 export default function ApiKeyForm() {
   const inputRef = useRef<HTMLInputElement>(null)

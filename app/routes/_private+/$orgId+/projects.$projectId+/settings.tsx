@@ -1,3 +1,4 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -8,17 +9,16 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { InputWithAddons } from '@/components/ui/input-with-addons'
-import { useRouteLoaderData, useSubmit, useNavigate, useParams } from 'react-router'
-import { CircleAlertIcon, CopyIcon } from 'lucide-react'
-import { useState } from 'react'
+import { routes } from '@/constants/routes'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
-import { toast } from 'sonner'
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { ROUTE_PATH as PROJECT_RESOURCES_ROUTE_PATH } from '@/routes/api+/projects+/resources'
 import { getPathWithParams } from '@/utils/path'
-import { routes } from '@/constants/routes'
+import { CircleAlertIcon, CopyIcon } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate, useParams, useRouteLoaderData, useSubmit } from 'react-router'
+import { toast } from 'sonner'
 
 export default function ProjectSettingsPage() {
   const project = useRouteLoaderData(

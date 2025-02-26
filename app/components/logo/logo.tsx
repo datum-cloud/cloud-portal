@@ -1,5 +1,5 @@
-import { cn } from '@/utils/misc'
 import { LogoVariants, logoStyles } from './logo.styles'
+import { cn } from '@/utils/misc'
 
 export interface LogoProps extends LogoVariants {
   width?: number

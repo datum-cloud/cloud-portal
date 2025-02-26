@@ -1,15 +1,15 @@
-import type { AppLoadContext, EntryContext } from 'react-router'
+import { NonceProvider } from '@/hooks/useNonce'
+import * as i18n from '@/modules/i18n/i18n'
+import i18nServer from '@/modules/i18n/i18n.server'
+import { initEnvs } from '@/utils/env.server'
+import { createReadableStreamFromReadable } from '@react-router/node'
+import { createInstance } from 'i18next'
 import { isbot } from 'isbot'
 import { PassThrough } from 'node:stream'
-import { ServerRouter } from 'react-router'
-import { createReadableStreamFromReadable } from '@react-router/node'
 import { renderToPipeableStream } from 'react-dom/server'
-import { createInstance } from 'i18next'
 import { I18nextProvider, initReactI18next } from 'react-i18next'
-import { initEnvs } from '@/utils/env.server'
-import { NonceProvider } from '@/hooks/useNonce'
-import i18nServer from '@/modules/i18n/i18n.server'
-import * as i18n from '@/modules/i18n/i18n'
+import type { AppLoadContext, EntryContext } from 'react-router'
+import { ServerRouter } from 'react-router'
 
 /**
  * Environment Variables.

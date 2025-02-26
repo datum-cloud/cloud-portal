@@ -6,10 +6,11 @@ import {
   readNetworkingDatumapisComV1AlphaNamespacedNetwork,
   replaceNetworkingDatumapisComV1AlphaNamespacedNetwork,
 } from '@/modules/control-plane/networking'
-import { Client } from '@hey-api/client-axios'
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import { NewNetworkSchema, UpdateNetworkSchema } from '@/resources/schemas/network.schema'
 import { CustomError } from '@/utils/errorHandle'
+import { Client } from '@hey-api/client-axios'
+
 export const createNetworksControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 

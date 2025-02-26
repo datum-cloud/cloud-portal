@@ -1,16 +1,16 @@
-import { useRouteLoaderData, useRevalidator } from 'react-router'
-import { useEffect, useMemo } from 'react'
-import { ArrowRight, Mail } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { motion } from 'framer-motion'
 import { ProjectStatus } from '@/components/project-status/project-status'
+import { Button } from '@/components/ui/button'
 import {
-  ExplorerList,
-  ExplorerCard,
-  SectionTitle,
-  SectionDescription,
   ArrowListItem,
+  ExplorerCard,
+  ExplorerList,
+  SectionDescription,
+  SectionTitle,
 } from '@/features/project/dashboard'
+import { motion } from 'framer-motion'
+import { ArrowRight, Mail } from 'lucide-react'
+import { useEffect, useMemo } from 'react'
+import { useRevalidator, useRouteLoaderData } from 'react-router'
 
 export default function ProjectDashboardPage() {
   const project = useRouteLoaderData(

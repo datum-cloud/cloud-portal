@@ -1,4 +1,3 @@
-import { Table as TTable } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -7,7 +6,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react'
+import { Table as TTable } from '@tanstack/react-table'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 
 export const DataTablePagination = <TData,>({ table }: { table: TTable<TData> }) => {
   return (

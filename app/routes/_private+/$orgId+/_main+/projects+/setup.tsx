@@ -1,13 +1,13 @@
-import { AppLoadContext, redirect, useRevalidator } from 'react-router'
+import WaitingPage from '@/components/waiting-page/waiting-page'
 import { routes } from '@/constants/routes'
-import { getPathWithParams } from '@/utils/path'
+import { getSession } from '@/modules/auth/authSession.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { useEffect } from 'react'
-
-import WaitingPage from '@/components/waiting-page/waiting-page'
-import { getSession } from '@/modules/auth/authSession.server'
 import { CustomError } from '@/utils/errorHandle'
+import { getPathWithParams } from '@/utils/path'
+import { useEffect } from 'react'
+import { AppLoadContext, redirect, useRevalidator } from 'react-router'
+
 // TODO: temporary solution for handle delay on new project
 // https://github.com/datum-cloud/cloud-portal/issues/45
 export const loader = withMiddleware(async ({ request, params, context }) => {

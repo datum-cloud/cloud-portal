@@ -1,28 +1,28 @@
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { OrganizationItem } from './organization-item'
 import { Button } from '@/components/ui/button'
 import {
-  ChevronsUpDownIcon,
-  Loader2,
-  CheckIcon,
-  SettingsIcon,
-  PlusCircleIcon,
-} from 'lucide-react'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { OrganizationItem } from './organization-item'
-import {
   Command,
-  CommandInput,
-  CommandList,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
+  CommandList,
   CommandSeparator,
 } from '@/components/ui/command'
-import { useEffect, useState } from 'react'
-import { cn } from '@/utils/misc'
-import { Link, useFetcher } from 'react-router'
-import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/list'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { routes } from '@/constants/routes'
+import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/list'
+import { cn } from '@/utils/misc'
+import {
+  CheckIcon,
+  ChevronsUpDownIcon,
+  Loader2,
+  PlusCircleIcon,
+  SettingsIcon,
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link, useFetcher } from 'react-router'
 
 export const SelectOrganization = ({
   currentOrg,

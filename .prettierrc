@@ -10,5 +10,6 @@
   "singleAttributePerLine": false,
   "arrowParens": "always",
   "trailingComma": "all",
-  "plugins": ["prettier-plugin-tailwindcss"]
+  "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
+  "tailwindConfig": "./tailwind.config.ts"
 }

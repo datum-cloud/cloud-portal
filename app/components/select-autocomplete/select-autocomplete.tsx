@@ -1,11 +1,10 @@
-import { useState, useMemo, useEffect } from 'react'
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
-import { Button } from '@/components/ui/button'
-import { ChevronDown } from 'lucide-react'
-import { cn } from '@/utils/misc'
-
+import { Option, SelectAutocompleteProps } from './select-autocomplete.types'
 import { VirtualizedList } from './virtualized-list'
-import { SelectAutocompleteProps, Option } from './select-autocomplete.types'
+import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { cn } from '@/utils/misc'
+import { ChevronDown } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
 export const SelectAutocomplete = ({
   options,

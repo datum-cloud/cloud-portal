@@ -1,6 +1,6 @@
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { getInitials, cn } from '@/utils/misc'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { cn, getInitials } from '@/utils/misc'
 
 export const OrganizationItem = ({
   org,

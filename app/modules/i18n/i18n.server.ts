@@ -1,7 +1,6 @@
+import * as i18n from '@/modules/i18n/i18n'
 import { createCookie } from 'react-router'
 import { RemixI18Next } from 'remix-i18next/server'
-
-import * as i18n from '@/modules/i18n/i18n'
 
 export const localeCookie = createCookie('lng', {
   path: '/',

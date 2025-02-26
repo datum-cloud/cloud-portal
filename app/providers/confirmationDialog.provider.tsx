@@ -3,7 +3,7 @@ import {
   type ConfirmationDialogProps,
   type ConfirmationDialogRef,
 } from '@/components/confirmation-dialog/confirmation-dialog'
-import { useCallback, useContext, useRef, createContext } from 'react'
+import { createContext, useCallback, useContext, useRef } from 'react'
 
 const ConfirmationContext = createContext<{
   confirm: (options: ConfirmationDialogProps) => Promise<boolean>

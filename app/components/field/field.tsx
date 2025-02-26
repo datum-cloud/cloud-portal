@@ -1,5 +1,5 @@
+import { Label } from '@/components/ui/label'
 import { cn } from '@/utils/misc'
-import { Label } from '../ui/label'
 
 interface FieldProps {
   label?: string | React.ReactNode

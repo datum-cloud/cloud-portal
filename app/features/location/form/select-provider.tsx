@@ -5,10 +5,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { getSelectProps, FieldMetadata, useInputControl } from '@conform-to/react'
 import { LOCATION_PROVIDERS } from '@/constants/location'
-import { useMemo } from 'react'
 import { LocationProvider } from '@/resources/interfaces/location.interface'
+import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react'
+import { useMemo } from 'react'
 
 export const SelectLocationProvider = ({
   meta,

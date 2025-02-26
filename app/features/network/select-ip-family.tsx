@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
 import { SelectAutocomplete } from '@/components/select-autocomplete/select-autocomplete'
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
 import { cn } from '@/utils/misc'
+import { useEffect, useMemo, useState } from 'react'
 
 const options = [
   {

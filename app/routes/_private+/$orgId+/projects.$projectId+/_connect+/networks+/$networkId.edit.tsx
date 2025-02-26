@@ -1,19 +1,20 @@
+import { routes } from '@/constants/routes'
+import NetworkForm from '@/features/network/form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { CustomError } from '@/utils/errorHandle'
-import {
-  AppLoadContext,
-  useLoaderData,
-  LoaderFunctionArgs,
-  ActionFunctionArgs,
-} from 'react-router'
-import NetworkForm from '@/features/network/form'
-import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
-import { validateCSRF } from '@/utils/csrf.server'
-import { parseWithZod } from '@conform-to/zod'
-import { getPathWithParams } from '@/utils/path'
-import { routes } from '@/constants/routes'
 import { updateNetworkSchema } from '@/resources/schemas/network.schema'
+import { validateCSRF } from '@/utils/csrf.server'
+import { CustomError } from '@/utils/errorHandle'
+import { getPathWithParams } from '@/utils/path'
+import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
+import { parseWithZod } from '@conform-to/zod'
+import {
+  ActionFunctionArgs,
+  AppLoadContext,
+  LoaderFunctionArgs,
+  useLoaderData,
+} from 'react-router'
+
 export const loader = withMiddleware(async ({ params, context }: LoaderFunctionArgs) => {
   const { projectId, networkId } = params
   const { networksControl } = context as AppLoadContext

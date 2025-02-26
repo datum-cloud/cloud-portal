@@ -1,6 +1,6 @@
-import { GraphqlClient } from '@/modules/graphql/graphql'
 import { organizationModel } from './models/organization.model'
-import { alias, query as typedQuery, mutation, types } from 'typed-graphqlify'
+import { GraphqlClient } from '@/modules/graphql/graphql'
+import { alias, mutation, query as typedQuery, types } from 'typed-graphqlify'
 
 export const createOrganizationGql = (client: GraphqlClient) => {
   return {

@@ -1,6 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { DataTableHeader } from './data-table-header'
+import { DataTablePagination } from './data-table-pagination'
+import { DataTableRowActions } from './data-table-row-actions'
+import { DataTableProps } from './data-table.types'
+import { PageTitle } from '@/components/page-title/page-title'
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
+import { DataTableProvider } from '@/providers/dataTable.provider'
+import { cn } from '@/utils/misc'
 import {
   ColumnFiltersState,
+  PaginationState,
+  SortingState,
+  Table as TTable,
+  flexRender,
   getCoreRowModel,
   getFacetedMinMaxValues,
   getFacetedRowModel,
@@ -8,22 +20,10 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  PaginationState,
-  SortingState,
   useReactTable,
-  Table as TTable,
-  flexRender,
 } from '@tanstack/react-table'
-import { useMemo, useState } from 'react'
-import { DataTableProps } from './data-table.types'
-import { DataTableProvider } from '@/providers/dataTable.provider'
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
-import { cn } from '@/utils/misc'
-import { DataTableRowActions } from './data-table-row-actions'
 import { Loader2 } from 'lucide-react'
-import { DataTableHeader } from './data-table-header'
-import { DataTablePagination } from './data-table-pagination'
-import { PageTitle } from '@/components/page-title/page-title'
+import { useMemo, useState } from 'react'
 
 export const DataTable = <TData, TValue>({
   columns,

@@ -2,10 +2,10 @@ import { getSession } from '@/modules/auth/authSession.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import {
-  OrganizationModel,
   OrganizationMemberModel,
+  OrganizationModel,
 } from '@/resources/gql/models/organization.model'
-import { data, AppLoadContext } from 'react-router'
+import { AppLoadContext, data } from 'react-router'
 
 export const ROUTE_PATH = '/api/organizations/list' as const
 

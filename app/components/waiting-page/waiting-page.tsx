@@ -1,8 +1,9 @@
-import { Loader2 } from 'lucide-react'
+import { LogoIcon } from '@/components/logo/logo-icon'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/utils/misc'
-import { LogoIcon } from '@/components/logo/logo-icon'
+import { Loader2 } from 'lucide-react'
+
 export default function WaitingPage({
   title,
   className,

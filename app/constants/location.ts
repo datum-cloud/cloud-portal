@@ -1,6 +1,6 @@
 import {
-  LocationProvider,
   LocationClass,
+  LocationProvider,
 } from '@/resources/interfaces/location.interface'
 
 export const LOCATION_PROVIDERS = {

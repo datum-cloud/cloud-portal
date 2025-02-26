@@ -5,7 +5,6 @@
  * It allows you to chain multiple middleware functions that can process requests before they reach
  * the final handler.
  */
-
 import { ActionFunction, LoaderFunction, LoaderFunctionArgs } from 'react-router'
 
 /**

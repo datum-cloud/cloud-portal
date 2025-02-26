@@ -1,6 +1,6 @@
-import { createContext, useContext, ReactNode, useState } from 'react'
-import { UserModel } from '@/resources/gql/models/user.model'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { UserModel } from '@/resources/gql/models/user.model'
+import { ReactNode, createContext, useContext, useState } from 'react'
 
 interface AppContextType {
   user: UserModel | undefined

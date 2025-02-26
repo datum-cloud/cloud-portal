@@ -1,34 +1,34 @@
+import { DataTable } from '@/components/data-table/data-table'
+import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
+import { DateFormat } from '@/components/date-format/date-format'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { LOCATION_CLASSES, LOCATION_PROVIDERS } from '@/constants/location'
+import { routes } from '@/constants/routes'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import {
   ILocationControlResponse,
   LocationClass,
 } from '@/resources/interfaces/location.interface'
-import { ColumnDef } from '@tanstack/react-table'
-import {
-  LoaderFunctionArgs,
-  AppLoadContext,
-  useLoaderData,
-  Link,
-  useParams,
-  useNavigate,
-  useSubmit,
-  ActionFunctionArgs,
-} from 'react-router'
-import { Badge } from '@/components/ui/badge'
-import { DateFormat } from '@/components/date-format/date-format'
-import { DataTable } from '@/components/data-table/data-table'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { toTitleCase } from '@/utils/misc'
-import { Button } from '@/components/ui/button'
-import { PlusIcon } from 'lucide-react'
-import { getPathWithParams } from '@/utils/path'
-import { routes } from '@/constants/routes'
-import { LOCATION_PROVIDERS, LOCATION_CLASSES } from '@/constants/location'
 import { CustomError } from '@/utils/errorHandle'
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
+import { toTitleCase } from '@/utils/misc'
+import { getPathWithParams } from '@/utils/path'
+import { ColumnDef } from '@tanstack/react-table'
+import { PlusIcon } from 'lucide-react'
+import {
+  ActionFunctionArgs,
+  AppLoadContext,
+  Link,
+  LoaderFunctionArgs,
+  useLoaderData,
+  useNavigate,
+  useParams,
+  useSubmit,
+} from 'react-router'
 import { toast } from 'sonner'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
 
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params
