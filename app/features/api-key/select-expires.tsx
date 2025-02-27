@@ -1,85 +1,79 @@
-import { SelectAutocomplete } from '@/components/select-autocomplete/select-autocomplete'
-import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
-import { cn } from '@/utils/misc'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react'
 import { addDays, addYears, format } from 'date-fns'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 export const SelectExpires = ({
-  defaultValue,
-  className,
-  onValueChange,
+  meta,
+  onChange,
 }: {
-  defaultValue?: string
-  className?: string
-  onValueChange: (value: Option) => void
+  meta: FieldMetadata<string>
+  onChange?: (value: string) => void
 }) => {
-  const [value, setValue] = useState(defaultValue)
+  const control = useInputControl(meta)
 
   const options = useMemo(() => {
     const now = new Date()
     return [
       {
-        value: '30',
+        value: 30,
         label: '30 days',
         description: `Expires ${format(addDays(now, 30), 'MMM d, yyyy')}`,
       },
       {
-        value: '60',
+        value: 60,
         label: '60 days',
         description: `Expires ${format(addDays(now, 60), 'MMM d, yyyy')}`,
       },
       {
-        value: '90',
+        value: 90,
         label: '90 days',
         description: `Expires ${format(addDays(now, 90), 'MMM d, yyyy')}`,
       },
       {
-        value: '365',
+        value: 365,
         label: '1 year',
         description: `Expires ${format(addYears(now, 1), 'MMM d, yyyy')}`,
       },
       {
-        value: '0', // No expiration
+        value: 0, // No expiration
         label: 'No Expire',
         description: null,
       },
     ]
   }, [])
 
-  const selectedValue = useMemo(() => {
-    return options.find((option) => option.value === value)
-  }, [value, options])
-
-  useEffect(() => {
-    if (defaultValue) {
-      setValue(defaultValue)
-    }
-  }, [defaultValue])
-
-  const preview = (option: Option) => {
-    return (
-      <div className="flex flex-col gap-0.5 whitespace-break-spaces text-left">
-        <p className="text-sm font-medium">{option.label}</p>
-        <p className="text-xs text-muted-foreground">{option.description}</p>
-      </div>
-    )
-  }
-
   return (
-    <SelectAutocomplete
-      selectedValue={selectedValue}
-      triggerClassName={cn('w-full h-auto min-h-10', className)}
-      options={options}
-      placeholder="Select expiration"
-      boxClassName="h-[250px]"
-      onValueChange={(option) => {
-        setValue(option.value)
-        onValueChange(option)
+    <Select
+      {...getSelectProps(meta)}
+      onValueChange={(value) => {
+        control.change(value)
+        onChange?.(value)
       }}
-      disableSearch
-      itemContent={preview}
-      itemPreview={preview}
-      itemSize={45}
-    />
+      key={meta.id}
+      defaultValue={meta.value?.toString()}>
+      <SelectTrigger className="h-auto min-h-10 items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+        <SelectValue placeholder="Select a expiration" />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => (
+          <SelectItem
+            key={option.value}
+            value={option.value.toString()}
+            className="w-[var(--radix-select-trigger-width)]">
+            <div className="flex flex-col gap-0.5 whitespace-break-spaces text-left">
+              <p className="text-sm font-medium">{option.label}</p>
+              <p className="text-xs text-muted-foreground">{option.description}</p>
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }

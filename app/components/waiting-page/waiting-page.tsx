@@ -4,13 +4,13 @@ import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/utils/misc'
 import { Loader2 } from 'lucide-react'
 
-export default function WaitingPage({
+export const WaitingPage = ({
   title,
   className,
 }: {
   title: string
   className?: string
-}) {
+}) => {
   const theme = useTheme()
   return (
     <Card className={cn('overflow-hidden', className)}>

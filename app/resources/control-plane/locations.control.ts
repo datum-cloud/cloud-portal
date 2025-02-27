@@ -12,6 +12,7 @@ import {
 } from '@/resources/interfaces/location.interface'
 import { NewLocationSchema } from '@/resources/schemas/location.schema'
 import { CustomError } from '@/utils/errorHandle'
+import { convertLabelsToObject, filterLabels } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
 export const createLocationsControl = (client: Client) => {
@@ -36,6 +37,7 @@ export const createLocationsControl = (client: Client) => {
       provider: (spec?.provider as any) ?? {},
       cityCode: spec?.topology?.['topology.datum.net/city-code'] ?? '',
       namespace: metadata?.namespace ?? 'default',
+      labels: filterLabels(metadata?.labels ?? {}),
     }
   }
 
@@ -87,6 +89,7 @@ export const createLocationsControl = (client: Client) => {
             annotations: {
               'app.kubernetes.io/name': payload.displayName,
             },
+            labels: convertLabelsToObject(payload.labels ?? []),
           },
           spec: {
             locationClassName: payload.class,
@@ -131,6 +134,7 @@ export const createLocationsControl = (client: Client) => {
               'app.kubernetes.io/name': payload.displayName,
             },
             resourceVersion: payload.resourceVersion,
+            labels: convertLabelsToObject(payload.labels ?? []),
           },
           spec: {
             locationClassName: payload.class,

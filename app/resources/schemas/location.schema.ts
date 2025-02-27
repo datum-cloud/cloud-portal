@@ -30,6 +30,7 @@ export const baseLocationSchema = z.object({
   }),
   cityCode: z.string({ required_error: 'City code is required.' }),
   resourceVersion: z.string().optional(),
+  labels: z.array(z.string()).optional(),
 })
 
 // Combined schema with discriminated union for providerConfig

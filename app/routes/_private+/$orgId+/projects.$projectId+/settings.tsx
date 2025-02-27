@@ -1,3 +1,4 @@
+import { InputWithCopy } from '@/components/input-with-copy/input-with-copy'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -8,15 +9,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { InputWithAddons } from '@/components/ui/input-with-addons'
 import { routes } from '@/constants/routes'
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { ROUTE_PATH as PROJECT_RESOURCES_ROUTE_PATH } from '@/routes/api+/projects+/resources'
 import { getPathWithParams } from '@/utils/path'
-import { CircleAlertIcon, CopyIcon } from 'lucide-react'
-import { useState } from 'react'
+import { CircleAlertIcon } from 'lucide-react'
 import { useNavigate, useParams, useRouteLoaderData, useSubmit } from 'react-router'
 import { toast } from 'sonner'
 
@@ -24,24 +22,10 @@ export default function ProjectSettingsPage() {
   const project = useRouteLoaderData(
     'routes/_private+/$orgId+/projects.$projectId+/_layout',
   )
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, copy] = useCopyToClipboard()
   const submit = useSubmit()
   const { confirm } = useConfirmationDialog()
   const navigate = useNavigate()
   const params = useParams()
-
-  const [copied, setCopied] = useState(false)
-
-  const copyProjectName = () => {
-    copy(project.name).then(() => {
-      toast.success('Project name copied to clipboard')
-      setCopied(true)
-      setTimeout(() => {
-        setCopied(false)
-      }, 2000)
-    })
-  }
 
   const deleteProject = async (project: IProjectControlResponse) => {
     await confirm({
@@ -102,22 +86,7 @@ export default function ProjectSettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <InputWithAddons
-              value={project?.name}
-              readOnly
-              disabled
-              containerClassName="focus-within:ring-0"
-              trailing={
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="h-7 w-fit gap-1 border px-2 text-xs transition-all hover:border-primary"
-                  onClick={copyProjectName}>
-                  <CopyIcon className="!size-3" />
-                  {copied ? 'Copied' : 'Copy'}
-                </Button>
-              }
-            />
+            <InputWithCopy value={project.name} className="h-9 bg-muted" />
           </CardContent>
         </Card>
 

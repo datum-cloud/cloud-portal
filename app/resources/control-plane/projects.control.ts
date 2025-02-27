@@ -8,6 +8,7 @@ import {
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { NewProjectSchema } from '@/resources/schemas/project.schema'
 import { CustomError } from '@/utils/errorHandle'
+import { convertLabelsToObject, filterLabels } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
 export const createProjectsControl = (client: Client) => {
@@ -26,6 +27,7 @@ export const createProjectsControl = (client: Client) => {
       resourceVersion: project?.metadata?.resourceVersion ?? '',
       uid: project?.metadata?.uid ?? '',
       status: project.status ?? {},
+      labels: filterLabels(project?.metadata?.labels ?? {}),
     }
 
     return metadata
@@ -59,6 +61,8 @@ export const createProjectsControl = (client: Client) => {
       return transformProject(response.data)
     },
     createProject: async (payload: NewProjectSchema, dryRun: boolean = false) => {
+      // If dry run is true, we don't need to convert labels to object
+
       const response = await createResourcemanagerDatumapisComV1AlphaProject({
         client,
         baseURL: `${baseUrl}/organizations/${payload.orgEntityId}/control-plane`,
@@ -73,6 +77,7 @@ export const createProjectsControl = (client: Client) => {
             annotations: {
               'kubernetes.io/description': payload.description,
             },
+            labels: convertLabelsToObject(payload.labels ?? []),
           },
           spec: {
             parent: {

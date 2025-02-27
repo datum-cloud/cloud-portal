@@ -1,29 +1,9 @@
+import { InputWithCopy } from '@/components/input-with-copy/input-with-copy'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { InputWithAddons } from '@/components/ui/input-with-addons'
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
 import { motion } from 'framer-motion'
-import { CopyIcon, Terminal } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
+import { Terminal } from 'lucide-react'
 
 export const PreviewKey = ({ value }: { value: string }) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, copy] = useCopyToClipboard()
-  const [copied, setCopied] = useState(false)
-
-  const copyProjectName = () => {
-    if (!value) return
-
-    copy(value).then(() => {
-      toast.success('API key copied to clipboard')
-      setCopied(true)
-      setTimeout(() => {
-        setCopied(false)
-      }, 2000)
-    })
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -36,22 +16,7 @@ export const PreviewKey = ({ value }: { value: string }) => {
           Please copy and save your API key somewhere safe - it won&apos;t be shown again.
         </AlertDescription>
         <div className="mt-2 max-w-lg pl-7">
-          <InputWithAddons
-            value={value}
-            readOnly
-            disabled
-            containerClassName="focus-within:ring-0 h-9 bg-muted"
-            trailing={
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-6 w-fit gap-1 px-2 text-xs"
-                onClick={copyProjectName}>
-                <CopyIcon className="!size-3" />
-                {copied ? 'Copied' : 'Copy'}
-              </Button>
-            }
-          />
+          <InputWithCopy value={value} className="h-9 bg-muted" buttonClassName="h-6" />
         </div>
       </Alert>
     </motion.div>

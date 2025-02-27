@@ -1,3 +1,5 @@
+import { ILabel } from './label.interface'
+
 export interface ILocationControlResponse {
   name?: string
   displayName?: string
@@ -11,6 +13,7 @@ export interface ILocationControlResponse {
   }
   cityCode?: string
   namespace?: string
+  labels?: ILabel
 }
 
 // Provider Interfaces

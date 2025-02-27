@@ -1,4 +1,4 @@
-import WaitingPage from '@/components/waiting-page/waiting-page'
+import { WaitingPage } from '@/components/waiting-page/waiting-page'
 import { routes } from '@/constants/routes'
 import { getSession } from '@/modules/auth/authSession.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'

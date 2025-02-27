@@ -1,3 +1,5 @@
+import { ILabel } from './label.interface'
+
 // Control Plane Schema
 interface ProjectMetadataAnnotations {
   'kubernetes.io/description': string
@@ -57,4 +59,5 @@ export interface IProjectControlResponse {
   resourceVersion?: string
   uid?: string
   status?: IProjectStatus
+  labels?: ILabel
 }

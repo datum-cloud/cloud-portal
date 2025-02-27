@@ -12,14 +12,14 @@ import {
 import { Input } from '@/components/ui/input'
 import { newApiKeySchema } from '@/resources/schemas/api-key.schema'
 import { useIsPending } from '@/utils/misc'
-import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
+import { FieldMetadata, getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useEffect, useRef } from 'react'
 import { Form, useNavigate } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { useHydrated } from 'remix-utils/use-hydrated'
 
-export default function ApiKeyForm() {
+export const ApiKeyForm = () => {
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
   const isPending = useIsPending()
@@ -36,9 +36,6 @@ export default function ApiKeyForm() {
       expiresAt: '90',
     },
   })
-
-  // Field Controls
-  const expiresAtControl = useInputControl(fields.expiresAt)
 
   // Focus the input when the form is hydrated
   useEffect(() => {
@@ -77,12 +74,7 @@ export default function ApiKeyForm() {
             />
           </Field>
           <Field label="Expiration" errors={fields.expiresAt.errors}>
-            <SelectExpires
-              defaultValue={fields.expiresAt.value}
-              onValueChange={(selected) => {
-                expiresAtControl.change(selected?.value)
-              }}
-            />
+            <SelectExpires meta={fields.expiresAt as FieldMetadata<string>} />
           </Field>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">

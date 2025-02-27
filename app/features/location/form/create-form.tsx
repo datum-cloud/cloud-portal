@@ -1,8 +1,9 @@
 import { GCPProvider } from './provider/gcp-provider'
 import { SelectLocationClass } from './select-class'
+import { SelectIATA } from './select-iata'
 import { SelectLocationProvider } from './select-provider'
 import { Field } from '@/components/field/field'
-import { SelectIATA } from '@/components/select-iata/select-iata'
+import { SelectLabels } from '@/components/select-labels/select-labels'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -21,7 +22,7 @@ import {
 } from '@/resources/interfaces/location.interface'
 import { newLocationSchema } from '@/resources/schemas/location.schema'
 import { generateId, generateRandomString } from '@/utils/idGenerator'
-import { useIsPending } from '@/utils/misc'
+import { useIsPending, convertObjectToLabels } from '@/utils/misc'
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useEffect, useMemo, useRef } from 'react'
@@ -58,6 +59,7 @@ export default function CreateLocationForm({
   const nameControl = useInputControl(fields.name)
   const cityCodeControl = useInputControl(fields.cityCode)
   const classControl = useInputControl(fields.class)
+  const labelsControl = useInputControl(fields.labels)
 
   const providerConfigControl = useInputControl(
     fields.providerConfig.getFieldset().provider,
@@ -77,7 +79,6 @@ export default function CreateLocationForm({
   useEffect(() => {
     if (defaultValue) {
       // Transform provider config
-
       const provider = Object.keys(defaultValue.provider ?? {})[0] as LocationProvider
       const providerConfig = {
         projectId: defaultValue.provider?.[provider]?.projectId,
@@ -92,6 +93,7 @@ export default function CreateLocationForm({
           class: defaultValue?.class ?? LocationClass.DATUM_MANAGED,
           cityCode: defaultValue?.cityCode ?? '',
           resourceVersion: defaultValue?.resourceVersion ?? '',
+          labels: convertObjectToLabels(defaultValue?.labels ?? {}),
           provider,
           providerConfig: {
             provider,
@@ -189,6 +191,18 @@ export default function CreateLocationForm({
               defaultValue={fields.cityCode.value}
               onValueChange={(value) => {
                 cityCodeControl.change(value.iata_code)
+              }}
+            />
+          </Field>
+
+          <Field
+            label="Labels"
+            errors={fields.labels.errors}
+            description="Add labels to help identify, organize, and filter your locations.">
+            <SelectLabels
+              defaultValue={fields.labels.value as string[]}
+              onChange={(value) => {
+                labelsControl.change(value)
               }}
             />
           </Field>
