@@ -11,7 +11,7 @@ import { CustomError } from '@/utils/errorHandle'
 import { convertLabelsToObject, filterLabels } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
-export const createProjectsControl = (client: Client) => {
+export const projectsControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
   const transformProject = (
@@ -61,8 +61,6 @@ export const createProjectsControl = (client: Client) => {
       return transformProject(response.data)
     },
     createProject: async (payload: NewProjectSchema, dryRun: boolean = false) => {
-      // If dry run is true, we don't need to convert labels to object
-
       const response = await createResourcemanagerDatumapisComV1AlphaProject({
         client,
         baseURL: `${baseUrl}/organizations/${payload.orgEntityId}/control-plane`,
@@ -111,4 +109,4 @@ export const createProjectsControl = (client: Client) => {
   }
 }
 
-export type ProjectsControl = ReturnType<typeof createProjectsControl>
+export type ProjectsControl = ReturnType<typeof projectsControl>

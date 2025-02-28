@@ -1,6 +1,7 @@
-import { LocationsControl, createLocationsControl } from './locations.control'
-import { NetworksControl, createNetworksControl } from './networks.control'
-import { ProjectsControl, createProjectsControl } from './projects.control'
+import { coreControl, CoreControl } from './core.control'
+import { LocationsControl, locationsControl } from './locations.control'
+import { NetworksControl, networksControl } from './networks.control'
+import { ProjectsControl, projectsControl } from './projects.control'
 import { createControlPlaneClient } from '@/modules/control-plane/axiosControl'
 import { Client } from '@hey-api/client-axios'
 
@@ -9,6 +10,7 @@ export interface ControlPlaneFactory {
   projectsControl: ProjectsControl
   locationsControl: LocationsControl
   networksControl: NetworksControl
+  coreControl: CoreControl
 }
 
 export const createControlPlaneFactory = (authToken: string): ControlPlaneFactory => {
@@ -20,8 +22,9 @@ export const createControlPlaneFactory = (authToken: string): ControlPlaneFactor
   })
 
   return {
-    projectsControl: createProjectsControl(apiClient),
-    locationsControl: createLocationsControl(apiClient),
-    networksControl: createNetworksControl(apiClient),
+    projectsControl: projectsControl(apiClient),
+    locationsControl: locationsControl(apiClient),
+    networksControl: networksControl(apiClient),
+    coreControl: coreControl(apiClient),
   }
 }

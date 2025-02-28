@@ -9,6 +9,7 @@ import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import {
   AreaChartIcon,
+  BoltIcon,
   GlobeIcon,
   HomeIcon,
   MapIcon,
@@ -73,6 +74,30 @@ export default function ProjectLayout() {
         href: getPathWithParams(routes.projects.locations.root, { orgId, projectId }),
         type: 'link',
         icon: MapIcon,
+      },
+      {
+        title: 'Config',
+        href: getPathWithParams(routes.projects.networks.root, { orgId, projectId }),
+        type: 'collapsible',
+        icon: BoltIcon,
+        children: [
+          {
+            title: 'Config Maps',
+            href: getPathWithParams(routes.projects.config.configMaps.root, {
+              orgId,
+              projectId,
+            }),
+            type: 'link',
+          },
+          {
+            title: 'Secrets',
+            href: getPathWithParams(routes.projects.config.secrets.root, {
+              orgId,
+              projectId,
+            }),
+            type: 'link',
+          },
+        ],
       },
       {
         title: 'Connect',

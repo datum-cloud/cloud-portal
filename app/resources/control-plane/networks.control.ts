@@ -11,7 +11,7 @@ import { NewNetworkSchema, UpdateNetworkSchema } from '@/resources/schemas/netwo
 import { CustomError } from '@/utils/errorHandle'
 import { Client } from '@hey-api/client-axios'
 
-export const createNetworksControl = (client: Client) => {
+export const networksControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
   const transformNetwork = (
@@ -149,4 +149,4 @@ export const createNetworksControl = (client: Client) => {
   }
 }
 
-export type NetworksControl = ReturnType<typeof createNetworksControl>
+export type NetworksControl = ReturnType<typeof networksControl>
