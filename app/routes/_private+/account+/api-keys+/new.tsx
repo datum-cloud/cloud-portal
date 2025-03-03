@@ -1,5 +1,6 @@
 import { ApiKeyForm } from '@/features/api-key/form'
 import { commitSession, getSession } from '@/modules/auth/authSession.server'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { NewApiKeySchema, newApiKeySchema } from '@/resources/schemas/api-key.schema'
 import { validateCSRF } from '@/utils/csrf.server'
@@ -61,7 +62,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
       type: 'error',
     })
   }
-})
+}, authMiddleware)
 
 export default function NewApiKey() {
   return (

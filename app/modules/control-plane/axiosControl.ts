@@ -40,6 +40,7 @@ export const createControlPlaneClient = (
     (config: any) => {
       if (authToken) {
         config.headers = {
+          ...config.headers,
           Authorization: `Bearer ${authToken}`,
         }
       }

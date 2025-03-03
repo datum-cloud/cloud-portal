@@ -19,7 +19,7 @@ export const InputWithCopy = ({
   const [_, copy] = useCopyToClipboard()
   const [copied, setCopied] = useState(false)
 
-  const copyProjectName = () => {
+  const copyToClipboard = () => {
     if (!value) return
 
     copy(value).then(() => {
@@ -41,7 +41,7 @@ export const InputWithCopy = ({
           variant="outline"
           size="sm"
           className={cn('h-7 w-fit gap-1 px-2 text-xs', buttonClassName)}
-          onClick={copyProjectName}>
+          onClick={copyToClipboard}>
           <CopyIcon className="!size-3" />
           {copied ? 'Copied' : 'Copy'}
         </Button>

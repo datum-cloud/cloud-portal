@@ -26,7 +26,7 @@ export const Header = ({
         {params?.orgId && <OrganizationSwitcher />}
         {params?.projectId && currentProject && (
           <>
-            <SlashIcon className="mx-2 text-primary/20" />
+            <SlashIcon size={14} className="mx-1 text-primary/20" />
             <ProjectSwitcher currentProject={currentProject} orgId={params.orgId ?? ''} />
           </>
         )}

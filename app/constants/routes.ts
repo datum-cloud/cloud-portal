@@ -18,7 +18,6 @@ export const routes = {
       members: '/[orgId]/settings/members',
       billing: '/[orgId]/settings/billing',
     },
-
     projects: {
       root: '/[orgId]/projects',
       new: '/[orgId]/projects/new',
@@ -39,7 +38,6 @@ export const routes = {
     settings: '/account/settings',
   },
   projects: {
-    // Main Page of the Project
     detail: '/[orgId]/projects/[projectId]',
     dashboard: '/[orgId]/projects/[projectId]/dashboard',
     locations: {
@@ -47,6 +45,21 @@ export const routes = {
       new: '/[orgId]/projects/[projectId]/locations/new',
       edit: '/[orgId]/projects/[projectId]/locations/[locationId]/edit',
     },
+    // Config Sections
+    config: {
+      root: '/[orgId]/projects/[projectId]/config-maps',
+      configMaps: {
+        root: '/[orgId]/projects/[projectId]/config-maps',
+        new: '/[orgId]/projects/[projectId]/config-maps/new',
+        edit: '/[orgId]/projects/[projectId]/config-maps/[configMapId]/edit',
+      },
+      secrets: {
+        root: '/[orgId]/projects/[projectId]/secrets',
+        new: '/[orgId]/projects/[projectId]/secrets/new',
+        edit: '/[orgId]/projects/[projectId]/secrets/[secretId]/edit',
+      },
+    },
+    // Connect Sections
     networks: {
       root: '/[orgId]/projects/[projectId]/networks',
       new: '/[orgId]/projects/[projectId]/networks/new',

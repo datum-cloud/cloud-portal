@@ -1,57 +1,56 @@
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 import { DateFormat } from '@/components/date-format/date-format'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
+import { IConfigMapControlResponse } from '@/resources/interfaces/config-maps.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import {
-  ActionFunctionArgs,
+  LoaderFunctionArgs,
   AppLoadContext,
-  Link,
   useLoaderData,
-  useNavigate,
   useParams,
+  Link,
+  useNavigate,
   useSubmit,
+  ActionFunctionArgs,
 } from 'react-router'
 import { toast } from 'sonner'
 
-export const loader = withMiddleware(async ({ params, context }) => {
+export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params
-  const { networksControl } = context
+  const { coreControl } = context as AppLoadContext
 
   if (!projectId) {
     throw new CustomError('Project ID is required', 400)
   }
 
-  const networks = await networksControl.getNetworks(projectId)
-
-  return networks
+  const configMaps = await coreControl.getConfigMaps(projectId)
+  return configMaps
 }, authMiddleware)
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { networksControl } = context as AppLoadContext
+  const { coreControl } = context as AppLoadContext
 
   switch (request.method) {
     case 'DELETE': {
       const formData = Object.fromEntries(await request.formData())
-      const { networkId, projectId } = formData
+      const { configMapId, projectId } = formData
 
-      return await networksControl.deleteNetwork(projectId as string, networkId as string)
+      return await coreControl.deleteConfigMap(projectId as string, configMapId as string)
     }
     default:
       throw new Error('Method not allowed')
   }
 }, authMiddleware)
 
-export default function ProjectConnectNetworks() {
+export default function ConfigMapsPage() {
   const data = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const submit = useSubmit()
@@ -59,90 +58,57 @@ export default function ProjectConnectNetworks() {
   const { confirm } = useConfirmationDialog()
   const { orgId, projectId } = useParams()
 
-  const deleteNetwork = async (network: INetworkControlResponse) => {
+  const deleteConfigMap = async (configMap: IConfigMapControlResponse) => {
     await confirm({
-      title: 'Delete Network',
+      title: 'Delete Config Map',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>
-            {network.displayName} ({network.name})
-          </strong>
-          ?
+          <strong>{configMap.name}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${network.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the network name to confirm deletion',
-      confirmValue: network.name ?? 'delete',
+      confirmInputLabel: `Type "${configMap.name}" to confirm.`,
+      confirmInputPlaceholder: 'Type the config map name to confirm deletion',
+      confirmValue: configMap.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {
-            networkId: network.name ?? '',
+            configMapId: configMap.name ?? '',
             projectId: projectId ?? '',
           },
           {
             method: 'DELETE',
-            fetcherKey: 'network-resources',
+            fetcherKey: 'config-resources',
             navigate: false,
           },
         )
 
-        toast.success('Network deleted successfully')
+        toast.success('Config map deleted successfully')
       },
     })
   }
 
-  const columns: ColumnDef<INetworkControlResponse>[] = [
-    {
-      header: 'Display Name',
-      accessorKey: 'displayName',
-      cell: ({ row }) => {
-        return (
-          <Link
-            to={getPathWithParams(routes.projects.networks.edit, {
-              orgId,
-              projectId,
-              networkId: row.original.name,
-            })}
-            className="font-semibold text-primary">
-            {row.original.displayName || row.original.name}
-          </Link>
-        )
-      },
-    },
+  const columns: ColumnDef<IConfigMapControlResponse>[] = [
     {
       header: 'Name',
       accessorKey: 'name',
-    },
-    {
-      header: 'IP Family',
-      accessorKey: 'ipFamily',
       cell: ({ row }) => {
         return (
-          <div className="flex flex-wrap gap-1">
-            {row.original.ipFamilies?.map((ipFamily) => (
-              <Badge key={ipFamily} variant={ipFamily === 'IPv4' ? 'outline' : 'default'}>
-                {ipFamily}
-              </Badge>
-            ))}
-          </div>
+          <Link
+            to={getPathWithParams(routes.projects.config.configMaps.edit, {
+              orgId,
+              projectId,
+              configMapId: row.original.name,
+            })}
+            className="font-semibold text-primary">
+            {row.original.name}
+          </Link>
         )
       },
-    },
-    {
-      header: 'IPAM Mode',
-      accessorKey: 'ipam',
-      cell: ({ row }) => {
-        return <div>{row.original.ipam?.mode}</div>
-      },
-    },
-    {
-      header: 'MTU',
-      accessorKey: 'mtu',
     },
     {
       header: 'Created At',
@@ -153,16 +119,16 @@ export default function ProjectConnectNetworks() {
     },
   ]
 
-  const rowActions: DataTableRowActionsProps<INetworkControlResponse>[] = [
+  const rowActions: DataTableRowActionsProps<IConfigMapControlResponse>[] = [
     {
       key: 'edit',
       label: 'Edit',
       action: (row) => {
         navigate(
-          getPathWithParams(routes.projects.networks.edit, {
+          getPathWithParams(routes.projects.config.configMaps.edit, {
             orgId,
             projectId,
-            networkId: row.name,
+            configMapId: row.name,
           }),
         )
       },
@@ -171,7 +137,7 @@ export default function ProjectConnectNetworks() {
       key: 'delete',
       label: 'Delete',
       variant: 'destructive',
-      action: (row) => deleteNetwork(row),
+      action: (row) => deleteConfigMap(row),
     },
   ]
 
@@ -179,23 +145,25 @@ export default function ProjectConnectNetworks() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-screen-xl"
-      loadingText="Loading networks..."
-      emptyText="No networks found."
+      className="mx-auto max-w-screen-lg"
+      loadingText="Loading..."
+      emptyText="No config maps found."
       tableTitle={{
-        title: 'Networks',
-        description: 'Manage deployment networks for your project resources',
+        title: 'Config Maps',
+        description: 'Manage config maps for your project resources',
         actions: (
           <Link
-            to={getPathWithParams(routes.projects.networks.new, { orgId, projectId })}>
+            to={getPathWithParams(routes.projects.config.configMaps.new, {
+              orgId,
+              projectId,
+            })}>
             <Button>
               <PlusIcon className="h-4 w-4" />
-              New Network
+              New Config Map
             </Button>
           </Link>
         ),
       }}
-      defaultSorting={[{ id: 'createdAt', desc: true }]}
       rowActions={rowActions}
     />
   )
