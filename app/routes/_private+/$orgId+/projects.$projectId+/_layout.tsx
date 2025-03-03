@@ -124,18 +124,27 @@ export default function ProjectLayout() {
       },
       {
         title: 'Deploy',
-        href: getPathWithParams(routes.projects.workloads, { orgId, projectId }),
+        href: getPathWithParams(routes.projects.deploy.workloads.root, {
+          orgId,
+          projectId,
+        }),
         type: 'collapsible',
         icon: TerminalIcon,
         children: [
           {
             title: 'Workloads',
-            href: getPathWithParams(routes.projects.workloads, { orgId, projectId }),
+            href: getPathWithParams(routes.projects.deploy.workloads.root, {
+              orgId,
+              projectId,
+            }),
             type: 'link',
           },
           {
             title: 'Pipelines',
-            href: getPathWithParams(routes.projects.pipelines, { orgId, projectId }),
+            href: getPathWithParams(routes.projects.deploy.pipelines.root, {
+              orgId,
+              projectId,
+            }),
             type: 'link',
           },
         ],

@@ -1,158 +1,117 @@
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 import { DateFormat } from '@/components/date-format/date-format'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
+import { IWorkloadControlResponse } from '@/resources/interfaces/workload-interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import {
-  ActionFunctionArgs,
+  LoaderFunctionArgs,
   AppLoadContext,
-  Link,
   useLoaderData,
-  useNavigate,
   useParams,
+  Link,
+  useNavigate,
+  ActionFunctionArgs,
   useSubmit,
 } from 'react-router'
 import { toast } from 'sonner'
 
-export const loader = withMiddleware(async ({ params, context }) => {
+export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params
-  const { networksControl } = context
+  const { workloadsControl } = context as AppLoadContext
 
   if (!projectId) {
     throw new CustomError('Project ID is required', 400)
   }
 
-  const networks = await networksControl.getNetworks(projectId)
-
-  return networks
+  const workloads = await workloadsControl.getWorkloads(projectId)
+  return workloads
 }, authMiddleware)
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { networksControl } = context as AppLoadContext
+  const { workloadsControl } = context as AppLoadContext
 
   switch (request.method) {
     case 'DELETE': {
       const formData = Object.fromEntries(await request.formData())
-      const { networkId, projectId } = formData
+      const { workloadId, projectId } = formData
 
-      return await networksControl.deleteNetwork(projectId as string, networkId as string)
+      return await workloadsControl.deleteWorkload(
+        projectId as string,
+        workloadId as string,
+      )
     }
     default:
       throw new Error('Method not allowed')
   }
 }, authMiddleware)
 
-export default function ProjectConnectNetworks() {
+export default function WorkloadsPage() {
   const data = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const submit = useSubmit()
-
   const { confirm } = useConfirmationDialog()
+
   const { orgId, projectId } = useParams()
 
-  const deleteNetwork = async (network: INetworkControlResponse) => {
+  const deleteWorkload = async (workload: IWorkloadControlResponse) => {
     await confirm({
-      title: 'Delete Network',
+      title: 'Delete Workload',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{network.name}</strong>?
+          <strong>{workload.name}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${network.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the network name to confirm deletion',
-      confirmValue: network.name ?? 'delete',
+      confirmInputLabel: `Type "${workload.name}" to confirm.`,
+      confirmInputPlaceholder: 'Type the workload name to confirm deletion',
+      confirmValue: workload.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {
-            networkId: network.name ?? '',
+            workloadId: workload.name ?? '',
             projectId: projectId ?? '',
           },
           {
             method: 'DELETE',
-            fetcherKey: 'network-resources',
+            fetcherKey: 'workload-resources',
             navigate: false,
           },
         )
 
-        toast.success('Network deleted successfully')
+        toast.success('Workload deleted successfully')
       },
     })
   }
 
-  const columns: ColumnDef<INetworkControlResponse>[] = [
-    /* {
-      header: 'Display Name',
-      accessorKey: 'displayName',
-      cell: ({ row }) => {
-        return (
-          <Link
-            to={getPathWithParams(routes.projects.networks.edit, {
-              orgId,
-              projectId,
-              networkId: row.original.name,
-            })}
-            className="font-semibold text-primary">
-            {row.original.displayName || row.original.name}
-          </Link>
-        )
-      },
-    }, */
+  const columns: ColumnDef<IWorkloadControlResponse>[] = [
     {
       header: 'Name',
       accessorKey: 'name',
       cell: ({ row }) => {
         return (
           <Link
-            to={getPathWithParams(routes.projects.networks.edit, {
+            to={getPathWithParams(routes.projects.deploy.workloads.edit, {
               orgId,
               projectId,
-              networkId: row.original.name,
+              workloadId: row.original.name,
             })}
             className="font-semibold text-primary">
             {row.original.name}
           </Link>
         )
       },
-    },
-    {
-      header: 'IP Family',
-      accessorKey: 'ipFamily',
-      cell: ({ row }) => {
-        return (
-          <div className="flex flex-wrap gap-1">
-            {row.original.ipFamilies?.map((ipFamily) => (
-              <Badge key={ipFamily} variant={ipFamily === 'IPv4' ? 'outline' : 'default'}>
-                {ipFamily}
-              </Badge>
-            ))}
-          </div>
-        )
-      },
-    },
-    {
-      header: 'IPAM Mode',
-      accessorKey: 'ipam',
-      cell: ({ row }) => {
-        return <div>{row.original.ipam?.mode}</div>
-      },
-    },
-    {
-      header: 'MTU',
-      accessorKey: 'mtu',
     },
     {
       header: 'Created At',
@@ -163,16 +122,16 @@ export default function ProjectConnectNetworks() {
     },
   ]
 
-  const rowActions: DataTableRowActionsProps<INetworkControlResponse>[] = [
+  const rowActions: DataTableRowActionsProps<IWorkloadControlResponse>[] = [
     {
       key: 'edit',
       label: 'Edit',
       action: (row) => {
         navigate(
-          getPathWithParams(routes.projects.networks.edit, {
+          getPathWithParams(routes.projects.deploy.workloads.edit, {
             orgId,
             projectId,
-            networkId: row.name,
+            workloadId: row.name,
           }),
         )
       },
@@ -181,7 +140,7 @@ export default function ProjectConnectNetworks() {
       key: 'delete',
       label: 'Delete',
       variant: 'destructive',
-      action: (row) => deleteNetwork(row),
+      action: (row) => deleteWorkload(row),
     },
   ]
 
@@ -189,23 +148,25 @@ export default function ProjectConnectNetworks() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-screen-xl"
-      loadingText="Loading networks..."
-      emptyText="No networks found."
+      className="mx-auto max-w-screen-lg"
+      loadingText="Loading..."
+      emptyText="No workloads found."
       tableTitle={{
-        title: 'Networks',
-        description: 'Manage deployment networks for your project resources',
+        title: 'Workloads',
+        description: 'Manage workloads for your project resources',
         actions: (
           <Link
-            to={getPathWithParams(routes.projects.networks.new, { orgId, projectId })}>
+            to={getPathWithParams(routes.projects.deploy.workloads.new, {
+              orgId,
+              projectId,
+            })}>
             <Button>
               <PlusIcon className="h-4 w-4" />
-              New Network
+              New Workload
             </Button>
           </Link>
         ),
       }}
-      defaultSorting={[{ id: 'createdAt', desc: true }]}
       rowActions={rowActions}
     />
   )

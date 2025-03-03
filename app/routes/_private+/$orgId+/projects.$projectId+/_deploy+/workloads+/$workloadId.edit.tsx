@@ -1,8 +1,8 @@
 import { routes } from '@/constants/routes'
-import { ConfigMapForm } from '@/features/config-map/form'
+import { WorkloadForm } from '@/features/workload/form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { updateConfigMapSchema } from '@/resources/schemas/config-map.schema'
+import { updateWorkloadSchema } from '@/resources/schemas/workload.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { yamlToJson } from '@/utils/editor'
 import { CustomError } from '@/utils/errorHandle'
@@ -17,25 +17,25 @@ import {
 } from 'react-router'
 
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
-  const { coreControl } = context as AppLoadContext
-  const { projectId, configId } = params
+  const { workloadsControl } = context as AppLoadContext
+  const { projectId, workloadId } = params
 
-  if (!projectId || !configId) {
-    throw new CustomError('Project ID and config ID are required', 400)
+  if (!projectId || !workloadId) {
+    throw new CustomError('Project ID and workload ID are required', 400)
   }
 
-  const configMap = await coreControl.getConfigMap(projectId, configId)
+  const workload = await workloadsControl.getWorkload(projectId, workloadId)
 
-  return configMap
+  return workload
 }, authMiddleware)
 
 export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {
-    const { projectId, configId, orgId } = params
-    const { coreControl } = context as AppLoadContext
+    const { projectId, workloadId, orgId } = params
+    const { workloadsControl } = context as AppLoadContext
 
-    if (!projectId || !configId) {
-      throw new CustomError('Project ID and config ID are required', 400)
+    if (!projectId || !workloadId) {
+      throw new CustomError('Project ID and workload ID are required', 400)
     }
 
     const clonedRequest = request.clone()
@@ -45,7 +45,7 @@ export const action = withMiddleware(
       await validateCSRF(formData, clonedRequest.headers)
 
       // Validate form data with Zod
-      const parsed = parseWithZod(formData, { schema: updateConfigMapSchema })
+      const parsed = parseWithZod(formData, { schema: updateWorkloadSchema })
 
       if (parsed.status !== 'success') {
         throw new Error('Invalid form data')
@@ -55,33 +55,34 @@ export const action = withMiddleware(
       const format = value.format
 
       // Convert the configuration to JSON for custom resource
-      const data = JSON.parse(
+      const spec = JSON.parse(
         format === 'yaml' ? yamlToJson(value.configuration) : value.configuration,
       )
+
       const payload = {
-        data: data,
         resourceVersion: value.resourceVersion,
+        spec,
       }
 
-      const dryRunRes = await coreControl.updateConfigMap(
+      const dryRunRes = await workloadsControl.updateWorkload(
         projectId,
-        configId,
+        workloadId,
         payload,
         true,
       )
 
       if (dryRunRes) {
-        await coreControl.updateConfigMap(projectId, configId, payload, false)
+        await workloadsControl.updateWorkload(projectId, workloadId, payload, false)
       }
 
       return redirectWithToast(
-        getPathWithParams(routes.projects.config.configMaps.root, {
+        getPathWithParams(routes.projects.deploy.workloads.root, {
           orgId,
           projectId,
         }),
         {
-          title: 'Config map updated',
-          description: 'Config map updated successfully',
+          title: 'Workload updated',
+          description: 'Workload updated successfully',
           type: 'success',
         },
       )
@@ -97,12 +98,12 @@ export const action = withMiddleware(
   authMiddleware,
 )
 
-export default function EditConfigMap() {
+export default function EditWorkload() {
   const data = useLoaderData<typeof loader>()
 
   return (
-    <div className="mx-auto w-full max-w-2xl py-8">
-      <ConfigMapForm defaultValue={data} />
+    <div className="mx-auto w-full max-w-3xl py-8">
+      <WorkloadForm defaultValue={data} />
     </div>
   )
 }

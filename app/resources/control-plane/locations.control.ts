@@ -86,9 +86,9 @@ export const locationsControl = (client: Client) => {
           kind: 'Location',
           metadata: {
             name: payload.name,
-            annotations: {
+            /* annotations: {
               'app.kubernetes.io/name': payload.displayName,
-            },
+            }, */
             labels: convertLabelsToObject(payload.labels ?? []),
           },
           spec: {
@@ -130,9 +130,9 @@ export const locationsControl = (client: Client) => {
           kind: 'Location',
           metadata: {
             name: payload.name,
-            annotations: {
+            /* annotations: {
               'app.kubernetes.io/name': payload.displayName,
-            },
+            }, */
             resourceVersion: payload.resourceVersion,
             labels: convertLabelsToObject(payload.labels ?? []),
           },

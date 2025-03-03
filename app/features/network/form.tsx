@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import { newNetworkSchema, updateNetworkSchema } from '@/resources/schemas/network.schema'
-import { generateId, generateRandomString } from '@/utils/idGenerator'
+// import { generateId, generateRandomString } from '@/utils/idGenerator'
 import { useIsPending } from '@/utils/misc'
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
@@ -48,7 +48,7 @@ export default function NetworkForm({
   })
 
   // Generate a random suffix for the network name
-  const randomSuffix = useMemo(() => generateRandomString(6), [])
+  // const randomSuffix = useMemo(() => generateRandomString(6), [])
   const isEdit = useMemo(() => defaultValue?.uid !== undefined, [defaultValue])
 
   // Field Controls
@@ -66,7 +66,7 @@ export default function NetworkForm({
     if (defaultValue) {
       form.update({
         value: {
-          displayName: defaultValue.displayName ?? '',
+          // displayName: defaultValue.displayName ?? '',
           name: defaultValue.name ?? '',
           ipFamily: defaultValue.ipFamilies?.[0] ?? 'IPv4',
           ipam: defaultValue.ipam?.mode ?? 'Auto',
@@ -98,7 +98,7 @@ export default function NetworkForm({
         )}
 
         <CardContent className="space-y-4">
-          <Field
+          {/* <Field
             label="Display name"
             description="Enter a short, human-friendly name. Can be changed later."
             errors={fields.displayName.errors}>
@@ -117,10 +117,10 @@ export default function NetworkForm({
                 }
               }}
             />
-          </Field>
+          </Field> */}
           <Field
             label="Name"
-            description="A globally unique stable identifier for your location. This cannot be changed once the location is created."
+            description="A namespace-unique stable identifier for your network. This cannot be changed once the network is created"
             errors={fields.name.errors}>
             <Input
               {...getInputProps(fields.name, { type: 'text' })}
@@ -131,8 +131,12 @@ export default function NetworkForm({
                 const value = (e.target as HTMLInputElement).value
                 nameControl.change(value)
               }}
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               onBlur={(e: React.FormEvent<HTMLInputElement>) => {
-                if (!isEdit) {
+                if (isEdit) {
+                  nameControl.change(defaultValue?.name ?? '')
+                }
+                /* else {
                   const value = (e.target as HTMLInputElement).value
                   if (value.length === 0) {
                     nameControl.change(
@@ -141,9 +145,7 @@ export default function NetworkForm({
                       }),
                     )
                   }
-                } else {
-                  nameControl.change(defaultValue?.name ?? '')
-                }
+                } */
               }}
             />
           </Field>

@@ -107,7 +107,7 @@ export default function ProjectLocationsPage() {
   }
 
   const columns: ColumnDef<ILocationControlResponse>[] = [
-    {
+    /* {
       header: 'Display Name',
       accessorKey: 'displayName',
       cell: ({ row }) => {
@@ -123,10 +123,23 @@ export default function ProjectLocationsPage() {
           </Link>
         )
       },
-    },
+    }, */
     {
       header: 'Name',
       accessorKey: 'name',
+      cell: ({ row }) => {
+        return (
+          <Link
+            to={getPathWithParams(routes.projects.locations.edit, {
+              orgId,
+              projectId,
+              locationId: row.original.name,
+            })}
+            className="font-semibold text-primary">
+            {row.original.name}
+          </Link>
+        )
+      },
     },
     {
       header: 'Class',
@@ -146,7 +159,7 @@ export default function ProjectLocationsPage() {
       header: 'Provider',
       accessorKey: 'provider',
       meta: {
-        className: 'text-center',
+        className: 'w-24',
       },
       cell: ({ row }) => {
         const provider =
@@ -182,13 +195,16 @@ export default function ProjectLocationsPage() {
             </TooltipContent>
           </Tooltip>
         ) : (
-          <span className="flex items-center justify-center">-</span>
+          <span className="w- flex items-center justify-center">-</span>
         )
       },
     },
     {
       header: 'City Code',
       accessorKey: 'cityCode',
+      meta: {
+        className: 'w-32 text-center',
+      },
     },
     {
       header: 'Created At',

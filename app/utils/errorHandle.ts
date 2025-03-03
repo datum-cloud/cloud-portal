@@ -8,5 +8,9 @@ export class CustomError extends Error {
     this.code = code
     this.statusText = message
     this.cause = cause
+
+    if (process.env.NODE_ENV === 'development') {
+      console.error(cause)
+    }
   }
 }

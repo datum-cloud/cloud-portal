@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // Import required types
 import { APIFactory } from '@/resources/api/api.factory'
 import { ControlPlaneFactory } from '@/resources/control-plane/control.factory'
@@ -15,5 +16,11 @@ declare module 'react-router' {
   interface AppLoadContext extends APIFactory, ControlPlaneFactory, GqlFactory {
     // Add any additional context properties here
     cache: Storage
+  }
+}
+
+declare module '@tanstack/table-core' {
+  interface ColumnMeta<TData extends RowData, TValue> {
+    className?: string
   }
 }

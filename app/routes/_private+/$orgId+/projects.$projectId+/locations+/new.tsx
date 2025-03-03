@@ -38,10 +38,9 @@ export const action = withMiddleware(
       }
 
       return redirectWithToast(
-        getPathWithParams(routes.projects.locations.edit, {
+        getPathWithParams(routes.projects.locations.root, {
           orgId,
           projectId,
-          locationId: payload?.name,
         }),
         {
           title: 'Location created successfully',
@@ -50,15 +49,12 @@ export const action = withMiddleware(
         },
       )
     } catch (error) {
-      return dataWithToast(
-        {},
-        {
-          title: 'Error',
-          description:
-            error instanceof Error ? error.message : (error as Response).statusText,
-          type: 'error',
-        },
-      )
+      return dataWithToast(null, {
+        title: 'Error',
+        description:
+          error instanceof Error ? error.message : (error as Response).statusText,
+        type: 'error',
+      })
     }
   },
   authMiddleware,

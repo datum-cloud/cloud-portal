@@ -65,10 +65,21 @@ export const routes = {
       new: '/[orgId]/projects/[projectId]/networks/new',
       edit: '/[orgId]/projects/[projectId]/networks/[networkId]/edit',
     },
+    deploy: {
+      root: '/[orgId]/projects/[projectId]/workloads',
+      workloads: {
+        root: '/[orgId]/projects/[projectId]/workloads',
+        new: '/[orgId]/projects/[projectId]/workloads/new',
+        edit: '/[orgId]/projects/[projectId]/workloads/[workloadId]/edit',
+      },
+      pipelines: {
+        root: '/[orgId]/projects/[projectId]/pipelines',
+        new: '/[orgId]/projects/[projectId]/pipelines/new',
+        edit: '/[orgId]/projects/[projectId]/pipelines/[pipelineId]/edit',
+      },
+    },
     gateways: '/[orgId]/projects/[projectId]/gateways',
     services: '/[orgId]/projects/[projectId]/services',
-    workloads: '/[orgId]/projects/[projectId]/workloads',
-    pipelines: '/[orgId]/projects/[projectId]/pipelines',
     metrics: '/[orgId]/projects/[projectId]/metrics',
     logs: '/[orgId]/projects/[projectId]/logs',
     traces: '/[orgId]/projects/[projectId]/traces',
