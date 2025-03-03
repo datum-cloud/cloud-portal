@@ -55,7 +55,7 @@
     "i18next-browser-languagedetector": "^8.0.2",
     "isbot": "^5.1.22",
     "jwt-decode": "^4.0.0",
-    "lucide-react": "^0.476.0",
+    "lucide-react": "^0.477.0",
     "morgan": "^1.10.0",
     "motion": "^12.4.2",
     "nprogress": "^0.2.0",
