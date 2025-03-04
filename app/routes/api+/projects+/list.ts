@@ -19,7 +19,7 @@ export const loader = withMiddleware(async ({ request, context }) => {
     return data(projects)
   }
 
-  const projects = await projectsControl.getProjects(orgEntityId)
+  const projects = await projectsControl.list(orgEntityId)
 
   await cache.setItem(key, projects)
 

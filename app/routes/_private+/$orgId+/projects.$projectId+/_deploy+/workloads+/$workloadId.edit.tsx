@@ -24,7 +24,7 @@ export const loader = withMiddleware(async ({ context, params }: LoaderFunctionA
     throw new CustomError('Project ID and workload ID are required', 400)
   }
 
-  const workload = await workloadsControl.getWorkload(projectId, workloadId)
+  const workload = await workloadsControl.detail(projectId, workloadId)
 
   return workload
 }, authMiddleware)
@@ -64,7 +64,7 @@ export const action = withMiddleware(
         spec,
       }
 
-      const dryRunRes = await workloadsControl.updateWorkload(
+      const dryRunRes = await workloadsControl.update(
         projectId,
         workloadId,
         payload,
@@ -72,7 +72,7 @@ export const action = withMiddleware(
       )
 
       if (dryRunRes) {
-        await workloadsControl.updateWorkload(projectId, workloadId, payload, false)
+        await workloadsControl.update(projectId, workloadId, payload, false)
       }
 
       return redirectWithToast(

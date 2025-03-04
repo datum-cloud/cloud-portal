@@ -206,14 +206,13 @@ async function apiContext(request: Request) {
   const authToken = session.get('accessToken')
   const controlPlaneToken = session.get('controlPlaneToken')
 
-  const apiServices = createAPIFactory(authToken)
-  const controlPlaneServices = createControlPlaneFactory(controlPlaneToken)
-
+  const apiFactory = createAPIFactory(authToken)
+  const controlPlaneFactory = createControlPlaneFactory(controlPlaneToken)
   const gqlFactory = createGqlFactory(authToken)
 
   return {
-    ...apiServices,
-    ...controlPlaneServices,
+    ...apiFactory,
+    ...controlPlaneFactory,
     ...gqlFactory,
   }
 }

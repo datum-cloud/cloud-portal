@@ -1,4 +1,4 @@
-import { ProjectStatus } from '@/components/project-status/project-status'
+import { StatusBadge } from '@/components/status-badge/status-badge'
 import { Button } from '@/components/ui/button'
 import {
   ArrowListItem,
@@ -7,6 +7,8 @@ import {
   SectionDescription,
   SectionTitle,
 } from '@/features/project/dashboard'
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface'
+import { transformControlPlaneStatus } from '@/utils/misc'
 import { motion } from 'framer-motion'
 import { ArrowRight, Mail } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
@@ -22,21 +24,15 @@ export default function ProjectDashboardPage() {
 
   const status = useMemo(() => {
     if (project) {
-      const condition = project.status.conditions[0]
-      return {
-        isReady: condition.status === 'True',
-        message: condition.message,
-      }
-    }
-
-    return {
-      isReady: false,
-      message: 'Project is being provisioned...',
+      return transformControlPlaneStatus(project.status)
     }
   }, [project])
 
   useEffect(() => {
-    if (!status.isReady) {
+    if (
+      status?.isReady === ControlPlaneStatus.Success ||
+      status?.isReady === ControlPlaneStatus.Error
+    ) {
       const id = setInterval(revalidate, REVALIDATE_INTERVAL)
       return () => clearInterval(id)
     }
@@ -52,15 +48,17 @@ export default function ProjectDashboardPage() {
               <h1 className="text-4xl font-semibold leading-none">
                 {project.description}
               </h1>
-              <ProjectStatus
-                className="py-1 font-bold"
-                status={project.status}
+              <StatusBadge
+                status={status}
+                type="badge"
                 showTooltip={false}
+                readyText="Active"
+                badgeClassName="bg-secondary text-secondary-foreground font-medium border border-input"
               />
             </div>
             <p className="text-xl text-muted-foreground">{project.name}</p>
           </div>
-          {!status.isReady && (
+          {status?.isReady === ControlPlaneStatus.Pending && (
             <SectionDescription>
               {status.message}
               <span className="ml-1 inline-flex after:animate-[ellipsis_1s_steps(4,end)_infinite] after:content-['.']"></span>
@@ -68,7 +66,7 @@ export default function ProjectDashboardPage() {
           )}
         </div>
 
-        {status.isReady ? (
+        {status?.isReady === ControlPlaneStatus.Success ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

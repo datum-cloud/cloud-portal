@@ -32,7 +32,7 @@ export const loader = withMiddleware(async ({ params, context, request }) => {
     const session = await getSession(request.headers.get('Cookie'))
     const orgEntityId: string = session.get('currentOrgEntityID')
 
-    const project: IProjectControlResponse = await projectsControl.getProject(
+    const project: IProjectControlResponse = await projectsControl.detail(
       orgEntityId,
       projectId,
     )

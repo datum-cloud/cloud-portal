@@ -10,13 +10,39 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { ROUTE_PATH as PROJECT_RESOURCES_ROUTE_PATH } from '@/routes/api+/projects+/resources'
 import { getPathWithParams } from '@/utils/path'
 import { CircleAlertIcon } from 'lucide-react'
-import { useNavigate, useParams, useRouteLoaderData, useSubmit } from 'react-router'
+import {
+  ActionFunctionArgs,
+  AppLoadContext,
+  useNavigate,
+  useParams,
+  useRouteLoaderData,
+  useSubmit,
+} from 'react-router'
 import { toast } from 'sonner'
+
+export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
+  const { projectsControl, cache } = context as AppLoadContext
+
+  switch (request.method) {
+    case 'DELETE': {
+      const formData = Object.fromEntries(await request.formData())
+      const { projectName, orgId: orgEntityId } = formData
+
+      // Invalidate the projects cache
+      await cache.removeItem(`projects:${orgEntityId}`)
+
+      return await projectsControl.delete(orgEntityId as string, projectName as string)
+    }
+    default:
+      throw new Error('Method not allowed')
+  }
+}, authMiddleware)
 
 export default function ProjectSettingsPage() {
   const project = useRouteLoaderData(
@@ -54,7 +80,6 @@ export default function ProjectSettingsPage() {
           },
           {
             method: 'DELETE',
-            action: PROJECT_RESOURCES_ROUTE_PATH,
             fetcherKey: 'project-resources',
             navigate: false,
           },

@@ -24,7 +24,7 @@ export const loader = withMiddleware(async ({ request, params, context }) => {
     const session = await getSession(request.headers.get('Cookie'))
     const orgEntityId: string = session.get('currentOrgEntityID')
 
-    await projectsControl.getProject(orgEntityId, projectId)
+    await projectsControl.detail(orgEntityId, projectId)
 
     return redirect(
       getPathWithParams(routes.projects.dashboard, {
