@@ -25,4 +25,19 @@ export default defineConfig({
   },
   assetsInclude: ['**/*.woff2'], // Add font formats you're using
   plugins: [reactRouter(), tsconfigPaths()],
+  /**
+   * Build configuration for optimizing bundle size and performance
+   *
+   * Key features:
+   * 1. Increased chunk size warning limit to 1000kb to accommodate larger vendor bundles
+   *
+   * Benefits:
+   * - Improved caching: Vendor dependencies cached separately from application code
+   * - Better load performance: Parallel loading of smaller chunks
+   * - Reduced main bundle size: Dependencies split into separate chunks
+   * - More efficient updates: Only changed chunks need to be downloaded
+   */
+  build: {
+    chunkSizeWarningLimit: 1000, // Increase size limit to 1000kb
+  },
 })

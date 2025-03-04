@@ -49,6 +49,10 @@ body {
     --destructive: 0 84.2% 60.2%; /* #E11D48 */
     --destructive-foreground: 0 0% 98%; /* #FAFAFA */
 
+    /* Sunglow colors */
+    --sunglow: 35 95% 68%; /* #F27A67 */
+    --sunglow-foreground: 240 10% 3.9%; /* #0A0A0A */
+
     /* UI elements */
     --border: 240 5.9% 90%; /* #E5E5E5 */
     --input: 240 5.9% 90%; /* #E5E5E5 */
@@ -103,8 +107,12 @@ body {
     --accent-foreground: 0 0% 98%; /* #FAFAFA */
 
     /* Destructive colors */
-    --destructive: 0 62.8% 30.6%; /* #7F1D1D */
+    --destructive: 0 72.2% 50.6%; /* #DC2626 */
     --destructive-foreground: 0 0% 98%; /* #FAFAFA */
+
+    /* Sunglow colors */
+    --sunglow: 8 89% 87%; /* #FBC8BF */
+    --sunglow-foreground: 240 5.9% 10%; /* #191919 */
 
     /* UI elements */
     --border: 240 3.7% 15.9%; /* #262626 */

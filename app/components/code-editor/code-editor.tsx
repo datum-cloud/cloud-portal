@@ -10,8 +10,6 @@ import 'ace-builds/src-noconflict/ext-language_tools'
 import 'ace-builds/src-noconflict/mode-json'
 import 'ace-builds/src-noconflict/mode-yaml'
 import 'ace-builds/src-noconflict/theme-dracula'
-// Import Ace Editor themes
-import 'ace-builds/src-noconflict/theme-github'
 
 export const CodeEditor = ({
   value = '',
@@ -20,6 +18,7 @@ export const CodeEditor = ({
   name,
   error,
   className,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   darkMode = false,
   readOnly = false,
   minHeight = '200px',
@@ -54,7 +53,7 @@ export const CodeEditor = ({
         <AceEditor
           ref={editorRef}
           mode={language}
-          theme={darkMode ? 'dracula' : 'github'}
+          theme="dracula"
           onChange={onChange}
           value={value}
           name={name || 'ace-editor'}
