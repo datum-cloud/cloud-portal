@@ -15,7 +15,6 @@ import {
   useParams,
   useRouteError,
 } from 'react-router'
-import { toast } from 'sonner'
 
 type StatusHandler = (info: {
   error: ErrorResponse
@@ -58,10 +57,6 @@ export function GenericErrorBoundary({
             action: routes.auth.logOut,
           })
 
-          toast.error('Session expired', {
-            description: 'Please sign in again to continue.',
-          })
-
           // Redirect to login page
           navigate(routes.auth.logIn)
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -77,70 +72,65 @@ export function GenericErrorBoundary({
     }
   }, [error])
 
-  if (isLoading) {
-    return (
-      <PublicLayout>
-        <Card className="overflow-hidden">
-          <CardContent className="flex min-h-[500px] flex-col items-center justify-center gap-6">
-            <LogoIcon width={64} theme={theme} className="mb-4" />
-            <div className="flex items-center justify-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <p className="text-muted-foreground">Loading...</p>
-            </div>
-          </CardContent>
-        </Card>
-      </PublicLayout>
-    )
-  }
-
   return (
     <PublicLayout>
       <Card className="overflow-hidden">
         <CardContent className="flex min-h-[500px] flex-col items-center justify-center gap-6">
           <LogoIcon width={64} theme={theme} className="mb-4" />
-          <div className="flex max-w-xl flex-col gap-2">
-            <h1 className="w-full text-center text-2xl font-bold">
-              Whoops! Something went wrong.
-            </h1>
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex max-w-xl flex-col gap-2">
+                <h1 className="w-full text-center text-2xl font-bold">
+                  Whoops! Something went wrong.
+                </h1>
 
-            {process.env.NODE_ENV === 'development' ? (
-              <div className="text-center text-sm text-muted-foreground">
-                {isRouteErrorResponse(error)
-                  ? (statusHandlers?.[error.status] ?? defaultStatusHandler)({
-                      error,
-                      params,
-                    })
-                  : unexpectedErrorHandler(error)}
+                {process.env.NODE_ENV === 'development' ? (
+                  <div className="text-center text-sm text-muted-foreground">
+                    {isRouteErrorResponse(error)
+                      ? (statusHandlers?.[error.status] ?? defaultStatusHandler)({
+                          error,
+                          params,
+                        })
+                      : unexpectedErrorHandler(error)}
+                  </div>
+                ) : (
+                  <p className="text-center text-sm text-muted-foreground">
+                    Something went wrong on our end. Our team has been notified, and
+                    we&apos;re working to fix it. Please try again later. If the issue
+                    persists, reach out to{' '}
+                    <Link
+                      to={`mailto:support@datum.net`}
+                      className="text-primary underline">
+                      support@datum.net
+                    </Link>
+                    .
+                  </p>
+                )}
               </div>
-            ) : (
-              <p className="text-center text-sm text-muted-foreground">
-                Something went wrong on our end. Our team has been notified, and
-                we&apos;re working to fix it. Please try again later. If the issue
-                persists, reach out to{' '}
-                <Link to={`mailto:support@datum.net`} className="text-primary underline">
-                  support@datum.net
+              <div className="flex items-center gap-2">
+                <Link to={routes.home}>
+                  <Button size="sm">
+                    <HomeIcon className="size-4" />
+                    Back to Home
+                  </Button>
                 </Link>
-                .
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <Link to={routes.home}>
-              <Button size="sm">
-                <HomeIcon className="size-4" />
-                Back to Home
-              </Button>
-            </Link>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                navigate(0)
-              }}>
-              <RefreshCcwIcon className="size-4" />
-              Refresh Page
-            </Button>
-          </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigate(0)
+                  }}>
+                  <RefreshCcwIcon className="size-4" />
+                  Refresh Page
+                </Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </PublicLayout>

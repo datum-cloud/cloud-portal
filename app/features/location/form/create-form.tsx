@@ -21,7 +21,7 @@ import {
   LocationProvider,
 } from '@/resources/interfaces/location.interface'
 import { newLocationSchema } from '@/resources/schemas/location.schema'
-import { generateId, generateRandomString } from '@/utils/idGenerator'
+// import { generateId, generateRandomString } from '@/utils/idGenerator'
 import { useIsPending, convertObjectToLabels } from '@/utils/misc'
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
@@ -66,7 +66,7 @@ export default function CreateLocationForm({
   )
 
   // Generate a random suffix for the location name
-  const randomSuffix = useMemo(() => generateRandomString(6), [])
+  // const randomSuffix = useMemo(() => generateRandomString(6), [])
 
   const isEdit = useMemo(() => defaultValue?.uid !== undefined, [defaultValue])
 
@@ -88,7 +88,7 @@ export default function CreateLocationForm({
 
       form.update({
         value: {
-          displayName: defaultValue?.displayName ?? '',
+          // displayName: defaultValue?.displayName ?? '',
           name: defaultValue?.name ?? '',
           class: defaultValue?.class ?? LocationClass.DATUM_MANAGED,
           cityCode: defaultValue?.cityCode ?? '',
@@ -126,7 +126,7 @@ export default function CreateLocationForm({
         )}
 
         <CardContent className="space-y-4">
-          <Field
+          {/* <Field
             label="Display name"
             description="Enter a short, human-friendly name. Can be changed later."
             errors={fields.displayName.errors}>
@@ -145,10 +145,10 @@ export default function CreateLocationForm({
                 }
               }}
             />
-          </Field>
+          </Field> */}
           <Field
             label="Name"
-            description="A globally unique stable identifier for your location. This cannot be changed once the location is created."
+            description="A namespace-unique stable identifier for your location. This cannot be changed once the location is created"
             errors={fields.name.errors}>
             <Input
               {...getInputProps(fields.name, { type: 'text' })}
@@ -159,8 +159,12 @@ export default function CreateLocationForm({
                 const value = (e.target as HTMLInputElement).value
                 nameControl.change(value)
               }}
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               onBlur={(e: React.FormEvent<HTMLInputElement>) => {
-                if (!isEdit) {
+                if (isEdit) {
+                  nameControl.change(defaultValue?.name ?? '')
+                }
+                /* else {
                   const value = (e.target as HTMLInputElement).value
                   if (value.length === 0) {
                     nameControl.change(
@@ -169,9 +173,7 @@ export default function CreateLocationForm({
                       }),
                     )
                   }
-                } else {
-                  nameControl.change(defaultValue?.name ?? '')
-                }
+                } */
               }}
             />
           </Field>

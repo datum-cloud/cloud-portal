@@ -27,7 +27,7 @@ export function CodeEditorTabs({
     try {
       return value ? yamlToJson(value) : '{}'
     } catch (e) {
-      toast.error('Initial YAML to JSON conversion failed')
+      toast.error('Initial YAML to JSON conversion failed', { duration: Infinity })
       return '{}'
     }
   })
@@ -39,7 +39,7 @@ export function CodeEditorTabs({
     try {
       return value ? jsonToYaml(value) : ''
     } catch (e) {
-      toast.error('Initial JSON to YAML conversion failed')
+      toast.error('Initial JSON to YAML conversion failed', { duration: Infinity })
       return ''
     }
   })
@@ -111,6 +111,7 @@ export function CodeEditorTabs({
       const errorMessage = error instanceof Error ? error.message : 'Conversion failed'
       toast.error(errorMessage, {
         id: 'conversion-error', // Use an ID to prevent duplicate toasts
+        duration: Infinity,
       })
     }
   }
@@ -131,6 +132,7 @@ export function CodeEditorTabs({
     } catch (e) {
       toast.error('Failed to update YAML from JSON value', {
         id: 'json-to-yaml-error',
+        duration: Infinity,
       })
       // Invalid JSON, don't update YAML
     }
@@ -151,6 +153,7 @@ export function CodeEditorTabs({
     } catch (e) {
       toast.error('Failed to update JSON from YAML value', {
         id: 'yaml-to-json-error',
+        duration: Infinity,
       })
       // Invalid YAML, don't update JSON
     }

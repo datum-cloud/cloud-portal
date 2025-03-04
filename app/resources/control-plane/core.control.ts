@@ -6,7 +6,7 @@ import {
   replaceCoreV1NamespacedConfigMap,
   deleteCoreV1NamespacedConfigMap,
 } from '@/modules/control-plane/api-v1'
-import { IConfigMapControlResponse } from '@/resources/interfaces/config-maps.interface'
+import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
 import { ConfigMapSchema } from '@/resources/schemas/config-map.schema'
 import { CustomError } from '@/utils/errorHandle'
 import { Client } from '@hey-api/client-axios'
@@ -80,7 +80,7 @@ export const coreControl = (client: Client) => {
     updateConfigMap: async (
       projectId: string,
       configId: string,
-      payload: IoK8sApiCoreV1ConfigMap,
+      payload: { data: Record<string, string>; resourceVersion: string },
       dryRun: boolean = false,
     ) => {
       const response = await replaceCoreV1NamespacedConfigMap({
@@ -93,7 +93,15 @@ export const coreControl = (client: Client) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: payload,
+        body: {
+          apiVersion: 'v1',
+          kind: 'ConfigMap',
+          metadata: {
+            name: configId,
+            resourceVersion: payload.resourceVersion,
+          },
+          data: payload.data,
+        },
       })
 
       if (!response.data) {

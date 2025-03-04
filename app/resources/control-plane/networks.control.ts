@@ -74,9 +74,9 @@ export const networksControl = (client: Client) => {
           kind: 'Network',
           metadata: {
             name: payload.name,
-            annotations: {
+            /* annotations: {
               'app.kubernetes.io/name': payload.displayName,
-            },
+            }, */
           },
           spec: {
             ipFamilies: [payload.ipFamily],
@@ -112,9 +112,9 @@ export const networksControl = (client: Client) => {
           kind: 'Network',
           metadata: {
             name: payload.name,
-            annotations: {
+            /* annotations: {
               'app.kubernetes.io/name': payload.displayName,
-            },
+            }, */
             resourceVersion: payload.resourceVersion,
           },
           spec: {

@@ -12,9 +12,9 @@ export const gcpProviderSchema = z.object({
 })
 
 export const baseLocationSchema = z.object({
-  displayName: z
-    .string({ required_error: 'Display name is required.' })
-    .max(100, { message: 'Display name must be less than 100 characters long.' }),
+  // displayName: z
+  //   .string({ required_error: 'Display name is required.' })
+  //   .max(100, { message: 'Display name must be less than 100 characters long.' }),
   name: z
     .string({ required_error: 'Name is required.' })
     .min(6, { message: 'Name must be at least 6 characters long.' })

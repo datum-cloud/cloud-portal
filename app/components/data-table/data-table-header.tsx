@@ -16,7 +16,9 @@ export const DataTableHeader = <TData,>({
         <TableRow key={headerGroup.id} className="hover:bg-transparent">
           {headerGroup.headers.map((header) => {
             return (
-              <TableHead key={header.id} className="h-10">
+              <TableHead
+                key={header.id}
+                className={cn('h-10', header.column.columnDef.meta?.className)}>
                 {header.isPlaceholder ? null : header.column.getCanSort() ? (
                   <div
                     className={cn(

@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
 export const newNetworkSchema = z.object({
-  displayName: z
+  /* displayName: z
     .string({ required_error: 'Display name is required.' })
-    .max(100, { message: 'Display name must be less than 100 characters long.' }),
+    .max(100, { message: 'Display name must be less than 100 characters long.' }), */
   name: z
     .string({ required_error: 'Name is required.' })
     .min(6, { message: 'Name must be at least 6 characters long.' })

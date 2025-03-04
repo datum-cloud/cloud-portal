@@ -1,42 +1,42 @@
 import { DateFormat } from '@/components/date-format/date-format'
 import { Field } from '@/components/field/field'
 import { TextCopy } from '@/components/text-copy/text-copy'
-import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
+import { IWorkloadControlResponse } from '@/resources/interfaces/workload-interface'
 import { getShortId } from '@/utils/misc'
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow'
 
-export const SimpleConfigMapDetail = ({
-  configMap,
+export const SimpleWorkloadDetail = ({
+  workload,
 }: {
-  configMap: IConfigMapControlResponse
+  workload: IWorkloadControlResponse
 }) => {
   return (
     <div className="grid grid-cols-2 gap-4">
       <Field label="Name">
-        <span className="text-sm text-muted-foreground">{configMap?.name}</span>
+        <span className="text-sm text-muted-foreground">{workload?.name}</span>
       </Field>
-      {configMap?.uid && (
+      {workload?.uid && (
         <Field label="UUID">
           <TextCopy
             className="text-sm text-muted-foreground"
-            value={configMap?.uid}
-            text={getShortId(configMap?.uid)}
+            value={workload?.uid}
+            text={getShortId(workload?.uid)}
           />
         </Field>
       )}
       <Field label="Namespace">
-        <span className="text-sm text-muted-foreground">{configMap?.namespace}</span>
+        <span className="text-sm text-muted-foreground">{workload?.namespace}</span>
       </Field>
-      {configMap?.createdAt && (
+      {workload?.createdAt && (
         <Field label="Created At">
           <div className="flex items-center gap-1">
             <DateFormat
               className="text-sm text-muted-foreground"
-              date={configMap?.createdAt}
+              date={workload?.createdAt}
             />
             <span className="text-sm text-muted-foreground">
               (
-              {formatDistanceToNow(new Date(configMap?.createdAt), {
+              {formatDistanceToNow(new Date(workload?.createdAt), {
                 addSuffix: true,
               })}
               )

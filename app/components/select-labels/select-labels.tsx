@@ -50,7 +50,9 @@ export const SelectLabels = ({
     )
 
     if (isDuplicate) {
-      toast.error('Label already exists')
+      toast.error('Label already exists', {
+        duration: Infinity,
+      })
       return
     }
 

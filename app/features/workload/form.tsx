@@ -1,4 +1,4 @@
-import { SimpleConfigMapDetail } from './simple-detail'
+import { SimpleWorkloadDetail } from './simple-detail'
 import { CodeEditorTabs } from '@/components/code-editor/code-editor-tabs'
 import { EditorLanguage } from '@/components/code-editor/code-editor.types'
 import { Field } from '@/components/field/field'
@@ -12,11 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
-import {
-  configMapSchema,
-  updateConfigMapSchema,
-} from '@/resources/schemas/config-map.schema'
+import { IWorkloadControlResponse } from '@/resources/interfaces/workload-interface'
+import { workloadSchema, updateWorkloadSchema } from '@/resources/schemas/workload.schema'
 import { jsonToYaml } from '@/utils/editor'
 import { useIsPending } from '@/utils/misc'
 import { getFormProps, useForm, useInputControl } from '@conform-to/react'
@@ -26,21 +23,21 @@ import { useEffect, useMemo, useState } from 'react'
 import { Form, useNavigate } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 
-export const ConfigMapForm = ({
+export const WorkloadForm = ({
   defaultValue,
 }: {
-  defaultValue?: IConfigMapControlResponse
+  defaultValue?: IWorkloadControlResponse
 }) => {
   const isPending = useIsPending()
   const navigate = useNavigate()
 
   const [form, fields] = useForm({
-    constraint: getZodConstraint(defaultValue ? updateConfigMapSchema : configMapSchema),
+    constraint: getZodConstraint(defaultValue ? updateWorkloadSchema : workloadSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, {
-        schema: defaultValue ? updateConfigMapSchema : configMapSchema,
+        schema: defaultValue ? updateWorkloadSchema : workloadSchema,
       })
     },
     defaultValue: {
@@ -52,22 +49,19 @@ export const ConfigMapForm = ({
   const [hasData, setHasData] = useState<boolean>(true)
   const isEdit = useMemo(() => defaultValue?.uid !== undefined, [defaultValue])
 
-  const configFormatControl = useInputControl(fields.format)
-  const configValueControl = useInputControl(fields.content)
+  const forrmatControl = useInputControl(fields.format)
+  const valueControl = useInputControl(fields.content)
 
   useEffect(() => {
     if (defaultValue) {
-      const data = Object.fromEntries(
-        Object.entries(defaultValue).filter(([key]) =>
-          ['data', 'binaryData'].includes(key),
-        ),
+      const { spec } = Object.fromEntries(
+        Object.entries(defaultValue).filter(([key]) => key === 'spec'),
       )
 
-      setHasData(data?.data !== undefined)
+      setHasData(true)
       form.update({
         value: {
-          // TODO: currently only supports data. add support for binaryData
-          content: data?.data ? jsonToYaml(JSON.stringify(data.data)) : '',
+          content: spec ? jsonToYaml(JSON.stringify(spec)) : '',
           format: 'yaml',
         },
       })
@@ -77,11 +71,11 @@ export const ConfigMapForm = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEdit ? 'Update' : 'Create a new'} config map</CardTitle>
+        <CardTitle>{isEdit ? 'Update' : 'Create a new'} workload</CardTitle>
         <CardDescription>
           {isEdit
-            ? 'Update the config map with the new values below.'
-            : 'Create a new config map to get started with Datum Cloud.'}
+            ? 'Update the workload with the new values below.'
+            : 'Create a new workload to get started with Datum Cloud.'}
         </CardDescription>
       </CardHeader>
       <Form method="POST" autoComplete="off" {...getFormProps(form)}>
@@ -96,32 +90,32 @@ export const ConfigMapForm = ({
         )}
 
         <CardContent className="space-y-4">
-          {isEdit && defaultValue && <SimpleConfigMapDetail configMap={defaultValue} />}
+          {isEdit && defaultValue && <SimpleWorkloadDetail workload={defaultValue} />}
 
           {hasData ? (
             <Field
-              label={isEdit ? 'Data' : 'Configuration'}
+              label={isEdit ? 'Spec' : 'Configuration'}
               errors={fields.content.errors}>
               <CodeEditorTabs
                 error={fields.content.errors?.[0]}
                 value={fields.content.value ?? ''}
                 onChange={(newValue, format) => {
-                  configValueControl.change(newValue)
-                  configFormatControl.change(format as string)
+                  valueControl.change(newValue)
+                  forrmatControl.change(format as string)
                 }}
                 format={fields.format.value as EditorLanguage}
                 onFormatChange={(format: EditorLanguage) => {
-                  configFormatControl.change(format as string)
+                  forrmatControl.change(format as string)
                 }}
                 name="configuration"
-                minHeight="300px"
+                minHeight="500px"
               />
             </Field>
           ) : (
             <Alert variant="secondary">
               <InfoIcon className="size-4" />
               <AlertTitle>Information</AlertTitle>
-              <AlertDescription>This config map does not have any data.</AlertDescription>
+              <AlertDescription>This workload does not have any spec.</AlertDescription>
             </Alert>
           )}
         </CardContent>

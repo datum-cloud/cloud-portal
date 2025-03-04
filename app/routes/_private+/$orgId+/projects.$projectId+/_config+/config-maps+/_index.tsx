@@ -6,7 +6,7 @@ import { routes } from '@/constants/routes'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { IConfigMapControlResponse } from '@/resources/interfaces/config-maps.interface'
+import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { ColumnDef } from '@tanstack/react-table'
@@ -164,6 +164,7 @@ export default function ConfigMapsPage() {
           </Link>
         ),
       }}
+      defaultSorting={[{ id: 'createdAt', desc: true }]}
       rowActions={rowActions}
     />
   )

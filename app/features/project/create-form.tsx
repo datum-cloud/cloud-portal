@@ -111,7 +111,7 @@ export const CreateProjectForm = () => {
           </Field>
           <Field
             label="Name"
-            description="A globally unique stable identifier for your project. This cannot be changed once the project is created."
+            description="A namespace-unique stable identifier for your project. This cannot be changed once the project is created"
             errors={name.errors}>
             <Input
               placeholder="e.g. my-project-343j33"
