@@ -73,7 +73,8 @@ const config = {
           700: '#F4A89B',
           800: '#F39282',
           900: '#F27A67',
-          DEFAULT: '#F27A67',
+          DEFAULT: 'hsl(var(--sunglow))',
+          foreground: 'hsl(var(--sunglow-foreground))',
         },
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',
