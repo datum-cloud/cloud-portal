@@ -1,15 +1,9 @@
-// sort-imports-ignore
-import { useRef, useEffect } from 'react'
-import AceEditor from 'react-ace'
 import { CodeEditorProps } from './code-editor.types'
 import { cn } from '@/utils/misc'
-
-import 'ace-builds/src-noconflict/ace'
-import 'ace-builds/src-noconflict/ext-language_tools'
-// Import Ace Editor modes
-import 'ace-builds/src-noconflict/mode-json'
-import 'ace-builds/src-noconflict/mode-yaml'
-import 'ace-builds/src-noconflict/theme-dracula'
+// eslint-disable-next-line import/no-named-as-default
+import Editor, { Monaco } from '@monaco-editor/react'
+import { editor } from 'monaco-editor'
+import { useRef } from 'react'
 
 export const CodeEditor = ({
   value = '',
@@ -18,27 +12,46 @@ export const CodeEditor = ({
   name,
   error,
   className,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   darkMode = false,
   readOnly = false,
   minHeight = '200px',
 }: CodeEditorProps) => {
-  const editorRef = useRef<AceEditor>(null)
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
 
-  // Set focus on the editor when it's mounted
-  useEffect(() => {
-    // Small delay to ensure the editor is fully mounted
-    const timer = setTimeout(() => {
-      if (editorRef.current?.editor) {
-        // Get the Ace editor instance
-        const editor = editorRef.current.editor
-        // Move cursor to start
-        editor.gotoLine(0, 0)
-      }
-    }, 100)
+  // Handle editor mounting
+  const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
+    editorRef.current = editor
 
-    return () => clearTimeout(timer)
-  }, [])
+    // Set up customizations
+    editor.updateOptions({
+      tabSize: 2,
+      minimap: { enabled: false }, // Disable minimap for cleaner UI
+      scrollBeyondLastLine: false,
+      folding: true,
+      lineNumbers: 'on',
+      renderLineHighlight: 'all',
+      scrollbar: {
+        vertical: 'auto',
+        horizontal: 'auto',
+      },
+      readOnly,
+      automaticLayout: true, // Important for responsive resizing
+    })
+
+    // Configure JSON schemas if needed
+    if (language === 'json') {
+      monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+        validate: true,
+        allowComments: false,
+        schemas: [],
+      })
+    }
+
+    // Format the content on first load
+    setTimeout(() => {
+      editor.getAction('editor.action.formatDocument')?.run()
+    }, 300)
+  }
 
   return (
     <>
@@ -50,31 +63,25 @@ export const CodeEditor = ({
           className,
         )}
         style={{ height: minHeight }}>
-        <AceEditor
-          ref={editorRef}
-          mode={language}
-          theme="dracula"
-          onChange={onChange}
+        <Editor
           value={value}
-          name={name || 'ace-editor'}
-          editorProps={{ $blockScrolling: true }}
-          setOptions={{
-            useWorker: false, // Disable worker for better performance
-            enableBasicAutocompletion: true,
-            enableLiveAutocompletion: true,
-            enableSnippets: true,
-            showLineNumbers: true,
+          language={language}
+          theme={darkMode ? 'vs-dark' : 'light'}
+          options={{
+            readOnly,
+            automaticLayout: true,
+            lineNumbers: 'on',
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
             tabSize: 2,
-            fontFamily: 'monospace',
-            showPrintMargin: false,
+            wordWrap: 'on',
           }}
-          readOnly={readOnly}
-          width="100%"
+          onChange={(newValue) => onChange(newValue || '')}
+          onMount={handleEditorDidMount}
           height="100%"
-          showPrintMargin={false}
-          showGutter={true}
-          highlightActiveLine={!readOnly}
-          style={{ borderRadius: '0.375rem' }}
+          width="100%"
+          className="monaco-editor-container"
+          loading={<div className="p-4 text-muted">Loading editor...</div>}
         />
       </div>
 
