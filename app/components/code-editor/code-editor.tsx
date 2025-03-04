@@ -1,11 +1,9 @@
-// sort-imports-ignore
-import { useRef } from 'react'
 import { CodeEditorProps } from './code-editor.types'
 import { cn } from '@/utils/misc'
-
 // eslint-disable-next-line import/no-named-as-default
 import Editor, { Monaco } from '@monaco-editor/react'
 import { editor } from 'monaco-editor'
+import { useRef } from 'react'
 
 export const CodeEditor = ({
   value = '',
