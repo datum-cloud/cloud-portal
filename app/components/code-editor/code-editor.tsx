@@ -14,7 +14,6 @@ export const CodeEditor = ({
   name,
   error,
   className,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   darkMode = false,
   readOnly = false,
   minHeight = '200px',
