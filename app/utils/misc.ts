@@ -1,3 +1,7 @@
+import {
+  ControlPlaneStatus,
+  IControlPlaneStatus,
+} from '@/resources/interfaces/control-plane.interface'
 import { ILabel } from '@/resources/interfaces/label.interface'
 import { type ClassValue, clsx } from 'clsx'
 import { useFormAction, useNavigation } from 'react-router'
@@ -152,4 +156,31 @@ export function getShortId(id: string, length: number = 8): string {
 
   // Otherwise, return the first 'length' characters
   return id.substring(0, length)
+}
+
+export function transformControlPlaneStatus(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  status: any,
+): IControlPlaneStatus {
+  if (status && (status?.conditions ?? []).length > 0) {
+    const condition = status?.conditions?.[0]
+    // const isFailed = condition?.lastTransitionTime
+    //   ? differenceInMinutes(new Date(), new Date(condition.lastTransitionTime)) > 10
+    //   : false
+    const isFailed = false
+    return {
+      isReady:
+        condition?.status === 'True'
+          ? ControlPlaneStatus.Success
+          : isFailed
+            ? ControlPlaneStatus.Error
+            : ControlPlaneStatus.Pending,
+      message: condition?.message ?? '',
+    }
+  }
+
+  return {
+    isReady: ControlPlaneStatus.Pending,
+    message: 'Resource is being provisioned...',
+  }
 }

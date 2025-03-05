@@ -3,14 +3,17 @@ import { DataTableRowActionsProps } from '@/components/data-table/data-table.typ
 import { DateFormat } from '@/components/date-format/date-format'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
+import { WorkloadStatus } from '@/features/workload/status'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { IWorkloadControlResponse } from '@/resources/interfaces/workload-interface'
+import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
 import { CustomError } from '@/utils/errorHandle'
+import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
+import { useMemo } from 'react'
 import {
   LoaderFunctionArgs,
   AppLoadContext,
@@ -31,7 +34,7 @@ export const loader = withMiddleware(async ({ context, params }: LoaderFunctionA
     throw new CustomError('Project ID is required', 400)
   }
 
-  const workloads = await workloadsControl.getWorkloads(projectId)
+  const workloads = await workloadsControl.list(projectId)
   return workloads
 }, authMiddleware)
 
@@ -43,10 +46,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
       const formData = Object.fromEntries(await request.formData())
       const { workloadId, projectId } = formData
 
-      return await workloadsControl.deleteWorkload(
-        projectId as string,
-        workloadId as string,
-      )
+      return await workloadsControl.delete(projectId as string, workloadId as string)
     }
     default:
       throw new Error('Method not allowed')
@@ -95,32 +95,52 @@ export default function WorkloadsPage() {
     })
   }
 
-  const columns: ColumnDef<IWorkloadControlResponse>[] = [
-    {
-      header: 'Name',
-      accessorKey: 'name',
-      cell: ({ row }) => {
-        return (
-          <Link
-            to={getPathWithParams(routes.projects.deploy.workloads.edit, {
-              orgId,
-              projectId,
-              workloadId: row.original.name,
-            })}
-            className="font-semibold text-primary">
-            {row.original.name}
-          </Link>
-        )
+  const columns: ColumnDef<IWorkloadControlResponse>[] = useMemo(
+    () => [
+      {
+        header: 'Name',
+        accessorKey: 'name',
+        cell: ({ row }) => {
+          return (
+            <Link
+              to={getPathWithParams(routes.projects.deploy.workloads.edit, {
+                orgId,
+                projectId,
+                workloadId: row.original.name,
+              })}
+              className="font-semibold leading-none text-primary">
+              {row.original.name}
+            </Link>
+          )
+        },
       },
-    },
-    {
-      header: 'Created At',
-      accessorKey: 'createdAt',
-      cell: ({ row }) => {
-        return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+      {
+        header: 'Status',
+        accessorKey: 'status',
+        cell: ({ row }) => {
+          return (
+            row.original.status && (
+              <WorkloadStatus
+                currentStatus={transformControlPlaneStatus(row.original.status)}
+                projectId={projectId}
+                workloadId={row.original.name}
+                type="badge"
+                badgeClassName="px-0"
+              />
+            )
+          )
+        },
       },
-    },
-  ]
+      {
+        header: 'Created At',
+        accessorKey: 'createdAt',
+        cell: ({ row }) => {
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+        },
+      },
+    ],
+    [],
+  )
 
   const rowActions: DataTableRowActionsProps<IWorkloadControlResponse>[] = [
     {

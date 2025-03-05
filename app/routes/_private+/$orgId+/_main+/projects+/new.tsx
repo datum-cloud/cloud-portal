@@ -29,11 +29,11 @@ export const action = withMiddleware(
       const payload = parsed.value as NewProjectSchema
 
       // Dry run to validate
-      const dryRunRes = await projectsControl.createProject(payload, true)
+      const dryRunRes = await projectsControl.create(payload, true)
 
       // If dry run succeeds, create for real
       if (dryRunRes) {
-        await projectsControl.createProject(payload, false)
+        await projectsControl.create(payload, false)
       }
 
       // Invalidate the projects cache

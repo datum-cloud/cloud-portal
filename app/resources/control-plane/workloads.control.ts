@@ -4,10 +4,12 @@ import {
   deleteComputeDatumapisComV1AlphaNamespacedWorkload,
   listComputeDatumapisComV1AlphaNamespacedWorkload,
   readComputeDatumapisComV1AlphaNamespacedWorkload,
+  readComputeDatumapisComV1AlphaNamespacedWorkloadStatus,
   replaceComputeDatumapisComV1AlphaNamespacedWorkload,
 } from '@/modules/control-plane/compute'
-import { IWorkloadControlResponse } from '@/resources/interfaces/workload-interface'
+import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
 import { CustomError } from '@/utils/errorHandle'
+import { transformControlPlaneStatus } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
 export const workloadsControl = (client: Client) => {
@@ -23,11 +25,12 @@ export const workloadsControl = (client: Client) => {
       uid: workload.metadata?.uid,
       resourceVersion: workload.metadata?.resourceVersion,
       spec: workload.spec,
+      status: workload.status,
     }
   }
 
   return {
-    getWorkloads: async (projectId: string) => {
+    list: async (projectId: string) => {
       const response = await listComputeDatumapisComV1AlphaNamespacedWorkload({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -38,7 +41,7 @@ export const workloadsControl = (client: Client) => {
 
       return response.data?.items?.map(transformWorkload) ?? []
     },
-    getWorkload: async (projectId: string, workloadId: string) => {
+    detail: async (projectId: string, workloadId: string) => {
       const response = await readComputeDatumapisComV1AlphaNamespacedWorkload({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -51,7 +54,7 @@ export const workloadsControl = (client: Client) => {
 
       return transformWorkload(response.data)
     },
-    createWorkload: async (
+    create: async (
       projectId: string,
       workload: ComDatumapisComputeV1AlphaWorkload,
       dryRun: boolean = false,
@@ -78,7 +81,7 @@ export const workloadsControl = (client: Client) => {
 
       return dryRun ? response.data : transformWorkload(response.data)
     },
-    updateWorkload: async (
+    update: async (
       projectId: string,
       workloadId: string,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -109,7 +112,7 @@ export const workloadsControl = (client: Client) => {
 
       return dryRun ? response.data : transformWorkload(response.data)
     },
-    deleteWorkload: async (projectId: string, workloadId: string) => {
+    delete: async (projectId: string, workloadId: string) => {
       const response = await deleteComputeDatumapisComV1AlphaNamespacedWorkload({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -121,6 +124,19 @@ export const workloadsControl = (client: Client) => {
       }
 
       return response.data
+    },
+    getStatus: async (projectId: string, workloadId: string) => {
+      const response = await readComputeDatumapisComV1AlphaNamespacedWorkloadStatus({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { namespace: 'default', name: workloadId },
+      })
+
+      if (!response.data) {
+        throw new CustomError(`Workload ${workloadId} not found`, 404)
+      }
+
+      return transformControlPlaneStatus(response.data.status)
     },
   }
 }

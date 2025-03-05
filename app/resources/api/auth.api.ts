@@ -6,7 +6,7 @@ import {
 import { IUserProfile } from '@/resources/interfaces/user.interface'
 import { AxiosInstance } from 'axios'
 
-export const createAuthAPIService = (client: AxiosInstance) => {
+export const authAPIService = (client: AxiosInstance) => {
   return {
     async postRegisterOauth(payload: IAuthTokenPayload): Promise<IAuthTokenResponse> {
       const response = await client.post('/oauth/register', payload)
@@ -27,4 +27,4 @@ export const createAuthAPIService = (client: AxiosInstance) => {
   }
 }
 
-export type AuthAPIService = ReturnType<typeof createAuthAPIService>
+export type AuthAPIService = ReturnType<typeof authAPIService>

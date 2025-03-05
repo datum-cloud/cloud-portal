@@ -38,10 +38,10 @@ export const action = withMiddleware(
         format === 'yaml' ? yamlToJson(value.configuration) : value.configuration,
       )
 
-      const dryRunRes = await workloadsControl.createWorkload(projectId, payload, true)
+      const dryRunRes = await workloadsControl.create(projectId, payload, true)
 
       if (dryRunRes) {
-        await workloadsControl.createWorkload(projectId, payload, false)
+        await workloadsControl.create(projectId, payload, false)
       }
 
       return redirectWithToast(

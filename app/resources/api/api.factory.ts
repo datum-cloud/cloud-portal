@@ -1,4 +1,4 @@
-import { AuthAPIService, createAuthAPIService } from './auth.api'
+import { AuthAPIService, authAPIService } from './auth.api'
 import { createAxiosClient } from '@/modules/axios/axios'
 
 export interface APIFactory {
@@ -12,6 +12,6 @@ export const createAPIFactory = (authToken: string): APIFactory => {
   })
 
   return {
-    authApi: createAuthAPIService(apiClient),
+    authApi: authAPIService(apiClient),
   }
 }

@@ -35,7 +35,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     // Check for existing projects
     // TODO: remove this line when the organization process doesn't need to check the resource manager API
     // https://github.com/datum-cloud/cloud-portal/issues/43
-    const projects = await projectsControl.getProjects(org.userEntityID)
+    const projects = await projectsControl.list(org.userEntityID)
 
     return data(
       { org, projects, isReady: true },

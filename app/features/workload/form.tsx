@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { IWorkloadControlResponse } from '@/resources/interfaces/workload-interface'
+import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
 import { workloadSchema, updateWorkloadSchema } from '@/resources/schemas/workload.schema'
 import { jsonToYaml } from '@/utils/editor'
 import { useIsPending } from '@/utils/misc'

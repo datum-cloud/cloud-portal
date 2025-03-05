@@ -4,17 +4,22 @@ import {
   deleteResourcemanagerDatumapisComV1AlphaProject,
   listResourcemanagerDatumapisComV1AlphaProject,
   readResourcemanagerDatumapisComV1AlphaProject,
+  readResourcemanagerDatumapisComV1AlphaProjectStatus,
 } from '@/modules/control-plane/resource-manager'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { NewProjectSchema } from '@/resources/schemas/project.schema'
 import { CustomError } from '@/utils/errorHandle'
-import { convertLabelsToObject, filterLabels } from '@/utils/misc'
+import {
+  convertLabelsToObject,
+  filterLabels,
+  transformControlPlaneStatus,
+} from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
 export const projectsControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
-  const transformProject = (
+  const transform = (
     project: ComDatumapisResourcemanagerV1AlphaProject,
   ): IProjectControlResponse => {
     const metadata = {
@@ -34,18 +39,18 @@ export const projectsControl = (client: Client) => {
   }
 
   return {
-    getProjects: async (orgEntityId: string) => {
+    list: async (orgEntityId: string) => {
       const response = await listResourcemanagerDatumapisComV1AlphaProject({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
       })
       return (
         response?.data?.items?.map((project: ComDatumapisResourcemanagerV1AlphaProject) =>
-          transformProject(project),
+          transform(project),
         ) ?? []
       )
     },
-    getProject: async (orgEntityId: string, projectName: string) => {
+    detail: async (orgEntityId: string, projectName: string) => {
       const response = await readResourcemanagerDatumapisComV1AlphaProject({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
@@ -58,9 +63,9 @@ export const projectsControl = (client: Client) => {
         throw new CustomError(`Project ${projectName} not found`, 404)
       }
 
-      return transformProject(response.data)
+      return transform(response.data)
     },
-    createProject: async (payload: NewProjectSchema, dryRun: boolean = false) => {
+    create: async (payload: NewProjectSchema, dryRun: boolean = false) => {
       const response = await createResourcemanagerDatumapisComV1AlphaProject({
         client,
         baseURL: `${baseUrl}/organizations/${payload.orgEntityId}/control-plane`,
@@ -89,9 +94,9 @@ export const projectsControl = (client: Client) => {
         throw new CustomError('Failed to create project', 500)
       }
 
-      return dryRun ? response.data : transformProject(response.data)
+      return dryRun ? response.data : transform(response.data)
     },
-    deleteProject: async (orgEntityId: string, projectName: string) => {
+    delete: async (orgEntityId: string, projectName: string) => {
       const response = await deleteResourcemanagerDatumapisComV1AlphaProject({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
@@ -106,7 +111,21 @@ export const projectsControl = (client: Client) => {
 
       return response.data
     },
+    getStatus: async (orgEntityId: string, projectName: string) => {
+      const response = await readResourcemanagerDatumapisComV1AlphaProjectStatus({
+        client,
+        baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
+        path: {
+          name: projectName,
+        },
+      })
+
+      if (!response.data) {
+        throw new CustomError(`Project ${projectName} not found`, 404)
+      }
+
+      return transformControlPlaneStatus(response.data.status)
+    },
   }
 }
-
 export type ProjectsControl = ReturnType<typeof projectsControl>
