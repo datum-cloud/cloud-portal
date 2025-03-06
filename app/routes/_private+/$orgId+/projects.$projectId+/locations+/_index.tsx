@@ -16,6 +16,7 @@ import {
 import { CustomError } from '@/utils/errorHandle'
 import { toTitleCase } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
+import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import {
@@ -28,7 +29,6 @@ import {
   useParams,
   useSubmit,
 } from 'react-router'
-import { toast } from 'sonner'
 
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params
@@ -50,10 +50,12 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
       const formData = Object.fromEntries(await request.formData())
       const { locationName, projectId } = formData
 
-      return await locationsControl.deleteLocation(
-        projectId as string,
-        locationName as string,
-      )
+      await locationsControl.deleteLocation(projectId as string, locationName as string)
+      return dataWithToast(null, {
+        title: 'Location deleted successfully',
+        description: 'The location has been deleted successfully',
+        type: 'success',
+      })
     }
     default:
       throw new Error('Method not allowed')
@@ -100,8 +102,6 @@ export default function ProjectLocationsPage() {
             navigate: false,
           },
         )
-
-        toast.success('Location deleted successfully')
       },
     })
   }
@@ -170,11 +170,13 @@ export default function ProjectLocationsPage() {
         return Object.keys(row.original.provider ?? {}).length > 0 ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <img
-                src={provider.icon}
-                alt={provider.label}
-                className="mx-auto size-5 cursor-pointer"
-              />
+              <div className="flex max-w-[50px] items-center justify-center">
+                <img
+                  src={provider.icon}
+                  alt={provider.label}
+                  className="mx-auto size-5 cursor-pointer"
+                />
+              </div>
             </TooltipTrigger>
             <TooltipContent>
               <div className="flex flex-col gap-1">
@@ -204,6 +206,15 @@ export default function ProjectLocationsPage() {
       accessorKey: 'cityCode',
       meta: {
         className: 'w-32 text-center',
+      },
+      cell: ({ row }) => {
+        return (
+          row.original.cityCode && (
+            <span className="block max-w-[65px] text-center">
+              {row.original.cityCode}
+            </span>
+          )
+        )
       },
     },
     {

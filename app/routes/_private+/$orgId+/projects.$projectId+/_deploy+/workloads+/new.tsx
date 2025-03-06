@@ -45,9 +45,10 @@ export const action = withMiddleware(
       }
 
       return redirectWithToast(
-        getPathWithParams(routes.projects.deploy.workloads.root, {
+        getPathWithParams(routes.projects.deploy.workloads.detail.root, {
           orgId,
           projectId,
+          workloadId: 'metadata' in dryRunRes ? dryRunRes?.metadata?.name : '',
         }),
         {
           title: 'Workload created successfully',

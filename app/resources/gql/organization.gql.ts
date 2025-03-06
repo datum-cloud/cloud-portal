@@ -1,4 +1,4 @@
-import { organizationModel } from './models/organization.model'
+import { organizationMinimalModel, organizationModel } from './models/organization.model'
 import { GraphqlClient } from '@/modules/graphql/graphql'
 import { alias, mutation, query as typedQuery, types } from 'typed-graphqlify'
 
@@ -21,7 +21,8 @@ export const createOrganizationGql = (client: GraphqlClient) => {
     },
     getOrganizationDetail: async (id: string) => {
       const query = typedQuery('GetOrganizationDetail($organizationId: ID!)', {
-        [alias('organization', 'organization(id: $organizationId)')]: organizationModel,
+        [alias('organization', 'organization(id: $organizationId)')]:
+          organizationMinimalModel,
       })
 
       const data = await client.request(query.toString(), { organizationId: id })

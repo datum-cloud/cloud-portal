@@ -1,6 +1,7 @@
 import { cn } from '@/utils/misc'
 import * as TabsPrimitive from '@radix-ui/react-tabs'
 import * as React from 'react'
+import { Link } from 'react-router'
 
 const Tabs = TabsPrimitive.Root
 
@@ -49,4 +50,17 @@ const TabsContent = React.forwardRef<
 ))
 TabsContent.displayName = TabsPrimitive.Content.displayName
 
-export { Tabs, TabsList, TabsTrigger, TabsContent }
+const TabsLinkTrigger: React.FC<{
+  value: string
+  to: string
+  children: React.ReactNode
+  className?: string
+}> = ({ value, to, children, className }) => (
+  <TabsTrigger value={value} asChild className={className}>
+    <Link to={to}>{children}</Link>
+  </TabsTrigger>
+)
+
+TabsLinkTrigger.displayName = 'TabsLinkTrigger'
+
+export { Tabs, TabsList, TabsTrigger, TabsContent, TabsLinkTrigger }

@@ -14,35 +14,47 @@ import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
+import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
+import { redirectWithToast } from '@/utils/toast.server'
 import { CircleAlertIcon } from 'lucide-react'
 import {
   ActionFunctionArgs,
   AppLoadContext,
-  useNavigate,
-  useParams,
   useRouteLoaderData,
   useSubmit,
 } from 'react-router'
-import { toast } from 'sonner'
 
-export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { projectsControl, cache } = context as AppLoadContext
+export const action = withMiddleware(
+  async ({ request, context, params }: ActionFunctionArgs) => {
+    const { projectsControl, cache } = context as AppLoadContext
 
-  switch (request.method) {
-    case 'DELETE': {
-      const formData = Object.fromEntries(await request.formData())
-      const { projectName, orgId: orgEntityId } = formData
+    switch (request.method) {
+      case 'DELETE': {
+        const formData = Object.fromEntries(await request.formData())
+        const { projectName, orgId: orgEntityId } = formData
 
-      // Invalidate the projects cache
-      await cache.removeItem(`projects:${orgEntityId}`)
+        // Invalidate the projects cache
+        await cache.removeItem(`projects:${orgEntityId}`)
 
-      return await projectsControl.delete(orgEntityId as string, projectName as string)
+        await projectsControl.delete(orgEntityId as string, projectName as string)
+        return redirectWithToast(
+          getPathWithParams(routes.org.projects.root, {
+            orgId: params.orgId,
+          }),
+          {
+            title: 'Project deleted successfully',
+            description: 'The project has been deleted successfully',
+            type: 'success',
+          },
+        )
+      }
+      default:
+        throw new CustomError('Method not allowed', 405)
     }
-    default:
-      throw new Error('Method not allowed')
-  }
-}, authMiddleware)
+  },
+  authMiddleware,
+)
 
 export default function ProjectSettingsPage() {
   const project = useRouteLoaderData(
@@ -50,8 +62,6 @@ export default function ProjectSettingsPage() {
   )
   const submit = useSubmit()
   const { confirm } = useConfirmationDialog()
-  const navigate = useNavigate()
-  const params = useParams()
 
   const deleteProject = async (project: IProjectControlResponse) => {
     await confirm({
@@ -83,16 +93,6 @@ export default function ProjectSettingsPage() {
             fetcherKey: 'project-resources',
             navigate: false,
           },
-        )
-
-        // TODO: add interval to check if the project is deleted. Use the fetcher key to check if the project is deleted
-        // I did't do this because the data already gone after the delete action
-
-        toast.success('Project deleted successfully')
-        return navigate(
-          getPathWithParams(routes.org.projects.root, {
-            orgId: params.orgId,
-          }),
         )
       },
     })

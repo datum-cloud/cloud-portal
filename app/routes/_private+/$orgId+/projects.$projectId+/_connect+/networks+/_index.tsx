@@ -10,6 +10,7 @@ import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
+import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import {
@@ -21,7 +22,6 @@ import {
   useParams,
   useSubmit,
 } from 'react-router'
-import { toast } from 'sonner'
 
 export const loader = withMiddleware(async ({ params, context }) => {
   const { projectId } = params
@@ -44,7 +44,12 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
       const formData = Object.fromEntries(await request.formData())
       const { networkId, projectId } = formData
 
-      return await networksControl.deleteNetwork(projectId as string, networkId as string)
+      await networksControl.deleteNetwork(projectId as string, networkId as string)
+      return dataWithToast(null, {
+        title: 'Network deleted successfully',
+        description: 'The network has been deleted successfully',
+        type: 'success',
+      })
     }
     default:
       throw new Error('Method not allowed')
@@ -87,8 +92,6 @@ export default function ProjectConnectNetworks() {
             navigate: false,
           },
         )
-
-        toast.success('Network deleted successfully')
       },
     })
   }

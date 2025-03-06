@@ -9,6 +9,7 @@ import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
+import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import {
@@ -21,7 +22,6 @@ import {
   useSubmit,
   ActionFunctionArgs,
 } from 'react-router'
-import { toast } from 'sonner'
 
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params
@@ -43,7 +43,12 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
       const formData = Object.fromEntries(await request.formData())
       const { configMapId, projectId } = formData
 
-      return await coreControl.deleteConfigMap(projectId as string, configMapId as string)
+      await coreControl.deleteConfigMap(projectId as string, configMapId as string)
+      return dataWithToast(null, {
+        title: 'Config map deleted successfully',
+        description: 'The config map has been deleted successfully',
+        type: 'success',
+      })
     }
     default:
       throw new Error('Method not allowed')
@@ -86,8 +91,6 @@ export default function ConfigMapsPage() {
             navigate: false,
           },
         )
-
-        toast.success('Config map deleted successfully')
       },
     })
   }

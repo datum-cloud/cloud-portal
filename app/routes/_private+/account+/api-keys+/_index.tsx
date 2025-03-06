@@ -11,6 +11,7 @@ import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { UserApiKeyModel } from '@/resources/gql/models/user.model'
+import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
 import {
   ActionFunctionArgs,
@@ -20,7 +21,6 @@ import {
   useLoaderData,
   useSubmit,
 } from 'react-router'
-import { toast } from 'sonner'
 
 export const loader = withMiddleware(async ({ request, context }) => {
   const { userGql } = context as AppLoadContext
@@ -51,7 +51,12 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
       const formData = Object.fromEntries(await request.formData())
       const { apiKeyId } = formData
 
-      return await userGql.deleteUserApiKey(apiKeyId as string)
+      await userGql.deleteUserApiKey(apiKeyId as string)
+      return dataWithToast(null, {
+        title: 'API key deleted successfully',
+        description: 'The API key has been deleted successfully',
+        type: 'success',
+      })
     }
     default:
       throw new Error('Method not allowed')
@@ -87,8 +92,6 @@ export default function AccountApiKeys() {
             navigate: false,
           },
         )
-
-        toast.success('API key deleted successfully')
       },
     })
   }

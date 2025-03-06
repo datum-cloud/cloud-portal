@@ -4,6 +4,7 @@ import { DateFormat } from '@/components/date-format/date-format'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { WorkloadStatus } from '@/features/workload/status'
+import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
@@ -11,6 +12,7 @@ import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interf
 import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
+import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
@@ -24,7 +26,6 @@ import {
   ActionFunctionArgs,
   useSubmit,
 } from 'react-router'
-import { toast } from 'sonner'
 
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params
@@ -45,8 +46,13 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
     case 'DELETE': {
       const formData = Object.fromEntries(await request.formData())
       const { workloadId, projectId } = formData
+      await workloadsControl.delete(projectId as string, workloadId as string)
 
-      return await workloadsControl.delete(projectId as string, workloadId as string)
+      return dataWithToast(null, {
+        title: 'Workload deleted successfully',
+        description: 'The workload has been deleted successfully',
+        type: 'success',
+      })
     }
     default:
       throw new Error('Method not allowed')
@@ -54,6 +60,8 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
 }, authMiddleware)
 
 export default function WorkloadsPage() {
+  useRevalidateOnInterval({ enabled: true, interval: 10000 })
+
   const data = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const submit = useSubmit()
@@ -90,7 +98,7 @@ export default function WorkloadsPage() {
           },
         )
 
-        toast.success('Workload deleted successfully')
+        // toast.success('Workload deleted successfully')
       },
     })
   }
@@ -103,7 +111,7 @@ export default function WorkloadsPage() {
         cell: ({ row }) => {
           return (
             <Link
-              to={getPathWithParams(routes.projects.deploy.workloads.edit, {
+              to={getPathWithParams(routes.projects.deploy.workloads.detail.root, {
                 orgId,
                 projectId,
                 workloadId: row.original.name,
@@ -122,8 +130,6 @@ export default function WorkloadsPage() {
             row.original.status && (
               <WorkloadStatus
                 currentStatus={transformControlPlaneStatus(row.original.status)}
-                projectId={projectId}
-                workloadId={row.original.name}
                 type="badge"
                 badgeClassName="px-0"
               />
@@ -148,7 +154,7 @@ export default function WorkloadsPage() {
       label: 'Edit',
       action: (row) => {
         navigate(
-          getPathWithParams(routes.projects.deploy.workloads.edit, {
+          getPathWithParams(routes.projects.deploy.workloads.detail.root, {
             orgId,
             projectId,
             workloadId: row.name,

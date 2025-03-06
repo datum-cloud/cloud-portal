@@ -1,5 +1,6 @@
 import { StatusBadge } from '@/components/status-badge/status-badge'
 import { Button } from '@/components/ui/button'
+import { routes } from '@/constants/routes'
 import {
   ArrowListItem,
   ExplorerCard,
@@ -9,15 +10,18 @@ import {
 } from '@/features/project/dashboard'
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface'
 import { transformControlPlaneStatus } from '@/utils/misc'
+import { getPathWithParams } from '@/utils/path'
 import { motion } from 'framer-motion'
 import { ArrowRight, Mail } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
-import { useRevalidator, useRouteLoaderData } from 'react-router'
+import { useEffect, useMemo, useRef } from 'react'
+import { Link, useParams, useRevalidator, useRouteLoaderData } from 'react-router'
 
 export default function ProjectDashboardPage() {
+  const { orgId, projectId } = useParams()
   const project = useRouteLoaderData(
     'routes/_private+/$orgId+/projects.$projectId+/_layout',
   )
+  const intervalId = useRef<NodeJS.Timeout | null>(null)
 
   const { revalidate } = useRevalidator()
   const REVALIDATE_INTERVAL = 5000
@@ -29,12 +33,23 @@ export default function ProjectDashboardPage() {
   }, [project])
 
   useEffect(() => {
-    if (
-      status?.isReady === ControlPlaneStatus.Success ||
-      status?.isReady === ControlPlaneStatus.Error
-    ) {
-      const id = setInterval(revalidate, REVALIDATE_INTERVAL)
-      return () => clearInterval(id)
+    // Clear any existing interval first
+    if (intervalId.current) {
+      clearInterval(intervalId.current)
+      intervalId.current = null
+    }
+
+    // Only start new interval if status is Pending
+    if (status?.isReady === ControlPlaneStatus.Pending) {
+      intervalId.current = setInterval(revalidate, REVALIDATE_INTERVAL)
+    }
+
+    // Cleanup on unmount or status change
+    return () => {
+      if (intervalId.current) {
+        clearInterval(intervalId.current)
+        intervalId.current = null
+      }
     }
   }, [revalidate, status])
 
@@ -101,7 +116,13 @@ export default function ProjectDashboardPage() {
 
                   <div className="flex gap-3">
                     <Button variant="outline" size="sm" className="h-7 w-fit">
-                      Explore Locations
+                      <Link
+                        to={getPathWithParams(routes.projects.locations.root, {
+                          orgId,
+                          projectId,
+                        })}>
+                        Explore Locations
+                      </Link>
                     </Button>
                     <Button variant="outline" size="sm" className="h-7 w-fit">
                       <a
@@ -191,8 +212,12 @@ export default function ProjectDashboardPage() {
                         If the problem persists, please contact support.
                       </SectionDescription>
                       <Button variant="outline" size="sm" className="h-7 w-fit">
-                        <Mail className="size-4" />
-                        Contact Support
+                        <Link
+                          to="mailto:support@datum.net"
+                          className="flex items-center gap-2">
+                          <Mail className="size-4" />
+                          Contact Support
+                        </Link>
                       </Button>
                     </div>
                   </div>
