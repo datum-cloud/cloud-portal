@@ -5,3 +5,7 @@ node_modules
 .env
 .DS_Store
 .react-router/
+
+cypress/screenshots
+cypress/videos
+cypress/results

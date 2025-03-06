@@ -1,4 +1,5 @@
 import { reactRouter } from '@react-router/dev/vite'
+import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
@@ -24,7 +25,7 @@ export default defineConfig({
     },
   },
   assetsInclude: ['**/*.woff2'], // Add font formats you're using
-  plugins: [reactRouter(), tsconfigPaths()],
+  plugins: [process.env.CYPRESS ? react() : reactRouter(), tsconfigPaths()],
   /**
    * Build configuration for optimizing bundle size and performance
    *

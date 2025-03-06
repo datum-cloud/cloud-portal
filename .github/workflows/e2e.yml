@@ -1,0 +1,114 @@
+name: E2E Tests
+
+# Updated trigger configuration
+on:
+  workflow_run:
+    workflows:
+      - 'Typecheck'
+      - 'Code Quality'
+    types:
+      - completed
+  pull_request:
+  push:
+    branches:
+      - main
+
+# Prevent multiple workflow runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Environment variables used across jobs
+env:
+  NODE_ENV: production
+  CYPRESS_BASE_URL: http://localhost:3000
+  CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
+
+jobs:
+  wait-for-workflows:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    steps:
+      - name: Wait for Typecheck
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          check-name: 'typecheck' # Make sure this matches the job name, not workflow name
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+          allowed-conclusions: success
+
+      - name: Wait for Code Quality
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          check-name: 'code-quality' # Make sure this matches the job name, not workflow name
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+          allowed-conclusions: success
+
+  e2e-tests:
+    name: Run E2E Tests
+    needs: [wait-for-workflows]
+    if: |
+      (github.event_name == 'pull_request' || github.event_name == 'push') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Setup environment
+      - name: Setup Environment
+        run: |
+          echo "CYPRESS_BASE_URL=${CYPRESS_BASE_URL}" > .env
+          echo "NODE_ENV=${NODE_ENV}" >> .env
+
+      # Efficient caching strategy
+      - name: Cache Dependencies and Build
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.bun/install/cache
+            ~/.cache/Cypress
+            **/node_modules
+            build
+          key: ${{ runner.os }}-${{ hashFiles('**/bun.lockb', '**/package.json', '**.[jt]s', '**.[jt]sx') }}
+
+      # Install and build only if cache miss
+      - name: Install & Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          bun install --frozen-lockfile
+          bunx cypress verify
+          bun run build
+
+      # Run tests
+      - name: Run Cypress Tests
+        id: cypress
+        run: bun run test:e2e:prod || exit 1
+
+      # Handle artifacts
+      - name: Upload Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts-${{ github.run_id }}
+          path: |
+            cypress/videos
+            cypress/screenshots
+            cypress/results
+          retention-days: 7
+          compression-level: 9
+          overwrite: true
+          if-no-files-found: warn
