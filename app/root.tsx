@@ -100,7 +100,8 @@ function Document({
       lang={lang}
       dir={dir}
       className={`${theme} overflow-x-hidden`}
-      style={{ colorScheme: theme }}>
+      style={{ colorScheme: theme }}
+      suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -108,7 +109,7 @@ function Document({
         <Meta />
         <Links />
       </head>
-      <body className="h-auto w-full">
+      <body className="h-auto w-full" suppressHydrationWarning>
         <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
