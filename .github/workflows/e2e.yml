@@ -36,7 +36,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           check-name: 'typecheck' # Make sure this matches the job name, not workflow name
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 20
+          wait-interval: 60
           allowed-conclusions: success,skipped
 
       - name: Wait for Code Quality
@@ -45,7 +45,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           check-name: 'code-quality' # Make sure this matches the job name, not workflow name
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 20
+          wait-interval: 60
           allowed-conclusions: success,skipped
 
   e2e-tests:
