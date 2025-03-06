@@ -1,0 +1,196 @@
+name: Code Checks & Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_ENV: production
+  CYPRESS_BASE_URL: http://localhost:3000
+  CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
+  BUN_CACHE: ~/.bun/install/cache
+
+jobs:
+  install:
+    name: Install Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.BUN_CACHE }}
+            **/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+
+      - name: Install
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+  lint:
+    needs: install
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Restore Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.BUN_CACHE }}
+            **/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+
+      - name: Run Lint & Format
+        run: |
+          echo "Running lint check..."
+          bun run lint
+          echo "Running format check..."
+          bun run format
+
+  typecheck:
+    needs: install
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Restore Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.BUN_CACHE }}
+            **/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+
+      - name: Run Typecheck
+        run: bun typecheck
+
+  build:
+    needs: [lint, typecheck]
+    name: Build
+    runs-on: ubuntu-latest
+    if: ${{ !failure() && !cancelled() }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Restore Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.BUN_CACHE }}
+            **/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+
+      - name: Build
+        run: bun run build
+
+      - name: Cache Build
+        uses: actions/cache@v4
+        with:
+          path: build
+          key: build-${{ github.sha }}
+
+  e2e:
+    needs: build
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: ${{ !failure() && !cancelled() }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Restore Dependencies Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.BUN_CACHE }}
+            **/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+
+      - name: Restore Build Cache
+        uses: actions/cache@v4
+        with:
+          path: build
+          key: build-${{ github.sha }}
+
+      - name: Setup Cypress
+        run: |
+          echo "Installing Cypress..."
+          bunx cypress install
+          echo "Verifying Cypress installation..."
+          bunx cypress verify
+
+      - name: Setup Environment
+        run: |
+          echo "CYPRESS_BASE_URL=${CYPRESS_BASE_URL}" > .env
+          echo "NODE_ENV=${NODE_ENV}" >> .env
+
+      - name: Run E2E Tests
+        id: cypress
+        run: bun run test:e2e:prod
+
+      - name: Upload Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts-${{ github.run_id }}
+          path: |
+            cypress/videos
+            cypress/screenshots
+            cypress/results
+          retention-days: 7
+          compression-level: 9
+          if-no-files-found: warn
+
+  status-check:
+    needs: [install, lint, typecheck, build, e2e]
+    name: Final Status Check
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check Workflow Status
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ Workflow failed because one or more jobs failed"
+            exit 1
+          elif [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "⚠️ Workflow cancelled because one or more jobs were cancelled"
+            exit 1
+          else
+            echo "✅ All jobs completed successfully"
+          fi
