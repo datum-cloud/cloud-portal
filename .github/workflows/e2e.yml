@@ -76,7 +76,7 @@ jobs:
       # Efficient caching strategy
       - name: Cache Dependencies and Build
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.bun/install/cache
