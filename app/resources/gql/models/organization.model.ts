@@ -26,5 +26,18 @@ export const organizationModel = {
   updatedAt: types.string,
 }
 
+export const organizationMinimalModel = {
+  id: types.string,
+  userEntityID: types.string,
+  name: types.string,
+  avatarRemoteURL: types.string,
+  displayName: types.string,
+  description: types.string,
+  personalOrg: types.boolean,
+  createdAt: types.string,
+  updatedAt: types.string,
+}
+
 export type OrganizationMemberModel = typeof organizationMemberModel
 export type OrganizationModel = typeof organizationModel
+export type OrganizationMinimalModel = typeof organizationMinimalModel

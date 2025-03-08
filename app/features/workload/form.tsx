@@ -15,7 +15,7 @@ import {
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
 import { workloadSchema, updateWorkloadSchema } from '@/resources/schemas/workload.schema'
 import { jsonToYaml } from '@/utils/editor'
-import { useIsPending } from '@/utils/misc'
+import { cn, useIsPending } from '@/utils/misc'
 import { getFormProps, useForm, useInputControl } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { InfoIcon } from 'lucide-react'
@@ -25,8 +25,10 @@ import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 
 export const WorkloadForm = ({
   defaultValue,
+  hideTitle = false,
 }: {
   defaultValue?: IWorkloadControlResponse
+  hideTitle?: boolean
 }) => {
   const isPending = useIsPending()
   const navigate = useNavigate()
@@ -70,14 +72,16 @@ export const WorkloadForm = ({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>{isEdit ? 'Update' : 'Create a new'} workload</CardTitle>
-        <CardDescription>
-          {isEdit
-            ? 'Update the workload with the new values below.'
-            : 'Create a new workload to get started with Datum Cloud.'}
-        </CardDescription>
-      </CardHeader>
+      {!hideTitle && (
+        <CardHeader>
+          <CardTitle>{isEdit ? 'Update' : 'Create a new'} workload</CardTitle>
+          <CardDescription>
+            {isEdit
+              ? 'Update the workload with the new values below.'
+              : 'Create a new workload to get started with Datum Cloud.'}
+          </CardDescription>
+        </CardHeader>
+      )}
       <Form method="POST" autoComplete="off" {...getFormProps(form)}>
         <AuthenticityTokenInput />
 
@@ -89,7 +93,7 @@ export const WorkloadForm = ({
           />
         )}
 
-        <CardContent className="space-y-4">
+        <CardContent className={cn('space-y-4', hideTitle && 'pt-6')}>
           {isEdit && defaultValue && <SimpleWorkloadDetail workload={defaultValue} />}
 
           {hasData ? (

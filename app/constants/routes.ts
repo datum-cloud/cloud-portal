@@ -70,7 +70,12 @@ export const routes = {
       workloads: {
         root: '/[orgId]/projects/[projectId]/workloads',
         new: '/[orgId]/projects/[projectId]/workloads/new',
-        edit: '/[orgId]/projects/[projectId]/workloads/[workloadId]/edit',
+        detail: {
+          root: '/[orgId]/projects/[projectId]/workloads/[workloadId]',
+          general: '/[orgId]/projects/[projectId]/workloads/[workloadId]/general',
+          deployments: '/[orgId]/projects/[projectId]/workloads/[workloadId]/deployments',
+          instances: '/[orgId]/projects/[projectId]/workloads/[workloadId]/instances',
+        },
       },
       pipelines: {
         root: '/[orgId]/projects/[projectId]/pipelines',

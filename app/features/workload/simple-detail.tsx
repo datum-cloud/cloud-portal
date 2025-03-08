@@ -1,10 +1,8 @@
 import { WorkloadStatus } from './status'
-import { DateFormat } from '@/components/date-format/date-format'
 import { Field } from '@/components/field/field'
 import { TextCopy } from '@/components/text-copy/text-copy'
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
 import { getShortId, transformControlPlaneStatus } from '@/utils/misc'
-import { formatDistanceToNow } from 'date-fns/formatDistanceToNow'
 import { useParams } from 'react-router'
 
 export const SimpleWorkloadDetail = ({
@@ -15,9 +13,9 @@ export const SimpleWorkloadDetail = ({
   const { projectId } = useParams()
   return (
     <div className="grid grid-cols-2 gap-4">
-      <Field label="Name">
+      {/* <Field label="Name">
         <span className="text-sm text-muted-foreground">{workload?.name}</span>
-      </Field>
+      </Field> */}
       {workload?.uid && (
         <Field label="UUID">
           <TextCopy
@@ -34,12 +32,13 @@ export const SimpleWorkloadDetail = ({
         <WorkloadStatus
           currentStatus={transformControlPlaneStatus(workload?.status)}
           projectId={projectId}
-          workloadId={workload?.name}
+          id={workload?.name}
+          workloadType="workload"
           type="badge"
           badgeClassName="w-fit text-sm font-medium border border-input"
         />
       </Field>
-      {workload?.createdAt && (
+      {/* {workload?.createdAt && (
         <Field label="Created At">
           <div className="flex items-center gap-1">
             <DateFormat
@@ -55,7 +54,7 @@ export const SimpleWorkloadDetail = ({
             </span>
           </div>
         </Field>
-      )}
+      )} */}
     </div>
   )
 }

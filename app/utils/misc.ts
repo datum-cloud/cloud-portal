@@ -99,11 +99,12 @@ export function splitOption(
 /**
  * Converts an array of label strings to an object
  * Useful for transforming label arrays to a key-value record
- * @param labels - Array of strings in the format "key:value"
+ * @param labels - Array of strings or single string in the format "key:value" to convert to object
  * @returns Record object with keys and values extracted from the labels
  */
-export function convertLabelsToObject(labels: string[]): Record<string, string> {
-  return labels.reduce(
+export function convertLabelsToObject(labels: string | string[]): Record<string, string> {
+  const labelArray = Array.isArray(labels) ? labels : [labels]
+  return labelArray.reduce(
     (acc, opt) => {
       const { key, value } = splitOption(opt)
       acc[key] = value
@@ -162,8 +163,9 @@ export function transformControlPlaneStatus(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   status: any,
 ): IControlPlaneStatus {
-  if (status && (status?.conditions ?? []).length > 0) {
-    const condition = status?.conditions?.[0]
+  const { conditions, ...rest } = status
+  if (status && (conditions ?? []).length > 0) {
+    const condition = conditions?.[0]
     // const isFailed = condition?.lastTransitionTime
     //   ? differenceInMinutes(new Date(), new Date(condition.lastTransitionTime)) > 10
     //   : false
@@ -176,6 +178,7 @@ export function transformControlPlaneStatus(
             ? ControlPlaneStatus.Error
             : ControlPlaneStatus.Pending,
       message: condition?.message ?? '',
+      ...rest,
     }
   }
 

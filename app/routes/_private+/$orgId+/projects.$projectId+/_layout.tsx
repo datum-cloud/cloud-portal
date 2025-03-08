@@ -7,6 +7,7 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
+import { redirectWithToast } from '@/utils/toast.server'
 import {
   AreaChartIcon,
   BoltIcon,
@@ -37,6 +38,12 @@ export const loader = withMiddleware(async ({ params, context, request }) => {
       projectId,
     )
 
+    // TODO: Temporary Solution to Validate that the project belongs to the current organization
+    // The API currently returns project details even if the project belongs to a different org
+    if (project.organizationId !== orgEntityId) {
+      throw new CustomError('Project not found', 404)
+    }
+
     return project
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
@@ -50,7 +57,17 @@ export const loader = withMiddleware(async ({ params, context, request }) => {
         }),
       )
     }
-    return null
+
+    return redirectWithToast(
+      getPathWithParams(routes.home, {
+        orgId: params.orgId,
+      }),
+      {
+        title: (error as CustomError).message,
+        description: 'Please check the project ID',
+        type: 'error',
+      },
+    )
   }
 }, authMiddleware)
 

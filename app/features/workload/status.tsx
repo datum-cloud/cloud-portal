@@ -10,26 +10,30 @@ import { useFetcher } from 'react-router'
 export const WorkloadStatus = ({
   currentStatus,
   projectId,
-  workloadId,
+  id,
+  workloadType = 'workload',
   type = 'dot',
   showTooltip = true,
   badgeClassName,
+  readyText,
 }: {
   currentStatus?: IControlPlaneStatus
   projectId?: string
-  workloadId?: string
+  id?: string
+  workloadType?: 'workload' | 'deployment' | 'instance'
   type?: 'dot' | 'badge'
   showTooltip?: boolean
   badgeClassName?: string
+  readyText?: string
 }) => {
-  const fetcher = useFetcher({ key: `workload-status-${workloadId}` })
+  const fetcher = useFetcher({ key: `workload-status-${id}` })
   const intervalRef = useRef<NodeJS.Timeout>(null)
   const [status, setStatus] = useState<IControlPlaneStatus>()
 
   const loadStatus = () => {
-    if (projectId && workloadId) {
+    if (projectId && id) {
       fetcher.load(
-        `${WORKLOAD_STATUS_ROUTE_PATH}?projectId=${projectId}&workloadId=${workloadId}`,
+        `${WORKLOAD_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${id}&type=${workloadType}`,
       )
     }
   }
@@ -38,7 +42,7 @@ export const WorkloadStatus = ({
     setStatus(currentStatus)
 
     // Only set up polling if we have the required IDs
-    if (!projectId || !workloadId) {
+    if (!projectId || !id) {
       return
     }
 
@@ -58,13 +62,14 @@ export const WorkloadStatus = ({
         clearInterval(intervalRef.current)
       }
     }
-  }, [projectId, workloadId])
+  }, [projectId, id, workloadType])
 
   useEffect(() => {
     if (fetcher.data) {
       const { isReady } = fetcher.data as IControlPlaneStatus
 
       setStatus(fetcher.data)
+
       if (
         (isReady === ControlPlaneStatus.Success ||
           isReady === ControlPlaneStatus.Error) &&
@@ -84,6 +89,7 @@ export const WorkloadStatus = ({
       tooltipText={
         fetcher.data?.isReady === ControlPlaneStatus.Success ? 'Active' : undefined
       }
+      readyText={readyText}
     />
   ) : (
     <></>

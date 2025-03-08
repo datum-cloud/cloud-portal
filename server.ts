@@ -169,6 +169,10 @@ if (viteDevServer) {
     '/assets',
     express.static('build/client/assets', { immutable: true, maxAge: '1y' }),
   )
+  app.use(
+    '/fonts',
+    express.static('build/client/fonts', { immutable: true, maxAge: '1y' }),
+  )
 }
 
 /**

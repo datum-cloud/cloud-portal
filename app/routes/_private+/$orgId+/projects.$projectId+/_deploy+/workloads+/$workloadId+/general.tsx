@@ -9,25 +9,7 @@ import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
-import {
-  ActionFunctionArgs,
-  AppLoadContext,
-  LoaderFunctionArgs,
-  useLoaderData,
-} from 'react-router'
-
-export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
-  const { workloadsControl } = context as AppLoadContext
-  const { projectId, workloadId } = params
-
-  if (!projectId || !workloadId) {
-    throw new CustomError('Project ID and workload ID are required', 400)
-  }
-
-  const workload = await workloadsControl.detail(projectId, workloadId)
-
-  return workload
-}, authMiddleware)
+import { ActionFunctionArgs, AppLoadContext, useRouteLoaderData } from 'react-router'
 
 export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {
@@ -99,11 +81,13 @@ export const action = withMiddleware(
 )
 
 export default function EditWorkload() {
-  const data = useLoaderData<typeof loader>()
+  const data = useRouteLoaderData(
+    'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout',
+  )
 
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
-      <WorkloadForm defaultValue={data} />
+    <div className="mx-auto w-full max-w-screen-lg">
+      <WorkloadForm defaultValue={data} hideTitle />
     </div>
   )
 }
