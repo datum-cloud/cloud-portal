@@ -85,9 +85,9 @@ export function GenericErrorBoundary({
           ) : (
             <>
               <div className="flex max-w-xl flex-col gap-2">
-                <h1 className="w-full text-center text-2xl font-bold">
+                <p className="w-full text-center text-2xl font-bold">
                   Whoops! Something went wrong.
-                </h1>
+                </p>
 
                 {process.env.NODE_ENV === 'development' ? (
                   <div className="text-center text-sm text-muted-foreground">

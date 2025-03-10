@@ -81,6 +81,7 @@ export interface DataTableProps<TData, TValue> {
   isLoading?: boolean
   loadingText?: string
   emptyText?: string
+  tableContainerClassName?: string
 }
 
 export interface DataTableRowActionsProps<TData> {

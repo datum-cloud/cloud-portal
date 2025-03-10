@@ -48,7 +48,7 @@ export const TextCopy = ({
             <CopyIcon className="size-4" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>{copied ? 'Copied!' : 'Copy to clipboard'}</TooltipContent>
+        <TooltipContent>{copied ? 'Copied!' : 'Copy'}</TooltipContent>
       </Tooltip>
     </div>
   )

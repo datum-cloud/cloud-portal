@@ -43,7 +43,7 @@ export default function Login() {
       <CardContent className="grid min-h-[500px] p-0 md:grid-cols-2">
         <div className="flex flex-col items-center justify-center gap-6 p-6 md:p-8">
           <div className="flex flex-col items-center text-center">
-            <h1 className="text-2xl font-bold">Welcome to Datum Cloud</h1>
+            <p className="text-2xl font-bold">Welcome to Datum Cloud</p>
             <p className="text-balance text-muted-foreground">
               Unlock your networking superpowers
             </p>

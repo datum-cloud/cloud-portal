@@ -12,26 +12,34 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
 import { workloadSchema, updateWorkloadSchema } from '@/resources/schemas/workload.schema'
+import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
 import { jsonToYaml } from '@/utils/editor'
 import { cn, useIsPending } from '@/utils/misc'
 import { getFormProps, useForm, useInputControl } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { InfoIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { Form, useNavigate } from 'react-router'
+import { Form, useNavigate, useSubmit } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 
 export const WorkloadForm = ({
+  projectId,
+  orgId,
   defaultValue,
   hideTitle = false,
 }: {
+  projectId?: string
+  orgId?: string
   defaultValue?: IWorkloadControlResponse
   hideTitle?: boolean
 }) => {
   const isPending = useIsPending()
   const navigate = useNavigate()
+  const submit = useSubmit()
+  const { confirm } = useConfirmationDialog()
 
   const [form, fields] = useForm({
     constraint: getZodConstraint(defaultValue ? updateWorkloadSchema : workloadSchema),
@@ -70,6 +78,40 @@ export const WorkloadForm = ({
     }
   }, [defaultValue])
 
+  const deleteWorkload = async () => {
+    await confirm({
+      title: 'Delete Workload',
+      description: (
+        <span>
+          Are you sure you want to delete&nbsp;
+          <strong>{defaultValue?.name}</strong>?
+        </span>
+      ),
+      submitText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      showConfirmInput: true,
+      confirmInputLabel: `Type "${defaultValue?.name}" to confirm.`,
+      confirmInputPlaceholder: 'Type the workload name to confirm deletion',
+      confirmValue: defaultValue?.name ?? 'delete',
+      onSubmit: async () => {
+        await submit(
+          {
+            workloadId: defaultValue?.name ?? '',
+            projectId: projectId ?? '',
+            orgId: orgId ?? '',
+          },
+          {
+            action: WORKLOADS_ACTIONS_ROUTE_PATH,
+            method: 'DELETE',
+            fetcherKey: 'workload-resources',
+            navigate: false,
+          },
+        )
+      },
+    })
+  }
+
   return (
     <Card>
       {!hideTitle && (
@@ -94,7 +136,9 @@ export const WorkloadForm = ({
         )}
 
         <CardContent className={cn('space-y-4', hideTitle && 'pt-6')}>
-          {isEdit && defaultValue && <SimpleWorkloadDetail workload={defaultValue} />}
+          {isEdit && defaultValue && (
+            <SimpleWorkloadDetail projectId={projectId} workload={defaultValue} />
+          )}
 
           {hasData ? (
             <Field
@@ -123,27 +167,43 @@ export const WorkloadForm = ({
             </Alert>
           )}
         </CardContent>
-        <CardFooter className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="link"
-            disabled={isPending}
-            onClick={() => {
-              navigate(-1)
-            }}>
-            Cancel
-          </Button>
-          {hasData && (
+        <CardFooter
+          className={cn(
+            'flex items-center justify-between gap-2',
+            !isEdit && 'justify-end',
+          )}>
+          {isEdit && (
             <Button
-              variant="default"
-              type="submit"
-              disabled={isPending}
-              isLoading={isPending}>
-              {isPending
-                ? `${isEdit ? 'Saving' : 'Creating'}`
-                : `${isEdit ? 'Save' : 'Create'}`}
+              type="button"
+              variant="destructive"
+              onClick={deleteWorkload}
+              disabled={isPending}>
+              Delete
             </Button>
           )}
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="link"
+              disabled={isPending}
+              onClick={() => {
+                navigate(-1)
+              }}>
+              Cancel
+            </Button>
+            {hasData && (
+              <Button
+                variant="default"
+                type="submit"
+                disabled={isPending}
+                isLoading={isPending}>
+                {isPending
+                  ? `${isEdit ? 'Saving' : 'Creating'}`
+                  : `${isEdit ? 'Save' : 'Create'}`}
+              </Button>
+            )}
+          </div>
         </CardFooter>
       </Form>
     </Card>

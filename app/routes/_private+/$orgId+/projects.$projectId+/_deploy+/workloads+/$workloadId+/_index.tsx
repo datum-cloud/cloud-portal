@@ -8,7 +8,7 @@ export const loader = withMiddleware(async ({ params }) => {
   const { projectId, orgId, workloadId } = params
 
   return redirect(
-    getPathWithParams(routes.projects.deploy.workloads.detail.general, {
+    getPathWithParams(routes.projects.deploy.workloads.detail.overview, {
       orgId,
       projectId,
       workloadId,

@@ -1,9 +1,9 @@
 import { routes } from '@/constants/routes'
 import { DashboardLayout } from '@/layouts/dashboard/dashboard'
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main'
-import { getSession } from '@/modules/auth/authSession.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
@@ -21,26 +21,25 @@ import {
 import { useMemo } from 'react'
 import { AppLoadContext, Outlet, redirect, useLoaderData, useParams } from 'react-router'
 
-export const loader = withMiddleware(async ({ params, context, request }) => {
-  const { projectsControl } = context as AppLoadContext
-  const { projectId } = params
+export const loader = withMiddleware(async ({ params, context }) => {
+  const { projectsControl, organizationGql } = context as AppLoadContext
+  const { projectId, orgId } = params
 
   try {
     if (!projectId) {
       throw new CustomError('Project ID is required', 400)
     }
 
-    const session = await getSession(request.headers.get('Cookie'))
-    const orgEntityId: string = session.get('currentOrgEntityID')
+    const org: OrganizationModel = await organizationGql.getOrganizationDetail(orgId!)
 
     const project: IProjectControlResponse = await projectsControl.detail(
-      orgEntityId,
+      org.userEntityID,
       projectId,
     )
 
     // TODO: Temporary Solution to Validate that the project belongs to the current organization
     // The API currently returns project details even if the project belongs to a different org
-    if (project.organizationId !== orgEntityId) {
+    if (project.organizationId !== org.userEntityID) {
       throw new CustomError('Project not found', 404)
     }
 

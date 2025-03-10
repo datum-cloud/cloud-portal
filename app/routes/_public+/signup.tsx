@@ -43,7 +43,7 @@ export default function Signup() {
       <CardContent className="grid min-h-[500px] p-0 md:grid-cols-2">
         <div className="flex flex-col items-center justify-center gap-6 p-6 md:p-8">
           <div className="flex flex-col items-center text-center">
-            <h1 className="text-2xl font-bold">Create an account</h1>
+            <p className="text-2xl font-bold">Create an account</p>
             <p className="text-balance text-muted-foreground">
               Embark on your digital journey with us
             </p>

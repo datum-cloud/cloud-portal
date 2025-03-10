@@ -72,9 +72,8 @@ export const routes = {
         new: '/[orgId]/projects/[projectId]/workloads/new',
         detail: {
           root: '/[orgId]/projects/[projectId]/workloads/[workloadId]',
-          general: '/[orgId]/projects/[projectId]/workloads/[workloadId]/general',
-          deployments: '/[orgId]/projects/[projectId]/workloads/[workloadId]/deployments',
-          instances: '/[orgId]/projects/[projectId]/workloads/[workloadId]/instances',
+          overview: '/[orgId]/projects/[projectId]/workloads/[workloadId]/overview',
+          manage: '/[orgId]/projects/[projectId]/workloads/[workloadId]/manage',
         },
       },
       pipelines: {

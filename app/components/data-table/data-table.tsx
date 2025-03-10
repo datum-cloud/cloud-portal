@@ -37,6 +37,7 @@ export const DataTable = <TData, TValue>({
   isLoading = false,
   loadingText = 'Loading...',
   emptyText = 'No results.',
+  tableContainerClassName,
 }: DataTableProps<TData, TValue>) => {
   const [columnFilters, setColumnFilters] =
     useState<ColumnFiltersState>(defaultColumnFilters)
@@ -128,7 +129,11 @@ export const DataTable = <TData, TValue>({
         {tableTitle && <PageTitle {...tableTitle} />}
 
         {/* Table Section */}
-        <div className="flex max-w-full flex-col overflow-hidden rounded-md border">
+        <div
+          className={cn(
+            'flex max-w-full flex-col overflow-hidden rounded-md border',
+            tableContainerClassName,
+          )}>
           <Table>
             <DataTableHeader table={table} hasRowActions={rowActions.length > 0} />
 

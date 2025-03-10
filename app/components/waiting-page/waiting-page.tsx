@@ -17,7 +17,7 @@ export const WaitingPage = ({
       <CardContent className="grid min-h-[500px]">
         <div className="flex flex-col items-center justify-center gap-6">
           <LogoIcon width={64} theme={theme} className="mb-4" />
-          <h1 className="w-full text-center text-2xl font-bold">{title}</h1>
+          <p className="w-full text-center text-2xl font-bold">{title}</p>
           <Loader2 className="size-10 animate-spin" />
         </div>
       </CardContent>

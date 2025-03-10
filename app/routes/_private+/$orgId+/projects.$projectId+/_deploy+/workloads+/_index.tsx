@@ -9,10 +9,10 @@ import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
+import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
 import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
@@ -23,7 +23,6 @@ import {
   useParams,
   Link,
   useNavigate,
-  ActionFunctionArgs,
   useSubmit,
 } from 'react-router'
 
@@ -37,26 +36,6 @@ export const loader = withMiddleware(async ({ context, params }: LoaderFunctionA
 
   const workloads = await workloadsControl.list(projectId)
   return workloads
-}, authMiddleware)
-
-export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { workloadsControl } = context as AppLoadContext
-
-  switch (request.method) {
-    case 'DELETE': {
-      const formData = Object.fromEntries(await request.formData())
-      const { workloadId, projectId } = formData
-      await workloadsControl.delete(projectId as string, workloadId as string)
-
-      return dataWithToast(null, {
-        title: 'Workload deleted successfully',
-        description: 'The workload has been deleted successfully',
-        type: 'success',
-      })
-    }
-    default:
-      throw new Error('Method not allowed')
-  }
 }, authMiddleware)
 
 export default function WorkloadsPage() {
@@ -90,15 +69,15 @@ export default function WorkloadsPage() {
           {
             workloadId: workload.name ?? '',
             projectId: projectId ?? '',
+            orgId: orgId ?? '',
           },
           {
+            action: WORKLOADS_ACTIONS_ROUTE_PATH,
             method: 'DELETE',
             fetcherKey: 'workload-resources',
             navigate: false,
           },
         )
-
-        // toast.success('Workload deleted successfully')
       },
     })
   }
@@ -154,7 +133,7 @@ export default function WorkloadsPage() {
       label: 'Edit',
       action: (row) => {
         navigate(
-          getPathWithParams(routes.projects.deploy.workloads.detail.root, {
+          getPathWithParams(routes.projects.deploy.workloads.detail.manage, {
             orgId,
             projectId,
             workloadId: row.name,

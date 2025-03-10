@@ -1,59 +1,37 @@
+import { WorkloadStatus } from './status'
 import { DataTable } from '@/components/data-table/data-table'
 import { DateFormat } from '@/components/date-format/date-format'
-import { WorkloadStatus } from '@/features/workload/status'
-import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
+import { TextCopy } from '@/components/text-copy/text-copy'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { IWorkloadDeploymentControlResponse } from '@/resources/interfaces/workload.interface'
-import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { ColumnDef } from '@tanstack/react-table'
 import { useMemo } from 'react'
-import { LoaderFunctionArgs, AppLoadContext, useLoaderData } from 'react-router'
 
-export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
-  const { projectId, workloadId } = params
-
-  const { workloadsControl, workloadDeploymentsControl } = context as AppLoadContext
-
-  if (!projectId || !workloadId) {
-    throw new CustomError('Project ID and workload ID are required', 400)
-  }
-
-  // TODO: Need Best Way to retrieve workload data from parent layout route
-  // Current implementation requires duplicate workload fetch since routes use workloadId parameter instead of uid
-  const workload = await workloadsControl.detail(projectId, workloadId)
-
-  if (!workload) {
-    throw new CustomError('Workload not found', 404)
-  }
-
-  const deployments = await workloadDeploymentsControl.list(projectId, workload.uid)
-  return deployments
-}, authMiddleware)
-
-export default function WorkloadDeploymentsPage() {
-  // revalidate every 10 seconds to keep deployment list fresh
-  useRevalidateOnInterval({ enabled: true, interval: 10000 })
-
-  const data = useLoaderData<typeof loader>()
-
+export const DeploymentsTable = ({
+  data,
+}: {
+  data: IWorkloadDeploymentControlResponse[]
+}) => {
   const columns: ColumnDef<IWorkloadDeploymentControlResponse>[] = useMemo(
     () => [
       {
         header: 'Name',
         accessorKey: 'name',
+        enableSorting: false,
         cell: ({ row }) => {
           return (
-            <span className="font-semibold leading-none text-primary">
-              {row.original.name}
-            </span>
+            <TextCopy
+              value={row.original.name ?? ''}
+              className="font-semibold leading-none text-primary"
+            />
           )
         },
       },
       {
         header: 'City Code',
         accessorKey: 'cityCode',
+        enableSorting: false,
         cell: ({ row }) => {
           return (
             <span className="block w-[65px] text-center">{row.original.cityCode}</span>
@@ -63,6 +41,7 @@ export default function WorkloadDeploymentsPage() {
       {
         header: 'Location',
         accessorKey: 'location',
+        enableSorting: false,
         cell: ({ row }) => {
           return row.original.location?.name
         },
@@ -78,6 +57,7 @@ export default function WorkloadDeploymentsPage() {
       {
         header: 'Status',
         accessorKey: 'status',
+        enableSorting: false,
         cell: ({ row }) => {
           return (
             row.original.status && (
@@ -94,6 +74,7 @@ export default function WorkloadDeploymentsPage() {
       {
         header: 'Created At',
         accessorKey: 'createdAt',
+        enableSorting: false,
         cell: ({ row }) => {
           return row.original.createdAt && <DateFormat date={row.original.createdAt} />
         },
@@ -103,11 +84,18 @@ export default function WorkloadDeploymentsPage() {
   )
 
   return (
-    <DataTable
-      columns={columns}
-      data={data ?? []}
-      loadingText="Loading..."
-      emptyText="No workloads deployments found."
-    />
+    <Card className="w-full rounded-xl border bg-card text-card-foreground shadow">
+      <CardHeader className="px-6 py-4">
+        <CardTitle className="text-base font-medium leading-none">Deployments</CardTitle>
+      </CardHeader>
+      <CardContent className="px-6 pb-6">
+        <DataTable
+          columns={columns}
+          data={data ?? []}
+          loadingText="Loading..."
+          emptyText="No deployments found."
+        />
+      </CardContent>
+    </Card>
   )
 }

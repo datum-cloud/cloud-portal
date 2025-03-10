@@ -10,7 +10,7 @@ describe('Log in', () => {
   it('should render the log in page', () => {
     cy.url().should('include', '/log-in')
 
-    cy.contains('h1', 'Welcome to Datum Cloud').should('be.visible')
+    cy.contains('p', 'Welcome to Datum Cloud').should('be.visible')
 
     cy.contains('button', 'Sign in with Google').should('be.visible')
 
