@@ -58,7 +58,7 @@ export const SelectExpires = ({
       }}
       key={meta.id}
       defaultValue={meta.value?.toString()}>
-      <SelectTrigger className="h-auto min-h-10 items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+      <SelectTrigger className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
         <SelectValue placeholder="Select a expiration" />
       </SelectTrigger>
       <SelectContent>
@@ -67,9 +67,9 @@ export const SelectExpires = ({
             key={option.value}
             value={option.value.toString()}
             className="w-[var(--radix-select-trigger-width)]">
-            <div className="flex flex-col gap-0.5 whitespace-break-spaces text-left">
+            <div className="flex flex-col gap-0.5 text-left whitespace-break-spaces">
               <p className="text-sm font-medium">{option.label}</p>
-              <p className="text-xs text-muted-foreground">{option.description}</p>
+              <p className="text-muted-foreground text-xs">{option.description}</p>
             </div>
           </SelectItem>
         ))}

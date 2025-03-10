@@ -8,28 +8,32 @@ export interface InputWithAddonsProps
   containerClassName?: string
 }
 
-const InputWithAddons = React.forwardRef<HTMLInputElement, InputWithAddonsProps>(
-  ({ leading, trailing, containerClassName, className, ...props }, ref) => {
-    return (
-      <div
+const InputWithAddons = ({
+  leading,
+  trailing,
+  containerClassName,
+  className,
+  ...props
+}: InputWithAddonsProps) => {
+  return (
+    <div
+      className={cn(
+        'group border-input ring-offset-background focus-within:ring-ring flex h-10 w-full overflow-hidden rounded-md border bg-transparent text-sm focus-within:ring-2 focus-within:ring-offset-2 focus-within:outline-hidden',
+        containerClassName,
+      )}>
+      {leading ? <div className="flex items-center py-2 pl-3">{leading}</div> : null}
+      <input
         className={cn(
-          'group flex h-10 w-full overflow-hidden rounded-md border border-input bg-transparent text-sm ring-offset-background focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
-          containerClassName,
-        )}>
-        {leading ? <div className="flex items-center py-2 pl-3">{leading}</div> : null}
-        <input
-          className={cn(
-            'w-full rounded-md bg-background px-3 py-2 placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
-            className,
-          )}
-          ref={ref}
-          {...props}
-        />
-        {trailing ? <div className="flex items-center py-2 pr-3">{trailing}</div> : null}
-      </div>
-    )
-  },
-)
+          'bg-background placeholder:text-muted-foreground w-full rounded-md px-3 py-2 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
+          className,
+        )}
+        data-slot="input-with-addons"
+        {...props}
+      />
+      {trailing ? <div className="flex items-center py-2 pr-3">{trailing}</div> : null}
+    </div>
+  )
+}
 InputWithAddons.displayName = 'InputWithAddons'
 
 export { InputWithAddons }

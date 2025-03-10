@@ -39,12 +39,12 @@ export default function Login() {
   const navigation = useNavigation()
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden py-0">
       <CardContent className="grid min-h-[500px] p-0 md:grid-cols-2">
         <div className="flex flex-col items-center justify-center gap-6 p-6 md:p-8">
           <div className="flex flex-col items-center text-center">
             <p className="text-2xl font-bold">Welcome to Datum Cloud</p>
-            <p className="text-balance text-muted-foreground">
+            <p className="text-muted-foreground text-balance">
               Unlock your networking superpowers
             </p>
           </div>
@@ -52,7 +52,7 @@ export default function Login() {
             <Form action={routes.auth.google} method="POST" className="w-full">
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full cursor-pointer"
                 isLoading={
                   navigation.state === 'submitting' &&
                   navigation.formAction === routes.auth.google
@@ -66,7 +66,7 @@ export default function Login() {
             <Form action={routes.auth.github} method="POST" className="w-full">
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full cursor-pointer"
                 isLoading={
                   navigation.state === 'submitting' &&
                   navigation.formAction === routes.auth.github
@@ -77,16 +77,16 @@ export default function Login() {
               </Button>
             </Form>
           </div>
-          <div className="text-center text-sm">
+          <div className="text-muted-foreground text-center text-sm">
             Don&apos;t have an account?{' '}
             <Link
               to={routes.auth.signUp}
-              className="font-medium underline underline-offset-4 transition-all hover:text-sunglow">
+              className="hover:text-primary font-medium underline underline-offset-4 transition-all">
               Sign up
             </Link>
           </div>
         </div>
-        <div className="relative hidden bg-muted md:block">
+        <div className="bg-muted relative hidden md:block">
           <img
             src={`/images/abstract-1-${theme}.png`}
             alt="Image"

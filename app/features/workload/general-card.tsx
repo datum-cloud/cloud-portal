@@ -77,9 +77,9 @@ export const WorkloadGeneralCard = ({
   return (
     <Card className="w-full">
       <CardHeader className="px-6 py-4">
-        <CardTitle className="text-base font-medium leading-none">General</CardTitle>
+        <CardTitle className="text-base leading-none font-medium">General</CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-2 pt-0">
+      <CardContent className="px-4 pt-0 pb-2">
         <List items={listItems} />
       </CardContent>
     </Card>

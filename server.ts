@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getSession } from '@/modules/auth/authSession.server'
 import { createCacheClient } from '@/modules/unstorage/unstorage.js'

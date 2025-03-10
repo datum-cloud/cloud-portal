@@ -51,16 +51,16 @@ export const SelectAutocomplete = ({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            'relative w-full items-center justify-between px-3 ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+            'ring-offset-background placeholder:text-muted-foreground focus:ring-ring relative w-full items-center justify-between px-3 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
             triggerClassName,
           )}
-          disabled={disabled}>
+          disabled={disabled || isLoading}>
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+            <div className="bg-background/80 absolute inset-0 flex items-center justify-center">
               <Loader2 className="mx-auto size-4 animate-spin" />
             </div>
           )}
-          {triggerContent}
+          <div>{triggerContent}</div>
           <ChevronDown className="size-4 opacity-50" />
         </Button>
       </PopoverTrigger>

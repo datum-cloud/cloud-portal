@@ -39,7 +39,7 @@ export const TextCopy = ({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-4 w-4"
+            className="size-4"
             onClick={(event) => {
               event.preventDefault()
               event.stopPropagation()

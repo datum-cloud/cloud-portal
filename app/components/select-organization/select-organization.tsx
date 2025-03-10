@@ -55,12 +55,12 @@ export const SelectOrganization = ({
           variant="outline"
           size="sm"
           className={cn(
-            'flex h-full w-full gap-2 border-none p-0 px-2 data-[state=open]:bg-primary/5',
+            'data-[state=open]:bg-primary/5 flex h-full w-full cursor-pointer gap-2 border-none p-0 px-2',
             triggerClassName,
           )}>
           {!hideContent &&
             (selectedContent ?? <OrganizationItem org={currentOrg} className="flex-1" />)}
-          <ChevronsUpDownIcon className="size-4 text-primary/60" />
+          <ChevronsUpDownIcon className="text-primary/60 size-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -97,7 +97,7 @@ export const SelectOrganization = ({
                         }}
                         className="cursor-pointer justify-between">
                         <OrganizationItem org={org} />
-                        {isSelected && <CheckIcon className="size-4 text-primary" />}
+                        {isSelected && <CheckIcon className="text-primary size-4" />}
                       </CommandItem>
                     )
                   })}
@@ -120,7 +120,7 @@ export const SelectOrganization = ({
                 <CommandItem className="cursor-pointer" asChild>
                   <Link
                     to={routes.account.organizations.root}
-                    className="mb-1 mt-1 flex items-center gap-2 px-3">
+                    className="mt-1 mb-1 flex items-center gap-2 px-3">
                     <div className="flex w-6 items-center justify-center">
                       <SettingsIcon />
                     </div>

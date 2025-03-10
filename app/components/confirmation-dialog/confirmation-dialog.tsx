@@ -11,14 +11,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AlertCircle } from 'lucide-react'
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
 export interface ConfirmationDialogProps {
   title?: string
@@ -47,10 +40,11 @@ export interface ConfirmationDialogRef {
   show: (options: ConfirmationDialogProps) => Promise<boolean>
 }
 
-export const ConfirmationDialog = forwardRef<
-  ConfirmationDialogRef,
-  ConfirmationDialogProps
->((_props, ref) => {
+export const ConfirmationDialog = ({
+  ref,
+}: ConfirmationDialogProps & {
+  ref: React.RefObject<ConfirmationDialogRef>
+}) => {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, setIsPending] = useState(false)
 
@@ -159,8 +153,8 @@ export const ConfirmationDialog = forwardRef<
             />
           </div>
         )}
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={handleCancel} disabled={isPending}>
+        <DialogFooter className="flex gap-2">
+          <Button variant="link" onClick={handleCancel} disabled={isPending}>
             {dialogProps.cancelText}
           </Button>
           <Button
@@ -174,6 +168,6 @@ export const ConfirmationDialog = forwardRef<
       </DialogContent>
     </Dialog>
   )
-})
+}
 
 ConfirmationDialog.displayName = 'ConfirmationDialog'

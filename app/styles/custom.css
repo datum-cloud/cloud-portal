@@ -13,3 +13,8 @@
     0 0 10px #fabcb1,
     0 0 5px #fabcb1;
 }
+
+.popover-content-width-full {
+  width: var(--radix-popover-trigger-width) !important;
+  max-height: var(--radix-popover-content-available-height) !important;
+}

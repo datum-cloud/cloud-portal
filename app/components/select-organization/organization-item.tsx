@@ -19,7 +19,7 @@ export const OrganizationItem = ({
     <div className={cn('flex w-full items-center gap-2', className)}>
       {!hideAvatar && (
         <Avatar className={cn('size-6 rounded-md', avatarClassName)}>
-          <AvatarFallback className="rounded-md bg-slate-400 text-primary-foreground">
+          <AvatarFallback className="text-primary-foreground rounded-md bg-slate-400">
             {getInitials(org?.name ?? '')}
           </AvatarFallback>
         </Avatar>
@@ -28,7 +28,7 @@ export const OrganizationItem = ({
       <div className={cn('grid flex-1 text-left text-sm leading-tight', labelClassName)}>
         <span className="truncate font-medium">{org?.name}</span>
         {org?.personalOrg && (
-          <span className="truncate text-xs text-muted-foreground">Personal</span>
+          <span className="text-muted-foreground truncate text-xs">Personal</span>
         )}
       </div>
     </div>

@@ -23,13 +23,13 @@ export function ErrorBoundary() {
     <GenericErrorBoundary
       statusHandlers={{
         404: () => (
-          <div className="flex h-screen w-full flex-col items-center justify-center gap-8 rounded-md bg-card px-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-card hover:border-primary/40">
-              <HelpCircle className="h-8 w-8 stroke-[1.5px] text-primary/60" />
+          <div className="bg-card flex h-screen w-full flex-col items-center justify-center gap-8 rounded-md px-6">
+            <div className="border-border bg-card hover:border-primary/40 flex h-16 w-16 items-center justify-center rounded-2xl border">
+              <HelpCircle className="text-primary/60 h-8 w-8 stroke-[1.5px]" />
             </div>
             <div className="flex flex-col items-center gap-2">
-              <p className="text-2xl font-medium text-primary">Whoops!</p>
-              <p className="text-center text-lg font-normal text-primary/60">
+              <p className="text-primary text-2xl font-medium">Whoops!</p>
+              <p className="text-primary/60 text-center text-lg font-normal">
                 Nothing here yet!
               </p>
             </div>

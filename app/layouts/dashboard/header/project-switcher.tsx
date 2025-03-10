@@ -70,7 +70,7 @@ export const ProjectSwitcher = ({
           orgId,
           projectId: currentProject.name,
         })}
-        className="flex w-fit max-w-[300px] items-center truncate text-left text-sm font-semibold leading-tight">
+        className="flex w-fit max-w-[300px] items-center truncate text-left text-sm leading-tight font-semibold">
         {currentProject?.description}
       </Link>
       <Popover open={open} onOpenChange={setOpen}>
@@ -79,10 +79,10 @@ export const ProjectSwitcher = ({
             variant="outline"
             size="sm"
             className={cn(
-              'flex h-7 w-fit gap-2 border-none p-0 px-2 data-[state=open]:bg-primary/5',
+              'data-[state=open]:bg-primary/5 flex h-7 w-fit gap-2 border-none p-0 px-2',
               triggerClassName,
             )}>
-            <ChevronsUpDownIcon className="size-4 text-primary/60" />
+            <ChevronsUpDownIcon className="text-primary/60 size-4" />
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -121,7 +121,7 @@ export const ProjectSwitcher = ({
                           }}
                           className="cursor-pointer justify-between">
                           <ProjectItem project={project} />
-                          {isSelected && <CheckIcon className="size-4 text-primary" />}
+                          {isSelected && <CheckIcon className="text-primary size-4" />}
                         </CommandItem>
                       )
                     })}

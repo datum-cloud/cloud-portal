@@ -1,4 +1,5 @@
 import { reactRouter } from '@react-router/dev/vite'
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { defineConfig } from 'vite'
@@ -25,7 +26,11 @@ export default defineConfig({
     },
   },
   assetsInclude: ['**/*.woff2'], // Add font formats you're using
-  plugins: [process.env.CYPRESS ? react() : reactRouter(), tsconfigPaths()],
+  plugins: [
+    tailwindcss(),
+    process.env.CYPRESS ? react() : reactRouter(),
+    tsconfigPaths(),
+  ],
   /**
    * Build configuration for optimizing bundle size and performance
    *

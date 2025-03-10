@@ -33,7 +33,7 @@ const SectionTitle = ({ children }: { children: React.ReactNode }) => (
 )
 
 const SectionDescription = ({ children }: { children: React.ReactNode }) => (
-  <p className="text-base font-thin text-muted-foreground">{children}</p>
+  <p className="text-muted-foreground text-base font-thin">{children}</p>
 )
 
 const ArrowListItem = ({ children }: { children: React.ReactNode }) => (
@@ -45,7 +45,7 @@ const ArrowListItem = ({ children }: { children: React.ReactNode }) => (
 
 const ExplorerCard = ({ title, description, icon }: (typeof ExplorerList)[number]) => (
   <Card className="flex h-full flex-col gap-3">
-    <CardHeader className="!pb-0">
+    <CardHeader className="pb-0!">
       <CardTitle className="flex items-center gap-2 text-lg font-semibold">
         {icon}
         {title}

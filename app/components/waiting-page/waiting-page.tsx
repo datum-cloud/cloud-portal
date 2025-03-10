@@ -22,13 +22,13 @@ export const WaitingPage = ({
         </div>
       </CardContent>
       <CardFooter className="flex items-center justify-center">
-        <div className="text-balance text-center text-muted-foreground">
+        <div className="text-muted-foreground text-center text-balance">
           While you wait, check out the Datum{' '}
           <a
             href="https://docs.datum.net/"
             target="_blank"
             rel="noreferrer"
-            className="ml-1 text-sunglow underline">
+            className="text-sunglow ml-1 underline">
             Documentation
           </a>
         </div>

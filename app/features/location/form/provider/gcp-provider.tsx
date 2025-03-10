@@ -30,8 +30,8 @@ const SelectRegion = ({
     return (
       <div className="flex w-full items-center gap-0.5">
         <span className="font-medium">{option.name}</span>
-        <Slash className="mx-0.5 !size-3 !text-muted-foreground" />
-        <span className="text-sm text-muted-foreground">{option.location}</span>
+        <Slash className="text-muted-foreground! mx-0.5 size-3!" />
+        <span className="text-muted-foreground text-sm">{option.location}</span>
       </div>
     )
   }

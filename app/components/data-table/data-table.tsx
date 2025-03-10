@@ -142,7 +142,7 @@ export const DataTable = <TData, TValue>({
                 <TableRow>
                   <TableCell colSpan={columnsLength} className="h-24 text-center">
                     <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="size-4 animate-spin" />
                       <p className="text-muted-foreground">{loadingText}</p>
                     </div>
                   </TableCell>
@@ -153,10 +153,7 @@ export const DataTable = <TData, TValue>({
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className={cn(
-                          'px-4 py-2',
-                          cell.column.columnDef.meta?.className,
-                        )}>
+                        className={cn(cell.column.columnDef.meta?.className)}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}

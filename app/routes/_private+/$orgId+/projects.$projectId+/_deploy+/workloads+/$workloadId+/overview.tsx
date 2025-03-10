@@ -110,12 +110,12 @@ export default function OverviewWorkload() {
           title={(workload as IWorkloadControlResponse)?.name ?? 'Workload'}
           description={
             <div className="flex items-center gap-1">
-              <ClockIcon className="h-4 w-4 text-muted-foreground" />
+              <ClockIcon className="text-muted-foreground h-4 w-4" />
               <DateFormat
-                className="text-sm text-muted-foreground"
+                className="text-muted-foreground text-sm"
                 date={(workload as IWorkloadControlResponse)?.createdAt ?? ''}
               />
-              <span className="text-sm text-muted-foreground">
+              <span className="text-muted-foreground text-sm">
                 (
                 {formatDistanceToNow(
                   new Date((workload as IWorkloadControlResponse)?.createdAt ?? ''),
@@ -146,7 +146,7 @@ export default function OverviewWorkload() {
                 </Link>
               </Button>
               <MoreActions
-                className="size-9 rounded-md border border-input bg-background px-3 hover:bg-accent hover:text-accent-foreground"
+                className="border-input bg-background hover:bg-accent hover:text-accent-foreground size-9 rounded-md border px-3"
                 actions={[
                   {
                     key: 'delete',

@@ -84,7 +84,7 @@ export const NavMain = forwardRef<
     if ('type' in item && item.type === 'group') {
       return (
         <Fragment key={itemKey}>
-          <SidebarGroup className="mb-2 !p-0">
+          <SidebarGroup className="mb-2 p-0!">
             {item.title && (
               <SidebarGroupLabel className="group-data-[state=collapsed]:hidden">
                 {item.title}
@@ -145,7 +145,7 @@ export const NavMain = forwardRef<
                                 'bg-primary/10 text-primary',
                             )}>
                             <span>{subItem.title}</span>
-                            <ChevronRight className="ml-auto h-4 w-4" />
+                            <ChevronRight className="ml-auto size-4" />
                           </DropdownMenuItem>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent side="right" align="start">
@@ -277,7 +277,7 @@ export const NavMain = forwardRef<
                   {item?.icon && <item.icon className="size-4" />}
                   <span>{item.title}</span>
                 </div>
-                <ExternalLinkIcon className="ml-auto h-4 w-4" />
+                <ExternalLinkIcon className="ml-auto size-4" />
               </a>
             ) : (
               <Link to={item.href || ''}>

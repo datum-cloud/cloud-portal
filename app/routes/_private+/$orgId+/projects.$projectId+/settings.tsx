@@ -111,18 +111,18 @@ export default function ProjectSettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <InputWithCopy value={project.name} className="h-9 bg-muted" />
+            <InputWithCopy value={project.name} className="bg-muted h-9" />
           </CardContent>
         </Card>
 
         {/* Danger Zone */}
-        <Card className="border border-destructive/50 transition-colors hover:border-destructive">
+        <Card className="border-destructive/50 hover:border-destructive border pb-0 transition-colors">
           <CardHeader>
             <CardTitle className="text-destructive">Danger Zone</CardTitle>
           </CardHeader>
           <CardContent>
             <Alert variant="destructive">
-              <CircleAlertIcon className="size-5 flex-shrink-0" />
+              <CircleAlertIcon className="size-5 shrink-0" />
               <AlertTitle className="text-sm font-semibold">
                 Warning: Destructive Action
               </AlertTitle>
@@ -133,7 +133,7 @@ export default function ProjectSettingsPage() {
               </AlertDescription>
             </Alert>
           </CardContent>
-          <CardFooter className="flex justify-end border-t border-destructive/50 bg-destructive/10 px-6 py-2">
+          <CardFooter className="border-destructive/50 bg-destructive/10 flex justify-end border-t px-6 py-2">
             <Button
               variant="destructive"
               size="sm"
