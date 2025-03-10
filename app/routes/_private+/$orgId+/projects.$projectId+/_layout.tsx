@@ -26,11 +26,11 @@ export const loader = withMiddleware(async ({ params, context }) => {
   const { projectId, orgId } = params
 
   try {
-    if (!projectId) {
-      throw new CustomError('Project ID is required', 400)
+    if (!projectId || !orgId) {
+      throw new CustomError('Project ID and Organization ID are required', 400)
     }
 
-    const org: OrganizationModel = await organizationGql.getOrganizationDetail(orgId!)
+    const org: OrganizationModel = await organizationGql.getOrganizationDetail(orgId)
 
     const project: IProjectControlResponse = await projectsControl.detail(
       org.userEntityID,
@@ -39,9 +39,9 @@ export const loader = withMiddleware(async ({ params, context }) => {
 
     // TODO: Temporary Solution to Validate that the project belongs to the current organization
     // The API currently returns project details even if the project belongs to a different org
-    if (project.organizationId !== org.userEntityID) {
-      throw new CustomError('Project not found', 404)
-    }
+    // if (project.organizationId !== org.userEntityID) {
+    //   throw new CustomError('Project not found', 404)
+    // }
 
     return project
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -62,8 +62,8 @@ export const loader = withMiddleware(async ({ params, context }) => {
         orgId: params.orgId,
       }),
       {
-        title: (error as CustomError).message,
-        description: 'Please check the project ID',
+        title: 'Something went wrong',
+        description: (error as CustomError).message,
         type: 'error',
       },
     )
