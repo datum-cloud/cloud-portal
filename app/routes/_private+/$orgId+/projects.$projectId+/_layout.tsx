@@ -62,8 +62,8 @@ export const loader = withMiddleware(async ({ params, context }) => {
         orgId: params.orgId,
       }),
       {
-        title: (error as CustomError).message,
-        description: 'Please check the project ID',
+        title: 'Something went wrong',
+        description: (error as CustomError).message,
         type: 'error',
       },
     )

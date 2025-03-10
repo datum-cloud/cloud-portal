@@ -62,25 +62,26 @@ export default function OverviewWorkload() {
   const { deployments, instances, workload } = useLoaderData<typeof loader>()
 
   const deleteWorkload = async () => {
+    const data = workload as IWorkloadControlResponse
     await confirm({
       title: 'Delete Workload',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{data.name}</strong>?
+          <strong>{data?.name}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${data.name}" to confirm.`,
+      confirmInputLabel: `Type "${data?.name} to confirm.`,
       confirmInputPlaceholder: 'Type the workload name to confirm deletion',
-      confirmValue: data.name ?? 'delete',
+      confirmValue: data?.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {
-            workloadId: data.name ?? '',
+            workloadId: data?.name ?? '',
             projectId: projectId ?? '',
             orgId: orgId ?? '',
           },
