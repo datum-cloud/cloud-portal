@@ -1,13 +1,5 @@
+import { MoreActions, MoreActionsProps } from '../more-actions/more-actions'
 import { DataTableRowActionsProps } from './data-table.types'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown'
-import { cn } from '@/utils/misc'
-import { Ellipsis } from 'lucide-react'
 
 export const DataTableRowActions = <TData,>({
   row,
@@ -16,31 +8,5 @@ export const DataTableRowActions = <TData,>({
   row: TData
   actions: DataTableRowActionsProps<TData>[]
 }) => {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-accent">
-          <Ellipsis className="size-5" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {actions.map((action) => (
-          <DropdownMenuItem
-            key={action.key}
-            onClick={() => action.action(row)}
-            className={cn(
-              'cursor-pointer',
-              action.variant === 'destructive' && 'text-destructive',
-              action.className,
-            )}>
-            {action.icon}
-            {action.label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
+  return <MoreActions row={row} actions={actions as MoreActionsProps<TData>[]} />
 }

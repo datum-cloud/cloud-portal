@@ -23,7 +23,6 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     throw new CustomError('Organization ID is required', 400)
   }
 
-  // TODO: when i remove the request, the token is not set and make the request to the api use token from other user
   const org: OrganizationModel = await organizationGql.getOrganizationDetail(orgId)
 
   // Update the current organization in session

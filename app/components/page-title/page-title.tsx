@@ -14,7 +14,7 @@ export const PageTitle = ({
   return (
     <div className={cn('flex w-full items-center justify-between', className)}>
       <div className="flex flex-col justify-start gap-1">
-        {title && <h1 className="text-2xl font-bold">{title}</h1>}
+        {title && <span className="text-2xl font-bold leading-none">{title}</span>}
         {description && (
           <div className="text-sm text-muted-foreground">{description}</div>
         )}

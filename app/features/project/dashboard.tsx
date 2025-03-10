@@ -29,7 +29,7 @@ const ExplorerList = [
 ] as const
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-  <h1 className="text-xl font-semibold">{children}</h1>
+  <p className="text-xl font-semibold">{children}</p>
 )
 
 const SectionDescription = ({ children }: { children: React.ReactNode }) => (

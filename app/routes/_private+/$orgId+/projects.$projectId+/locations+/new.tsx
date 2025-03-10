@@ -49,6 +49,7 @@ export const action = withMiddleware(
         },
       )
     } catch (error) {
+      console.error(error)
       return dataWithToast(null, {
         title: 'Error',
         description:

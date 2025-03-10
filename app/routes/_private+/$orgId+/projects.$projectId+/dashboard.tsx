@@ -60,9 +60,7 @@ export default function ProjectDashboardPage() {
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-4">
-              <h1 className="text-4xl font-semibold leading-none">
-                {project.description}
-              </h1>
+              <p className="text-4xl font-semibold leading-none">{project.description}</p>
               <StatusBadge
                 status={status}
                 type="badge"

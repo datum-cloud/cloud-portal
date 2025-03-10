@@ -61,7 +61,7 @@ export default function TabsLayout({
       </div>
 
       <div className={cn('mx-auto px-5', widthClassName)}>
-        <div className="flex flex-1 flex-col overflow-y-auto">{children}</div>
+        <div className="flex flex-1 flex-col">{children}</div>
       </div>
     </div>
   )
