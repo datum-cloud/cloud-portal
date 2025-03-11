@@ -61,7 +61,7 @@
         "remix-auth-github": "^3.0.2",
         "remix-auth-oauth2": "^3.2.2",
         "remix-i18next": "^7.0.2",
-        "remix-utils": "8.3.0",
+        "remix-utils": "8.3.1",
         "sonner": "^2.0.0",
         "tailwind-merge": "^3.0.1",
         "tailwindcss-animate": "^1.0.7",
@@ -1571,7 +1571,7 @@
 
     "remix-i18next": ["remix-i18next@7.0.2", "", { "peerDependencies": { "i18next": "^24.0.0", "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0", "react-i18next": "^13.0.0 || ^14.0.0 || ^15.0.0", "react-router": "^7.0.0" } }, "sha512-mfqbEdB76KgJo3f1+2FJBtoI5VMrq6zLKt+aYpCBeycsj7njafkDYRQ6SVzUYAES8EyT6gNd45agmhr8H10VmQ=="],
 
-    "remix-utils": ["remix-utils@8.3.0", "", { "dependencies": { "type-fest": "^4.37.0" }, "peerDependencies": { "@edgefirst-dev/batcher": "^1.0.0", "@edgefirst-dev/server-timing": "^0.0.1", "@oslojs/crypto": "^1.0.1", "@oslojs/encoding": "^1.1.0", "intl-parse-accept-language": "^1.0.0", "is-ip": "^5.0.1", "react": "^18.0.0 || ^19.0.0", "react-router": "^7.0.0", "zod": "^3.22.4" }, "optionalPeers": ["@edgefirst-dev/batcher", "@edgefirst-dev/server-timing", "@oslojs/crypto", "@oslojs/encoding", "intl-parse-accept-language", "is-ip", "react", "react-router", "zod"] }, "sha512-WA3ABUTUG63SmdhY/kPAwyKqN3KALKwhLd2/Ld6ZEnZPy7Gbz/yrmA1UMm7RcawyeuPJVCd/4vQo0N8myNlITQ=="],
+    "remix-utils": ["remix-utils@8.3.1", "", { "dependencies": { "type-fest": "^4.37.0" }, "peerDependencies": { "@edgefirst-dev/batcher": "^1.0.0", "@edgefirst-dev/server-timing": "^0.0.1", "@oslojs/crypto": "^1.0.1", "@oslojs/encoding": "^1.1.0", "intl-parse-accept-language": "^1.0.0", "is-ip": "^5.0.1", "react": "^18.0.0 || ^19.0.0", "react-router": "^7.0.0", "zod": "^3.22.4" }, "optionalPeers": ["@edgefirst-dev/batcher", "@edgefirst-dev/server-timing", "@oslojs/crypto", "@oslojs/encoding", "intl-parse-accept-language", "is-ip", "react", "react-router", "zod"] }, "sha512-tnUnQ3SORoIe9u8TYHKT6ZsRXDPRnXFFksk+5N0EZUc0sCNHhILl1JHms7uT6U5oUMmVxY2ZQKzwDRM5oGzbkw=="],
 
     "request-progress": ["request-progress@3.0.0", "", { "dependencies": { "throttleit": "^1.0.0" } }, "sha512-MnWzEHHaxHO2iWiQuHrUPBi/1WeBf5PkxQqNyNvLl9VAYSdXkP8tQ3pBSeCPD+yw0v0Aq1zosWLz0BdeXpWwZg=="],
 
