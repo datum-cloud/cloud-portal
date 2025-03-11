@@ -19,6 +19,7 @@ import { getPathWithParams } from '@/utils/path'
 import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
+import { useMemo } from 'react'
 import {
   ActionFunctionArgs,
   AppLoadContext,
@@ -106,8 +107,9 @@ export default function ProjectLocationsPage() {
     })
   }
 
-  const columns: ColumnDef<ILocationControlResponse>[] = [
-    /* {
+  const columns: ColumnDef<ILocationControlResponse>[] = useMemo(
+    () => [
+      /* {
       header: 'Display Name',
       accessorKey: 'displayName',
       cell: ({ row }) => {
@@ -124,129 +126,139 @@ export default function ProjectLocationsPage() {
         )
       },
     }, */
-    {
-      header: 'Name',
-      accessorKey: 'name',
-      cell: ({ row }) => {
-        return (
-          <Link
-            to={getPathWithParams(routes.projects.locations.edit, {
+      {
+        header: 'Name',
+        accessorKey: 'name',
+        cell: ({ row }) => {
+          return (
+            <Link
+              to={getPathWithParams(routes.projects.locations.edit, {
+                orgId,
+                projectId,
+                locationId: row.original.name,
+              })}
+              className="font-semibold text-primary">
+              {row.original.name}
+            </Link>
+          )
+        },
+      },
+      {
+        header: 'Class',
+        accessorKey: 'class',
+        cell: ({ row }) => {
+          return (
+            <Badge
+              variant={
+                row.original.class === LocationClass.SELF_MANAGED ? 'outline' : 'sunglow'
+              }>
+              {
+                LOCATION_CLASSES[row.original.class as keyof typeof LOCATION_CLASSES]
+                  ?.label
+              }
+            </Badge>
+          )
+        },
+      },
+      {
+        header: 'Provider',
+        accessorKey: 'provider',
+        meta: {
+          className: 'w-24',
+        },
+        cell: ({ row }) => {
+          const provider =
+            LOCATION_PROVIDERS[
+              Object.keys(
+                row.original.provider ?? {},
+              )[0] as keyof typeof LOCATION_PROVIDERS
+            ]
+
+          return Object.keys(row.original.provider ?? {}).length > 0 ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex max-w-[50px] items-center justify-center">
+                  <img
+                    src={provider.icon}
+                    alt={provider.label}
+                    className="mx-auto size-5 cursor-pointer"
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <div className="flex flex-col gap-1">
+                  {Object.entries(row.original.provider ?? {}).map(([key, value]) => (
+                    <div key={key} className="flex flex-col gap-0.5">
+                      <span className="mb-1 text-sm font-medium">{provider.label}</span>
+                      {Object.entries(value as unknown as Record<string, string>).map(
+                        ([k, v]) => (
+                          <div key={k} className="flex items-center gap-1 text-xs">
+                            <span className="capitalize">{toTitleCase(k)}:</span>
+                            <span className="text-muted-foreground">{v}</span>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <span className="w- flex items-center justify-center">-</span>
+          )
+        },
+      },
+      {
+        header: 'City Code',
+        accessorKey: 'cityCode',
+        meta: {
+          className: 'w-32 text-center',
+        },
+        cell: ({ row }) => {
+          return (
+            row.original.cityCode && (
+              <span className="block max-w-[65px] text-center">
+                {row.original.cityCode}
+              </span>
+            )
+          )
+        },
+      },
+      {
+        header: 'Created At',
+        accessorKey: 'createdAt',
+        cell: ({ row }) => {
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+        },
+      },
+    ],
+    [orgId, projectId],
+  )
+
+  const rowActions: DataTableRowActionsProps<ILocationControlResponse>[] = useMemo(
+    () => [
+      {
+        key: 'edit',
+        label: 'Edit',
+        action: (row) => {
+          navigate(
+            getPathWithParams(routes.projects.locations.edit, {
               orgId,
               projectId,
-              locationId: row.original.name,
-            })}
-            className="font-semibold text-primary">
-            {row.original.name}
-          </Link>
-        )
-      },
-    },
-    {
-      header: 'Class',
-      accessorKey: 'class',
-      cell: ({ row }) => {
-        return (
-          <Badge
-            variant={
-              row.original.class === LocationClass.SELF_MANAGED ? 'outline' : 'sunglow'
-            }>
-            {LOCATION_CLASSES[row.original.class as keyof typeof LOCATION_CLASSES]?.label}
-          </Badge>
-        )
-      },
-    },
-    {
-      header: 'Provider',
-      accessorKey: 'provider',
-      meta: {
-        className: 'w-24',
-      },
-      cell: ({ row }) => {
-        const provider =
-          LOCATION_PROVIDERS[
-            Object.keys(row.original.provider ?? {})[0] as keyof typeof LOCATION_PROVIDERS
-          ]
-
-        return Object.keys(row.original.provider ?? {}).length > 0 ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex max-w-[50px] items-center justify-center">
-                <img
-                  src={provider.icon}
-                  alt={provider.label}
-                  className="mx-auto size-5 cursor-pointer"
-                />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div className="flex flex-col gap-1">
-                {Object.entries(row.original.provider ?? {}).map(([key, value]) => (
-                  <div key={key} className="flex flex-col gap-0.5">
-                    <span className="mb-1 text-sm font-medium">{provider.label}</span>
-                    {Object.entries(value as unknown as Record<string, string>).map(
-                      ([k, v]) => (
-                        <div key={k} className="flex items-center gap-1 text-xs">
-                          <span className="capitalize">{toTitleCase(k)}:</span>
-                          <span className="text-muted-foreground">{v}</span>
-                        </div>
-                      ),
-                    )}
-                  </div>
-                ))}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          <span className="w- flex items-center justify-center">-</span>
-        )
-      },
-    },
-    {
-      header: 'City Code',
-      accessorKey: 'cityCode',
-      meta: {
-        className: 'w-32 text-center',
-      },
-      cell: ({ row }) => {
-        return (
-          row.original.cityCode && (
-            <span className="block max-w-[65px] text-center">
-              {row.original.cityCode}
-            </span>
+              locationId: row.name,
+            }),
           )
-        )
+        },
       },
-    },
-    {
-      header: 'Created At',
-      accessorKey: 'createdAt',
-      cell: ({ row }) => {
-        return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+      {
+        key: 'delete',
+        label: 'Delete',
+        variant: 'destructive',
+        action: (row) => deleteLocation(row),
       },
-    },
-  ]
-
-  const rowActions: DataTableRowActionsProps<ILocationControlResponse>[] = [
-    {
-      key: 'edit',
-      label: 'Edit',
-      action: (row) => {
-        navigate(
-          getPathWithParams(routes.projects.locations.edit, {
-            orgId,
-            projectId,
-            locationId: row.name,
-          }),
-        )
-      },
-    },
-    {
-      key: 'delete',
-      label: 'Delete',
-      variant: 'destructive',
-      action: (row) => deleteLocation(row),
-    },
-  ]
+    ],
+    [orgId, projectId],
+  )
 
   return (
     <DataTable

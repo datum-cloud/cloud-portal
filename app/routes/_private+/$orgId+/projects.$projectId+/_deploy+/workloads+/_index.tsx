@@ -4,7 +4,6 @@ import { DateFormat } from '@/components/date-format/date-format'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { WorkloadStatus } from '@/features/workload/status'
-import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
@@ -39,7 +38,7 @@ export const loader = withMiddleware(async ({ context, params }: LoaderFunctionA
 }, authMiddleware)
 
 export default function WorkloadsPage() {
-  useRevalidateOnInterval({ enabled: true, interval: 10000 })
+  // useRevalidateOnInterval({ enabled: true, interval: 10000 })
 
   const data = useLoaderData<typeof loader>()
   const navigate = useNavigate()
@@ -109,6 +108,9 @@ export default function WorkloadsPage() {
             row.original.status && (
               <WorkloadStatus
                 currentStatus={transformControlPlaneStatus(row.original.status)}
+                projectId={projectId}
+                id={row.original.name}
+                workloadType="workload"
                 type="badge"
                 badgeClassName="px-0"
               />
@@ -124,30 +126,33 @@ export default function WorkloadsPage() {
         },
       },
     ],
-    [],
+    [orgId, projectId],
   )
 
-  const rowActions: DataTableRowActionsProps<IWorkloadControlResponse>[] = [
-    {
-      key: 'edit',
-      label: 'Edit',
-      action: (row) => {
-        navigate(
-          getPathWithParams(routes.projects.deploy.workloads.detail.manage, {
-            orgId,
-            projectId,
-            workloadId: row.name,
-          }),
-        )
+  const rowActions: DataTableRowActionsProps<IWorkloadControlResponse>[] = useMemo(
+    () => [
+      {
+        key: 'edit',
+        label: 'Edit',
+        action: (row) => {
+          navigate(
+            getPathWithParams(routes.projects.deploy.workloads.detail.manage, {
+              orgId,
+              projectId,
+              workloadId: row.name,
+            }),
+          )
+        },
       },
-    },
-    {
-      key: 'delete',
-      label: 'Delete',
-      variant: 'destructive',
-      action: (row) => deleteWorkload(row),
-    },
-  ]
+      {
+        key: 'delete',
+        label: 'Delete',
+        variant: 'destructive',
+        action: (row) => deleteWorkload(row),
+      },
+    ],
+    [orgId, projectId],
+  )
 
   return (
     <DataTable
