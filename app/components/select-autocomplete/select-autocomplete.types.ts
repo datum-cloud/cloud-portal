@@ -21,4 +21,5 @@ export type SelectAutocompleteProps = {
   boxClassName?: string
   disableSearch?: boolean
   itemSize?: number
+  isLoading?: boolean
 }

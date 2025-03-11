@@ -12,6 +12,7 @@ import { getPathWithParams } from '@/utils/path'
 import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
+import { useMemo } from 'react'
 import {
   LoaderFunctionArgs,
   AppLoadContext,
@@ -95,54 +96,60 @@ export default function ConfigMapsPage() {
     })
   }
 
-  const columns: ColumnDef<IConfigMapControlResponse>[] = [
-    {
-      header: 'Name',
-      accessorKey: 'name',
-      cell: ({ row }) => {
-        return (
-          <Link
-            to={getPathWithParams(routes.projects.config.configMaps.edit, {
+  const columns: ColumnDef<IConfigMapControlResponse>[] = useMemo(
+    () => [
+      {
+        header: 'Name',
+        accessorKey: 'name',
+        cell: ({ row }) => {
+          return (
+            <Link
+              to={getPathWithParams(routes.projects.config.configMaps.edit, {
+                orgId,
+                projectId,
+                configMapId: row.original.name,
+              })}
+              className="font-semibold text-primary">
+              {row.original.name}
+            </Link>
+          )
+        },
+      },
+      {
+        header: 'Created At',
+        accessorKey: 'createdAt',
+        cell: ({ row }) => {
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+        },
+      },
+    ],
+    [orgId, projectId],
+  )
+
+  const rowActions: DataTableRowActionsProps<IConfigMapControlResponse>[] = useMemo(
+    () => [
+      {
+        key: 'edit',
+        label: 'Edit',
+        action: (row) => {
+          navigate(
+            getPathWithParams(routes.projects.config.configMaps.edit, {
               orgId,
               projectId,
-              configMapId: row.original.name,
-            })}
-            className="font-semibold text-primary">
-            {row.original.name}
-          </Link>
-        )
+              configMapId: row.name,
+            }),
+          )
+        },
       },
-    },
-    {
-      header: 'Created At',
-      accessorKey: 'createdAt',
-      cell: ({ row }) => {
-        return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+      {
+        key: 'delete',
+        label: 'Delete',
+        variant: 'destructive',
+        action: (row) => deleteConfigMap(row),
       },
-    },
-  ]
-
-  const rowActions: DataTableRowActionsProps<IConfigMapControlResponse>[] = [
-    {
-      key: 'edit',
-      label: 'Edit',
-      action: (row) => {
-        navigate(
-          getPathWithParams(routes.projects.config.configMaps.edit, {
-            orgId,
-            projectId,
-            configMapId: row.name,
-          }),
-        )
-      },
-    },
-    {
-      key: 'delete',
-      label: 'Delete',
-      variant: 'destructive',
-      action: (row) => deleteConfigMap(row),
-    },
-  ]
+    ],
+    [orgId, projectId],
+  )
 
   return (
     <DataTable

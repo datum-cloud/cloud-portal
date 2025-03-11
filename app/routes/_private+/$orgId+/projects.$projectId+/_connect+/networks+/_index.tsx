@@ -13,6 +13,7 @@ import { getPathWithParams } from '@/utils/path'
 import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
+import { useMemo } from 'react'
 import {
   ActionFunctionArgs,
   AppLoadContext,
@@ -96,8 +97,9 @@ export default function ProjectConnectNetworks() {
     })
   }
 
-  const columns: ColumnDef<INetworkControlResponse>[] = [
-    /* {
+  const columns: ColumnDef<INetworkControlResponse>[] = useMemo(
+    () => [
+      /* {
       header: 'Display Name',
       accessorKey: 'displayName',
       cell: ({ row }) => {
@@ -114,79 +116,86 @@ export default function ProjectConnectNetworks() {
         )
       },
     }, */
-    {
-      header: 'Name',
-      accessorKey: 'name',
-      cell: ({ row }) => {
-        return (
-          <Link
-            to={getPathWithParams(routes.projects.networks.edit, {
+      {
+        header: 'Name',
+        accessorKey: 'name',
+        cell: ({ row }) => {
+          return (
+            <Link
+              to={getPathWithParams(routes.projects.networks.edit, {
+                orgId,
+                projectId,
+                networkId: row.original.name,
+              })}
+              className="font-semibold text-primary">
+              {row.original.name}
+            </Link>
+          )
+        },
+      },
+      {
+        header: 'IP Family',
+        accessorKey: 'ipFamily',
+        cell: ({ row }) => {
+          return (
+            <div className="flex flex-wrap gap-1">
+              {row.original.ipFamilies?.map((ipFamily) => (
+                <Badge
+                  key={ipFamily}
+                  variant={ipFamily === 'IPv4' ? 'outline' : 'default'}>
+                  {ipFamily}
+                </Badge>
+              ))}
+            </div>
+          )
+        },
+      },
+      {
+        header: 'IPAM Mode',
+        accessorKey: 'ipam',
+        cell: ({ row }) => {
+          return <div>{row.original.ipam?.mode}</div>
+        },
+      },
+      {
+        header: 'MTU',
+        accessorKey: 'mtu',
+      },
+      {
+        header: 'Created At',
+        accessorKey: 'createdAt',
+        cell: ({ row }) => {
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+        },
+      },
+    ],
+    [orgId, projectId],
+  )
+
+  const rowActions: DataTableRowActionsProps<INetworkControlResponse>[] = useMemo(
+    () => [
+      {
+        key: 'edit',
+        label: 'Edit',
+        action: (row) => {
+          navigate(
+            getPathWithParams(routes.projects.networks.edit, {
               orgId,
               projectId,
-              networkId: row.original.name,
-            })}
-            className="font-semibold text-primary">
-            {row.original.name}
-          </Link>
-        )
+              networkId: row.name,
+            }),
+          )
+        },
       },
-    },
-    {
-      header: 'IP Family',
-      accessorKey: 'ipFamily',
-      cell: ({ row }) => {
-        return (
-          <div className="flex flex-wrap gap-1">
-            {row.original.ipFamilies?.map((ipFamily) => (
-              <Badge key={ipFamily} variant={ipFamily === 'IPv4' ? 'outline' : 'default'}>
-                {ipFamily}
-              </Badge>
-            ))}
-          </div>
-        )
+      {
+        key: 'delete',
+        label: 'Delete',
+        variant: 'destructive',
+        action: (row) => deleteNetwork(row),
       },
-    },
-    {
-      header: 'IPAM Mode',
-      accessorKey: 'ipam',
-      cell: ({ row }) => {
-        return <div>{row.original.ipam?.mode}</div>
-      },
-    },
-    {
-      header: 'MTU',
-      accessorKey: 'mtu',
-    },
-    {
-      header: 'Created At',
-      accessorKey: 'createdAt',
-      cell: ({ row }) => {
-        return row.original.createdAt && <DateFormat date={row.original.createdAt} />
-      },
-    },
-  ]
-
-  const rowActions: DataTableRowActionsProps<INetworkControlResponse>[] = [
-    {
-      key: 'edit',
-      label: 'Edit',
-      action: (row) => {
-        navigate(
-          getPathWithParams(routes.projects.networks.edit, {
-            orgId,
-            projectId,
-            networkId: row.name,
-          }),
-        )
-      },
-    },
-    {
-      key: 'delete',
-      label: 'Delete',
-      variant: 'destructive',
-      action: (row) => deleteNetwork(row),
-    },
-  ]
+    ],
+    [orgId, projectId],
+  )
 
   return (
     <DataTable

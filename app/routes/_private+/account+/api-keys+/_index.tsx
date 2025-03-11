@@ -13,6 +13,7 @@ import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { UserApiKeyModel } from '@/resources/gql/models/user.model'
 import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
+import { useMemo } from 'react'
 import {
   ActionFunctionArgs,
   AppLoadContext,
@@ -96,68 +97,74 @@ export default function AccountApiKeys() {
     })
   }
 
-  const columns: ColumnDef<UserApiKeyModel>[] = [
-    {
-      header: 'Name',
-      accessorKey: 'name',
-      cell: ({ row }) => {
-        return <span className="font-semibold text-primary">{row.original.name}</span>
+  const columns: ColumnDef<UserApiKeyModel>[] = useMemo(
+    () => [
+      {
+        header: 'Name',
+        accessorKey: 'name',
+        cell: ({ row }) => {
+          return <span className="font-semibold text-primary">{row.original.name}</span>
+        },
       },
-    },
-    {
-      header: 'Expires At',
-      accessorKey: 'expiresAt',
-      cell: ({ row }) => {
-        return row.original.expiresAt ? (
-          <DateFormat date={row.original.expiresAt} format="MMMM d, yyyy" omitAmPm />
-        ) : (
-          'Never'
-        )
+      {
+        header: 'Expires At',
+        accessorKey: 'expiresAt',
+        cell: ({ row }) => {
+          return row.original.expiresAt ? (
+            <DateFormat date={row.original.expiresAt} format="MMMM d, yyyy" omitAmPm />
+          ) : (
+            'Never'
+          )
+        },
       },
-    },
-    {
-      header: 'Last Used',
-      accessorKey: 'lastUsedAt',
-      cell: ({ row }) => {
-        return row.original.lastUsedAt ? (
-          <DateFormat date={row.original.lastUsedAt} />
-        ) : (
-          '-'
-        )
+      {
+        header: 'Last Used',
+        accessorKey: 'lastUsedAt',
+        cell: ({ row }) => {
+          return row.original.lastUsedAt ? (
+            <DateFormat date={row.original.lastUsedAt} />
+          ) : (
+            '-'
+          )
+        },
       },
-    },
-    {
-      header: 'Status',
-      accessorKey: 'status',
-      enableSorting: false,
-      cell: ({ row }) => {
-        const expiresAt = new Date(row.original.expiresAt).getTime()
-        const isActive = !row.original.expiresAt || expiresAt > Date.now()
+      {
+        header: 'Status',
+        accessorKey: 'status',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const expiresAt = new Date(row.original.expiresAt).getTime()
+          const isActive = !row.original.expiresAt || expiresAt > Date.now()
 
-        return (
-          <Badge variant={isActive ? 'outline' : 'destructive'}>
-            {isActive ? 'Active' : 'Expired'}
-          </Badge>
-        )
+          return (
+            <Badge variant={isActive ? 'outline' : 'destructive'}>
+              {isActive ? 'Active' : 'Expired'}
+            </Badge>
+          )
+        },
       },
-    },
-    {
-      header: 'Created At',
-      accessorKey: 'createdAt',
-      cell: ({ row }) => {
-        return <DateFormat date={row.original.createdAt} />
+      {
+        header: 'Created At',
+        accessorKey: 'createdAt',
+        cell: ({ row }) => {
+          return <DateFormat date={row.original.createdAt} />
+        },
       },
-    },
-  ]
+    ],
+    [],
+  )
 
-  const rowActions: DataTableRowActionsProps<UserApiKeyModel>[] = [
-    {
-      key: 'delete',
-      label: 'Delete',
-      variant: 'destructive',
-      action: (row) => deleteApiKey(row),
-    },
-  ]
+  const rowActions: DataTableRowActionsProps<UserApiKeyModel>[] = useMemo(
+    () => [
+      {
+        key: 'delete',
+        label: 'Delete',
+        variant: 'destructive',
+        action: (row) => deleteApiKey(row),
+      },
+    ],
+    [],
+  )
 
   return (
     <div className="container mx-auto flex max-w-screen-xl flex-col gap-4">

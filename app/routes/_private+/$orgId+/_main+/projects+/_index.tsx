@@ -64,32 +64,35 @@ export default function ProjectsPage() {
         },
       },
     ],
-    [],
+    [orgId],
   )
 
-  const rowActions: DataTableRowActionsProps<IProjectControlResponse>[] = [
-    {
-      key: 'locations',
-      label: 'Locations',
-      action: (row) => {
-        navigate(
-          getPathWithParams(routes.projects.locations.root, {
-            orgId,
-            projectId: row.name,
-          }),
-        )
+  const rowActions: DataTableRowActionsProps<IProjectControlResponse>[] = useMemo(
+    () => [
+      {
+        key: 'locations',
+        label: 'Locations',
+        action: (row) => {
+          navigate(
+            getPathWithParams(routes.projects.locations.root, {
+              orgId,
+              projectId: row.name,
+            }),
+          )
+        },
       },
-    },
-    {
-      key: 'settings',
-      label: 'Settings',
-      action: (row) => {
-        navigate(
-          getPathWithParams(routes.projects.settings, { orgId, projectId: row.name }),
-        )
+      {
+        key: 'settings',
+        label: 'Settings',
+        action: (row) => {
+          navigate(
+            getPathWithParams(routes.projects.settings, { orgId, projectId: row.name }),
+          )
+        },
       },
-    },
-  ]
+    ],
+    [orgId],
+  )
 
   return (
     <DataTable

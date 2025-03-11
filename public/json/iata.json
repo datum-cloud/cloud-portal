@@ -5917,7 +5917,7 @@
     "city": "Praia",
     "country": "Santiago Island",
     "iata_code": "RAI",
-    "_geoloc": { "lat": 0.0, "lng": 14.9245 },
+    "_geoloc": { "lat": 0, "lng": 14.9245 },
     "links_count": 34,
     "objectID": "5674"
   },
@@ -8752,7 +8752,7 @@
     "city": "Doncaster",
     "country": "Sheffield",
     "iata_code": "DSA",
-    "_geoloc": { "lat": 0.0, "lng": 53.474722 },
+    "_geoloc": { "lat": 0, "lng": 53.474722 },
     "links_count": 18,
     "objectID": "5562"
   },
@@ -9229,7 +9229,7 @@
     "city": "Comiso",
     "country": "Italy",
     "iata_code": "CIY",
-    "_geoloc": { "lat": 37.0, "lng": 14.6144 },
+    "_geoloc": { "lat": 37, "lng": 14.6144 },
     "links_count": 16,
     "objectID": "9327"
   },
@@ -10957,7 +10957,7 @@
     "city": "Barreiras",
     "country": "Brazil",
     "iata_code": "BRA",
-    "_geoloc": { "lat": -12.083333, "lng": -45.0 },
+    "_geoloc": { "lat": -12.083333, "lng": -45 },
     "links_count": 12,
     "objectID": "7373"
   },
@@ -14539,7 +14539,7 @@
     "city": "Berlevag",
     "country": "Norway",
     "iata_code": "BVG",
-    "_geoloc": { "lat": 70.866667, "lng": 29.0 },
+    "_geoloc": { "lat": 70.866667, "lng": 29 },
     "links_count": 8,
     "objectID": "4350"
   },
@@ -14557,7 +14557,7 @@
     "city": "Copiapo",
     "country": "Chile",
     "iata_code": "CPO",
-    "_geoloc": { "lat": -27.0, "lng": -70.0 },
+    "_geoloc": { "lat": -27, "lng": -70 },
     "links_count": 8,
     "objectID": "4312"
   },
@@ -26050,7 +26050,7 @@
     "city": "Riberalta",
     "country": "Bolivia",
     "iata_code": "RIB",
-    "_geoloc": { "lat": -11.0, "lng": -66.0 },
+    "_geoloc": { "lat": -11, "lng": -66 },
     "links_count": 2,
     "objectID": "6058"
   },
@@ -26329,7 +26329,7 @@
     "city": "Maewo Island",
     "country": "Vanuatu",
     "iata_code": "MWF",
-    "_geoloc": { "lat": -15.0, "lng": 168.083 },
+    "_geoloc": { "lat": -15, "lng": 168.083 },
     "links_count": 2,
     "objectID": "5903"
   },
@@ -26806,7 +26806,7 @@
     "city": "Sao Filipe",
     "country": "Fogo Island",
     "iata_code": "SFL",
-    "_geoloc": { "lat": 0.0, "lng": 14.885 },
+    "_geoloc": { "lat": 0, "lng": 14.885 },
     "links_count": 2,
     "objectID": "5675"
   },

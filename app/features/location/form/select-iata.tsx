@@ -1,10 +1,11 @@
 import { SelectAutocomplete } from '@/components/select-autocomplete/select-autocomplete'
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
-import IATA_CODES from '@/constants/json/iata.json'
+import { cacheStorage } from '@/modules/unstorage/unstorage'
 import { cn } from '@/utils/misc'
 import { Slash } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
+const IATA_CACHE_KEY = 'iata_codes'
 const ItemContent = ({ option }: { option: Option }) => {
   return (
     <div className="flex w-full items-center gap-0.5">
@@ -30,10 +31,46 @@ export const SelectIATA = ({
   onValueChange: (value: Option) => void
   placeholder?: string
 }) => {
+  const [iataOptions, setIataOptions] = useState<Option[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+
   const [value, setValue] = useState(defaultValue)
   const selectedValue = useMemo(() => {
-    return IATA_CODES.find((option) => option.iata_code === value)
-  }, [value])
+    return iataOptions.find((option) => option.iata_code === value)
+  }, [value, iataOptions])
+
+  useEffect(() => {
+    const fetchIataData = async () => {
+      setIsLoading(true)
+
+      try {
+        // Try to get data from cache first
+        const cachedData = await cacheStorage.getItem(IATA_CACHE_KEY)
+        if (cachedData) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setIataOptions(cachedData as any[])
+          return
+        }
+
+        // Fetch data if not in cache
+        const response = await fetch('/json/iata.json')
+        if (!response.ok) {
+          throw new Error('Failed to fetch IATA data')
+        }
+
+        const data = await response.json()
+        await cacheStorage.setItem(IATA_CACHE_KEY, data)
+        setIataOptions(data)
+      } catch (error) {
+        console.error('Error loading IATA data:', error)
+        setIataOptions([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchIataData()
+  }, [])
 
   useEffect(() => {
     if (defaultValue) {
@@ -43,10 +80,11 @@ export const SelectIATA = ({
 
   return (
     <SelectAutocomplete
+      isLoading={isLoading}
       keyValue="iata_code"
       selectedValue={selectedValue}
       triggerClassName={cn('w-full h-auto min-h-10', className)}
-      options={IATA_CODES}
+      options={iataOptions}
       placeholder={placeholder}
       itemPreview={(option) => <ItemContent option={option} />}
       itemContent={(option) => <ItemContent option={option} />}
