@@ -3,7 +3,7 @@ import { VirtualizedList } from './virtualized-list'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/utils/misc'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Loader2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 export const SelectAutocomplete = ({
@@ -21,6 +21,7 @@ export const SelectAutocomplete = ({
   boxClassName,
   disableSearch = false,
   itemSize = 35,
+  isLoading = false,
 }: SelectAutocompleteProps) => {
   const [open, setOpen] = useState(false)
   const [currentValue, setCurrentValue] = useState<string | undefined>(undefined)
@@ -50,12 +51,17 @@ export const SelectAutocomplete = ({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            'w-full items-center justify-between px-3 ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+            'relative w-full items-center justify-between px-3 ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
             triggerClassName,
           )}
           disabled={disabled}>
-          <div>{triggerContent}</div>
-          <ChevronDown className="h-4 w-4 opacity-50" />
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+              <Loader2 className="mx-auto size-4 animate-spin" />
+            </div>
+          )}
+          {triggerContent}
+          <ChevronDown className="size-4 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
