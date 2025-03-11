@@ -84,9 +84,9 @@ authenticator
           httpOnly: true,
           sameSite: 'Lax',
         },
-        clientId: process.env.AUTH_GOOGLE_ID ?? '',
-        clientSecret: process.env.AUTH_GOOGLE_SECRET ?? '',
-        redirectURI: `${process.env.APP_URL ?? 'http://localhost:3000'}${getPathWithParams(routes.auth.callback, { provider: 'google' })}`,
+        clientId: process.env?.AUTH_GOOGLE_ID ?? '',
+        clientSecret: process.env?.AUTH_GOOGLE_SECRET ?? '',
+        redirectURI: `${process.env?.APP_URL ?? 'http://localhost:3000'}${getPathWithParams(routes.auth.callback, { provider: 'google' })}`,
         authorizationEndpoint:
           'https://accounts.google.com/o/oauth2/v2/auth?prompt=login&response_type=code',
         tokenEndpoint: 'https://oauth2.googleapis.com/token',
@@ -112,9 +112,9 @@ authenticator
   .use(
     new GitHubStrategy(
       {
-        clientId: process.env.AUTH_GITHUB_ID ?? '',
-        clientSecret: process.env.AUTH_GITHUB_SECRET ?? '',
-        redirectURI: `${process.env.APP_URL ?? 'http://localhost:3000'}${getPathWithParams(routes.auth.callback, { provider: 'github' })}`,
+        clientId: process.env?.AUTH_GITHUB_ID ?? '',
+        clientSecret: process.env?.AUTH_GITHUB_SECRET ?? '',
+        redirectURI: `${process.env?.APP_URL ?? 'http://localhost:3000'}${getPathWithParams(routes.auth.callback, { provider: 'github' })}`,
       },
       async ({ tokens }) => {
         try {

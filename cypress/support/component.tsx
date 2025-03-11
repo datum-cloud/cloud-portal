@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // ***********************************************************
 // This example support/component.ts is processed and
 // loaded automatically before your test files.
@@ -15,11 +16,12 @@
 // Import commands.js using ES2015 syntax:
 // Ensure global app styles are loaded:
 import './commands'
+import { RemixStub } from './remixStub'
 import '@/styles/root.css'
 import '@testing-library/cypress/add-commands'
 import { mount, MountOptions, MountReturn } from 'cypress/react'
 import React from 'react'
-import { MemoryRouter, MemoryRouterProps } from 'react-router-dom'
+import { MemoryRouter, MemoryRouterProps, Route, Routes } from 'react-router-dom'
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -32,16 +34,71 @@ declare global {
        */
       mount(
         component: React.ReactNode,
-        options?: MountOptions & { routerProps?: MemoryRouterProps },
+        options?: MountOptions & MemoryRouterProps & { path?: string },
       ): Cypress.Chainable<MountReturn>
+
+      mountRemixRoute(
+        component: React.ReactNode,
+        options?: {
+          initialEntries?: string[]
+          initialIndex?: number
+          path?: string
+          remixStubProps?: Record<string, any>
+          [key: string]: any
+        },
+      ): Chainable<any>
     }
   }
 }
 
 Cypress.Commands.add('mount', (component, options = {}) => {
-  const { routerProps = { initialEntries: ['/'] }, ...mountOptions } = options
+  const {
+    initialEntries = ['/log-in'],
+    initialIndex = 0,
+    path = '/log-in',
+    ...mountOptions
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } = options as any
 
-  const wrapped = <MemoryRouter {...routerProps}>{component}</MemoryRouter>
+  const wrapped = (
+    <MemoryRouter initialEntries={initialEntries} initialIndex={initialIndex}>
+      <Routes>
+        <Route path={path} element={component} />
+      </Routes>
+    </MemoryRouter>
+  )
 
   return mount(wrapped, mountOptions)
 })
+Cypress.Commands.add(
+  'mountRemixRoute',
+  (
+    component: React.ReactNode,
+    options: MountOptions &
+      MemoryRouterProps & {
+        path?: string
+        remixStubProps?: Record<string, unknown>
+      } = {},
+  ) => {
+    const {
+      initialEntries = ['/'],
+      initialIndex = 0,
+      path = '/',
+      remixStubProps = {},
+      ...mountOptions
+    } = options
+
+    return mount(
+      <RemixStub
+        initialEntries={initialEntries.map((entry) =>
+          typeof entry === 'string' ? entry : entry.pathname || '/',
+        )}
+        initialIndex={initialIndex}
+        path={path}
+        remixStubProps={remixStubProps}>
+        {component}
+      </RemixStub>,
+      mountOptions,
+    )
+  },
+)
