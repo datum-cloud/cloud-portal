@@ -1,17 +1,13 @@
-import { AuthAPIService, authAPIService } from './auth.api'
 import { createAxiosClient } from '@/modules/axios/axios'
+import { AxiosInstance } from 'axios'
 
-export interface APIFactory {
-  authApi: AuthAPIService
-}
-
-export const createAPIFactory = (authToken: string): APIFactory => {
+export const createAPIFactory = (authToken: string): AxiosInstance => {
   const apiClient = createAxiosClient({
     baseURL: `${process.env.API_URL}/datum-os`,
     authToken,
   })
 
-  return {
-    authApi: authAPIService(apiClient),
-  }
+  return apiClient
 }
+
+export type APIFactory = ReturnType<typeof createAPIFactory>

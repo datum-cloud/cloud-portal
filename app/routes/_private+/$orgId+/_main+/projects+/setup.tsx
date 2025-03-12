@@ -3,15 +3,18 @@ import { routes } from '@/constants/routes'
 import { getSession } from '@/modules/auth/authSession.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
+import { Client } from '@hey-api/client-axios'
 import { useEffect } from 'react'
 import { AppLoadContext, redirect, useRevalidator } from 'react-router'
 
 // TODO: temporary solution for handle delay on new project
 // https://github.com/datum-cloud/cloud-portal/issues/45
 export const loader = withMiddleware(async ({ request, params, context }) => {
-  const { projectsControl } = context as AppLoadContext
+  const { controlPlaneClient } = context as AppLoadContext
+  const projectsControl = createProjectsControl(controlPlaneClient as Client)
 
   try {
     const { orgId } = params

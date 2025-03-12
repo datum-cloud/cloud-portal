@@ -13,10 +13,12 @@ import { routes } from '@/constants/routes'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
+import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { redirectWithToast } from '@/utils/toast.server'
+import { Client } from '@hey-api/client-axios'
 import { CircleAlertIcon } from 'lucide-react'
 import {
   ActionFunctionArgs,
@@ -27,7 +29,8 @@ import {
 
 export const action = withMiddleware(
   async ({ request, context, params }: ActionFunctionArgs) => {
-    const { projectsControl, cache } = context as AppLoadContext
+    const { controlPlaneClient, cache } = context as AppLoadContext
+    const projectsControl = createProjectsControl(controlPlaneClient as Client)
 
     switch (request.method) {
       case 'DELETE': {

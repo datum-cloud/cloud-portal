@@ -8,7 +8,7 @@ import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
-export const instancesControl = (client: Client) => {
+export const createInstancesControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
   const transform = (
@@ -61,4 +61,4 @@ export const instancesControl = (client: Client) => {
   }
 }
 
-export type InstancesControl = ReturnType<typeof instancesControl>
+export type InstancesControl = ReturnType<typeof createInstancesControl>

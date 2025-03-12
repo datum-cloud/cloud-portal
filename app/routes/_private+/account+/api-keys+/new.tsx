@@ -1,7 +1,9 @@
 import { ApiKeyForm } from '@/features/api-key/form'
 import { commitSession, getSession } from '@/modules/auth/authSession.server'
+import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createUserGql } from '@/resources/gql/user.gql'
 import { NewApiKeySchema, newApiKeySchema } from '@/resources/schemas/api-key.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
@@ -10,7 +12,9 @@ import { addDays } from 'date-fns'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { userGql } = context as AppLoadContext
+  const { gqlClient } = context as AppLoadContext
+  const userGql = createUserGql(gqlClient as GraphqlClient)
+
   const clonedRequest = request.clone()
   const formData = await clonedRequest.formData()
 

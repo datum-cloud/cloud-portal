@@ -2,17 +2,20 @@ import { routes } from '@/constants/routes'
 import { ConfigMapForm } from '@/features/config-map/form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createCoreControl } from '@/resources/control-plane/core.control'
 import { configMapSchema } from '@/resources/schemas/config-map.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { getPathWithParams } from '@/utils/path'
 import { redirectWithToast, dataWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
+import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 
 export const action = withMiddleware(
   async ({ request, context, params }: ActionFunctionArgs) => {
-    const { coreControl } = context as AppLoadContext
+    const { controlPlaneClient } = context as AppLoadContext
     const { projectId, orgId } = params
+    const coreControl = createCoreControl(controlPlaneClient as Client)
 
     if (!projectId) {
       throw new Error('Project ID is required')

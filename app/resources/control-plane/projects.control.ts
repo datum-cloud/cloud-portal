@@ -16,7 +16,7 @@ import {
 } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
-export const projectsControl = (client: Client) => {
+export const createProjectsControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
   const transform = (
@@ -128,4 +128,4 @@ export const projectsControl = (client: Client) => {
     },
   }
 }
-export type ProjectsControl = ReturnType<typeof projectsControl>
+export type ProjectsControl = ReturnType<typeof createProjectsControl>

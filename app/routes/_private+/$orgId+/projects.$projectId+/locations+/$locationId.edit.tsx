@@ -2,12 +2,14 @@ import { routes } from '@/constants/routes'
 import CreateLocationForm from '@/features/location/form/create-form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createLocationsControl } from '@/resources/control-plane/locations.control'
 import { NewLocationSchema, newLocationSchema } from '@/resources/schemas/location.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
+import { Client } from '@hey-api/client-axios'
 import {
   ActionFunctionArgs,
   AppLoadContext,
@@ -17,7 +19,8 @@ import {
 
 export const loader = withMiddleware(async ({ params, context }: LoaderFunctionArgs) => {
   const { projectId, locationId } = params
-  const { locationsControl } = context as AppLoadContext
+  const { controlPlaneClient } = context as AppLoadContext
+  const locationsControl = createLocationsControl(controlPlaneClient as Client)
 
   if (!projectId || !locationId) {
     throw new CustomError('Project ID and location ID are required', 400)
@@ -31,7 +34,8 @@ export const loader = withMiddleware(async ({ params, context }: LoaderFunctionA
 export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {
     const { projectId, locationId, orgId } = params
-    const { locationsControl } = context as AppLoadContext
+    const { controlPlaneClient } = context as AppLoadContext
+    const locationsControl = createLocationsControl(controlPlaneClient as Client)
 
     if (!projectId || !locationId) {
       throw new CustomError('Project ID and location ID are required', 400)

@@ -1,9 +1,13 @@
 import { WaitingPage } from '@/components/waiting-page/waiting-page'
 import PublicLayout from '@/layouts/public/public'
 import { commitSession, getSession } from '@/modules/auth/authSession.server'
+import { GraphqlClient } from '@/modules/graphql/graphql'
 import { useApp } from '@/providers/app.provider'
+import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { createOrganizationGql } from '@/resources/gql/organization.gql'
 import { CustomError } from '@/utils/errorHandle'
+import { Client } from '@hey-api/client-axios'
 import { differenceInMinutes } from 'date-fns'
 import { useEffect } from 'react'
 import {
@@ -17,7 +21,9 @@ import {
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { orgId } = params
-  const { projectsControl, organizationGql } = context as AppLoadContext
+  const { controlPlaneClient, gqlClient } = context as AppLoadContext
+  const organizationGql = createOrganizationGql(gqlClient as GraphqlClient)
+  const projectsControl = createProjectsControl(controlPlaneClient as Client)
 
   if (!orgId) {
     throw new CustomError('Organization ID is required', 400)

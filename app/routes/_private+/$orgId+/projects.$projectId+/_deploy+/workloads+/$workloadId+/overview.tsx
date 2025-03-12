@@ -10,10 +10,14 @@ import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
+import { createInstancesControl } from '@/resources/control-plane/instances.control'
+import { createWorkloadDeploymentsControl } from '@/resources/control-plane/workload-deployments.control'
+import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
 import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
+import { Client } from '@hey-api/client-axios'
 import { formatDistanceToNow } from 'date-fns'
 import { motion } from 'framer-motion'
 import { ClockIcon, PencilIcon } from 'lucide-react'
@@ -30,8 +34,13 @@ import {
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId, workloadId } = params
 
-  const { workloadsControl, workloadDeploymentsControl, instancesControl } =
-    context as AppLoadContext
+  const { controlPlaneClient } = context as AppLoadContext
+
+  const workloadsControl = createWorkloadsControl(controlPlaneClient as Client)
+  const workloadDeploymentsControl = createWorkloadDeploymentsControl(
+    controlPlaneClient as Client,
+  )
+  const instancesControl = createInstancesControl(controlPlaneClient as Client)
 
   if (!projectId || !workloadId) {
     throw new CustomError('Project ID and workload ID are required', 400)

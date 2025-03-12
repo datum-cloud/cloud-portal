@@ -12,7 +12,7 @@ import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
-export const workloadsControl = (client: Client) => {
+export const createWorkloadsControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
   const transformWorkload = (
@@ -141,4 +141,4 @@ export const workloadsControl = (client: Client) => {
   }
 }
 
-export type WorkloadsControl = ReturnType<typeof workloadsControl>
+export type WorkloadsControl = ReturnType<typeof createWorkloadsControl>

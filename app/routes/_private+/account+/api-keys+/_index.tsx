@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { PreviewKey } from '@/features/api-key/preview-key'
 import { commitSession, getSession } from '@/modules/auth/authSession.server'
+import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { UserApiKeyModel } from '@/resources/gql/models/user.model'
+import { createUserGql } from '@/resources/gql/user.gql'
 import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
@@ -25,7 +27,8 @@ import {
 } from 'react-router'
 
 export const loader = withMiddleware(async ({ request, context }) => {
-  const { userGql } = context as AppLoadContext
+  const { gqlClient } = context as AppLoadContext
+  const userGql = createUserGql(gqlClient as GraphqlClient)
 
   const apiKeys = await userGql.getUserApiKeys()
 
@@ -46,7 +49,8 @@ export const loader = withMiddleware(async ({ request, context }) => {
 }, authMiddleware)
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { userGql } = context as AppLoadContext
+  const { gqlClient } = context as AppLoadContext
+  const userGql = createUserGql(gqlClient as GraphqlClient)
 
   switch (request.method) {
     case 'DELETE': {

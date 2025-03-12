@@ -2,6 +2,7 @@ import { routes } from '@/constants/routes'
 import { WorkloadForm } from '@/features/workload/form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { updateWorkloadSchema } from '@/resources/schemas/workload.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { yamlToJson } from '@/utils/editor'
@@ -9,6 +10,7 @@ import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
+import { Client } from '@hey-api/client-axios'
 import {
   ActionFunctionArgs,
   AppLoadContext,
@@ -20,7 +22,8 @@ import {
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId, workloadId } = params
 
-  const { workloadsControl } = context as AppLoadContext
+  const { controlPlaneClient } = context as AppLoadContext
+  const workloadsControl = createWorkloadsControl(controlPlaneClient as Client)
 
   if (!projectId || !workloadId) {
     throw new CustomError('Project ID and workload ID are required', 400)
@@ -40,7 +43,8 @@ export const loader = withMiddleware(async ({ context, params }: LoaderFunctionA
 export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {
     const { projectId, workloadId, orgId } = params
-    const { workloadsControl } = context as AppLoadContext
+    const { controlPlaneClient } = context as AppLoadContext
+    const workloadsControl = createWorkloadsControl(controlPlaneClient as Client)
 
     if (!projectId || !workloadId) {
       throw new CustomError('Project ID and workload ID are required', 400)
