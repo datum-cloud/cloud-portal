@@ -1,12 +1,15 @@
 import { getSession } from '@/modules/auth/authSession.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createProjectsControl } from '@/resources/control-plane/projects.control'
+import { Client } from '@hey-api/client-axios'
 import { AppLoadContext, data } from 'react-router'
 
 export const ROUTE_PATH = '/api/projects/list' as const
 
 export const loader = withMiddleware(async ({ request, context }) => {
-  const { projectsControl, cache } = context as AppLoadContext
+  const { controlPlaneClient, cache } = context as AppLoadContext
+  const projectsControl = createProjectsControl(controlPlaneClient as Client)
 
   const session = await getSession(request.headers.get('Cookie'))
   const orgEntityId: string = session.get('currentOrgEntityID')

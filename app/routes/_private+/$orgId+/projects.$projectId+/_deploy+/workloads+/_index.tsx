@@ -7,11 +7,13 @@ import { WorkloadStatus } from '@/features/workload/status'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
+import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
 import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
 import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
+import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
@@ -27,7 +29,8 @@ import {
 
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params
-  const { workloadsControl } = context as AppLoadContext
+  const { controlPlaneClient } = context as AppLoadContext
+  const workloadsControl = createWorkloadsControl(controlPlaneClient as Client)
 
   if (!projectId) {
     throw new CustomError('Project ID is required', 400)

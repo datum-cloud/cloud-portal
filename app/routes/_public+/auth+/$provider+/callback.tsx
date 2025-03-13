@@ -1,13 +1,16 @@
 import { routes } from '@/constants/routes'
 import { authenticator } from '@/modules/auth/auth.server'
 import { commitSession, getSession } from '@/modules/auth/authSession.server'
+import { authAPIService } from '@/resources/api/auth.api'
 import { CustomError } from '@/utils/errorHandle'
 import { combineHeaders } from '@/utils/misc.server'
 import { redirectWithToast } from '@/utils/toast.server'
+import { AxiosInstance } from 'axios'
 import { AppLoadContext, LoaderFunctionArgs, redirect } from 'react-router'
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const { authApi } = context as AppLoadContext
+  const { apiClient } = context as AppLoadContext
+  const authApi = authAPIService(apiClient as AxiosInstance)
 
   try {
     const session = await getSession(request.headers.get('Cookie'))

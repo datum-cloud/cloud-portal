@@ -1,15 +1,24 @@
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createInstancesControl } from '@/resources/control-plane/instances.control'
+import { createWorkloadDeploymentsControl } from '@/resources/control-plane/workload-deployments.control'
+import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { CustomError } from '@/utils/errorHandle'
 import { dataWithToast } from '@/utils/toast.server'
+import { Client } from '@hey-api/client-axios'
 import { AppLoadContext, data } from 'react-router'
 
 export const ROUTE_PATH = '/api/workloads/status' as const
 
 export const loader = withMiddleware(async ({ request, context }) => {
   try {
-    const { workloadsControl, workloadDeploymentsControl, instancesControl } =
-      context as AppLoadContext
+    const { controlPlaneClient } = context as AppLoadContext
+
+    const workloadsControl = createWorkloadsControl(controlPlaneClient as Client)
+    const workloadDeploymentsControl = createWorkloadDeploymentsControl(
+      controlPlaneClient as Client,
+    )
+    const instancesControl = createInstancesControl(controlPlaneClient as Client)
 
     const url = new URL(request.url)
     const type = url.searchParams.get('type')

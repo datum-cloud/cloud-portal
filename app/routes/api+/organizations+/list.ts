@@ -1,16 +1,19 @@
 import { getSession } from '@/modules/auth/authSession.server'
+import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import {
   OrganizationMemberModel,
   OrganizationModel,
 } from '@/resources/gql/models/organization.model'
+import { createOrganizationGql } from '@/resources/gql/organization.gql'
 import { AppLoadContext, data } from 'react-router'
 
 export const ROUTE_PATH = '/api/organizations/list' as const
 
 export const loader = withMiddleware(async ({ request, context }) => {
-  const { organizationGql, cache } = context as AppLoadContext
+  const { gqlClient, cache } = context as AppLoadContext
+  const organizationGql = createOrganizationGql(gqlClient as GraphqlClient)
 
   const isCached = await cache.hasItem('organizations')
   if (isCached) {

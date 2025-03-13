@@ -15,7 +15,7 @@ import { CustomError } from '@/utils/errorHandle'
 import { convertLabelsToObject, filterLabels } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
-export const locationsControl = (client: Client) => {
+export const createLocationsControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
   const transformLocation = (
@@ -173,4 +173,4 @@ export const locationsControl = (client: Client) => {
   }
 }
 
-export type LocationsControl = ReturnType<typeof locationsControl>
+export type LocationsControl = ReturnType<typeof createLocationsControl>

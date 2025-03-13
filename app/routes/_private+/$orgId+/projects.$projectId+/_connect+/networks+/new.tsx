@@ -2,17 +2,20 @@ import { routes } from '@/constants/routes'
 import NetworkForm from '@/features/network/form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createNetworksControl } from '@/resources/control-plane/networks.control'
 import { NewNetworkSchema, newNetworkSchema } from '@/resources/schemas/network.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
+import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 
 export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {
     const { projectId, orgId } = params
-    const { networksControl } = context as AppLoadContext
+    const { controlPlaneClient } = context as AppLoadContext
+    const networksControl = createNetworksControl(controlPlaneClient as Client)
 
     if (!projectId) {
       throw new Error('Project ID is required')

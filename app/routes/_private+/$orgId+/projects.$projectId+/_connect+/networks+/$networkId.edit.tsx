@@ -2,12 +2,14 @@ import { routes } from '@/constants/routes'
 import NetworkForm from '@/features/network/form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createNetworksControl } from '@/resources/control-plane/networks.control'
 import { updateNetworkSchema } from '@/resources/schemas/network.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
+import { Client } from '@hey-api/client-axios'
 import {
   ActionFunctionArgs,
   AppLoadContext,
@@ -17,7 +19,8 @@ import {
 
 export const loader = withMiddleware(async ({ params, context }: LoaderFunctionArgs) => {
   const { projectId, networkId } = params
-  const { networksControl } = context as AppLoadContext
+  const { controlPlaneClient } = context as AppLoadContext
+  const networksControl = createNetworksControl(controlPlaneClient as Client)
 
   if (!projectId || !networkId) {
     throw new CustomError('Project ID and network ID are required', 400)
@@ -31,7 +34,8 @@ export const loader = withMiddleware(async ({ params, context }: LoaderFunctionA
 export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {
     const { projectId, networkId, orgId } = params
-    const { networksControl } = context as AppLoadContext
+    const { controlPlaneClient } = context as AppLoadContext
+    const networksControl = createNetworksControl(controlPlaneClient as Client)
 
     if (!projectId || !networkId) {
       throw new CustomError('Project ID and network ID are required', 400)

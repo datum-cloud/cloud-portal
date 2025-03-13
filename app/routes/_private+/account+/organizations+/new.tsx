@@ -10,8 +10,10 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { routes } from '@/constants/routes'
+import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createOrganizationGql } from '@/resources/gql/organization.gql'
 import {
   NewOrganizationSchema,
   newOrganizationSchema,
@@ -27,7 +29,8 @@ import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { useHydrated } from 'remix-utils/use-hydrated'
 
 export const action = withMiddleware(async ({ request, context }) => {
-  const { organizationGql, cache } = context as AppLoadContext
+  const { gqlClient, cache } = context as AppLoadContext
+  const organizationGql = createOrganizationGql(gqlClient as GraphqlClient)
 
   const clonedRequest = request.clone()
   const formData = await clonedRequest.formData()

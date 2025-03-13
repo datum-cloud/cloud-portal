@@ -2,16 +2,19 @@ import { routes } from '@/constants/routes'
 import { CreateProjectForm } from '@/features/project/create-form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { newProjectSchema, NewProjectSchema } from '@/resources/schemas/project.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
+import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 
 export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {
-    const { projectsControl, cache } = context as AppLoadContext
+    const { controlPlaneClient, cache } = context as AppLoadContext
+    const projectsControl = createProjectsControl(controlPlaneClient as Client)
 
     const clonedRequest = request.clone()
     const formData = await clonedRequest.formData()

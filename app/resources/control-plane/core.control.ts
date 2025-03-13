@@ -11,7 +11,7 @@ import { ConfigMapSchema } from '@/resources/schemas/config-map.schema'
 import { CustomError } from '@/utils/errorHandle'
 import { Client } from '@hey-api/client-axios'
 
-export const coreControl = (client: Client) => {
+export const createCoreControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
   const transformConfigMap = (
@@ -126,4 +126,4 @@ export const coreControl = (client: Client) => {
   }
 }
 
-export type CoreControl = ReturnType<typeof coreControl>
+export type CoreControl = ReturnType<typeof createCoreControl>

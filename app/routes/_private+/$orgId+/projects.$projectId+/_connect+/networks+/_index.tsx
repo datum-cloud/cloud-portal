@@ -7,10 +7,12 @@ import { routes } from '@/constants/routes'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
+import { createNetworksControl } from '@/resources/control-plane/networks.control'
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast } from '@/utils/toast.server'
+import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
@@ -26,7 +28,8 @@ import {
 
 export const loader = withMiddleware(async ({ params, context }) => {
   const { projectId } = params
-  const { networksControl } = context
+  const { controlPlaneClient } = context as AppLoadContext
+  const networksControl = createNetworksControl(controlPlaneClient as Client)
 
   if (!projectId) {
     throw new CustomError('Project ID is required', 400)
@@ -38,7 +41,8 @@ export const loader = withMiddleware(async ({ params, context }) => {
 }, authMiddleware)
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { networksControl } = context as AppLoadContext
+  const { controlPlaneClient } = context as AppLoadContext
+  const networksControl = createNetworksControl(controlPlaneClient as Client)
 
   switch (request.method) {
     case 'DELETE': {

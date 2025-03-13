@@ -1,13 +1,17 @@
 import { routes } from '@/constants/routes'
 import { DashboardLayout } from '@/layouts/dashboard/dashboard'
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main'
+import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { createOrganizationGql } from '@/resources/gql/organization.gql'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { redirectWithToast } from '@/utils/toast.server'
+import { Client } from '@hey-api/client-axios'
 import {
   AreaChartIcon,
   BoltIcon,
@@ -22,8 +26,11 @@ import { useMemo } from 'react'
 import { AppLoadContext, Outlet, redirect, useLoaderData, useParams } from 'react-router'
 
 export const loader = withMiddleware(async ({ params, context }) => {
-  const { projectsControl, organizationGql } = context as AppLoadContext
+  const { controlPlaneClient, gqlClient } = context as AppLoadContext
   const { projectId, orgId } = params
+
+  const organizationGql = createOrganizationGql(gqlClient as GraphqlClient)
+  const projectsControl = createProjectsControl(controlPlaneClient as Client)
 
   try {
     if (!projectId || !orgId) {

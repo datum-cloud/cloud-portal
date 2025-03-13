@@ -1,14 +1,17 @@
 import { routes } from '@/constants/routes'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { getPathWithParams } from '@/utils/path'
 import { redirectWithToast } from '@/utils/toast.server'
+import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 
 export const ROUTE_PATH = '/api/workloads/actions' as const
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { workloadsControl } = context as AppLoadContext
+  const { controlPlaneClient } = context as AppLoadContext
+  const workloadsControl = createWorkloadsControl(controlPlaneClient as Client)
 
   switch (request.method) {
     case 'DELETE': {

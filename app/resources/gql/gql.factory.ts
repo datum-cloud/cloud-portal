@@ -1,20 +1,12 @@
-import { OrganizationGql, createOrganizationGql } from './organization.gql'
-import { UserGql, createUserGql } from './user.gql'
-import { createGraphqlClient } from '@/modules/graphql/graphql'
+import { createGraphqlClient, GraphqlClient } from '@/modules/graphql/graphql'
 
-export interface GqlFactory {
-  organizationGql: OrganizationGql
-  userGql: UserGql
-}
-
-export const createGqlFactory = (authToken: string): GqlFactory => {
+export const createGqlFactory = (authToken: string): GraphqlClient => {
   const gqlClient = createGraphqlClient({
     baseURL: `${process.env.API_URL}/datum-os/query`,
     authToken,
   })
 
-  return {
-    organizationGql: createOrganizationGql(gqlClient),
-    userGql: createUserGql(gqlClient),
-  }
+  return gqlClient
 }
+
+export type GqlFactory = ReturnType<typeof createGqlFactory>

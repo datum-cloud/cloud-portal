@@ -2,18 +2,21 @@ import { routes } from '@/constants/routes'
 import { WorkloadForm } from '@/features/workload/form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { workloadSchema } from '@/resources/schemas/workload.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { yamlToJson } from '@/utils/editor'
 import { getPathWithParams } from '@/utils/path'
 import { redirectWithToast, dataWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
+import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 
 export const action = withMiddleware(
   async ({ request, context, params }: ActionFunctionArgs) => {
-    const { workloadsControl } = context as AppLoadContext
+    const { controlPlaneClient } = context as AppLoadContext
     const { projectId, orgId } = params
+    const workloadsControl = createWorkloadsControl(controlPlaneClient as Client)
 
     if (!projectId) {
       throw new Error('Project ID is required')

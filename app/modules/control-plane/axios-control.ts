@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CustomError } from '@/utils/errorHandle'
-import { ClientOptions, createClient, createConfig } from '@hey-api/client-axios'
+import { Client, ClientOptions, createClient, createConfig } from '@hey-api/client-axios'
 import { AxiosError } from 'axios'
 import curlirize from 'axios-curlirize'
 
@@ -20,7 +20,7 @@ const errorHandler = (error: AxiosError) => {
 
 export const createControlPlaneClient = (
   options: ClientOptions & { authToken: string },
-) => {
+): Client => {
   const { authToken, baseURL } = options
 
   const client = createClient(
