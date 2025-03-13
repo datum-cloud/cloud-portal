@@ -41,7 +41,7 @@ const UserItem = ({
           {user?.firstName} {user?.lastName}
         </span>
         {description && (
-          <span className="truncate text-xs text-muted-foreground">{description}</span>
+          <span className="text-muted-foreground truncate text-xs">{description}</span>
         )}
       </div>
     </div>
@@ -59,7 +59,7 @@ export const UserDropdown = () => {
           type="button"
           variant="ghost"
           size="sm"
-          className="h-8 p-0 hover:bg-transparent focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-transparent">
+          className="h-8 cursor-pointer p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden data-[state=open]:bg-transparent">
           <Avatar className="size-8 rounded-full">
             <AvatarImage src={user?.avatarRemoteURL} alt={user?.displayName} />
             <AvatarFallback>
@@ -70,7 +70,7 @@ export const UserDropdown = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-[--radix-dropdown-menu-trigger-width] min-w-64 rounded-lg"
+        className="w-(--radix-dropdown-menu-trigger-width) min-w-64 rounded-lg"
         align="end"
         sideOffset={4}>
         <DropdownMenuLabel className="p-0 font-normal">
@@ -98,8 +98,8 @@ export const UserDropdown = () => {
             <Button
               type="submit"
               variant="link"
-              className="flex h-8 w-full cursor-pointer justify-start text-left hover:bg-transparent hover:no-underline focus:text-destructive focus-visible:ring-0 focus-visible:ring-offset-0">
-              <LogOut />
+              className="focus:text-destructive flex h-8 w-full cursor-pointer justify-start text-left hover:bg-transparent hover:no-underline focus-visible:ring-0 focus-visible:ring-offset-0">
+              <LogOut className="text-destructive size-4" />
               Log out
             </Button>
           </DropdownMenuItem>

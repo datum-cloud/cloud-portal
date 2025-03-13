@@ -154,10 +154,10 @@ export const VirtualizedList = ({
                     onValueChange?.(option)
                   }}
                   className={cn(
-                    'absolute left-0 top-0 w-full bg-transparent',
+                    'absolute top-0 left-0 w-full bg-transparent',
                     isKeyboardNavActive &&
                       focusedIndex !== virtualOption.index &&
-                      'aria-selected:bg-transparent aria-selected:text-primary',
+                      'aria-selected:text-primary aria-selected:bg-transparent',
                   )}
                   style={{
                     minHeight: `${virtualOption.size}px`,
@@ -166,7 +166,7 @@ export const VirtualizedList = ({
                   <div className="flex w-full items-center justify-between">
                     <div>{itemContent ? itemContent(option) : option.label}</div>
                     <div className="w-4">
-                      {isSelected && <CheckIcon className="size-4 text-primary" />}
+                      {isSelected && <CheckIcon className="text-primary size-4" />}
                     </div>
                   </div>
                 </CommandItem>

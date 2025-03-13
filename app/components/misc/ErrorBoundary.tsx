@@ -79,7 +79,7 @@ export function GenericErrorBoundary({
           <LogoIcon width={64} theme={theme} className="mb-4" />
           {isLoading ? (
             <div className="flex items-center justify-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
               <p className="text-muted-foreground">Loading...</p>
             </div>
           ) : (
@@ -90,7 +90,7 @@ export function GenericErrorBoundary({
                 </p>
 
                 {process.env.NODE_ENV === 'development' ? (
-                  <div className="text-center text-sm text-muted-foreground">
+                  <div className="text-muted-foreground text-center text-sm">
                     {isRouteErrorResponse(error)
                       ? (statusHandlers?.[error.status] ?? defaultStatusHandler)({
                           error,
@@ -99,7 +99,7 @@ export function GenericErrorBoundary({
                       : unexpectedErrorHandler(error)}
                   </div>
                 ) : (
-                  <p className="text-center text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-center text-sm">
                     Something went wrong on our end. Our team has been notified, and
                     we&apos;re working to fix it. Please try again later. If the issue
                     persists, reach out to{' '}

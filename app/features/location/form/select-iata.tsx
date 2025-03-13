@@ -12,8 +12,8 @@ const ItemContent = ({ option }: { option: Option }) => {
       <span className="font-medium">
         {option.name} ({option.iata_code})
       </span>
-      <Slash className="mx-0.5 !size-3 !text-muted-foreground" />
-      <span className="text-sm text-muted-foreground">
+      <Slash className="text-muted-foreground! mx-0.5 size-3!" />
+      <span className="text-muted-foreground text-sm">
         {option.city}, {option.country}
       </span>
     </div>

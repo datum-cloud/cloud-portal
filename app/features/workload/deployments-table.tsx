@@ -23,7 +23,7 @@ export const DeploymentsTable = ({
           return (
             <TextCopy
               value={row.original.name ?? ''}
-              className="font-semibold leading-none text-primary"
+              className="text-primary leading-none font-semibold"
             />
           )
         },
@@ -84,9 +84,9 @@ export const DeploymentsTable = ({
   )
 
   return (
-    <Card className="w-full rounded-xl border bg-card text-card-foreground shadow">
+    <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
       <CardHeader className="px-6 py-4">
-        <CardTitle className="text-base font-medium leading-none">Deployments</CardTitle>
+        <CardTitle className="text-base leading-none font-medium">Deployments</CardTitle>
       </CardHeader>
       <CardContent className="px-6 pb-6">
         <DataTable

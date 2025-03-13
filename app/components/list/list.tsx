@@ -19,7 +19,7 @@ export const List = ({ items, className }: { items: ListItem[]; className?: stri
           <div className="flex min-w-[100px] justify-start text-left text-sm font-medium">
             {item.label}
           </div>
-          <div className="flex justify-end break-words text-right text-sm font-normal text-primary">
+          <div className="text-primary flex justify-end text-right text-sm font-normal break-words">
             {item.content}
           </div>
         </div>

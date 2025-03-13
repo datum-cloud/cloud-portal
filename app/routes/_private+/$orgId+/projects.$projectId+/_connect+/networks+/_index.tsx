@@ -127,7 +127,7 @@ export default function ProjectConnectNetworks() {
                 projectId,
                 networkId: row.original.name,
               })}
-              className="font-semibold text-primary">
+              className="text-primary font-semibold">
               {row.original.name}
             </Link>
           )
@@ -201,7 +201,7 @@ export default function ProjectConnectNetworks() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-screen-xl"
+      className="mx-auto max-w-(--breakpoint-xl)"
       loadingText="Loading networks..."
       emptyText="No networks found."
       tableTitle={{
@@ -211,7 +211,7 @@ export default function ProjectConnectNetworks() {
           <Link
             to={getPathWithParams(routes.projects.networks.new, { orgId, projectId })}>
             <Button>
-              <PlusIcon className="h-4 w-4" />
+              <PlusIcon className="size-4" />
               New Network
             </Button>
           </Link>

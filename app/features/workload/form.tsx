@@ -124,7 +124,11 @@ export const WorkloadForm = ({
           </CardDescription>
         </CardHeader>
       )}
-      <Form method="POST" autoComplete="off" {...getFormProps(form)}>
+      <Form
+        method="POST"
+        autoComplete="off"
+        {...getFormProps(form)}
+        className="flex flex-col gap-6">
         <AuthenticityTokenInput />
 
         {isEdit && (

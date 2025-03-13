@@ -1,5 +1,6 @@
 import { ClientHintCheck } from '@/components/misc/ClientHints'
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
+import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { SITE_CONFIG } from '@/constants/brand'
@@ -113,7 +114,8 @@ function Document({
         <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
-        <Toaster closeButton position="bottom-right" theme={theme} richColors />
+        <Toaster closeButton position="top-right" theme={theme} richColors />
+        <ThemeSwitcher />
       </body>
     </html>
   )

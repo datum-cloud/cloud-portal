@@ -10,7 +10,7 @@ const ConfirmationContext = createContext<{
 } | null>(null)
 
 export function ConfirmationDialogProvider({ children }: { children: React.ReactNode }) {
-  const confirmRef = useRef<ConfirmationDialogRef>(null)
+  const confirmRef = useRef<ConfirmationDialogRef>(null!)
 
   const confirm = useCallback(async (options: ConfirmationDialogProps) => {
     return (await confirmRef.current?.show(options)) ?? false

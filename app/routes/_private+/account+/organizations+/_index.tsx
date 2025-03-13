@@ -49,14 +49,14 @@ export default function AccountOrganizations() {
   const orgs: OrganizationModel[] = useLoaderData<typeof loader>()
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-screen-xl flex-col gap-4">
+    <div className="mx-auto flex h-full w-full max-w-(--breakpoint-xl) flex-col gap-4">
       <PageTitle
         title="Organizations"
         description="Manage your organizations"
         actions={
           <Link to={routes.account.organizations.new}>
             <Button>
-              <PlusIcon className="h-4 w-4" />
+              <PlusIcon className="size-4" />
               New Organization
             </Button>
           </Link>
@@ -68,7 +68,7 @@ export default function AccountOrganizations() {
           .map((org) => (
             <Card
               key={org.id}
-              className="flex h-40 cursor-pointer flex-col justify-between transition-all hover:bg-accent/50"
+              className="hover:bg-accent/50 flex h-40 cursor-pointer flex-col justify-between gap-0 py-0 transition-all"
               onClick={(event) => {
                 event.preventDefault()
                 event.stopPropagation()
@@ -78,20 +78,20 @@ export default function AccountOrganizations() {
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <h3 className="truncate text-base font-semibold leading-tight text-foreground">
+                      <h3 className="text-foreground truncate text-base leading-tight font-semibold">
                         {org?.name}
                       </h3>
-                      <p className="text-xs font-medium tracking-wide text-muted-foreground">
+                      <p className="text-muted-foreground text-xs font-medium tracking-wide">
                         {org.userEntityID}
                       </p>
                     </div>
                     {org.personalOrg ? (
-                      <Badge variant="secondary" className="shrink-0 border border-input">
+                      <Badge variant="secondary" className="border-input shrink-0 border">
                         Personal
                       </Badge>
                     ) : (
                       <Avatar className="size-8 shrink-0 rounded-md">
-                        <AvatarFallback className="rounded-md bg-slate-400 text-primary-foreground">
+                        <AvatarFallback className="text-primary-foreground rounded-md bg-slate-400">
                           {getInitials(org.displayName)}
                         </AvatarFallback>
                       </Avatar>
@@ -110,7 +110,7 @@ export default function AccountOrganizations() {
                     event.stopPropagation()
                     navigate(getPathWithParams(routes.org.root, { orgId: org.id }))
                   }}
-                  className="sm flex h-fit cursor-pointer items-center gap-1 px-0 text-xs text-primary no-underline">
+                  className="sm text-primary flex h-fit cursor-pointer items-center gap-1 px-0 text-xs no-underline">
                   <HomeIcon className="size-4" />
                   Dashboard
                 </Link>
@@ -124,7 +124,7 @@ export default function AccountOrganizations() {
                       getPathWithParams(routes.org.settings.root, { orgId: org.id }),
                     )
                   }}
-                  className="sm flex h-fit cursor-pointer items-center gap-1 px-0 text-xs text-primary no-underline">
+                  className="sm text-primary flex h-fit cursor-pointer items-center gap-1 px-0 text-xs no-underline">
                   <SettingsIcon className="size-4" />
                   Settings
                 </Link>

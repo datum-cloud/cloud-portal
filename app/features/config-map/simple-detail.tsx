@@ -13,28 +13,28 @@ export const SimpleConfigMapDetail = ({
   return (
     <div className="grid grid-cols-2 gap-4">
       <Field label="Name">
-        <span className="text-sm text-muted-foreground">{configMap?.name}</span>
+        <span className="text-muted-foreground text-sm">{configMap?.name}</span>
       </Field>
       {configMap?.uid && (
         <Field label="UUID">
           <TextCopy
-            className="text-sm text-muted-foreground"
+            className="text-muted-foreground text-sm"
             value={configMap?.uid}
             text={getShortId(configMap?.uid)}
           />
         </Field>
       )}
       <Field label="Namespace">
-        <span className="text-sm text-muted-foreground">{configMap?.namespace}</span>
+        <span className="text-muted-foreground text-sm">{configMap?.namespace}</span>
       </Field>
       {configMap?.createdAt && (
         <Field label="Created At">
           <div className="flex items-center gap-1">
             <DateFormat
-              className="text-sm text-muted-foreground"
+              className="text-muted-foreground text-sm"
               date={configMap?.createdAt}
             />
-            <span className="text-sm text-muted-foreground">
+            <span className="text-muted-foreground text-sm">
               (
               {formatDistanceToNow(new Date(configMap?.createdAt), {
                 addSuffix: true,

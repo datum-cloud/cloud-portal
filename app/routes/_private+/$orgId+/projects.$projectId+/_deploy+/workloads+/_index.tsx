@@ -94,7 +94,7 @@ export default function WorkloadsPage() {
                 projectId,
                 workloadId: row.original.name,
               })}
-              className="font-semibold leading-none text-primary">
+              className="text-primary leading-none font-semibold">
               {row.original.name}
             </Link>
           )
@@ -158,7 +158,7 @@ export default function WorkloadsPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-screen-lg"
+      className="mx-auto max-w-(--breakpoint-lg)"
       loadingText="Loading..."
       emptyText="No workloads found."
       tableTitle={{
@@ -171,7 +171,7 @@ export default function WorkloadsPage() {
               projectId,
             })}>
             <Button>
-              <PlusIcon className="h-4 w-4" />
+              <PlusIcon className="size-4" />
               New Workload
             </Button>
           </Link>

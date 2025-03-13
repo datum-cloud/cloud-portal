@@ -109,7 +109,7 @@ export default function ConfigMapsPage() {
                 projectId,
                 configMapId: row.original.name,
               })}
-              className="font-semibold text-primary">
+              className="text-primary font-semibold">
               {row.original.name}
             </Link>
           )
@@ -155,7 +155,7 @@ export default function ConfigMapsPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-screen-lg"
+      className="mx-auto max-w-(--breakpoint-lg)"
       loadingText="Loading..."
       emptyText="No config maps found."
       tableTitle={{
@@ -168,7 +168,7 @@ export default function ConfigMapsPage() {
               projectId,
             })}>
             <Button>
-              <PlusIcon className="h-4 w-4" />
+              <PlusIcon className="size-4" />
               New Config Map
             </Button>
           </Link>

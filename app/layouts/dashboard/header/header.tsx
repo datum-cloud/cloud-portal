@@ -19,14 +19,14 @@ export const Header = ({
   const params = useParams<{ orgId: string; projectId: string }>()
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b bg-background">
+    <header className="bg-background flex h-16 shrink-0 items-center justify-between gap-2 border-b">
       {/* Left Section */}
       <div className="flex flex-1 items-center px-4">
-        {!hideSidebar && <SidebarTrigger className="-ml-1" />}
+        {!hideSidebar && <SidebarTrigger className="-ml-1 cursor-pointer" />}
         {params?.orgId && <OrganizationSwitcher />}
         {params?.projectId && currentProject && (
           <>
-            <SlashIcon size={14} className="mx-1 text-primary/20" />
+            <SlashIcon size={14} className="text-primary/20 mx-1" />
             <ProjectSwitcher currentProject={currentProject} orgId={params.orgId ?? ''} />
           </>
         )}
@@ -35,13 +35,13 @@ export const Header = ({
       <div className="flex h-9 flex-1 items-center justify-end gap-3 pr-4">
         <SearchBar />
         <div className="flex h-full items-center gap-2">
-          <Button variant="outline" size="sm" className="px-2">
+          <Button variant="outline" size="sm" className="cursor-pointer px-2">
             Feedback
           </Button>
           <Tooltip>
             <TooltipTrigger asChild>
               <Link to="https://docs.datum.net/" target="_blank" rel="noreferrer">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="cursor-pointer">
                   <CircleHelp />
                 </Button>
               </Link>

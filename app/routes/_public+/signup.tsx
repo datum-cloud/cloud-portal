@@ -44,7 +44,7 @@ export default function Signup() {
         <div className="flex flex-col items-center justify-center gap-6 p-6 md:p-8">
           <div className="flex flex-col items-center text-center">
             <p className="text-2xl font-bold">Create an account</p>
-            <p className="text-balance text-muted-foreground">
+            <p className="text-muted-foreground text-balance">
               Embark on your digital journey with us
             </p>
           </div>
@@ -81,12 +81,12 @@ export default function Signup() {
             Already have an account?{' '}
             <Link
               to={routes.auth.logIn}
-              className="font-medium underline underline-offset-4 transition-all hover:text-sunglow">
+              className="hover:text-sunglow font-medium underline underline-offset-4 transition-all">
               Log in
             </Link>
           </div>
         </div>
-        <div className="relative hidden bg-muted md:block">
+        <div className="bg-muted relative hidden md:block">
           <img
             src={`/images/abstract-1-${theme}.png`}
             alt="Image"

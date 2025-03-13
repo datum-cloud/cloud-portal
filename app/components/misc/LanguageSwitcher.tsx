@@ -32,7 +32,7 @@ export function LanguageSwitcher() {
           <SelectItem
             key={value}
             value={value}
-            className={`text-sm font-medium text-primary/60`}>
+            className={`text-primary/60 text-sm font-medium`}>
             {text}
           </SelectItem>
         ))}

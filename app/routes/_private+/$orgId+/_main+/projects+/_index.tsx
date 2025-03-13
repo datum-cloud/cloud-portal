@@ -25,7 +25,7 @@ export default function ProjectsPage() {
         cell: ({ row }) => {
           return (
             <Link
-              className="font-semibold leading-none text-primary"
+              className="text-primary leading-none font-semibold"
               to={getPathWithParams(routes.projects.detail, {
                 orgId,
                 projectId: row.original.name,
@@ -99,7 +99,7 @@ export default function ProjectsPage() {
       columns={columns}
       data={projects ?? []}
       rowActions={rowActions}
-      className="mx-auto max-w-screen-lg"
+      className="mx-auto max-w-(--breakpoint-lg)"
       loadingText="Loading projects..."
       emptyText="No projects found. Create your first project to get started."
       tableTitle={{
@@ -108,7 +108,7 @@ export default function ProjectsPage() {
         actions: (
           <Link to={getPathWithParams(routes.org.projects.new, { orgId })}>
             <Button>
-              <PlusIcon className="h-4 w-4" />
+              <PlusIcon className="size-4" />
               New Project
             </Button>
           </Link>

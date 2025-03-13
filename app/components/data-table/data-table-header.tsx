@@ -23,7 +23,7 @@ export const DataTableHeader = <TData,>({
                   <div
                     className={cn(
                       header.column.getCanSort() &&
-                        'flex h-full cursor-pointer select-none items-center gap-2',
+                        'flex h-full cursor-pointer items-center gap-2 select-none',
                     )}
                     onClick={header.column.getToggleSortingHandler()}
                     onKeyDown={(e) => {

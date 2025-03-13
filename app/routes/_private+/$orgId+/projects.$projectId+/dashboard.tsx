@@ -60,7 +60,7 @@ export default function ProjectDashboardPage() {
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-4">
-              <p className="text-4xl font-semibold leading-none">{project.description}</p>
+              <p className="text-4xl leading-none font-semibold">{project.description}</p>
               <StatusBadge
                 status={status}
                 type="badge"
@@ -69,7 +69,7 @@ export default function ProjectDashboardPage() {
                 badgeClassName="bg-secondary text-secondary-foreground font-medium border border-input"
               />
             </div>
-            <p className="text-xl text-muted-foreground">{project.name}</p>
+            <p className="text-muted-foreground text-xl">{project.name}</p>
           </div>
           {status?.isReady === ControlPlaneStatus.Pending && (
             <SectionDescription>
@@ -204,7 +204,7 @@ export default function ProjectDashboardPage() {
                     </SectionDescription>
                   </ArrowListItem>
                   <div className="flex items-start">
-                    <ArrowRight className="mr-2 mt-1 size-4" />
+                    <ArrowRight className="mt-1 mr-2 size-4" />
                     <div className="flex flex-col gap-2">
                       <SectionDescription>
                         If the problem persists, please contact support.

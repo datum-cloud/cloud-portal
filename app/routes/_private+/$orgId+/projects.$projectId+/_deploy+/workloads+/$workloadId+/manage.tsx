@@ -111,7 +111,7 @@ export default function SettingsWorkload() {
   const { projectId, orgId } = useParams()
 
   return (
-    <div className="mx-auto w-full max-w-screen-lg">
+    <div className="mx-auto w-full max-w-(--breakpoint-lg)">
       <WorkloadForm projectId={projectId} orgId={orgId} defaultValue={data} />
     </div>
   )

@@ -13,7 +13,7 @@ export const SelectLabels = ({
   defaultValue?: string[]
   onChange?: (value: string[]) => void
 }) => {
-  const labelFormDialogRef = useRef<LabelFormDialogRef>(null)
+  const labelFormDialogRef = useRef<LabelFormDialogRef>(null!)
   const [options, setOptions] = useState<MultiSelectOption[]>()
   const [selectedOptions, setSelectedOptions] = useState<string[]>([])
   const [activeOption, setActiveOption] = useState<string>()

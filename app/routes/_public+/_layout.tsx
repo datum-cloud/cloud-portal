@@ -18,7 +18,7 @@ export default function layout() {
     <PublicLayout>
       <div className="flex flex-col gap-6">
         <Outlet />
-        <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
+        <div className="text-muted-foreground [&_a]:hover:text-primary text-center text-xs text-balance [&_a]:underline [&_a]:underline-offset-4">
           By clicking continue, you agree to our{' '}
           <Link
             to="https://www.datum.net/terms-of-service"

@@ -13,6 +13,7 @@ import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { UserApiKeyModel } from '@/resources/gql/models/user.model'
 import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
+import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import {
   ActionFunctionArgs,
@@ -103,7 +104,7 @@ export default function AccountApiKeys() {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return <span className="font-semibold text-primary">{row.original.name}</span>
+          return <span className="text-primary font-semibold">{row.original.name}</span>
         },
       },
       {
@@ -167,13 +168,15 @@ export default function AccountApiKeys() {
   )
 
   return (
-    <div className="container mx-auto flex max-w-screen-xl flex-col gap-4">
+    <div className="container mx-auto flex max-w-(--breakpoint-xl) flex-col gap-4">
       <PageTitle
         title="API Keys"
         description="Generate and control API keys to securely access your account's resources"
         actions={
           <Link to={routes.account.apiKeys.new}>
-            <Button>New API Key</Button>
+            <Button>
+              <PlusIcon className="size-4" /> New API Key
+            </Button>
           </Link>
         }
       />

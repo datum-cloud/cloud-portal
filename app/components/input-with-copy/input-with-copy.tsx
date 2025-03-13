@@ -42,7 +42,7 @@ export const InputWithCopy = ({
           size="sm"
           className={cn('h-7 w-fit gap-1 px-2 text-xs', buttonClassName)}
           onClick={copyToClipboard}>
-          <CopyIcon className="!size-3" />
+          <CopyIcon className="size-3!" />
           {copied ? 'Copied' : 'Copy'}
         </Button>
       }

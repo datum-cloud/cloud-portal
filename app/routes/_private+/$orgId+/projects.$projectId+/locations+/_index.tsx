@@ -137,7 +137,7 @@ export default function ProjectLocationsPage() {
                 projectId,
                 locationId: row.original.name,
               })}
-              className="font-semibold text-primary">
+              className="text-primary font-semibold">
               {row.original.name}
             </Link>
           )
@@ -264,7 +264,7 @@ export default function ProjectLocationsPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-screen-xl"
+      className="mx-auto max-w-(--breakpoint-xl)"
       loadingText="Loading locations..."
       emptyText="No locations found."
       tableTitle={{
@@ -274,7 +274,7 @@ export default function ProjectLocationsPage() {
           <Link
             to={getPathWithParams(routes.projects.locations.new, { orgId, projectId })}>
             <Button>
-              <PlusIcon className="h-4 w-4" />
+              <PlusIcon className="size-4" />
               New Location
             </Button>
           </Link>

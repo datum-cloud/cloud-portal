@@ -26,11 +26,11 @@ export const Field = ({
         </Label>
       )}
       {children}
-      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      {description && <p className="text-muted-foreground text-sm">{description}</p>}
       {errors && (
         <ul
           className={cn(
-            'space-y-1 text-sm font-medium text-destructive',
+            'text-destructive space-y-1 text-sm font-medium',
             errors.length > 1 && 'list-disc pl-4',
           )}>
           {errors.map((error) => (

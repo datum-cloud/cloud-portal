@@ -81,7 +81,7 @@ export const CodeEditor = ({
           height="100%"
           width="100%"
           className="monaco-editor-container"
-          loading={<div className="p-4 text-muted">Loading editor...</div>}
+          loading={<div className="text-muted p-4">Loading editor...</div>}
         />
       </div>
 

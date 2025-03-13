@@ -33,7 +33,7 @@ export const MoreActions = <TData,>({
           variant="ghost"
           size="icon"
           className={cn(
-            'size-7 p-0 focus-visible:ring-0 focus-visible:ring-offset-0 data-[state=open]:bg-accent',
+            'data-[state=open]:bg-accent size-7 p-0 focus-visible:ring-0 focus-visible:ring-offset-0',
             className,
           )}>
           <Ellipsis className="size-5" />

@@ -35,9 +35,9 @@ export const SelectLocationClass = ({
 
   const preview = (option: Option) => {
     return (
-      <div className="flex flex-col gap-0.5 whitespace-break-spaces text-left">
+      <div className="flex flex-col gap-0.5 text-left whitespace-break-spaces">
         <p className="text-sm font-medium">{option.label}</p>
-        <p className="text-xs text-muted-foreground">{option.description}</p>
+        <p className="text-muted-foreground text-xs">{option.description}</p>
       </div>
     )
   }

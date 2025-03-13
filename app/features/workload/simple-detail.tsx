@@ -17,7 +17,7 @@ export const SimpleWorkloadDetail = ({
     <div className="grid grid-cols-2 gap-4">
       <Field label="Name">
         <TextCopy
-          className="text-sm text-muted-foreground"
+          className="text-muted-foreground text-sm"
           value={workload?.name ?? ''}
           text={workload?.name ?? ''}
         />
@@ -25,14 +25,14 @@ export const SimpleWorkloadDetail = ({
       {workload?.uid && (
         <Field label="UUID">
           <TextCopy
-            className="text-sm text-muted-foreground"
+            className="text-muted-foreground text-sm"
             value={workload?.uid}
             text={getShortId(workload?.uid)}
           />
         </Field>
       )}
       <Field label="Namespace">
-        <span className="text-sm text-muted-foreground">{workload?.namespace}</span>
+        <span className="text-muted-foreground text-sm">{workload?.namespace}</span>
       </Field>
       <Field label="Status">
         <WorkloadStatus
@@ -48,10 +48,10 @@ export const SimpleWorkloadDetail = ({
         <Field label="Created At">
           <div className="flex items-center gap-1">
             <DateFormat
-              className="text-sm text-muted-foreground"
+              className="text-muted-foreground text-sm"
               date={workload?.createdAt}
             />
-            <span className="text-sm text-muted-foreground">
+            <span className="text-muted-foreground text-sm">
               (
               {formatDistanceToNow(new Date(workload?.createdAt), {
                 addSuffix: true,

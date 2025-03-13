@@ -93,7 +93,7 @@ export default function ProjectLayout() {
       },
       {
         title: 'Config',
-        href: getPathWithParams(routes.projects.networks.root, { orgId, projectId }),
+        href: getPathWithParams(routes.projects.config.root, { orgId, projectId }),
         type: 'collapsible',
         icon: BoltIcon,
         children: [
