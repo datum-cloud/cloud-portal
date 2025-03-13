@@ -15,8 +15,8 @@ export const toastSessionStorage = createCookieSessionStorage({
     path: '/',
     sameSite: 'lax',
     httpOnly: true,
-    secrets: [process.env.SESSION_SECRET || 'NOT_A_STRONG_SECRET'],
-    secure: process.env.NODE_ENV === 'production',
+    secrets: [process.env?.SESSION_SECRET ?? 'NOT_A_STRONG_SECRET'],
+    secure: process.env?.NODE_ENV === 'production',
   },
 })
 

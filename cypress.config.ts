@@ -4,6 +4,10 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 export default defineConfig({
+  env: {
+    CYPRESS: true,
+    APP_URL: 'http://localhost:3000',
+  },
   e2e: {
     baseUrl: process.env.CYPRESS_BASE_URL || 'http://localhost:3000',
     setupNodeEvents(on, config) {
@@ -34,8 +38,5 @@ export default defineConfig({
     viewportHeight: 720,
     supportFile: 'cypress/support/component.tsx',
     specPattern: 'cypress/component/**/*.{cy,spec}.{js,jsx,ts,tsx}',
-    env: {
-      CYPRESS: true,
-    },
   },
 })
