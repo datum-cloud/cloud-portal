@@ -53,9 +53,9 @@ declare global {
 
 Cypress.Commands.add('mount', (component, options = {}) => {
   const {
-    initialEntries = ['/log-in'],
+    initialEntries = ['/login'],
     initialIndex = 0,
-    path = '/log-in',
+    path = '/login',
     ...mountOptions
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = options as any

@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Login from '@/routes/_public+/log-in'
+import Login from '@/routes/_public+/login'
 
 const mockModule = {
-  path: '/log-in',
-  initialEntries: ['/log-in'],
+  path: '/login',
+  initialEntries: ['/login'],
   remixStubProps: {
     // Provide root loader data that includes request info
     rootLoaderData: {
       requestInfo: {
-        url: 'http://localhost:3000/log-in',
+        url: 'http://localhost:3000/login',
         method: 'GET',
         headers: {},
         clientAddress: '127.0.0.1',
@@ -16,7 +16,7 @@ const mockModule = {
       },
     },
     // Mock request object
-    request: new Request('http://localhost:3000/log-in'),
+    request: new Request('http://localhost:3000/login'),
     // Add auth-related context that might be needed
     context: {
       session: {

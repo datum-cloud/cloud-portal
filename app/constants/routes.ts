@@ -1,8 +1,8 @@
 export const routes = {
   auth: {
     root: '/auth',
-    logIn: '/log-in',
-    logOut: '/log-out',
+    logIn: '/login',
+    logOut: '/logout',
     signUp: '/signup',
     callback: '/auth/[provider]/callback',
     google: '/auth/google',
