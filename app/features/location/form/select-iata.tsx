@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { SelectAutocomplete } from '@/components/select-autocomplete/select-autocomplete'
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
 import { cacheStorage } from '@/modules/unstorage/unstorage'
@@ -12,10 +13,10 @@ const ItemContent = ({ option }: { option: Option }) => {
       <span className="font-medium">
         {option.name} ({option.iata_code})
       </span>
-      <Slash className="text-muted-foreground! mx-0.5 size-3!" />
+      {/* <Slash className="text-muted-foreground! mx-0.5 size-3!" />
       <span className="text-muted-foreground text-sm">
         {option.city}, {option.country}
-      </span>
+      </span> */}
     </div>
   )
 }
@@ -31,7 +32,26 @@ export const SelectIATA = ({
   onValueChange: (value: Option) => void
   placeholder?: string
 }) => {
-  const [iataOptions, setIataOptions] = useState<Option[]>([])
+  const [iataOptions, setIataOptions] = useState<Option[]>([
+    {
+      name: 'Dallas Fort Worth Intl',
+      city: 'Dallas-Fort Worth',
+      country: 'United States',
+      iata_code: 'DFW',
+    },
+    {
+      name: 'Heathrow',
+      city: 'London',
+      country: 'United Kingdom',
+      iata_code: 'LHR',
+    },
+    {
+      name: 'Columbia Gorge Regional the Dalles Municipal Airport',
+      city: 'The Dalles',
+      country: 'United States',
+      iata_code: 'DLS',
+    },
+  ])
   const [isLoading, setIsLoading] = useState(false)
 
   const [value, setValue] = useState(defaultValue)
@@ -39,7 +59,7 @@ export const SelectIATA = ({
     return iataOptions.find((option) => option.iata_code === value)
   }, [value, iataOptions])
 
-  useEffect(() => {
+  /* useEffect(() => {
     const fetchIataData = async () => {
       setIsLoading(true)
 
@@ -70,7 +90,7 @@ export const SelectIATA = ({
     }
 
     fetchIataData()
-  }, [])
+  }, []) */
 
   useEffect(() => {
     if (defaultValue) {
@@ -92,6 +112,7 @@ export const SelectIATA = ({
         setValue(option.iata_code)
         onValueChange(option)
       }}
+      boxClassName="h-[120px]"
     />
   )
 }
