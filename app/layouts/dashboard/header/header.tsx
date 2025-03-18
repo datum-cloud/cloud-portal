@@ -4,9 +4,10 @@ import SearchBar from './search-bar'
 import { Button } from '@/components/ui/button'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { routes } from '@/constants/routes'
 import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { CircleHelp, SlashIcon } from 'lucide-react'
+import { CircleHelp, SlashIcon, Sparkles } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 
 export const Header = ({
@@ -40,15 +41,29 @@ export const Header = ({
           </Button>
           <Tooltip>
             <TooltipTrigger asChild>
+              <Link to={routes.ai.new}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="cursor-pointer px-1 hover:bg-transparent">
+                  <Sparkles />
+                </Button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Chat with AI</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
               <Link to="https://docs.datum.net/" target="_blank" rel="noreferrer">
-                <Button variant="ghost" size="sm" className="cursor-pointer">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="cursor-pointer px-1 hover:bg-transparent">
                   <CircleHelp />
                 </Button>
               </Link>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>Docs</p>
-            </TooltipContent>
+            <TooltipContent>Docs</TooltipContent>
           </Tooltip>
         </div>
 

@@ -93,4 +93,8 @@ export const routes = {
     serviceAccounts: '/[orgId]/projects/[projectId]/service-accounts',
     settings: '/[orgId]/projects/[projectId]/settings',
   },
+  ai: {
+    root: '/ai',
+    new: '/ai/new',
+  },
 }
