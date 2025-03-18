@@ -81,7 +81,7 @@
     "remix-auth-github": "^3.0.2",
     "remix-auth-oauth2": "^3.2.2",
     "remix-i18next": "^7.0.2",
-    "remix-utils": "8.4.0",
+    "remix-utils": "8.5.0",
     "sonner": "^2.0.0",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
