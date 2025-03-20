@@ -1,6 +1,6 @@
 import { SelectAutocomplete } from '@/components/select-autocomplete/select-autocomplete'
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
-import { LOCATION_CLASSES } from '@/constants/location'
+import { LOCATION_CLASSES } from '@/constants/options'
 import { cn } from '@/utils/misc'
 import { useEffect, useMemo, useState } from 'react'
 

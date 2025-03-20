@@ -84,7 +84,7 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
 
   return (
     <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
-      <CardHeader className="px-6 py-4">
+      <CardHeader className="px-6">
         <CardTitle className="text-base leading-none font-medium">Instances</CardTitle>
       </CardHeader>
       <CardContent className="px-6 pb-6">

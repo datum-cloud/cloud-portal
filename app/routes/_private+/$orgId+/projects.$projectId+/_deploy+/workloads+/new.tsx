@@ -1,16 +1,14 @@
 import { routes } from '@/constants/routes'
-import { WorkloadForm } from '@/features/workload/form'
+import { WorkloadStepper } from '@/features/workload/stepper/stepper'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
-import { workloadSchema } from '@/resources/schemas/workload.schema'
+import { newWorkloadSchema } from '@/resources/schemas/workload.schema'
 import { validateCSRF } from '@/utils/csrf.server'
-import { yamlToJson } from '@/utils/editor'
 import { getPathWithParams } from '@/utils/path'
-import { redirectWithToast, dataWithToast } from '@/utils/toast.server'
-import { parseWithZod } from '@conform-to/zod'
+import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { Client } from '@hey-api/client-axios'
-import { ActionFunctionArgs, AppLoadContext } from 'react-router'
+import { ActionFunctionArgs, AppLoadContext, useParams } from 'react-router'
 
 export const action = withMiddleware(
   async ({ request, context, params }: ActionFunctionArgs) => {
@@ -23,28 +21,30 @@ export const action = withMiddleware(
     }
 
     const clonedRequest = request.clone()
-    const formData = await clonedRequest.formData()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const payload: any = await clonedRequest.json()
 
     try {
-      await validateCSRF(formData, clonedRequest.headers)
-      const parsed = parseWithZod(formData, { schema: workloadSchema })
+      // Extract CSRF token from JSON payload
+      const csrfToken = payload.csrf
 
-      if (parsed.status !== 'success') {
+      // Create FormData to validate CSRF token
+      const formData = new FormData()
+      formData.append('csrf', csrfToken)
+
+      // Validate the CSRF token against the request headers
+      await validateCSRF(formData, request.headers)
+
+      const parsed = newWorkloadSchema.safeParse(payload)
+
+      if (!parsed.success) {
         throw new Error('Invalid form data')
       }
 
-      const value = parsed.value
-      const format = value.format
-
-      // Convert the configuration to JSON for custom resource
-      const payload = JSON.parse(
-        format === 'yaml' ? yamlToJson(value.configuration) : value.configuration,
-      )
-
-      const dryRunRes = await workloadsControl.create(projectId, payload, true)
+      const dryRunRes = await workloadsControl.create(projectId, parsed.data, true)
 
       if (dryRunRes) {
-        await workloadsControl.create(projectId, payload, false)
+        await workloadsControl.create(projectId, parsed.data, false)
       }
 
       return redirectWithToast(
@@ -72,9 +72,11 @@ export const action = withMiddleware(
 )
 
 export default function NewWorkload() {
+  const { projectId } = useParams()
+
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
-      <WorkloadForm />
+    <div className="mx-auto w-full max-w-2xl py-8">
+      <WorkloadStepper projectId={projectId} />
     </div>
   )
 }

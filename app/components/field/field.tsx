@@ -1,5 +1,7 @@
 import { Label } from '@/components/ui/label'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/utils/misc'
+import { InfoIcon } from 'lucide-react'
 
 interface FieldProps {
   label?: string | React.ReactNode
@@ -8,6 +10,7 @@ interface FieldProps {
   errors?: string[]
   className?: string
   labelClassName?: string
+  tooltipInfo?: string | React.ReactNode
 }
 
 export const Field = ({
@@ -17,13 +20,24 @@ export const Field = ({
   errors,
   className,
   labelClassName,
+  tooltipInfo,
 }: FieldProps) => {
   return (
     <div className={cn('flex flex-col space-y-2', className)}>
       {label && (
-        <Label className={cn(errors && 'text-destructive', labelClassName)}>
-          {label}
-        </Label>
+        <div className="flex items-center gap-2">
+          <Label className={cn(errors && 'text-destructive', labelClassName)}>
+            {label}
+          </Label>
+          {tooltipInfo && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <InfoIcon className="size-4 cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent>{tooltipInfo}</TooltipContent>
+            </Tooltip>
+          )}
+        </div>
       )}
       {children}
       {description && <p className="text-muted-foreground text-sm">{description}</p>}

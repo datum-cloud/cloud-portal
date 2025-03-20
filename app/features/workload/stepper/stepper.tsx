@@ -1,0 +1,326 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { MetadataForm, MetadataPreview } from './metadata-form'
+import { NetworksForm, NetworkPreview } from './network/networks-form'
+import { PlacementsForm, PlacementsPreview } from './placement/placements-form'
+import { RuntimeForm, RuntimePreview } from './runtime/runtime-form'
+import { StoragesForm, StoragesPreview } from './storage/storages-form'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { RuntimeType } from '@/resources/interfaces/workload.interface'
+import {
+  MetadataSchema,
+  metadataSchema,
+  NetworksSchema,
+  networksSchema,
+  NewWorkloadSchema,
+  placementsSchema,
+  PlacementsSchema,
+  RuntimeSchema,
+  runtimeSchema,
+  StoragesSchema,
+  storagesSchema,
+} from '@/resources/schemas/workload.schema'
+import { cn, useIsPending } from '@/utils/misc'
+import { getFormProps, useForm, FormProvider, FormMetadata } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { defineStepper } from '@stepperize/react'
+import { Cpu, HardDrive, Layers, Loader2, Network, Server } from 'lucide-react'
+import React, { useEffect } from 'react'
+import { Form, useNavigate, useSubmit } from 'react-router'
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+
+const { useStepper } = defineStepper(
+  {
+    id: 'metadata',
+    label: 'Metadata',
+    description: 'Define essential information and labels for your workload resource.',
+    icon: () => <Layers />,
+    schema: metadataSchema,
+    preview: (values?: any) => <MetadataPreview values={values as MetadataSchema} />,
+  },
+  {
+    id: 'runtime',
+    label: 'Runtime',
+    description:
+      'Configure instance type and choose between Container or VM runtime environments.',
+    icon: () => <Cpu />,
+    schema: runtimeSchema,
+    preview: (values?: any) => <RuntimePreview values={values as RuntimeSchema} />,
+  },
+  {
+    id: 'networks',
+    label: 'Network Interfaces',
+    description:
+      'Configure network interfaces for your workload instances, including network selection and IP family options.',
+    icon: () => <Network />,
+    schema: networksSchema,
+    preview: (values?: any) => <NetworkPreview values={values as NetworksSchema} />,
+  },
+  {
+    id: 'storages',
+    label: 'Storages',
+    description: 'Add storage volumes with names and sizes.',
+    icon: () => <HardDrive />,
+    schema: storagesSchema,
+    preview: (values?: any) => <StoragesPreview values={values as StoragesSchema} />,
+  },
+  {
+    id: 'placements',
+    label: 'Placements',
+    description: 'Choose where to deploy your workload and set up scaling options.',
+    icon: () => <Server />,
+    schema: placementsSchema,
+    preview: (values?: any) => <PlacementsPreview values={values as PlacementsSchema} />,
+  },
+)
+
+export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
+  const submit = useSubmit()
+  const navigate = useNavigate()
+  const isPending = useIsPending()
+
+  const initialValues = {
+    runtime: {
+      instanceType: 'datumcloud/d1-standard-2',
+    },
+    networks: [{ name: undefined, ipFamilies: [] }],
+    storages: [{ name: undefined, type: undefined }],
+    placements: [{ name: undefined, cityCode: undefined, minimumReplicas: 1 }],
+  }
+
+  const stepper = useStepper({ initialMetadata: initialValues })
+
+  const [form, fields] = useForm({
+    id: 'workload-form',
+    constraint: getZodConstraint(stepper.current.schema),
+    shouldValidate: 'onBlur',
+    shouldRevalidate: 'onBlur',
+    defaultValue: initialValues,
+    onValidate({ formData }) {
+      const parsed = parseWithZod(formData, { schema: stepper.current.schema })
+      if (parsed.status === 'success') {
+        stepper.setMetadata(stepper.current.id, parsed.value ?? {})
+      }
+
+      return parsed
+    },
+    onSubmit(event, { submission }) {
+      event.preventDefault()
+      const data = submission?.status === 'success' ? submission.value : {}
+
+      if (stepper.isLast) {
+        // Collect all metadata from all steps
+        const allMetadata: any = stepper.all.reduce((acc, step) => {
+          const stepMetadata = stepper.getMetadata(step.id)
+          return { ...acc, ...(stepMetadata || {}) }
+        }, {})
+
+        const payload: NewWorkloadSchema = {
+          metadata: {
+            name: allMetadata.name,
+            labels: allMetadata.labels,
+          },
+          runtime: {
+            instanceType: allMetadata.instanceType,
+            runtimeType: allMetadata.runtimeType,
+            virtualMachine: allMetadata.virtualMachine,
+          },
+          networks: allMetadata.networks,
+          storages: allMetadata.storages,
+          placements: allMetadata.placements,
+          ...data,
+        }
+
+        // When we reach the last step, submit the complete form data to the server
+        // using the Remix form submission mechanism with FormData
+
+        // Since we've already called preventDefault() at the top of the handler,
+        // we need to manually trigger the form submission to Remix
+
+        // Get the form element
+        const formElement = event.currentTarget as HTMLFormElement
+        const formData = new FormData(formElement)
+        const csrf = formData.get('csrf')
+
+        // Submit the form using the Remix submit function
+        // This will trigger the action defined in the route
+        submit(
+          { ...payload, csrf: csrf as string },
+          {
+            method: 'POST',
+            action: formElement.getAttribute('action') || undefined,
+            encType: 'application/json',
+            replace: true,
+          },
+        )
+      } else {
+        stepper.next()
+      }
+    },
+  })
+
+  const handleBack = () => {
+    if (stepper.isFirst) {
+      navigate(-1)
+    } else {
+      stepper.prev()
+    }
+  }
+
+  useEffect(() => {
+    form.update({
+      value: initialValues,
+    })
+  }, [])
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Create a new workload</CardTitle>
+        <CardDescription>
+          Create a new workload to get started with Datum Cloud.
+        </CardDescription>
+      </CardHeader>
+      <FormProvider context={form.context}>
+        <Form
+          {...getFormProps(form)}
+          id={form.id}
+          method="POST"
+          autoComplete="off"
+          className="flex flex-col gap-6">
+          <AuthenticityTokenInput />
+          <CardContent>
+            {isPending && (
+              <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 backdrop-blur-xs">
+                <Loader2 className="size-4 animate-spin" />
+                Creating workload...
+              </div>
+            )}
+            <nav aria-label="Workload Steps" className="group">
+              <ol className="relative ml-4 border-s border-gray-200 dark:border-gray-700 dark:text-gray-400">
+                {stepper.all.map((step, index, array) => (
+                  <React.Fragment key={step.id}>
+                    <li
+                      className={cn(
+                        'ms-7',
+                        index < array.length - 1 && stepper.current.id !== step.id
+                          ? 'mb-4'
+                          : '',
+                      )}>
+                      <span className="absolute -start-4 flex size-8 items-center justify-center rounded-full bg-gray-100 ring-4 ring-white dark:bg-gray-700 dark:ring-gray-900">
+                        {React.cloneElement(step.icon(), {
+                          className: 'size-3.5 text-gray-600 dark:text-gray-500',
+                        })}
+                      </span>
+                      <div className="flex flex-col gap-1 pt-1.5">
+                        <p className="text-base leading-tight font-medium">
+                          {step.label}
+                        </p>
+                        <p className="text-muted-foreground text-sm">
+                          {step.description}
+                        </p>
+                      </div>
+                    </li>
+                    {stepper.current.id === step.id && !isPending ? (
+                      <div className="flex-1 py-6 pl-7">
+                        {stepper.switch({
+                          metadata: () => (
+                            <MetadataForm
+                              defaultValues={
+                                stepper.getMetadata('metadata') as MetadataSchema
+                              }
+                              fields={
+                                fields as unknown as ReturnType<
+                                  typeof useForm<MetadataSchema>
+                                >[1]
+                              }
+                            />
+                          ),
+                          runtime: () => (
+                            <RuntimeForm
+                              defaultValues={
+                                stepper.getMetadata('runtime') as RuntimeSchema
+                              }
+                              fields={
+                                fields as unknown as ReturnType<
+                                  typeof useForm<RuntimeSchema>
+                                >[1]
+                              }
+                            />
+                          ),
+                          networks: () => (
+                            <NetworksForm
+                              form={form as FormMetadata<NetworksSchema>}
+                              projectId={projectId}
+                              defaultValues={
+                                stepper.getMetadata('networks') as NetworksSchema
+                              }
+                              fields={
+                                fields as ReturnType<typeof useForm<NetworksSchema>>[1]
+                              }
+                            />
+                          ),
+                          storages: () => (
+                            <StoragesForm
+                              form={form as FormMetadata<StoragesSchema>}
+                              defaultValues={
+                                stepper.getMetadata('storages') as StoragesSchema
+                              }
+                              fields={
+                                fields as ReturnType<typeof useForm<StoragesSchema>>[1]
+                              }
+                              isVM={
+                                stepper.getMetadata('runtime')?.runtimeType ===
+                                RuntimeType.VM
+                              }
+                            />
+                          ),
+                          placements: () => (
+                            <PlacementsForm
+                              form={form as FormMetadata<PlacementsSchema>}
+                              fields={
+                                fields as ReturnType<typeof useForm<PlacementsSchema>>[1]
+                              }
+                              defaultValues={
+                                stepper.getMetadata('placements') as PlacementsSchema
+                              }
+                            />
+                          ),
+                        })}
+
+                        <div className="mt-4 flex items-center justify-end gap-2 border-t pt-4">
+                          <div className="flex items-center gap-2">
+                            <Button type="button" variant="link" onClick={handleBack}>
+                              {stepper.isFirst ? 'Cancel' : 'Back'}
+                            </Button>
+                            <Button
+                              variant="default"
+                              type="submit"
+                              disabled={isPending}
+                              isLoading={isPending}>
+                              {stepper.isLast ? 'Create' : 'Next'}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-1 px-7 pb-6">
+                        {step.preview(stepper.getMetadata(step.id))}
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </ol>
+            </nav>
+          </CardContent>
+        </Form>
+      </FormProvider>
+    </Card>
+  )
+}

@@ -15,7 +15,13 @@ import { INetworkControlResponse } from '@/resources/interfaces/network.interfac
 import { newNetworkSchema, updateNetworkSchema } from '@/resources/schemas/network.schema'
 // import { generateId, generateRandomString } from '@/utils/idGenerator'
 import { useIsPending } from '@/utils/misc'
-import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
+import {
+  FormProvider,
+  getFormProps,
+  getInputProps,
+  useForm,
+  useInputControl,
+} from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useEffect, useMemo, useRef } from 'react'
 import { Form, useNavigate } from 'react-router'
@@ -24,8 +30,12 @@ import { useHydrated } from 'remix-utils/use-hydrated'
 
 export default function NetworkForm({
   defaultValue,
+  className,
+  onCancel,
 }: {
   defaultValue?: INetworkControlResponse
+  className?: string
+  onCancel?: () => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
@@ -33,6 +43,7 @@ export default function NetworkForm({
   const navigate = useNavigate()
 
   const [form, fields] = useForm({
+    id: 'network-form',
     constraint: getZodConstraint(defaultValue ? updateNetworkSchema : newNetworkSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
@@ -77,7 +88,7 @@ export default function NetworkForm({
   }, [defaultValue])
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader>
         <CardTitle>{isEdit ? 'Update' : 'Create a new'} network</CardTitle>
         <CardDescription>
@@ -86,23 +97,25 @@ export default function NetworkForm({
             : 'Create a new network to get started with Datum Cloud.'}
         </CardDescription>
       </CardHeader>
-      <Form
-        method="POST"
-        autoComplete="off"
-        {...getFormProps(form)}
-        className="flex flex-col gap-6">
-        <AuthenticityTokenInput />
+      <FormProvider context={form.context}>
+        <Form
+          {...getFormProps(form)}
+          id={form.id}
+          method="POST"
+          autoComplete="off"
+          className="flex flex-col gap-6">
+          <AuthenticityTokenInput />
 
-        {isEdit && (
-          <input
-            type="hidden"
-            name="resourceVersion"
-            value={defaultValue?.resourceVersion}
-          />
-        )}
+          {isEdit && (
+            <input
+              type="hidden"
+              name="resourceVersion"
+              value={defaultValue?.resourceVersion}
+            />
+          )}
 
-        <CardContent className="space-y-4">
-          {/* <Field
+          <CardContent className="space-y-4">
+            {/* <Field
             label="Display name"
             description="Enter a short, human-friendly name. Can be changed later."
             errors={fields.displayName.errors}>
@@ -122,25 +135,25 @@ export default function NetworkForm({
               }}
             />
           </Field> */}
-          <Field
-            label="Name"
-            description="A namespace-unique stable identifier for your network. This cannot be changed once the network is created"
-            errors={fields.name.errors}>
-            <Input
-              {...getInputProps(fields.name, { type: 'text' })}
-              key={fields.name.id}
-              placeholder="e.g. my-network-us-22sdss"
-              readOnly={isEdit}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const value = (e.target as HTMLInputElement).value
-                nameControl.change(value)
-              }}
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              onBlur={(e: React.FormEvent<HTMLInputElement>) => {
-                if (isEdit) {
-                  nameControl.change(defaultValue?.name ?? '')
-                }
-                /* else {
+            <Field
+              label="Name"
+              description="A namespace-unique stable identifier for your network. This cannot be changed once the network is created"
+              errors={fields.name.errors}>
+              <Input
+                {...getInputProps(fields.name, { type: 'text' })}
+                key={fields.name.id}
+                placeholder="e.g. my-network-us-22sdss"
+                readOnly={isEdit}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = (e.target as HTMLInputElement).value
+                  nameControl.change(value)
+                }}
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                onBlur={(e: React.FormEvent<HTMLInputElement>) => {
+                  if (isEdit) {
+                    nameControl.change(defaultValue?.name ?? '')
+                  }
+                  /* else {
                   const value = (e.target as HTMLInputElement).value
                   if (value.length === 0) {
                     nameControl.change(
@@ -150,55 +163,62 @@ export default function NetworkForm({
                     )
                   }
                 } */
-              }}
-            />
-          </Field>
-          <Field label="IP Family" errors={fields.ipFamily.errors}>
-            <SelectIPFamily
-              defaultValue={fields.ipFamily.value}
-              onValueChange={(value) => {
-                ipFamilyControl.change(value.value)
-              }}
-            />
-          </Field>
-          <Field label="IPAM Mode" errors={fields.ipam.errors}>
-            <SelectIPAM
-              meta={fields.ipam}
-              onChange={(value) => {
-                ipamControl.change(value)
-              }}
-            />
-          </Field>
-          <Field label="MTU" errors={fields.mtu.errors}>
-            <Input
-              {...getInputProps(fields.mtu, { type: 'number' })}
-              defaultValue={fields.mtu.value}
-              key={fields.mtu.id}
-              placeholder="e.g. 1460"
-            />
-          </Field>
-        </CardContent>
-        <CardFooter className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="link"
-            disabled={isPending}
-            onClick={() => {
-              navigate(-1)
-            }}>
-            Cancel
-          </Button>
-          <Button
-            variant="default"
-            type="submit"
-            disabled={isPending}
-            isLoading={isPending}>
-            {isPending
-              ? `${isEdit ? 'Saving' : 'Creating'}`
-              : `${isEdit ? 'Save' : 'Create'}`}
-          </Button>
-        </CardFooter>
-      </Form>
+                }}
+              />
+            </Field>
+            <Field label="IP Family" errors={fields.ipFamily.errors}>
+              <SelectIPFamily
+                defaultValue={fields.ipFamily.value}
+                onValueChange={(value) => {
+                  ipFamilyControl.change(value.value)
+                }}
+              />
+            </Field>
+            <Field label="IPAM Mode" errors={fields.ipam.errors}>
+              <SelectIPAM
+                meta={fields.ipam}
+                onChange={(value) => {
+                  ipamControl.change(value)
+                }}
+              />
+            </Field>
+            <Field label="MTU" errors={fields.mtu.errors}>
+              <Input
+                {...getInputProps(fields.mtu, { type: 'number' })}
+                defaultValue={fields.mtu.value}
+                key={fields.mtu.id}
+                placeholder="e.g. 1460"
+              />
+            </Field>
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="link"
+              disabled={isPending}
+              onClick={() => {
+                form.reset()
+
+                if (onCancel) {
+                  onCancel()
+                } else {
+                  navigate(-1)
+                }
+              }}>
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              type="submit"
+              disabled={isPending}
+              isLoading={isPending}>
+              {isPending
+                ? `${isEdit ? 'Saving' : 'Creating'}`
+                : `${isEdit ? 'Save' : 'Create'}`}
+            </Button>
+          </CardFooter>
+        </Form>
+      </FormProvider>
     </Card>
   )
 }

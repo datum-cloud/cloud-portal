@@ -145,7 +145,7 @@ export const VirtualizedList = ({
               return (
                 <CommandItem
                   key={option[keyValue]}
-                  disabled={isKeyboardNavActive}
+                  disabled={isKeyboardNavActive || option.disabled}
                   onMouseEnter={() =>
                     !isKeyboardNavActive && setFocusedIndex(virtualOption.index)
                   }

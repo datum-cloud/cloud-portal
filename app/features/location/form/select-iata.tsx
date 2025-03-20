@@ -46,7 +46,7 @@ export const SelectIATA = ({
       iata_code: 'LHR',
     },
     {
-      name: 'Columbia Gorge Regional the Dalles Municipal Airport',
+      name: 'Columbia Gorge Regional',
       city: 'The Dalles',
       country: 'United States',
       iata_code: 'DLS',
@@ -106,13 +106,13 @@ export const SelectIATA = ({
       triggerClassName={cn('w-full h-auto min-h-10', className)}
       options={iataOptions}
       placeholder={placeholder}
-      itemPreview={(option) => <ItemContent option={option} />}
+      itemPreview={(option) => <span className="font-medium">{option.iata_code}</span>}
       itemContent={(option) => <ItemContent option={option} />}
       onValueChange={(option) => {
         setValue(option.iata_code)
         onValueChange(option)
       }}
-      boxClassName="h-[120px]"
+      boxClassName="h-[150px]"
     />
   )
 }
