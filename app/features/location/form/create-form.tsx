@@ -48,9 +48,16 @@ export default function CreateLocationForm({
       return parseWithZod(formData, { schema: newLocationSchema })
     },
     defaultValue: {
+      name: '',
+      class: LocationClass.DATUM_MANAGED,
+      cityCode: '',
+      labels: [] as string[],
       provider: LocationProvider.GCP,
       providerConfig: {
         provider: LocationProvider.GCP,
+        projectId: '',
+        region: '',
+        zone: '',
       },
     },
   })

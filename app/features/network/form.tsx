@@ -55,6 +55,8 @@ export default function NetworkForm({
     defaultValue: {
       ipam: 'Auto',
       mtu: 1460,
+      name: '',
+      ipFamily: 'IPv4',
     },
   })
 

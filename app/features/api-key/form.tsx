@@ -33,6 +33,8 @@ export const ApiKeyForm = () => {
       return parseWithZod(formData, { schema: newApiKeySchema })
     },
     defaultValue: {
+      name: '',
+      description: '',
       expiresAt: '90',
     },
   })
