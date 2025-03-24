@@ -44,12 +44,6 @@ export const loader = withMiddleware(async ({ params, context }) => {
       projectId,
     )
 
-    // TODO: Temporary Solution to Validate that the project belongs to the current organization
-    // The API currently returns project details even if the project belongs to a different org
-    // if (project.organizationId !== org.userEntityID) {
-    //   throw new CustomError('Project not found', 404)
-    // }
-
     return project
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
