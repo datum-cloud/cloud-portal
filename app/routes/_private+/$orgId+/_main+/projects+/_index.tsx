@@ -4,17 +4,47 @@ import { DateFormat } from '@/components/date-format/date-format'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { ProjectStatus } from '@/features/project/status'
+import { getSession } from '@/modules/auth/authSession.server'
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
+import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
+import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
+import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
-import { Link, useNavigate, useParams, useRouteLoaderData } from 'react-router'
+import {
+  AppLoadContext,
+  data,
+  Link,
+  useLoaderData,
+  useNavigate,
+  useParams,
+} from 'react-router'
+
+export const loader = withMiddleware(async ({ request, context }) => {
+  const { controlPlaneClient } = context as AppLoadContext
+  const projectsControl = createProjectsControl(controlPlaneClient as Client)
+
+  const session = await getSession(request.headers.get('Cookie'))
+  const orgEntityId: string = session.get('currentOrgEntityID')
+
+  if (!orgEntityId) {
+    throw new CustomError('Organization ID is required', 400)
+  }
+
+  const projects = await projectsControl.list(orgEntityId)
+
+  return data(projects)
+}, authMiddleware)
 
 export default function ProjectsPage() {
-  const { projects } = useRouteLoaderData('routes/_private+/$orgId+/_layout')
   const { orgId } = useParams()
+  const projects = useLoaderData<typeof loader>()
+
   const navigate = useNavigate()
 
   const columns: ColumnDef<IProjectControlResponse>[] = useMemo(

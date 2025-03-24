@@ -109,7 +109,7 @@ export const SelectOrganization = ({
                 <CommandItem className="cursor-pointer" asChild>
                   <Link
                     to={routes.account.organizations.new}
-                    className="mb-2 flex items-center gap-2 px-3">
+                    className="flex items-center gap-2 px-3">
                     <div className="flex w-6 items-center justify-center">
                       <PlusCircleIcon className="text-blue-400" />
                     </div>
@@ -120,7 +120,7 @@ export const SelectOrganization = ({
                 <CommandItem className="cursor-pointer" asChild>
                   <Link
                     to={routes.account.organizations.root}
-                    className="mt-1 mb-1 flex items-center gap-2 px-3">
+                    className="flex items-center gap-2 px-3">
                     <div className="flex w-6 items-center justify-center">
                       <SettingsIcon />
                     </div>

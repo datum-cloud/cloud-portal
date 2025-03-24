@@ -8,10 +8,10 @@ import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
 import { dataWithToast } from '@/utils/toast.server'
 import {
   ActionFunctionArgs,
-  Form,
   Link,
   LoaderFunctionArgs,
   useNavigation,
+  useSubmit,
 } from 'react-router'
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -37,6 +37,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export default function Login() {
   const theme = useTheme()
   const navigation = useNavigation()
+  const submit = useSubmit()
 
   return (
     <Card className="overflow-hidden py-0">
@@ -49,33 +50,35 @@ export default function Login() {
             </p>
           </div>
           <div className="grid w-full grid-cols-1 gap-4">
-            <Form action={routes.auth.google} method="POST" className="w-full">
-              <Button
-                variant="outline"
-                className="w-full cursor-pointer"
-                isLoading={
-                  navigation.state === 'submitting' &&
-                  navigation.formAction === routes.auth.google
-                }
-                disabled={navigation.state === 'submitting'}>
-                <GoogleIcon className="size-4" />
-                <span>Sign in with Google</span>
-              </Button>
-            </Form>
+            <Button
+              variant="outline"
+              className="w-full cursor-pointer"
+              isLoading={
+                navigation.state === 'submitting' &&
+                navigation.formAction === routes.auth.google
+              }
+              disabled={navigation.state === 'submitting'}
+              onClick={() => {
+                submit(null, { method: 'POST', action: routes.auth.google })
+              }}>
+              <GoogleIcon className="size-4" />
+              <span>Sign in with Google</span>
+            </Button>
 
-            <Form action={routes.auth.github} method="POST" className="w-full">
-              <Button
-                variant="outline"
-                className="w-full cursor-pointer"
-                isLoading={
-                  navigation.state === 'submitting' &&
-                  navigation.formAction === routes.auth.github
-                }
-                disabled={navigation.state === 'submitting'}>
-                <GitHubIcon className="size-4" />
-                <span>Sign in with GitHub</span>
-              </Button>
-            </Form>
+            <Button
+              variant="outline"
+              className="w-full cursor-pointer"
+              isLoading={
+                navigation.state === 'submitting' &&
+                navigation.formAction === routes.auth.github
+              }
+              disabled={navigation.state === 'submitting'}
+              onClick={() => {
+                submit(null, { method: 'POST', action: routes.auth.github })
+              }}>
+              <GitHubIcon className="size-4" />
+              <span>Sign in with GitHub</span>
+            </Button>
           </div>
           <div className="text-muted-foreground text-center text-sm">
             Don&apos;t have an account?{' '}

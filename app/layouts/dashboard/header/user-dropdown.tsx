@@ -15,7 +15,7 @@ import { UserModel } from '@/resources/gql/models/user.model'
 import { cn, getInitials } from '@/utils/misc'
 import { KeyIcon, LogOut, UserIcon } from 'lucide-react'
 import { useState } from 'react'
-import { Form, useNavigate } from 'react-router'
+import { useNavigate, useSubmit } from 'react-router'
 
 const UserItem = ({
   user,
@@ -49,6 +49,7 @@ const UserItem = ({
 }
 export const UserDropdown = () => {
   const navigate = useNavigate()
+  const submit = useSubmit()
   const { user } = useApp()
   const [open, setOpen] = useState(false)
 
@@ -93,17 +94,20 @@ export const UserDropdown = () => {
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
-        <Form method="POST" action={routes.auth.logOut}>
-          <DropdownMenuItem asChild className="text-destructive">
-            <Button
-              type="submit"
-              variant="link"
-              className="focus:text-destructive flex h-8 w-full cursor-pointer justify-start text-left hover:bg-transparent hover:no-underline focus-visible:ring-0 focus-visible:ring-offset-0">
-              <LogOut className="text-destructive size-4" />
-              Log out
-            </Button>
-          </DropdownMenuItem>
-        </Form>
+        <DropdownMenuItem
+          asChild
+          className="text-destructive"
+          onClick={() => {
+            submit(null, { method: 'POST', action: routes.auth.logOut })
+          }}>
+          <Button
+            type="submit"
+            variant="link"
+            className="focus:text-destructive flex h-8 w-full cursor-pointer justify-start text-left hover:bg-transparent hover:no-underline focus-visible:ring-0 focus-visible:ring-offset-0">
+            <LogOut className="text-destructive size-4" />
+            Log out
+          </Button>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
