@@ -4,10 +4,12 @@ import { DateFormat } from '@/components/date-format/date-format'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { ProjectStatus } from '@/features/project/status'
-import { getSession } from '@/modules/auth/authSession.server'
+import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
+import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { createOrganizationGql } from '@/resources/gql/organization.gql'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
@@ -25,18 +27,19 @@ import {
   useParams,
 } from 'react-router'
 
-export const loader = withMiddleware(async ({ request, context }) => {
-  const { controlPlaneClient } = context as AppLoadContext
+export const loader = withMiddleware(async ({ params, context }) => {
+  const { orgId } = params
+  const { controlPlaneClient, gqlClient } = context as AppLoadContext
   const projectsControl = createProjectsControl(controlPlaneClient as Client)
+  const orgGql = createOrganizationGql(gqlClient as GraphqlClient)
 
-  const session = await getSession(request.headers.get('Cookie'))
-  const orgEntityId: string = session.get('currentOrgEntityID')
-
-  if (!orgEntityId) {
+  if (!orgId) {
     throw new CustomError('Organization ID is required', 400)
   }
 
-  const projects = await projectsControl.list(orgEntityId)
+  const org: OrganizationModel = await orgGql.getOrganizationDetail(orgId)
+
+  const projects = await projectsControl.list(org.userEntityID)
 
   return data(projects)
 }, authMiddleware)

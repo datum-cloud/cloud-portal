@@ -110,8 +110,8 @@ export const storageFieldSchema = z
     bootImage: z.string().optional(),
     size: z.coerce
       .number({ required_error: 'Size is required.' })
-      .min(1, {
-        message: 'Size must be at least 1.',
+      .min(10, {
+        message: 'Size must be at least 10Gi.',
       })
       .transform((val) => Number(val))
       .optional(),

@@ -21,15 +21,12 @@ import { useEffect } from 'react'
 export const StorageField = ({
   fields,
   defaultValues,
-  isVM,
 }: {
   fields: ReturnType<typeof useForm<StorageFieldSchema>>[1]
   defaultValues?: StorageFieldSchema
-  isVM: boolean
 }) => {
   const typeControl = useInputControl(fields.type)
   const nameControl = useInputControl(fields.name)
-  const bootImageControl = useInputControl(fields.bootImage)
 
   useEffect(() => {
     if (defaultValues) {
@@ -42,35 +39,22 @@ export const StorageField = ({
         typeControl.change(defaultValues?.type)
       }
     }
-
-    if (isVM && !fields.bootImage.value) {
-      bootImageControl.change('datumcloud/ubuntu-2204-lts')
-    }
-  }, [
-    defaultValues,
-    typeControl,
-    nameControl,
-    bootImageControl,
-    fields.name.value,
-    fields.type.value,
-    fields.bootImage.value,
-    isVM,
-  ])
+  }, [defaultValues, typeControl, nameControl, fields.name.value, fields.type.value])
 
   return (
-    <div className="relative flex w-full flex-col items-start gap-2">
+    <div className="relative flex w-full flex-col items-start gap-4">
+      <Field label="Name" errors={fields.name.errors} className="w-full">
+        <Input
+          {...getInputProps(fields.name, { type: 'text' })}
+          key={fields.name.id}
+          placeholder="e.g. my-storage-us-3sd122"
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+            const value = (e.target as HTMLInputElement).value
+            nameControl.change(value)
+          }}
+        />
+      </Field>
       <div className="flex w-full gap-2">
-        <Field label="Name" errors={fields.name.errors} className="w-1/2">
-          <Input
-            {...getInputProps(fields.name, { type: 'text' })}
-            key={fields.name.id}
-            placeholder="e.g. my-storage-us-3sd122"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value
-              nameControl.change(value)
-            }}
-          />
-        </Field>
         <Field label="Type" errors={fields.type.errors} className="w-1/2">
           <Select
             {...getSelectProps(fields.type)}
@@ -80,7 +64,9 @@ export const StorageField = ({
             onValueChange={(value) => {
               typeControl.change(value)
             }}>
-            <SelectTrigger className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+            <SelectTrigger
+              disabled
+              className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
               <SelectValue placeholder="Select a storage type" />
             </SelectTrigger>
             <SelectContent>
@@ -95,13 +81,11 @@ export const StorageField = ({
             </SelectContent>
           </Select>
         </Field>
-      </div>
-      <div className="flex w-full gap-2">
         {fields.type.value === StorageType.FILESYSTEM && (
           <Field
             label="Size"
             errors={fields.size.errors}
-            className="flex-1"
+            className="w-1/2"
             description="Enter the size of the storage in Gi (Gibibyte)">
             <Input
               {...getInputProps(fields.size, {
@@ -112,29 +96,6 @@ export const StorageField = ({
               key={fields.size.id}
               placeholder="e.g. 10"
             />
-          </Field>
-        )}
-        {isVM && (
-          <Field label="Boot Image" errors={fields.bootImage.errors} className="flex-1">
-            <Select
-              {...getSelectProps(fields.bootImage)}
-              onValueChange={bootImageControl.change}
-              key={fields.bootImage.id}
-              value={fields.bootImage.value?.toString()}
-              defaultValue={defaultValues?.bootImage}>
-              <SelectTrigger
-                disabled
-                className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
-                <SelectValue placeholder="Select a boot image" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem
-                  value="datumcloud/ubuntu-2204-lts"
-                  className="w-[var(--radix-select-trigger-width)]">
-                  datumcloud/ubuntu-2204-lts
-                </SelectItem>
-              </SelectContent>
-            </Select>
           </Field>
         )}
       </div>

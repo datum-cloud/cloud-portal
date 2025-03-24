@@ -40,7 +40,7 @@ export const PlacementField = ({
     fields.minimumReplicas.value,
   ])
   return (
-    <div className="relative flex w-full flex-col items-start gap-2">
+    <div className="relative flex w-full flex-col items-start gap-4">
       <Field label="Name" errors={fields.name.errors} className="w-full">
         <Input
           {...getInputProps(fields.name, { type: 'text' })}

@@ -63,7 +63,7 @@ export const NetworkFieldForm = ({
   ])
 
   return (
-    <div className="relative flex w-full items-start gap-2">
+    <div className="relative flex w-full items-start gap-4">
       <Field label="Network" errors={fields.name.errors} className="w-1/2">
         <SelectNetwork
           defaultValue={fields.name.value}
