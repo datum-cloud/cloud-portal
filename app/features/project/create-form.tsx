@@ -46,6 +46,9 @@ export const CreateProjectForm = () => {
     },
     defaultValue: {
       orgEntityId: organization?.userEntityID,
+      name: '',
+      description: '',
+      labels: [] as string[],
     },
   })
 
