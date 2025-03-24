@@ -129,9 +129,7 @@ export const storageFieldSchema = z
     },
   )
 export const storagesSchema = z.object({
-  storages: z
-    .array(storageFieldSchema)
-    .min(1, { message: 'At least one storage must be configured.' }),
+  storages: z.array(storageFieldSchema),
 })
 
 // Placements

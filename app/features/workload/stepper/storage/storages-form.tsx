@@ -1,8 +1,10 @@
 import { BootField } from './boot-field'
 import { StorageField } from './storage-field'
 import { List, ListItem } from '@/components/list/list'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { STORAGE_TYPES } from '@/constants/options'
 import { StorageType } from '@/resources/interfaces/workload.interface'
 import { StorageFieldSchema, StoragesSchema } from '@/resources/schemas/workload.schema'
 import { cn } from '@/utils/misc'
@@ -29,16 +31,7 @@ export const StoragesForm = ({
       : ((defaultValues ?? []) as StorageFieldSchema[])
   }, [defaultValues])
 
-  const bootValues = useMemo(() => {
-    if (vmBootImage) {
-      return {
-        name: 'boot',
-        bootImage: vmBootImage,
-      }
-    }
-
-    return undefined
-  }, [vmBootImage])
+  const isVM = useMemo(() => vmBootImage !== undefined, [vmBootImage])
 
   useEffect(() => {
     form.update({
@@ -50,9 +43,9 @@ export const StoragesForm = ({
   return (
     <div className="flex flex-col gap-2">
       <div className="space-y-4">
-        {bootValues && (
+        {isVM && vmBootImage && (
           <div className="relative flex items-center gap-2 rounded-md border p-4">
-            <BootField defaultValues={bootValues} />
+            <BootField defaultValues={{ name: 'boot', bootImage: vmBootImage }} />
           </div>
         )}
         {storages.map((storage, index) => {
@@ -70,7 +63,7 @@ export const StoragesForm = ({
                 defaultValues={values?.[index] as StorageFieldSchema}
               />
 
-              {storages.length > 1 && (
+              {storages.length > (isVM ? 0 : 1) && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -127,39 +120,36 @@ export const StoragesPreview = ({
   }, [vmBootImage])
 
   const listItems: ListItem[] = useMemo(() => {
-    if ((values.storages ?? []).length > 0) {
-      let bootDetail = {}
-      if (bootValues) {
-        bootDetail = {
-          label: 'Boot Storage',
-          content: (
-            <div className="flex items-center gap-2 font-medium">
-              <span>{bootValues.name}</span>
-              <Separator orientation="vertical" className="h-4" />
-              <span>{bootValues.bootImage}</span>
-            </div>
-          ),
-        }
-      }
-
-      const storages = values.storages.map((storage, index) => ({
-        label: `Storage ${index + 1}`,
+    let bootDetail = {}
+    if (bootValues) {
+      bootDetail = {
+        label: 'Boot Storage',
         content: (
           <div className="flex items-center gap-2 font-medium">
-            <span>{storage.name}</span>
+            <span>{bootValues.name}</span>
             <Separator orientation="vertical" className="h-4" />
-            <span>{storage.size}Gi</span>
-            {/* <Badge variant="outline">
-              {STORAGE_TYPES[storage.type as keyof typeof STORAGE_TYPES].label}
-            </Badge> */}
+            <span>{bootValues.bootImage}</span>
           </div>
         ),
-      }))
-
-      return [bootDetail, ...storages]
+      }
     }
 
-    return []
+    const storages = (values.storages ?? []).map((storage, index) => ({
+      label: `Storage ${index + 1}`,
+      content: (
+        <div className="flex items-center gap-2 font-medium">
+          <span>{storage.name}</span>
+          <Separator orientation="vertical" className="h-4" />
+          <span>{storage.size}Gi</span>
+          <Separator orientation="vertical" className="h-4" />
+          <Badge variant="outline">
+            {STORAGE_TYPES[storage.type as keyof typeof STORAGE_TYPES].label}
+          </Badge>
+        </div>
+      ),
+    }))
+
+    return [bootDetail, ...storages]
   }, [values, bootValues])
 
   return <List items={listItems} itemClassName="!border-b-0 !px-0 py-1.5" />

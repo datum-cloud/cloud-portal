@@ -107,7 +107,7 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
       instanceType: 'datumcloud/d1-standard-2',
     },
     networks: [{ name: undefined, ipFamilies: [] }],
-    storages: [{ name: undefined, type: StorageType.FILESYSTEM }],
+    storages: [],
     placements: [{ name: undefined, cityCode: undefined, minimumReplicas: 1 }],
   }
 
@@ -142,6 +142,7 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
           metadata: {
             name: allMetadata.name,
             labels: allMetadata.labels,
+            annotations: allMetadata.annotations,
           },
           runtime: {
             instanceType: allMetadata.instanceType,
@@ -195,6 +196,21 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
       value: initialValues,
     })
   }, [])
+
+  useEffect(() => {
+    if (
+      stepper.current.id === 'storages' &&
+      stepper.metadata.runtime?.runtimeType !== RuntimeType.VM &&
+      stepper.metadata.storages?.length === 0
+    ) {
+      form.update({
+        value: {
+          ...stepper.metadata,
+          storages: [{ name: '', type: StorageType.FILESYSTEM }],
+        },
+      })
+    }
+  }, [stepper.metadata, stepper.current.id])
 
   return (
     <Card>
@@ -295,10 +311,8 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
                                 >[1]
                               }
                               vmBootImage={
-                                stepper.getMetadata('runtime')?.runtimeType ===
-                                RuntimeType.VM
-                                  ? stepper.getMetadata('runtime')?.virtualMachine
-                                      ?.bootImage
+                                stepper.metadata.runtime?.runtimeType === RuntimeType.VM
+                                  ? stepper.metadata.runtime?.virtualMachine?.bootImage
                                   : undefined
                               }
                             />
