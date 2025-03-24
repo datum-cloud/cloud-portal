@@ -84,7 +84,7 @@ export default function OverviewWorkload() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${data?.name} to confirm.`,
+      confirmInputLabel: `Type "${data?.name}" to confirm.`,
       confirmInputPlaceholder: 'Type the workload name to confirm deletion',
       confirmValue: data?.name ?? 'delete',
       onSubmit: async () => {

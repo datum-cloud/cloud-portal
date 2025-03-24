@@ -6,6 +6,8 @@ node_modules
 .DS_Store
 .react-router/
 
+.cursor/
+
 cypress/screenshots
 cypress/videos
 cypress/results

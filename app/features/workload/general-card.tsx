@@ -76,7 +76,7 @@ export const WorkloadGeneralCard = ({
   }, [workload])
   return (
     <Card className="w-full">
-      <CardHeader className="px-6 py-4">
+      <CardHeader className="px-6">
         <CardTitle className="text-base leading-none font-medium">General</CardTitle>
       </CardHeader>
       <CardContent className="px-4 pt-0 pb-2">

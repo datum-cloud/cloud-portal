@@ -2,6 +2,7 @@
 export type Option = {
   value?: any
   label?: string
+  disabled?: boolean
   // Allow any additional string fields
   [key: string]: any
 }
@@ -22,4 +23,5 @@ export type SelectAutocompleteProps = {
   disableSearch?: boolean
   itemSize?: number
   isLoading?: boolean
+  footer?: React.ReactNode
 }

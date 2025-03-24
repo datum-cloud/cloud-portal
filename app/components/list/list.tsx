@@ -4,26 +4,45 @@ export interface ListItem {
   label?: React.ReactNode | string
   content?: React.ReactNode | string
   className?: string
+  hidden?: boolean
 }
 
-export const List = ({ items, className }: { items: ListItem[]; className?: string }) => {
+interface ListProps {
+  /**
+   * Array of list items to display
+   */
+  items: ListItem[]
+  /**
+   * Optional className for the list container
+   */
+  className?: string
+  /**
+   * Optional className applied to all list items
+   */
+  itemClassName?: string
+}
+
+export const List = ({ items, className, itemClassName }: ListProps) => {
   return (
     <div className={cn('flex flex-col', className)}>
-      {items.map((item, index) => (
-        <div
-          key={index}
-          className={cn(
-            'flex w-full items-center gap-2 px-4 py-2 [&:not(:last-child)]:border-b',
-            item.className,
-          )}>
-          <div className="flex min-w-[100px] justify-start text-left text-sm font-medium">
-            {item.label}
+      {items
+        .filter((item) => !item.hidden)
+        .map((item, index) => (
+          <div
+            key={index}
+            className={cn(
+              'flex w-full items-center gap-2 px-4 py-2 [&:not(:last-child)]:border-b',
+              itemClassName,
+              item.className,
+            )}>
+            <div className="flex min-w-[100px] justify-start text-left text-sm font-medium">
+              {item.label}
+            </div>
+            <div className="text-primary flex justify-end text-right text-sm font-normal break-words">
+              {item.content}
+            </div>
           </div>
-          <div className="text-primary flex justify-end text-right text-sm font-normal break-words">
-            {item.content}
-          </div>
-        </div>
-      ))}
+        ))}
     </div>
   )
 }

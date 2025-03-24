@@ -5,7 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { LOCATION_PROVIDERS } from '@/constants/location'
+import { LOCATION_PROVIDERS } from '@/constants/options'
 import { LocationProvider } from '@/resources/interfaces/location.interface'
 import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react'
 import { useMemo } from 'react'

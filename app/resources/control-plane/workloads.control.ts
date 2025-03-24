@@ -7,9 +7,13 @@ import {
   readComputeDatumapisComV1AlphaNamespacedWorkloadStatus,
   replaceComputeDatumapisComV1AlphaNamespacedWorkload,
 } from '@/modules/control-plane/compute'
-import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
+import {
+  IWorkloadControlResponse,
+  RuntimeType,
+} from '@/resources/interfaces/workload.interface'
+import { NewWorkloadSchema } from '@/resources/schemas/workload.schema'
 import { CustomError } from '@/utils/errorHandle'
-import { transformControlPlaneStatus } from '@/utils/misc'
+import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
 export const createWorkloadsControl = (client: Client) => {
@@ -20,6 +24,8 @@ export const createWorkloadsControl = (client: Client) => {
   ): IWorkloadControlResponse => {
     return {
       name: workload.metadata?.name,
+      labels: workload.metadata?.labels,
+      annotations: workload.metadata?.annotations,
       namespace: workload.metadata?.namespace,
       createdAt: workload.metadata?.creationTimestamp,
       uid: workload.metadata?.uid,
@@ -27,6 +33,106 @@ export const createWorkloadsControl = (client: Client) => {
       spec: workload.spec,
       status: workload.status,
     }
+  }
+
+  const formatWorkload = (
+    value: NewWorkloadSchema,
+  ): ComDatumapisComputeV1AlphaWorkload => {
+    // Runtime Handler
+    let runtime = {}
+    let specAnnotations = {}
+    if (value?.runtime?.runtimeType === RuntimeType.VM) {
+      runtime = {
+        virtualMachine: {
+          ports: [
+            // TODO: Add ports configuration if needed in the future
+            {
+              name: 'http',
+              port: 8080,
+              protocol: 'TCP', // Adding default protocol
+            },
+          ],
+          volumeAttachments: (value?.storages ?? []).map((storage) => ({
+            name: storage?.name,
+            // Add mountPath if available in the future
+          })),
+        },
+      }
+
+      if (value?.runtime?.virtualMachine?.sshKey) {
+        specAnnotations = {
+          'compute.datumapis.com/ssh-keys': value?.runtime?.virtualMachine?.sshKey ?? '',
+        }
+      }
+    }
+
+    return {
+      metadata: {
+        name: value?.metadata?.name,
+        labels: convertLabelsToObject(value?.metadata?.labels ?? []),
+        annotations: convertLabelsToObject(value?.metadata?.annotations ?? []),
+      },
+      spec: {
+        template: {
+          metadata: {
+            annotations: { ...specAnnotations },
+          },
+          spec: {
+            networkInterfaces: (value?.networks ?? []).map((network) => ({
+              network: {
+                name: network?.name,
+              },
+              networkPolicy: {
+                ingress: [
+                  {
+                    from: network?.ipFamilies?.map((ipFamily) => ({
+                      ipBlock: {
+                        cidr: ipFamily === 'IPv4' ? '0.0.0.0/0' : '::/0',
+                      },
+                    })),
+                    // Adding ports configuration if needed in the future
+                    // ports: []
+                  },
+                ],
+              },
+            })),
+            runtime: {
+              resources: {
+                instanceType: value?.runtime?.instanceType,
+              },
+              ...runtime,
+            },
+            volumes: (value?.storages ?? []).map((storage) => ({
+              disk: {
+                template: {
+                  spec: {
+                    populator: {
+                      image: {
+                        name: storage?.bootImage,
+                      },
+                    },
+                    resources: {
+                      requests: {
+                        storage: `${storage?.size}Gi`, // Default to GiB
+                      },
+                    },
+                  },
+                },
+              },
+              name: storage?.name,
+            })),
+          },
+        },
+        placements: (value?.placements ?? []).map((placement) => ({
+          cityCodes: [placement?.cityCode],
+          name: placement?.name,
+          scaleSettings: {
+            minReplicas: Number(placement?.minimumReplicas ?? 1),
+            // Add maxReplicas if needed for autoscaling
+          },
+        })),
+      },
+    } as ComDatumapisComputeV1AlphaWorkload
   }
 
   return {
@@ -56,9 +162,10 @@ export const createWorkloadsControl = (client: Client) => {
     },
     create: async (
       projectId: string,
-      workload: ComDatumapisComputeV1AlphaWorkload,
+      workload: NewWorkloadSchema,
       dryRun: boolean = false,
     ) => {
+      const formatted = formatWorkload(workload)
       const response = await createComputeDatumapisComV1AlphaNamespacedWorkload({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -69,7 +176,7 @@ export const createWorkloadsControl = (client: Client) => {
           dryRun: dryRun ? 'All' : undefined,
         },
         body: {
-          ...workload,
+          ...formatted,
           apiVersion: 'compute.datumapis.com/v1alpha',
           kind: 'Workload',
         },
