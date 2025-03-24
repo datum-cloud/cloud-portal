@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { RuntimeType } from '@/resources/interfaces/workload.interface'
+import { RuntimeType, StorageType } from '@/resources/interfaces/workload.interface'
 import {
   MetadataSchema,
   metadataSchema,
@@ -42,7 +42,9 @@ const { useStepper } = defineStepper(
     description: 'Define essential information and labels for your workload resource.',
     icon: () => <Layers />,
     schema: metadataSchema,
-    preview: (values?: any) => <MetadataPreview values={values as MetadataSchema} />,
+    preview: (values?: any) => (
+      <MetadataPreview values={values?.metadata as MetadataSchema} />
+    ),
   },
   {
     id: 'runtime',
@@ -51,7 +53,9 @@ const { useStepper } = defineStepper(
       'Configure instance type and choose between Container or VM runtime environments.',
     icon: () => <Cpu />,
     schema: runtimeSchema,
-    preview: (values?: any) => <RuntimePreview values={values as RuntimeSchema} />,
+    preview: (values?: any) => (
+      <RuntimePreview values={values?.runtime as RuntimeSchema} />
+    ),
   },
   {
     id: 'networks',
@@ -60,7 +64,9 @@ const { useStepper } = defineStepper(
       'Configure network interfaces for your workload instances, including network selection and IP family options.',
     icon: () => <Network />,
     schema: networksSchema,
-    preview: (values?: any) => <NetworkPreview values={values as NetworksSchema} />,
+    preview: (values?: any) => (
+      <NetworkPreview values={values?.networks as NetworksSchema} />
+    ),
   },
   {
     id: 'storages',
@@ -68,7 +74,16 @@ const { useStepper } = defineStepper(
     description: 'Add storage volumes with names and sizes.',
     icon: () => <HardDrive />,
     schema: storagesSchema,
-    preview: (values?: any) => <StoragesPreview values={values as StoragesSchema} />,
+    preview: (values?: any) => (
+      <StoragesPreview
+        values={values?.storages as StoragesSchema}
+        vmBootImage={
+          values?.runtime?.runtimeType === RuntimeType.VM
+            ? values.runtime?.virtualMachine?.bootImage
+            : undefined
+        }
+      />
+    ),
   },
   {
     id: 'placements',
@@ -76,7 +91,9 @@ const { useStepper } = defineStepper(
     description: 'Choose where to deploy your workload and set up scaling options.',
     icon: () => <Server />,
     schema: placementsSchema,
-    preview: (values?: any) => <PlacementsPreview values={values as PlacementsSchema} />,
+    preview: (values?: any) => (
+      <PlacementsPreview values={values?.placements as PlacementsSchema} />
+    ),
   },
 )
 
@@ -90,7 +107,7 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
       instanceType: 'datumcloud/d1-standard-2',
     },
     networks: [{ name: undefined, ipFamilies: [] }],
-    storages: [{ name: undefined, type: undefined }],
+    storages: [],
     placements: [{ name: undefined, cityCode: undefined, minimumReplicas: 1 }],
   }
 
@@ -125,6 +142,7 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
           metadata: {
             name: allMetadata.name,
             labels: allMetadata.labels,
+            annotations: allMetadata.annotations,
           },
           runtime: {
             instanceType: allMetadata.instanceType,
@@ -178,6 +196,21 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
       value: initialValues,
     })
   }, [])
+
+  useEffect(() => {
+    if (
+      stepper.current.id === 'storages' &&
+      stepper.metadata.runtime?.runtimeType !== RuntimeType.VM &&
+      stepper.metadata.storages?.length === 0
+    ) {
+      form.update({
+        value: {
+          ...stepper.metadata,
+          storages: [{ name: '', type: StorageType.FILESYSTEM }],
+        },
+      })
+    }
+  }, [stepper.metadata, stepper.current.id])
 
   return (
     <Card>
@@ -273,11 +306,14 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
                                 stepper.getMetadata('storages') as StoragesSchema
                               }
                               fields={
-                                fields as ReturnType<typeof useForm<StoragesSchema>>[1]
+                                fields as unknown as ReturnType<
+                                  typeof useForm<StoragesSchema>
+                                >[1]
                               }
-                              isVM={
-                                stepper.getMetadata('runtime')?.runtimeType ===
-                                RuntimeType.VM
+                              vmBootImage={
+                                stepper.metadata.runtime?.runtimeType === RuntimeType.VM
+                                  ? stepper.metadata.runtime?.virtualMachine?.bootImage
+                                  : undefined
                               }
                             />
                           ),
@@ -311,7 +347,7 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
                       </div>
                     ) : (
                       <div className="flex-1 px-7 pb-6">
-                        {step.preview(stepper.getMetadata(step.id))}
+                        {step.preview(stepper.metadata)}
                       </div>
                     )}
                   </React.Fragment>

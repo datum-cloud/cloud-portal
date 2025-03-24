@@ -110,8 +110,8 @@ export const storageFieldSchema = z
     bootImage: z.string().optional(),
     size: z.coerce
       .number({ required_error: 'Size is required.' })
-      .min(1, {
-        message: 'Size must be at least 1.',
+      .min(10, {
+        message: 'Size must be at least 10Gi.',
       })
       .transform((val) => Number(val))
       .optional(),
@@ -129,9 +129,7 @@ export const storageFieldSchema = z
     },
   )
 export const storagesSchema = z.object({
-  storages: z
-    .array(storageFieldSchema)
-    .min(1, { message: 'At least one storage must be configured.' }),
+  storages: z.array(storageFieldSchema),
 })
 
 // Placements

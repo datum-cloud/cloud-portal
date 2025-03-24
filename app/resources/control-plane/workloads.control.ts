@@ -39,10 +39,12 @@ export const createWorkloadsControl = (client: Client) => {
     value: NewWorkloadSchema,
   ): ComDatumapisComputeV1AlphaWorkload => {
     // Runtime Handler
-    let runtime = {}
+    const isVM = value?.runtime?.runtimeType === RuntimeType.VM
+    let runtimeSpec = {}
     let specAnnotations = {}
-    if (value?.runtime?.runtimeType === RuntimeType.VM) {
-      runtime = {
+
+    if (isVM) {
+      runtimeSpec = {
         virtualMachine: {
           ports: [
             // TODO: Add ports configuration if needed in the future
@@ -52,13 +54,20 @@ export const createWorkloadsControl = (client: Client) => {
               protocol: 'TCP', // Adding default protocol
             },
           ],
-          volumeAttachments: (value?.storages ?? []).map((storage) => ({
-            name: storage?.name,
-            // Add mountPath if available in the future
-          })),
+          volumeAttachments: [
+            {
+              // For Handle Boot Volume
+              name: 'boot',
+            },
+            ...(value?.storages ?? []).map((storage) => ({
+              name: storage?.name,
+              // Add mountPath if available in the future
+            })),
+          ],
         },
       }
 
+      // Add SSH Key to the VM.
       if (value?.runtime?.virtualMachine?.sshKey) {
         specAnnotations = {
           'compute.datumapis.com/ssh-keys': value?.runtime?.virtualMachine?.sshKey ?? '',
@@ -100,27 +109,44 @@ export const createWorkloadsControl = (client: Client) => {
               resources: {
                 instanceType: value?.runtime?.instanceType,
               },
-              ...runtime,
+              ...runtimeSpec,
             },
-            volumes: (value?.storages ?? []).map((storage) => ({
-              disk: {
-                template: {
-                  spec: {
-                    populator: {
-                      image: {
-                        name: storage?.bootImage,
+            volumes: [
+              // For Handle Boot Volume
+              ...(isVM
+                ? [
+                    {
+                      name: 'boot',
+                      disk: {
+                        template: {
+                          spec: {
+                            type: 'pd-standard',
+                            populator: {
+                              image: {
+                                name: value?.runtime?.virtualMachine?.bootImage,
+                              },
+                            },
+                          },
+                        },
                       },
                     },
-                    resources: {
-                      requests: {
-                        storage: `${storage?.size}Gi`, // Default to GiB
+                  ]
+                : []),
+              ...(value?.storages ?? []).map((storage) => ({
+                name: storage?.name,
+                disk: {
+                  template: {
+                    spec: {
+                      resources: {
+                        requests: {
+                          storage: `${storage?.size}Gi`, // Default to GiB
+                        },
                       },
                     },
                   },
                 },
-              },
-              name: storage?.name,
-            })),
+              })),
+            ],
           },
         },
         placements: (value?.placements ?? []).map((placement) => ({

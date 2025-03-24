@@ -1,8 +1,11 @@
+import { BootField } from './boot-field'
 import { StorageField } from './storage-field'
 import { List, ListItem } from '@/components/list/list'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { STORAGE_TYPES } from '@/constants/options'
+import { StorageType } from '@/resources/interfaces/workload.interface'
 import { StorageFieldSchema, StoragesSchema } from '@/resources/schemas/workload.schema'
 import { cn } from '@/utils/misc'
 import { FormMetadata, useForm } from '@conform-to/react'
@@ -13,12 +16,12 @@ export const StoragesForm = ({
   form,
   fields,
   defaultValues,
-  isVM,
+  vmBootImage,
 }: {
   form: FormMetadata<StoragesSchema>
   fields: ReturnType<typeof useForm<StoragesSchema>>[1]
   defaultValues?: StoragesSchema
-  isVM: boolean
+  vmBootImage?: string
 }) => {
   const storages = fields.storages.getFieldList()
 
@@ -27,6 +30,8 @@ export const StoragesForm = ({
       ? defaultValues.storages
       : ((defaultValues ?? []) as StorageFieldSchema[])
   }, [defaultValues])
+
+  const isVM = useMemo(() => vmBootImage !== undefined, [vmBootImage])
 
   useEffect(() => {
     form.update({
@@ -38,6 +43,11 @@ export const StoragesForm = ({
   return (
     <div className="flex flex-col gap-2">
       <div className="space-y-4">
+        {isVM && vmBootImage && (
+          <div className="relative flex items-center gap-2 rounded-md border p-4">
+            <BootField defaultValues={{ name: 'boot', bootImage: vmBootImage }} />
+          </div>
+        )}
         {storages.map((storage, index) => {
           const storageFields = storage.getFieldset()
           return (
@@ -45,7 +55,6 @@ export const StoragesForm = ({
               className="relative flex items-center gap-2 rounded-md border p-4"
               key={storage.key}>
               <StorageField
-                isVM={isVM}
                 fields={
                   storageFields as unknown as ReturnType<
                     typeof useForm<StorageFieldSchema>
@@ -54,7 +63,7 @@ export const StoragesForm = ({
                 defaultValues={values?.[index] as StorageFieldSchema}
               />
 
-              {storages.length > 1 && (
+              {storages.length > (isVM ? 0 : 1) && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -82,7 +91,7 @@ export const StoragesForm = ({
         onClick={() =>
           form.insert({
             name: fields.storages.name,
-            defaultValue: { name: '', type: '' },
+            defaultValue: { name: '', type: StorageType.FILESYSTEM },
           })
         }>
         <PlusIcon className="size-4" />
@@ -92,24 +101,56 @@ export const StoragesForm = ({
   )
 }
 
-export const StoragesPreview = ({ values }: { values: StoragesSchema }) => {
-  const listItems: ListItem[] = useMemo(() => {
-    if ((values.storages ?? []).length > 0) {
-      return values.storages.map((storage, index) => ({
-        label: `Storage ${index + 1}`,
-        content: (
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{storage.name}</span>
-            <Badge variant="outline">
-              {STORAGE_TYPES[storage.type as keyof typeof STORAGE_TYPES].label}
-            </Badge>
-          </div>
-        ),
-      }))
+export const StoragesPreview = ({
+  values,
+  vmBootImage,
+}: {
+  values: StoragesSchema
+  vmBootImage?: string
+}) => {
+  const bootValues = useMemo(() => {
+    if (vmBootImage) {
+      return {
+        name: 'boot',
+        bootImage: vmBootImage,
+      }
     }
 
-    return []
-  }, [values])
+    return undefined
+  }, [vmBootImage])
+
+  const listItems: ListItem[] = useMemo(() => {
+    let bootDetail = {}
+    if (bootValues) {
+      bootDetail = {
+        label: 'Boot Storage',
+        content: (
+          <div className="flex items-center gap-2 font-medium">
+            <span>{bootValues.name}</span>
+            <Separator orientation="vertical" className="h-4" />
+            <span>{bootValues.bootImage}</span>
+          </div>
+        ),
+      }
+    }
+
+    const storages = (values.storages ?? []).map((storage, index) => ({
+      label: `Storage ${index + 1}`,
+      content: (
+        <div className="flex items-center gap-2 font-medium">
+          <span>{storage.name}</span>
+          <Separator orientation="vertical" className="h-4" />
+          <span>{storage.size}Gi</span>
+          <Separator orientation="vertical" className="h-4" />
+          <Badge variant="outline">
+            {STORAGE_TYPES[storage.type as keyof typeof STORAGE_TYPES].label}
+          </Badge>
+        </div>
+      ),
+    }))
+
+    return [bootDetail, ...storages]
+  }, [values, bootValues])
 
   return <List items={listItems} itemClassName="!border-b-0 !px-0 py-1.5" />
 }

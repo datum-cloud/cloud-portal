@@ -52,6 +52,7 @@ export enum RuntimeType {
 }
 
 export enum StorageType {
+  BOOT = 'boot',
   FILESYSTEM = 'filesystem',
   REQUEST = 'request',
 }

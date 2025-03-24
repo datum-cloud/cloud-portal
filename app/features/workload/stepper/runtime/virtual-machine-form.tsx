@@ -42,8 +42,8 @@ export const VirtualMachineForm = ({
   ])
 
   return (
-    <div className="space-y-4">
-      <Field label="Boot Image" errors={fields.bootImage.errors}>
+    <div className="flex w-full flex-col gap-4">
+      <Field label="Boot Image" errors={fields.bootImage.errors} className="w-full">
         <Select
           {...getSelectProps(fields.bootImage)}
           onValueChange={bootImageControl.change}
@@ -65,7 +65,7 @@ export const VirtualMachineForm = ({
         </Select>
       </Field>
 
-      <Field label="SSH Key" errors={fields.sshKey.errors}>
+      <Field label="SSH Key" errors={fields.sshKey.errors} className="w-full">
         <Input
           {...getInputProps(fields.sshKey, { type: 'text' })}
           key={fields.sshKey.id}

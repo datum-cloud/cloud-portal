@@ -44,8 +44,8 @@ export const RuntimeForm = ({
   ])
 
   return (
-    <div className="space-y-4">
-      <Field label="Instance Type" errors={fields.instanceType.errors}>
+    <div className="flex w-full flex-col items-start gap-4">
+      <Field label="Instance Type" errors={fields.instanceType.errors} className="w-full">
         <Select
           {...getSelectProps(fields.instanceType)}
           onValueChange={instanceTypeControl.change}
@@ -69,6 +69,7 @@ export const RuntimeForm = ({
       <Field
         label="Runtime Type"
         errors={fields.runtimeType.errors}
+        className="w-full"
         tooltipInfo={
           <div className="max-w-2xs space-y-2">
             <p>
