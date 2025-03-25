@@ -1,3 +1,4 @@
+import { nameSchema } from './general.schema'
 import {
   LocationClass,
   LocationProvider,
@@ -11,27 +12,22 @@ export const gcpProviderSchema = z.object({
   zone: z.string({ required_error: 'Zone is required.' }),
 })
 
-export const baseLocationSchema = z.object({
-  // displayName: z
-  //   .string({ required_error: 'Display name is required.' })
-  //   .max(100, { message: 'Display name must be less than 100 characters long.' }),
-  name: z
-    .string({ required_error: 'Name is required.' })
-    .min(6, { message: 'Name must be at least 6 characters long.' })
-    .regex(/^[a-z][a-z0-9-]*[a-z0-9]$/, {
-      message:
-        'Name must be kebab-case, start with a letter, and end with a letter or number',
+export const baseLocationSchema = z
+  .object({
+    // displayName: z
+    //   .string({ required_error: 'Display name is required.' })
+    //   .max(100, { message: 'Display name must be less than 100 characters long.' }),
+    class: z.enum(Object.values(LocationClass) as [string, ...string[]], {
+      required_error: 'Class is required.',
     }),
-  class: z.enum(Object.values(LocationClass) as [string, ...string[]], {
-    required_error: 'Class is required.',
-  }),
-  provider: z.enum(Object.values(LocationProvider) as [string, ...string[]], {
-    required_error: 'Provider is required.',
-  }),
-  cityCode: z.string({ required_error: 'City code is required.' }),
-  resourceVersion: z.string().optional(),
-  labels: z.array(z.string()).optional(),
-})
+    provider: z.enum(Object.values(LocationProvider) as [string, ...string[]], {
+      required_error: 'Provider is required.',
+    }),
+    cityCode: z.string({ required_error: 'City code is required.' }),
+    resourceVersion: z.string().optional(),
+    labels: z.array(z.string()).optional(),
+  })
+  .merge(nameSchema)
 
 // Combined schema with discriminated union for providerConfig
 export const newLocationSchema = baseLocationSchema

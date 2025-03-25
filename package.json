@@ -60,6 +60,7 @@
     "cross-env": "^7.0.3",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
+    "es-toolkit": "^1.33.0",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "graphql": "^16.10.0",

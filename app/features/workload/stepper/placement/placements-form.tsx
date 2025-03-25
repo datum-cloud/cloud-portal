@@ -1,5 +1,6 @@
 import { PlacementField } from './placement-field'
 import { List, ListItem } from '@/components/list/list'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -15,10 +16,12 @@ export const PlacementsForm = ({
   form,
   fields,
   defaultValues,
+  isEdit = false,
 }: {
   form: FormMetadata<PlacementsSchema>
   fields: ReturnType<typeof useForm<PlacementsSchema>>[1]
   defaultValues?: PlacementsSchema
+  isEdit?: boolean
 }) => {
   const placements = fields.placements.getFieldList()
 
@@ -45,6 +48,7 @@ export const PlacementsForm = ({
               className="relative flex items-center gap-2 rounded-md border p-4"
               key={placement.key}>
               <PlacementField
+                isEdit={isEdit}
                 fields={
                   placementFields as unknown as ReturnType<
                     typeof useForm<PlacementFieldSchema>
@@ -97,9 +101,9 @@ export const PlacementsPreview = ({ values }: { values: PlacementsSchema }) => {
           <div className="flex items-center gap-2">
             <span className="font-medium">{placement.name}</span>
             <Separator orientation="vertical" className="h-4" />
-            <span className="font-medium">{placement.cityCode}</span>
+            <Badge variant="outline">{placement.cityCode}</Badge>
             <Separator orientation="vertical" className="h-4" />
-            <span className="font-medium">{placement.minimumReplicas}</span>
+            <Badge variant="outline">Min Replicas: {placement.minimumReplicas}</Badge>
           </div>
         ),
       }))

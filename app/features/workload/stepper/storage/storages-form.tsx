@@ -17,11 +17,13 @@ export const StoragesForm = ({
   fields,
   defaultValues,
   vmBootImage,
+  isEdit = false,
 }: {
   form: FormMetadata<StoragesSchema>
   fields: ReturnType<typeof useForm<StoragesSchema>>[1]
   defaultValues?: StoragesSchema
   vmBootImage?: string
+  isEdit?: boolean
 }) => {
   const storages = fields.storages.getFieldList()
 
@@ -55,6 +57,7 @@ export const StoragesForm = ({
               className="relative flex items-center gap-2 rounded-md border p-4"
               key={storage.key}>
               <StorageField
+                isEdit={isEdit}
                 fields={
                   storageFields as unknown as ReturnType<
                     typeof useForm<StorageFieldSchema>
@@ -140,7 +143,7 @@ export const StoragesPreview = ({
         <div className="flex items-center gap-2 font-medium">
           <span>{storage.name}</span>
           <Separator orientation="vertical" className="h-4" />
-          <span>{storage.size}Gi</span>
+          <Badge variant="outline">Size: {storage.size}Gi</Badge>
           <Separator orientation="vertical" className="h-4" />
           <Badge variant="outline">
             {STORAGE_TYPES[storage.type as keyof typeof STORAGE_TYPES].label}

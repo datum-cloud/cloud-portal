@@ -125,7 +125,6 @@ export default function NetworkForm({
               {...getInputProps(fields.displayName, { type: 'text' })}
               key={fields.displayName.id}
               placeholder="e.g. My Network"
-              ref={inputRef}
               onInput={(e: React.FormEvent<HTMLInputElement>) => {
                 if (!isEdit) {
                   const value = (e.target as HTMLInputElement).value
@@ -144,6 +143,7 @@ export default function NetworkForm({
               <Input
                 {...getInputProps(fields.name, { type: 'text' })}
                 key={fields.name.id}
+                ref={inputRef}
                 placeholder="e.g. my-network-us-22sdss"
                 readOnly={isEdit}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
