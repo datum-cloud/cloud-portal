@@ -6,15 +6,20 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { MetadataSchema } from '@/resources/schemas/workload.schema'
 import { getInputProps, useForm, useInputControl } from '@conform-to/react'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { useHydrated } from 'remix-utils/use-hydrated'
 
 export const MetadataForm = ({
   fields,
   defaultValues,
+  isEdit = false,
 }: {
   fields: ReturnType<typeof useForm<MetadataSchema>>[1]
   defaultValues?: MetadataSchema
+  isEdit?: boolean
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const isHydrated = useHydrated()
   const nameControl = useInputControl(fields.name)
   const labelsControl = useInputControl(fields.labels)
   const annotationsControl = useInputControl(fields.annotations)
@@ -26,6 +31,13 @@ export const MetadataForm = ({
       annotationsControl.change(defaultValues.annotations)
     }
   }, [defaultValues])
+
+  // Focus the input when the form is hydrated
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    isHydrated && inputRef.current?.focus()
+  }, [isHydrated])
+
   return (
     <div className="space-y-4">
       <Field
@@ -33,8 +45,10 @@ export const MetadataForm = ({
         description="A namespace-unique stable identifier for your workload. This cannot be changed once the workload is created"
         errors={fields.name.errors}>
         <Input
+          readOnly={isEdit}
           {...getInputProps(fields.name, { type: 'text' })}
           key={fields.name.id}
+          ref={inputRef}
           placeholder="e.g. my-workload-us-3sd122"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             const value = (e.target as HTMLInputElement).value

@@ -37,6 +37,7 @@ export const createWorkloadsControl = (client: Client) => {
 
   const formatWorkload = (
     value: NewWorkloadSchema,
+    resourceVersion?: string,
   ): ComDatumapisComputeV1AlphaWorkload => {
     // Runtime Handler
     const isVM = value?.runtime?.runtimeType === RuntimeType.VM
@@ -80,6 +81,7 @@ export const createWorkloadsControl = (client: Client) => {
         name: value?.metadata?.name,
         labels: convertLabelsToObject(value?.metadata?.labels ?? []),
         annotations: convertLabelsToObject(value?.metadata?.annotations ?? []),
+        ...(resourceVersion ? { resourceVersion } : {}),
       },
       spec: {
         template: {
@@ -217,10 +219,11 @@ export const createWorkloadsControl = (client: Client) => {
     update: async (
       projectId: string,
       workloadId: string,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      workload: { spec: any; resourceVersion: string },
+      workload: NewWorkloadSchema,
+      resourceVersion: string,
       dryRun: boolean = false,
     ) => {
+      const formatted = formatWorkload(workload, resourceVersion)
       const response = await replaceComputeDatumapisComV1AlphaNamespacedWorkload({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -229,13 +232,9 @@ export const createWorkloadsControl = (client: Client) => {
           dryRun: dryRun ? 'All' : undefined,
         },
         body: {
+          ...formatted,
           apiVersion: 'compute.datumapis.com/v1alpha',
           kind: 'Workload',
-          metadata: {
-            name: workloadId,
-            resourceVersion: workload.resourceVersion,
-          },
-          spec: workload.spec,
         },
       })
 

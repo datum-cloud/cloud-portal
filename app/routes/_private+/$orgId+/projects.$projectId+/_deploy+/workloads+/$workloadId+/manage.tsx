@@ -1,15 +1,13 @@
 import { routes } from '@/constants/routes'
-import { WorkloadForm } from '@/features/workload/form'
+import { WorkloadUpdateForm } from '@/features/workload/stepper/update-form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
-import { updateWorkloadSchema } from '@/resources/schemas/workload.schema'
+import { newWorkloadSchema } from '@/resources/schemas/workload.schema'
 import { validateCSRF } from '@/utils/csrf.server'
-import { yamlToJson } from '@/utils/editor'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
-import { parseWithZod } from '@conform-to/zod'
 import { Client } from '@hey-api/client-axios'
 import {
   ActionFunctionArgs,
@@ -51,40 +49,44 @@ export const action = withMiddleware(
     }
 
     const clonedRequest = request.clone()
-    const formData = await clonedRequest.formData()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const payload: any = await clonedRequest.json()
 
     try {
-      await validateCSRF(formData, clonedRequest.headers)
+      // Extract CSRF token from JSON payload
+      const csrfToken = payload.csrf
+      const resourceVersion = payload.resourceVersion
+
+      // Create FormData to validate CSRF token
+      const formData = new FormData()
+      formData.append('csrf', csrfToken)
+
+      // Validate the CSRF token against the request headers
+      await validateCSRF(formData, request.headers)
 
       // Validate form data with Zod
-      const parsed = parseWithZod(formData, { schema: updateWorkloadSchema })
+      const parsed = newWorkloadSchema.safeParse(payload)
 
-      if (parsed.status !== 'success') {
+      if (!parsed.success) {
         throw new Error('Invalid form data')
-      }
-
-      const value = parsed.value
-      const format = value.format
-
-      // Convert the configuration to JSON for custom resource
-      const spec = JSON.parse(
-        format === 'yaml' ? yamlToJson(value.configuration) : value.configuration,
-      )
-
-      const payload = {
-        resourceVersion: value.resourceVersion,
-        spec,
       }
 
       const dryRunRes = await workloadsControl.update(
         projectId,
         workloadId,
         payload,
+        resourceVersion,
         true,
       )
 
       if (dryRunRes) {
-        await workloadsControl.update(projectId, workloadId, payload, false)
+        await workloadsControl.update(
+          projectId,
+          workloadId,
+          payload,
+          resourceVersion,
+          false,
+        )
       }
 
       return redirectWithToast(
@@ -115,8 +117,8 @@ export default function SettingsWorkload() {
   const { projectId, orgId } = useParams()
 
   return (
-    <div className="mx-auto w-full max-w-(--breakpoint-lg)">
-      <WorkloadForm projectId={projectId} orgId={orgId} defaultValue={data} />
+    <div className="mx-auto w-full max-w-3xl py-8">
+      <WorkloadUpdateForm projectId={projectId} orgId={orgId} defaultValue={data} />
     </div>
   )
 }

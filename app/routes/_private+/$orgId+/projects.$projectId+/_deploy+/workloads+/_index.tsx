@@ -41,8 +41,6 @@ export const loader = withMiddleware(async ({ context, params }: LoaderFunctionA
 }, authMiddleware)
 
 export default function WorkloadsPage() {
-  // useRevalidateOnInterval({ enabled: true, interval: 10000 })
-
   const data = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const submit = useSubmit()

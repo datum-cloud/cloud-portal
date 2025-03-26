@@ -1,3 +1,4 @@
+import { nameSchema } from './general.schema'
 import { createCodeEditorSchema } from '@/components/code-editor/code-editor.types'
 import { RuntimeType, StorageType } from '@/resources/interfaces/workload.interface'
 import { z } from 'zod'
@@ -28,18 +29,12 @@ export type UpdateWorkloadSchema = z.infer<typeof updateWorkloadSchema>
 // Stepper schemas
 
 // Metadata Section
-export const metadataSchema = z.object({
-  name: z
-    .string({ required_error: 'Name is required.' })
-    .min(6, { message: 'Name must be at least 6 characters long.' })
-    .max(30, { message: 'Name must be less than 30 characters long.' })
-    .regex(/^[a-z][a-z0-9-]*[a-z0-9]$/, {
-      message:
-        'Name must be kebab-case, start with a letter, and end with a letter or number',
-    }),
-  labels: z.array(z.string()).optional(),
-  annotations: z.array(z.string()).optional(),
-})
+export const metadataSchema = z
+  .object({
+    labels: z.array(z.string()).optional(),
+    annotations: z.array(z.string()).optional(),
+  })
+  .and(nameSchema)
 
 // Runtime Section
 export const runtimeVMSchema = z.object({
@@ -47,10 +42,10 @@ export const runtimeVMSchema = z.object({
   sshKey: z
     .string({ required_error: 'SSH key is required for VM.' })
     .regex(
-      /^(?:([a-zA-Z0-9_.-]+):)?(?:ssh-rsa AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ssh-ed25519 AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ssh-dss AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ecdsa-sha2-nistp(?:256|384|521) AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$)/,
+      /^([a-zA-Z0-9_.-]+):(?:ssh-rsa AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ssh-ed25519 AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ssh-dss AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ecdsa-sha2-nistp(?:256|384|521) AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$)/,
       {
         message:
-          'Invalid SSH key format. Must be a valid SSH public key (RSA, ED25519, DSA, or ECDSA).',
+          'Invalid SSH key format. Must be in the format "username:ssh-key" with a valid SSH public key (RSA, ED25519, DSA, or ECDSA).',
       },
     ),
 })
@@ -98,11 +93,11 @@ export const storageFieldSchema = z
   .object({
     name: z
       .string({ required_error: 'Name is required.' })
-      .min(6, { message: 'Name must be at least 6 characters long.' })
-      .max(30, { message: 'Name must be less than 30 characters long.' })
-      .regex(/^[a-z][a-z0-9-]*[a-z0-9]$/, {
+      .min(1, { message: 'Name is required.' })
+      .max(63, { message: 'Name must be at most 63 characters long.' })
+      .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
         message:
-          'Name must be kebab-case, start with a letter, and end with a letter or number',
+          'Name must contain only lowercase alphanumeric characters or hyphens, start with an alphanumeric character, and end with an alphanumeric character',
       }),
     type: z.enum(Object.values(StorageType) as [string, ...string[]], {
       required_error: 'Storage type is required.',
@@ -133,16 +128,17 @@ export const storagesSchema = z.object({
 })
 
 // Placements
-export const placementFieldSchema = z.object({
-  name: z.string({ required_error: 'Name is required.' }),
-  cityCode: z.string({ required_error: 'City code is required.' }),
-  minimumReplicas: z.coerce
-    .number({ required_error: 'Minimum replicas is required.' })
-    .min(1, {
-      message: 'Minimum replicas must be at least 1.',
-    })
-    .transform((val) => Number(val)),
-})
+export const placementFieldSchema = z
+  .object({
+    cityCode: z.string({ required_error: 'City code is required.' }),
+    minimumReplicas: z.coerce
+      .number({ required_error: 'Minimum replicas is required.' })
+      .min(1, {
+        message: 'Minimum replicas must be at least 1.',
+      })
+      .transform((val) => Number(val)),
+  })
+  .merge(nameSchema)
 
 export const placementsSchema = z.object({
   placements: z.array(placementFieldSchema).min(1, {
@@ -159,6 +155,16 @@ export const newWorkloadSchema = z
   .merge(storagesSchema)
   .merge(placementsSchema)
 
+export const newUpdateWorkloadSchema = z
+  .object({
+    resourceVersion: z.string({ required_error: 'Resource version is required.' }),
+  })
+  .and(runtimeSchema)
+  .and(metadataSchema)
+  .and(networksSchema)
+  .and(storagesSchema)
+  .and(placementsSchema)
+
 export type MetadataSchema = z.infer<typeof metadataSchema>
 export type RuntimeSchema = z.infer<typeof runtimeSchema>
 export type RuntimeVMSchema = z.infer<typeof runtimeVMSchema>
@@ -169,3 +175,4 @@ export type StorageFieldSchema = z.infer<typeof storageFieldSchema>
 export type PlacementsSchema = z.infer<typeof placementsSchema>
 export type PlacementFieldSchema = z.infer<typeof placementFieldSchema>
 export type NewWorkloadSchema = z.infer<typeof newWorkloadSchema>
+export type NewUpdateWorkloadSchema = z.infer<typeof newUpdateWorkloadSchema>

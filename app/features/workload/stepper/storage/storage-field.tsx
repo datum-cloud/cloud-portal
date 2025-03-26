@@ -16,15 +16,21 @@ import {
   useForm,
   useInputControl,
 } from '@conform-to/react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { useHydrated } from 'remix-utils/use-hydrated'
 
 export const StorageField = ({
+  isEdit = false,
   fields,
   defaultValues,
 }: {
+  isEdit?: boolean
   fields: ReturnType<typeof useForm<StorageFieldSchema>>[1]
   defaultValues?: StorageFieldSchema
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const isHydrated = useHydrated()
+
   const typeControl = useInputControl(fields.type)
   const nameControl = useInputControl(fields.name)
 
@@ -41,11 +47,18 @@ export const StorageField = ({
     }
   }, [defaultValues, typeControl, nameControl, fields.name.value, fields.type.value])
 
+  // Focus the input when the form is hydrated
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    isHydrated && inputRef.current?.focus()
+  }, [isHydrated])
+
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
       <Field label="Name" errors={fields.name.errors} className="w-full">
         <Input
           {...getInputProps(fields.name, { type: 'text' })}
+          ref={isEdit ? undefined : inputRef}
           key={fields.name.id}
           placeholder="e.g. my-storage-us-3sd122"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {

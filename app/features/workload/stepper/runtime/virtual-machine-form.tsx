@@ -14,15 +14,20 @@ import {
   useForm,
   useInputControl,
 } from '@conform-to/react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { useHydrated } from 'remix-utils/use-hydrated'
 
 export const VirtualMachineForm = ({
   fields,
   defaultValues,
+  isEdit = false,
 }: {
   fields: ReturnType<typeof useForm<RuntimeVMSchema>>[1]
   defaultValues?: RuntimeVMSchema
+  isEdit?: boolean
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const isHydrated = useHydrated()
   const bootImageControl = useInputControl(fields.bootImage)
   const sshKeyControl = useInputControl(fields.sshKey)
   useEffect(() => {
@@ -40,6 +45,12 @@ export const VirtualMachineForm = ({
     fields.bootImage.value,
     fields.sshKey.value,
   ])
+
+  // Focus the input when the form is hydrated
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    isHydrated && inputRef.current?.focus()
+  }, [isHydrated])
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -65,11 +76,26 @@ export const VirtualMachineForm = ({
         </Select>
       </Field>
 
-      <Field label="SSH Key" errors={fields.sshKey.errors} className="w-full">
+      <Field
+        label="SSH Key"
+        errors={fields.sshKey.errors}
+        className="w-full"
+        description={
+          <span className="text-muted-foreground text-xs">
+            Required format:{' '}
+            <code className="bg-muted rounded px-1 py-0.5 text-xs">username:key</code>
+            (e.g.,{' '}
+            <code className="bg-muted rounded px-1 py-0.5 text-xs">
+              admin:ssh-rsa AAAAB3N...
+            </code>
+            )
+          </span>
+        }>
         <Input
           {...getInputProps(fields.sshKey, { type: 'text' })}
+          ref={isEdit ? undefined : inputRef}
           key={fields.sshKey.id}
-          placeholder="Enter your SSH key"
+          placeholder="username:key"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             const value = (e.target as HTMLInputElement).value
             sshKeyControl.change(value)

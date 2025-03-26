@@ -17,9 +17,11 @@ import { useEffect, useMemo } from 'react'
 export const RuntimeForm = ({
   fields,
   defaultValues,
+  isEdit = false,
 }: {
   fields: ReturnType<typeof useForm<RuntimeSchema>>[1]
   defaultValues?: RuntimeSchema
+  isEdit?: boolean
 }) => {
   const instanceTypeControl = useInputControl(fields.instanceType)
   const runtimeTypeControl = useInputControl(fields.runtimeType)
@@ -106,6 +108,7 @@ export const RuntimeForm = ({
       </Field>
       {fields.runtimeType.value === RuntimeType.VM && (
         <VirtualMachineForm
+          isEdit={isEdit}
           fields={
             fields.virtualMachine.getFieldset() as ReturnType<
               typeof useForm<RuntimeVMSchema>

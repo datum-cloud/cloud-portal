@@ -12,26 +12,34 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { RuntimeType, StorageType } from '@/resources/interfaces/workload.interface'
+import {
+  IWorkloadControlResponse,
+  RuntimeType,
+  StorageType,
+} from '@/resources/interfaces/workload.interface'
 import {
   MetadataSchema,
   metadataSchema,
+  NetworkFieldSchema,
   NetworksSchema,
   networksSchema,
   NewWorkloadSchema,
+  PlacementFieldSchema,
   placementsSchema,
   PlacementsSchema,
   RuntimeSchema,
   runtimeSchema,
+  StorageFieldSchema,
   StoragesSchema,
   storagesSchema,
 } from '@/resources/schemas/workload.schema'
-import { cn, useIsPending } from '@/utils/misc'
+import { cn, convertObjectToLabels, useIsPending } from '@/utils/misc'
 import { getFormProps, useForm, FormProvider, FormMetadata } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { defineStepper } from '@stepperize/react'
+import { filter, find, flatMap, get, has, map } from 'es-toolkit/compat'
 import { Cpu, HardDrive, Layers, Loader2, Network, Server } from 'lucide-react'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Form, useNavigate, useSubmit } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 
@@ -97,7 +105,13 @@ const { useStepper } = defineStepper(
   },
 )
 
-export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
+export const WorkloadStepper = ({
+  projectId,
+  defaultValue,
+}: {
+  projectId?: string
+  defaultValue?: IWorkloadControlResponse
+}) => {
   const submit = useSubmit()
   const navigate = useNavigate()
   const isPending = useIsPending()
@@ -116,7 +130,7 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
   const [form, fields] = useForm({
     id: 'workload-form',
     constraint: getZodConstraint(stepper.current.schema),
-    shouldValidate: 'onBlur',
+    shouldValidate: 'onInput',
     shouldRevalidate: 'onBlur',
     defaultValue: initialValues,
     onValidate({ formData }) {
@@ -138,7 +152,7 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
           return { ...acc, ...(stepMetadata || {}) }
         }, {})
 
-        const payload: NewWorkloadSchema = {
+        const formatted: NewWorkloadSchema = {
           metadata: {
             name: allMetadata.name,
             labels: allMetadata.labels,
@@ -166,22 +180,34 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
         const formData = new FormData(formElement)
         const csrf = formData.get('csrf')
 
+        const payload = {
+          ...formatted,
+          csrf: csrf as string,
+        }
+
+        if (isEdit) {
+          Object.assign(payload, {
+            resourceVersion: defaultValue?.resourceVersion,
+          })
+        }
+
         // Submit the form using the Remix submit function
         // This will trigger the action defined in the route
-        submit(
-          { ...payload, csrf: csrf as string },
-          {
-            method: 'POST',
-            action: formElement.getAttribute('action') || undefined,
-            encType: 'application/json',
-            replace: true,
-          },
-        )
+        submit(payload, {
+          method: 'POST',
+          action: formElement.getAttribute('action') || undefined,
+          encType: 'application/json',
+          replace: true,
+        })
       } else {
         stepper.next()
       }
     },
   })
+
+  const isEdit = useMemo(() => {
+    return defaultValue?.uid !== undefined
+  }, [defaultValue])
 
   const handleBack = () => {
     if (stepper.isFirst) {
@@ -192,10 +218,110 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
   }
 
   useEffect(() => {
-    form.update({
-      value: initialValues,
-    })
-  }, [])
+    // Process default values when they exist to populate the form
+    if (defaultValue) {
+      const { spec, ...rest } = defaultValue
+
+      // Extract relevant sections from the spec
+      const placementsSpec = get(spec, 'placements', [])
+      const runtimeSpec = get(spec, 'template.spec.runtime', {})
+      const volumesSpec = get(spec, 'template.spec.volumes', [])
+      const networkInterfaces = get(spec, 'template.spec.networkInterfaces', [])
+
+      // Determine if this is a VM workload
+      const isVm = has(runtimeSpec, 'virtualMachine')
+
+      // Find boot storage and extract boot image information
+      const bootStorage = find(volumesSpec, (volume) => volume.name === 'boot')
+      const bootImage = get(bootStorage, 'disk.template.spec.populator.image.name', '')
+
+      // ==========================================
+      // Map API spec format to form schema format
+      // ==========================================
+
+      // 1. Metadata mapping
+      const metadata: MetadataSchema = {
+        name: rest?.name ?? '',
+        labels: convertObjectToLabels(rest?.labels ?? {}),
+        annotations: convertObjectToLabels(rest?.annotations ?? {}),
+      }
+
+      // 2. Runtime configuration mapping
+      const runtime: RuntimeSchema = {
+        instanceType: (runtimeSpec as any)?.resources?.instanceType ?? '',
+        runtimeType: isVm ? RuntimeType.VM : RuntimeType.CONTAINER,
+        // Only include VM-specific configuration if this is a VM workload
+        virtualMachine: isVm
+          ? {
+              sshKey:
+                spec?.template?.metadata?.annotations?.[
+                  'compute.datumapis.com/ssh-keys'
+                ] ?? '',
+              bootImage: bootImage,
+            }
+          : undefined,
+      }
+
+      // 3. Network configuration mapping
+      // Extract network interfaces and their IP families
+      const networks: NetworkFieldSchema[] = map(
+        networkInterfaces,
+        (networkInterface) => ({
+          name: networkInterface?.network?.name ?? '',
+          ipFamilies: flatMap(networkInterface.networkPolicy?.ingress ?? [], (ingress) =>
+            flatMap(ingress.from ?? [], (from) =>
+              // Determine IP family based on CIDR
+              from.ipBlock?.cidr === '0.0.0.0/0' ? ['IPv4'] : ['IPv6'],
+            ),
+          ),
+        }),
+      )
+
+      // 4. Storage configuration mapping
+      // Filter out boot volume as it's handled separately in VM configuration
+      const storages: StorageFieldSchema[] = map(
+        filter(volumesSpec, (volume) => volume.name !== 'boot'),
+        (volume) => ({
+          name: volume.name ?? '',
+          type: StorageType.FILESYSTEM,
+          // Convert storage size from string (e.g., "10Gi") to number
+          size:
+            Number(
+              String(
+                get(volume, 'disk.template.spec.resources.requests.storage', '0'),
+              ).replace('Gi', ''),
+            ) || 0,
+        }),
+      )
+
+      // 5. Placement configuration mapping
+      const placements: PlacementFieldSchema[] = map(placementsSpec, (placement) => ({
+        name: placement.name ?? '',
+        cityCode: placement.cityCodes?.[0] ?? '',
+        minimumReplicas: placement.scaleSettings?.minReplicas ?? 1,
+      }))
+
+      // Consolidate all mapped data
+      const formValue = {
+        metadata,
+        runtime,
+        networks,
+        storages,
+        placements,
+      }
+
+      // Update form with the mapped values
+      form.update({ value: formValue })
+
+      // Update stepper metadata for each section
+      // This allows each step to access its relevant data
+      stepper.setMetadata('metadata', metadata)
+      stepper.setMetadata('runtime', runtime)
+      stepper.setMetadata('networks', { networks })
+      stepper.setMetadata('storages', { storages })
+      stepper.setMetadata('placements', { placements })
+    }
+  }, [defaultValue])
 
   useEffect(() => {
     if (
@@ -215,9 +341,11 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create a new workload</CardTitle>
+        <CardTitle>{isEdit ? 'Update' : 'Create a new'} workload</CardTitle>
         <CardDescription>
-          Create a new workload to get started with Datum Cloud.
+          {isEdit
+            ? 'Update the workload with the new values below.'
+            : 'Create a new workload to get started with Datum Cloud.'}
         </CardDescription>
       </CardHeader>
       <FormProvider context={form.context}>
@@ -232,7 +360,7 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
             {isPending && (
               <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 backdrop-blur-xs">
                 <Loader2 className="size-4 animate-spin" />
-                Creating workload...
+                {isEdit ? 'Saving' : 'Creating'} workload...
               </div>
             )}
             <nav aria-label="Workload Steps" className="group">
@@ -265,6 +393,7 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
                         {stepper.switch({
                           metadata: () => (
                             <MetadataForm
+                              isEdit={isEdit}
                               defaultValues={
                                 stepper.getMetadata('metadata') as MetadataSchema
                               }
@@ -340,7 +469,7 @@ export const WorkloadStepper = ({ projectId }: { projectId?: string }) => {
                               type="submit"
                               disabled={isPending}
                               isLoading={isPending}>
-                              {stepper.isLast ? 'Create' : 'Next'}
+                              {stepper.isLast ? (isEdit ? 'Save' : 'Create') : 'Next'}
                             </Button>
                           </div>
                         </div>
