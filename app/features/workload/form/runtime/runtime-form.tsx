@@ -1,3 +1,4 @@
+import { ContainerForm } from './container-form'
 import { VirtualMachineForm } from './virtual-machine-form'
 import { Field } from '@/components/field/field'
 import { List, ListItem } from '@/components/list/list'
@@ -8,10 +9,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import { RUNTIME_TYPES } from '@/constants/options'
 import { RuntimeType } from '@/resources/interfaces/workload.interface'
-import { RuntimeSchema, RuntimeVMSchema } from '@/resources/schemas/workload.schema'
-import { getSelectProps, useForm, useInputControl } from '@conform-to/react'
+import {
+  RuntimeContainerSchema,
+  RuntimeSchema,
+  RuntimeVMSchema,
+} from '@/resources/schemas/workload.schema'
+import {
+  getSelectProps,
+  useForm,
+  useFormMetadata,
+  useInputControl,
+} from '@conform-to/react'
 import { useEffect, useMemo } from 'react'
 
 export const RuntimeForm = ({
@@ -23,13 +34,13 @@ export const RuntimeForm = ({
   defaultValues?: RuntimeSchema
   isEdit?: boolean
 }) => {
+  const form = useFormMetadata('workload-form')
   const instanceTypeControl = useInputControl(fields.instanceType)
   const runtimeTypeControl = useInputControl(fields.runtimeType)
 
   useEffect(() => {
     if (!defaultValues) return
 
-    // Only set values if they exist in defaultValues and current fields are empty
     if (defaultValues.instanceType && !fields.instanceType.value) {
       instanceTypeControl.change(defaultValues.instanceType)
     }
@@ -45,6 +56,20 @@ export const RuntimeForm = ({
     fields.runtimeType.value,
   ])
 
+  const handleRuntimeTypeChange = (value: string) => {
+    runtimeTypeControl.change(value as RuntimeType)
+
+    if (
+      value === RuntimeType.CONTAINER &&
+      (defaultValues?.containers ?? []).length === 0
+    ) {
+      form.update({
+        name: fields.containers.name,
+        value: [{ name: '', image: '' }],
+      })
+    }
+  }
+
   return (
     <div className="flex w-full flex-col items-start gap-4">
       <Field label="Instance Type" errors={fields.instanceType.errors} className="w-full">
@@ -52,7 +77,7 @@ export const RuntimeForm = ({
           {...getSelectProps(fields.instanceType)}
           onValueChange={instanceTypeControl.change}
           key={fields.instanceType.id}
-          value={fields.instanceType.value?.toString()}
+          value={instanceTypeControl.value}
           defaultValue={defaultValues?.instanceType}>
           <SelectTrigger
             disabled
@@ -86,9 +111,9 @@ export const RuntimeForm = ({
         }>
         <Select
           {...getSelectProps(fields.runtimeType)}
-          onValueChange={runtimeTypeControl.change}
+          onValueChange={handleRuntimeTypeChange}
           key={fields.runtimeType.id}
-          value={fields.runtimeType.value?.toString()}
+          value={runtimeTypeControl.value?.toString()}
           defaultValue={defaultValues?.runtimeType}>
           <SelectTrigger className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
             <SelectValue placeholder="Select a type" />
@@ -96,7 +121,6 @@ export const RuntimeForm = ({
           <SelectContent>
             {Object.keys(RUNTIME_TYPES).map((runtimeType) => (
               <SelectItem
-                disabled={runtimeType === RuntimeType.CONTAINER}
                 key={runtimeType}
                 value={runtimeType}
                 className="w-[var(--radix-select-trigger-width)]">
@@ -106,7 +130,7 @@ export const RuntimeForm = ({
           </SelectContent>
         </Select>
       </Field>
-      {fields.runtimeType.value === RuntimeType.VM && (
+      {fields.runtimeType.value === RuntimeType.VM ? (
         <VirtualMachineForm
           isEdit={isEdit}
           fields={
@@ -116,7 +140,16 @@ export const RuntimeForm = ({
           }
           defaultValues={defaultValues?.virtualMachine as RuntimeVMSchema}
         />
-      )}
+      ) : fields.runtimeType.value === RuntimeType.CONTAINER ? (
+        <div className="flex w-full flex-col gap-2">
+          <h3 className="text-sm font-medium">Containers</h3>
+          <ContainerForm
+            isEdit={isEdit}
+            fields={fields as unknown as ReturnType<typeof useForm<RuntimeSchema>>[1]}
+            defaultValues={defaultValues?.containers as RuntimeContainerSchema[]}
+          />
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -150,6 +183,22 @@ export const RuntimePreview = ({ values }: { values: RuntimeSchema }) => {
             </span>
           ),
           hidden: values.runtimeType !== RuntimeType.VM,
+        },
+        {
+          label: 'Containers',
+          className: 'items-start',
+          content: (
+            <div className="flex flex-col gap-2">
+              {(values.containers ?? []).map((container, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <span className="font-medium">{container.name}</span>
+                  <Separator orientation="vertical" className="h-4" />
+                  <span className="text-muted-foreground text-sm">{container.image}</span>
+                </div>
+              ))}
+            </div>
+          ),
+          hidden: values.runtimeType !== RuntimeType.CONTAINER,
         },
       ]
     }

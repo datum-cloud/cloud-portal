@@ -1,32 +1,6 @@
 import { nameSchema } from './general.schema'
-import { createCodeEditorSchema } from '@/components/code-editor/code-editor.types'
 import { RuntimeType, StorageType } from '@/resources/interfaces/workload.interface'
 import { z } from 'zod'
-
-export const workloadSchema = createCodeEditorSchema('Workload').transform((data) => {
-  return {
-    configuration: data.content,
-    format: data.format,
-  }
-})
-
-export const updateWorkloadSchema = z
-  .object({
-    resourceVersion: z.string({ required_error: 'Resource version is required.' }),
-  })
-  .and(workloadSchema)
-  .transform((data) => {
-    return {
-      resourceVersion: data.resourceVersion,
-      configuration: data.configuration,
-      format: data.format,
-    }
-  })
-
-export type WorkloadSchema = z.infer<typeof workloadSchema>
-export type UpdateWorkloadSchema = z.infer<typeof updateWorkloadSchema>
-
-// Stepper schemas
 
 // Metadata Section
 export const metadataSchema = z
@@ -50,30 +24,20 @@ export const runtimeVMSchema = z.object({
     ),
 })
 
-export const runtimeSchema = z
+export const runtimeContainerSchema = z
   .object({
-    instanceType: z.string({ required_error: 'Instance type is required.' }),
-    runtimeType: z.enum(Object.values(RuntimeType) as [string, ...string[]], {
-      required_error: 'Runtime type is required.',
-    }),
-    virtualMachine: runtimeVMSchema.optional(),
+    image: z.string({ required_error: 'Image is required.' }),
   })
-  .refine(
-    (data) => {
-      if (data.runtimeType === RuntimeType.VM) {
-        return (
-          !!data.virtualMachine &&
-          !!data.virtualMachine.bootImage &&
-          !!data.virtualMachine.sshKey
-        )
-      }
-      return true
-    },
-    {
-      message: 'VM configuration requires boot image and SSH key',
-      path: ['virtualMachine'],
-    },
-  )
+  .merge(nameSchema)
+
+export const runtimeSchema = z.object({
+  instanceType: z.string({ required_error: 'Instance type is required.' }),
+  runtimeType: z.enum(Object.values(RuntimeType) as [string, ...string[]], {
+    required_error: 'Runtime type is required.',
+  }),
+  virtualMachine: runtimeVMSchema.optional(),
+  containers: z.array(runtimeContainerSchema).optional(),
+})
 
 export const networkFieldSchema = z.object({
   name: z.string({ required_error: 'Network is required.' }),
@@ -123,9 +87,32 @@ export const storageFieldSchema = z
       path: ['size'],
     },
   )
-export const storagesSchema = z.object({
-  storages: z.array(storageFieldSchema),
-})
+export const storagesSchema = z
+  .object({
+    storages: z.array(storageFieldSchema),
+  })
+  .superRefine((data, ctx) => {
+    // Check for duplicate storage names
+    const usedNames = new Set<string>()
+
+    data.storages.forEach((storage, index) => {
+      const name = storage.name?.trim()
+
+      if (name) {
+        if (usedNames.has(name)) {
+          // If name already exists, add validation error
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Name "${name}" is already used`,
+            path: ['storages', index, 'name'],
+          })
+        } else {
+          // Track this name as used
+          usedNames.add(name)
+        }
+      }
+    })
+  })
 
 // Placements
 export const placementFieldSchema = z
@@ -138,24 +125,47 @@ export const placementFieldSchema = z
       })
       .transform((val) => Number(val)),
   })
-  .merge(nameSchema)
+  .and(nameSchema)
 
-export const placementsSchema = z.object({
-  placements: z.array(placementFieldSchema).min(1, {
-    message: 'At least one placement must be configured.',
-  }),
-})
+export const placementsSchema = z
+  .object({
+    placements: z.array(placementFieldSchema).min(1, {
+      message: 'At least one placement must be configured.',
+    }),
+  })
+  .superRefine((data, ctx) => {
+    // Check for duplicate storage names
+    const usedNames = new Set<string>()
+
+    data.placements.forEach((placement, index) => {
+      const name = placement.name?.trim()
+
+      if (name) {
+        if (usedNames.has(name)) {
+          // If name already exists, add validation error
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Name "${name}" is already used`,
+            path: ['placements', index, 'name'],
+          })
+        } else {
+          // Track this name as used
+          usedNames.add(name)
+        }
+      }
+    })
+  })
 
 export const newWorkloadSchema = z
   .object({
     metadata: metadataSchema,
     runtime: runtimeSchema,
   })
-  .merge(networksSchema)
-  .merge(storagesSchema)
-  .merge(placementsSchema)
+  .and(networksSchema)
+  .and(storagesSchema)
+  .and(placementsSchema)
 
-export const newUpdateWorkloadSchema = z
+export const updateWorkloadSchema = z
   .object({
     resourceVersion: z.string({ required_error: 'Resource version is required.' }),
   })
@@ -168,11 +178,13 @@ export const newUpdateWorkloadSchema = z
 export type MetadataSchema = z.infer<typeof metadataSchema>
 export type RuntimeSchema = z.infer<typeof runtimeSchema>
 export type RuntimeVMSchema = z.infer<typeof runtimeVMSchema>
+export type RuntimeContainerSchema = z.infer<typeof runtimeContainerSchema>
 export type NetworksSchema = z.infer<typeof networksSchema>
 export type NetworkFieldSchema = z.infer<typeof networkFieldSchema>
 export type StoragesSchema = z.infer<typeof storagesSchema>
 export type StorageFieldSchema = z.infer<typeof storageFieldSchema>
 export type PlacementsSchema = z.infer<typeof placementsSchema>
 export type PlacementFieldSchema = z.infer<typeof placementFieldSchema>
+
 export type NewWorkloadSchema = z.infer<typeof newWorkloadSchema>
-export type NewUpdateWorkloadSchema = z.infer<typeof newUpdateWorkloadSchema>
+export type UpdateWorkloadSchema = z.infer<typeof updateWorkloadSchema>

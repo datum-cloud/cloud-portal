@@ -59,7 +59,7 @@ export const VirtualMachineForm = ({
           {...getSelectProps(fields.bootImage)}
           onValueChange={bootImageControl.change}
           key={fields.bootImage.id}
-          value={fields.bootImage.value?.toString()}
+          value={bootImageControl.value?.toString()}
           defaultValue={defaultValues?.bootImage}>
           <SelectTrigger
             disabled

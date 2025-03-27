@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { MetadataForm } from './metadata-form'
 import { NetworksForm } from './network/networks-form'
 import { PlacementsForm } from './placement/placements-form'
@@ -22,7 +23,7 @@ import {
   MetadataSchema,
   NetworkFieldSchema,
   NetworksSchema,
-  newUpdateWorkloadSchema,
+  updateWorkloadSchema,
   NewWorkloadSchema,
   PlacementFieldSchema,
   PlacementsSchema,
@@ -102,12 +103,12 @@ export const WorkloadUpdateForm = ({
 
   const [form, fields] = useForm({
     id: 'workload-form',
-    constraint: getZodConstraint(newUpdateWorkloadSchema),
+    constraint: getZodConstraint(updateWorkloadSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     defaultValue: initialValues,
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: newUpdateWorkloadSchema })
+      return parseWithZod(formData, { schema: updateWorkloadSchema })
     },
     onSubmit(event, { submission }) {
       event.preventDefault()
@@ -129,6 +130,7 @@ export const WorkloadUpdateForm = ({
           instanceType: data?.instanceType,
           runtimeType: data?.runtimeType,
           virtualMachine: data?.virtualMachine,
+          containers: data?.containers,
         },
         networks: data?.networks,
         storages: data?.storages,
@@ -214,7 +216,6 @@ export const WorkloadUpdateForm = ({
 
       // 2. Runtime configuration mapping
       const runtime: RuntimeSchema = {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         instanceType: (runtimeSpec as any)?.resources?.instanceType ?? '',
         runtimeType: isVm ? RuntimeType.VM : RuntimeType.CONTAINER,
         // Only include VM-specific configuration if this is a VM workload
@@ -226,6 +227,12 @@ export const WorkloadUpdateForm = ({
                 ] ?? '',
               bootImage: bootImage,
             }
+          : undefined,
+        containers: !isVm
+          ? (runtimeSpec as any)?.sandbox?.containers.map((container: any) => ({
+              name: container.name,
+              image: container.image,
+            }))
           : undefined,
       }
 

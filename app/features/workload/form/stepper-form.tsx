@@ -162,6 +162,7 @@ export const WorkloadStepper = ({
             instanceType: allMetadata.instanceType,
             runtimeType: allMetadata.runtimeType,
             virtualMachine: allMetadata.virtualMachine,
+            containers: allMetadata.containers,
           },
           networks: allMetadata.networks,
           storages: allMetadata.storages,
@@ -260,6 +261,12 @@ export const WorkloadStepper = ({
               bootImage: bootImage,
             }
           : undefined,
+        containers: !isVm
+          ? (runtimeSpec as any)?.sandbox?.containers.map((container: any) => ({
+              name: container.name,
+              image: container.image,
+            }))
+          : undefined,
       }
 
       // 3. Network configuration mapping
@@ -326,17 +333,14 @@ export const WorkloadStepper = ({
   useEffect(() => {
     if (
       stepper.current.id === 'storages' &&
-      stepper.metadata.runtime?.runtimeType !== RuntimeType.VM &&
+      stepper.metadata.runtime?.runtimeType === RuntimeType.CONTAINER &&
       stepper.metadata.storages?.length === 0
     ) {
-      form.update({
-        value: {
-          ...stepper.metadata,
-          storages: [{ name: '', type: StorageType.FILESYSTEM }],
-        },
+      stepper.setMetadata('storages', {
+        storages: [{ name: '', type: StorageType.FILESYSTEM }],
       })
     }
-  }, [stepper.metadata, stepper.current.id])
+  }, [stepper.current, stepper.metadata])
 
   return (
     <Card>

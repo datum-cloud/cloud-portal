@@ -137,20 +137,22 @@ export const StoragesPreview = ({
       }
     }
 
-    const storages = (values.storages ?? []).map((storage, index) => ({
-      label: `Storage ${index + 1}`,
-      content: (
-        <div className="flex items-center gap-2 font-medium">
-          <span>{storage.name}</span>
-          <Separator orientation="vertical" className="h-4" />
-          <Badge variant="outline">Size: {storage.size}Gi</Badge>
-          <Separator orientation="vertical" className="h-4" />
-          <Badge variant="outline">
-            {STORAGE_TYPES[storage.type as keyof typeof STORAGE_TYPES].label}
-          </Badge>
-        </div>
-      ),
-    }))
+    const storages = (values.storages ?? [])
+      .filter((storage) => storage.name !== '')
+      .map((storage, index) => ({
+        label: `Storage ${index + 1}`,
+        content: (
+          <div className="flex items-center gap-2 font-medium">
+            <span>{storage.name}</span>
+            <Separator orientation="vertical" className="h-4" />
+            <Badge variant="outline">Size: {storage.size}Gi</Badge>
+            <Separator orientation="vertical" className="h-4" />
+            <Badge variant="outline">
+              {STORAGE_TYPES[storage.type as keyof typeof STORAGE_TYPES].label}
+            </Badge>
+          </div>
+        ),
+      }))
 
     return [bootDetail, ...storages]
   }, [values, bootValues])

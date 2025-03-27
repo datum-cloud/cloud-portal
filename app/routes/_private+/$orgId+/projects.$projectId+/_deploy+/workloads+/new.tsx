@@ -1,5 +1,5 @@
 import { routes } from '@/constants/routes'
-import { WorkloadStepper } from '@/features/workload/stepper/stepper'
+import { WorkloadStepper } from '@/features/workload/form/stepper-form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
