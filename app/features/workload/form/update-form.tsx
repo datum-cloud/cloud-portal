@@ -226,12 +226,14 @@ export const WorkloadUpdateForm = ({
                   'compute.datumapis.com/ssh-keys'
                 ] ?? '',
               bootImage: bootImage,
+              ports: (runtimeSpec as any)?.virtualMachine?.ports ?? [],
             }
           : undefined,
         containers: !isVm
           ? (runtimeSpec as any)?.sandbox?.containers.map((container: any) => ({
               name: container.name,
               image: container.image,
+              ports: container?.ports ?? [],
             }))
           : undefined,
       }

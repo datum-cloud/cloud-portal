@@ -1,3 +1,4 @@
+import { PortsForm } from './ports-form'
 import { Field } from '@/components/field/field'
 import { Input } from '@/components/ui/input'
 import {
@@ -7,7 +8,7 @@ import {
   SelectContent,
   Select,
 } from '@/components/ui/select'
-import { RuntimeVMSchema } from '@/resources/schemas/workload.schema'
+import { RuntimePortSchema, RuntimeVMSchema } from '@/resources/schemas/workload.schema'
 import {
   getInputProps,
   getSelectProps,
@@ -30,6 +31,7 @@ export const VirtualMachineForm = ({
   const isHydrated = useHydrated()
   const bootImageControl = useInputControl(fields.bootImage)
   const sshKeyControl = useInputControl(fields.sshKey)
+
   useEffect(() => {
     bootImageControl.change('datumcloud/ubuntu-2204-lts')
 
@@ -102,6 +104,19 @@ export const VirtualMachineForm = ({
           }}
         />
       </Field>
+
+      <div className="flex w-full flex-col gap-2">
+        <h3 className="text-sm font-medium">Ports</h3>
+        <PortsForm
+          fields={
+            fields as unknown as ReturnType<
+              typeof useForm<{ ports: RuntimePortSchema[] }>
+            >[1]
+          }
+          defaultValues={defaultValues?.ports}
+          isEdit={isEdit}
+        />
+      </div>
     </div>
   )
 }

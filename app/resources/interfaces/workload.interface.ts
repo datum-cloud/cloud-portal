@@ -56,3 +56,9 @@ export enum StorageType {
   FILESYSTEM = 'filesystem',
   REQUEST = 'request',
 }
+
+export enum PortProtocol {
+  TCP = 'TCP',
+  UDP = 'UDP',
+  SCTP = 'SCTP',
+}

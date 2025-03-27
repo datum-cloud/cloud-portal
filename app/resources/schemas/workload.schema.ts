@@ -1,5 +1,9 @@
 import { nameSchema } from './general.schema'
-import { RuntimeType, StorageType } from '@/resources/interfaces/workload.interface'
+import {
+  PortProtocol,
+  RuntimeType,
+  StorageType,
+} from '@/resources/interfaces/workload.interface'
 import { z } from 'zod'
 
 // Metadata Section
@@ -11,25 +15,88 @@ export const metadataSchema = z
   .and(nameSchema)
 
 // Runtime Section
-export const runtimeVMSchema = z.object({
-  bootImage: z.string({ required_error: 'Boot image is required for VM.' }).optional(),
-  sshKey: z
-    .string({ required_error: 'SSH key is required for VM.' })
-    .regex(
-      /^([a-zA-Z0-9_.-]+):(?:ssh-rsa AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ssh-ed25519 AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ssh-dss AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ecdsa-sha2-nistp(?:256|384|521) AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$)/,
-      {
-        message:
-          'Invalid SSH key format. Must be in the format "username:ssh-key" with a valid SSH public key (RSA, ED25519, DSA, or ECDSA).',
-      },
-    ),
-})
+export const runtimePortSchema = z
+  .object({
+    port: z.coerce
+      .number({ required_error: 'Port is required.' })
+      .min(1, {
+        message: 'Port must be at least 1.',
+      })
+      .max(65535, {
+        message: 'Port must be at most 65535.',
+      })
+      .transform((val) => Number(val)),
+    protocol: z.enum(Object.values(PortProtocol) as [string, ...string[]], {
+      required_error: 'Protocol is required.',
+    }),
+  })
+  .and(nameSchema)
+
+export const runtimeVMSchema = z
+  .object({
+    bootImage: z.string({ required_error: 'Boot image is required for VM.' }).optional(),
+    sshKey: z
+      .string({ required_error: 'SSH key is required for VM.' })
+      .regex(
+        /^([a-zA-Z0-9_.-]+):(?:ssh-rsa AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ssh-ed25519 AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ssh-dss AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ecdsa-sha2-nistp(?:256|384|521) AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$)/,
+        {
+          message:
+            'Invalid SSH key format. Must be in the format "username:ssh-key" with a valid SSH public key (RSA, ED25519, DSA, or ECDSA).',
+        },
+      ),
+    ports: z.array(runtimePortSchema).optional(),
+  })
+  .superRefine((data, ctx) => {
+    // Check for duplicate storage names
+    const usedNames = new Set<string>()
+
+    data.ports?.forEach((port, index) => {
+      const name = port.name?.trim()
+
+      if (name) {
+        if (usedNames.has(name)) {
+          // If name already exists, add validation error
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Name "${name}" is already used`,
+            path: ['ports', index, 'name'],
+          })
+        } else {
+          // Track this name as used
+          usedNames.add(name)
+        }
+      }
+    })
+  })
 
 export const runtimeContainerSchema = z
   .object({
     image: z.string({ required_error: 'Image is required.' }),
+    ports: z.array(runtimePortSchema).optional(),
   })
-  .merge(nameSchema)
+  .and(nameSchema)
+  .superRefine((data, ctx) => {
+    // Check for duplicate storage names
+    const usedNames = new Set<string>()
 
+    data.ports?.forEach((port, index) => {
+      const name = port.name?.trim()
+
+      if (name) {
+        if (usedNames.has(name)) {
+          // If name already exists, add validation error
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Name "${name}" is already used`,
+            path: ['ports', index, 'name'],
+          })
+        } else {
+          // Track this name as used
+          usedNames.add(name)
+        }
+      }
+    })
+  })
 export const runtimeSchema = z.object({
   instanceType: z.string({ required_error: 'Instance type is required.' }),
   runtimeType: z.enum(Object.values(RuntimeType) as [string, ...string[]], {
@@ -177,6 +244,7 @@ export const updateWorkloadSchema = z
 
 export type MetadataSchema = z.infer<typeof metadataSchema>
 export type RuntimeSchema = z.infer<typeof runtimeSchema>
+export type RuntimePortSchema = z.infer<typeof runtimePortSchema>
 export type RuntimeVMSchema = z.infer<typeof runtimeVMSchema>
 export type RuntimeContainerSchema = z.infer<typeof runtimeContainerSchema>
 export type NetworksSchema = z.infer<typeof networksSchema>
