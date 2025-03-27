@@ -41,57 +41,64 @@ export const createWorkloadsControl = (client: Client) => {
   ): ComDatumapisComputeV1AlphaWorkload => {
     // Runtime Handler
     const isVM = value?.runtime?.runtimeType === RuntimeType.VM
-    let runtimeSpec = {}
-    let specAnnotations = {}
+    const specAnnotations: Record<string, string> = {}
 
+    // Create volume attachments for storage
+    const volumeAttachments = (value?.storages ?? []).map((storage) => ({
+      name: storage?.name,
+      // mountPath will be added when available
+    }))
+
+    // Configure runtime based on type (VM or Sandbox)
+    let runtimeSpec = {}
     if (isVM) {
+      // Add SSH Key to the VM if provided
+      if (value?.runtime?.virtualMachine?.sshKey) {
+        specAnnotations['compute.datumapis.com/ssh-keys'] =
+          value.runtime.virtualMachine.sshKey
+      }
+
       runtimeSpec = {
         virtualMachine: {
           ports: [
-            // TODO: Add ports configuration if needed in the future
             {
               name: 'http',
               port: 8080,
-              protocol: 'TCP', // Adding default protocol
+              protocol: 'TCP',
             },
           ],
-          volumeAttachments: [
-            {
-              // For Handle Boot Volume
-              name: 'boot',
-            },
-            ...(value?.storages ?? []).map((storage) => ({
-              name: storage?.name,
-              // Add mountPath if available in the future
-            })),
-          ],
+          volumeAttachments: [{ name: 'boot' }, ...volumeAttachments],
         },
       }
-
-      // Add SSH Key to the VM.
-      if (value?.runtime?.virtualMachine?.sshKey) {
-        specAnnotations = {
-          'compute.datumapis.com/ssh-keys': value?.runtime?.virtualMachine?.sshKey ?? '',
-        }
+    } else {
+      runtimeSpec = {
+        sandbox: {
+          containers: (value?.runtime?.containers ?? []).map((container) => ({
+            name: container.name,
+            image: container.image,
+            volumeAttachments,
+          })),
+        },
       }
     }
 
+    // Construct and return the workload object
     return {
       metadata: {
         name: value?.metadata?.name,
         labels: convertLabelsToObject(value?.metadata?.labels ?? []),
         annotations: convertLabelsToObject(value?.metadata?.annotations ?? []),
-        ...(resourceVersion ? { resourceVersion } : {}),
+        ...(resourceVersion && { resourceVersion }),
       },
       spec: {
         template: {
           metadata: {
-            annotations: { ...specAnnotations },
+            annotations: specAnnotations,
           },
           spec: {
             networkInterfaces: (value?.networks ?? []).map((network) => ({
               network: {
-                name: network?.name,
+                name: network.name,
               },
               networkPolicy: {
                 ingress: [
@@ -101,8 +108,6 @@ export const createWorkloadsControl = (client: Client) => {
                         cidr: ipFamily === 'IPv4' ? '0.0.0.0/0' : '::/0',
                       },
                     })),
-                    // Adding ports configuration if needed in the future
-                    // ports: []
                   },
                 ],
               },
@@ -114,7 +119,7 @@ export const createWorkloadsControl = (client: Client) => {
               ...runtimeSpec,
             },
             volumes: [
-              // For Handle Boot Volume
+              // Add boot volume for VM instances
               ...(isVM
                 ? [
                     {
@@ -134,14 +139,15 @@ export const createWorkloadsControl = (client: Client) => {
                     },
                   ]
                 : []),
+              // Add storage volumes
               ...(value?.storages ?? []).map((storage) => ({
-                name: storage?.name,
+                name: storage.name,
                 disk: {
                   template: {
                     spec: {
                       resources: {
                         requests: {
-                          storage: `${storage?.size}Gi`, // Default to GiB
+                          storage: `${storage.size}Gi`,
                         },
                       },
                     },
@@ -152,11 +158,10 @@ export const createWorkloadsControl = (client: Client) => {
           },
         },
         placements: (value?.placements ?? []).map((placement) => ({
-          cityCodes: [placement?.cityCode],
-          name: placement?.name,
+          cityCodes: [placement.cityCode],
+          name: placement.name,
           scaleSettings: {
             minReplicas: Number(placement?.minimumReplicas ?? 1),
-            // Add maxReplicas if needed for autoscaling
           },
         })),
       },

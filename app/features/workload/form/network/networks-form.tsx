@@ -137,20 +137,22 @@ export const NetworksForm = ({
 export const NetworkPreview = ({ values }: { values: NetworksSchema }) => {
   const listItems: ListItem[] = useMemo(() => {
     if ((values.networks ?? []).length > 0) {
-      return values.networks.map((network, index) => ({
-        label: `Network ${index + 1}`,
-        content: (
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{network.name}</span>
-            <Separator orientation="vertical" className="h-4" />
-            {network.ipFamilies.map((ipFamily) => (
-              <Badge variant="outline" key={ipFamily}>
-                {ipFamily.toUpperCase()}
-              </Badge>
-            ))}
-          </div>
-        ),
-      }))
+      return values.networks
+        .filter((network) => network.name !== '')
+        .map((network, index) => ({
+          label: `Network ${index + 1}`,
+          content: (
+            <div className="flex items-center gap-2">
+              <span className="font-medium">{network.name}</span>
+              <Separator orientation="vertical" className="h-4" />
+              {network.ipFamilies.map((ipFamily) => (
+                <Badge variant="outline" key={ipFamily}>
+                  {ipFamily.toUpperCase()}
+                </Badge>
+              ))}
+            </div>
+          ),
+        }))
     }
 
     return []

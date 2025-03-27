@@ -72,11 +72,9 @@ export const StorageField = ({
           <Select
             {...getSelectProps(fields.type)}
             key={fields.type.id}
-            value={fields.type.value}
+            value={typeControl.value}
             defaultValue={defaultValues?.type}
-            onValueChange={(value) => {
-              typeControl.change(value)
-            }}>
+            onValueChange={typeControl.change}>
             <SelectTrigger
               disabled
               className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
