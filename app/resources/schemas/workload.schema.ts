@@ -15,22 +15,34 @@ export const metadataSchema = z
   .and(nameSchema)
 
 // Runtime Section
-export const runtimePortSchema = z
-  .object({
-    port: z.coerce
-      .number({ required_error: 'Port is required.' })
-      .min(1, {
-        message: 'Port must be at least 1.',
-      })
-      .max(65535, {
-        message: 'Port must be at most 65535.',
-      })
-      .transform((val) => Number(val)),
-    protocol: z.enum(Object.values(PortProtocol) as [string, ...string[]], {
-      required_error: 'Protocol is required.',
+export const runtimePortSchema = z.object({
+  name: z
+    .string({ required_error: 'Name is required.' })
+    .min(1, { message: 'Name must not be empty.' })
+    .max(15, { message: 'Name must be no more than 15 characters long.' })
+    .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
+      message:
+        'Name must contain only lowercase letters, numbers, and hyphens, and must not start or end with a hyphen.',
+    })
+    .refine((val) => /[a-z]/.test(val), {
+      message: 'Name must contain at least one letter.',
+    })
+    .refine((val) => !val.includes('--'), {
+      message: 'Name must not contain adjacent hyphens.',
     }),
-  })
-  .and(nameSchema)
+  port: z.coerce
+    .number({ required_error: 'Port is required.' })
+    .min(1, {
+      message: 'Port must be at least 1.',
+    })
+    .max(65535, {
+      message: 'Port must be at most 65535.',
+    })
+    .transform((val) => Number(val)),
+  protocol: z.enum(Object.values(PortProtocol) as [string, ...string[]], {
+    required_error: 'Protocol is required.',
+  }),
+})
 
 export const runtimeVMSchema = z
   .object({
@@ -128,7 +140,7 @@ export const storageFieldSchema = z
       .max(63, { message: 'Name must be at most 63 characters long.' })
       .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
         message:
-          'Name must contain only lowercase alphanumeric characters or hyphens, start with an alphanumeric character, and end with an alphanumeric character',
+          'Name must be kebab-case, start with a letter, and end with a letter or number',
       }),
     type: z.enum(Object.values(StorageType) as [string, ...string[]], {
       required_error: 'Storage type is required.',
@@ -138,6 +150,9 @@ export const storageFieldSchema = z
       .number({ required_error: 'Size is required.' })
       .min(10, {
         message: 'Size must be at least 10Gi.',
+      })
+      .max(100, {
+        message: 'Size must be at most 100Gi.',
       })
       .transform((val) => Number(val))
       .optional(),

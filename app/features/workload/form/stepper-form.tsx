@@ -332,7 +332,8 @@ export const WorkloadStepper = ({
     }
   }, [defaultValue])
 
-  useEffect(() => {
+  // Enable this code if you want to automatically add a empty storage volume when creating a container workload
+  /*   useEffect(() => {
     if (
       stepper.current.id === 'storages' &&
       stepper.metadata.runtime?.runtimeType === RuntimeType.CONTAINER &&
@@ -342,7 +343,7 @@ export const WorkloadStepper = ({
         storages: [{ name: '', type: StorageType.FILESYSTEM }],
       })
     }
-  }, [stepper.current, stepper.metadata])
+  }, [stepper.current, stepper.metadata]) */
 
   return (
     <Card>

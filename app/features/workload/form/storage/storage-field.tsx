@@ -101,9 +101,11 @@ export const StorageField = ({
             <Input
               {...getInputProps(fields.size, {
                 type: 'number',
-                min: 1,
+                min: 10,
+                max: 100,
               })}
-              min={1}
+              min={10}
+              max={100}
               key={fields.size.id}
               placeholder="e.g. 10"
             />
