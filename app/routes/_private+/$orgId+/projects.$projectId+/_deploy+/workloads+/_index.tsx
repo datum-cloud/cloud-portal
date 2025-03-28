@@ -4,6 +4,7 @@ import { DateFormat } from '@/components/date-format/date-format'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { WorkloadStatus } from '@/features/workload/status'
+import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
@@ -41,6 +42,9 @@ export const loader = withMiddleware(async ({ context, params }: LoaderFunctionA
 }, authMiddleware)
 
 export default function WorkloadsPage() {
+  // revalidate every 10 seconds to keep workload list fresh
+  useRevalidateOnInterval({ enabled: true, interval: 10000 })
+
   const data = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const submit = useSubmit()
