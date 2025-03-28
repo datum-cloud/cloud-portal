@@ -1,6 +1,10 @@
+import { PortsForm } from './ports-form'
 import { Field } from '@/components/field/field'
 import { Input } from '@/components/ui/input'
-import { RuntimeContainerSchema } from '@/resources/schemas/workload.schema'
+import {
+  RuntimeContainerSchema,
+  RuntimePortSchema,
+} from '@/resources/schemas/workload.schema'
 import { getInputProps, useForm, useInputControl } from '@conform-to/react'
 import { useEffect, useRef } from 'react'
 import { useHydrated } from 'remix-utils/use-hydrated'
@@ -40,31 +44,46 @@ export const ContainerField = ({
   }, [isHydrated])
 
   return (
-    <div className="relative flex w-full items-start gap-4">
-      <Field label="Name" errors={fields.name.errors} className="w-full">
-        <Input
-          {...getInputProps(fields.name, { type: 'text' })}
-          ref={isEdit ? undefined : inputRef}
-          key={fields.name.id}
-          placeholder="e.g. netdata"
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = (e.target as HTMLInputElement).value
-            nameControl.change(value)
-          }}
+    <div className="flex w-full flex-col gap-2">
+      <div className="relative flex w-full items-start gap-4">
+        <Field label="Name" errors={fields.name.errors} className="w-full">
+          <Input
+            {...getInputProps(fields.name, { type: 'text' })}
+            ref={isEdit ? undefined : inputRef}
+            key={fields.name.id}
+            placeholder="e.g. netdata"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const value = (e.target as HTMLInputElement).value
+              nameControl.change(value)
+            }}
+          />
+        </Field>
+        <Field label="Image" errors={fields.image.errors} className="w-full">
+          <Input
+            {...getInputProps(fields.image, { type: 'text' })}
+            ref={isEdit ? undefined : inputRef}
+            key={fields.image.id}
+            placeholder="e.g. http://docker.io/netdata/netdata:latest"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              const value = (e.target as HTMLInputElement).value
+              imageControl.change(value)
+            }}
+          />
+        </Field>
+      </div>
+
+      <div className="flex w-full flex-col gap-2">
+        <h3 className="text-sm font-medium">Ports</h3>
+        <PortsForm
+          fields={
+            fields as unknown as ReturnType<
+              typeof useForm<{ ports: RuntimePortSchema[] }>
+            >[1]
+          }
+          defaultValues={defaultValues?.ports}
+          isEdit={isEdit}
         />
-      </Field>
-      <Field label="Image" errors={fields.image.errors} className="w-full">
-        <Input
-          {...getInputProps(fields.image, { type: 'text' })}
-          ref={isEdit ? undefined : inputRef}
-          key={fields.image.id}
-          placeholder="e.g. http://docker.io/netdata/netdata:latest"
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = (e.target as HTMLInputElement).value
-            imageControl.change(value)
-          }}
-        />
-      </Field>
+      </div>
     </div>
   )
 }

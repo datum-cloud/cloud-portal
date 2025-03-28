@@ -60,13 +60,7 @@ export const createWorkloadsControl = (client: Client) => {
 
       runtimeSpec = {
         virtualMachine: {
-          ports: [
-            {
-              name: 'http',
-              port: 8080,
-              protocol: 'TCP',
-            },
-          ],
+          ports: value?.runtime?.virtualMachine?.ports ?? [],
           volumeAttachments: [{ name: 'boot' }, ...volumeAttachments],
         },
       }
@@ -76,6 +70,7 @@ export const createWorkloadsControl = (client: Client) => {
           containers: (value?.runtime?.containers ?? []).map((container) => ({
             name: container.name,
             image: container.image,
+            ports: container.ports ?? [],
             volumeAttachments,
           })),
         },

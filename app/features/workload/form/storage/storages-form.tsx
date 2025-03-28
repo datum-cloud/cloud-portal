@@ -66,7 +66,7 @@ export const StoragesForm = ({
                 defaultValues={values?.[index] as StorageFieldSchema}
               />
 
-              {storages.length > (isVM ? 0 : 1) && (
+              {storages.length > 0 && (
                 <Button
                   type="button"
                   variant="ghost"

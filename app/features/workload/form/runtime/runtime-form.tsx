@@ -2,6 +2,7 @@ import { ContainerForm } from './container-form'
 import { VirtualMachineForm } from './virtual-machine-form'
 import { Field } from '@/components/field/field'
 import { List, ListItem } from '@/components/list/list'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -155,55 +156,91 @@ export const RuntimeForm = ({
 }
 
 export const RuntimePreview = ({ values }: { values: RuntimeSchema }) => {
-  const listItems: ListItem[] = useMemo(() => {
-    if (values) {
-      return [
-        { label: 'Instance Type', content: values.instanceType },
-        {
-          label: 'Runtime Type',
-          content: (
-            <span className="capitalize">
-              {values.runtimeType
-                ? RUNTIME_TYPES[values.runtimeType as keyof typeof RUNTIME_TYPES]?.label
-                : 'None'}
-            </span>
-          ),
-          hidden: !values.runtimeType,
-        },
-        {
-          label: 'Boot Image',
-          content: values.virtualMachine?.bootImage,
-          hidden: values.runtimeType !== RuntimeType.VM,
-        },
-        {
-          label: 'SSH Key',
-          content: (
-            <span className="max-w-2xs text-left text-ellipsis">
-              {values.virtualMachine?.sshKey}
-            </span>
-          ),
-          hidden: values.runtimeType !== RuntimeType.VM,
-        },
-        {
-          label: 'Containers',
-          className: 'items-start',
-          content: (
-            <div className="flex flex-col gap-2">
-              {(values.containers ?? []).map((container, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <span className="font-medium">{container.name}</span>
-                  <Separator orientation="vertical" className="h-4" />
-                  <span className="text-muted-foreground text-sm">{container.image}</span>
-                </div>
-              ))}
-            </div>
-          ),
-          hidden: values.runtimeType !== RuntimeType.CONTAINER,
-        },
-      ]
-    }
+  const vmSpecificItems = useMemo(() => {
+    if (values.runtimeType !== RuntimeType.VM) return []
 
-    return []
+    return [
+      { label: 'Boot Image', content: values.virtualMachine?.bootImage },
+      {
+        label: 'SSH Key',
+        content: (
+          <span className="max-w-2xs text-left text-ellipsis">
+            {values.virtualMachine?.sshKey}
+          </span>
+        ),
+      },
+      {
+        label: 'Ports',
+        className: 'items-start',
+        content: (
+          <div className="flex flex-col gap-2">
+            {(values.virtualMachine?.ports || []).map((port, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <span className="font-medium">{port.name}</span>
+                <Separator orientation="vertical" className="h-4" />
+                <span className="text-muted-foreground text-sm">
+                  {port.port}:{port.protocol}
+                </span>
+              </div>
+            ))}
+          </div>
+        ),
+        hidden: !((values.virtualMachine?.ports ?? []).length > 0),
+      },
+    ]
+  }, [values.runtimeType, values.virtualMachine])
+
+  const containerSpecificItems = useMemo(() => {
+    if (values.runtimeType !== RuntimeType.CONTAINER) return []
+
+    return [
+      {
+        label: 'Containers',
+        className: 'items-start',
+        content: (
+          <div className="flex flex-col gap-2">
+            {(values.containers || []).map((container, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <span className="font-medium">{container.name}</span>
+                <Separator orientation="vertical" className="h-4" />
+                <Badge variant="outline">{container.image}</Badge>
+                {(container.ports ?? []).length > 0 && (
+                  <>
+                    <Separator orientation="vertical" className="h-4" />
+                    <span className="text-muted-foreground text-sm">
+                      {container.ports
+                        ?.map((port) => `${port.name}:${port.port}:${port.protocol}`)
+                        .join(', ')}
+                    </span>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        ),
+        hidden: !((values.containers ?? []).length > 0),
+      },
+    ]
+  }, [values.runtimeType, values.containers])
+
+  const listItems: ListItem[] = useMemo(() => {
+    if (!values) return []
+
+    const commonItems = [
+      { label: 'Instance Type', content: values.instanceType },
+      {
+        label: 'Runtime Type',
+        content: values.runtimeType && (
+          <span className="capitalize">
+            {RUNTIME_TYPES[values.runtimeType as keyof typeof RUNTIME_TYPES]?.label ||
+              'None'}
+          </span>
+        ),
+        hidden: !values.runtimeType,
+      },
+    ]
+
+    return [...commonItems, ...vmSpecificItems, ...containerSpecificItems]
   }, [values])
 
   return <List items={listItems} itemClassName="!border-b-0 !px-0 py-1.5" />
