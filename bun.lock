@@ -7,7 +7,7 @@
         "@conform-to/react": "1.3.0",
         "@conform-to/zod": "1.3.0",
         "@epic-web/client-hints": "^1.3.5",
-        "@hey-api/client-axios": "^0.6.1",
+        "@hey-api/client-axios": "^0.7.0",
         "@monaco-editor/react": "^4.7.0",
         "@radix-ui/react-avatar": "^1.1.3",
         "@radix-ui/react-collapsible": "^1.1.3",
@@ -275,7 +275,7 @@
 
     "@hapi/topo": ["@hapi/topo@5.1.0", "", { "dependencies": { "@hapi/hoek": "^9.0.0" } }, "sha512-foQZKJig7Ob0BMAYBfcJk8d77QtOe7Wo4ox7ff1lQYoNNAb6jwcY1ncdoy2e9wQZzvNy7ODZCYJkK8kzmcAnAg=="],
 
-    "@hey-api/client-axios": ["@hey-api/client-axios@0.6.2", "", { "peerDependencies": { "axios": ">= 1.0.0 < 2" } }, "sha512-DwaOJ+LROSMJgYWXpqBeLquf2/aJXPpXkVfrnOj3gBaaxSZ71x1uwVGuujVkRhJpImbP4Gt58Fl9ECNPdDLTSw=="],
+    "@hey-api/client-axios": ["@hey-api/client-axios@0.7.0", "", { "peerDependencies": { "@hey-api/openapi-ts": "< 2", "axios": ">= 1.0.0 < 2" } }, "sha512-5pppJabRJbzMnMBwg07GFTM9ZKqEY6gybpCr7KL5Ptxt/6khrVDQebZs63qtap3a77NgJNq3rfstgZljlj89Ug=="],
 
     "@hey-api/json-schema-ref-parser": ["@hey-api/json-schema-ref-parser@1.0.4", "", { "dependencies": { "@jsdevtools/ono": "^7.1.3", "@types/json-schema": "^7.0.15", "js-yaml": "^4.1.0" } }, "sha512-IaJ4yFgU5r63KZyeySHRKSM1bavFIda8KdwCFi5BxQCIklltzEByBksNOPms+yHXpWWfR+OopIusVZV8roycYg=="],
 
