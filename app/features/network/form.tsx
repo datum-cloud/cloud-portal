@@ -11,10 +11,11 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { useIsPending } from '@/hooks/useIsPending'
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import { newNetworkSchema, updateNetworkSchema } from '@/resources/schemas/network.schema'
+import { ROUTE_PATH as NETWORK_ACTIONS_ROUTE_PATH } from '@/routes/api+/networks+/actions'
 // import { generateId, generateRandomString } from '@/utils/idGenerator'
-import { useIsPending } from '@/utils/misc'
 import {
   FormProvider,
   getFormProps,
@@ -24,39 +25,80 @@ import {
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useEffect, useMemo, useRef } from 'react'
-import { Form, useNavigate } from 'react-router'
+import { Form, useFetcher, useNavigate } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { useHydrated } from 'remix-utils/use-hydrated'
 
-export default function NetworkForm({
+export const NetworkForm = ({
+  projectId,
   defaultValue,
   className,
   onCancel,
+  onSuccess,
 }: {
+  projectId?: string
   defaultValue?: INetworkControlResponse
   className?: string
   onCancel?: () => void
-}) {
+  onSuccess?: () => void
+}) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
-  const isPending = useIsPending()
   const navigate = useNavigate()
+  const fetcher = useFetcher({ key: 'network-form' })
+  const isPending = useIsPending({ fetcherKey: 'network-form' })
 
   const [form, fields] = useForm({
     id: 'network-form',
     constraint: getZodConstraint(defaultValue ? updateNetworkSchema : newNetworkSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
-    onValidate({ formData }) {
-      return parseWithZod(formData, {
-        schema: defaultValue ? updateNetworkSchema : newNetworkSchema,
-      })
-    },
     defaultValue: {
       ipam: 'Auto',
       mtu: 1460,
       name: '',
       ipFamily: 'IPv4',
+    },
+    onValidate({ formData }) {
+      return parseWithZod(formData, {
+        schema: defaultValue ? updateNetworkSchema : newNetworkSchema,
+      })
+    },
+    onSubmit(event, { submission }) {
+      event.preventDefault()
+      event.stopPropagation()
+
+      if (submission?.status !== 'success') {
+        return
+      }
+
+      // Get the form element
+      const formElement = event.currentTarget as HTMLFormElement
+      const formData = new FormData(formElement)
+      const csrf = formData.get('csrf')
+
+      const payload = {
+        ...(submission?.value ?? {}),
+        csrf: csrf as string,
+      }
+
+      if (isEdit) {
+        Object.assign(payload, {
+          resourceVersion: defaultValue?.resourceVersion,
+          networkId: defaultValue?.name,
+        })
+      }
+
+      // Submit the form using the Remix submit function
+      // This will trigger the action defined in the route
+      fetcher.submit(
+        { ...payload, projectId: projectId as string },
+        {
+          method: isEdit ? 'PUT' : 'POST',
+          action: NETWORK_ACTIONS_ROUTE_PATH,
+          encType: 'application/json',
+        },
+      )
     },
   })
 
@@ -88,6 +130,16 @@ export default function NetworkForm({
       })
     }
   }, [defaultValue])
+
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      const { success } = fetcher.data
+
+      if (success) {
+        onSuccess?.()
+      }
+    }
+  }, [fetcher.data, fetcher.state])
 
   return (
     <Card className={className}>
@@ -147,11 +199,13 @@ export default function NetworkForm({
                 placeholder="e.g. my-network-us-22sdss"
                 readOnly={isEdit}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  e.preventDefault()
                   const value = (e.target as HTMLInputElement).value
                   nameControl.change(value)
                 }}
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 onBlur={(e: React.FormEvent<HTMLInputElement>) => {
+                  e.preventDefault()
                   if (isEdit) {
                     nameControl.change(defaultValue?.name ?? '')
                   }
@@ -210,6 +264,7 @@ export default function NetworkForm({
               Cancel
             </Button>
             <Button
+              form={form.id}
               variant="default"
               type="submit"
               disabled={isPending}

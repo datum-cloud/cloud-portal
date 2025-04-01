@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
+import { useIsPending } from '@/hooks/useIsPending'
 import {
   ILocationControlResponse,
   LocationClass,
@@ -22,7 +23,7 @@ import {
 } from '@/resources/interfaces/location.interface'
 import { newLocationSchema } from '@/resources/schemas/location.schema'
 // import { generateId, generateRandomString } from '@/utils/idGenerator'
-import { useIsPending, convertObjectToLabels } from '@/utils/misc'
+import { convertObjectToLabels } from '@/utils/misc'
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useEffect, useMemo, useRef } from 'react'
@@ -30,11 +31,11 @@ import { Form, useNavigate } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { useHydrated } from 'remix-utils/use-hydrated'
 
-export default function CreateLocationForm({
+export const CreateLocationForm = ({
   defaultValue,
 }: {
   defaultValue?: ILocationControlResponse
-}) {
+}) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
   const isPending = useIsPending()
