@@ -40,7 +40,7 @@ export const NetworkForm = ({
   defaultValue?: INetworkControlResponse
   className?: string
   onCancel?: () => void
-  onSuccess?: () => void
+  onSuccess?: (data: INetworkControlResponse) => void
 }) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
@@ -133,10 +133,10 @@ export const NetworkForm = ({
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
-      const { success } = fetcher.data
+      const { success, data } = fetcher.data
 
       if (success) {
-        onSuccess?.()
+        onSuccess?.(data)
       }
     }
   }, [fetcher.data, fetcher.state])

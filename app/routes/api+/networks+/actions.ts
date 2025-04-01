@@ -1,6 +1,7 @@
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createNetworksControl } from '@/resources/control-plane/networks.control'
+import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import {
   NewNetworkSchema,
   newNetworkSchema,
@@ -56,16 +57,17 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
           true,
         )
 
+        let res: INetworkControlResponse | undefined
         if (dryRunRes) {
-          await networksControl.createNetwork(
+          res = (await networksControl.createNetwork(
             projectId as string,
             formattedPayload,
             false,
-          )
+          )) as INetworkControlResponse
         }
 
         return dataWithToast(
-          { success: true },
+          { success: true, data: res },
           {
             title: 'Network created successfully',
             description: 'The network has been created successfully',
@@ -96,17 +98,18 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
         )
 
         // If dryRun succeeds, update for real
+        let res: INetworkControlResponse | undefined
         if (dryRunRes) {
-          await networksControl.updateNetwork(
+          res = (await networksControl.updateNetwork(
             projectId,
             networkId,
             formattedPayload,
             false,
-          )
+          )) as INetworkControlResponse
         }
 
         return dataWithToast(
-          { success: true },
+          { success: true, data: res },
           {
             title: 'Network updated successfully',
             description: 'The network has been updated successfully',
