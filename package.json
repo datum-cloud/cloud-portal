@@ -26,7 +26,7 @@
     "@conform-to/react": "1.3.0",
     "@conform-to/zod": "1.3.0",
     "@epic-web/client-hints": "^1.3.5",
-    "@hey-api/client-axios": "^0.6.1",
+    "@hey-api/client-axios": "^0.7.0",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-avatar": "^1.1.3",
     "@radix-ui/react-collapsible": "^1.1.3",
