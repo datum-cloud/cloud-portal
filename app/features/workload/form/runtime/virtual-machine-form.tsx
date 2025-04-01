@@ -1,6 +1,5 @@
 import { PortsForm } from './ports-form'
 import { Field } from '@/components/field/field'
-import { Input } from '@/components/ui/input'
 import {
   SelectValue,
   SelectTrigger,
@@ -8,10 +7,11 @@ import {
   SelectContent,
   Select,
 } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import { RuntimePortSchema, RuntimeVMSchema } from '@/resources/schemas/workload.schema'
 import {
-  getInputProps,
   getSelectProps,
+  getTextareaProps,
   useForm,
   useInputControl,
 } from '@conform-to/react'
@@ -27,7 +27,7 @@ export const VirtualMachineForm = ({
   defaultValues?: RuntimeVMSchema
   isEdit?: boolean
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const isHydrated = useHydrated()
   const bootImageControl = useInputControl(fields.bootImage)
   const sshKeyControl = useInputControl(fields.sshKey)
@@ -93,13 +93,13 @@ export const VirtualMachineForm = ({
             )
           </span>
         }>
-        <Input
-          {...getInputProps(fields.sshKey, { type: 'text' })}
+        <Textarea
+          {...getTextareaProps(fields.sshKey)}
           ref={isEdit ? undefined : inputRef}
           key={fields.sshKey.id}
           placeholder="username:key"
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = (e.target as HTMLInputElement).value
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            const value = (e.target as HTMLTextAreaElement).value
             sshKeyControl.change(value)
           }}
         />
