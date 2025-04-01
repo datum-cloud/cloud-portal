@@ -185,7 +185,7 @@ app.use(express.static('build/client', { maxAge: '1h' }))
  * Handle 404s for missing image/favicon requests
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-app.get(['/img/*', '/favicons/*'], (_req: any, res: any) => {
+app.get(['/img/*splat', '/favicons/*splat'], (_req: any, res: any) => {
   // if we made it past the express.static for these, then we're missing something.
   // So we'll just send a 404 and won't bother calling other middleware.
   return res.status(404).send('Not found')
@@ -230,7 +230,7 @@ async function cacheContext(request: Request) {
 }
 
 app.all(
-  '*',
+  '{*splat}',
   createRequestHandler({
     getLoadContext: async (req: any, res: any) => ({
       cspNonce: res.locals.cspNonce,
