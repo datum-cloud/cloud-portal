@@ -290,8 +290,6 @@ export const NetworkForm = ({
               variant="link"
               disabled={isPending}
               onClick={() => {
-                form.reset()
-
                 if (onCancel) {
                   onCancel()
                 } else {

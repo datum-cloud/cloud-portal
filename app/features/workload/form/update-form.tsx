@@ -416,7 +416,6 @@ export const WorkloadUpdateForm = ({
                 variant="link"
                 disabled={isPending}
                 onClick={() => {
-                  form.reset()
                   navigate(-1)
                 }}>
                 Cancel
