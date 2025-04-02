@@ -176,7 +176,7 @@ export const DataTable = <TData, TValue>({
         </div>
 
         {/* Pagination Section */}
-        {table.getRowModel().rows?.length > 10 && <DataTablePagination table={table} />}
+        {(data ?? [])?.length > 10 && <DataTablePagination table={table} />}
       </div>
     </DataTableProvider>
   )

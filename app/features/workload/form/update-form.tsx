@@ -13,6 +13,7 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card'
+import { useIsPending } from '@/hooks/useIsPending'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import {
   RuntimeType,
@@ -32,7 +33,7 @@ import {
   StoragesSchema,
 } from '@/resources/schemas/workload.schema'
 import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
-import { convertObjectToLabels, useIsPending } from '@/utils/misc'
+import { convertObjectToLabels } from '@/utils/misc'
 import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { filter, find, flatMap, get, has, map } from 'es-toolkit/compat'

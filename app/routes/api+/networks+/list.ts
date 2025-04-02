@@ -13,22 +13,31 @@ export const loader = withMiddleware(async ({ request, context }) => {
 
   const url = new URL(request.url)
   const projectId = url.searchParams.get('projectId')
+  const noCache = url.searchParams.get('noCache')
 
   if (!projectId) {
     throw new CustomError('Project ID is required', 400)
   }
 
   const key = `networks:${projectId}`
-  const isCached = await cache.hasItem(key)
 
-  if (isCached) {
-    const networks = await cache.getItem(key)
-    return data(networks)
+  // Try to get cached networks if caching is enabled
+  const [isCached, cachedNetworks] = await Promise.all([
+    !noCache && cache.hasItem(key),
+    !noCache && cache.getItem(key),
+  ])
+
+  // Return cached networks if available and caching is enabled
+  if (isCached && cachedNetworks) {
+    return data(cachedNetworks)
   }
 
+  // Fetch fresh networks from control plane
   const networks = await networksControl.getNetworks(projectId)
 
-  await cache.setItem(key, networks)
-
+  // Cache the fresh networks if caching is enabled
+  await cache.setItem(key, networks).catch((error) => {
+    console.error('Failed to cache networks:', error)
+  })
   return data(networks)
 }, authMiddleware)

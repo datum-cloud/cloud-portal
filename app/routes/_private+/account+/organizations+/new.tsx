@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { routes } from '@/constants/routes'
+import { useIsPending } from '@/hooks/useIsPending'
 import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
@@ -19,7 +20,6 @@ import {
   newOrganizationSchema,
 } from '@/resources/schemas/organization.schema'
 import { validateCSRF } from '@/utils/csrf.server'
-import { useIsPending } from '@/utils/misc'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'

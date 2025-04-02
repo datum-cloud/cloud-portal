@@ -10,8 +10,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { useIsPending } from '@/hooks/useIsPending'
 import { newApiKeySchema } from '@/resources/schemas/api-key.schema'
-import { useIsPending } from '@/utils/misc'
 import { FieldMetadata, getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useEffect, useRef } from 'react'

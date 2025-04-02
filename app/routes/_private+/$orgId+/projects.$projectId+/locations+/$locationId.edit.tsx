@@ -1,5 +1,5 @@
 import { routes } from '@/constants/routes'
-import CreateLocationForm from '@/features/location/form/create-form'
+import { CreateLocationForm } from '@/features/location/form/create-form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createLocationsControl } from '@/resources/control-plane/locations.control'

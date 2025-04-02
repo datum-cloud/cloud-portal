@@ -19,7 +19,7 @@ export const Header = ({
   const params = useParams<{ orgId: string; projectId: string }>()
 
   return (
-    <header className="bg-background flex h-16 shrink-0 items-center justify-between gap-2 border-b">
+    <header className="bg-background sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between gap-2 border-b">
       {/* Left Section */}
       <div className="flex flex-1 items-center px-4">
         {!hideSidebar && <SidebarTrigger className="-ml-1 cursor-pointer" />}

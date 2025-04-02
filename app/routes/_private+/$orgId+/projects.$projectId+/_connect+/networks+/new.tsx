@@ -1,73 +1,25 @@
 import { routes } from '@/constants/routes'
-import NetworkForm from '@/features/network/form'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { createNetworksControl } from '@/resources/control-plane/networks.control'
-import { NewNetworkSchema, newNetworkSchema } from '@/resources/schemas/network.schema'
-import { validateCSRF } from '@/utils/csrf.server'
+import { NetworkForm } from '@/features/network/form'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
-import { parseWithZod } from '@conform-to/zod'
-import { Client } from '@hey-api/client-axios'
-import { ActionFunctionArgs, AppLoadContext } from 'react-router'
-
-export const action = withMiddleware(
-  async ({ request, params, context }: ActionFunctionArgs) => {
-    const { projectId, orgId } = params
-    const { controlPlaneClient } = context as AppLoadContext
-    const networksControl = createNetworksControl(controlPlaneClient as Client)
-
-    if (!projectId) {
-      throw new Error('Project ID is required')
-    }
-
-    const clonedRequest = request.clone()
-    const formData = await clonedRequest.formData()
-
-    try {
-      await validateCSRF(formData, request.headers)
-
-      // Validate form data with Zod
-      const parsed = parseWithZod(formData, { schema: newNetworkSchema })
-
-      if (parsed.status !== 'success') {
-        throw new Error('Invalid form data')
-      }
-
-      const payload = parsed.value as NewNetworkSchema
-      const dryRunRes = await networksControl.createNetwork(projectId, payload, true)
-
-      if (dryRunRes) {
-        await networksControl.createNetwork(projectId, payload, false)
-      }
-
-      return redirectWithToast(
-        getPathWithParams(routes.projects.networks.root, {
-          orgId,
-          projectId,
-        }),
-        {
-          title: 'Network created successfully',
-          description: 'You have successfully created a network.',
-          type: 'success',
-        },
-      )
-    } catch (error) {
-      return dataWithToast(null, {
-        title: 'Error',
-        description:
-          error instanceof Error ? error.message : (error as Response).statusText,
-        type: 'error',
-      })
-    }
-  },
-  authMiddleware,
-)
+import { useNavigate, useParams } from 'react-router'
 
 export default function ProjectConnectNetworksNew() {
+  const { projectId, orgId } = useParams()
+  const navigate = useNavigate()
+
   return (
     <div className="mx-auto w-full max-w-2xl py-8">
-      <NetworkForm />
+      <NetworkForm
+        projectId={projectId}
+        onSuccess={() => {
+          navigate(
+            getPathWithParams(routes.projects.networks.root, {
+              orgId,
+              projectId,
+            }),
+          )
+        }}
+      />
     </div>
   )
 }

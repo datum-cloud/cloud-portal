@@ -4,7 +4,6 @@ import {
 } from '@/resources/interfaces/control-plane.interface'
 import { ILabel } from '@/resources/interfaces/label.interface'
 import { type ClassValue, clsx } from 'clsx'
-import { useFormAction, useNavigation } from 'react-router'
 import { twMerge } from 'tailwind-merge'
 
 /**
@@ -15,35 +14,6 @@ import { twMerge } from 'tailwind-merge'
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
-}
-
-/**
- * Custom hook to determine if a form is currently pending submission
- * Useful for showing loading states in forms
- * @param options - Configuration options for the hook
- * @param options.formAction - The form action to check against
- * @param options.formMethod - The HTTP method to check against (default: 'POST')
- * @param options.state - The navigation state to check for (default: 'non-idle')
- * @returns Boolean indicating if the specified form action is pending
- */
-export function useIsPending({
-  formAction,
-  formMethod = 'POST',
-  state = 'non-idle',
-}: {
-  formAction?: string
-  formMethod?: 'POST' | 'GET' | 'PUT' | 'PATCH' | 'DELETE'
-  state?: 'submitting' | 'loading' | 'non-idle'
-} = {}) {
-  const contextualFormAction = useFormAction()
-  const navigation = useNavigation()
-  const isPendingState =
-    state === 'non-idle' ? navigation.state !== 'idle' : navigation.state === state
-  return (
-    isPendingState &&
-    navigation.formAction === (formAction ?? contextualFormAction) &&
-    navigation.formMethod === formMethod
-  )
 }
 
 /**

@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { useIsPending } from '@/hooks/useIsPending'
 import {
   IWorkloadControlResponse,
   RuntimeType,
@@ -33,7 +34,7 @@ import {
   StoragesSchema,
   storagesSchema,
 } from '@/resources/schemas/workload.schema'
-import { cn, convertObjectToLabels, useIsPending } from '@/utils/misc'
+import { cn, convertObjectToLabels } from '@/utils/misc'
 import { getFormProps, useForm, FormProvider, FormMetadata } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { defineStepper } from '@stepperize/react'
@@ -143,6 +144,7 @@ export const WorkloadStepper = ({
     },
     onSubmit(event, { submission }) {
       event.preventDefault()
+      event.stopPropagation()
       const data = submission?.status === 'success' ? submission.value : {}
 
       if (stepper.isLast) {

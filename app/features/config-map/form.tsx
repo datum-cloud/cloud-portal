@@ -12,13 +12,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { useIsPending } from '@/hooks/useIsPending'
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
 import {
   configMapSchema,
   updateConfigMapSchema,
 } from '@/resources/schemas/config-map.schema'
 import { jsonToYaml } from '@/utils/editor'
-import { useIsPending } from '@/utils/misc'
 import { getFormProps, useForm, useInputControl } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { InfoIcon } from 'lucide-react'
