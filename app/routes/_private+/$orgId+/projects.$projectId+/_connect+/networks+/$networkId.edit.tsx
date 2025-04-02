@@ -5,7 +5,7 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { createNetworksControl } from '@/resources/control-plane/networks.control'
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import { CustomError } from '@/utils/errorHandle'
-import { mergeMeta, generateMetaTitle } from '@/utils/meta'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { Client } from '@hey-api/client-axios'
 import {
@@ -18,13 +18,7 @@ import {
 } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(({ data }) => {
-  return [
-    {
-      title: generateMetaTitle(
-        `Edit ${(data as INetworkControlResponse)?.name || 'Network'}`,
-      ),
-    },
-  ]
+  return metaObject(`Edit ${(data as INetworkControlResponse)?.name || 'Network'}`)
 })
 
 export const loader = withMiddleware(async ({ params, context }: LoaderFunctionArgs) => {

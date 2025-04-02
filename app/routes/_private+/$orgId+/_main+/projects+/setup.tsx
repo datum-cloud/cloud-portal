@@ -5,14 +5,14 @@ import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { CustomError } from '@/utils/errorHandle'
-import { mergeMeta, generateMetaTitle } from '@/utils/meta'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { Client } from '@hey-api/client-axios'
 import { useEffect } from 'react'
 import { AppLoadContext, MetaFunction, redirect, useRevalidator } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return [{ title: generateMetaTitle('Project Setup') }]
+  return metaObject('Project Setup')
 })
 
 // TODO: temporary solution for handle delay on new project

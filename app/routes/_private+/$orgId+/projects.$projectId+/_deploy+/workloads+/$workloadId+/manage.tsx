@@ -7,7 +7,7 @@ import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interf
 import { newWorkloadSchema } from '@/resources/schemas/workload.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { CustomError } from '@/utils/errorHandle'
-import { mergeMeta, generateMetaTitle } from '@/utils/meta'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { Client } from '@hey-api/client-axios'
@@ -23,13 +23,9 @@ import {
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { workload } = data as any
-  return [
-    {
-      title: generateMetaTitle(
-        `Manage ${(workload as IWorkloadControlResponse)?.name || 'Workload'}`,
-      ),
-    },
-  ]
+  return metaObject(
+    `Manage ${(workload as IWorkloadControlResponse)?.name || 'Workload'}`,
+  )
 })
 
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {

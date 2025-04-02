@@ -7,7 +7,7 @@ import { ILocationControlResponse } from '@/resources/interfaces/location.interf
 import { NewLocationSchema, newLocationSchema } from '@/resources/schemas/location.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { CustomError } from '@/utils/errorHandle'
-import { mergeMeta, generateMetaTitle } from '@/utils/meta'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
@@ -21,11 +21,7 @@ import {
 } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(({ data }) => {
-  return [
-    {
-      title: generateMetaTitle(`Edit ${(data as ILocationControlResponse)?.name}`),
-    },
-  ]
+  return metaObject(`Edit ${(data as ILocationControlResponse)?.name}`)
 })
 
 export const loader = withMiddleware(async ({ params, context }: LoaderFunctionArgs) => {

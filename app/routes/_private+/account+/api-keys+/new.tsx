@@ -6,14 +6,14 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { createUserGql } from '@/resources/gql/user.gql'
 import { NewApiKeySchema, newApiKeySchema } from '@/resources/schemas/api-key.schema'
 import { validateCSRF } from '@/utils/csrf.server'
-import { mergeMeta, generateMetaTitle } from '@/utils/meta'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
 import { addDays } from 'date-fns'
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return [{ title: generateMetaTitle('New API Key') }]
+  return metaObject('New API Key')
 })
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {

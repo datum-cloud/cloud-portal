@@ -121,6 +121,24 @@ function isMetaEqual(meta1: MetaDescriptor, meta2: MetaDescriptor): boolean {
     ('title' in meta1 && 'title' in meta2);
 }
 
-export const generateMetaTitle = (title: string) => {
-  return `${title} | ${SITE_CONFIG.siteTitle}`
+export function metaObject(title?: string, description?: string) {
+  const formattedTitle = title
+    ? `${title} | ${SITE_CONFIG.siteTitle}`
+    : SITE_CONFIG.siteTitle
+  const formattedDescription = description ?? SITE_CONFIG.siteDescription
+  const ogImage = `${SITE_CONFIG.siteUrl}/og-image.jpg`
+
+  return [
+    { title: formattedTitle },
+    { name: 'description', content: formattedDescription },
+    { property: 'og:title', content: formattedTitle },
+    { property: 'og:description', content: formattedDescription },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:url', content: SITE_CONFIG.siteUrl },
+    { property: 'og:image', content: ogImage },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: formattedTitle },
+    { name: 'twitter:description', content: formattedDescription },
+    { name: 'twitter:image', content: ogImage },
+  ]
 }

@@ -5,7 +5,7 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { createCoreControl } from '@/resources/control-plane/core.control'
 import { configMapSchema } from '@/resources/schemas/config-map.schema'
 import { validateCSRF } from '@/utils/csrf.server'
-import { mergeMeta, generateMetaTitle } from '@/utils/meta'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { redirectWithToast, dataWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
@@ -13,7 +13,7 @@ import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return [{ title: generateMetaTitle('New Config Map') }]
+  return metaObject('New Config Map')
 })
 
 export const action = withMiddleware(

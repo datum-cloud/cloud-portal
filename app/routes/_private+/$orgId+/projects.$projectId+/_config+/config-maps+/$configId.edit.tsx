@@ -8,7 +8,7 @@ import { updateConfigMapSchema } from '@/resources/schemas/config-map.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { yamlToJson } from '@/utils/editor'
 import { CustomError } from '@/utils/errorHandle'
-import { mergeMeta, generateMetaTitle } from '@/utils/meta'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
@@ -22,13 +22,7 @@ import {
 } from 'react-router'
 
 export const meta: MetaFunction<IConfigMapControlResponse> = mergeMeta(({ data }) => {
-  return [
-    {
-      title: generateMetaTitle(
-        `Edit ${(data as IConfigMapControlResponse)?.name || 'Config Map'}`,
-      ),
-    },
-  ]
+  return metaObject(`Edit ${(data as IConfigMapControlResponse)?.name || 'Config Map'}`)
 })
 
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {

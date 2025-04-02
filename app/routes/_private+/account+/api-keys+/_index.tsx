@@ -13,7 +13,7 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { UserApiKeyModel } from '@/resources/gql/models/user.model'
 import { createUserGql } from '@/resources/gql/user.gql'
-import { mergeMeta, generateMetaTitle } from '@/utils/meta'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
@@ -29,7 +29,7 @@ import {
 } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return [{ title: generateMetaTitle('API Keys') }]
+  return metaObject('API Keys')
 })
 
 export const loader = withMiddleware(async ({ request, context }) => {

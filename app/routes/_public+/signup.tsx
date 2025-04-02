@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
 import { useTheme } from '@/hooks/useTheme'
 import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
-import { mergeMeta } from '@/utils/meta'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { dataWithToast } from '@/utils/toast.server'
 import {
   ActionFunctionArgs,
@@ -17,14 +17,10 @@ import {
 } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return [
-    { title: 'Signup for Datum - A network cloud you can take anywhere' },
-    {
-      name: 'description',
-      content:
-        'We help developers run network workloads anywhere and programmatically connect their ecosystem.',
-    },
-  ]
+  return metaObject(
+    'Signup for Datum - A network cloud you can take anywhere',
+    'We help developers run network workloads anywhere and programmatically connect their ecosystem.',
+  )
 })
 
 export async function action({ request }: ActionFunctionArgs) {

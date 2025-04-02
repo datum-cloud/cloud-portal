@@ -1,11 +1,11 @@
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
 import { CustomError } from '@/utils/errorHandle'
-import { mergeMeta, generateMetaTitle } from '@/utils/meta'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { HelpCircle } from 'lucide-react'
 import type { MetaFunction } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return [{ title: generateMetaTitle('404 Not Found') }]
+  return metaObject('404 Not Found')
 })
 
 export async function loader() {
