@@ -46,7 +46,7 @@ export const ContainerField = ({
   return (
     <div className="flex w-full flex-col gap-2">
       <div className="relative flex w-full items-start gap-4">
-        <Field label="Name" errors={fields.name.errors} className="w-full">
+        <Field isRequired label="Name" errors={fields.name.errors} className="w-full">
           <Input
             {...getInputProps(fields.name, { type: 'text' })}
             ref={isEdit ? undefined : inputRef}
@@ -58,7 +58,7 @@ export const ContainerField = ({
             }}
           />
         </Field>
-        <Field label="Image" errors={fields.image.errors} className="w-full">
+        <Field isRequired label="Image" errors={fields.image.errors} className="w-full">
           <Input
             {...getInputProps(fields.image, { type: 'text' })}
             ref={isEdit ? undefined : inputRef}

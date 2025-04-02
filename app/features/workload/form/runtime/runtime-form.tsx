@@ -73,7 +73,11 @@ export const RuntimeForm = ({
 
   return (
     <div className="flex w-full flex-col items-start gap-4">
-      <Field label="Instance Type" errors={fields.instanceType.errors} className="w-full">
+      <Field
+        isRequired
+        label="Instance Type"
+        errors={fields.instanceType.errors}
+        className="w-full">
         <Select
           {...getSelectProps(fields.instanceType)}
           onValueChange={instanceTypeControl.change}
@@ -95,6 +99,7 @@ export const RuntimeForm = ({
         </Select>
       </Field>
       <Field
+        isRequired
         label="Runtime Type"
         errors={fields.runtimeType.errors}
         className="w-full"

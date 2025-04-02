@@ -67,7 +67,7 @@ export const PortField = ({
 
   return (
     <div className="relative flex w-full items-start gap-4">
-      <Field label="Name" errors={fields.name.errors} className="flex-1">
+      <Field isRequired label="Name" errors={fields.name.errors} className="flex-1">
         <Input
           {...getInputProps(fields.name, { type: 'text' })}
           ref={isEdit ? undefined : inputRef}
@@ -79,7 +79,7 @@ export const PortField = ({
           }}
         />
       </Field>
-      <Field label="Port" errors={fields.port.errors} className="w-1/5">
+      <Field isRequired label="Port" errors={fields.port.errors} className="w-1/5">
         <Input
           {...getInputProps(fields.port, {
             type: 'number',
@@ -96,7 +96,11 @@ export const PortField = ({
           }}
         />
       </Field>
-      <Field label="Protocol" errors={fields.protocol.errors} className="w-1/5">
+      <Field
+        isRequired
+        label="Protocol"
+        errors={fields.protocol.errors}
+        className="w-1/5">
         <Select
           {...getSelectProps(fields.protocol)}
           key={fields.protocol.id}

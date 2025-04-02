@@ -41,6 +41,7 @@ export const MetadataForm = ({
   return (
     <div className="space-y-4">
       <Field
+        isRequired
         label="Name"
         description="A namespace-unique stable identifier for your workload. This cannot be changed once the workload is created"
         errors={fields.name.errors}>

@@ -64,7 +64,7 @@ export const NetworkFieldForm = ({
 
   return (
     <div className="relative flex w-full items-start gap-4">
-      <Field label="Network" errors={fields.name.errors} className="w-1/2">
+      <Field isRequired label="Network" errors={fields.name.errors} className="w-1/2">
         <SelectNetwork
           defaultValue={fields.name.value}
           projectId={projectId}
@@ -73,7 +73,11 @@ export const NetworkFieldForm = ({
           exceptItems={exceptItems}
         />
       </Field>
-      <Field label="IP Families" errors={fields.ipFamilies.errors} className="w-1/2">
+      <Field
+        isRequired
+        label="IP Families"
+        errors={fields.ipFamilies.errors}
+        className="w-1/2">
         <MultiSelect
           placeholder="Select IP Families"
           disabled={ipFamilies.length === 0 || !fields.name.value}

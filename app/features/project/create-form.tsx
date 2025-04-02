@@ -87,7 +87,7 @@ export const CreateProjectForm = () => {
         <AuthenticityTokenInput />
 
         <CardContent className="space-y-4">
-          <Field label="Choose organization">
+          <Field isRequired label="Choose organization">
             <SelectOrganization
               hideNewOrganization
               currentOrg={currentOrg!}
@@ -100,6 +100,7 @@ export const CreateProjectForm = () => {
             />
           </Field>
           <Field
+            isRequired
             label="Description"
             description="Enter a short, human-friendly name. Can be changed later."
             errors={description.errors}>
@@ -117,6 +118,7 @@ export const CreateProjectForm = () => {
             />
           </Field>
           <Field
+            isRequired
             label="Name"
             description="A namespace-unique stable identifier for your project. This cannot be changed once the project is created"
             errors={name.errors}>

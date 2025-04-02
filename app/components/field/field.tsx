@@ -11,6 +11,7 @@ interface FieldProps {
   className?: string
   labelClassName?: string
   tooltipInfo?: string | React.ReactNode
+  isRequired?: boolean
 }
 
 export const Field = ({
@@ -21,13 +22,17 @@ export const Field = ({
   className,
   labelClassName,
   tooltipInfo,
+  isRequired = false,
 }: FieldProps) => {
   return (
     <div className={cn('flex flex-col space-y-2', className)}>
       {label && (
         <div className="flex items-center gap-2">
-          <Label className={cn(errors && 'text-destructive', labelClassName)}>
+          <Label className={cn('gap-0', errors && 'text-destructive', labelClassName)}>
             {label}
+            {isRequired && (
+              <span className="text-destructive align-super text-sm leading-0">*</span>
+            )}
           </Label>
           {tooltipInfo && (
             <Tooltip>

@@ -55,7 +55,7 @@ export const StorageField = ({
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
-      <Field label="Name" errors={fields.name.errors} className="w-full">
+      <Field isRequired label="Name" errors={fields.name.errors} className="w-full">
         <Input
           {...getInputProps(fields.name, { type: 'text' })}
           ref={isEdit ? undefined : inputRef}
@@ -68,7 +68,7 @@ export const StorageField = ({
         />
       </Field>
       <div className="flex w-full gap-2">
-        <Field label="Type" errors={fields.type.errors} className="w-1/2">
+        <Field isRequired label="Type" errors={fields.type.errors} className="w-1/2">
           <Select
             {...getSelectProps(fields.type)}
             key={fields.type.id}
@@ -94,6 +94,7 @@ export const StorageField = ({
         </Field>
         {fields.type.value === StorageType.FILESYSTEM && (
           <Field
+            isRequired
             label="Size"
             errors={fields.size.errors}
             className="w-1/2"
