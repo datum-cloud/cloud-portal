@@ -14,6 +14,7 @@ import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/handle-cache'
 // The ?url query parameter tells the bundler to handle this as a URL import
 import RootCSS from '@/styles/root.css?url'
 import { csrf } from '@/utils/csrf.server'
+import { generateMetaTitle } from '@/utils/meta'
 import { combineHeaders, getDomainUrl } from '@/utils/misc.server'
 import { getToastSession } from '@/utils/toast.server'
 import NProgress from 'nprogress'
@@ -40,10 +41,29 @@ NProgress.configure({ showSpinner: false })
 
 export const handle = { i18n: ['translation'] }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
+export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
+  // Get the current page title from the pathname
+  const getPageTitle = () => {
+    const path = location.pathname
+    // Remove leading slash and convert to title case
+    if (path === '/') return 'Home'
+
+    const pageName = path.split('/').pop() || ''
+    return pageName
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }
+
+  const pageTitle = getPageTitle()
+
   return [
     {
-      title: data ? `${SITE_CONFIG.siteTitle}` : `Error | ${SITE_CONFIG.siteTitle}`,
+      title: data
+        ? pageTitle
+          ? generateMetaTitle(pageTitle)
+          : SITE_CONFIG.siteTitle
+        : generateMetaTitle('Error'),
     },
     {
       name: 'description',

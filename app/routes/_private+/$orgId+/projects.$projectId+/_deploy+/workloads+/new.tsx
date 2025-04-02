@@ -5,10 +5,15 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { newWorkloadSchema } from '@/resources/schemas/workload.schema'
 import { validateCSRF } from '@/utils/csrf.server'
+import { mergeMeta, generateMetaTitle } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { Client } from '@hey-api/client-axios'
-import { ActionFunctionArgs, AppLoadContext, useParams } from 'react-router'
+import { ActionFunctionArgs, AppLoadContext, MetaFunction, useParams } from 'react-router'
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return [{ title: generateMetaTitle('New Workload') }]
+})
 
 export const action = withMiddleware(
   async ({ request, context, params }: ActionFunctionArgs) => {

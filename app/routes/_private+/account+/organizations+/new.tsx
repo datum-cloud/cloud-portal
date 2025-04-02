@@ -20,13 +20,18 @@ import {
   newOrganizationSchema,
 } from '@/resources/schemas/organization.schema'
 import { validateCSRF } from '@/utils/csrf.server'
+import { mergeMeta, generateMetaTitle } from '@/utils/meta'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useEffect, useRef } from 'react'
-import { AppLoadContext, Form, useNavigate } from 'react-router'
+import { AppLoadContext, Form, MetaFunction, useNavigate } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { useHydrated } from 'remix-utils/use-hydrated'
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return [{ title: generateMetaTitle('New Organization') }]
+})
 
 export const action = withMiddleware(async ({ request, context }) => {
   const { gqlClient, cache } = context as AppLoadContext

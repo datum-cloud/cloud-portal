@@ -3,9 +3,11 @@ import { CreateLocationForm } from '@/features/location/form/create-form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createLocationsControl } from '@/resources/control-plane/locations.control'
+import { ILocationControlResponse } from '@/resources/interfaces/location.interface'
 import { NewLocationSchema, newLocationSchema } from '@/resources/schemas/location.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { CustomError } from '@/utils/errorHandle'
+import { mergeMeta, generateMetaTitle } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
@@ -14,8 +16,17 @@ import {
   ActionFunctionArgs,
   AppLoadContext,
   LoaderFunctionArgs,
+  MetaFunction,
   useLoaderData,
 } from 'react-router'
+
+export const meta: MetaFunction = mergeMeta(({ data }) => {
+  return [
+    {
+      title: generateMetaTitle(`Edit ${(data as ILocationControlResponse)?.name}`),
+    },
+  ]
+})
 
 export const loader = withMiddleware(async ({ params, context }: LoaderFunctionArgs) => {
   const { projectId, locationId } = params

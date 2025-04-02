@@ -5,14 +5,27 @@ import { Card, CardContent } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
 import { useTheme } from '@/hooks/useTheme'
 import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
+import { mergeMeta } from '@/utils/meta'
 import { dataWithToast } from '@/utils/toast.server'
 import {
   ActionFunctionArgs,
   Link,
   LoaderFunctionArgs,
+  MetaFunction,
   useNavigation,
   useSubmit,
 } from 'react-router'
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return [
+    { title: 'Log in to Datum - A network cloud you can take anywhere' },
+    {
+      name: 'description',
+      content:
+        'Run network workloads anywhere and programmatically connect to your unique ecosystem.',
+    },
+  ]
+})
 
 export async function action({ request }: ActionFunctionArgs) {
   try {

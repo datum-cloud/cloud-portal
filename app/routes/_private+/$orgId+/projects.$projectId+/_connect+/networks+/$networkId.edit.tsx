@@ -3,16 +3,29 @@ import { NetworkForm } from '@/features/network/form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createNetworksControl } from '@/resources/control-plane/networks.control'
+import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import { CustomError } from '@/utils/errorHandle'
+import { mergeMeta, generateMetaTitle } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { Client } from '@hey-api/client-axios'
 import {
   AppLoadContext,
   LoaderFunctionArgs,
+  MetaFunction,
   useLoaderData,
   useNavigate,
   useParams,
 } from 'react-router'
+
+export const meta: MetaFunction = mergeMeta(({ data }) => {
+  return [
+    {
+      title: generateMetaTitle(
+        `Edit ${(data as INetworkControlResponse)?.name || 'Network'}`,
+      ),
+    },
+  ]
+})
 
 export const loader = withMiddleware(async ({ params, context }: LoaderFunctionArgs) => {
   const { projectId, networkId } = params
