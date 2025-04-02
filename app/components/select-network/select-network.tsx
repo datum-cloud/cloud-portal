@@ -25,12 +25,14 @@ export const SelectNetwork = ({
   defaultOptions?: Option[]
   exceptItems?: string[]
 }) => {
+  const isPending = useIsPending()
+  const fetcher = useFetcher({ key: 'select-network' })
+
   const autocompleteRef = useRef<{ showPopover: (open: boolean) => void }>(null)
   const networkDialogFormRef = useRef<NetworkDialogFormRef>(null)
+
   const [value, setValue] = useState(defaultValue)
   const [options, setOptions] = useState<Option[]>(defaultOptions ?? [])
-  const isPending = useIsPending({ fetcherKey: 'select-network' })
-  const fetcher = useFetcher({ key: 'select-network' })
 
   const selectedValue = useMemo(() => {
     return options.find((option) => option.value === value)
@@ -67,13 +69,31 @@ export const SelectNetwork = ({
   }, [fetcher.data, fetcher.state])
 
   useEffect(() => {
-    if (value) {
-      const selected = options.find((option) => option.value === value)
-      if (selected) {
-        onValueChange(selected)
-      }
+    if (selectedValue) {
+      onValueChange(selectedValue)
     }
-  }, [value, options])
+  }, [selectedValue])
+
+  const handleNetworkCreated = (newNetwork?: INetworkControlResponse) => {
+    if (!newNetwork?.name) return
+
+    const newOption = {
+      value: newNetwork.name,
+      label: newNetwork.name,
+      ...newNetwork,
+    }
+
+    setOptions((prevOptions) => {
+      if (prevOptions.some((opt) => opt.value === newNetwork.name)) {
+        return prevOptions
+      }
+      return [...prevOptions, newOption]
+    })
+
+    setValue(newNetwork.name)
+
+    fetchOptions(true)
+  }
 
   return (
     <>
@@ -105,11 +125,9 @@ export const SelectNetwork = ({
       />
 
       <NetworkDialogForm
-        projectId={projectId ?? ''}
         ref={networkDialogFormRef}
-        onSuccess={() => {
-          fetchOptions(true)
-        }}
+        projectId={projectId ?? ''}
+        onSuccess={handleNetworkCreated}
       />
     </>
   )

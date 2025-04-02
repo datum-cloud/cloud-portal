@@ -29,13 +29,13 @@ export const NetworkFieldForm = ({
   })
   const ipFamiliesControl = useInputControl(fields.ipFamilies)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onChangeNetwork = (value: any) => {
+  const onChangeNetwork = (value: Option) => {
     // Check if the current value different with the default value
     let selected: string[] = []
     if (value.value === networkNameControl.value) {
-      selected = defaultValues?.ipFamilies || []
+      selected = value?.ipFamilies || []
     }
+
     setSelectedIpFamilies(selected)
     ipFamiliesControl.change(selected)
     networkNameControl.change(value.value)

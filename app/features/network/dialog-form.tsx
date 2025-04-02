@@ -35,6 +35,7 @@ export const NetworkDialogForm = forwardRef<
           </DialogHeader>
         </VisuallyHidden.Root>
         <NetworkForm
+          isClientSide
           className="rounded-lg border-none shadow-none"
           onCancel={() => setOpen(false)}
           onSuccess={(data: INetworkControlResponse) => {

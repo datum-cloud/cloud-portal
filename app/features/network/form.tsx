@@ -24,21 +24,24 @@ import {
   useInputControl,
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Form, useFetcher, useNavigate } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { useHydrated } from 'remix-utils/use-hydrated'
+import { toast } from 'sonner'
 
 export const NetworkForm = ({
   projectId,
   defaultValue,
   className,
+  isClientSide = false,
   onCancel,
   onSuccess,
 }: {
   projectId?: string
   defaultValue?: INetworkControlResponse
   className?: string
+  isClientSide?: boolean
   onCancel?: () => void
   onSuccess?: (data: INetworkControlResponse) => void
 }) => {
@@ -47,6 +50,8 @@ export const NetworkForm = ({
   const navigate = useNavigate()
   const fetcher = useFetcher({ key: 'network-form' })
   const isPending = useIsPending({ fetcherKey: 'network-form' })
+
+  const [isLoading, setIsLoading] = useState<boolean>()
 
   const [form, fields] = useForm({
     id: 'network-form',
@@ -72,6 +77,8 @@ export const NetworkForm = ({
         return
       }
 
+      setIsLoading(true)
+
       // Get the form element
       const formElement = event.currentTarget as HTMLFormElement
       const formData = new FormData(formElement)
@@ -89,16 +96,45 @@ export const NetworkForm = ({
         })
       }
 
-      // Submit the form using the Remix submit function
-      // This will trigger the action defined in the route
-      fetcher.submit(
-        { ...payload, projectId: projectId as string },
-        {
+      if (isClientSide) {
+        // Submit the form using fetch API
+        fetch(NETWORK_ACTIONS_ROUTE_PATH, {
           method: isEdit ? 'PUT' : 'POST',
-          action: NETWORK_ACTIONS_ROUTE_PATH,
-          encType: 'application/json',
-        },
-      )
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ...payload, projectId: projectId as string }),
+        })
+          .then((response) => response.json())
+          .then((result) => {
+            setIsLoading(false)
+            if (result.success) {
+              onSuccess?.(result.data)
+            } else {
+              toast.error(
+                isEdit ? 'Failed to update network' : 'Failed to create network',
+                {
+                  description: result?.message,
+                },
+              )
+            }
+          })
+          .catch((error) => {
+            setIsLoading(false)
+            console.error('Error submitting network form:', error)
+          })
+      } else {
+        // Submit the form using the Remix submit function
+        // This will trigger the action defined in the route
+        fetcher.submit(
+          { ...payload, projectId: projectId as string },
+          {
+            method: isEdit ? 'PUT' : 'POST',
+            action: NETWORK_ACTIONS_ROUTE_PATH,
+            encType: 'application/json',
+          },
+        )
+      }
     },
   })
 
@@ -267,9 +303,9 @@ export const NetworkForm = ({
               form={form.id}
               variant="default"
               type="submit"
-              disabled={isPending}
-              isLoading={isPending}>
-              {isPending
+              disabled={isPending || isLoading}
+              isLoading={isPending || isLoading}>
+              {isPending || isLoading
                 ? `${isEdit ? 'Saving' : 'Creating'}`
                 : `${isEdit ? 'Save' : 'Create'}`}
             </Button>

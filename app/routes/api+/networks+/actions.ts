@@ -121,12 +121,13 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
         throw new Error('Method not allowed')
     }
   } catch (error) {
+    const message =
+      error instanceof Error ? error.message : (error as Response).statusText
     return dataWithToast(
-      { success: false },
+      { success: false, message },
       {
         title: 'Network creation failed',
-        description:
-          error instanceof Error ? error.message : (error as Response).statusText,
+        description: message,
         type: 'error',
       },
     )

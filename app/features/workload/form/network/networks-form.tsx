@@ -54,9 +54,12 @@ export const NetworksForm = ({
   useEffect(() => {
     const fetchOptions = async () => {
       setIsLoading(true)
-      const response = await fetch(`${NETWORKS_LIST_ROUTE_PATH}?projectId=${projectId}`, {
-        method: 'GET',
-      })
+      const response = await fetch(
+        `${NETWORKS_LIST_ROUTE_PATH}?projectId=${projectId}&noCache=true`,
+        {
+          method: 'GET',
+        },
+      )
       const data = await response.json()
 
       const opt = data.map((network: INetworkControlResponse) => ({
