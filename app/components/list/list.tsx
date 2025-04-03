@@ -20,9 +20,11 @@ interface ListProps {
    * Optional className applied to all list items
    */
   itemClassName?: string
+
+  labelClassName?: string
 }
 
-export const List = ({ items, className, itemClassName }: ListProps) => {
+export const List = ({ items, className, itemClassName, labelClassName }: ListProps) => {
   return (
     <div className={cn('flex flex-col', className)}>
       {items
@@ -31,14 +33,18 @@ export const List = ({ items, className, itemClassName }: ListProps) => {
           <div
             key={index}
             className={cn(
-              'flex w-full items-center gap-2 px-4 py-2 [&:not(:last-child)]:border-b',
+              'text-primary flex w-full items-center gap-2 px-4 py-2 [&:not(:last-child)]:border-b',
               itemClassName,
               item.className,
             )}>
-            <div className="flex min-w-[100px] justify-start text-left text-sm font-medium">
+            <div
+              className={cn(
+                'flex min-w-[100px] justify-start text-left text-sm font-medium',
+                labelClassName,
+              )}>
               {item.label}
             </div>
-            <div className="text-primary flex justify-end text-right text-sm font-normal break-words">
+            <div className="flex justify-end text-right text-sm font-normal break-words">
               {item.content}
             </div>
           </div>

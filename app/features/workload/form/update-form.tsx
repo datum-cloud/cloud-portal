@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { WorkloadHelper } from '../helper'
 import { MetadataForm } from './metadata-form'
 import { NetworksForm } from './network/networks-form'
 import { PlacementsForm } from './placement/placements-form'
@@ -17,26 +18,20 @@ import { useIsPending } from '@/hooks/useIsPending'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import {
   RuntimeType,
-  StorageType,
   IWorkloadControlResponse,
 } from '@/resources/interfaces/workload.interface'
 import {
   MetadataSchema,
-  NetworkFieldSchema,
   NetworksSchema,
   updateWorkloadSchema,
   NewWorkloadSchema,
-  PlacementFieldSchema,
   PlacementsSchema,
   RuntimeSchema,
-  StorageFieldSchema,
   StoragesSchema,
 } from '@/resources/schemas/workload.schema'
 import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
-import { convertObjectToLabels } from '@/utils/misc'
 import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { filter, find, flatMap, get, has, map } from 'es-toolkit/compat'
 import { Cpu, HardDrive, Layers, Network, Server } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { Form, useNavigate, useSubmit } from 'react-router'
@@ -188,103 +183,7 @@ export const WorkloadUpdateForm = ({
   useEffect(() => {
     // Process default values when they exist to populate the form
     if (defaultValue) {
-      const { spec, ...rest } = defaultValue
-
-      // Extract relevant sections from the spec
-      const placementsSpec = get(spec, 'placements', [])
-      const runtimeSpec = get(spec, 'template.spec.runtime', {})
-      const volumesSpec = get(spec, 'template.spec.volumes', [])
-      const networkInterfaces = get(spec, 'template.spec.networkInterfaces', [])
-
-      // Determine if this is a VM workload
-      const isVm = has(runtimeSpec, 'virtualMachine')
-
-      // Find boot storage and extract boot image information
-      const bootStorage = find(volumesSpec, (volume) => volume.name === 'boot')
-      const bootImage = get(bootStorage, 'disk.template.spec.populator.image.name', '')
-
-      // ==========================================
-      // Map API spec format to form schema format
-      // ==========================================
-
-      // 1. Metadata mapping
-      const metadata: MetadataSchema = {
-        name: rest?.name ?? '',
-        labels: convertObjectToLabels(rest?.labels ?? {}),
-        annotations: convertObjectToLabels(rest?.annotations ?? {}),
-      }
-
-      // 2. Runtime configuration mapping
-      const runtime: RuntimeSchema = {
-        instanceType: (runtimeSpec as any)?.resources?.instanceType ?? '',
-        runtimeType: isVm ? RuntimeType.VM : RuntimeType.CONTAINER,
-        // Only include VM-specific configuration if this is a VM workload
-        virtualMachine: isVm
-          ? {
-              sshKey:
-                spec?.template?.metadata?.annotations?.[
-                  'compute.datumapis.com/ssh-keys'
-                ] ?? '',
-              bootImage: bootImage,
-              ports: (runtimeSpec as any)?.virtualMachine?.ports ?? [],
-            }
-          : undefined,
-        containers: !isVm
-          ? (runtimeSpec as any)?.sandbox?.containers.map((container: any) => ({
-              name: container.name,
-              image: container.image,
-              ports: container?.ports ?? [],
-            }))
-          : undefined,
-      }
-
-      // 3. Network configuration mapping
-      // Extract network interfaces and their IP families
-      const networks: NetworkFieldSchema[] = map(
-        networkInterfaces,
-        (networkInterface) => ({
-          name: networkInterface?.network?.name ?? '',
-          ipFamilies: flatMap(networkInterface.networkPolicy?.ingress ?? [], (ingress) =>
-            flatMap(ingress.from ?? [], (from) =>
-              // Determine IP family based on CIDR
-              from.ipBlock?.cidr === '0.0.0.0/0' ? ['IPv4'] : ['IPv6'],
-            ),
-          ),
-        }),
-      )
-
-      // 4. Storage configuration mapping
-      // Filter out boot volume as it's handled separately in VM configuration
-      const storages: StorageFieldSchema[] = map(
-        filter(volumesSpec, (volume) => volume.name !== 'boot'),
-        (volume) => ({
-          name: volume.name ?? '',
-          type: StorageType.FILESYSTEM,
-          // Convert storage size from string (e.g., "10Gi") to number
-          size:
-            Number(
-              String(
-                get(volume, 'disk.template.spec.resources.requests.storage', '0'),
-              ).replace('Gi', ''),
-            ) || 0,
-        }),
-      )
-
-      // 5. Placement configuration mapping
-      const placements: PlacementFieldSchema[] = map(placementsSpec, (placement) => ({
-        name: placement.name ?? '',
-        cityCode: placement.cityCodes?.[0] ?? '',
-        minimumReplicas: placement.scaleSettings?.minReplicas ?? 1,
-      }))
-
-      // Consolidate all mapped data
-      const formValue = {
-        metadata,
-        runtime,
-        networks,
-        storages,
-        placements,
-      }
+      const formValue = WorkloadHelper.mappingSpecToForm(defaultValue)
 
       // Update form with the mapped values
       setFormattedValues(formValue)

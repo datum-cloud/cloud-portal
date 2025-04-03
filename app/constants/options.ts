@@ -44,4 +44,8 @@ export const STORAGE_TYPES = {
     label: 'Request a volume size',
     description: 'Request a volume with a specific size.',
   },
+  [StorageType.BOOT]: {
+    label: 'Boot volume',
+    description: 'A boot volume is a volume that is used to store the boot image.',
+  },
 }
