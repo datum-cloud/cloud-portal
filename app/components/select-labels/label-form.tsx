@@ -58,7 +58,7 @@ export const LabelForm = ({
   return (
     <form method="post" {...getFormProps(form)} onSubmit={handleSubmit}>
       <div className="space-y-4">
-        <Field label="Key" errors={fields.key.errors}>
+        <Field isRequired label="Key" errors={fields.key.errors}>
           <Input
             {...getInputProps(fields.key, { type: 'text' })}
             key={fields.key.id}
@@ -66,7 +66,7 @@ export const LabelForm = ({
             ref={inputRef}
           />
         </Field>
-        <Field label="Value" errors={fields.value.errors}>
+        <Field isRequired label="Value" errors={fields.value.errors}>
           <Input
             {...getInputProps(fields.value, { type: 'text' })}
             key={fields.value.id}

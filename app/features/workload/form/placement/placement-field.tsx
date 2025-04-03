@@ -54,7 +54,7 @@ export const PlacementField = ({
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
-      <Field label="Name" errors={fields.name.errors} className="w-full">
+      <Field isRequired label="Name" errors={fields.name.errors} className="w-full">
         <Input
           {...getInputProps(fields.name, { type: 'text' })}
           ref={isEdit ? undefined : inputRef}
@@ -68,7 +68,7 @@ export const PlacementField = ({
       </Field>
 
       <div className="flex w-full gap-2">
-        <Field label="City" errors={fields.cityCode.errors} className="w-1/2">
+        <Field isRequired label="City" errors={fields.cityCode.errors} className="w-1/2">
           <SelectIATA
             placeholder="Select a city"
             defaultValue={fields.cityCode.value}
@@ -78,6 +78,7 @@ export const PlacementField = ({
           />
         </Field>
         <Field
+          isRequired
           label="Min Replicas"
           errors={fields.minimumReplicas.errors}
           className="w-1/2">

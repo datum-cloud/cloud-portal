@@ -124,7 +124,7 @@ export const GCPProvider = ({
         placeholder="e.g. GCP"
         className="hidden"
       />
-      <Field label="Project ID" errors={meta.projectId.errors}>
+      <Field isRequired label="Project ID" errors={meta.projectId.errors}>
         <Input
           {...getInputProps(meta.projectId, { type: 'text' })}
           key={meta.projectId.id}
@@ -132,7 +132,7 @@ export const GCPProvider = ({
           readOnly={isEdit}
         />
       </Field>
-      <Field label="Region" errors={meta.region.errors}>
+      <Field isRequired label="Region" errors={meta.region.errors}>
         <SelectRegion
           defaultValue={meta.region.value}
           onValueChange={(value) => {
@@ -142,7 +142,7 @@ export const GCPProvider = ({
           disabled={isEdit}
         />
       </Field>
-      <Field label="Zone" errors={meta.zone.errors}>
+      <Field isRequired label="Zone" errors={meta.zone.errors}>
         <SelectZone
           selectedRegion={meta.region.value}
           defaultValue={meta.zone.value}

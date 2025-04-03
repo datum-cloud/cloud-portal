@@ -56,7 +56,11 @@ export const VirtualMachineForm = ({
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <Field label="Boot Image" errors={fields.bootImage.errors} className="w-full">
+      <Field
+        isRequired
+        label="Boot Image"
+        errors={fields.bootImage.errors}
+        className="w-full">
         <Select
           {...getSelectProps(fields.bootImage)}
           onValueChange={bootImageControl.change}
@@ -79,6 +83,7 @@ export const VirtualMachineForm = ({
       </Field>
 
       <Field
+        isRequired
         label="SSH Key"
         errors={fields.sshKey.errors}
         className="w-full"

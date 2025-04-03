@@ -225,6 +225,7 @@ export const NetworkForm = ({
             />
           </Field> */}
             <Field
+              isRequired
               label="Name"
               description="A namespace-unique stable identifier for your network. This cannot be changed once the network is created"
               errors={fields.name.errors}>
@@ -258,7 +259,7 @@ export const NetworkForm = ({
                 }}
               />
             </Field>
-            <Field label="IP Family" errors={fields.ipFamily.errors}>
+            <Field isRequired label="IP Family" errors={fields.ipFamily.errors}>
               <SelectIPFamily
                 defaultValue={fields.ipFamily.value}
                 onValueChange={(value) => {
@@ -266,7 +267,7 @@ export const NetworkForm = ({
                 }}
               />
             </Field>
-            <Field label="IPAM Mode" errors={fields.ipam.errors}>
+            <Field isRequired label="IPAM Mode" errors={fields.ipam.errors}>
               <SelectIPAM
                 meta={fields.ipam}
                 onChange={(value) => {
@@ -274,7 +275,7 @@ export const NetworkForm = ({
                 }}
               />
             </Field>
-            <Field label="MTU" errors={fields.mtu.errors}>
+            <Field isRequired label="MTU" errors={fields.mtu.errors}>
               <Input
                 {...getInputProps(fields.mtu, { type: 'number' })}
                 defaultValue={fields.mtu.value}
@@ -289,8 +290,6 @@ export const NetworkForm = ({
               variant="link"
               disabled={isPending}
               onClick={() => {
-                form.reset()
-
                 if (onCancel) {
                   onCancel()
                 } else {

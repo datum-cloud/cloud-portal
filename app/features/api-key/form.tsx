@@ -62,6 +62,7 @@ export const ApiKeyForm = () => {
 
         <CardContent className="space-y-4">
           <Field
+            isRequired
             label="Name"
             description="Enter a short, human-friendly name."
             errors={fields.name.errors}>
@@ -79,7 +80,7 @@ export const ApiKeyForm = () => {
               placeholder="e.g. My API Key for Server"
             />
           </Field>
-          <Field label="Expiration" errors={fields.expiresAt.errors}>
+          <Field isRequired label="Expiration" errors={fields.expiresAt.errors}>
             <SelectExpires meta={fields.expiresAt as FieldMetadata<string>} />
           </Field>
         </CardContent>

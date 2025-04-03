@@ -104,6 +104,7 @@ export const ConfigMapForm = ({
 
           {hasData ? (
             <Field
+              isRequired
               label={isEdit ? 'Data' : 'Configuration'}
               errors={fields.content.errors}>
               <CodeEditorTabs

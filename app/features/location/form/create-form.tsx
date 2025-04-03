@@ -159,6 +159,7 @@ export const CreateLocationForm = ({
             />
           </Field> */}
           <Field
+            isRequired
             label="Name"
             description="A namespace-unique stable identifier for your location. This cannot be changed once the location is created"
             errors={fields.name.errors}>
@@ -190,7 +191,7 @@ export const CreateLocationForm = ({
             />
           </Field>
 
-          <Field label="Class" errors={fields.class.errors}>
+          <Field isRequired label="Class" errors={fields.class.errors}>
             <SelectLocationClass
               defaultValue={fields.class.value}
               onValueChange={(value) => {
@@ -199,7 +200,7 @@ export const CreateLocationForm = ({
             />
           </Field>
 
-          <Field label="City" errors={fields.cityCode.errors}>
+          <Field isRequired label="City" errors={fields.cityCode.errors}>
             <SelectIATA
               placeholder="Select a city"
               defaultValue={fields.cityCode.value}
@@ -221,7 +222,7 @@ export const CreateLocationForm = ({
             />
           </Field>
 
-          <Field label="Provider" errors={fields.provider.errors}>
+          <Field isRequired label="Provider" errors={fields.provider.errors}>
             <SelectLocationProvider
               meta={fields.provider}
               onChange={(value) => {

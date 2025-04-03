@@ -15,7 +15,7 @@ export const BootField = ({
 }) => {
   return (
     <div className="relative flex w-full items-start gap-4">
-      <Field label="Name" className="w-1/2">
+      <Field isRequired label="Name" className="w-1/2">
         <Input
           type="text"
           readOnly
@@ -23,7 +23,7 @@ export const BootField = ({
           value={defaultValues?.name}
         />
       </Field>
-      <Field label="Boot Image" className="w-1/2">
+      <Field isRequired label="Boot Image" className="w-1/2">
         <Select value={defaultValues?.bootImage}>
           <SelectTrigger
             disabled

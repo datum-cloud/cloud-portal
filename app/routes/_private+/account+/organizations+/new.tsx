@@ -102,6 +102,7 @@ export default function AccountOrganizationsNew() {
           <AuthenticityTokenInput />
           <CardContent className="space-y-4">
             <Field
+              isRequired
               label="Name"
               description="Enter a short, human-friendly name. Can be changed later."
               errors={name.errors}>
