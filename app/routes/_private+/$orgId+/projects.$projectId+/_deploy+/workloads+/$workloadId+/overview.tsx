@@ -16,6 +16,7 @@ import { createWorkloadsControl } from '@/resources/control-plane/workloads.cont
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
 import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
 import { CustomError } from '@/utils/errorHandle'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { Client } from '@hey-api/client-axios'
 import { formatDistanceToNow } from 'date-fns'
@@ -29,7 +30,16 @@ import {
   Link,
   useParams,
   useSubmit,
+  MetaFunction,
 } from 'react-router'
+
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { workload } = data as any
+  return metaObject(
+    `${(workload as IWorkloadControlResponse)?.name || 'Workload'} Overview`,
+  )
+})
 
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId, workloadId } = params

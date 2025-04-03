@@ -3,10 +3,12 @@ import { ConfigMapForm } from '@/features/config-map/form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createCoreControl } from '@/resources/control-plane/core.control'
+import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
 import { updateConfigMapSchema } from '@/resources/schemas/config-map.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { yamlToJson } from '@/utils/editor'
 import { CustomError } from '@/utils/errorHandle'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
@@ -15,8 +17,13 @@ import {
   ActionFunctionArgs,
   AppLoadContext,
   LoaderFunctionArgs,
+  MetaFunction,
   useLoaderData,
 } from 'react-router'
+
+export const meta: MetaFunction<IConfigMapControlResponse> = mergeMeta(({ data }) => {
+  return metaObject(`Edit ${(data as IConfigMapControlResponse)?.name || 'Config Map'}`)
+})
 
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext

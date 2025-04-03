@@ -13,6 +13,7 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { UserApiKeyModel } from '@/resources/gql/models/user.model'
 import { createUserGql } from '@/resources/gql/user.gql'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { dataWithToast } from '@/utils/toast.server'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
@@ -21,10 +22,15 @@ import {
   ActionFunctionArgs,
   AppLoadContext,
   Link,
+  MetaFunction,
   data,
   useLoaderData,
   useSubmit,
 } from 'react-router'
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return metaObject('API Keys')
+})
 
 export const loader = withMiddleware(async ({ request, context }) => {
   const { gqlClient } = context as AppLoadContext

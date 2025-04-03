@@ -5,11 +5,16 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { newProjectSchema, NewProjectSchema } from '@/resources/schemas/project.schema'
 import { validateCSRF } from '@/utils/csrf.server'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
 import { Client } from '@hey-api/client-axios'
-import { ActionFunctionArgs, AppLoadContext } from 'react-router'
+import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router'
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return metaObject('New Project')
+})
 
 export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {

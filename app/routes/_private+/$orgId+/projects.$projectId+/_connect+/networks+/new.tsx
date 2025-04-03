@@ -1,7 +1,12 @@
 import { routes } from '@/constants/routes'
 import { NetworkForm } from '@/features/network/form'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
-import { useNavigate, useParams } from 'react-router'
+import { MetaFunction, useNavigate, useParams } from 'react-router'
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return metaObject('New Network')
+})
 
 export default function ProjectConnectNetworksNew() {
   const { projectId, orgId } = useParams()

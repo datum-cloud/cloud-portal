@@ -30,6 +30,8 @@ import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { useHydrated } from 'remix-utils/use-hydrated'
 import { toast } from 'sonner'
 
+// TODO: This form needs refactoring to fix validation errors that occur when used inside a dialog component.
+// Current implementation causes state management issues in nested contexts.
 export const NetworkForm = ({
   projectId,
   defaultValue,

@@ -5,10 +5,15 @@ import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { CustomError } from '@/utils/errorHandle'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { Client } from '@hey-api/client-axios'
 import { useEffect } from 'react'
-import { AppLoadContext, redirect, useRevalidator } from 'react-router'
+import { AppLoadContext, MetaFunction, redirect, useRevalidator } from 'react-router'
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return metaObject('Project Setup')
+})
 
 // TODO: temporary solution for handle delay on new project
 // https://github.com/datum-cloud/cloud-portal/issues/45
