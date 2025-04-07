@@ -20,7 +20,7 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - VAULT_KEY=${VAULT_KEY}
   db:
-    image: postgres:16
+    image: postgres:17
     environment:
       POSTGRES_USER: ${DBUSER}
       POSTGRES_PASSWORD: ${DBPASSWORD}
