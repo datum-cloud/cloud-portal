@@ -25,7 +25,7 @@ export const StatusBadge = ({
   loadingText?: string
   errorText?: string
   readyText?: string
-  tooltipText?: string
+  tooltipText?: string | React.ReactNode
 }) => {
   const [isReady, setIsReady] = useState<ControlPlaneStatus>(ControlPlaneStatus.Pending)
   const [message, setMessage] = useState<string | null>(null)
