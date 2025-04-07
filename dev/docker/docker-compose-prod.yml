@@ -34,7 +34,7 @@ services:
     expose:
       - 11434
   grafana:
-    image: grafana/grafana:9.3.6
+    image: grafana/grafana:11.6.0
     depends_on:
       - prometheus
     ports:
