@@ -7,7 +7,7 @@ import { createControlPlaneFactory } from '@/resources/control-plane/control.fac
 import { createGqlFactory } from '@/resources/gql/gql.factory.js'
 import { createRequestHandler } from '@react-router/express'
 import compression from 'compression'
-import express from 'express'
+import express, { Request, Response } from 'express'
 import promBundle from 'express-prom-bundle'
 import expressRateLimit from 'express-rate-limit'
 import helmet from 'helmet'
@@ -237,6 +237,15 @@ async function cacheContext(request: Request) {
 
   return createCacheClient(userId ?? 'cloud-portal')
 }
+
+// Health check endpoints
+app.get('/_healthz', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok health' })
+})
+
+app.get('/_readyz', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok ready' })
+})
 
 app.all(
   '{*splat}',
