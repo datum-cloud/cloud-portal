@@ -7,7 +7,7 @@ import { createControlPlaneFactory } from '@/resources/control-plane/control.fac
 import { createGqlFactory } from '@/resources/gql/gql.factory.js'
 import { createRequestHandler } from '@react-router/express'
 import compression from 'compression'
-import express from 'express'
+import express, { Request, Response } from 'express'
 import promBundle from 'express-prom-bundle'
 import expressRateLimit from 'express-rate-limit'
 import helmet from 'helmet'
@@ -45,9 +45,30 @@ app.use(metricsMiddleware)
 app.disable('x-powered-by')
 
 /**
- * Enable response compression
+ * Enable response compression with Brotli
  */
-app.use(compression())
+app.use(
+  compression({
+    filter: (req, res) => {
+      if (req.headers['x-no-compression']) {
+        return false
+      }
+      return compression.filter(req, res)
+    },
+    level: 4, // Lower compression level for less memory usage
+    threshold: 2048, // Increase threshold to compress fewer small responses
+    memLevel: 7, // Slightly lower memory level
+    strategy: 0, // Compression strategy (0-3)
+    chunkSize: 16 * 1024, // Chunk size for compression
+    windowBits: 15, // Window size for compression
+    brotli: {
+      quality: 4, // Lower quality for less memory usage
+      mode: 0, // Brotli mode (0-2)
+      lgwin: 20, // Smaller window size
+      lgblock: 0, // Brotli block size
+    },
+  }),
+)
 
 /**
  * Enable request logging
@@ -156,7 +177,7 @@ const generalRateLimit = expressRateLimit(defaultRateLimit)
  * Apply rate limits based on request path and method
  */
 app.use((req, res, next) => {
-  const STRONG_PATHS = ['/auth/login']
+  const STRONG_PATHS = ['/login', '/signup']
 
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     if (STRONG_PATHS.some((path) => req.path.includes(path))) {
@@ -200,6 +221,16 @@ app.get(['/img/*splat', '/favicons/*splat'], (_req: any, res: any) => {
   return res.status(404).send('Not found')
 })
 
+// Add request timeout and cleanup
+const REQUEST_TIMEOUT = 30000 // 30 seconds
+
+app.use((req, res, next) => {
+  req.setTimeout(REQUEST_TIMEOUT, () => {
+    res.status(408).send('Request timeout')
+  })
+  next()
+})
+
 async function getBuild() {
   try {
     const build = viteDevServer
@@ -220,37 +251,71 @@ async function apiContext(request: Request) {
   const authToken = session.get('accessToken')
   const controlPlaneToken = session.get('controlPlaneToken')
 
-  const apiClient = createAPIFactory(authToken)
-  const controlPlaneClient = createControlPlaneFactory(controlPlaneToken)
-  const gqlClient = createGqlFactory(authToken)
-
-  return {
-    apiClient,
-    controlPlaneClient,
-    gqlClient,
+  const clients = {
+    apiClient: createAPIFactory(authToken),
+    controlPlaneClient: createControlPlaneFactory(controlPlaneToken),
+    gqlClient: createGqlFactory(authToken),
   }
+
+  return clients
 }
 
 async function cacheContext(request: Request) {
   const session = await getSession((request.headers as any).cookie)
   const userId = session.get('userId')
 
-  return createCacheClient(userId ?? 'cloud-portal')
+  const cache = createCacheClient(userId ?? 'cloud-portal')
+
+  // Implement periodic cleanup
+  setInterval(
+    () => {
+      cache.cleanup()
+    },
+    15 * 60 * 1000,
+  )
+
+  return cache
 }
+
+// Health check endpoints
+app.get('/_healthz', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok health' })
+})
+
+app.get('/_readyz', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok ready' })
+})
+
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    const context = req.app.locals.context
+    if (context) {
+      Object.values(context).forEach((client: any) => {
+        if (typeof client.cleanup === 'function') {
+          client.cleanup()
+        }
+      })
+    }
+  })
+  next()
+})
 
 app.all(
   '{*splat}',
   createRequestHandler({
-    getLoadContext: async (req: any, res: any) => ({
-      cspNonce: res.locals.cspNonce,
-      serverBuild: await getBuild(),
-      cache: await cacheContext(req),
-      ...(await apiContext(req)),
-    }),
+    getLoadContext: async (req: any, res: any) => {
+      const context = {
+        cspNonce: res.locals.cspNonce,
+        serverBuild: await getBuild(),
+        cache: await cacheContext(req),
+        ...(await apiContext(req)),
+      }
+      req.app.locals.context = context
+      return context
+    },
     mode: MODE,
     build: async () => {
       const { error, build } = await getBuild()
-      // gracefully "catch" the error
       if (error) {
         throw error
       }
@@ -266,3 +331,25 @@ app.listen(PORT, () =>
   // eslint-disable-next-line no-console
   console.log(`Express server listening at http://localhost:${PORT}`),
 )
+
+/* // Add memory monitoring
+const MEMORY_THRESHOLD = 0.8 // 80% of max memory
+
+setInterval(() => {
+  const used = process.memoryUsage()
+  const memoryUsagePercent = used.heapUsed / used.heapTotal
+
+  if (memoryUsagePercent > MEMORY_THRESHOLD) {
+    console.warn('High memory usage detected:', {
+      heapUsed: `${Math.round(used.heapUsed / 1024 / 1024)}MB`,
+      heapTotal: `${Math.round(used.heapTotal / 1024 / 1024)}MB`,
+      percentage: `${Math.round(memoryUsagePercent * 100)}%`,
+    })
+
+    // Optional: Force garbage collection if using --expose-gc
+    if (global.gc) {
+      global.gc()
+    }
+  }
+}, 60000) // Check every minute
+ */
