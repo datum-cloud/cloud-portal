@@ -5,6 +5,6 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: cloud-portal
+      app.kubernetes.io/name: cloud-portal
   endpoints:
   - port: http
