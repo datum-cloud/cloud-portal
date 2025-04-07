@@ -1,0 +1,10 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cloud-portal
+spec:
+  selector:
+    matchLabels:
+      app: cloud-portal
+  endpoints:
+  - port: http
