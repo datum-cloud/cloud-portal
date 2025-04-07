@@ -8,6 +8,7 @@ import { createGqlFactory } from '@/resources/gql/gql.factory.js'
 import { createRequestHandler } from '@react-router/express'
 import compression from 'compression'
 import express from 'express'
+import promBundle from 'express-prom-bundle'
 import expressRateLimit from 'express-rate-limit'
 import helmet from 'helmet'
 import morgan from 'morgan'
@@ -28,6 +29,14 @@ const viteDevServer = IS_PROD
     )
 
 const app = express()
+
+const metricsMiddleware = promBundle({
+  includeMethod: true,
+  promClient: {
+    collectDefaultMetrics: {},
+  },
+})
+app.use(metricsMiddleware)
 
 /**
  * Disable x-powered-by header for security
