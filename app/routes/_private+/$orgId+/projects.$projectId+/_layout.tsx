@@ -168,7 +168,7 @@ export default function ProjectLayout() {
       },
       {
         title: 'Observe',
-        href: getPathWithParams(routes.projects.metrics, { orgId, projectId }),
+        href: getPathWithParams(routes.projects.observe.root, { orgId, projectId }),
         type: 'collapsible',
         icon: AreaChartIcon,
         children: [
@@ -189,7 +189,10 @@ export default function ProjectLayout() {
           },
           {
             title: 'Exporters',
-            href: getPathWithParams(routes.projects.exporters, { orgId, projectId }),
+            href: getPathWithParams(routes.projects.observe.exporters.root, {
+              orgId,
+              projectId,
+            }),
             type: 'link',
           },
         ],

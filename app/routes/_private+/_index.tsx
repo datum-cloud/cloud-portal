@@ -4,9 +4,9 @@ import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
-import { redirect } from 'react-router'
+import { LoaderFunctionArgs, redirect } from 'react-router'
 
-export const loader = withMiddleware(async ({ request }) => {
+export const loader = withMiddleware(async ({ request }: LoaderFunctionArgs) => {
   const session = await getSession(request.headers.get('Cookie'))
   const orgId = session.get('currentOrgId')
 
