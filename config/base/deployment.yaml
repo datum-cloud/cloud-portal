@@ -54,7 +54,7 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 10
             httpGet:
-              path: /
+              path: /_healthz
               port: 3000
               scheme: HTTP
           readinessProbe:
@@ -63,7 +63,7 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 10
             httpGet:
-              path: /
+              path: /_readyz
               port: 3000
               scheme: HTTP
       dnsPolicy: ClusterFirst
