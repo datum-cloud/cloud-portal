@@ -61,7 +61,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
   }
 }, authMiddleware)
 
-export default function ProjectConnectNetworks() {
+export default function ConnectNetworksPage() {
   const data = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const submit = useSubmit()
@@ -109,7 +109,7 @@ export default function ProjectConnectNetworks() {
       cell: ({ row }) => {
         return (
           <Link
-            to={getPathWithParams(routes.projects.networks.edit, {
+            to={getPathWithParams(routes.projects.connect.networks.edit, {
               orgId,
               projectId,
               networkId: row.original.name,
@@ -126,7 +126,7 @@ export default function ProjectConnectNetworks() {
         cell: ({ row }) => {
           return (
             <Link
-              to={getPathWithParams(routes.projects.networks.edit, {
+              to={getPathWithParams(routes.projects.connect.networks.edit, {
                 orgId,
                 projectId,
                 networkId: row.original.name,
@@ -183,7 +183,7 @@ export default function ProjectConnectNetworks() {
         label: 'Edit',
         action: (row) => {
           navigate(
-            getPathWithParams(routes.projects.networks.edit, {
+            getPathWithParams(routes.projects.connect.networks.edit, {
               orgId,
               projectId,
               networkId: row.name,
@@ -213,7 +213,10 @@ export default function ProjectConnectNetworks() {
         description: 'Manage deployment networks for your project resources',
         actions: (
           <Link
-            to={getPathWithParams(routes.projects.networks.new, { orgId, projectId })}>
+            to={getPathWithParams(routes.projects.connect.networks.new, {
+              orgId,
+              projectId,
+            })}>
             <Button>
               <PlusIcon className="size-4" />
               New Network

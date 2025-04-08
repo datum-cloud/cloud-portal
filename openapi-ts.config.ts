@@ -1,8 +1,8 @@
 import { defineConfig, defaultPlugins } from '@hey-api/openapi-ts'
 
 export default defineConfig({
-  input: './telemetry.json',
-  output: './app/modules/control-plane/telemetry',
+  input: './gateway.json',
+  output: './app/modules/control-plane/gateway',
   plugins: [
     ...defaultPlugins,
     '@hey-api/client-axios',

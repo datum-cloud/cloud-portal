@@ -3,11 +3,11 @@ import {
   ControlPlaneStatus,
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface'
-import { ROUTE_PATH as EXPORTER_STATUS_ROUTE_PATH } from '@/routes/api+/observe+/status'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { ROUTE_PATH as GATEWAY_STATUS_ROUTE_PATH } from '@/routes/api+/networks+/gateways+/status'
+import { useEffect, useRef, useState } from 'react'
 import { useFetcher } from 'react-router'
 
-export const ExporterStatus = ({
+export const GatewayStatus = ({
   currentStatus,
   projectId,
   id,
@@ -22,30 +22,15 @@ export const ExporterStatus = ({
   showTooltip?: boolean
   badgeClassName?: string
 }) => {
-  const fetcher = useFetcher({ key: `exporter-status-${projectId}` })
+  const fetcher = useFetcher({ key: `gateway-status-${projectId}` })
   const intervalRef = useRef<NodeJS.Timeout>(null)
   const [status, setStatus] = useState<IControlPlaneStatus>()
 
   const loadStatus = () => {
     if (projectId && id) {
-      fetcher.load(`${EXPORTER_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${id}`)
+      fetcher.load(`${GATEWAY_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${id}`)
     }
   }
-
-  const sinkMessages = useMemo(() => {
-    if (status?.sinks) {
-      return status.sinks
-        .filter(
-          (sink: { conditions?: Array<{ status: string }> }) =>
-            sink.conditions?.[0]?.status === 'False',
-        )
-        .map(
-          (sink: { conditions?: Array<{ message: string }> }) =>
-            sink.conditions?.[0]?.message,
-        )
-    }
-    return []
-  }, [status])
 
   useEffect(() => {
     setStatus(currentStatus)
@@ -95,22 +80,7 @@ export const ExporterStatus = ({
       showTooltip={showTooltip}
       badgeClassName={badgeClassName}
       tooltipText={
-        fetcher.data?.isReady === ControlPlaneStatus.Success ? (
-          'Active'
-        ) : (
-          <>
-            {status?.message && <p>{status.message}</p>}
-            {sinkMessages.length > 0 && (
-              <ul className="mt-1 list-disc pl-4 text-left">
-                {sinkMessages.map((message: string, index: number) => (
-                  <li key={index} className="capitalize">
-                    {message}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
-        )
+        fetcher.data?.isReady === ControlPlaneStatus.Success ? 'Active' : undefined
       }
     />
   ) : (

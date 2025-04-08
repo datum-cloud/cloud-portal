@@ -1,0 +1,29 @@
+import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { withMiddleware } from '@/modules/middleware/middleware'
+import { createGatewaysControl } from '@/resources/control-plane/gateways.control'
+import { CustomError } from '@/utils/errorHandle'
+import { Client } from '@hey-api/client-axios'
+import { AppLoadContext, data } from 'react-router'
+
+export const ROUTE_PATH = '/api/networks/gateways/status' as const
+
+export const loader = withMiddleware(async ({ request, context }) => {
+  try {
+    const { controlPlaneClient } = context as AppLoadContext
+    const gatewaysControl = createGatewaysControl(controlPlaneClient as Client)
+
+    const url = new URL(request.url)
+    const projectId = url.searchParams.get('projectId')
+    const gatewayId = url.searchParams.get('id')
+
+    if (!projectId || !gatewayId) {
+      throw new CustomError('Project ID and Gateway ID are required', 400)
+    }
+
+    const status = await gatewaysControl.getStatus(projectId, gatewayId)
+    return data(status)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    return data(null)
+  }
+}, authMiddleware)
