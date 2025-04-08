@@ -7,4 +7,4 @@ spec:
     matchLabels:
       app.kubernetes.io/name: cloud-portal
   endpoints:
-  - port: http
+    - port: http

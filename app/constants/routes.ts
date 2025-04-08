@@ -60,11 +60,20 @@ export const routes = {
       },
     },
     // Connect Sections
-    networks: {
+    connect: {
       root: '/[orgId]/projects/[projectId]/networks',
-      new: '/[orgId]/projects/[projectId]/networks/new',
-      edit: '/[orgId]/projects/[projectId]/networks/[networkId]/edit',
+      networks: {
+        root: '/[orgId]/projects/[projectId]/networks',
+        new: '/[orgId]/projects/[projectId]/networks/new',
+        edit: '/[orgId]/projects/[projectId]/networks/[networkId]/edit',
+      },
+      gateways: {
+        root: '/[orgId]/projects/[projectId]/gateways',
+        new: '/[orgId]/projects/[projectId]/gateways/new',
+        edit: '/[orgId]/projects/[projectId]/gateways/[gatewayId]/edit',
+      },
     },
+    // Deploy Sections
     deploy: {
       root: '/[orgId]/projects/[projectId]/workloads',
       workloads: {
@@ -90,7 +99,6 @@ export const routes = {
         edit: '/[orgId]/projects/[projectId]/exporters/[exporterId]/edit',
       },
     },
-    gateways: '/[orgId]/projects/[projectId]/gateways',
     services: '/[orgId]/projects/[projectId]/services',
     metrics: '/[orgId]/projects/[projectId]/metrics',
     logs: '/[orgId]/projects/[projectId]/logs',

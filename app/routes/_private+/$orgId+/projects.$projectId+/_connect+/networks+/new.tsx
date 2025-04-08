@@ -18,7 +18,7 @@ export default function ProjectConnectNetworksNew() {
         projectId={projectId}
         onSuccess={() => {
           navigate(
-            getPathWithParams(routes.projects.networks.root, {
+            getPathWithParams(routes.projects.connect.networks.root, {
               orgId,
               projectId,
             }),

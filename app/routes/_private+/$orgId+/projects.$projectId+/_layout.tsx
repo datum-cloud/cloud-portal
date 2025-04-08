@@ -118,18 +118,27 @@ export default function ProjectLayout() {
       },
       {
         title: 'Connect',
-        href: getPathWithParams(routes.projects.networks.root, { orgId, projectId }),
+        href: getPathWithParams(routes.projects.connect.networks.root, {
+          orgId,
+          projectId,
+        }),
         type: 'collapsible',
         icon: GlobeIcon,
         children: [
           {
             title: 'Networks',
-            href: getPathWithParams(routes.projects.networks.root, { orgId, projectId }),
+            href: getPathWithParams(routes.projects.connect.networks.root, {
+              orgId,
+              projectId,
+            }),
             type: 'link',
           },
           {
             title: 'Gateways',
-            href: getPathWithParams(routes.projects.gateways, { orgId, projectId }),
+            href: getPathWithParams(routes.projects.connect.gateways.root, {
+              orgId,
+              projectId,
+            }),
             type: 'link',
           },
           {

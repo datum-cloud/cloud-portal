@@ -67,7 +67,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
   }
 }, authMiddleware)
 
-export default function ProjectLocationsPage() {
+export default function LocationsPage() {
   const data = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const submit = useSubmit()

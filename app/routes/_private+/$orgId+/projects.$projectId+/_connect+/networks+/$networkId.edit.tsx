@@ -46,7 +46,12 @@ export default function EditNetwork() {
         projectId={projectId}
         defaultValue={network}
         onSuccess={() => {
-          navigate(getPathWithParams(routes.projects.networks.root, { orgId, projectId }))
+          navigate(
+            getPathWithParams(routes.projects.connect.networks.root, {
+              orgId,
+              projectId,
+            }),
+          )
         }}
       />
     </div>
