@@ -1,4 +1,4 @@
-import { SimpleExporterDetail } from './simple-detail'
+import { SimpleExportPolicyDetail } from './simple-detail'
 import { CodeEditorTabs } from '@/components/code-editor/code-editor-tabs'
 import { EditorLanguage } from '@/components/code-editor/code-editor.types'
 import { Field } from '@/components/field/field'
@@ -26,7 +26,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Form, useNavigate } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 
-export const ExporterForm = ({
+export const ExportPolicyForm = ({
   defaultValue,
   projectId,
 }: {
@@ -78,11 +78,11 @@ export const ExporterForm = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEdit ? 'Update' : 'Create a new'} exporter</CardTitle>
+        <CardTitle>{isEdit ? 'Update' : 'Create a new'} export policy</CardTitle>
         <CardDescription>
           {isEdit
-            ? 'Update the exporter with the new values below.'
-            : 'Create a new exporter to get started with Datum Cloud.'}
+            ? 'Update the export policy with the new values below.'
+            : 'Create a new export policy to get started with Datum Cloud.'}
         </CardDescription>
       </CardHeader>
       <Form
@@ -102,7 +102,7 @@ export const ExporterForm = ({
 
         <CardContent className="space-y-4">
           {isEdit && defaultValue && (
-            <SimpleExporterDetail exporter={defaultValue} projectId={projectId} />
+            <SimpleExportPolicyDetail exportPolicy={defaultValue} projectId={projectId} />
           )}
 
           {hasData ? (
@@ -129,7 +129,9 @@ export const ExporterForm = ({
             <Alert variant="secondary">
               <InfoIcon className="size-4" />
               <AlertTitle>Information</AlertTitle>
-              <AlertDescription>This exporter does not have any spec.</AlertDescription>
+              <AlertDescription>
+                This export policy does not have any spec.
+              </AlertDescription>
             </Alert>
           )}
         </CardContent>

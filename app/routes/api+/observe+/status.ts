@@ -16,13 +16,13 @@ export const loader = withMiddleware(async ({ request, context }) => {
 
     const url = new URL(request.url)
     const projectId = url.searchParams.get('projectId')
-    const exporterId = url.searchParams.get('id')
+    const exportPolicyId = url.searchParams.get('id')
 
-    if (!projectId || !exporterId) {
-      throw new CustomError('Project ID and Exporter ID are required', 400)
+    if (!projectId || !exportPolicyId) {
+      throw new CustomError('Project ID and Export Policy ID are required', 400)
     }
 
-    const status = await exportPoliciesControl.getStatus(projectId, exporterId)
+    const status = await exportPoliciesControl.getStatus(projectId, exportPolicyId)
     return data(status)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {

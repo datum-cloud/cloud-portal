@@ -3,11 +3,11 @@ import {
   ControlPlaneStatus,
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface'
-import { ROUTE_PATH as EXPORTER_STATUS_ROUTE_PATH } from '@/routes/api+/observe+/status'
+import { ROUTE_PATH as EXPORT_POLICY_STATUS_ROUTE_PATH } from '@/routes/api+/observe+/status'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFetcher } from 'react-router'
 
-export const ExporterStatus = ({
+export const ExportPolicyStatus = ({
   currentStatus,
   projectId,
   id,
@@ -22,13 +22,13 @@ export const ExporterStatus = ({
   showTooltip?: boolean
   badgeClassName?: string
 }) => {
-  const fetcher = useFetcher({ key: `exporter-status-${projectId}` })
+  const fetcher = useFetcher({ key: `export-policy-status-${projectId}` })
   const intervalRef = useRef<NodeJS.Timeout>(null)
   const [status, setStatus] = useState<IControlPlaneStatus>()
 
   const loadStatus = () => {
     if (projectId && id) {
-      fetcher.load(`${EXPORTER_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${id}`)
+      fetcher.load(`${EXPORT_POLICY_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${id}`)
     }
   }
 

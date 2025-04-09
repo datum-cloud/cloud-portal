@@ -197,8 +197,8 @@ export default function ProjectLayout() {
             type: 'link',
           },
           {
-            title: 'Exporters',
-            href: getPathWithParams(routes.projects.observe.exporters.root, {
+            title: 'Export Policies',
+            href: getPathWithParams(routes.projects.observe.exportPolicies.root, {
               orgId,
               projectId,
             }),

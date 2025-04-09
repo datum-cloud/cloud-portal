@@ -8,7 +8,7 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('New Network')
 })
 
-export default function ProjectConnectNetworksNew() {
+export default function ConnectNetworksNewPage() {
   const { projectId, orgId } = useParams()
   const navigate = useNavigate()
 
