@@ -65,29 +65,29 @@ export const createExportPoliciesControl = (client: Client) => {
 
       return dryRun ? response.data : transformPolicy(response.data)
     },
-    delete: async (projectId: string, exporterId: string) => {
+    delete: async (projectId: string, exportPolicyId: string) => {
       const response = await deleteTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { name: exporterId, namespace: 'default' },
+        path: { name: exportPolicyId, namespace: 'default' },
       })
 
       if (!response.data) {
-        throw new CustomError('Failed to delete exporter', 500)
+        throw new CustomError('Failed to delete export policy', 500)
       }
 
       return response.data
     },
-    getStatus: async (projectId: string, exporterId: string) => {
+    getStatus: async (projectId: string, exportPolicyId: string) => {
       const response =
         await readTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatus({
           client,
           baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-          path: { name: exporterId, namespace: 'default' },
+          path: { name: exportPolicyId, namespace: 'default' },
         })
 
       if (!response.data) {
-        throw new CustomError(`Export policy ${exporterId} not found`, 404)
+        throw new CustomError(`Export policy ${exportPolicyId} not found`, 404)
       }
 
       return transformControlPlaneStatus(response.data.status)

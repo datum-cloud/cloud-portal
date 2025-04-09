@@ -1,4 +1,4 @@
-import { ExporterStatus } from './status'
+import { ExportPolicyStatus } from './status'
 import { DateFormat } from '@/components/date-format/date-format'
 import { Field } from '@/components/field/field'
 import { TextCopy } from '@/components/text-copy/text-copy'
@@ -6,49 +6,49 @@ import { IExportPolicyControlResponse } from '@/resources/interfaces/policy.inte
 import { getShortId, transformControlPlaneStatus } from '@/utils/misc'
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow'
 
-export const SimpleExporterDetail = ({
+export const SimpleExportPolicyDetail = ({
   projectId,
-  exporter,
+  exportPolicy,
 }: {
   projectId?: string
-  exporter: IExportPolicyControlResponse
+  exportPolicy: IExportPolicyControlResponse
 }) => {
   return (
     <div className="grid grid-cols-2 gap-4">
       <Field label="Name">
-        <span className="text-muted-foreground text-sm">{exporter?.name}</span>
+        <span className="text-muted-foreground text-sm">{exportPolicy?.name}</span>
       </Field>
-      {exporter?.uid && (
+      {exportPolicy?.uid && (
         <Field label="UUID">
           <TextCopy
             className="text-muted-foreground text-sm"
-            value={exporter?.uid}
-            text={getShortId(exporter?.uid)}
+            value={exportPolicy?.uid}
+            text={getShortId(exportPolicy?.uid)}
           />
         </Field>
       )}
       <Field label="Namespace">
-        <span className="text-muted-foreground text-sm">{exporter?.namespace}</span>
+        <span className="text-muted-foreground text-sm">{exportPolicy?.namespace}</span>
       </Field>
       <Field label="Status">
-        <ExporterStatus
-          currentStatus={transformControlPlaneStatus(exporter?.status)}
+        <ExportPolicyStatus
+          currentStatus={transformControlPlaneStatus(exportPolicy?.status)}
           projectId={projectId}
-          id={exporter?.name}
+          id={exportPolicy?.name}
           type="badge"
           badgeClassName="w-fit text-sm font-medium border border-input"
         />
       </Field>
-      {exporter?.createdAt && (
+      {exportPolicy?.createdAt && (
         <Field label="Created At">
           <div className="flex items-center gap-1">
             <DateFormat
               className="text-muted-foreground text-sm"
-              date={exporter?.createdAt}
+              date={exportPolicy?.createdAt}
             />
             <span className="text-muted-foreground text-sm">
               (
-              {formatDistanceToNow(new Date(exporter?.createdAt), {
+              {formatDistanceToNow(new Date(exportPolicy?.createdAt), {
                 addSuffix: true,
               })}
               )

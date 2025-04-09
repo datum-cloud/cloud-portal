@@ -151,10 +151,10 @@ export default function ConnectGatewaysPage() {
         label: 'Edit',
         action: (row) => {
           navigate(
-            getPathWithParams(routes.projects.observe.exporters.edit, {
+            getPathWithParams(routes.projects.observe.exportPolicies.edit, {
               orgId,
               projectId,
-              exporterId: row.name,
+              exportPolicyId: row.name,
             }),
           )
         },

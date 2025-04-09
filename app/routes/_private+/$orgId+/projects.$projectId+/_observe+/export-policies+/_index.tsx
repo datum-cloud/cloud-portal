@@ -3,7 +3,7 @@ import { DataTableRowActionsProps } from '@/components/data-table/data-table.typ
 import { DateFormat } from '@/components/date-format/date-format'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
-import { ExporterStatus } from '@/features/observe/exporter/status'
+import { ExportPolicyStatus } from '@/features/observe/export-policies/status'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
@@ -50,8 +50,8 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
 
       await exportPoliciesControl.delete(projectId as string, id as string)
       return dataWithToast(null, {
-        title: 'Exporter deleted successfully',
-        description: 'The exporter has been deleted successfully',
+        title: 'Export policy deleted successfully',
+        description: 'The export policy has been deleted successfully',
         type: 'success',
       })
     }
@@ -60,38 +60,38 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
   }
 }, authMiddleware)
 
-export default function ObserveExportersPage() {
+export default function ObserveExportPoliciesPage() {
   const { orgId, projectId } = useParams()
   const data = useLoaderData<typeof loader>()
   const submit = useSubmit()
 
   const { confirm } = useConfirmationDialog()
 
-  const deleteExporter = async (exporter: IExportPolicyControlResponse) => {
+  const deleteExportPolicy = async (exportPolicy: IExportPolicyControlResponse) => {
     await confirm({
-      title: 'Delete Exporter',
+      title: 'Delete Export Policy',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{exporter.name}</strong>?
+          <strong>{exportPolicy.name}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${exporter.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the exporter name to confirm deletion',
-      confirmValue: exporter.name ?? 'delete',
+      confirmInputLabel: `Type "${exportPolicy.name}" to confirm.`,
+      confirmInputPlaceholder: 'Type the export policy name to confirm deletion',
+      confirmValue: exportPolicy.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {
-            id: exporter.name ?? '',
+            id: exportPolicy.name ?? '',
             projectId: projectId ?? '',
           },
           {
             method: 'DELETE',
-            fetcherKey: 'exporter-resources',
+            fetcherKey: 'export-policy-resources',
             navigate: false,
           },
         )
@@ -122,7 +122,7 @@ export default function ObserveExportersPage() {
         cell: ({ row }) => {
           return (
             row.original.status && (
-              <ExporterStatus
+              <ExportPolicyStatus
                 currentStatus={transformControlPlaneStatus(row.original.status)}
                 projectId={projectId}
                 id={row.original.name}
@@ -151,10 +151,10 @@ export default function ObserveExportersPage() {
         label: 'Edit',
         action: (row) => {
           navigate(
-            getPathWithParams(routes.projects.observe.exporters.edit, {
+            getPathWithParams(routes.projects.observe.exportPolicies.edit, {
               orgId,
               projectId,
-              exporterId: row.name,
+              exportPolicyId: row.name,
             }),
           )
         },
@@ -163,7 +163,7 @@ export default function ObserveExportersPage() {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
-        action: (row) => deleteExporter(row),
+        action: (row) => deleteExportPolicy(row),
       },
     ],
     [orgId, projectId],
@@ -175,19 +175,19 @@ export default function ObserveExportersPage() {
       data={data ?? []}
       className="mx-auto max-w-(--breakpoint-lg)"
       loadingText="Loading..."
-      emptyText="No exporters found."
+      emptyText="No export policies found."
       tableTitle={{
-        title: 'Exporters',
-        description: 'Manage exporters for your project resources',
+        title: 'Export Policies',
+        description: 'Manage export policies for your project resources',
         actions: (
           <Link
-            to={getPathWithParams(routes.projects.observe.exporters.new, {
+            to={getPathWithParams(routes.projects.observe.exportPolicies.new, {
               orgId,
               projectId,
             })}>
             <Button>
               <PlusIcon className="size-4" />
-              New Exporter
+              New Export Policy
             </Button>
           </Link>
         ),

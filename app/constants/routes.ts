@@ -92,11 +92,11 @@ export const routes = {
       },
     },
     observe: {
-      root: '/[orgId]/projects/[projectId]/exporters',
-      exporters: {
-        root: '/[orgId]/projects/[projectId]/exporters',
-        new: '/[orgId]/projects/[projectId]/exporters/new',
-        edit: '/[orgId]/projects/[projectId]/exporters/[exporterId]/edit',
+      root: '/[orgId]/projects/[projectId]/export-policies',
+      exportPolicies: {
+        root: '/[orgId]/projects/[projectId]/export-policies',
+        new: '/[orgId]/projects/[projectId]/export-policies/new',
+        edit: '/[orgId]/projects/[projectId]/export-policies/[exportPolicyId]/edit',
       },
     },
     services: '/[orgId]/projects/[projectId]/services',

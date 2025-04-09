@@ -1,5 +1,5 @@
 import { routes } from '@/constants/routes'
-import { ExporterForm } from '@/features/observe/exporter/form'
+import { ExportPolicyForm } from '@/features/observe/export-policies/form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control'
@@ -13,7 +13,7 @@ import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, useParams } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('New Exporter')
+  return metaObject('New Export Policy')
 })
 
 export const action = withMiddleware(
@@ -47,13 +47,13 @@ export const action = withMiddleware(
       }
 
       return redirectWithToast(
-        getPathWithParams(routes.projects.observe.exporters.root, {
+        getPathWithParams(routes.projects.observe.exportPolicies.root, {
           orgId,
           projectId,
         }),
         {
-          title: 'Exporter created successfully',
-          description: 'You have successfully created an exporter.',
+          title: 'Export policy created successfully',
+          description: 'You have successfully created an export policy.',
           type: 'success',
         },
       )
@@ -69,12 +69,12 @@ export const action = withMiddleware(
   authMiddleware,
 )
 
-export default function ObserveExportersNewPage() {
+export default function ObserveExportPoliciesNewPage() {
   const { projectId } = useParams()
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <ExporterForm projectId={projectId} />
+      <ExportPolicyForm projectId={projectId} />
     </div>
   )
 }

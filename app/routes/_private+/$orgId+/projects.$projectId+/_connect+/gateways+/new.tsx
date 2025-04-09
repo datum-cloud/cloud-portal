@@ -67,7 +67,7 @@ export const action = withMiddleware(
   authMiddleware,
 )
 
-export default function ObserveExportersNewPage() {
+export default function ConnectGatewaysNewPage() {
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
       <GatewayForm />
