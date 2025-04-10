@@ -40,7 +40,7 @@ import { filter, find, flatMap, get, has, map } from 'es-toolkit/compat'
 import { Cpu, HardDrive, Layers, Network, Server } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { Form, useNavigate, useSubmit } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+import { useAuthenticityToken } from 'remix-utils/csrf/react'
 
 const sections = [
   {
@@ -86,6 +86,7 @@ export const WorkloadUpdateForm = ({
   orgId?: string
   defaultValue?: IWorkloadControlResponse
 }) => {
+  const csrf = useAuthenticityToken()
   const submit = useSubmit()
   const navigate = useNavigate()
   const isPending = useIsPending()
@@ -118,8 +119,6 @@ export const WorkloadUpdateForm = ({
 
       // Get the form element
       const formElement = event.currentTarget as HTMLFormElement
-      const formData = new FormData(formElement)
-      const csrf = formData.get('csrf')
 
       const payload: NewWorkloadSchema = {
         metadata: {
@@ -305,7 +304,6 @@ export const WorkloadUpdateForm = ({
           method="POST"
           autoComplete="off"
           className="flex flex-col gap-6">
-          <AuthenticityTokenInput />
           <input
             type="hidden"
             name="resourceVersion"

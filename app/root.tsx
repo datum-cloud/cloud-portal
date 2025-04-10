@@ -66,7 +66,7 @@ export const links: LinksFunction = () => {
 export async function loader({ request }: LoaderFunctionArgs) {
   const locale = await i18nServer.getLocale(request)
   const { toast, headers: toastHeaders } = await getToastSession(request)
-  const [csrfToken, csrfCookieHeader] = await csrf.commitToken()
+  const [csrfToken, csrfCookieHeader] = await csrf.commitToken(request)
 
   return data(
     {
