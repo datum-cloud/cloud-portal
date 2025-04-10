@@ -42,7 +42,7 @@ import { filter, find, flatMap, get, has, map } from 'es-toolkit/compat'
 import { Cpu, HardDrive, Layers, Loader2, Network, Server } from 'lucide-react'
 import React, { useEffect, useMemo } from 'react'
 import { Form, useNavigate, useSubmit } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+import { useAuthenticityToken } from 'remix-utils/csrf/react'
 
 const { useStepper } = defineStepper(
   {
@@ -116,6 +116,7 @@ export const WorkloadStepper = ({
   const submit = useSubmit()
   const navigate = useNavigate()
   const isPending = useIsPending()
+  const csrf = useAuthenticityToken()
 
   const initialValues = {
     runtime: {
@@ -177,11 +178,7 @@ export const WorkloadStepper = ({
 
         // Since we've already called preventDefault() at the top of the handler,
         // we need to manually trigger the form submission to Remix
-
-        // Get the form element
         const formElement = event.currentTarget as HTMLFormElement
-        const formData = new FormData(formElement)
-        const csrf = formData.get('csrf')
 
         const payload = {
           ...formatted,
@@ -364,7 +361,6 @@ export const WorkloadStepper = ({
           method="POST"
           autoComplete="off"
           className="flex flex-col gap-6">
-          <AuthenticityTokenInput />
           <CardContent>
             {isPending && (
               <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 backdrop-blur-xs">

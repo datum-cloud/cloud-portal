@@ -4,6 +4,7 @@ import { RemixI18Next } from 'remix-i18next/server'
 
 export const localeCookie = createCookie('lng', {
   path: '/',
+  domain: process.env?.APP_URL ? new URL(process.env.APP_URL).hostname : 'localhost',
   sameSite: 'lax',
   secure: process.env.NODE_ENV === 'production',
   httpOnly: true,

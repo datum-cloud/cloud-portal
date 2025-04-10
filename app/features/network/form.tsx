@@ -26,7 +26,7 @@ import {
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Form, useFetcher, useNavigate } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+import { useAuthenticityToken } from 'remix-utils/csrf/react'
 import { useHydrated } from 'remix-utils/use-hydrated'
 import { toast } from 'sonner'
 
@@ -47,6 +47,7 @@ export const NetworkForm = ({
   onCancel?: () => void
   onSuccess?: (data: INetworkControlResponse) => void
 }) => {
+  const csrf = useAuthenticityToken()
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
   const navigate = useNavigate()
@@ -80,11 +81,6 @@ export const NetworkForm = ({
       }
 
       setIsLoading(true)
-
-      // Get the form element
-      const formElement = event.currentTarget as HTMLFormElement
-      const formData = new FormData(formElement)
-      const csrf = formData.get('csrf')
 
       const payload = {
         ...(submission?.value ?? {}),
@@ -196,8 +192,6 @@ export const NetworkForm = ({
           method="POST"
           autoComplete="off"
           className="flex flex-col gap-6">
-          <AuthenticityTokenInput />
-
           {isEdit && (
             <input
               type="hidden"

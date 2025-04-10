@@ -2,6 +2,7 @@
  * Learn more about CSRF protection:
  * @see https://github.com/sergiodxa/remix-utils?tab=readme-ov-file#csrf
  */
+import { CustomError } from './errorHandle'
 import { createCookie } from 'react-router'
 import { CSRF, CSRFError } from 'remix-utils/csrf/server'
 
@@ -9,6 +10,7 @@ export const CSRF_COOKIE_KEY = '_csrf'
 
 const cookie = createCookie(CSRF_COOKIE_KEY, {
   path: '/',
+  domain: process.env?.APP_URL ? new URL(process.env.APP_URL).hostname : 'localhost',
   sameSite: 'lax',
   httpOnly: true,
   secrets: [process.env.SESSION_SECRET || 'NOT_A_STRONG_SECRET'],
@@ -22,7 +24,10 @@ export async function validateCSRF(formData: FormData, headers: Headers) {
     await csrf.validate(formData, headers)
   } catch (err: unknown) {
     if (err instanceof CSRFError) {
-      throw new Response('Invalid CSRF token', { status: 403 })
+      throw new CustomError(
+        'Invalid CSRF token - please refresh the page and try again',
+        403,
+      )
     }
     throw err
   }
