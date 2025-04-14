@@ -3,7 +3,6 @@ import { GoogleIcon } from '@/components/icons/google'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
-import { useTheme } from '@/hooks/useTheme'
 import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { dataWithToast } from '@/utils/toast.server'
@@ -44,7 +43,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function Login() {
-  const theme = useTheme()
   const navigation = useNavigation()
   const submit = useSubmit()
 
@@ -100,9 +98,14 @@ export default function Login() {
         </div>
         <div className="bg-muted relative hidden md:block">
           <img
-            src={`/images/abstract-1-${theme}.png`}
+            src="/images/abstract-1-light.png"
             alt="Image"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover dark:hidden"
+          />
+          <img
+            src="/images/abstract-1-dark.png"
+            alt="Image"
+            className="absolute inset-0 hidden h-full w-full object-cover dark:block"
           />
         </div>
       </CardContent>

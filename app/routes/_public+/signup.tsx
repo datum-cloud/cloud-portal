@@ -3,7 +3,6 @@ import { GoogleIcon } from '@/components/icons/google'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
-import { useTheme } from '@/hooks/useTheme'
 import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { dataWithToast } from '@/utils/toast.server'
@@ -44,11 +43,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function Signup() {
-  const theme = useTheme()
   const navigation = useNavigation()
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden py-0">
       <CardContent className="grid min-h-[500px] p-0 md:grid-cols-2">
         <div className="flex flex-col items-center justify-center gap-6 p-6 md:p-8">
           <div className="flex flex-col items-center text-center">
@@ -97,9 +95,14 @@ export default function Signup() {
         </div>
         <div className="bg-muted relative hidden md:block">
           <img
-            src={`/images/abstract-1-${theme}.png`}
+            src="/images/abstract-1-light.png"
             alt="Image"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-cover dark:hidden"
+          />
+          <img
+            src="/images/abstract-1-dark.png"
+            alt="Image"
+            className="absolute inset-0 hidden h-full w-full object-cover dark:block"
           />
         </div>
       </CardContent>
