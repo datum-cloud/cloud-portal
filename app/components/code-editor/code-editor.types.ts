@@ -1,11 +1,11 @@
 import { isValidJson, isValidYaml } from '@/utils/editor'
 import { z } from 'zod'
 
-export type EditorLanguage = 'json' | 'yaml'
+export type EditorLanguage = string
 
 export interface CodeEditorProps {
   value: string
-  onChange: (value: string) => void
+  onChange?: (value: string) => void
   language: EditorLanguage
   name?: string
   error?: string
@@ -19,7 +19,7 @@ export interface CodeEditorTabsProps {
   /** The current value in the editor's preferred format */
   value: string
   /** Called when the value changes */
-  onChange: (value: string, format: EditorLanguage) => void
+  onChange?: (value: string, format: EditorLanguage) => void
   /** The format to use (json or yaml) */
   format?: EditorLanguage
   /** Called when the format changes */

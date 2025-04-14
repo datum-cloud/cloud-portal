@@ -22,7 +22,7 @@ export const ContainerNode = ({ data }: { data: IContainerNode }) => {
   const listItems = useMemo(() => {
     return [
       { label: 'Image', content: data.image },
-      { label: 'Ports', content: data.ports },
+      { label: 'Ports', content: data.ports, hidden: !data.ports },
     ]
   }, [data])
 
