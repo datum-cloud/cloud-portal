@@ -18,7 +18,12 @@ module.exports = {
     commonjs: true,
     es6: true,
   },
-  ignorePatterns: ['!**/.server', '!**/.client', 'remix.init/*'],
+  ignorePatterns: [
+    '!**/.server',
+    '!**/.client',
+    'remix.init/*',
+    'public/js/elk-worker.min.js',
+  ],
 
   // Base configuration.
   extends: ['eslint:recommended', 'prettier'],

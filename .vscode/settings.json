@@ -1,1 +1,3 @@
-{}
+{
+  "i18n-ally.localesPaths": ["app/modules/i18n", "app/modules/i18n/locales"]
+}

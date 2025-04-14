@@ -17,11 +17,9 @@ import {
   MiniMap,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import ELK from 'elkjs/lib/elk.bundled.js'
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
-
+import ELK from 'elkjs/lib/elk-api'
 // Initialize ELK layout engine
-const elk = new ELK()
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 
 export const WorkloadFlow = ({
   workloadData,
@@ -30,6 +28,9 @@ export const WorkloadFlow = ({
   workloadData: NewWorkloadSchema
   maxNodes?: number
 }) => {
+  const elk = new ELK({
+    workerUrl: '/js/elk-worker.min.js',
+  })
   // State to track selected elements
   const [selectedNode, setSelectedNode] = useState<string>()
   const [selectedEdge, setSelectedEdge] = useState<string>()
