@@ -2,75 +2,43 @@ import { DateFormat } from '@/components/date-format/date-format'
 import { MoreActions } from '@/components/more-actions/more-actions'
 import { PageTitle } from '@/components/page-title/page-title'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { routes } from '@/constants/routes'
-import { DeploymentsTable } from '@/features/workload/deployments-table'
-import { WorkloadGeneralCard } from '@/features/workload/general-card'
-import { InstancesTable } from '@/features/workload/instances-table'
+import { WorkloadFlow } from '@/features/workload/flow/flow'
+import { WorkloadHelper } from '@/features/workload/helper'
+import { WorkloadOverview } from '@/features/workload/overview'
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createInstancesControl } from '@/resources/control-plane/instances.control'
-import { createWorkloadDeploymentsControl } from '@/resources/control-plane/workload-deployments.control'
-import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
-import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
+import {
+  IInstanceControlResponse,
+  IWorkloadControlResponse,
+  IWorkloadDeploymentControlResponse,
+} from '@/resources/interfaces/workload.interface'
 import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
-import { CustomError } from '@/utils/errorHandle'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
-import { Client } from '@hey-api/client-axios'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns/formatDistanceToNow'
 import { motion } from 'framer-motion'
 import { ClockIcon, PencilIcon } from 'lucide-react'
-import {
-  LoaderFunctionArgs,
-  AppLoadContext,
-  data,
-  useLoaderData,
-  Link,
-  useParams,
-  useSubmit,
-  MetaFunction,
-} from 'react-router'
+import { useMemo } from 'react'
+import { MetaFunction, useParams, useRouteLoaderData, useSubmit } from 'react-router'
+import { Link } from 'react-router-dom'
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { workload } = data as any
+export const meta: MetaFunction = mergeMeta(({ matches }) => {
+  const match = matches.find(
+    (match) =>
+      match.id ===
+      'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) as any
+
+  const { workload } = match.data
   return metaObject(
     `${(workload as IWorkloadControlResponse)?.name || 'Workload'} Overview`,
   )
 })
 
-export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
-  const { projectId, workloadId } = params
-
-  const { controlPlaneClient } = context as AppLoadContext
-
-  const workloadsControl = createWorkloadsControl(controlPlaneClient as Client)
-  const workloadDeploymentsControl = createWorkloadDeploymentsControl(
-    controlPlaneClient as Client,
-  )
-  const instancesControl = createInstancesControl(controlPlaneClient as Client)
-
-  if (!projectId || !workloadId) {
-    throw new CustomError('Project ID and workload ID are required', 400)
-  }
-
-  // TODO: Need Best Way to retrieve workload data from parent layout route
-  // Current implementation requires duplicate workload fetch since routes use workloadId parameter instead of uid
-  const workload = await workloadsControl.detail(projectId, workloadId)
-
-  if (!workload) {
-    throw new CustomError('Workload not found', 404)
-  }
-
-  const deployments = await workloadDeploymentsControl.list(projectId, workload.uid)
-  const instances = await instancesControl.list(projectId, workload.uid)
-
-  return data({ deployments, instances, workload })
-}, authMiddleware)
-
-export default function OverviewWorkload() {
+export default function WorkloadOverviewPage() {
   const submit = useSubmit()
   const { confirm } = useConfirmationDialog()
   const { orgId, projectId, workloadId } = useParams()
@@ -78,7 +46,9 @@ export default function OverviewWorkload() {
   // revalidate every 10 seconds to keep deployment list fresh
   useRevalidateOnInterval({ enabled: true, interval: 10000 })
 
-  const { deployments, instances, workload } = useLoaderData<typeof loader>()
+  const { deployments, instances, workload } = useRouteLoaderData(
+    'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout',
+  )
 
   const deleteWorkload = async () => {
     const data = workload as IWorkloadControlResponse
@@ -115,16 +85,25 @@ export default function OverviewWorkload() {
     })
   }
 
+  const workloadMappingData = useMemo(() => {
+    if (workload) {
+      return WorkloadHelper.mappingSpecToForm(workload)
+    }
+
+    return {}
+  }, [workload])
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+      className="flex w-full flex-col gap-6">
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.2, duration: 0.4 }}>
+        transition={{ delay: 0.2, duration: 0.4 }}
+        className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <PageTitle
           title={(workload as IWorkloadControlResponse)?.name ?? 'Workload'}
           description={
@@ -180,27 +159,25 @@ export default function OverviewWorkload() {
         />
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.4 }}
-        className="w-1/2">
-        <WorkloadGeneralCard workload={workload} />
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8, duration: 0.4 }}>
-        <DeploymentsTable data={deployments} />
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1, duration: 0.4 }}>
-        <InstancesTable data={instances} />
-      </motion.div>
+      <Tabs defaultValue="overview" className="w-full gap-6">
+        <div className="mx-auto w-full max-w-6xl border-b pb-6">
+          <TabsList className="grid w-[200px] grid-cols-2">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="graph">Graph View</TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="overview">
+          <WorkloadOverview
+            workload={workload as IWorkloadControlResponse}
+            deployments={deployments as IWorkloadDeploymentControlResponse[]}
+            instances={instances as IInstanceControlResponse[]}
+          />
+        </TabsContent>
+        <TabsContent value="graph" className="max-h-screen min-h-[1024px]">
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <WorkloadFlow workloadData={workloadMappingData as any} />
+        </TabsContent>
+      </Tabs>
     </motion.div>
   )
 }

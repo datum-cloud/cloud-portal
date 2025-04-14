@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
+import { cn } from '@/utils/misc'
 import { CopyIcon } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -9,10 +10,12 @@ export const TextCopy = ({
   value,
   text,
   className,
+  buttonClassName,
 }: {
   value: string
   text?: string
   className?: string
+  buttonClassName?: string
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, copy] = useCopyToClipboard()
@@ -39,7 +42,7 @@ export const TextCopy = ({
             type="button"
             variant="ghost"
             size="icon"
-            className="size-4"
+            className={cn('size-4', buttonClassName)}
             onClick={(event) => {
               event.preventDefault()
               event.stopPropagation()
