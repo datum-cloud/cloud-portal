@@ -183,6 +183,11 @@ if (viteDevServer) {
     '/fonts',
     express.static('build/client/fonts', { immutable: true, maxAge: '1y' }),
   )
+  app.use('/js', express.static('build/client/js', { immutable: true, maxAge: '1y' }))
+  app.use(
+    '/images',
+    express.static('build/client/images', { immutable: true, maxAge: '1y' }),
+  )
 }
 
 /**
