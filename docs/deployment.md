@@ -42,3 +42,21 @@ If you want to deploy a branch you are working on or the latest from main, you c
 Whenever you want to deploy to production, you must summon our Jedi Lord Scotobi. May the Force be with you.
 
 ![scot](assets/scot.png)
+
+## Connecting to the Staging cluster
+
+https://github.com/datum-cloud/datum-infra/blob/main/docs/10-setup/01-configuring-gcloud.md
+
+```
+gcloud config set auth/impersonate_service_account developer@datum-cloud-staging.iam.gserviceaccount.com
+
+gcloud auth application-default login --impersonate-service-account developer@datum-cloud-staging.iam.gserviceaccount.com
+
+gcloud auth login --impersonate-service-account developer@datum-cloud-staging.iam.gserviceaccount.com
+
+gcloud components install gke-gcloud-auth-plugin
+
+gcloud container clusters get-credentials infrastructure-control-plane --region us-east4 --project datum-cloud-staging
+
+k get pods -n cloud-portal
+```

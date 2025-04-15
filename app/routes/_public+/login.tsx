@@ -3,11 +3,9 @@ import { GoogleIcon } from '@/components/icons/google'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
-import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
+import { isAuthenticated } from '@/modules/auth/auth.server'
 import { mergeMeta, metaObject } from '@/utils/meta'
-import { dataWithToast } from '@/utils/toast.server'
 import {
-  ActionFunctionArgs,
   Link,
   LoaderFunctionArgs,
   MetaFunction,
@@ -21,22 +19,6 @@ export const meta: MetaFunction = mergeMeta(() => {
     'Run network workloads anywhere and programmatically connect to your unique ecosystem.',
   )
 })
-
-export async function action({ request }: ActionFunctionArgs) {
-  try {
-    return authenticator.authenticate('google', request)
-  } catch (error) {
-    return dataWithToast(
-      {},
-      {
-        title: 'Authentication failed',
-        description: error instanceof Error ? error.message : 'Authentication failed',
-        type: 'error',
-      },
-      { status: 401 },
-    )
-  }
-}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return isAuthenticated(request, routes.home)
