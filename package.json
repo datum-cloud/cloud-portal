@@ -23,7 +23,7 @@
     "test:component:open": "cypress open --component"
   },
   "dependencies": {
-    "@conform-to/react": "1.3.0",
+    "@conform-to/react": "1.4.0",
     "@conform-to/zod": "1.3.0",
     "@dagrejs/dagre": "^1.1.4",
     "@epic-web/client-hints": "^1.3.5",
