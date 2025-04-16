@@ -5,6 +5,7 @@ import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import dotenv from 'dotenv'
 import { RemixInstrumentation } from 'opentelemetry-instrumentation-remix'
+import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express'
 
 dotenv.config()
 
@@ -22,6 +23,7 @@ const sdk = isOtelEnabled
       }),
       instrumentations: [
         getNodeAutoInstrumentations(),
+        new ExpressInstrumentation(),
         new RemixInstrumentation({
           enabled: true,
         }),
