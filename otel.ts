@@ -32,8 +32,8 @@ const sdk = isOtelEnabled
 export function startOpenTelemetry() {
   if (!isOtelEnabled) {
     console.log('OpenTelemetry is disabled or endpoint not configured')
-    console.log("OTEL_ENABLED:", process.env.OTEL_ENABLED)
-    console.log("OTEL_EXPORTER_OTLP_ENDPOINT:", process.env.OTEL_EXPORTER_OTLP_ENDPOINT)
+    console.log('OTEL_ENABLED:', process.env.OTEL_ENABLED)
+    console.log('OTEL_EXPORTER_OTLP_ENDPOINT:', process.env.OTEL_EXPORTER_OTLP_ENDPOINT)
     return
   }
 
