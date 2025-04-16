@@ -76,7 +76,7 @@ export const CodeEditor = ({
             tabSize: 2,
             wordWrap: 'on',
           }}
-          onChange={(newValue) => onChange(newValue || '')}
+          onChange={(newValue) => onChange?.(newValue || '')}
           onMount={handleEditorDidMount}
           height="100%"
           width="100%"

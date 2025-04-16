@@ -37,7 +37,7 @@ spec:
               protocol: TCP
           env:
             - name: OTEL_ENABLED
-              value: "true"
+              value: 'true'
             - name: API_URL
               value: https://api.datum.net
             - name: APP_URL

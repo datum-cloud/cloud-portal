@@ -1,42 +1,39 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { WorkloadHelper } from '../helper'
 import { MetadataForm, MetadataPreview } from './metadata-form'
-import { NetworksForm, NetworkPreview } from './network/networks-form'
-import { PlacementsForm, PlacementsPreview } from './placement/placements-form'
-import { RuntimeForm, RuntimePreview } from './runtime/runtime-form'
-import { StoragesForm, StoragesPreview } from './storage/storages-form'
+import { SinksForm } from './sink/sinks-form'
+import { SinksPreview } from './sink/sinks-preview'
+import { SourcesForm } from './source/sources-form'
+import { SourcesPreview } from './source/sources-preview'
 import { Button } from '@/components/ui/button'
 import {
   Card,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
+  CardContent,
 } from '@/components/ui/card'
 import { useIsPending } from '@/hooks/useIsPending'
 import {
-  IWorkloadControlResponse,
-  RuntimeType,
-} from '@/resources/interfaces/workload.interface'
+  ExportPolicySinkType,
+  ExportPolicySourceType,
+  IExportPolicyControlResponse,
+} from '@/resources/interfaces/policy.interface'
 import {
-  MetadataSchema,
-  metadataSchema,
-  NetworksSchema,
-  networksSchema,
-  NewWorkloadSchema,
-  placementsSchema,
-  PlacementsSchema,
-  RuntimeSchema,
-  runtimeSchema,
-  StoragesSchema,
-  storagesSchema,
-} from '@/resources/schemas/workload.schema'
+  exportPolicyMetadataSchema,
+  exportPolicySourcesSchema,
+  exportPolicySinksSchema,
+  NewExportPolicySchema,
+  ExportPolicyMetadataSchema,
+  ExportPolicySourcesSchema,
+  ExportPolicySinksSchema,
+  ExportPolicySourceFieldSchema,
+} from '@/resources/schemas/export-policy.schema'
 import { cn } from '@/utils/misc'
-import { getFormProps, useForm, FormProvider, FormMetadata } from '@conform-to/react'
+import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { defineStepper } from '@stepperize/react'
-import { Cpu, HardDrive, Layers, Loader2, Network, Server } from 'lucide-react'
-import React, { useEffect, useMemo } from 'react'
+import { FileIcon, Layers, Loader2, Terminal } from 'lucide-react'
+import React, { useMemo } from 'react'
 import { Form, useNavigate, useSubmit } from 'react-router'
 import { useAuthenticityToken } from 'remix-utils/csrf/react'
 
@@ -44,70 +41,46 @@ const { useStepper } = defineStepper(
   {
     id: 'metadata',
     label: 'Metadata',
-    description: 'Define essential information and labels for your workload resource.',
+    description:
+      'Define essential information and labels for your export policy resource.',
     icon: () => <Layers />,
-    schema: metadataSchema,
+    schema: exportPolicyMetadataSchema,
     preview: (values?: any) => (
-      <MetadataPreview values={values?.metadata as MetadataSchema} />
+      <MetadataPreview values={values?.metadata as ExportPolicyMetadataSchema} />
     ),
   },
   {
-    id: 'runtime',
-    label: 'Runtime',
+    id: 'sources',
+    label: 'Sources',
     description:
-      'Configure instance type and choose between Container or VM runtime environments.',
-    icon: () => <Cpu />,
-    schema: runtimeSchema,
+      'Define essential information and labels for your export policy resource.',
+    icon: () => <FileIcon />,
+    schema: exportPolicySourcesSchema,
     preview: (values?: any) => (
-      <RuntimePreview values={values?.runtime as RuntimeSchema} />
+      <SourcesPreview values={values?.sources as ExportPolicySourcesSchema} />
     ),
   },
   {
-    id: 'networks',
-    label: 'Network Interfaces',
+    id: 'sinks',
+    label: 'Sinks',
     description:
-      'Configure network interfaces for your workload instances, including network selection and IP family options.',
-    icon: () => <Network />,
-    schema: networksSchema,
+      'Define essential information and labels for your export policy resource.',
+    icon: () => <Terminal />,
+    schema: exportPolicySinksSchema,
     preview: (values?: any) => (
-      <NetworkPreview values={values?.networks as NetworksSchema} />
-    ),
-  },
-  {
-    id: 'storages',
-    label: 'Storages',
-    description: 'Add storage volumes with names and sizes.',
-    icon: () => <HardDrive />,
-    schema: storagesSchema,
-    preview: (values?: any) => (
-      <StoragesPreview
-        values={values?.storages as StoragesSchema}
-        vmBootImage={
-          values?.runtime?.runtimeType === RuntimeType.VM
-            ? values.runtime?.virtualMachine?.bootImage
-            : undefined
-        }
-      />
-    ),
-  },
-  {
-    id: 'placements',
-    label: 'Placements',
-    description: 'Choose where to deploy your workload and set up scaling options.',
-    icon: () => <Server />,
-    schema: placementsSchema,
-    preview: (values?: any) => (
-      <PlacementsPreview values={values?.placements as PlacementsSchema} />
+      <SinksPreview values={values?.sinks as ExportPolicySinksSchema} />
     ),
   },
 )
 
-export const WorkloadStepper = ({
+export const ExportPolicyStepperForm = ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   projectId,
   defaultValue,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   projectId?: string
-  defaultValue?: IWorkloadControlResponse
+  defaultValue?: IExportPolicyControlResponse
 }) => {
   const submit = useSubmit()
   const navigate = useNavigate()
@@ -115,18 +88,25 @@ export const WorkloadStepper = ({
   const csrf = useAuthenticityToken()
 
   const initialValues = {
-    runtime: {
-      instanceType: 'datumcloud/d1-standard-2',
-    },
-    networks: [{ name: undefined, ipFamilies: [] }],
-    storages: [],
-    placements: [{ name: undefined, cityCode: undefined, minimumReplicas: 1 }],
+    sources: [
+      {
+        name: undefined,
+        type: ExportPolicySourceType.METRICS,
+        metricQuery: '{}',
+      },
+    ],
+    sinks: [
+      {
+        name: undefined,
+        type: ExportPolicySinkType.PROMETHEUS,
+      },
+    ],
   }
 
   const stepper = useStepper({ initialMetadata: initialValues })
 
   const [form, fields] = useForm({
-    id: 'workload-form',
+    id: 'export-policy-form',
     constraint: getZodConstraint(stepper.current.schema),
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onBlur',
@@ -136,7 +116,6 @@ export const WorkloadStepper = ({
       if (parsed.status === 'success') {
         stepper.setMetadata(stepper.current.id, parsed.value ?? {})
       }
-
       return parsed
     },
     onSubmit(event, { submission }) {
@@ -151,21 +130,14 @@ export const WorkloadStepper = ({
           return { ...acc, ...(stepMetadata || {}) }
         }, {})
 
-        const formatted: NewWorkloadSchema = {
+        const formatted: NewExportPolicySchema = {
           metadata: {
             name: allMetadata.name,
             labels: allMetadata.labels,
             annotations: allMetadata.annotations,
           },
-          runtime: {
-            instanceType: allMetadata.instanceType,
-            runtimeType: allMetadata.runtimeType,
-            virtualMachine: allMetadata.virtualMachine,
-            containers: allMetadata.containers,
-          },
-          networks: allMetadata.networks,
-          storages: allMetadata.storages,
-          placements: allMetadata.placements,
+          sources: allMetadata.sources,
+          sinks: allMetadata.sinks,
           ...data,
         }
 
@@ -213,46 +185,14 @@ export const WorkloadStepper = ({
     }
   }
 
-  useEffect(() => {
-    // Process default values when they exist to populate the form
-    if (defaultValue) {
-      const formValue = WorkloadHelper.mappingSpecToForm(defaultValue)
-      const { metadata, runtime, networks, storages, placements } = formValue
-
-      // Update form with the mapped values
-      form.update({ value: formValue })
-
-      // Update stepper metadata for each section
-      // This allows each step to access its relevant data
-      stepper.setMetadata('metadata', metadata)
-      stepper.setMetadata('runtime', runtime)
-      stepper.setMetadata('networks', { networks })
-      stepper.setMetadata('storages', { storages })
-      stepper.setMetadata('placements', { placements })
-    }
-  }, [defaultValue])
-
-  // Enable this code if you want to automatically add a empty storage volume when creating a container workload
-  /*   useEffect(() => {
-    if (
-      stepper.current.id === 'storages' &&
-      stepper.metadata.runtime?.runtimeType === RuntimeType.CONTAINER &&
-      stepper.metadata.storages?.length === 0
-    ) {
-      stepper.setMetadata('storages', {
-        storages: [{ name: '', type: StorageType.FILESYSTEM }],
-      })
-    }
-  }, [stepper.current, stepper.metadata]) */
-
   return (
     <Card className="relative">
       <CardHeader>
-        <CardTitle>{isEdit ? 'Update' : 'Create a new'} workload</CardTitle>
+        <CardTitle>{isEdit ? 'Update' : 'Create a new'} export policy</CardTitle>
         <CardDescription>
           {isEdit
-            ? 'Update the workload with the new values below.'
-            : 'Create a new workload to get started with Datum Cloud.'}
+            ? 'Update the export policy with the new values below.'
+            : 'Create a new export policy to get started with Datum Cloud.'}
         </CardDescription>
       </CardHeader>
       <FormProvider context={form.context}>
@@ -266,10 +206,10 @@ export const WorkloadStepper = ({
             {isPending && (
               <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 backdrop-blur-xs">
                 <Loader2 className="size-4 animate-spin" />
-                {isEdit ? 'Saving' : 'Creating'} workload...
+                {isEdit ? 'Saving' : 'Creating'} export policy...
               </div>
             )}
-            <nav aria-label="Workload Steps" className="group">
+            <nav aria-label="Export Policy Steps" className="group">
               <ol className="relative ml-4 border-s border-gray-200 dark:border-gray-700 dark:text-gray-400">
                 {stepper.all.map((step, index, array) => (
                   <React.Fragment key={step.id}>
@@ -301,65 +241,48 @@ export const WorkloadStepper = ({
                             <MetadataForm
                               isEdit={isEdit}
                               defaultValues={
-                                stepper.getMetadata('metadata') as MetadataSchema
+                                stepper.getMetadata(
+                                  'metadata',
+                                ) as ExportPolicyMetadataSchema
                               }
                               fields={
                                 fields as unknown as ReturnType<
-                                  typeof useForm<MetadataSchema>
+                                  typeof useForm<ExportPolicyMetadataSchema>
                                 >[1]
                               }
                             />
                           ),
-                          runtime: () => (
-                            <RuntimeForm
-                              defaultValues={
-                                stepper.getMetadata('runtime') as RuntimeSchema
-                              }
+                          sources: () => (
+                            <SourcesForm
+                              isEdit={isEdit}
+                              form={form as FormMetadata<ExportPolicySourcesSchema>}
                               fields={
                                 fields as unknown as ReturnType<
-                                  typeof useForm<RuntimeSchema>
+                                  typeof useForm<ExportPolicySourcesSchema>
                                 >[1]
                               }
-                            />
-                          ),
-                          networks: () => (
-                            <NetworksForm
-                              form={form as FormMetadata<NetworksSchema>}
-                              projectId={projectId}
                               defaultValues={
-                                stepper.getMetadata('networks') as NetworksSchema
-                              }
-                              fields={
-                                fields as ReturnType<typeof useForm<NetworksSchema>>[1]
+                                stepper.getMetadata(
+                                  'sources',
+                                ) as ExportPolicySourcesSchema
                               }
                             />
                           ),
-                          storages: () => (
-                            <StoragesForm
-                              form={form as FormMetadata<StoragesSchema>}
-                              defaultValues={
-                                stepper.getMetadata('storages') as StoragesSchema
-                              }
+                          sinks: () => (
+                            <SinksForm
+                              isEdit={isEdit}
+                              form={form as FormMetadata<ExportPolicySinksSchema>}
                               fields={
                                 fields as unknown as ReturnType<
-                                  typeof useForm<StoragesSchema>
+                                  typeof useForm<ExportPolicySinksSchema>
                                 >[1]
                               }
-                              vmBootImage={
-                                stepper.metadata.runtime?.runtimeType === RuntimeType.VM
-                                  ? stepper.metadata.runtime?.virtualMachine?.bootImage
-                                  : undefined
-                              }
-                            />
-                          ),
-                          placements: () => (
-                            <PlacementsForm
-                              form={form as FormMetadata<PlacementsSchema>}
-                              fields={
-                                fields as ReturnType<typeof useForm<PlacementsSchema>>[1]
-                              }
                               defaultValues={
-                                stepper.getMetadata('placements') as PlacementsSchema
+                                stepper.getMetadata('sinks') as ExportPolicySinksSchema
+                              }
+                              sourcesList={
+                                stepper.getMetadata('sources')
+                                  ?.sources as ExportPolicySourceFieldSchema[]
                               }
                             />
                           ),

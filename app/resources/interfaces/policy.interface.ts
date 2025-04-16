@@ -5,8 +5,16 @@ export interface IExportPolicyControlResponse {
   resourceVersion?: string
   namespace?: string
   name?: string
-  numberOfSources?: number
-  numberOfSinks?: number
+  sources?: ComDatumapisTelemetryV1Alpha1ExportPolicy['spec']['sources']
+  sinks?: ComDatumapisTelemetryV1Alpha1ExportPolicy['spec']['sinks']
   status?: ComDatumapisTelemetryV1Alpha1ExportPolicy['status']
   createdAt?: Date
+}
+
+export enum ExportPolicySourceType {
+  METRICS = 'Metrics',
+}
+
+export enum ExportPolicySinkType {
+  PROMETHEUS = 'Prometheus',
 }

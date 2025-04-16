@@ -1,14 +1,13 @@
 import { routes } from '@/constants/routes'
-import { ExportPolicyForm } from '@/features/observe/export-policies/form'
+import { ExportPolicyStepperForm } from '@/features/observe/export-policies/form/stepper-form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control'
-import { exportPolicySchema } from '@/resources/schemas/export-policy.schema'
+import { newExportPolicySchema } from '@/resources/schemas/export-policy.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
-import { parseWithZod } from '@conform-to/zod'
 import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, useParams } from 'react-router'
 
@@ -30,20 +29,30 @@ export const action = withMiddleware(
     }
 
     const clonedRequest = request.clone()
-    const formData = await clonedRequest.formData()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const payload: any = await clonedRequest.json()
 
     try {
-      await validateCSRF(formData, clonedRequest.headers)
-      const parsed = parseWithZod(formData, { schema: exportPolicySchema })
+      // Extract CSRF token from JSON payload
+      const csrfToken = payload.csrf
 
-      if (parsed.status !== 'success') {
+      // Create FormData to validate CSRF token
+      const formData = new FormData()
+      formData.append('csrf', csrfToken)
+
+      // Validate the CSRF token against the request headers
+      await validateCSRF(formData, request.headers)
+
+      const parsed = newExportPolicySchema.safeParse(payload)
+
+      if (!parsed.success) {
         throw new Error('Invalid form data')
       }
 
-      const dryRunRes = await exportPoliciesControl.create(projectId, parsed.value, true)
+      const dryRunRes = await exportPoliciesControl.create(projectId, parsed.data, true)
 
       if (dryRunRes) {
-        await exportPoliciesControl.create(projectId, parsed.value, false)
+        await exportPoliciesControl.create(projectId, parsed.data, false)
       }
 
       return redirectWithToast(
@@ -74,7 +83,7 @@ export default function ObserveExportPoliciesNewPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <ExportPolicyForm projectId={projectId} />
+      <ExportPolicyStepperForm projectId={projectId} />
     </div>
   )
 }

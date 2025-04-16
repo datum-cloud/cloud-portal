@@ -24,11 +24,19 @@ export const ExportPolicyStatus = ({
 }) => {
   const fetcher = useFetcher({ key: `export-policy-status-${projectId}` })
   const intervalRef = useRef<NodeJS.Timeout>(null)
-  const [status, setStatus] = useState<IControlPlaneStatus>()
+  const [status, setStatus] = useState<IControlPlaneStatus>(
+    currentStatus ?? {
+      isReady: ControlPlaneStatus.Pending,
+      message: '',
+    },
+  )
 
-  const loadStatus = () => {
-    if (projectId && id) {
-      fetcher.load(`${EXPORT_POLICY_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${id}`)
+  const loadStatus = (exportPolicyId: string) => {
+    console.log(exportPolicyId)
+    if (projectId && exportPolicyId) {
+      fetcher.load(
+        `${EXPORT_POLICY_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${exportPolicyId}`,
+      )
     }
   }
 
@@ -48,8 +56,21 @@ export const ExportPolicyStatus = ({
   }, [status])
 
   useEffect(() => {
-    setStatus(currentStatus)
+    if (currentStatus) {
+      setStatus(currentStatus)
 
+      if (
+        currentStatus?.isReady === ControlPlaneStatus.Success ||
+        currentStatus?.isReady === ControlPlaneStatus.Error
+      ) {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current)
+        }
+      }
+    }
+  }, [currentStatus])
+
+  useEffect(() => {
     // Only set up polling if we have the required IDs
     if (!projectId || !id) {
       return
@@ -58,11 +79,11 @@ export const ExportPolicyStatus = ({
     // Initial load if:
     // 1. No current status exists, or
     // 2. Current status is pending
-    if (!currentStatus || currentStatus?.isReady === ControlPlaneStatus.Pending) {
-      loadStatus()
+    if (currentStatus?.isReady === ControlPlaneStatus.Pending) {
+      loadStatus(id)
 
       // Set up polling interval
-      intervalRef.current = setInterval(loadStatus, 10000)
+      intervalRef.current = setInterval(() => loadStatus(id), 10000)
     }
 
     // Clean up interval on unmount
@@ -71,13 +92,11 @@ export const ExportPolicyStatus = ({
         clearInterval(intervalRef.current)
       }
     }
-  }, [projectId, id])
+  }, [id, projectId])
 
   useEffect(() => {
     if (fetcher.data) {
       const { isReady } = fetcher.data as IControlPlaneStatus
-
-      setStatus(fetcher.data)
       if (
         (isReady === ControlPlaneStatus.Success ||
           isReady === ControlPlaneStatus.Error) &&
@@ -99,7 +118,7 @@ export const ExportPolicyStatus = ({
           'Active'
         ) : (
           <>
-            {status?.message && <p>{status.message}</p>}
+            {fetcher.data?.message && <p>{status.message}</p>}
             {sinkMessages.length > 0 && (
               <ul className="mt-1 list-disc pl-4 text-left">
                 {sinkMessages.map((message: string, index: number) => (

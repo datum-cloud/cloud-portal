@@ -30,17 +30,24 @@ export const WorkloadStatus = ({
   const intervalRef = useRef<NodeJS.Timeout>(null)
   const [status, setStatus] = useState<IControlPlaneStatus>()
 
-  const loadStatus = () => {
-    if (projectId && id) {
+  const loadStatus = (
+    workloadId: string,
+    workloadType: 'workload' | 'deployment' | 'instance',
+  ) => {
+    if (projectId && workloadId) {
       fetcher.load(
-        `${WORKLOAD_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${id}&type=${workloadType}`,
+        `${WORKLOAD_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${workloadId}&type=${workloadType}`,
       )
     }
   }
 
   useEffect(() => {
-    setStatus(currentStatus)
+    if (currentStatus) {
+      setStatus(currentStatus)
+    }
+  }, [currentStatus])
 
+  useEffect(() => {
     // Only set up polling if we have the required IDs
     if (!projectId || !id) {
       return
@@ -50,10 +57,10 @@ export const WorkloadStatus = ({
     // 1. No current status exists, or
     // 2. Current status is pending
     if (!currentStatus || currentStatus?.isReady === ControlPlaneStatus.Pending) {
-      loadStatus()
+      loadStatus(id, workloadType)
 
       // Set up polling interval
-      intervalRef.current = setInterval(loadStatus, 10000)
+      intervalRef.current = setInterval(() => loadStatus(id, workloadType), 10000)
     }
 
     // Clean up interval on unmount
@@ -67,9 +74,6 @@ export const WorkloadStatus = ({
   useEffect(() => {
     if (fetcher.data) {
       const { isReady } = fetcher.data as IControlPlaneStatus
-
-      setStatus(fetcher.data)
-
       if (
         (isReady === ControlPlaneStatus.Success ||
           isReady === ControlPlaneStatus.Error) &&

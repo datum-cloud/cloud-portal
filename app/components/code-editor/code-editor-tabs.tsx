@@ -89,7 +89,7 @@ export function CodeEditorTabs({
         setActiveTab('yaml')
 
         // Notify parent components
-        onChange(newYaml, 'yaml')
+        onChange?.(newYaml, 'yaml')
         onFormatChange?.('yaml')
       } else if (activeTab === 'yaml' && newTab === 'json') {
         // YAML to JSON conversion
@@ -103,7 +103,7 @@ export function CodeEditorTabs({
         setActiveTab('json')
 
         // Notify parent components
-        onChange(newJson, 'json')
+        onChange?.(newJson, 'json')
         onFormatChange?.('json')
       }
     } catch (error) {
@@ -127,7 +127,7 @@ export function CodeEditorTabs({
       }
       // Only update the external value if this is the active format
       if (activeTab === 'json') {
-        onChange(newJson, 'json')
+        onChange?.(newJson, 'json')
       }
     } catch (e) {
       toast.error('Failed to update YAML from JSON value', {
@@ -148,7 +148,7 @@ export function CodeEditorTabs({
       }
       // Only update the external value if this is the active format
       if (activeTab === 'yaml') {
-        onChange(newYaml, 'yaml')
+        onChange?.(newYaml, 'yaml')
       }
     } catch (e) {
       toast.error('Failed to update JSON from YAML value', {

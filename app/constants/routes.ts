@@ -97,6 +97,11 @@ export const routes = {
         root: '/[orgId]/projects/[projectId]/export-policies',
         new: '/[orgId]/projects/[projectId]/export-policies/new',
         edit: '/[orgId]/projects/[projectId]/export-policies/[exportPolicyId]/edit',
+        detail: {
+          root: '/[orgId]/projects/[projectId]/export-policies/[exportPolicyId]',
+          overview:
+            '/[orgId]/projects/[projectId]/export-policies/[exportPolicyId]/overview',
+        },
       },
     },
     services: '/[orgId]/projects/[projectId]/services',

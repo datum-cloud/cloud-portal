@@ -14,40 +14,24 @@ import { Client } from '@hey-api/client-axios'
 import {
   ActionFunctionArgs,
   AppLoadContext,
-  LoaderFunctionArgs,
   MetaFunction,
-  useLoaderData,
   useParams,
+  useRouteLoaderData,
 } from 'react-router'
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { workload } = data as any
+export const meta: MetaFunction = mergeMeta(({ matches }) => {
+  const match = matches.find(
+    (match) =>
+      match.id ===
+      'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) as any
+
+  const { workload } = match.data
   return metaObject(
     `Manage ${(workload as IWorkloadControlResponse)?.name || 'Workload'}`,
   )
 })
-
-export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
-  const { projectId, workloadId } = params
-
-  const { controlPlaneClient } = context as AppLoadContext
-  const workloadsControl = createWorkloadsControl(controlPlaneClient as Client)
-
-  if (!projectId || !workloadId) {
-    throw new CustomError('Project ID and workload ID are required', 400)
-  }
-
-  // TODO: Need Best Way to retrieve workload data from parent layout route
-  // Current implementation requires duplicate workload fetch since routes use workloadId parameter instead of uid
-  const workload = await workloadsControl.detail(projectId, workloadId)
-
-  if (!workload) {
-    throw new CustomError('Workload not found', 404)
-  }
-
-  return workload
-}, authMiddleware)
 
 export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {
@@ -124,12 +108,14 @@ export const action = withMiddleware(
 )
 
 export default function SettingsWorkload() {
-  const data = useLoaderData<typeof loader>()
+  const { workload } = useRouteLoaderData(
+    'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout',
+  )
   const { projectId, orgId } = useParams()
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <WorkloadUpdateForm projectId={projectId} orgId={orgId} defaultValue={data} />
+      <WorkloadUpdateForm projectId={projectId} orgId={orgId} defaultValue={workload} />
     </div>
   )
 }

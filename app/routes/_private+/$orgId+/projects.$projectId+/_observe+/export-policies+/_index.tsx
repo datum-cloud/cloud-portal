@@ -9,22 +9,15 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control'
 import { IExportPolicyControlResponse } from '@/resources/interfaces/policy.interface'
+import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions'
 import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast } from '@/utils/toast.server'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
-import {
-  ActionFunctionArgs,
-  AppLoadContext,
-  Link,
-  useLoaderData,
-  useParams,
-  useSubmit,
-} from 'react-router'
+import { AppLoadContext, Link, useLoaderData, useParams, useSubmit } from 'react-router'
 
 export const loader = withMiddleware(async ({ context, params }) => {
   const { projectId } = params
@@ -39,30 +32,10 @@ export const loader = withMiddleware(async ({ context, params }) => {
   return policies
 }, authMiddleware)
 
-export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { controlPlaneClient } = context as AppLoadContext
-  const exportPoliciesControl = createExportPoliciesControl(controlPlaneClient as Client)
-
-  switch (request.method) {
-    case 'DELETE': {
-      const formData = Object.fromEntries(await request.formData())
-      const { id, projectId } = formData
-
-      await exportPoliciesControl.delete(projectId as string, id as string)
-      return dataWithToast(null, {
-        title: 'Export policy deleted successfully',
-        description: 'The export policy has been deleted successfully',
-        type: 'success',
-      })
-    }
-    default:
-      throw new Error('Method not allowed')
-  }
-}, authMiddleware)
-
 export default function ObserveExportPoliciesPage() {
   const { orgId, projectId } = useParams()
   const data = useLoaderData<typeof loader>()
+
   const submit = useSubmit()
 
   const { confirm } = useConfirmationDialog()
@@ -86,10 +59,12 @@ export default function ObserveExportPoliciesPage() {
       onSubmit: async () => {
         await submit(
           {
-            id: exportPolicy.name ?? '',
+            exportPolicyId: exportPolicy?.name ?? '',
             projectId: projectId ?? '',
+            orgId: orgId ?? '',
           },
           {
+            action: EXPORT_POLICIES_ACTIONS_ROUTE_PATH,
             method: 'DELETE',
             fetcherKey: 'export-policy-resources',
             navigate: false,
@@ -105,16 +80,35 @@ export default function ObserveExportPoliciesPage() {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return <span className="text-primary font-semibold">{row.original.name}</span>
+          return (
+            <Link
+              to={getPathWithParams(
+                routes.projects.observe.exportPolicies.detail.overview,
+                {
+                  orgId,
+                  projectId,
+                  exportPolicyId: row.original.name,
+                },
+              )}
+              className="text-primary font-semibold">
+              {row.original.name}
+            </Link>
+          )
         },
       },
       {
         header: '# of Sources',
-        accessorKey: 'numberOfSources',
+        accessorKey: 'sources',
+        cell: ({ row }) => {
+          return row.original.sources?.length ?? 0
+        },
       },
       {
         header: '# of Sinks',
-        accessorKey: 'numberOfSinks',
+        accessorKey: 'sinks',
+        cell: ({ row }) => {
+          return row.original.sinks?.length ?? 0
+        },
       },
       {
         header: 'Status',

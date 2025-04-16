@@ -2,6 +2,10 @@ import {
   LocationClass,
   LocationProvider,
 } from '@/resources/interfaces/location.interface'
+import {
+  ExportPolicySinkType,
+  ExportPolicySourceType,
+} from '@/resources/interfaces/policy.interface'
 import { RuntimeType, StorageType } from '@/resources/interfaces/workload.interface'
 
 export const LOCATION_PROVIDERS = {
@@ -47,5 +51,20 @@ export const STORAGE_TYPES = {
   [StorageType.BOOT]: {
     label: 'Boot volume',
     description: 'A boot volume is a volume that is used to store the boot image.',
+  },
+}
+
+export const POLICY_SOURCE_TYPES = {
+  [ExportPolicySourceType.METRICS]: {
+    label: 'Metrics',
+    description: 'A metrics source is a source that is used to export metrics.',
+  },
+}
+
+export const POLICY_SINK_TYPES = {
+  [ExportPolicySinkType.PROMETHEUS]: {
+    label: 'Prometheus Remote Write',
+    description:
+      'A sink used for exporting telemetry data to a Prometheus Remote Write endpoint as part of a Kubernetes export policy.',
   },
 }
