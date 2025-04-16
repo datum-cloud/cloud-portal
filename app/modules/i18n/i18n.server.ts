@@ -1,4 +1,5 @@
 import * as i18n from '@/modules/i18n/i18n'
+import { isProduction } from '@/utils/misc'
 import { createCookie } from 'react-router'
 import { RemixI18Next } from 'remix-i18next/server'
 
@@ -6,7 +7,7 @@ export const localeCookie = createCookie('lng', {
   path: '/',
   domain: process.env?.APP_URL ? new URL(process.env.APP_URL).hostname : 'localhost',
   sameSite: 'lax',
-  secure: process.env.NODE_ENV === 'production',
+  secure: isProduction(),
   httpOnly: true,
 })
 

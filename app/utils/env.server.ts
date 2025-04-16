@@ -13,6 +13,8 @@ const schema = z.object({
   // Google
   AUTH_GOOGLE_ID: z.string().optional(),
   AUTH_GOOGLE_SECRET: z.string().optional(),
+
+  FATHOM_ID: z.string().optional(),
 })
 
 declare global {
@@ -51,6 +53,7 @@ export function getSharedEnvs() {
   return {
     APP_URL: process.env.APP_URL,
     API_URL: process.env.API_URL,
+    FATHOM_ID: process.env.FATHOM_ID,
   }
 }
 

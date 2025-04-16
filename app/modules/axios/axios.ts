@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CustomError } from '@/utils/errorHandle'
+import { isDevelopment } from '@/utils/misc'
 import axios, { AxiosError, AxiosInstance } from 'axios'
 import curlirize from 'axios-curlirize'
 
@@ -30,7 +31,7 @@ export const createAxiosClient = (options: ApiClientOptions): AxiosInstance => {
   })
 
   // Curlirize the client for debugging purposes
-  if (process.env.NODE_ENV === 'development') {
+  if (isDevelopment()) {
     curlirize(instance)
   }
 

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CustomError } from '@/utils/errorHandle'
+import { isDevelopment } from '@/utils/misc'
 import { Client, ClientOptions, createClient, createConfig } from '@hey-api/client-axios'
 import { AxiosError } from 'axios'
 import curlirize from 'axios-curlirize'
@@ -32,7 +33,7 @@ export const createControlPlaneClient = (
   )
 
   // Curlirize the client for debugging purposes
-  if (process.env.NODE_ENV === 'development') {
+  if (isDevelopment()) {
     curlirize(client.instance)
   }
 

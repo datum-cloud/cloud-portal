@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
 import { useTheme } from '@/hooks/useTheme'
 import PublicLayout from '@/layouts/public/public'
+import { isDevelopment } from '@/utils/misc'
 import { HomeIcon, Loader2, RefreshCcwIcon } from 'lucide-react'
 import { JSX, useEffect, useState } from 'react'
 import type { ErrorResponse } from 'react-router'
@@ -89,7 +90,7 @@ export function GenericErrorBoundary({
                   Whoops! Something went wrong.
                 </p>
 
-                {process.env.NODE_ENV === 'development' ? (
+                {isDevelopment() ? (
                   <div className="text-muted-foreground text-center text-sm">
                     {isRouteErrorResponse(error)
                       ? (statusHandlers?.[error.status] ?? defaultStatusHandler)({

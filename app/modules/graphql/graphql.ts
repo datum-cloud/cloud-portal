@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { isDevelopment } from '@/utils/misc'
 import { GraphQLClient as GraphQLClientInstance, Variables, gql } from 'graphql-request'
 
 type GraphqlClientOptions = {
@@ -11,7 +12,7 @@ const errorHandler = (error: any) => {
   let errorMessage = 'Something went wrong'
 
   // Show the actual error message in development mode
-  if (process.env.NODE_ENV === 'development') {
+  if (isDevelopment()) {
     errorMessage =
       error.response?.errors?.[0]?.message || error?.message || 'Unknown error occurred'
   }

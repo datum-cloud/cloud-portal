@@ -1,3 +1,5 @@
+import { isDevelopment } from './misc'
+
 export class CustomError extends Error {
   code: number
   statusText: string
@@ -9,7 +11,7 @@ export class CustomError extends Error {
     this.statusText = message
     this.cause = cause
 
-    if (process.env.NODE_ENV === 'development') {
+    if (isDevelopment()) {
       console.error(cause)
     }
   }
