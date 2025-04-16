@@ -1,3 +1,5 @@
+import { FathomAnalytics } from './components/fathom/fathom'
+import { getSharedEnvs } from './utils/env.server'
 import { ClientHintCheck } from '@/components/misc/ClientHints'
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
 import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher'
@@ -14,6 +16,7 @@ import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/handle-cache'
 import RootCSS from '@/styles/root.css?url'
 import { csrf } from '@/utils/csrf.server'
 import { metaObject } from '@/utils/meta'
+import { isProduction } from '@/utils/misc'
 import { combineHeaders, getDomainUrl } from '@/utils/misc.server'
 import { getToastSession } from '@/utils/toast.server'
 import NProgress from 'nprogress'
@@ -67,12 +70,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const locale = await i18nServer.getLocale(request)
   const { toast, headers: toastHeaders } = await getToastSession(request)
   const [csrfToken, csrfCookieHeader] = await csrf.commitToken(request)
+  const sharedEnv = getSharedEnvs()
 
   return data(
     {
       locale,
       toast,
       csrfToken,
+      sharedEnv,
       requestInfo: {
         hints: getHints(request),
         origin: getDomainUrl(request),
@@ -129,7 +134,7 @@ function Document({
 }
 
 export default function AppWithProviders() {
-  const { locale, toast, csrfToken } = useLoaderData<typeof loader>()
+  const { locale, toast, csrfToken, sharedEnv } = useLoaderData<typeof loader>()
 
   const nonce = useNonce()
   const theme = useTheme()
@@ -179,6 +184,9 @@ export default function AppWithProviders() {
   return (
     <Document nonce={nonce} theme={theme} lang={locale ?? 'en'}>
       <AuthenticityTokenProvider token={csrfToken}>
+        {sharedEnv.FATHOM_ID && isProduction() && (
+          <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />
+        )}
         <Outlet />
       </AuthenticityTokenProvider>
     </Document>

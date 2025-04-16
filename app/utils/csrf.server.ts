@@ -3,6 +3,7 @@
  * @see https://github.com/sergiodxa/remix-utils?tab=readme-ov-file#csrf
  */
 import { CustomError } from './errorHandle'
+import { isProduction } from './misc'
 import { createCookie } from 'react-router'
 import { CSRF, CSRFError } from 'remix-utils/csrf/server'
 
@@ -14,7 +15,7 @@ const cookie = createCookie(CSRF_COOKIE_KEY, {
   sameSite: 'lax',
   httpOnly: true,
   secrets: [process.env.SESSION_SECRET || 'NOT_A_STRONG_SECRET'],
-  secure: process.env.NODE_ENV === 'production',
+  secure: isProduction(),
 })
 
 export const csrf = new CSRF({ cookie })
