@@ -1065,52 +1065,54 @@ export const WorkloadFlow = ({
       }}>
       <Background color="#f8fafc" gap={16} />
       <Controls />
-      <MiniMap
-        nodeStrokeColor={(n) => {
-          switch (n.type) {
-            case 'workload':
-              return NODE_COLORS.workload
-            case 'placement':
-              return NODE_COLORS.placement
-            case 'runtime':
-              return NODE_COLORS.runtime
-            case 'container':
-              return NODE_COLORS.container
-            case 'storage':
-              return NODE_COLORS.storage
-            case 'network':
-              return NODE_COLORS.network
-            case 'port':
-              return NODE_COLORS.port
-            case 'bootImage':
-              return NODE_COLORS.bootImage
-            default:
-              return '#bbb'
-          }
-        }}
-        nodeColor={(n) => {
-          switch (n.type) {
-            case 'workload':
-              return '#ffffff'
-            case 'placement':
-              return '#eff6ff'
-            case 'runtime':
-              return '#fce7f3'
-            case 'container':
-              return '#faf5ff'
-            case 'storage':
-              return '#fef9c3'
-            case 'network':
-              return '#ecfeff'
-            case 'port':
-              return '#f5f3ff'
-            case 'bootImage':
-              return '#f0fdf4' // emerald-50
-            default:
-              return '#eee'
-          }
-        }}
-      />
+      {isCompactMode && (
+        <MiniMap
+          nodeStrokeColor={(n) => {
+            switch (n.type) {
+              case 'workload':
+                return NODE_COLORS.workload
+              case 'placement':
+                return NODE_COLORS.placement
+              case 'runtime':
+                return NODE_COLORS.runtime
+              case 'container':
+                return NODE_COLORS.container
+              case 'storage':
+                return NODE_COLORS.storage
+              case 'network':
+                return NODE_COLORS.network
+              case 'port':
+                return NODE_COLORS.port
+              case 'bootImage':
+                return NODE_COLORS.bootImage
+              default:
+                return '#bbb'
+            }
+          }}
+          nodeColor={(n) => {
+            switch (n.type) {
+              case 'workload':
+                return '#ffffff'
+              case 'placement':
+                return '#eff6ff'
+              case 'runtime':
+                return '#fce7f3'
+              case 'container':
+                return '#faf5ff'
+              case 'storage':
+                return '#fef9c3'
+              case 'network':
+                return '#ecfeff'
+              case 'port':
+                return '#f5f3ff'
+              case 'bootImage':
+                return '#f0fdf4' // emerald-50
+              default:
+                return '#eee'
+            }
+          }}
+        />
+      )}
     </ReactFlow>
   )
 }

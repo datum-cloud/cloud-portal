@@ -4,6 +4,7 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { getPathWithParams } from '@/utils/path'
 import { redirectWithToast } from '@/utils/toast.server'
+import { deletedWorkloadIdsCookie } from '@/utils/workload.server'
 import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 
@@ -19,6 +20,17 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
       const { workloadId, projectId, orgId } = formData
       await workloadsControl.delete(projectId as string, workloadId as string)
 
+      // Get the last deleted workloadIds
+      const cookieValue = await deletedWorkloadIdsCookie.parse(
+        request.headers.get('Cookie'),
+      )
+      const deletedIds = Array.isArray(cookieValue) ? cookieValue : []
+
+      // Add the new ID if it doesn't exist already
+      if (!deletedIds.includes(workloadId as string)) {
+        deletedIds.push(workloadId as string)
+      }
+
       return redirectWithToast(
         getPathWithParams(routes.projects.deploy.workloads.root, {
           orgId: orgId as string,
@@ -28,6 +40,11 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
           title: 'Workload deleted successfully',
           description: 'The workload has been deleted successfully',
           type: 'success',
+        },
+        {
+          headers: {
+            'Set-Cookie': await deletedWorkloadIdsCookie.serialize(deletedIds),
+          },
         },
       )
     }

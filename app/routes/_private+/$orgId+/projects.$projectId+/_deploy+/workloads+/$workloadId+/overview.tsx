@@ -10,17 +10,22 @@ import { WorkloadOverview } from '@/features/workload/overview'
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import {
+  ControlPlaneStatus,
+  IControlPlaneStatus,
+} from '@/resources/interfaces/control-plane.interface'
+import {
   IInstanceControlResponse,
   IWorkloadControlResponse,
   IWorkloadDeploymentControlResponse,
 } from '@/resources/interfaces/workload.interface'
 import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
 import { mergeMeta, metaObject } from '@/utils/meta'
+import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow'
 import { motion } from 'framer-motion'
 import { ClockIcon, PencilIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { MetaFunction, useParams, useRouteLoaderData, useSubmit } from 'react-router'
 import { Link } from 'react-router-dom'
 
@@ -44,7 +49,7 @@ export default function WorkloadOverviewPage() {
   const { orgId, projectId, workloadId } = useParams()
 
   // revalidate every 10 seconds to keep deployment list fresh
-  useRevalidateOnInterval({ enabled: true, interval: 10000 })
+  const revalidator = useRevalidateOnInterval({ enabled: true, interval: 10000 })
 
   const { deployments, instances, workload } = useRouteLoaderData(
     'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout',
@@ -68,6 +73,9 @@ export default function WorkloadOverviewPage() {
       confirmInputPlaceholder: 'Type the workload name to confirm deletion',
       confirmValue: data?.name ?? 'delete',
       onSubmit: async () => {
+        // Clear the interval when deleting a workload
+        revalidator.clear()
+
         await submit(
           {
             workloadId: data?.name ?? '',
@@ -92,6 +100,48 @@ export default function WorkloadOverviewPage() {
 
     return {}
   }, [workload])
+
+  // Status of the workload
+  const isWorkloadReady: boolean = useMemo(() => {
+    if (workload) {
+      const status: IControlPlaneStatus = transformControlPlaneStatus(workload.status)
+      return status.isReady === ControlPlaneStatus.Success
+    }
+    return false
+  }, [workload])
+
+  // Status of all instances
+  const isAllInstancesReady: boolean = useMemo(() => {
+    if (instances && instances.length > 0) {
+      const statuses: IControlPlaneStatus[] = instances.map(
+        (instance: IInstanceControlResponse) =>
+          transformControlPlaneStatus(instance.status),
+      )
+      return statuses.every((status) => status.isReady === ControlPlaneStatus.Success)
+    }
+    return false
+  }, [instances])
+
+  // Status of all deployments
+  const isAllDeploymentsReady: boolean = useMemo(() => {
+    if (deployments && deployments.length > 0) {
+      const statuses: IControlPlaneStatus[] = deployments.map(
+        (deployment: IWorkloadDeploymentControlResponse) =>
+          transformControlPlaneStatus(deployment.status),
+      )
+
+      // Check if all deployments are ready
+      return statuses?.every((status) => status.isReady === ControlPlaneStatus.Success)
+    }
+    return false
+  }, [deployments])
+
+  // Clear the interval when all resources are ready
+  useEffect(() => {
+    if (isWorkloadReady && isAllInstancesReady && isAllDeploymentsReady) {
+      revalidator.clear()
+    }
+  }, [isWorkloadReady, isAllInstancesReady, isAllDeploymentsReady])
 
   return (
     <motion.div
@@ -173,7 +223,7 @@ export default function WorkloadOverviewPage() {
             instances={instances as IInstanceControlResponse[]}
           />
         </TabsContent>
-        <TabsContent value="graph" className="max-h-screen min-h-[1024px]">
+        <TabsContent value="graph" className="max-h-screen min-h-[700px]">
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <WorkloadFlow workloadData={workloadMappingData as any} />
         </TabsContent>
