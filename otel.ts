@@ -41,6 +41,7 @@ export function startOpenTelemetry() {
   try {
     sdk?.start()
     console.log('OpenTelemetry initialized successfully')
+    console.log('OTEL_EXPORTER_OTLP_ENDPOINT:', process.env.OTEL_EXPORTER_OTLP_ENDPOINT)
   } catch (error) {
     console.error('Error initializing OpenTelemetry:', error)
     if (error instanceof Error) {
