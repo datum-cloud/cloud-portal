@@ -14,7 +14,6 @@ const isOtelEnabled =
 
 const sdk = isOtelEnabled
   ? new NodeSDK({
-      serviceName: 'cloud-portal',
       traceExporter: new OTLPTraceExporter({
         url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
       }),
@@ -27,7 +26,6 @@ const sdk = isOtelEnabled
         getNodeAutoInstrumentations(),
         new ExpressInstrumentation(),
         new RemixInstrumentation({
-          enabled: true,
         }),
       ],
     })
