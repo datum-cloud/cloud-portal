@@ -1,6 +1,7 @@
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 import { DateFormat } from '@/components/date-format/date-format'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { WorkloadStatus } from '@/features/workload/status'
@@ -14,9 +15,10 @@ import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/worklo
 import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
+import { deletedWorkloadIdsCookie } from '@/utils/workload.server'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
-import { PlusIcon } from 'lucide-react'
+import { Loader2, PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import {
   LoaderFunctionArgs,
@@ -26,26 +28,53 @@ import {
   Link,
   useNavigate,
   useSubmit,
+  data,
 } from 'react-router'
 
-export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
-  const { projectId } = params
-  const { controlPlaneClient } = context as AppLoadContext
-  const workloadsControl = createWorkloadsControl(controlPlaneClient as Client)
+export const loader = withMiddleware(
+  async ({ context, params, request }: LoaderFunctionArgs) => {
+    const { projectId } = params
+    const { controlPlaneClient } = context as AppLoadContext
+    const workloadsControl = createWorkloadsControl(controlPlaneClient as Client)
 
-  if (!projectId) {
-    throw new CustomError('Project ID is required', 400)
-  }
+    if (!projectId) {
+      throw new CustomError('Project ID is required', 400)
+    }
 
-  const workloads = await workloadsControl.list(projectId)
-  return workloads
-}, authMiddleware)
+    const workloads = await workloadsControl.list(projectId)
+
+    // Get deleted IDs from cookie
+    const cookieValue = await deletedWorkloadIdsCookie.parse(
+      request.headers.get('Cookie'),
+    )
+
+    // Check if cookie value is an array and has elements
+    let deletedIds: string[] = []
+    if (Array.isArray(cookieValue) && cookieValue.length > 0) {
+      // Create a set of current workload names for efficient lookup
+      const workloadNames = new Set(workloads.map((w) => w.name))
+
+      // Filter out deleted IDs that don't exist in current workloads
+      deletedIds = cookieValue.filter((id) => workloadNames.has(id))
+    }
+
+    return data(
+      { workloads, deletedIds },
+      {
+        headers: {
+          'Set-Cookie': await deletedWorkloadIdsCookie.serialize(deletedIds),
+        },
+      },
+    )
+  },
+  authMiddleware,
+)
 
 export default function WorkloadsPage() {
-  // revalidate every 10 seconds to keep workload list fresh
+  // revalidate every 5 seconds to keep workload list fresh
   useRevalidateOnInterval({ enabled: true, interval: 10000 })
 
-  const data = useLoaderData<typeof loader>()
+  const { workloads, deletedIds } = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const submit = useSubmit()
   const { confirm } = useConfirmationDialog()
@@ -92,7 +121,15 @@ export default function WorkloadsPage() {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return (
+          const isDeleted = Boolean(
+            row.original.name && (deletedIds as string[]).includes(row.original.name),
+          )
+
+          return isDeleted ? (
+            <span className="text-primary leading-none font-semibold">
+              {row.original.name}
+            </span>
+          ) : (
             <Link
               to={getPathWithParams(routes.projects.deploy.workloads.detail.root, {
                 orgId,
@@ -109,7 +146,17 @@ export default function WorkloadsPage() {
         header: 'Status',
         accessorKey: 'status',
         cell: ({ row }) => {
-          return (
+          const isDeleted = Boolean(
+            row.original.name && (deletedIds as string[]).includes(row.original.name),
+          )
+          return isDeleted ? (
+            <Badge
+              variant="outline"
+              className="text-destructive flex items-center gap-1 border-none text-sm font-normal">
+              <Loader2 className="size-3 animate-spin cursor-default" />
+              Deleting
+            </Badge>
+          ) : (
             row.original.status && (
               <WorkloadStatus
                 currentStatus={transformControlPlaneStatus(row.original.status)}
@@ -131,7 +178,7 @@ export default function WorkloadsPage() {
         },
       },
     ],
-    [orgId, projectId],
+    [orgId, projectId, deletedIds],
   )
 
   const rowActions: DataTableRowActionsProps<IWorkloadControlResponse>[] = useMemo(
@@ -148,21 +195,25 @@ export default function WorkloadsPage() {
             }),
           )
         },
+        isDisabled: (row) =>
+          Boolean(row.name && (deletedIds as string[]).includes(row.name)),
       },
       {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
         action: (row) => deleteWorkload(row),
+        isDisabled: (row) =>
+          Boolean(row.name && (deletedIds as string[]).includes(row.name)),
       },
     ],
-    [orgId, projectId],
+    [orgId, projectId, deletedIds],
   )
 
   return (
     <DataTable
       columns={columns}
-      data={data ?? []}
+      data={workloads ?? []}
       className="mx-auto max-w-(--breakpoint-lg)"
       loadingText="Loading..."
       emptyText="No workloads found."

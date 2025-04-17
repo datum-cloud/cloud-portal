@@ -15,6 +15,7 @@ export interface MoreActionsProps<TData> {
   icon?: React.ReactNode
   className?: string
   action: (row?: TData) => void | Promise<void>
+  isDisabled?: (row?: TData) => boolean
 }
 
 export const MoreActions = <TData,>({
@@ -48,7 +49,8 @@ export const MoreActions = <TData,>({
               'cursor-pointer',
               action.variant === 'destructive' && 'text-destructive',
               action.className,
-            )}>
+            )}
+            disabled={action.isDisabled?.(row) ?? false}>
             {action.icon}
             {action.label}
           </DropdownMenuItem>

@@ -25,8 +25,7 @@ const sdk = isOtelEnabled
       instrumentations: [
         getNodeAutoInstrumentations(),
         new ExpressInstrumentation(),
-        new RemixInstrumentation({
-        }),
+        new RemixInstrumentation({}),
       ],
     })
   : null

@@ -91,6 +91,7 @@ export interface DataTableRowActionsProps<TData> {
   icon?: React.ReactNode
   className?: string
   action: (row: TData) => void | Promise<void>
+  isDisabled?: (row: TData) => boolean
 }
 
 export interface DataTableTitleProps {
