@@ -1,0 +1,73 @@
+import { routes } from '@/constants/routes'
+import { SecretForm } from '@/features/secret/form/form'
+import { createSecretsControl } from '@/resources/control-plane/secrets.control'
+import { SecretSchema, secretSchema } from '@/resources/schemas/secret.schema'
+import { validateCSRF } from '@/utils/csrf.server'
+import { mergeMeta, metaObject } from '@/utils/meta'
+import { getPathWithParams } from '@/utils/path'
+import { redirectWithToast, dataWithToast } from '@/utils/toast.server'
+import { parseWithZod } from '@conform-to/zod'
+import { Client } from '@hey-api/client-axios'
+import { ActionFunctionArgs, AppLoadContext, MetaFunction, useParams } from 'react-router'
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return metaObject('New Secret')
+})
+
+export const action = async ({ request, context, params }: ActionFunctionArgs) => {
+  const { controlPlaneClient } = context as AppLoadContext
+  const { projectId, orgId } = params
+
+  const secretControl = createSecretsControl(controlPlaneClient as Client)
+
+  if (!projectId) {
+    throw new Error('Project ID is required')
+  }
+
+  const clonedRequest = request.clone()
+  const formData = await clonedRequest.formData()
+
+  try {
+    await validateCSRF(formData, clonedRequest.headers)
+
+    // Validate form data with Zod
+    const parsed = parseWithZod(formData, { schema: secretSchema })
+
+    const payload = parsed.payload as SecretSchema
+
+    const dryRunRes = await secretControl.create(projectId, payload, true)
+
+    if (dryRunRes) {
+      await secretControl.create(projectId, payload, false)
+    }
+
+    return redirectWithToast(
+      getPathWithParams(routes.projects.config.secrets.root, {
+        orgId,
+        projectId,
+      }),
+      {
+        title: 'Secret created successfully',
+        description: 'You have successfully created a secret.',
+        type: 'success',
+      },
+    )
+  } catch (error) {
+    return dataWithToast(null, {
+      title: 'Error',
+      description:
+        error instanceof Error ? error.message : (error as Response).statusText,
+      type: 'error',
+    })
+  }
+}
+
+export default function ConfigSecretsNewPage() {
+  const { projectId } = useParams()
+
+  return (
+    <div className="mx-auto w-full max-w-3xl py-8">
+      <SecretForm projectId={projectId} />
+    </div>
+  )
+}

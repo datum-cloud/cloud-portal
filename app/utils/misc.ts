@@ -165,3 +165,41 @@ export function transformControlPlaneStatus(
     message: 'Resource is being provisioned...',
   }
 }
+
+export function isBase64(str: string): boolean {
+  if (typeof str !== 'string' || !str) {
+    return false
+  }
+
+  try {
+    const decoded = atob(str)
+    return btoa(decoded) === str
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (e) {
+    return false
+  }
+}
+
+export function toBase64(str: string): string {
+  if (typeof str !== 'string') {
+    return ''
+  }
+  try {
+    // Step 1: Use TextEncoder to get UTF-8 bytes (Uint8Array)
+    const utf8Bytes = new TextEncoder().encode(str)
+
+    // Step 2: Convert the ArrayBuffer/Uint8Array to a binary string
+    // (a string where each character's code point is a byte value 0-255)
+    let binaryString = ''
+    utf8Bytes.forEach((byte) => {
+      binaryString += String.fromCharCode(byte)
+    })
+
+    // Step 3: Use btoa on the binary string
+    return btoa(binaryString)
+  } catch (error) {
+    console.error('Base64 encoding failed:', error)
+    // Handle cases where btoa or TextEncoder might fail or not be available
+    return ''
+  }
+}

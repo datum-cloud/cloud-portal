@@ -2,7 +2,7 @@ import { routes } from '@/constants/routes'
 import { ConfigMapForm } from '@/features/config-map/form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { createCoreControl } from '@/resources/control-plane/core.control'
+import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control'
 import { configMapSchema } from '@/resources/schemas/config-map.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { mergeMeta, metaObject } from '@/utils/meta'
@@ -20,7 +20,7 @@ export const action = withMiddleware(
   async ({ request, context, params }: ActionFunctionArgs) => {
     const { controlPlaneClient } = context as AppLoadContext
     const { projectId, orgId } = params
-    const coreControl = createCoreControl(controlPlaneClient as Client)
+    const configMapControl = createConfigMapsControl(controlPlaneClient as Client)
 
     if (!projectId) {
       throw new Error('Project ID is required')
@@ -37,10 +37,10 @@ export const action = withMiddleware(
         throw new Error('Invalid form data')
       }
 
-      const dryRunRes = await coreControl.createConfigMap(projectId, parsed.value, true)
+      const dryRunRes = await configMapControl.create(projectId, parsed.value, true)
 
       if (dryRunRes) {
-        await coreControl.createConfigMap(projectId, parsed.value, false)
+        await configMapControl.create(projectId, parsed.value, false)
       }
 
       return redirectWithToast(

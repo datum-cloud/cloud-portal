@@ -4,8 +4,8 @@ import {
   RuntimeType,
   StorageType,
 } from '@/resources/interfaces/workload.interface'
+import { MetadataSchema } from '@/resources/schemas/metadata.schema'
 import {
-  MetadataSchema,
   NetworkFieldSchema,
   PlacementFieldSchema,
   RuntimeSchema,

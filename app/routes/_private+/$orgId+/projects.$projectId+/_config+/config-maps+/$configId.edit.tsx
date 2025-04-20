@@ -2,7 +2,7 @@ import { routes } from '@/constants/routes'
 import { ConfigMapForm } from '@/features/config-map/form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { createCoreControl } from '@/resources/control-plane/core.control'
+import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control'
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
 import { updateConfigMapSchema } from '@/resources/schemas/config-map.schema'
 import { validateCSRF } from '@/utils/csrf.server'
@@ -28,13 +28,13 @@ export const meta: MetaFunction<IConfigMapControlResponse> = mergeMeta(({ data }
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext
   const { projectId, configId } = params
-  const coreControl = createCoreControl(controlPlaneClient as Client)
+  const configMapControl = createConfigMapsControl(controlPlaneClient as Client)
 
   if (!projectId || !configId) {
     throw new CustomError('Project ID and config ID are required', 400)
   }
 
-  const configMap = await coreControl.getConfigMap(projectId, configId)
+  const configMap = await configMapControl.detail(projectId, configId)
 
   return configMap
 }, authMiddleware)
@@ -43,7 +43,7 @@ export const action = withMiddleware(
   async ({ request, params, context }: ActionFunctionArgs) => {
     const { projectId, configId, orgId } = params
     const { controlPlaneClient } = context as AppLoadContext
-    const coreControl = createCoreControl(controlPlaneClient as Client)
+    const configMapControl = createConfigMapsControl(controlPlaneClient as Client)
 
     if (!projectId || !configId) {
       throw new CustomError('Project ID and config ID are required', 400)
@@ -74,15 +74,10 @@ export const action = withMiddleware(
         resourceVersion: value.resourceVersion,
       }
 
-      const dryRunRes = await coreControl.updateConfigMap(
-        projectId,
-        configId,
-        payload,
-        true,
-      )
+      const dryRunRes = await configMapControl.update(projectId, configId, payload, true)
 
       if (dryRunRes) {
-        await coreControl.updateConfigMap(projectId, configId, payload, false)
+        await configMapControl.update(projectId, configId, payload, false)
       }
 
       return redirectWithToast(

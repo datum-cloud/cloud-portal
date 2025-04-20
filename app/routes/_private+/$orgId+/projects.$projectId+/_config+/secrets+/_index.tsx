@@ -6,8 +6,8 @@ import { routes } from '@/constants/routes'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control'
-import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
+import { createSecretsControl } from '@/resources/control-plane/secrets.control'
+import { ISecretControlResponse } from '@/resources/interfaces/secret.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast } from '@/utils/toast.server'
@@ -21,7 +21,6 @@ import {
   useLoaderData,
   useParams,
   Link,
-  useNavigate,
   useSubmit,
   ActionFunctionArgs,
 } from 'react-router'
@@ -29,29 +28,29 @@ import {
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params
   const { controlPlaneClient } = context as AppLoadContext
-  const configMapControl = createConfigMapsControl(controlPlaneClient as Client)
+  const secretControl = createSecretsControl(controlPlaneClient as Client)
 
   if (!projectId) {
     throw new CustomError('Project ID is required', 400)
   }
 
-  const configMaps = await configMapControl.list(projectId)
-  return configMaps
+  const secrets = await secretControl.list(projectId)
+  return secrets
 }, authMiddleware)
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext
-  const configMapControl = createConfigMapsControl(controlPlaneClient as Client)
+  const secretControl = createSecretsControl(controlPlaneClient as Client)
 
   switch (request.method) {
     case 'DELETE': {
       const formData = Object.fromEntries(await request.formData())
-      const { configMapId, projectId } = formData
+      const { secretId, projectId } = formData
 
-      await configMapControl.delete(projectId as string, configMapId as string)
+      await secretControl.delete(projectId as string, secretId as string)
       return dataWithToast(null, {
-        title: 'Config map deleted successfully',
-        description: 'The config map has been deleted successfully',
+        title: 'Secret deleted successfully',
+        description: 'The secret has been deleted successfully',
         type: 'success',
       })
     }
@@ -60,39 +59,39 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
   }
 }, authMiddleware)
 
-export default function ConfigMapsPage() {
+export default function SecretsPage() {
   const data = useLoaderData<typeof loader>()
-  const navigate = useNavigate()
+
   const submit = useSubmit()
 
   const { confirm } = useConfirmationDialog()
   const { orgId, projectId } = useParams()
 
-  const deleteConfigMap = async (configMap: IConfigMapControlResponse) => {
+  const deleteSecret = async (secret: ISecretControlResponse) => {
     await confirm({
-      title: 'Delete Config Map',
+      title: 'Delete Secret',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{configMap.name}</strong>?
+          <strong>{secret.name}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${configMap.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the config map name to confirm deletion',
-      confirmValue: configMap.name ?? 'delete',
+      confirmInputLabel: `Type "${secret.name}" to confirm.`,
+      confirmInputPlaceholder: 'Type the secret name to confirm deletion',
+      confirmValue: secret.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {
-            configMapId: configMap.name ?? '',
+            secretId: secret.name ?? '',
             projectId: projectId ?? '',
           },
           {
             method: 'DELETE',
-            fetcherKey: 'config-resources',
+            fetcherKey: 'secret-resources',
             navigate: false,
           },
         )
@@ -100,23 +99,13 @@ export default function ConfigMapsPage() {
     })
   }
 
-  const columns: ColumnDef<IConfigMapControlResponse>[] = useMemo(
+  const columns: ColumnDef<ISecretControlResponse>[] = useMemo(
     () => [
       {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return (
-            <Link
-              to={getPathWithParams(routes.projects.config.configMaps.edit, {
-                orgId,
-                projectId,
-                configMapId: row.original.name,
-              })}
-              className="text-primary font-semibold">
-              {row.original.name}
-            </Link>
-          )
+          return <span className="text-primary font-semibold">{row.original.name}</span>
         },
       },
       {
@@ -130,26 +119,26 @@ export default function ConfigMapsPage() {
     [orgId, projectId],
   )
 
-  const rowActions: DataTableRowActionsProps<IConfigMapControlResponse>[] = useMemo(
+  const rowActions: DataTableRowActionsProps<ISecretControlResponse>[] = useMemo(
     () => [
-      {
+      /* {
         key: 'edit',
         label: 'Edit',
         action: (row) => {
           navigate(
-            getPathWithParams(routes.projects.config.configMaps.edit, {
+            getPathWithParams(routes.projects.config.secrets.edit, {
               orgId,
               projectId,
-              configMapId: row.name,
+              secretId: row.name,
             }),
           )
         },
-      },
+      }, */
       {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
-        action: (row) => deleteConfigMap(row),
+        action: (row) => deleteSecret(row),
       },
     ],
     [orgId, projectId],
@@ -161,19 +150,19 @@ export default function ConfigMapsPage() {
       data={data ?? []}
       className="mx-auto max-w-(--breakpoint-lg)"
       loadingText="Loading..."
-      emptyText="No config maps found."
+      emptyText="No secrets found."
       tableTitle={{
-        title: 'Config Maps',
-        description: 'Manage config maps for your project resources',
+        title: 'Secrets',
+        description: 'Manage secrets for your project resources',
         actions: (
           <Link
-            to={getPathWithParams(routes.projects.config.configMaps.new, {
+            to={getPathWithParams(routes.projects.config.secrets.new, {
               orgId,
               projectId,
             })}>
             <Button>
               <PlusIcon className="size-4" />
-              New Config Map
+              New Secret
             </Button>
           </Link>
         ),

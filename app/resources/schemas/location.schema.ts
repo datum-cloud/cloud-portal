@@ -1,4 +1,4 @@
-import { nameSchema } from './general.schema'
+import { metadataSchema } from './metadata.schema'
 import {
   LocationClass,
   LocationProvider,
@@ -14,9 +14,6 @@ export const gcpProviderSchema = z.object({
 
 export const baseLocationSchema = z
   .object({
-    // displayName: z
-    //   .string({ required_error: 'Display name is required.' })
-    //   .max(100, { message: 'Display name must be less than 100 characters long.' }),
     class: z.enum(Object.values(LocationClass) as [string, ...string[]], {
       required_error: 'Class is required.',
     }),
@@ -25,9 +22,8 @@ export const baseLocationSchema = z
     }),
     cityCode: z.string({ required_error: 'City code is required.' }),
     resourceVersion: z.string().optional(),
-    labels: z.array(z.string()).optional(),
   })
-  .merge(nameSchema)
+  .and(metadataSchema)
 
 // Combined schema with discriminated union for providerConfig
 export const newLocationSchema = baseLocationSchema

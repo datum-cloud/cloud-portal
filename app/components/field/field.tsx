@@ -27,7 +27,7 @@ export const Field = ({
   return (
     <div className={cn('flex flex-col space-y-2', className)}>
       {label && (
-        <div className="flex items-center gap-2">
+        <div className="relative flex w-fit items-center gap-2">
           <Label className={cn('gap-0', errors && 'text-destructive', labelClassName)}>
             {label}
             {isRequired && (
@@ -37,7 +37,7 @@ export const Field = ({
           {tooltipInfo && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <InfoIcon className="size-4 cursor-pointer" />
+                <InfoIcon className="absolute top-0 -right-5 size-4 cursor-pointer" />
               </TooltipTrigger>
               <TooltipContent>{tooltipInfo}</TooltipContent>
             </Tooltip>

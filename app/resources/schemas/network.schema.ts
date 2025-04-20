@@ -1,11 +1,8 @@
-import { nameSchema } from './general.schema'
+import { nameSchema } from './metadata.schema'
 import { z } from 'zod'
 
 export const newNetworkSchema = z
   .object({
-    /* displayName: z
-    .string({ required_error: 'Display name is required.' })
-    .max(100, { message: 'Display name must be less than 100 characters long.' }), */
     ipFamily: z.enum(['IPv4', 'IPv6'], {
       required_error: 'IP family is required.',
     }),
