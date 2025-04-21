@@ -1064,7 +1064,10 @@ export const WorkloadFlow = ({
         includeHiddenNodes: true,
       }}>
       <Background color="#f8fafc" gap={16} />
-      <Controls />
+      <Controls
+        className="[&>button]:dark:!border-background [&>button]:dark:!bg-gray-900"
+        aria-label="Workload Graph Controls"
+      />
       {isCompactMode && (
         <MiniMap
           nodeStrokeColor={(n) => {

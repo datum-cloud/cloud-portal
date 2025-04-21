@@ -1,45 +1,9 @@
-import { nameSchema } from './general.schema'
-import { createCodeEditorSchema } from '@/components/code-editor/code-editor.types'
+import { nameSchema, metadataSchema } from './metadata.schema'
 import {
   ExportPolicySinkType,
   ExportPolicySourceType,
 } from '@/resources/interfaces/policy.interface'
 import { z } from 'zod'
-
-export const exportPolicySchema = createCodeEditorSchema('Configuration').transform(
-  (data) => {
-    return {
-      configuration: data.content,
-      format: data.format,
-    }
-  },
-)
-
-export const updateExportPolicySchema = z
-  .object({
-    resourceVersion: z.string({ required_error: 'Resource version is required.' }),
-  })
-  .and(exportPolicySchema)
-  .transform((data) => {
-    return {
-      resourceVersion: data.resourceVersion,
-      configuration: data.configuration,
-      format: data.format,
-    }
-  })
-
-export type ExportPolicySchema = z.infer<typeof exportPolicySchema>
-export type UpdateExportPolicySchema = z.infer<typeof updateExportPolicySchema>
-
-// New Export Policy Schema
-
-// Metadata Schema
-export const exportPolicyMetadataSchema = z
-  .object({
-    labels: z.array(z.string()).optional(),
-    annotations: z.array(z.string()).optional(),
-  })
-  .and(nameSchema)
 
 // Source Field Schema
 export const sourceFieldSchema = z
@@ -178,12 +142,12 @@ export const exportPolicySinksSchema = z
 
 export const newExportPolicySchema = z
   .object({
-    metadata: exportPolicyMetadataSchema,
+    metadata: metadataSchema,
   })
   .and(exportPolicySourcesSchema)
   .and(exportPolicySinksSchema)
 
-export type ExportPolicyMetadataSchema = z.infer<typeof exportPolicyMetadataSchema>
+export type ExportPolicyMetadataSchema = z.infer<typeof metadataSchema>
 export type ExportPolicySourcesSchema = z.infer<typeof exportPolicySourcesSchema>
 export type ExportPolicySourceFieldSchema = z.infer<typeof sourceFieldSchema>
 export type ExportPolicySinksSchema = z.infer<typeof exportPolicySinksSchema>

@@ -4,7 +4,7 @@ import { SelectAnnotations } from '@/components/select-annotations/select-annota
 import { SelectLabels } from '@/components/select-labels/select-labels'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { MetadataSchema } from '@/resources/schemas/workload.schema'
+import { MetadataSchema } from '@/resources/schemas/metadata.schema'
 import { getInputProps, useForm, useInputControl } from '@conform-to/react'
 import { useEffect, useMemo, useRef } from 'react'
 import { useHydrated } from 'remix-utils/use-hydrated'
@@ -93,7 +93,7 @@ export const MetadataPreview = ({ values }: { values: MetadataSchema }) => {
           hidden: (values.labels ?? []).length === 0,
           content: (
             <div className="flex flex-wrap gap-2">
-              {values.labels?.map((label) => (
+              {values.labels?.map((label: string) => (
                 <Badge key={label} variant="outline">
                   {label}
                 </Badge>
@@ -106,7 +106,7 @@ export const MetadataPreview = ({ values }: { values: MetadataSchema }) => {
           hidden: (values.annotations ?? []).length === 0,
           content: (
             <div className="flex flex-wrap gap-2">
-              {values.annotations?.map((annotation) => (
+              {values.annotations?.map((annotation: string) => (
                 <Badge key={annotation} variant="outline">
                   {annotation}
                 </Badge>

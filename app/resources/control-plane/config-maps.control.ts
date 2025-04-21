@@ -11,7 +11,7 @@ import { ConfigMapSchema } from '@/resources/schemas/config-map.schema'
 import { CustomError } from '@/utils/errorHandle'
 import { Client } from '@hey-api/client-axios'
 
-export const createCoreControl = (client: Client) => {
+export const createConfigMapsControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
   const transformConfigMap = (
@@ -28,7 +28,7 @@ export const createCoreControl = (client: Client) => {
   }
 
   return {
-    getConfigMaps: async (projectId: string) => {
+    list: async (projectId: string) => {
       const response = await listCoreV1NamespacedConfigMap({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -39,7 +39,7 @@ export const createCoreControl = (client: Client) => {
 
       return response.data?.items?.map(transformConfigMap) ?? []
     },
-    getConfigMap: async (projectId: string, configId: string) => {
+    detail: async (projectId: string, configId: string) => {
       const response = await readCoreV1NamespacedConfigMap({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -52,7 +52,7 @@ export const createCoreControl = (client: Client) => {
 
       return transformConfigMap(response.data)
     },
-    createConfigMap: async (
+    create: async (
       projectId: string,
       configMap: ConfigMapSchema,
       dryRun: boolean = false,
@@ -77,7 +77,7 @@ export const createCoreControl = (client: Client) => {
 
       return dryRun ? response.data : transformConfigMap(response.data)
     },
-    updateConfigMap: async (
+    update: async (
       projectId: string,
       configId: string,
       payload: { data: Record<string, string>; resourceVersion: string },
@@ -110,7 +110,7 @@ export const createCoreControl = (client: Client) => {
 
       return dryRun ? response.data : transformConfigMap(response.data)
     },
-    deleteConfigMap: async (projectId: string, configId: string) => {
+    delete: async (projectId: string, configId: string) => {
       const response = await deleteCoreV1NamespacedConfigMap({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -126,4 +126,4 @@ export const createCoreControl = (client: Client) => {
   }
 }
 
-export type CoreControl = ReturnType<typeof createCoreControl>
+export type ConfigMapsControl = ReturnType<typeof createConfigMapsControl>

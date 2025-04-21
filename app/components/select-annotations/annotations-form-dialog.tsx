@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { AnnotationFormSchema } from '@/resources/schemas/annotation.schema'
+import { AnnotationFormSchema } from '@/resources/schemas/metadata.schema'
 import { useImperativeHandle, useRef, useState } from 'react'
 
 interface AnnotationFormDialogProps {

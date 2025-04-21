@@ -1,0 +1,108 @@
+import { VariableField } from './variable-field'
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { SecretEnvSchema, SecretVariablesSchema } from '@/resources/schemas/secret.schema'
+import { cn } from '@/utils/misc'
+import { FormMetadata, useForm } from '@conform-to/react'
+import { InfoIcon, PlusIcon, TrashIcon } from 'lucide-react'
+import { useEffect, useMemo } from 'react'
+
+export const VariablesForm = ({
+  form,
+  fields,
+  defaultValues,
+}: {
+  form: FormMetadata<SecretVariablesSchema>
+  fields: ReturnType<typeof useForm<SecretVariablesSchema>>[1]
+  defaultValues?: SecretVariablesSchema
+}) => {
+  const variableList = fields.variables.getFieldList()
+
+  const variableValue = useMemo(() => {
+    return defaultValues?.variables
+      ? defaultValues.variables
+      : ((defaultValues ?? []) as SecretEnvSchema[])
+  }, [defaultValues])
+
+  useEffect(() => {
+    if (variableValue && variableValue.length > 0) {
+      form.update({
+        name: fields.variables.name,
+        value: variableValue as SecretEnvSchema[],
+      })
+    } else if (variableList.length === 0) {
+      form.insert({
+        name: fields.variables.name,
+        defaultValue: {
+          key: '',
+          value: '',
+        },
+      })
+    }
+  }, [variableValue])
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium">Key-value pairs</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <InfoIcon className="size-4 cursor-pointer" />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">
+              If not already base64-encoded, values will be encoded automatically.
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+      <div className="space-y-4">
+        {variableList.map((field, index) => {
+          const variableFields = field.getFieldset()
+
+          return (
+            <div className="relative flex items-center gap-2 px-1" key={field.key}>
+              <VariableField
+                fields={
+                  variableFields as unknown as ReturnType<
+                    typeof useForm<SecretEnvSchema>
+                  >[1]
+                }
+                defaultValues={variableValue?.[index]}
+              />
+
+              {variableList.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className={cn('text-destructive relative top-2 w-fit')}
+                  onClick={() => form.remove({ name: fields.variables.name, index })}>
+                  <TrashIcon className="size-4" />
+                </Button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="ml-2 w-fit"
+        onClick={() =>
+          form.insert({
+            name: fields.variables.name,
+            defaultValue: {
+              key: '',
+              value: '',
+            },
+          })
+        }>
+        <PlusIcon className="size-4" />
+        Add
+      </Button>
+    </div>
+  )
+}

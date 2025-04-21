@@ -8,5 +8,5 @@ Dockerfile
 /public/build
 .env
 
-/js/elk-worker.min.js
+/public/js/elk-worker.min.js
 

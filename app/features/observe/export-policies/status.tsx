@@ -32,7 +32,6 @@ export const ExportPolicyStatus = ({
   )
 
   const loadStatus = (exportPolicyId: string) => {
-    console.log(exportPolicyId)
     if (projectId && exportPolicyId) {
       fetcher.load(
         `${EXPORT_POLICY_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${exportPolicyId}`,

@@ -19,7 +19,6 @@ import {
   IExportPolicyControlResponse,
 } from '@/resources/interfaces/policy.interface'
 import {
-  exportPolicyMetadataSchema,
   exportPolicySourcesSchema,
   exportPolicySinksSchema,
   NewExportPolicySchema,
@@ -28,6 +27,7 @@ import {
   ExportPolicySinksSchema,
   ExportPolicySourceFieldSchema,
 } from '@/resources/schemas/export-policy.schema'
+import { MetadataSchema, metadataSchema } from '@/resources/schemas/metadata.schema'
 import { cn } from '@/utils/misc'
 import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
@@ -44,9 +44,9 @@ const { useStepper } = defineStepper(
     description:
       'Define essential information and labels for your export policy resource.',
     icon: () => <Layers />,
-    schema: exportPolicyMetadataSchema,
+    schema: metadataSchema,
     preview: (values?: any) => (
-      <MetadataPreview values={values?.metadata as ExportPolicyMetadataSchema} />
+      <MetadataPreview values={values?.metadata as MetadataSchema} />
     ),
   },
   {

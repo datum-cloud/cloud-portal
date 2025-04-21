@@ -1,6 +1,6 @@
 import { LabelFormDialog, LabelFormDialogRef } from './label-form-dialog'
 import { MultiSelect, MultiSelectOption } from '@/components/multi-select/multi-select'
-import { LabelFormSchema } from '@/resources/schemas/label.schema'
+import { LabelFormSchema } from '@/resources/schemas/metadata.schema'
 import { splitOption } from '@/utils/misc'
 import { PlusIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'

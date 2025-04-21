@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import {
   annotationFormSchema,
   AnnotationFormSchema,
-} from '@/resources/schemas/annotation.schema'
+} from '@/resources/schemas/metadata.schema'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useEffect, useRef } from 'react'

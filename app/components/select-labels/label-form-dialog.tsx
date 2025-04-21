@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { LabelFormSchema } from '@/resources/schemas/label.schema'
+import { LabelFormSchema } from '@/resources/schemas/metadata.schema'
 import { useImperativeHandle, useRef, useState } from 'react'
 
 interface LabelFormDialogProps {

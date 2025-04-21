@@ -18,9 +18,8 @@ import {
   IWorkloadControlResponse,
   RuntimeType,
 } from '@/resources/interfaces/workload.interface'
+import { MetadataSchema, metadataSchema } from '@/resources/schemas/metadata.schema'
 import {
-  MetadataSchema,
-  metadataSchema,
   NetworksSchema,
   networksSchema,
   NewWorkloadSchema,

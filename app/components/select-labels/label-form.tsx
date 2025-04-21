@@ -1,7 +1,7 @@
 import { Field } from '@/components/field/field'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { labelFormSchema, LabelFormSchema } from '@/resources/schemas/label.schema'
+import { labelFormSchema, LabelFormSchema } from '@/resources/schemas/metadata.schema'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useEffect, useRef } from 'react'

@@ -20,8 +20,8 @@ import {
   RuntimeType,
   IWorkloadControlResponse,
 } from '@/resources/interfaces/workload.interface'
+import { MetadataSchema } from '@/resources/schemas/metadata.schema'
 import {
-  MetadataSchema,
   NetworksSchema,
   updateWorkloadSchema,
   NewWorkloadSchema,
@@ -266,7 +266,7 @@ export const WorkloadUpdateForm = ({
                       {section.id === 'storages' && (
                         <StoragesForm
                           isEdit
-                          form={form as FormMetadata<StoragesSchema>}
+                          form={form as unknown as FormMetadata<StoragesSchema>}
                           defaultValues={{ storages: formattedValues?.storages ?? [] }}
                           fields={
                             fields as unknown as ReturnType<

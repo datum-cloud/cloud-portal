@@ -7,5 +7,5 @@ export const deletedWorkloadIdsCookie = createCookie('_deleted-workload-ids', {
   sameSite: 'lax',
   secure: isProduction(),
   httpOnly: true,
-  expires: new Date(Date.now() + 5 * 60 * 1000),
+  maxAge: 60 * 60 * 1, // 1 hour
 })

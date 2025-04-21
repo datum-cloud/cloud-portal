@@ -1,4 +1,4 @@
-import { nameSchema } from './general.schema'
+import { nameSchema, metadataSchema } from './metadata.schema'
 import {
   PortProtocol,
   RuntimeType,
@@ -6,16 +6,9 @@ import {
 } from '@/resources/interfaces/workload.interface'
 import { z } from 'zod'
 
-// Metadata Section
-export const metadataSchema = z
-  .object({
-    labels: z.array(z.string()).optional(),
-    annotations: z.array(z.string()).optional(),
-  })
-  .and(nameSchema)
-
 // Runtime Section
 export const runtimePortSchema = z.object({
+  // Port has different name validation rules than default nameSchema
   name: z
     .string({ required_error: 'Name is required.' })
     .min(1, { message: 'Name must not be empty.' })
@@ -109,6 +102,7 @@ export const runtimeContainerSchema = z
       }
     })
   })
+
 export const runtimeSchema = z.object({
   instanceType: z.string({ required_error: 'Instance type is required.' }),
   runtimeType: z.enum(Object.values(RuntimeType) as [string, ...string[]], {
@@ -118,6 +112,9 @@ export const runtimeSchema = z.object({
   containers: z.array(runtimeContainerSchema).optional(),
 })
 
+// End Runtime Section
+
+// Network Section
 export const networkFieldSchema = z.object({
   name: z.string({ required_error: 'Network is required.' }),
   ipFamilies: z
@@ -130,6 +127,8 @@ export const networksSchema = z.object({
     message: 'At least one network must be configured.',
   }),
 })
+
+// End Network Section
 
 // Storage Section
 export const storageFieldSchema = z
@@ -169,6 +168,7 @@ export const storageFieldSchema = z
       path: ['size'],
     },
   )
+
 export const storagesSchema = z
   .object({
     storages: z.array(storageFieldSchema),
@@ -195,6 +195,8 @@ export const storagesSchema = z
       }
     })
   })
+
+// End Storage Section
 
 // Placements
 export const placementFieldSchema = z
@@ -238,6 +240,9 @@ export const placementsSchema = z
     })
   })
 
+// End Placements
+
+// Workload
 export const newWorkloadSchema = z
   .object({
     metadata: metadataSchema,
@@ -257,7 +262,7 @@ export const updateWorkloadSchema = z
   .and(storagesSchema)
   .and(placementsSchema)
 
-export type MetadataSchema = z.infer<typeof metadataSchema>
+// End Workload
 export type RuntimeSchema = z.infer<typeof runtimeSchema>
 export type RuntimePortSchema = z.infer<typeof runtimePortSchema>
 export type RuntimeVMSchema = z.infer<typeof runtimeVMSchema>
