@@ -36,6 +36,8 @@ spec:
               name: http
               protocol: TCP
           env:
+            - name: PYROSCOPE_URL
+              value: http://pyroscope.telemetry-system.svc.cluster.local:4040
             - name: OTEL_ENABLED
               value: 'true'
             - name: API_URL
