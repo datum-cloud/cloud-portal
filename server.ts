@@ -1,5 +1,4 @@
 import { startOpenTelemetry } from './otel'
-import { startPyroscope } from './pyroscope.ts'
 // Initialize OpenTelemetry before anything else
 /* eslint-disable import/no-unresolved */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -20,8 +19,6 @@ import { type ServerBuild } from 'react-router'
 
 // Initialize OpenTelemetry
 startOpenTelemetry()
-
-startPyroscope()
 
 const PORT = process.env.PORT || 3000
 const MODE = process.env.NODE_ENV ?? 'development'
