@@ -163,7 +163,7 @@ export const CreateProjectForm = () => {
                 }),
               )
             }}>
-            Cancel
+            Return to List
           </Button>
           <Button
             variant="default"

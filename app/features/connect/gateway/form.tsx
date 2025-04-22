@@ -129,7 +129,7 @@ export const GatewayForm = ({
             onClick={() => {
               navigate(-1)
             }}>
-            Cancel
+            Return to List
           </Button>
           {hasData && (
             <Button

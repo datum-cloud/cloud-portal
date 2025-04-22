@@ -11,7 +11,7 @@ import {
 } from '@conform-to/react'
 import { useEffect, useRef } from 'react'
 
-export const VariableField = ({
+export const KeyField = ({
   fields,
   defaultValues,
 }: {

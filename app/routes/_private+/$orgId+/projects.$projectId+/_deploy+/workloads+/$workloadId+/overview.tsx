@@ -210,7 +210,7 @@ export default function WorkloadOverviewPage() {
       </motion.div>
 
       <Tabs defaultValue="overview" className="w-full gap-6">
-        <div className="mx-auto w-full max-w-6xl border-b pb-6">
+        <div className="mx-auto w-full max-w-6xl">
           <TabsList className="grid w-[200px] grid-cols-2">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="graph">Graph View</TabsTrigger>

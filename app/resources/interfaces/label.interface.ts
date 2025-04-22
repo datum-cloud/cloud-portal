@@ -1,1 +1,1 @@
-export type ILabel = Record<string, string>
+export type ILabel = Record<string, string | null>

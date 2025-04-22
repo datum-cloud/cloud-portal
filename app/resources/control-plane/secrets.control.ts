@@ -1,53 +1,40 @@
+import { SecretNewSchema, SecretEditSchema } from './../schemas/secret.schema'
 import {
   IoK8sApiCoreV1Secret,
   createCoreV1NamespacedSecret,
   deleteCoreV1NamespacedSecret,
   listCoreV1NamespacedSecret,
+  patchCoreV1NamespacedSecret,
+  readCoreV1NamespacedSecret,
 } from '@/modules/control-plane/api-v1'
 import {
   ISecretControlResponse,
   SecretType,
 } from '@/resources/interfaces/secret.interface'
-import { SecretSchema } from '@/resources/schemas/secret.schema'
 import { CustomError } from '@/utils/errorHandle'
-import { convertLabelsToObject, isBase64, toBase64 } from '@/utils/misc'
+import {
+  convertLabelsToObject,
+  convertObjectToLabels,
+  isBase64,
+  toBase64,
+} from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
 export const createSecretsControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
 
   const transformSecret = (secret: IoK8sApiCoreV1Secret): ISecretControlResponse => {
+    const { metadata, type } = secret
     return {
-      name: secret.metadata?.name,
-      namespace: secret.metadata?.namespace,
-      createdAt: secret.metadata?.creationTimestamp,
-      uid: secret.metadata?.uid,
-      resourceVersion: secret.metadata?.resourceVersion,
-      // data: secret.data,
-      type: secret.type as SecretType,
-    }
-  }
-
-  const formatSecret = (
-    value: SecretSchema,
-    resourceVersion?: string,
-  ): IoK8sApiCoreV1Secret => {
-    const annotations = value?.annotations ?? []
-    return {
-      metadata: {
-        name: value?.name,
-        labels: convertLabelsToObject(value?.labels ?? []),
-        annotations: convertLabelsToObject(annotations),
-        ...(resourceVersion && { resourceVersion }),
-      },
-      data: value?.variables.reduce(
-        (acc, vars) => {
-          acc[vars.key] = isBase64(vars.value) ? vars.value : toBase64(vars.value)
-          return acc
-        },
-        {} as Record<string, string>,
-      ),
-      type: value?.type,
+      name: metadata?.name,
+      namespace: metadata?.namespace,
+      createdAt: metadata?.creationTimestamp,
+      uid: metadata?.uid,
+      resourceVersion: metadata?.resourceVersion,
+      data: Object.keys(secret.data ?? {}),
+      type: type as SecretType,
+      labels: convertObjectToLabels(metadata?.labels ?? {}),
+      annotations: convertObjectToLabels(metadata?.annotations ?? {}),
     }
   }
 
@@ -63,8 +50,26 @@ export const createSecretsControl = (client: Client) => {
 
       return response.data?.items?.map(transformSecret) ?? []
     },
-    create: async (projectId: string, payload: SecretSchema, dryRun: boolean = false) => {
-      const formatted = formatSecret(payload)
+    create: async (
+      projectId: string,
+      payload: SecretNewSchema,
+      dryRun: boolean = false,
+    ) => {
+      const formatted = {
+        metadata: {
+          name: payload?.name,
+          labels: convertLabelsToObject(payload?.labels ?? []),
+          annotations: convertLabelsToObject(payload?.annotations ?? []),
+        },
+        data: (payload?.variables ?? []).reduce(
+          (acc, vars) => {
+            acc[vars.key] = isBase64(vars.value) ? vars.value : toBase64(vars.value)
+            return acc
+          },
+          {} as Record<string, string>,
+        ),
+        type: payload?.type,
+      }
       const response = await createCoreV1NamespacedSecret({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -84,6 +89,54 @@ export const createSecretsControl = (client: Client) => {
 
       if (!response.data) {
         throw new CustomError('Failed to create secret', 500)
+      }
+
+      return dryRun ? response.data : transformSecret(response.data)
+    },
+    detail: async (projectId: string, secretId: string) => {
+      const response = await readCoreV1NamespacedSecret({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { namespace: 'default', name: secretId },
+        // Enable this when you want to get the partial object metadata
+        /* headers: {
+          Accept:
+            'as=PartialObjectMetadata;g=meta.k8s.io;v=v1,application/json;as=PartialObjectMetadata;g=meta.k8s.io;v=v1,application/jso',
+        }, */
+      })
+
+      if (!response.data) {
+        throw new CustomError('Failed to get secret', 500)
+      }
+
+      return transformSecret(response.data)
+    },
+    update: async (
+      projectId: string,
+      secretId: string,
+      payload: SecretEditSchema,
+      dryRun: boolean = false,
+    ) => {
+      const response = await patchCoreV1NamespacedSecret({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { namespace: 'default', name: secretId },
+        query: {
+          dryRun: dryRun ? 'All' : undefined,
+          fieldManager: 'datum-cloud-portal',
+        },
+        headers: {
+          'Content-Type': 'application/merge-patch+json',
+        },
+        body: {
+          ...payload,
+          apiVersion: 'v1',
+          kind: 'Secret',
+        },
+      })
+
+      if (!response.data) {
+        throw new CustomError('Failed to update secret', 500)
       }
 
       return dryRun ? response.data : transformSecret(response.data)

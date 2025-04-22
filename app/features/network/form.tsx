@@ -292,7 +292,7 @@ export const NetworkForm = ({
                   navigate(-1)
                 }
               }}>
-              Cancel
+              {onCancel ? 'Cancel' : 'Return to List'}
             </Button>
             <Button
               form={form.id}

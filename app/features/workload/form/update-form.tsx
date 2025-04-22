@@ -315,7 +315,7 @@ export const WorkloadUpdateForm = ({
                 onClick={() => {
                   navigate(-1)
                 }}>
-                Cancel
+                Return to List
               </Button>
               <Button
                 variant="default"

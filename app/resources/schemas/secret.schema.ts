@@ -21,14 +21,16 @@ export const secretVariablesSchema = z.object({
   }),
 })
 
-export const secretSchema = z
+export const secretBaseSchema = z
   .object({
     type: z.enum(Object.values(SecretType) as [string, ...string[]], {
       required_error: 'Type is required.',
     }),
   })
-  .and(secretVariablesSchema)
   .and(metadataSchema)
+
+export const secretNewSchema = secretBaseSchema
+  .and(secretVariablesSchema)
   .superRefine((data, ctx) => {
     const keys = new Set<string>()
     data?.variables?.forEach((variable, index) => {
@@ -47,6 +49,14 @@ export const secretSchema = z
     })
   })
 
+export const secretEditSchema = z.object({
+  data: z.record(z.string(), z.string().nullable().optional()).optional(),
+  labels: z.array(z.string()).optional(),
+  annotations: z.array(z.string()).optional(),
+})
+
+export type SecretBaseSchema = z.infer<typeof secretBaseSchema>
 export type SecretEnvSchema = z.infer<typeof secretEnvSchema>
 export type SecretVariablesSchema = z.infer<typeof secretVariablesSchema>
-export type SecretSchema = z.infer<typeof secretSchema>
+export type SecretNewSchema = z.infer<typeof secretNewSchema>
+export type SecretEditSchema = z.infer<typeof secretEditSchema>

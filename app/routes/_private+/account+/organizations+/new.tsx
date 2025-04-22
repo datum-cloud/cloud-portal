@@ -127,7 +127,7 @@ export default function AccountOrganizationsNew() {
               onClick={() => {
                 navigate(routes.account.organizations.root)
               }}>
-              Cancel
+              Return to List
             </Button>
             <Button
               variant="default"
