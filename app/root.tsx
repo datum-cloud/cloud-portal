@@ -123,7 +123,7 @@ function Document({
         <Links />
       </head>
       <body className="h-auto w-full" suppressHydrationWarning>
-        <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
+        <TooltipProvider>{children}</TooltipProvider>
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <Toaster closeButton position="top-right" theme={theme} richColors />
