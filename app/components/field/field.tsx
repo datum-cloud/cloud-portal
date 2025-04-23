@@ -1,7 +1,8 @@
 import { Label } from '@/components/ui/label'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/utils/misc'
-import { InfoIcon } from 'lucide-react'
+import { CircleHelp } from 'lucide-react'
+import { useState } from 'react'
 
 interface FieldProps {
   label?: string | React.ReactNode
@@ -24,10 +25,23 @@ export const Field = ({
   tooltipInfo,
   isRequired = false,
 }: FieldProps) => {
+  const [isTooltipVisible, setIsTooltipVisible] = useState<boolean>(false)
+  const [isHovering, setIsHovering] = useState<boolean>(false)
+
+  const handleMouseEnter = (): void => setIsHovering(true)
+  const handleMouseLeave = (): void => setIsHovering(false)
+
+  const handleTooltipOpenChange = (open: boolean): void => {
+    setIsTooltipVisible(open)
+  }
+
   return (
     <div className={cn('flex flex-col space-y-2', className)}>
       {label && (
-        <div className="relative flex w-fit items-center gap-2">
+        <div
+          className="relative flex w-fit items-center space-x-2"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}>
           <Label className={cn('gap-0', errors && 'text-destructive', labelClassName)}>
             {label}
             {isRequired && (
@@ -35,11 +49,16 @@ export const Field = ({
             )}
           </Label>
           {tooltipInfo && (
-            <Tooltip>
+            <Tooltip open={isTooltipVisible} onOpenChange={handleTooltipOpenChange}>
               <TooltipTrigger asChild>
-                <InfoIcon className="absolute top-0 -right-5 size-4 cursor-pointer" />
+                <CircleHelp
+                  className={cn(
+                    'text-foreground fill-background absolute -top-0 -right-3 size-4 cursor-pointer transition-opacity',
+                    isHovering || isTooltipVisible ? 'opacity-100' : 'opacity-0',
+                  )}
+                />
               </TooltipTrigger>
-              <TooltipContent>{tooltipInfo}</TooltipContent>
+              <TooltipContent className="z-50">{tooltipInfo}</TooltipContent>
             </Tooltip>
           )}
         </div>
