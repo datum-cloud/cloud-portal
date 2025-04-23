@@ -53,12 +53,14 @@ export const Field = ({
               <TooltipTrigger asChild>
                 <CircleHelp
                   className={cn(
-                    'text-foreground fill-background absolute -top-0 -right-3 size-4 cursor-pointer transition-opacity',
+                    'text-foreground fill-background absolute -top-0 -right-3 size-3.5 cursor-pointer transition-opacity duration-400',
                     isHovering || isTooltipVisible ? 'opacity-100' : 'opacity-0',
                   )}
                 />
               </TooltipTrigger>
-              <TooltipContent className="z-50">{tooltipInfo}</TooltipContent>
+              <TooltipContent className="z-50" data-side="bottom">
+                {tooltipInfo}
+              </TooltipContent>
             </Tooltip>
           )}
         </div>
