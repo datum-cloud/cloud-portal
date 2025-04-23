@@ -1,16 +1,18 @@
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 import { DateFormat } from '@/components/date-format/date-format'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { SECRET_TYPES } from '@/constants/options'
 import { routes } from '@/constants/routes'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { createSecretsControl } from '@/resources/control-plane/secrets.control'
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface'
+import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast } from '@/utils/toast.server'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
@@ -22,7 +24,6 @@ import {
   useParams,
   Link,
   useSubmit,
-  ActionFunctionArgs,
 } from 'react-router'
 
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
@@ -38,32 +39,9 @@ export const loader = withMiddleware(async ({ context, params }: LoaderFunctionA
   return secrets
 }, authMiddleware)
 
-export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { controlPlaneClient } = context as AppLoadContext
-  const secretControl = createSecretsControl(controlPlaneClient as Client)
-
-  switch (request.method) {
-    case 'DELETE': {
-      const formData = Object.fromEntries(await request.formData())
-      const { secretId, projectId } = formData
-
-      await secretControl.delete(projectId as string, secretId as string)
-      return dataWithToast(null, {
-        title: 'Secret deleted successfully',
-        description: 'The secret has been deleted successfully',
-        type: 'success',
-      })
-    }
-    default:
-      throw new Error('Method not allowed')
-  }
-}, authMiddleware)
-
 export default function SecretsPage() {
   const data = useLoaderData<typeof loader>()
-
   const submit = useSubmit()
-
   const { confirm } = useConfirmationDialog()
   const { orgId, projectId } = useParams()
 
@@ -88,8 +66,10 @@ export default function SecretsPage() {
           {
             secretId: secret.name ?? '',
             projectId: projectId ?? '',
+            orgId: orgId ?? '',
           },
           {
+            action: SECRET_ACTIONS_ROUTE_PATH,
             method: 'DELETE',
             fetcherKey: 'secret-resources',
             navigate: false,
@@ -105,7 +85,28 @@ export default function SecretsPage() {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return <span className="text-primary font-semibold">{row.original.name}</span>
+          return (
+            <Link
+              to={getPathWithParams(routes.projects.config.secrets.edit, {
+                orgId,
+                projectId,
+                secretId: row.original.name,
+              })}
+              className="text-primary font-semibold">
+              {row.original.name}
+            </Link>
+          )
+        },
+      },
+      {
+        header: 'Type',
+        accessorKey: 'type',
+        cell: ({ row }) => {
+          return (
+            <Badge variant="outline">
+              {SECRET_TYPES[row.original.type as keyof typeof SECRET_TYPES].label}
+            </Badge>
+          )
         },
       },
       {

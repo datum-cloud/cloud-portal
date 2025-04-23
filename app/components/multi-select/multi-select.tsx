@@ -22,7 +22,7 @@ import { useEffect } from 'react'
  * Uses class-variance-authority (cva) to define different styles based on "variant" prop.
  */
 const multiSelectVariants = cva(
-  'm-1 transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-105 duration-300',
+  'm-1 transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-105 duration-300 max-w-[200px] whitespace-normal break-words',
   {
     variants: {
       variant: {
@@ -173,10 +173,8 @@ export const MultiSelect = ({
   animation = 0,
   maxCount = 3,
   modalPopover = false,
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   asChild = false,
-
   className,
   boxClassName,
   actions,
@@ -354,7 +352,7 @@ export const MultiSelect = ({
                             ? 'bg-primary text-primary-foreground'
                             : 'opacity-50 [&_svg]:invisible',
                         )}>
-                        <CheckIcon className="size-4" />
+                        <CheckIcon className="text-background size-4" />
                       </div>
                       {option.icon && (
                         <option.icon className="text-muted-foreground mr-2 size-4" />

@@ -1,14 +1,14 @@
 import { routes } from '@/constants/routes'
 import { SecretForm } from '@/features/secret/form/form'
 import { createSecretsControl } from '@/resources/control-plane/secrets.control'
-import { SecretSchema, secretSchema } from '@/resources/schemas/secret.schema'
+import { SecretNewSchema, secretNewSchema } from '@/resources/schemas/secret.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { redirectWithToast, dataWithToast } from '@/utils/toast.server'
 import { parseWithZod } from '@conform-to/zod'
 import { Client } from '@hey-api/client-axios'
-import { ActionFunctionArgs, AppLoadContext, MetaFunction, useParams } from 'react-router'
+import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('New Secret')
@@ -31,9 +31,9 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
     await validateCSRF(formData, clonedRequest.headers)
 
     // Validate form data with Zod
-    const parsed = parseWithZod(formData, { schema: secretSchema })
+    const parsed = parseWithZod(formData, { schema: secretNewSchema })
 
-    const payload = parsed.payload as SecretSchema
+    const payload = parsed.payload as SecretNewSchema
 
     const dryRunRes = await secretControl.create(projectId, payload, true)
 
@@ -63,11 +63,9 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
 }
 
 export default function ConfigSecretsNewPage() {
-  const { projectId } = useParams()
-
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <SecretForm projectId={projectId} />
+      <SecretForm />
     </div>
   )
 }

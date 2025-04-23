@@ -245,7 +245,7 @@ export const CreateLocationForm = ({
             onClick={() => {
               navigate(-1)
             }}>
-            Cancel
+            Return to List
           </Button>
           <Button
             variant="default"

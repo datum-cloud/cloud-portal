@@ -1,4 +1,4 @@
-import { VariableField } from './variable-field'
+import { KeyField } from './key-field'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { SecretEnvSchema, SecretVariablesSchema } from '@/resources/schemas/secret.schema'
@@ -7,14 +7,16 @@ import { FormMetadata, useForm } from '@conform-to/react'
 import { InfoIcon, PlusIcon, TrashIcon } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 
-export const VariablesForm = ({
+export const KeysForm = ({
   form,
   fields,
   defaultValues,
+  mode = 'inline',
 }: {
   form: FormMetadata<SecretVariablesSchema>
   fields: ReturnType<typeof useForm<SecretVariablesSchema>>[1]
   defaultValues?: SecretVariablesSchema
+  mode?: 'inline' | 'dialog'
 }) => {
   const variableList = fields.variables.getFieldList()
 
@@ -43,26 +45,33 @@ export const VariablesForm = ({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium">Key-value pairs</span>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <InfoIcon className="size-4 cursor-pointer" />
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-xs">
-              If not already base64-encoded, values will be encoded automatically.
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      </div>
+      {mode === 'inline' && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Key-value pairs</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <InfoIcon className="size-4 cursor-pointer" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">
+                If not already base64-encoded, values will be encoded automatically.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      )}
       <div className="space-y-4">
         {variableList.map((field, index) => {
           const variableFields = field.getFieldset()
 
           return (
-            <div className="relative flex items-center gap-2 px-1" key={field.key}>
-              <VariableField
+            <div
+              className={cn(
+                'relative flex items-center gap-2',
+                mode === 'inline' && 'px-1',
+              )}
+              key={field.key}>
+              <KeyField
                 fields={
                   variableFields as unknown as ReturnType<
                     typeof useForm<SecretEnvSchema>
@@ -90,7 +99,7 @@ export const VariablesForm = ({
         type="button"
         variant="outline"
         size="sm"
-        className="ml-2 w-fit"
+        className="ml-1 w-fit"
         onClick={() =>
           form.insert({
             name: fields.variables.name,

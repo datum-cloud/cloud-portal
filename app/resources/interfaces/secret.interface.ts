@@ -4,10 +4,10 @@ export interface ISecretControlResponse {
   createdAt?: Date
   uid?: string
   resourceVersion?: string
-  data?: Record<string, string>
+  data?: string[]
   type?: SecretType
-  labels?: Record<string, string>
-  annotations?: Record<string, string>
+  labels?: string[]
+  annotations?: string[]
 }
 
 export enum SecretType {

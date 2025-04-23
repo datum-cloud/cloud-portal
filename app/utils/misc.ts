@@ -80,15 +80,19 @@ export function splitOption(
  * @param labels - Array of strings or single string in the format "key:value" to convert to object
  * @returns Record object with keys and values extracted from the labels
  */
-export function convertLabelsToObject(labels: string | string[]): Record<string, string> {
+export function convertLabelsToObject(
+  labels: string | string[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Record<string, any> {
   const labelArray = Array.isArray(labels) ? labels : [labels]
   return labelArray.reduce(
     (acc, opt) => {
       const { key, value } = splitOption(opt)
-      acc[key] = value
+      acc[key] = value === 'null' ? null : value
       return acc
     },
-    {} as Record<string, string>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    {} as Record<string, any>,
   )
 }
 
@@ -202,4 +206,48 @@ export function toBase64(str: string): string {
     // Handle cases where btoa or TextEncoder might fail or not be available
     return ''
   }
+}
+
+/**
+ * Calculates the JSON Merge Patch payload for transforming a map of key-value pairs.
+ * Handles additions, updates, and removals (by setting removed keys to null in the patch).
+ *
+ * @param originalMap - The original key-value map (e.g., current labels/annotations from K8s)
+ * @param desiredMap - The desired final key-value map (e.g., state after edits)
+ * @returns Object to be used as value in a JSON Merge Patch payload with null for keys to remove
+ */
+export function generateMergePatchPayloadMap(
+  originalMap: Record<string, string | null>,
+  desiredMap: Record<string, string | null>,
+): Record<string, string | null> {
+  // Handle null/undefined inputs
+  const safeOriginalMap = originalMap ?? {}
+  const safeDesiredMap = desiredMap ?? {}
+
+  // Early return if both maps are empty
+  if (
+    Object.keys(safeOriginalMap).length === 0 &&
+    Object.keys(safeDesiredMap).length === 0
+  ) {
+    return {}
+  }
+
+  const patchMap: Record<string, string | null> = {}
+
+  // Process additions and updates
+  for (const [key, desiredValue] of Object.entries(safeDesiredMap)) {
+    const originalValue = safeOriginalMap[key]
+    if (!(key in safeOriginalMap) || originalValue !== desiredValue) {
+      patchMap[key] = desiredValue
+    }
+  }
+
+  // Process removals
+  for (const key of Object.keys(safeOriginalMap)) {
+    if (!(key in safeDesiredMap)) {
+      patchMap[key] = null
+    }
+  }
+
+  return Object.keys(patchMap).length > 0 ? patchMap : { ...safeOriginalMap }
 }

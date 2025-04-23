@@ -138,7 +138,7 @@ export const ConfigMapForm = ({
             onClick={() => {
               navigate(-1)
             }}>
-            Cancel
+            Return to List
           </Button>
           {hasData && (
             <Button
