@@ -1,0 +1,34 @@
+# Pull Request Guidelines
+
+## Title
+
+Write a clear, descriptive title that summarizes your changes. For example:
+
+- "Fix login redirect loop in authentication flow"
+- "Add dark mode toggle to settings page"
+- "Update React and related dependencies"
+
+## Description
+
+Briefly describe what this PR changes and why. Focus on:
+
+- What problem is being solved or what feature is being added
+- The impact of the change
+
+## Labels
+
+Please add the appropriate label(s) to your PR:
+
+- `bug` - For fixing bugs or issues
+- `enhancement` - For new features or improvements
+- `chore` - For dependency updates, refactoring, or maintenance tasks
+- `highlight` - For particularly notable changes that should be featured in the changelog
+
+## AI Changelog Generation
+
+This repository uses AI to automatically generate changelogs. To ensure accurate and meaningful changelog entries:
+
+- Use clear, descriptive titles
+- Provide comprehensive descriptions
+- Add the `highlight` label for significant changes
+- Keep the scope of changes focused and well-defined
