@@ -58,5 +58,5 @@ gcloud components install gke-gcloud-auth-plugin
 
 gcloud container clusters get-credentials infrastructure-control-plane --region us-east4 --project datum-cloud-staging
 
-k get pods -n cloud-portal
+kubectl get pods -n cloud-portal
 ```
