@@ -4,23 +4,23 @@ import { ExportPolicySourceType } from '@/resources/interfaces/policy.interface'
 import {
   ExportPolicySourceFieldSchema,
   ExportPolicySourcesSchema,
+  UpdateExportPolicySchema,
 } from '@/resources/schemas/export-policy.schema'
 import { cn } from '@/utils/misc'
-import { FormMetadata, useForm } from '@conform-to/react'
+import { useForm, useFormMetadata } from '@conform-to/react'
 import { PlusIcon, TrashIcon } from 'lucide-react'
 import { useMemo, useEffect } from 'react'
 
 export const SourcesForm = ({
-  form,
   fields,
   defaultValues,
   isEdit = false,
 }: {
-  form: FormMetadata<ExportPolicySourcesSchema>
-  fields: ReturnType<typeof useForm<ExportPolicySourcesSchema>>[1]
+  fields: ReturnType<typeof useForm<UpdateExportPolicySchema>>[1]
   defaultValues?: ExportPolicySourcesSchema
   isEdit?: boolean
 }) => {
+  const form = useFormMetadata('export-policy-form')
   const fieldList = fields.sources.getFieldList()
   const values = useMemo(() => {
     return defaultValues?.sources
@@ -29,10 +29,12 @@ export const SourcesForm = ({
   }, [defaultValues])
 
   useEffect(() => {
-    form.update({
-      name: fields.sources.name,
-      value: values as ExportPolicySourceFieldSchema[],
-    })
+    if (values) {
+      form.update({
+        name: fields.sources.name,
+        value: values as ExportPolicySourceFieldSchema[],
+      })
+    }
   }, [values])
 
   return (

@@ -188,7 +188,7 @@ export default function WorkloadsPage() {
         label: 'Edit',
         action: (row) => {
           navigate(
-            getPathWithParams(routes.projects.deploy.workloads.detail.manage, {
+            getPathWithParams(routes.projects.deploy.workloads.detail.edit, {
               orgId,
               projectId,
               workloadId: row.name,

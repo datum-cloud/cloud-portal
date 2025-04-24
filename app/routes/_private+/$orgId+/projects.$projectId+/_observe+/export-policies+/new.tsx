@@ -7,7 +7,7 @@ import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
 import { Client } from '@hey-api/client-axios'
-import { ActionFunctionArgs, AppLoadContext, MetaFunction, useParams } from 'react-router'
+import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('New Export Policy')
@@ -72,11 +72,9 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
 }
 
 export default function ObserveExportPoliciesNewPage() {
-  const { projectId } = useParams()
-
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <ExportPolicyStepperForm projectId={projectId} />
+      <ExportPolicyStepperForm />
     </div>
   )
 }

@@ -145,6 +145,8 @@ export function transformControlPlaneStatus(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   status: any,
 ): IControlPlaneStatus {
+  if (!status) return { isReady: ControlPlaneStatus.Pending, message: '' }
+
   const { conditions, ...rest } = status
   if (status && (conditions ?? []).length > 0) {
     const condition = conditions?.[0]

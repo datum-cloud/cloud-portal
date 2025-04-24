@@ -6,8 +6,8 @@ export interface ISecretControlResponse {
   resourceVersion?: string
   data?: string[]
   type?: SecretType
-  labels?: string[]
-  annotations?: string[]
+  labels?: Record<string, string>
+  annotations?: Record<string, string>
 }
 
 export enum SecretType {

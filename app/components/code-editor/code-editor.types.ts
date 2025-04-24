@@ -7,6 +7,7 @@ export interface CodeEditorProps {
   value: string
   onChange?: (value: string) => void
   language: EditorLanguage
+  id?: string
   name?: string
   error?: string
   className?: string
@@ -26,6 +27,8 @@ export interface CodeEditorTabsProps {
   onFormatChange?: (format: EditorLanguage) => void
   /** Error message to display */
   error?: string
+  /** ID of the field (for form integration) */
+  id?: string
   /** Name of the field (for form integration) */
   name?: string
   /** Whether to use dark mode */

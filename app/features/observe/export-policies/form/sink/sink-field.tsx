@@ -14,7 +14,6 @@ import { ExportPolicySinkType } from '@/resources/interfaces/policy.interface'
 import {
   ExportPolicySinkFieldSchema,
   ExportPolicySinkPrometheusFieldSchema,
-  ExportPolicySourceFieldSchema,
 } from '@/resources/schemas/export-policy.schema'
 import {
   getInputProps,
@@ -22,6 +21,7 @@ import {
   useForm,
   useInputControl,
 } from '@conform-to/react'
+import { isEqual } from 'es-toolkit/compat'
 import { useEffect, useRef, useState } from 'react'
 import { useHydrated } from 'remix-utils/use-hydrated'
 
@@ -29,12 +29,12 @@ export const SinkField = ({
   fields,
   isEdit = false,
   defaultValues,
-  sourcesList = [],
+  sourceList = [],
 }: {
   fields: ReturnType<typeof useForm<ExportPolicySinkFieldSchema>>[1]
   isEdit?: boolean
   defaultValues?: ExportPolicySinkFieldSchema
-  sourcesList: ExportPolicySourceFieldSchema[]
+  sourceList: string[]
 }) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
@@ -43,6 +43,7 @@ export const SinkField = ({
   const typeControl = useInputControl(fields.type)
   const sourcesControl = useInputControl(fields.sources)
 
+  const [sourcesName, setSourcesName] = useState<string[]>(sourceList)
   const [selectedSources, setSelectedSources] = useState<string[]>([])
 
   useEffect(() => {
@@ -55,27 +56,34 @@ export const SinkField = ({
       if (defaultValues.type && !fields.type.value) {
         typeControl.change(defaultValues?.type)
       }
-
-      if (defaultValues.sources && !fields.sources.value) {
-        setSelectedSources(defaultValues?.sources)
-        sourcesControl.change(defaultValues?.sources)
-      }
     }
-  }, [
-    defaultValues,
-    nameControl,
-    fields.name.value,
-    typeControl,
-    fields.type.value,
-    sourcesControl,
-    fields.sources.value,
-  ])
+  }, [defaultValues, nameControl, fields.name.value, typeControl, fields.type.value])
+
+  useEffect(() => {
+    if (defaultValues?.sources && !fields.sources.value) {
+      setSelectedSources(defaultValues?.sources)
+      sourcesControl.change(defaultValues?.sources)
+    }
+  }, [defaultValues])
 
   // Focus the input when the form is hydrated
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     isHydrated && inputRef.current?.focus()
   }, [isHydrated])
+
+  useEffect(() => {
+    const isSame = isEqual(sourceList, sourcesName)
+
+    if (!isSame) {
+      const filteredSources = selectedSources.filter((source) =>
+        sourceList.includes(source),
+      )
+      setSourcesName(sourceList)
+      setSelectedSources(filteredSources)
+      sourcesControl.change(filteredSources)
+    }
+  }, [sourceList])
 
   return (
     <div className="relative flex flex-1 flex-col items-start gap-4">
@@ -118,18 +126,21 @@ export const SinkField = ({
           </Select>
         </Field>
 
+        {/* Remove debug output */}
         <Field
           isRequired
           label="Sources"
           errors={fields.sources.errors}
           className="w-1/2">
           <MultiSelect
+            {...getSelectProps(fields.sources)}
+            name={fields.sources.name}
             placeholder="Select Sources"
-            disabled={sourcesList.length === 0}
+            disabled={sourcesName.length === 0}
             defaultValue={selectedSources}
-            options={sourcesList.map((source) => ({
-              label: source.name,
-              value: source.name,
+            options={sourcesName.map((source) => ({
+              value: source,
+              label: source,
             }))}
             onValueChange={(value) => {
               setSelectedSources(value)

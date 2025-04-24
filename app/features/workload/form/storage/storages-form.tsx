@@ -6,26 +6,30 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { STORAGE_TYPES } from '@/constants/options'
 import { StorageType } from '@/resources/interfaces/workload.interface'
-import { StorageFieldSchema, StoragesSchema } from '@/resources/schemas/workload.schema'
+import {
+  StorageFieldSchema,
+  StoragesSchema,
+  UpdateWorkloadSchema,
+} from '@/resources/schemas/workload.schema'
 import { cn } from '@/utils/misc'
-import { FormMetadata, useForm } from '@conform-to/react'
+import { useForm, useFormMetadata } from '@conform-to/react'
 import { PlusIcon, TrashIcon } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 
 export const StoragesForm = ({
-  form,
   fields,
   defaultValues,
-  vmBootImage,
   isEdit = false,
+  vmBootImage,
 }: {
-  form: FormMetadata<StoragesSchema>
-  fields: ReturnType<typeof useForm<StoragesSchema>>[1]
+  fields: ReturnType<typeof useForm<UpdateWorkloadSchema>>[1]
   defaultValues?: StoragesSchema
-  vmBootImage?: string
   isEdit?: boolean
+  vmBootImage?: string
 }) => {
+  const form = useFormMetadata('workload-form')
   const storages = fields.storages.getFieldList()
+  const virtualMachineFieldSet = fields.virtualMachine.getFieldset()
 
   const values = useMemo(() => {
     return defaultValues?.storages
@@ -33,7 +37,12 @@ export const StoragesForm = ({
       : ((defaultValues ?? []) as StorageFieldSchema[])
   }, [defaultValues])
 
-  const isVM = useMemo(() => vmBootImage !== undefined, [vmBootImage])
+  const bootImage = useMemo(() => {
+    if (vmBootImage) {
+      return vmBootImage
+    }
+    return virtualMachineFieldSet.bootImage?.value
+  }, [virtualMachineFieldSet.bootImage?.value, vmBootImage])
 
   useEffect(() => {
     form.update({
@@ -45,9 +54,9 @@ export const StoragesForm = ({
   return (
     <div className="flex flex-col gap-2">
       <div className="space-y-4">
-        {isVM && vmBootImage && (
+        {bootImage !== undefined && (
           <div className="relative flex items-center gap-2 rounded-md border p-4">
-            <BootField defaultValues={{ name: 'boot', bootImage: vmBootImage }} />
+            <BootField defaultValues={{ name: 'boot', bootImage: bootImage ?? '' }} />
           </div>
         )}
         {storages.map((storage, index) => {
@@ -126,11 +135,9 @@ export const StoragesPreview = ({
     let bootDetail = {}
     if (bootValues) {
       bootDetail = {
-        label: 'Boot Storage',
+        label: bootValues.name,
         content: (
           <div className="flex items-center gap-2 font-medium">
-            <span>{bootValues.name}</span>
-            <Separator orientation="vertical" className="h-4" />
             <span>{bootValues.bootImage}</span>
           </div>
         ),
@@ -139,12 +146,10 @@ export const StoragesPreview = ({
 
     const storages = (values.storages ?? [])
       .filter((storage) => storage.name !== '')
-      .map((storage, index) => ({
-        label: `Storage ${index + 1}`,
+      .map((storage) => ({
+        label: storage.name,
         content: (
           <div className="flex items-center gap-2 font-medium">
-            <span>{storage.name}</span>
-            <Separator orientation="vertical" className="h-4" />
             <Badge variant="outline">Size: {storage.size}Gi</Badge>
             <Separator orientation="vertical" className="h-4" />
             <Badge variant="outline">

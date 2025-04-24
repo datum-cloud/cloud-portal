@@ -9,6 +9,7 @@ export const CodeEditor = ({
   value = '',
   onChange,
   language = 'yaml',
+  id,
   name,
   error,
   className,
@@ -86,7 +87,14 @@ export const CodeEditor = ({
       </div>
 
       {/* Hidden field to capture the current value */}
-      <input type="hidden" name={name} value={value} readOnly />
+      <input
+        type="hidden"
+        name={name}
+        value={value}
+        defaultValue={value}
+        id={id}
+        onChange={() => undefined}
+      />
     </>
   )
 }

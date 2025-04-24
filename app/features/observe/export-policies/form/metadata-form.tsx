@@ -4,7 +4,7 @@ import { SelectAnnotations } from '@/components/select-annotations/select-annota
 import { SelectLabels } from '@/components/select-labels/select-labels'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { ExportPolicyMetadataSchema } from '@/resources/schemas/export-policy.schema'
+import { MetadataSchema } from '@/resources/schemas/metadata.schema'
 import { getInputProps, useForm, useInputControl } from '@conform-to/react'
 import { useEffect, useMemo, useRef } from 'react'
 import { useHydrated } from 'remix-utils/use-hydrated'
@@ -14,8 +14,8 @@ export const MetadataForm = ({
   defaultValues,
   isEdit = false,
 }: {
-  fields: ReturnType<typeof useForm<ExportPolicyMetadataSchema>>[1]
-  defaultValues?: ExportPolicyMetadataSchema
+  fields: ReturnType<typeof useForm<MetadataSchema>>[1]
+  defaultValues?: MetadataSchema
   isEdit?: boolean
 }) => {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -83,7 +83,7 @@ export const MetadataForm = ({
   )
 }
 
-export const MetadataPreview = ({ values }: { values: ExportPolicyMetadataSchema }) => {
+export const MetadataPreview = ({ values }: { values: MetadataSchema }) => {
   const listItems: ListItem[] = useMemo(() => {
     if (values) {
       return [

@@ -21,6 +21,7 @@ export const PlacementField = ({
   const nameControl = useInputControl(fields.name)
   const cityCodeControl = useInputControl(fields.cityCode)
   const minimumReplicasControl = useInputControl(fields.minimumReplicas)
+
   useEffect(() => {
     if (defaultValues) {
       // Only set values if they exist in defaultValues and current fields are empty
@@ -28,7 +29,7 @@ export const PlacementField = ({
         nameControl.change(defaultValues?.name)
       }
 
-      if (defaultValues.cityCode && !fields.cityCode.value) {
+      if (defaultValues.cityCode && fields.cityCode.value === '') {
         cityCodeControl.change(defaultValues?.cityCode)
       }
 
@@ -70,10 +71,12 @@ export const PlacementField = ({
       <div className="flex w-full gap-2">
         <Field isRequired label="City" errors={fields.cityCode.errors} className="w-1/2">
           <SelectIATA
+            name={fields.cityCode.name}
+            id={fields.cityCode.id}
             placeholder="Select a city"
             defaultValue={fields.cityCode.value}
             onValueChange={(value) => {
-              cityCodeControl.change(value.iata_code)
+              cityCodeControl.change(value.value)
             }}
           />
         </Field>

@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { BOOT_IMAGES } from '@/constants/bootImages'
 import { useIsPending } from '@/hooks/useIsPending'
 import {
   IWorkloadControlResponse,
@@ -29,9 +30,10 @@ import {
   runtimeSchema,
   StoragesSchema,
   storagesSchema,
+  UpdateWorkloadSchema,
 } from '@/resources/schemas/workload.schema'
 import { cn } from '@/utils/misc'
-import { getFormProps, useForm, FormProvider, FormMetadata } from '@conform-to/react'
+import { getFormProps, useForm, FormProvider } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { defineStepper } from '@stepperize/react'
 import { Cpu, HardDrive, Layers, Loader2, Network, Server } from 'lucide-react'
@@ -116,6 +118,10 @@ export const WorkloadStepper = ({
   const initialValues = {
     runtime: {
       instanceType: 'datumcloud/d1-standard-2',
+      virtualMachine: {
+        bootImage: BOOT_IMAGES[0],
+        sshKey: undefined,
+      },
     },
     networks: [{ name: undefined, ipFamilies: [] }],
     storages: [],
@@ -323,25 +329,25 @@ export const WorkloadStepper = ({
                           ),
                           networks: () => (
                             <NetworksForm
-                              form={form as FormMetadata<NetworksSchema>}
                               projectId={projectId}
                               defaultValues={
                                 stepper.getMetadata('networks') as NetworksSchema
                               }
                               fields={
-                                fields as ReturnType<typeof useForm<NetworksSchema>>[1]
+                                fields as ReturnType<
+                                  typeof useForm<UpdateWorkloadSchema>
+                                >[1]
                               }
                             />
                           ),
                           storages: () => (
                             <StoragesForm
-                              form={form as FormMetadata<StoragesSchema>}
                               defaultValues={
                                 stepper.getMetadata('storages') as StoragesSchema
                               }
                               fields={
                                 fields as unknown as ReturnType<
-                                  typeof useForm<StoragesSchema>
+                                  typeof useForm<UpdateWorkloadSchema>
                                 >[1]
                               }
                               vmBootImage={
@@ -353,7 +359,6 @@ export const WorkloadStepper = ({
                           ),
                           placements: () => (
                             <PlacementsForm
-                              form={form as FormMetadata<PlacementsSchema>}
                               fields={
                                 fields as ReturnType<typeof useForm<PlacementsSchema>>[1]
                               }

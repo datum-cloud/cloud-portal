@@ -51,7 +51,7 @@ export const SourceField = ({
         typeControl.change(defaultValues?.type)
       }
 
-      if (defaultValues.metricQuery && !fields.metricQuery.value) {
+      if (defaultValues.metricQuery && fields.metricQuery.value === '') {
         metricQueryControl.change(defaultValues?.metricQuery)
       }
     }
@@ -99,12 +99,9 @@ export const SourceField = ({
               className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
               <SelectValue placeholder="Select a source type" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="w-[var(--radix-select-trigger-width)]">
               {Object.keys(POLICY_SOURCE_TYPES).map((type) => (
-                <SelectItem
-                  key={type}
-                  value={type}
-                  className="w-[var(--radix-select-trigger-width)]">
+                <SelectItem key={type} value={type}>
                   {POLICY_SOURCE_TYPES[type as keyof typeof POLICY_SOURCE_TYPES].label}
                 </SelectItem>
               ))}
@@ -123,11 +120,12 @@ export const SourceField = ({
           <CodeEditor
             darkMode={theme === 'dark'}
             language="promql"
-            value={fields.metricQuery.value ?? ''}
+            value={fields.metricQuery.value ?? '{}'}
             onChange={(newValue) => {
               metricQueryControl.change(newValue)
             }}
-            name="metricQuery"
+            id={fields.metricQuery.id}
+            name={fields.metricQuery.name}
             error={fields.metricQuery.errors?.[0]}
             minHeight="150px"
           />

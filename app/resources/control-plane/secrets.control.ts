@@ -12,12 +12,7 @@ import {
   SecretType,
 } from '@/resources/interfaces/secret.interface'
 import { CustomError } from '@/utils/errorHandle'
-import {
-  convertLabelsToObject,
-  convertObjectToLabels,
-  isBase64,
-  toBase64,
-} from '@/utils/misc'
+import { convertLabelsToObject, isBase64, toBase64 } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
 export const createSecretsControl = (client: Client) => {
@@ -33,8 +28,8 @@ export const createSecretsControl = (client: Client) => {
       resourceVersion: metadata?.resourceVersion,
       data: Object.keys(secret.data ?? {}),
       type: type as SecretType,
-      labels: convertObjectToLabels(metadata?.labels ?? {}),
-      annotations: convertObjectToLabels(metadata?.annotations ?? {}),
+      labels: metadata?.labels ?? {},
+      annotations: metadata?.annotations ?? {},
     }
   }
 

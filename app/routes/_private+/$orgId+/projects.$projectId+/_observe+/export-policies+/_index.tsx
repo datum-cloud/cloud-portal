@@ -17,7 +17,14 @@ import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
-import { AppLoadContext, Link, useLoaderData, useParams, useSubmit } from 'react-router'
+import {
+  AppLoadContext,
+  Link,
+  useLoaderData,
+  useNavigate,
+  useParams,
+  useSubmit,
+} from 'react-router'
 
 export const loader = withMiddleware(async ({ context, params }) => {
   const { projectId } = params
@@ -37,7 +44,7 @@ export default function ObserveExportPoliciesPage() {
   const data = useLoaderData<typeof loader>()
 
   const submit = useSubmit()
-
+  const navigate = useNavigate()
   const { confirm } = useConfirmationDialog()
 
   const deleteExportPolicy = async (exportPolicy: IExportPolicyControlResponse) => {
@@ -140,19 +147,19 @@ export default function ObserveExportPoliciesPage() {
 
   const rowActions: DataTableRowActionsProps<IExportPolicyControlResponse>[] = useMemo(
     () => [
-      /* {
+      {
         key: 'edit',
         label: 'Edit',
         action: (row) => {
           navigate(
-            getPathWithParams(routes.projects.observe.exportPolicies.edit, {
+            getPathWithParams(routes.projects.observe.exportPolicies.detail.edit, {
               orgId,
               projectId,
               exportPolicyId: row.name,
             }),
           )
         },
-      }, */
+      },
       {
         key: 'delete',
         label: 'Delete',

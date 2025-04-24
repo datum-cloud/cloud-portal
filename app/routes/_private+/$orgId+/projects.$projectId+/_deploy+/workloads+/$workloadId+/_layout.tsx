@@ -1,5 +1,3 @@
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
 import { createInstancesControl } from '@/resources/control-plane/instances.control'
 import { createWorkloadDeploymentsControl } from '@/resources/control-plane/workload-deployments.control'
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
@@ -23,7 +21,7 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
   )
 })
 
-export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
+export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId, workloadId } = params
 
   const { controlPlaneClient } = context as AppLoadContext
@@ -50,8 +48,8 @@ export const loader = withMiddleware(async ({ context, params }: LoaderFunctionA
   const instances = await instancesControl.list(projectId, workload.uid)
 
   return data({ deployments, instances, workload })
-}, authMiddleware)
+}
 
-export default function WorkloadLayout() {
+export default function WorkloadLayoutPage() {
   return <Outlet />
 }

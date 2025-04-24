@@ -8,21 +8,20 @@ import {
   PlacementsSchema,
 } from '@/resources/schemas/workload.schema'
 import { cn } from '@/utils/misc'
-import { FormMetadata, useForm } from '@conform-to/react'
+import { useForm, useFormMetadata } from '@conform-to/react'
 import { PlusIcon, TrashIcon } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 
 export const PlacementsForm = ({
-  form,
   fields,
   defaultValues,
   isEdit = false,
 }: {
-  form: FormMetadata<PlacementsSchema>
   fields: ReturnType<typeof useForm<PlacementsSchema>>[1]
   defaultValues?: PlacementsSchema
   isEdit?: boolean
 }) => {
+  const form = useFormMetadata('workload-form')
   const placements = fields.placements.getFieldList()
 
   const values = useMemo(() => {
@@ -32,10 +31,12 @@ export const PlacementsForm = ({
   }, [defaultValues])
 
   useEffect(() => {
-    form.update({
-      name: fields.placements.name,
-      value: values as PlacementFieldSchema[],
-    })
+    if (values) {
+      form.update({
+        name: fields.placements.name,
+        value: values as PlacementFieldSchema[],
+      })
+    }
   }, [values])
 
   return (
@@ -82,7 +83,7 @@ export const PlacementsForm = ({
         onClick={() =>
           form.insert({
             name: fields.placements.name,
-            defaultValue: { name: '', cityCode: '', minimumReplicas: 1 },
+            defaultValue: { name: undefined, cityCode: undefined, minimumReplicas: 1 },
           })
         }>
         <PlusIcon className="size-4" />
@@ -95,12 +96,10 @@ export const PlacementsForm = ({
 export const PlacementsPreview = ({ values }: { values: PlacementsSchema }) => {
   const listItems: ListItem[] = useMemo(() => {
     if ((values.placements ?? []).length > 0) {
-      return values.placements.map((placement, index) => ({
-        label: `Placement ${index + 1}`,
+      return values.placements.map((placement) => ({
+        label: placement.name,
         content: (
           <div className="flex items-center gap-2">
-            <span className="font-medium">{placement.name}</span>
-            <Separator orientation="vertical" className="h-4" />
             <Badge variant="outline">{placement.cityCode}</Badge>
             <Separator orientation="vertical" className="h-4" />
             <Badge variant="outline">Min Replicas: {placement.minimumReplicas}</Badge>

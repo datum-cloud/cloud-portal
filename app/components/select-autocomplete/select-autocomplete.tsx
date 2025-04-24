@@ -28,6 +28,8 @@ export const SelectAutocomplete = React.forwardRef<
       itemSize = 35,
       isLoading = false,
       footer,
+      name,
+      id,
     },
     ref,
   ) => {
@@ -61,44 +63,64 @@ export const SelectAutocomplete = React.forwardRef<
     )
 
     return (
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
+      <>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className={cn(
+                'ring-offset-background placeholder:text-muted-foreground focus:ring-ring relative w-full items-center justify-between px-3 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+                triggerClassName,
+              )}
+              disabled={disabled || isLoading}>
+              {isLoading && (
+                <div className="bg-background/80 absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="mx-auto size-4 animate-spin" />
+                </div>
+              )}
+              <div>{triggerContent}</div>
+              <ChevronDown className="size-4 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
             className={cn(
-              'ring-offset-background placeholder:text-muted-foreground focus:ring-ring relative w-full items-center justify-between px-3 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
-              triggerClassName,
+              'popover-content-width-full min-w-[300px] p-0',
+              contentClassName,
             )}
-            disabled={disabled || isLoading}>
-            {isLoading && (
-              <div className="bg-background/80 absolute inset-0 flex items-center justify-center">
-                <Loader2 className="mx-auto size-4 animate-spin" />
-              </div>
-            )}
-            <div>{triggerContent}</div>
-            <ChevronDown className="size-4 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className={cn('popover-content-width-full min-w-[300px] p-0', contentClassName)}
-          align="center">
-          <VirtualizedList
-            disableSearch={disableSearch}
-            emptyContent={emptyContent}
-            keyValue={keyValue}
-            options={options}
-            selectedValue={selectedValue}
-            itemContent={itemContent}
-            onValueChange={handleSelect}
-            boxClassName={boxClassName}
-            itemSize={itemSize}
-          />
+            align="center">
+            <VirtualizedList
+              disableSearch={disableSearch}
+              emptyContent={emptyContent}
+              keyValue={keyValue}
+              options={options}
+              selectedValue={selectedValue}
+              itemContent={itemContent}
+              onValueChange={handleSelect}
+              boxClassName={boxClassName}
+              itemSize={itemSize}
+            />
 
-          {footer && <div className="border-t">{footer}</div>}
-        </PopoverContent>
-      </Popover>
+            {footer && <div className="border-t">{footer}</div>}
+          </PopoverContent>
+        </Popover>
+        {/* Hidden input for form submission */}
+        <select
+          name={name}
+          id={id}
+          value={currentValue}
+          defaultValue={currentValue}
+          className="absolute top-0 left-0 h-0 w-0"
+          onChange={() => undefined}>
+          <option value=""></option>
+          {options.map((option, idx) => (
+            <option key={`${option.value}-${idx}`} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </>
     )
   },
 )

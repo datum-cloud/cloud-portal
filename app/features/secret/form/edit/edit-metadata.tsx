@@ -57,8 +57,8 @@ export const EditSecretMetadata = ({
 
       const { annotations = [], labels = [] } = submission.value as SecretEditSchema
 
-      const originalAnnotations = convertLabelsToObject(defaultValue?.annotations ?? [])
-      const originalLabels = convertLabelsToObject(defaultValue?.labels ?? [])
+      const originalAnnotations = defaultValue?.annotations ?? {}
+      const originalLabels = defaultValue?.labels ?? {}
 
       const newAnnotations = convertLabelsToObject(annotations)
       const newLabels = convertLabelsToObject(labels)
