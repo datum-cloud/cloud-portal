@@ -5,26 +5,28 @@ import {
   ExportPolicySinkFieldSchema,
   ExportPolicySinksSchema,
   ExportPolicySourceFieldSchema,
+  UpdateExportPolicySchema,
 } from '@/resources/schemas/export-policy.schema'
 import { cn } from '@/utils/misc'
-import { FormMetadata, useForm } from '@conform-to/react'
+import { useForm, useFormMetadata } from '@conform-to/react'
 import { PlusIcon, TrashIcon } from 'lucide-react'
 import { useMemo, useEffect } from 'react'
 
 export const SinksForm = ({
-  form,
   fields,
   defaultValues,
   isEdit = false,
-  sourcesList = [],
+  sourceList,
 }: {
-  form: FormMetadata<ExportPolicySinksSchema>
-  fields: ReturnType<typeof useForm<ExportPolicySinksSchema>>[1]
+  fields: ReturnType<typeof useForm<UpdateExportPolicySchema>>[1]
   defaultValues?: ExportPolicySinksSchema
   isEdit?: boolean
-  sourcesList: ExportPolicySourceFieldSchema[]
+  sourceList?: ExportPolicySourceFieldSchema[]
 }) => {
+  const form = useFormMetadata('export-policy-form')
   const fieldList = fields.sinks.getFieldList()
+  const sourceFieldList = fields.sources.getFieldList()
+
   const values = useMemo(() => {
     return defaultValues?.sinks
       ? defaultValues.sinks
@@ -38,8 +40,21 @@ export const SinksForm = ({
     })
   }, [values])
 
+  const sourceNames = useMemo(() => {
+    if (sourceFieldList.length > 0) {
+      return sourceFieldList
+        .map((source) => {
+          const sourceField = source.getFieldset()
+          return sourceField.name.value
+        })
+        .filter(Boolean) as string[]
+    }
+    return []
+  }, [sourceFieldList])
+
   return (
     <div className="flex flex-col gap-2">
+      {sourceNames}
       <div className="space-y-4">
         {fieldList.map((field, index) => {
           const sinkFields = field.getFieldset()
@@ -55,7 +70,11 @@ export const SinksForm = ({
                   >[1]
                 }
                 defaultValues={values?.[index] as ExportPolicySinkFieldSchema}
-                sourcesList={sourcesList}
+                sourceList={
+                  typeof sourceList !== 'undefined'
+                    ? sourceList.map((source) => source.name)
+                    : sourceNames
+                }
               />
               {fieldList.length > 1 && (
                 <Button

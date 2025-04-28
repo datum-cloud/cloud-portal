@@ -256,8 +256,8 @@ export const updateWorkloadSchema = z
   .object({
     resourceVersion: z.string({ required_error: 'Resource version is required.' }),
   })
-  .and(runtimeSchema)
   .and(metadataSchema)
+  .and(runtimeSchema)
   .and(networksSchema)
   .and(storagesSchema)
   .and(placementsSchema)

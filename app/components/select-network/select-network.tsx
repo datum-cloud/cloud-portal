@@ -1,12 +1,19 @@
-import { SelectAutocomplete } from '@/components/select-autocomplete/select-autocomplete'
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
 import { Button } from '@/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { NetworkDialogForm, NetworkDialogFormRef } from '@/features/network/dialog-form'
-import { useIsPending } from '@/hooks/useIsPending'
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import { ROUTE_PATH as NETWORKS_LIST_ROUTE_PATH } from '@/routes/api+/networks+/list'
 import { cn } from '@/utils/misc'
-import { PlusIcon } from 'lucide-react'
+import { CheckIcon, ChevronDown, Loader2, PlusIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFetcher } from 'react-router'
 
@@ -17,6 +24,8 @@ export const SelectNetwork = ({
   onValueChange,
   defaultOptions,
   exceptItems,
+  name,
+  id,
 }: {
   projectId?: string
   defaultValue?: string
@@ -24,11 +33,12 @@ export const SelectNetwork = ({
   onValueChange: (value: Option) => void
   defaultOptions?: Option[]
   exceptItems?: string[]
+  name?: string
+  id?: string
 }) => {
-  const isPending = useIsPending()
   const fetcher = useFetcher({ key: 'select-network' })
 
-  const autocompleteRef = useRef<{ showPopover: (open: boolean) => void }>(null)
+  const [open, setOpen] = useState(false)
   const networkDialogFormRef = useRef<NetworkDialogFormRef>(null)
 
   const [value, setValue] = useState(defaultValue)
@@ -97,38 +107,87 @@ export const SelectNetwork = ({
 
   return (
     <>
-      <SelectAutocomplete
-        disableSearch
-        ref={autocompleteRef}
-        isLoading={isPending}
-        selectedValue={selectedValue}
-        triggerClassName={cn('w-full h-auto min-h-10', className)}
-        placeholder="Select a Network"
-        options={options.map((option) => ({
-          ...option,
-          disabled: option.value !== value && exceptItems?.includes(option.value),
-        }))}
-        onValueChange={(option) => {
-          setValue(option.value)
-        }}
-        footer={
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
           <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="flex w-full items-center justify-start gap-2 px-3 font-normal"
-            onClick={() => networkDialogFormRef.current?.openDialog()}>
-            <PlusIcon className="size-4" />
-            <span>Create Network</span>
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className="w-full justify-between">
+            {selectedValue ? selectedValue?.label : 'Select a Network'}
+            <ChevronDown className="size-4 opacity-50" />
           </Button>
-        }
-      />
+        </PopoverTrigger>
+        <PopoverContent
+          className={cn('popover-content-width-full min-w-[300px] p-0', className)}
+          align="center"
+          onEscapeKeyDown={() => setOpen(false)}>
+          <Command>
+            <CommandList>
+              <CommandEmpty>No results found.</CommandEmpty>
+              {fetcher.state === 'loading' && (
+                <CommandItem disabled>
+                  <Loader2 className="size-4 animate-spin" />
+                  <span>Loading networks...</span>
+                </CommandItem>
+              )}
+              {options.length > 0 && (
+                <CommandGroup className="max-h-[250px] overflow-y-auto">
+                  {options.map((option) => {
+                    const isSelected = selectedValue?.value === option.value
+                    const isDisabled =
+                      option.value !== value && exceptItems?.includes(option.value)
+                    return (
+                      <CommandItem
+                        value={option.value}
+                        key={option.value}
+                        onSelect={() => {
+                          setValue(option.value)
+                          setOpen(false)
+                        }}
+                        disabled={isDisabled}
+                        className="cursor-pointer justify-between">
+                        <span>{option.label}</span>
+                        {isSelected && <CheckIcon className="text-primary size-4" />}
+                      </CommandItem>
+                    )
+                  })}
+                </CommandGroup>
+              )}
+              <CommandSeparator />
+              <CommandItem
+                key="create"
+                onSelect={() => networkDialogFormRef.current?.openDialog()}
+                className="cursor-pointer">
+                <PlusIcon className="size-4" />
+                <span>Create Network</span>
+              </CommandItem>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
 
       <NetworkDialogForm
         ref={networkDialogFormRef}
         projectId={projectId ?? ''}
         onSuccess={handleNetworkCreated}
       />
+
+      {/* Hidden input for form submission */}
+      <select
+        name={name}
+        id={id}
+        value={selectedValue?.value ?? ''}
+        defaultValue={selectedValue?.value ?? ''}
+        className="absolute top-0 left-0 h-0 w-0"
+        onChange={() => undefined}>
+        <option value=""></option>
+        {options.map((option, idx) => (
+          <option key={`${option.value}-${idx}`} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </>
   )
 }

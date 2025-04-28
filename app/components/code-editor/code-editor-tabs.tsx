@@ -12,6 +12,7 @@ export function CodeEditorTabs({
   format = 'yaml',
   onFormatChange,
   error,
+  id,
   name = 'code-editor',
   darkMode = true,
   minHeight = '300px',
@@ -176,6 +177,7 @@ export function CodeEditorTabs({
             value={yamlValue}
             onChange={handleYamlChange}
             name={name}
+            id={id}
             error={activeTab === 'yaml' ? error : undefined}
             darkMode={darkMode}
             minHeight={minHeight}
@@ -187,6 +189,7 @@ export function CodeEditorTabs({
             value={jsonValue}
             onChange={handleJsonChange}
             name={name}
+            id={id}
             error={activeTab === 'json' ? error : undefined}
             darkMode={darkMode}
             minHeight={minHeight}

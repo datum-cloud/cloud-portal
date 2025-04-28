@@ -58,14 +58,9 @@ export const exportPolicySourcesSchema = z
 
 // Sinks Field Schema
 export const sinkPrometheusSchema = z.object({
-  endpoint: z
-    .string()
-    .url({
-      message: 'Please enter a valid URL',
-    })
-    .min(1, {
-      message: 'Endpoint URL is required.',
-    }),
+  endpoint: z.string({ required_error: 'Endpoint URL is required.' }).url({
+    message: 'Please enter a valid URL',
+  }),
   batch: z.object({
     maxSize: z.coerce
       .number()
@@ -147,6 +142,14 @@ export const newExportPolicySchema = z
   .and(exportPolicySourcesSchema)
   .and(exportPolicySinksSchema)
 
+export const updateExportPolicySchema = z
+  .object({
+    resourceVersion: z.string({ required_error: 'Resource version is required.' }),
+  })
+  .and(metadataSchema)
+  .and(exportPolicySourcesSchema)
+  .and(exportPolicySinksSchema)
+
 export type ExportPolicyMetadataSchema = z.infer<typeof metadataSchema>
 export type ExportPolicySourcesSchema = z.infer<typeof exportPolicySourcesSchema>
 export type ExportPolicySourceFieldSchema = z.infer<typeof sourceFieldSchema>
@@ -155,3 +158,4 @@ export type ExportPolicySinkFieldSchema = z.infer<typeof sinkFieldSchema>
 export type ExportPolicySinkPrometheusFieldSchema = z.infer<typeof sinkPrometheusSchema>
 
 export type NewExportPolicySchema = z.infer<typeof newExportPolicySchema>
+export type UpdateExportPolicySchema = z.infer<typeof updateExportPolicySchema>

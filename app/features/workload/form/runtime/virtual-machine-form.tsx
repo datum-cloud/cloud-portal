@@ -8,6 +8,7 @@ import {
   Select,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { BOOT_IMAGES } from '@/constants/bootImages'
 import { RuntimePortSchema, RuntimeVMSchema } from '@/resources/schemas/workload.schema'
 import {
   getSelectProps,
@@ -33,11 +34,13 @@ export const VirtualMachineForm = ({
   const sshKeyControl = useInputControl(fields.sshKey)
 
   useEffect(() => {
-    bootImageControl.change('datumcloud/ubuntu-2204-lts')
-
     if (defaultValues) {
       if (defaultValues.sshKey && !fields.sshKey.value) {
         sshKeyControl.change(defaultValues.sshKey)
+      }
+
+      if (defaultValues.bootImage && !fields.bootImage.value) {
+        bootImageControl.change(defaultValues.bootImage)
       }
     }
   }, [
@@ -63,21 +66,21 @@ export const VirtualMachineForm = ({
         className="w-full">
         <Select
           {...getSelectProps(fields.bootImage)}
-          onValueChange={bootImageControl.change}
+          onValueChange={(value) => bootImageControl.change(value?.toString())}
           key={fields.bootImage.id}
-          value={bootImageControl.value?.toString()}
+          value={fields.bootImage.value?.toString()}
           defaultValue={defaultValues?.bootImage}>
           <SelectTrigger
             disabled
             className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
             <SelectValue placeholder="Select a boot image" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem
-              value="datumcloud/ubuntu-2204-lts"
-              className="w-[var(--radix-select-trigger-width)]">
-              datumcloud/ubuntu-2204-lts
-            </SelectItem>
+          <SelectContent className="w-[var(--radix-select-trigger-width)]">
+            {BOOT_IMAGES.map((bootImage) => (
+              <SelectItem key={bootImage} value={bootImage}>
+                {bootImage}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </Field>

@@ -184,7 +184,7 @@ export default function WorkloadOverviewPage() {
               <Button variant="outline" size="sm">
                 <Link
                   className="flex items-center gap-2"
-                  to={getPathWithParams(routes.projects.deploy.workloads.detail.manage, {
+                  to={getPathWithParams(routes.projects.deploy.workloads.detail.edit, {
                     orgId,
                     projectId,
                     workloadId,

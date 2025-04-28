@@ -22,14 +22,14 @@ import {
   exportPolicySourcesSchema,
   exportPolicySinksSchema,
   NewExportPolicySchema,
-  ExportPolicyMetadataSchema,
   ExportPolicySourcesSchema,
   ExportPolicySinksSchema,
   ExportPolicySourceFieldSchema,
+  UpdateExportPolicySchema,
 } from '@/resources/schemas/export-policy.schema'
 import { MetadataSchema, metadataSchema } from '@/resources/schemas/metadata.schema'
 import { cn } from '@/utils/misc'
-import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react'
+import { FormProvider, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { defineStepper } from '@stepperize/react'
 import { FileIcon, Layers, Loader2, Terminal } from 'lucide-react'
@@ -53,7 +53,7 @@ const { useStepper } = defineStepper(
     id: 'sources',
     label: 'Sources',
     description:
-      'Define essential information and labels for your export policy resource.',
+      'Configure source settings for your Kubernetes export policy in source management.',
     icon: () => <FileIcon />,
     schema: exportPolicySourcesSchema,
     preview: (values?: any) => (
@@ -64,7 +64,7 @@ const { useStepper } = defineStepper(
     id: 'sinks',
     label: 'Sinks',
     description:
-      'Define essential information and labels for your export policy resource.',
+      'Configure sink settings for your Kubernetes export policy in sink management.',
     icon: () => <Terminal />,
     schema: exportPolicySinksSchema,
     preview: (values?: any) => (
@@ -74,12 +74,8 @@ const { useStepper } = defineStepper(
 )
 
 export const ExportPolicyStepperForm = ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  projectId,
   defaultValue,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  projectId?: string
   defaultValue?: IExportPolicyControlResponse
 }) => {
   const submit = useSubmit()
@@ -241,13 +237,11 @@ export const ExportPolicyStepperForm = ({
                             <MetadataForm
                               isEdit={isEdit}
                               defaultValues={
-                                stepper.getMetadata(
-                                  'metadata',
-                                ) as ExportPolicyMetadataSchema
+                                stepper.getMetadata('metadata') as MetadataSchema
                               }
                               fields={
                                 fields as unknown as ReturnType<
-                                  typeof useForm<ExportPolicyMetadataSchema>
+                                  typeof useForm<MetadataSchema>
                                 >[1]
                               }
                             />
@@ -255,10 +249,9 @@ export const ExportPolicyStepperForm = ({
                           sources: () => (
                             <SourcesForm
                               isEdit={isEdit}
-                              form={form as FormMetadata<ExportPolicySourcesSchema>}
                               fields={
                                 fields as unknown as ReturnType<
-                                  typeof useForm<ExportPolicySourcesSchema>
+                                  typeof useForm<UpdateExportPolicySchema>
                                 >[1]
                               }
                               defaultValues={
@@ -271,16 +264,15 @@ export const ExportPolicyStepperForm = ({
                           sinks: () => (
                             <SinksForm
                               isEdit={isEdit}
-                              form={form as FormMetadata<ExportPolicySinksSchema>}
                               fields={
                                 fields as unknown as ReturnType<
-                                  typeof useForm<ExportPolicySinksSchema>
+                                  typeof useForm<UpdateExportPolicySchema>
                                 >[1]
                               }
                               defaultValues={
                                 stepper.getMetadata('sinks') as ExportPolicySinksSchema
                               }
-                              sourcesList={
+                              sourceList={
                                 stepper.getMetadata('sources')
                                   ?.sources as ExportPolicySourceFieldSchema[]
                               }

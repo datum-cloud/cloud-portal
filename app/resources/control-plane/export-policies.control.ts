@@ -5,6 +5,7 @@ import {
   listTelemetryDatumapisComV1Alpha1ExportPolicyForAllNamespaces,
   readTelemetryDatumapisComV1Alpha1NamespacedExportPolicy,
   readTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatus,
+  replaceTelemetryDatumapisComV1Alpha1NamespacedExportPolicy,
 } from '@/modules/control-plane/telemetry/sdk.gen'
 import {
   ExportPolicySinkType,
@@ -31,6 +32,8 @@ export const createExportPoliciesControl = (client: Client) => {
       sinks: spec.sinks,
       status: status,
       createdAt: metadata?.creationTimestamp,
+      labels: metadata?.labels ?? {},
+      annotations: metadata?.annotations ?? {},
     }
   }
 
@@ -123,6 +126,34 @@ export const createExportPoliciesControl = (client: Client) => {
       }
 
       return transformPolicy(response.data)
+    },
+    update: async (
+      projectId: string,
+      exportPolicyId: string,
+      policy: NewExportPolicySchema,
+      resourceVersion: string,
+      dryRun: boolean = false,
+    ) => {
+      const formatted = formatPolicy(policy, resourceVersion)
+      const response = await replaceTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { namespace: 'default', name: exportPolicyId },
+        query: {
+          dryRun: dryRun ? 'All' : undefined,
+        },
+        body: {
+          ...formatted,
+          apiVersion: 'telemetry.datumapis.com/v1alpha1',
+          kind: 'ExportPolicy',
+        },
+      })
+
+      if (!response.data) {
+        throw new CustomError('Failed to update export policy', 500)
+      }
+
+      return dryRun ? response.data : transformPolicy(response.data)
     },
     delete: async (projectId: string, exportPolicyId: string) => {
       const response = await deleteTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({

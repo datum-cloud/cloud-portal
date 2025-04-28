@@ -5,8 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { ExportPolicySinkPrometheusFieldSchema } from '@/resources/schemas/export-policy.schema'
 import { getInputProps, useForm, useInputControl } from '@conform-to/react'
-import { useEffect, useRef } from 'react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+import { useEffect } from 'react'
 
 export const PrometheusField = ({
   fields,
@@ -15,9 +14,6 @@ export const PrometheusField = ({
   fields: ReturnType<typeof useForm<ExportPolicySinkPrometheusFieldSchema>>[1]
   defaultValues?: ExportPolicySinkPrometheusFieldSchema
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
-
   const endpointUrlControl = useInputControl(fields.endpoint)
 
   useEffect(() => {
@@ -28,11 +24,6 @@ export const PrometheusField = ({
     }
   }, [defaultValues, endpointUrlControl, fields.endpoint.value])
 
-  // Focus the input when the form is hydrated
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
   return (
     <div className="flex w-full flex-col gap-2">
       <h3 className="text-sm font-medium">Prometheus Configuration</h3>
@@ -44,7 +35,6 @@ export const PrometheusField = ({
           className="w-full">
           <Input
             {...getInputProps(fields.endpoint, { type: 'text' })}
-            ref={inputRef}
             key={fields.endpoint.id}
             placeholder="e.g. http://localhost:9090"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {

@@ -89,6 +89,7 @@ export const SelectAnnotations = ({
         onValueChange={handleValueChange}
         placeholder="Manage annotations"
         boxClassName="max-w-[300px]"
+        badgeClassName="max-w-[200px] text-left"
         maxCount={-1}
         showCloseButton={false}
         showClearButton={false}

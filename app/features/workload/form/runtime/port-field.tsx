@@ -110,12 +110,9 @@ export const PortField = ({
           <SelectTrigger className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
             <SelectValue placeholder="Select a protocol" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="w-[var(--radix-select-trigger-width)]">
             {Object.keys(PortProtocol).map((protocol) => (
-              <SelectItem
-                key={protocol}
-                value={protocol}
-                className="w-[var(--radix-select-trigger-width)]">
+              <SelectItem key={protocol} value={protocol}>
                 {protocol}
               </SelectItem>
             ))}

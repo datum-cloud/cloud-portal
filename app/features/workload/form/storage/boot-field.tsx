@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { BOOT_IMAGES } from '@/constants/bootImages'
 
 export const BootField = ({
   defaultValues,
@@ -30,12 +31,12 @@ export const BootField = ({
             className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
             <SelectValue placeholder="Select a boot image" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem
-              value="datumcloud/ubuntu-2204-lts"
-              className="w-[var(--radix-select-trigger-width)]">
-              datumcloud/ubuntu-2204-lts
-            </SelectItem>
+          <SelectContent className="w-[var(--radix-select-trigger-width)]">
+            {BOOT_IMAGES.map((bootImage) => (
+              <SelectItem key={bootImage} value={bootImage}>
+                {bootImage}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </Field>

@@ -9,6 +9,8 @@ export interface IExportPolicyControlResponse {
   sinks?: ComDatumapisTelemetryV1Alpha1ExportPolicy['spec']['sinks']
   status?: ComDatumapisTelemetryV1Alpha1ExportPolicy['status']
   createdAt?: Date
+  labels?: Record<string, string>
+  annotations?: Record<string, string>
 }
 
 export enum ExportPolicySourceType {

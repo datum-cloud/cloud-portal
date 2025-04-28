@@ -3,26 +3,28 @@ import { List, ListItem } from '@/components/list/list'
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
-import { NetworkFieldSchema, NetworksSchema } from '@/resources/schemas/workload.schema'
+import {
+  NetworkFieldSchema,
+  NetworksSchema,
+  UpdateWorkloadSchema,
+} from '@/resources/schemas/workload.schema'
 import { ROUTE_PATH as NETWORKS_LIST_ROUTE_PATH } from '@/routes/api+/networks+/list'
 import { cn } from '@/utils/misc'
-import { FormMetadata, useForm } from '@conform-to/react'
+import { useForm, useFormMetadata } from '@conform-to/react'
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 export const NetworksForm = ({
   projectId,
-  form,
   fields,
   defaultValues,
 }: {
   projectId?: string
-  form: FormMetadata<NetworksSchema>
-  fields: ReturnType<typeof useForm<NetworksSchema>>[1]
+  fields: ReturnType<typeof useForm<UpdateWorkloadSchema>>[1]
   defaultValues?: NetworksSchema
 }) => {
+  const form = useFormMetadata('workload-form')
   const networks = fields.networks.getFieldList()
 
   const [networkOptions, setNetworkOptions] = useState<Option[]>([])
@@ -45,10 +47,12 @@ export const NetworksForm = ({
   }, [defaultValues])
 
   useEffect(() => {
-    form.update({
-      name: fields.networks.name,
-      value: values as NetworkFieldSchema[],
-    })
+    if (values && networkOptions.length > 0) {
+      form.update({
+        name: fields.networks.name,
+        value: values as NetworkFieldSchema[],
+      })
+    }
   }, [values, networkOptions])
 
   useEffect(() => {
@@ -126,7 +130,7 @@ export const NetworksForm = ({
           onClick={() =>
             form.insert({
               name: fields.networks.name,
-              defaultValue: { name: '', ipFamilies: [] },
+              defaultValue: { name: undefined, ipFamilies: [] },
             })
           }>
           <PlusIcon className="size-4" />
@@ -142,12 +146,10 @@ export const NetworkPreview = ({ values }: { values: NetworksSchema }) => {
     if ((values.networks ?? []).length > 0) {
       return values.networks
         .filter((network) => network.name !== '')
-        .map((network, index) => ({
-          label: `Network ${index + 1}`,
+        .map((network) => ({
+          label: network.name,
           content: (
             <div className="flex items-center gap-2">
-              <span className="font-medium">{network.name}</span>
-              <Separator orientation="vertical" className="h-4" />
               {network.ipFamilies.map((ipFamily) => (
                 <Badge variant="outline" key={ipFamily}>
                   {ipFamily.toUpperCase()}

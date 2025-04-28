@@ -1,67 +1,53 @@
 import { DateFormat } from '@/components/date-format/date-format'
 import { MoreActions } from '@/components/more-actions/more-actions'
 import { PageTitle } from '@/components/page-title/page-title'
+import { Button } from '@/components/ui/button'
+import { routes } from '@/constants/routes'
 import { ExportPolicyGeneralCard } from '@/features/observe/export-policies/general-card'
 import { WorkloadSinksTable } from '@/features/observe/export-policies/sinks-table'
 import { WorkloadSourcesTable } from '@/features/observe/export-policies/sources-table'
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control'
 import { IExportPolicyControlResponse } from '@/resources/interfaces/policy.interface'
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions'
-import { CustomError } from '@/utils/errorHandle'
 import { mergeMeta, metaObject } from '@/utils/meta'
-import { Client } from '@hey-api/client-axios'
+import { getPathWithParams } from '@/utils/path'
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow'
 import { motion } from 'framer-motion'
-import { ClockIcon } from 'lucide-react'
+import { ClockIcon, PencilIcon } from 'lucide-react'
 import {
-  AppLoadContext,
-  LoaderFunctionArgs,
+  Link,
   MetaFunction,
-  data,
-  useLoaderData,
   useParams,
+  useRouteLoaderData,
   useSubmit,
 } from 'react-router'
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { exportPolicy } = data as any
+export const meta: MetaFunction = mergeMeta(({ matches }) => {
+  const match = matches.find(
+    (match) =>
+      match.id ===
+      'routes/_private+/$orgId+/projects.$projectId+/_observe+/export-policies+/$exportPolicyId+/_layout',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) as any
+
+  const exportPolicy = match.data
   return metaObject(
     `${(exportPolicy as IExportPolicyControlResponse)?.name || 'Export Policy'} Overview`,
   )
 })
 
-export const loader = async ({ context, params }: LoaderFunctionArgs) => {
-  const { projectId, exportPolicyId } = params
-
-  const { controlPlaneClient } = context as AppLoadContext
-
-  const exportPoliciesControl = createExportPoliciesControl(controlPlaneClient as Client)
-
-  if (!projectId || !exportPolicyId) {
-    throw new CustomError('Project ID and export policy ID are required', 400)
-  }
-
-  const exportPolicy = await exportPoliciesControl.detail(projectId, exportPolicyId)
-
-  if (!exportPolicy) {
-    throw new CustomError('Export policy not found', 404)
-  }
-
-  return data(exportPolicy)
-}
-
 export default function ExportPolicyOverview() {
-  const exportPolicy = useLoaderData<typeof loader>()
+  const exportPolicy = useRouteLoaderData(
+    'routes/_private+/$orgId+/projects.$projectId+/_observe+/export-policies+/$exportPolicyId+/_layout',
+  )
 
   const submit = useSubmit()
   const { confirm } = useConfirmationDialog()
   const { orgId, projectId } = useParams()
 
   // revalidate every 10 seconds to keep deployment list fresh
-  useRevalidateOnInterval({ enabled: true, interval: 10000 })
+  const revalidator = useRevalidateOnInterval({ enabled: true, interval: 10000 })
 
   const deleteExportPolicy = async () => {
     await confirm({
@@ -80,6 +66,9 @@ export default function ExportPolicyOverview() {
       confirmInputPlaceholder: 'Type the export policy name to confirm deletion',
       confirmValue: exportPolicy?.name ?? 'delete',
       onSubmit: async () => {
+        // Clear the interval when deleting a export policy
+        revalidator.clear()
+
         await submit(
           {
             exportPolicyId: exportPolicy?.name ?? '',
@@ -137,6 +126,21 @@ export default function ExportPolicyOverview() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4, duration: 0.3 }}
               className="flex items-center gap-2">
+              <Button variant="outline" size="sm">
+                <Link
+                  className="flex items-center gap-2"
+                  to={getPathWithParams(
+                    routes.projects.observe.exportPolicies.detail.edit,
+                    {
+                      orgId,
+                      projectId,
+                      exportPolicyId: exportPolicy?.name ?? '',
+                    },
+                  )}>
+                  <PencilIcon className="size-4" />
+                  Edit
+                </Link>
+              </Button>
               <MoreActions
                 className="border-input bg-background hover:bg-accent hover:text-accent-foreground size-9 rounded-md border px-3"
                 actions={[

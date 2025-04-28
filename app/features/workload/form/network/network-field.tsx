@@ -3,7 +3,7 @@ import { MultiSelect } from '@/components/multi-select/multi-select'
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
 import { SelectNetwork } from '@/components/select-network/select-network'
 import { NetworkFieldSchema } from '@/resources/schemas/workload.schema'
-import { useForm, useInputControl } from '@conform-to/react'
+import { getSelectProps, useForm, useInputControl } from '@conform-to/react'
 import { useEffect, useState } from 'react'
 
 export const NetworkFieldForm = ({
@@ -22,11 +22,7 @@ export const NetworkFieldForm = ({
   const [ipFamilies, setIpFamilies] = useState<string[]>([])
   const [selectedIpFamilies, setSelectedIpFamilies] = useState<string[]>([])
 
-  const networkNameControl = useInputControl({
-    name: fields.name.name,
-    formId: fields.name.formId,
-    initialValue: defaultValues?.name,
-  })
+  const networkNameControl = useInputControl(fields.name)
   const ipFamiliesControl = useInputControl(fields.ipFamilies)
 
   const onChangeNetwork = (value: Option) => {
@@ -46,7 +42,7 @@ export const NetworkFieldForm = ({
   useEffect(() => {
     if (defaultValues) {
       // Only set values if they exist in defaultValues and current fields are empty
-      if (!fields.name.value) {
+      if (defaultValues.name && fields.name.value === '') {
         networkNameControl.change(defaultValues?.name ?? '')
       }
 
@@ -66,6 +62,8 @@ export const NetworkFieldForm = ({
     <div className="relative flex w-full items-start gap-4">
       <Field isRequired label="Network" errors={fields.name.errors} className="w-1/2">
         <SelectNetwork
+          name={fields.name.name}
+          id={fields.name.id}
           defaultValue={fields.name.value}
           projectId={projectId}
           onValueChange={onChangeNetwork}
@@ -79,6 +77,8 @@ export const NetworkFieldForm = ({
         errors={fields.ipFamilies.errors}
         className="w-1/2">
         <MultiSelect
+          {...getSelectProps(fields.ipFamilies)}
+          key={fields.ipFamilies.id}
           placeholder="Select IP Families"
           disabled={ipFamilies.length === 0 || !fields.name.value}
           defaultValue={selectedIpFamilies}

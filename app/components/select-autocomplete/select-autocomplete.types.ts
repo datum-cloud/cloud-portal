@@ -24,4 +24,6 @@ export type SelectAutocompleteProps = {
   itemSize?: number
   isLoading?: boolean
   footer?: React.ReactNode
+  name?: string
+  id?: string
 }

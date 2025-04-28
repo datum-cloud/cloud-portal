@@ -1,84 +1,74 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { WorkloadHelper } from '../helper'
 import { MetadataForm } from './metadata-form'
-import { NetworksForm } from './network/networks-form'
-import { PlacementsForm } from './placement/placements-form'
-import { RuntimeForm } from './runtime/runtime-form'
-import { StoragesForm } from './storage/storages-form'
+import { SinksForm } from './sink/sinks-form'
+import { SourcesForm } from './source/sources-form'
 import { Button } from '@/components/ui/button'
 import {
-  CardDescription,
-  CardHeader,
-  CardTitle,
   Card,
   CardContent,
+  CardDescription,
+  CardHeader,
   CardFooter,
+  CardTitle,
 } from '@/components/ui/card'
-import { BOOT_IMAGES } from '@/constants/bootImages'
 import { routes } from '@/constants/routes'
 import { useIsPending } from '@/hooks/useIsPending'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
-import { MetadataSchema } from '@/resources/schemas/metadata.schema'
 import {
-  updateWorkloadSchema,
-  NewWorkloadSchema,
-  PlacementsSchema,
-  RuntimeSchema,
-  UpdateWorkloadSchema,
-} from '@/resources/schemas/workload.schema'
-import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
+  ExportPolicySinkType,
+  ExportPolicySourceType,
+  IExportPolicyControlResponse,
+} from '@/resources/interfaces/policy.interface'
+import {
+  ExportPolicySinkFieldSchema,
+  ExportPolicySourceFieldSchema,
+  NewExportPolicySchema,
+  UpdateExportPolicySchema,
+  updateExportPolicySchema,
+} from '@/resources/schemas/export-policy.schema'
+import { MetadataSchema } from '@/resources/schemas/metadata.schema'
+import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions'
+import { convertObjectToLabels } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
-import { FormProvider, getFormProps, useForm } from '@conform-to/react'
+import { useForm, FormProvider, getFormProps } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { Cpu, HardDrive, Layers, Network, Server } from 'lucide-react'
-import { Fragment, cloneElement, useEffect, useState } from 'react'
-import { Form, useNavigate, useSubmit } from 'react-router'
+import { has } from 'es-toolkit/compat'
+import { FileIcon, Layers, Terminal } from 'lucide-react'
+import { Fragment, cloneElement, useMemo } from 'react'
+import { useSubmit, useNavigate, Form } from 'react-router'
 import { useAuthenticityToken } from 'remix-utils/csrf/react'
 
 const sections = [
   {
     id: 'metadata',
     label: 'Metadata',
-    description: 'Define essential information and labels for your workload resource.',
+    description:
+      'Define essential information and labels for your export policy resource.',
     icon: () => <Layers />,
   },
   {
-    id: 'runtime',
-    label: 'Runtime',
+    id: 'sources',
+    label: 'Sources',
     description:
-      'Configure instance type and choose between Container or VM runtime environments.',
-    icon: () => <Cpu />,
+      'Configure source settings for your Kubernetes export policy in source management.',
+    icon: () => <FileIcon />,
   },
   {
-    id: 'networks',
-    label: 'Network Interfaces',
+    id: 'sinks',
+    label: 'Sinks',
     description:
-      'Configure network interfaces for your workload instances, including network selection and IP family options.',
-    icon: () => <Network />,
-  },
-  {
-    id: 'storages',
-    label: 'Storages',
-    description: 'Add storage volumes with names and sizes.',
-    icon: () => <HardDrive />,
-  },
-  {
-    id: 'placements',
-    label: 'Placements',
-    description: 'Choose where to deploy your workload and set up scaling options.',
-    icon: () => <Server />,
+      'Configure sink settings for your Kubernetes export policy in sink management.',
+    icon: () => <Terminal />,
   },
 ]
 
-export const WorkloadUpdateForm = ({
+export const ExportPolicyUpdateForm = ({
   projectId,
   orgId,
   defaultValue,
 }: {
   projectId?: string
   orgId?: string
-  defaultValue?: IWorkloadControlResponse
+  defaultValue?: IExportPolicyControlResponse
 }) => {
   const csrf = useAuthenticityToken()
   const submit = useSubmit()
@@ -86,29 +76,13 @@ export const WorkloadUpdateForm = ({
   const isPending = useIsPending()
   const { confirm } = useConfirmationDialog()
 
-  const [formattedValues, setFormattedValues] = useState<NewWorkloadSchema>()
-
-  const initialValues = {
-    runtime: {
-      instanceType: 'datumcloud/d1-standard-2',
-      virtualMachine: {
-        bootImage: BOOT_IMAGES[0],
-        sshKey: undefined,
-      },
-    },
-    networks: [],
-    storages: [],
-    placements: [{ name: undefined, cityCode: undefined, minimumReplicas: 1 }],
-  }
-
   const [form, fields] = useForm({
-    id: 'workload-form',
-    constraint: getZodConstraint(updateWorkloadSchema),
+    id: 'export-policy-form',
+    constraint: getZodConstraint(updateExportPolicySchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
-    defaultValue: initialValues,
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: updateWorkloadSchema })
+      return parseWithZod(formData, { schema: updateExportPolicySchema })
     },
     onSubmit(event, { submission }) {
       event.preventDefault()
@@ -118,21 +92,14 @@ export const WorkloadUpdateForm = ({
       // Get the form element
       const formElement = event.currentTarget as HTMLFormElement
 
-      const payload: NewWorkloadSchema = {
+      const payload: NewExportPolicySchema = {
         metadata: {
           name: data?.name,
           labels: data?.labels,
           annotations: data?.annotations,
         },
-        runtime: {
-          instanceType: data?.instanceType,
-          runtimeType: data?.runtimeType,
-          virtualMachine: data?.virtualMachine,
-          containers: data?.containers,
-        },
-        networks: data?.networks,
-        storages: data?.storages,
-        placements: data?.placements,
+        sources: data?.sources,
+        sinks: data?.sinks,
       }
 
       // Submit the form using the Remix submit function
@@ -149,9 +116,70 @@ export const WorkloadUpdateForm = ({
     },
   })
 
-  const deleteWorkload = async () => {
+  const formattedValues: NewExportPolicySchema | undefined = useMemo(() => {
+    if (defaultValue) {
+      const metadata = {
+        name: defaultValue?.name ?? '',
+        labels: convertObjectToLabels(defaultValue?.labels ?? {}),
+        annotations: convertObjectToLabels(defaultValue?.annotations ?? {}),
+      }
+
+      const sources: ExportPolicySourceFieldSchema[] = (defaultValue?.sources ?? []).map(
+        (source) => ({
+          name: source.name ?? '',
+          type: has(source, 'metrics')
+            ? ExportPolicySourceType.METRICS
+            : ExportPolicySourceType.METRICS, // the else value will be used default value
+          metricQuery: source.metrics?.metricsql ?? '{}',
+        }),
+      )
+
+      const sinks: ExportPolicySinkFieldSchema[] = (defaultValue?.sinks ?? []).map(
+        (sink) => {
+          const prometheusRemoteWrite = has(sink.target, 'prometheusRemoteWrite')
+            ? {
+                prometheusRemoteWrite: {
+                  endpoint: sink?.target.prometheusRemoteWrite?.endpoint ?? '',
+                  batch: {
+                    maxSize: sink?.target.prometheusRemoteWrite?.batch?.maxSize ?? 100,
+                    timeout: Number(
+                      sink?.target.prometheusRemoteWrite?.batch?.timeout.replace('s', ''),
+                    ),
+                  },
+                  retry: {
+                    backoffDuration: Number(
+                      sink?.target.prometheusRemoteWrite?.retry?.backoffDuration.replace(
+                        's',
+                        '',
+                      ),
+                    ),
+                    maxAttempts: Number(
+                      sink?.target.prometheusRemoteWrite?.retry?.maxAttempts,
+                    ),
+                  },
+                },
+              }
+            : {}
+
+          return {
+            name: sink.name ?? '',
+            type: has(sink, 'prometheusRemoteWrite')
+              ? ExportPolicySinkType.PROMETHEUS
+              : ExportPolicySinkType.PROMETHEUS,
+            sources: sink.sources ?? [],
+            ...prometheusRemoteWrite,
+          }
+        },
+      )
+
+      return { metadata, sources, sinks }
+    }
+    return undefined
+  }, [defaultValue])
+
+  const deleteExportPolicy = async () => {
     await confirm({
-      title: 'Delete Workload',
+      title: 'Delete Export Policy',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
@@ -163,46 +191,25 @@ export const WorkloadUpdateForm = ({
       variant: 'destructive',
       showConfirmInput: true,
       confirmInputLabel: `Type "${defaultValue?.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the workload name to confirm deletion',
+      confirmInputPlaceholder: 'Type the export policy name to confirm deletion',
       confirmValue: defaultValue?.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {
-            workloadId: defaultValue?.name ?? '',
+            exportPolicyId: defaultValue?.name ?? '',
             projectId: projectId ?? '',
             orgId: orgId ?? '',
           },
           {
-            action: WORKLOADS_ACTIONS_ROUTE_PATH,
+            action: EXPORT_POLICIES_ACTIONS_ROUTE_PATH,
             method: 'DELETE',
-            fetcherKey: 'workload-resources',
+            fetcherKey: 'export-policy-resources',
             navigate: false,
           },
         )
       },
     })
   }
-
-  useEffect(() => {
-    // Process default values when they exist to populate the form
-    if (defaultValue) {
-      const { metadata, runtime, ...rest } =
-        WorkloadHelper.mappingSpecToForm(defaultValue)
-
-      form.update({
-        ...metadata,
-        ...runtime,
-        ...rest,
-      })
-
-      // Update form with the mapped values
-      setFormattedValues({
-        metadata,
-        runtime,
-        ...rest,
-      })
-    }
-  }, [defaultValue])
 
   return (
     <Card>
@@ -224,7 +231,7 @@ export const WorkloadUpdateForm = ({
           />
 
           <CardContent>
-            <nav aria-label="Workload Steps" className="group">
+            <nav aria-label="Export Policy Steps" className="group">
               <ol className="relative ml-4 border-s border-gray-200 dark:border-gray-700 dark:text-gray-400">
                 {sections.map((section) => (
                   <Fragment key={section.id}>
@@ -256,51 +263,27 @@ export const WorkloadUpdateForm = ({
                         />
                       )}
 
-                      {section.id === 'runtime' && (
-                        <RuntimeForm
+                      {section.id === 'sources' && (
+                        <SourcesForm
                           isEdit
-                          defaultValues={formattedValues?.runtime}
                           fields={
                             fields as unknown as ReturnType<
-                              typeof useForm<RuntimeSchema>
+                              typeof useForm<UpdateExportPolicySchema>
                             >[1]
                           }
+                          defaultValues={{ sources: formattedValues?.sources ?? [] }}
                         />
                       )}
 
-                      {section.id === 'networks' && (
-                        <NetworksForm
-                          projectId={projectId}
-                          defaultValues={{ networks: formattedValues?.networks ?? [] }}
-                          fields={
-                            fields as unknown as ReturnType<
-                              typeof useForm<UpdateWorkloadSchema>
-                            >[1]
-                          }
-                        />
-                      )}
-
-                      {section.id === 'storages' && (
-                        <StoragesForm
-                          isEdit
-                          defaultValues={{ storages: formattedValues?.storages ?? [] }}
-                          fields={
-                            fields as unknown as ReturnType<
-                              typeof useForm<UpdateWorkloadSchema>
-                            >[1]
-                          }
-                        />
-                      )}
-
-                      {section.id === 'placements' && (
-                        <PlacementsForm
+                      {section.id === 'sinks' && (
+                        <SinksForm
                           isEdit
                           fields={
-                            fields as ReturnType<typeof useForm<PlacementsSchema>>[1]
+                            fields as unknown as ReturnType<
+                              typeof useForm<UpdateExportPolicySchema>
+                            >[1]
                           }
-                          defaultValues={{
-                            placements: formattedValues?.placements ?? [],
-                          }}
+                          defaultValues={{ sinks: formattedValues?.sinks ?? [] }}
                         />
                       )}
                     </div>
@@ -313,7 +296,7 @@ export const WorkloadUpdateForm = ({
             <Button
               type="button"
               variant="destructive"
-              onClick={deleteWorkload}
+              onClick={() => deleteExportPolicy()}
               disabled={isPending}>
               Delete
             </Button>
@@ -324,7 +307,7 @@ export const WorkloadUpdateForm = ({
                 disabled={isPending}
                 onClick={() => {
                   navigate(
-                    getPathWithParams(routes.projects.deploy.workloads.root, {
+                    getPathWithParams(routes.projects.observe.exportPolicies.root, {
                       projectId,
                       orgId,
                     }),
