@@ -1,7 +1,5 @@
-import { CodeEditorTabs } from '@/components/code-editor/code-editor-tabs'
-import { EditorLanguage } from '@/components/code-editor/code-editor.types'
-import { Field } from '@/components/field/field'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { ListenersForm } from './listener/listeners-form'
+import { MetadataForm } from '@/components/metadata/metadata-form'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -12,12 +10,23 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { useIsPending } from '@/hooks/useIsPending'
-import { IGatewayControlResponse } from '@/resources/interfaces/gateway.interface'
-import { updateGatewaySchema, gatewaySchema } from '@/resources/schemas/gateway.schema'
-import { jsonToYaml } from '@/utils/editor'
-import { getFormProps, useForm, useInputControl } from '@conform-to/react'
+import {
+  GatewayProtocol,
+  GatewayAllowedRoutes,
+  GatewayTlsMode,
+  IGatewayControlResponse,
+} from '@/resources/interfaces/gateway.interface'
+import {
+  GatewayListenerFieldSchema,
+  GatewayListenerSchema,
+  GatewaySchema,
+  gatewaySchema,
+} from '@/resources/schemas/gateway.schema'
+import { MetadataSchema } from '@/resources/schemas/metadata.schema'
+import { convertObjectToLabels } from '@/utils/misc'
+import { FormProvider, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { InfoIcon } from 'lucide-react'
+import { get } from 'es-toolkit/compat'
 import { useEffect, useMemo, useState } from 'react'
 import { Form, useNavigate } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
@@ -27,48 +36,72 @@ export const GatewayForm = ({
 }: {
   defaultValue?: IGatewayControlResponse
 }) => {
-  const isPending = useIsPending()
   const navigate = useNavigate()
+  const isPending = useIsPending()
 
+  const [formattedValues, setFormattedValues] = useState<GatewaySchema>()
   const [form, fields] = useForm({
-    constraint: getZodConstraint(defaultValue ? updateGatewaySchema : gatewaySchema),
+    id: 'gateway-form',
+    constraint: getZodConstraint(gatewaySchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, {
-        schema: defaultValue ? updateGatewaySchema : gatewaySchema,
-      })
-    },
-    defaultValue: {
-      content: '',
-      format: 'yaml',
+      return parseWithZod(formData, { schema: gatewaySchema })
     },
   })
 
-  const [hasData, setHasData] = useState<boolean>(true)
-  const isEdit = useMemo(() => defaultValue?.uid !== undefined, [defaultValue])
-
-  const formatControl = useInputControl(fields.format)
-  const valueControl = useInputControl(fields.content)
+  const isEdit = useMemo(() => {
+    return defaultValue?.uid !== undefined
+  }, [defaultValue])
 
   useEffect(() => {
-    if (defaultValue) {
-      const { spec } = Object.fromEntries(
-        Object.entries(defaultValue).filter(([key]) => key === 'spec'),
+    if (defaultValue && defaultValue.name) {
+      const metadata = {
+        name: defaultValue.name,
+        labels: convertObjectToLabels(defaultValue.labels ?? {}),
+        annotations: convertObjectToLabels(defaultValue.annotations ?? {}),
+      }
+
+      const listeners: GatewayListenerFieldSchema[] = (defaultValue?.listeners ?? []).map(
+        (listener) => {
+          const from = get(
+            listener,
+            'allowedRoutes.namespaces.from',
+            GatewayAllowedRoutes.SAME,
+          )
+          const matchLabels = get(
+            listener,
+            'allowedRoutes.namespaces.selector.matchLabels',
+            {},
+          )
+
+          const tls =
+            listener.protocol === GatewayProtocol.HTTPS
+              ? {
+                  mode: get(listener, 'tlsConfiguration.mode', GatewayTlsMode.TERMINATE),
+                }
+              : undefined
+
+          return {
+            name: listener.name ?? '',
+            port: listener.port ?? 80,
+            protocol: listener.protocol ?? '',
+            allowedRoutes: from,
+            matchLabels: from === 'Selector' ? convertObjectToLabels(matchLabels) : [],
+            tlsConfiguration: tls,
+          }
+        },
       )
 
-      setHasData(true)
-      form.update({
-        value: {
-          content: spec ? jsonToYaml(JSON.stringify(spec)) : '',
-          format: 'yaml',
-        },
+      setFormattedValues({
+        ...metadata,
+        listeners,
       })
     }
   }, [defaultValue])
 
   return (
-    <Card>
+    <Card className="relative">
       <CardHeader>
         <CardTitle>{isEdit ? 'Update' : 'Create a new'} gateway</CardTitle>
         <CardDescription>
@@ -77,61 +110,38 @@ export const GatewayForm = ({
             : 'Create a new gateway to get started with Datum Cloud.'}
         </CardDescription>
       </CardHeader>
-      <Form
-        method="POST"
-        autoComplete="off"
-        {...getFormProps(form)}
-        className="flex flex-col gap-6">
-        <AuthenticityTokenInput />
+      <FormProvider context={form.context}>
+        <Form
+          {...getFormProps(form)}
+          id={form.id}
+          method="POST"
+          autoComplete="off"
+          className="flex flex-col gap-6">
+          <AuthenticityTokenInput />
 
-        {isEdit && (
-          <input
-            type="hidden"
-            name="resourceVersion"
-            value={defaultValue?.resourceVersion}
-          />
-        )}
-
-        <CardContent className="space-y-4">
-          {hasData ? (
-            <Field
-              isRequired
-              label={isEdit ? 'Data' : 'Configuration'}
-              errors={fields.content.errors}>
-              <CodeEditorTabs
-                error={fields.content.errors?.[0]}
-                value={fields.content.value ?? ''}
-                onChange={(newValue, format) => {
-                  valueControl.change(newValue)
-                  formatControl.change(format as string)
-                }}
-                format={fields.format.value as EditorLanguage}
-                onFormatChange={(format: EditorLanguage) => {
-                  formatControl.change(format as string)
-                }}
-                name="configuration"
-                minHeight="300px"
-              />
-            </Field>
-          ) : (
-            <Alert variant="secondary">
-              <InfoIcon className="size-4" />
-              <AlertTitle>Information</AlertTitle>
-              <AlertDescription>This gateway does not have any spec.</AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-        <CardFooter className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="link"
-            disabled={isPending}
-            onClick={() => {
-              navigate(-1)
-            }}>
-            Return to List
-          </Button>
-          {hasData && (
+          <CardContent className="space-y-4">
+            <MetadataForm
+              fields={fields as unknown as ReturnType<typeof useForm<MetadataSchema>>[1]}
+              defaultValues={formattedValues as MetadataSchema}
+              isEdit={isEdit}
+            />
+            <ListenersForm
+              fields={
+                fields as unknown as ReturnType<typeof useForm<GatewayListenerSchema>>[1]
+              }
+              defaultValues={{ listeners: formattedValues?.listeners ?? [] }}
+            />
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="link"
+              disabled={isPending}
+              onClick={() => {
+                navigate(-1)
+              }}>
+              Return to List
+            </Button>
             <Button
               variant="default"
               type="submit"
@@ -141,9 +151,9 @@ export const GatewayForm = ({
                 ? `${isEdit ? 'Saving' : 'Creating'}`
                 : `${isEdit ? 'Save' : 'Create'}`}
             </Button>
-          )}
-        </CardFooter>
-      </Form>
+          </CardFooter>
+        </Form>
+      </FormProvider>
     </Card>
   )
 }

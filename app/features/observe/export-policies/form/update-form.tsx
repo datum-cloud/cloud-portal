@@ -1,6 +1,6 @@
-import { MetadataForm } from './metadata-form'
 import { SinksForm } from './sink/sinks-form'
 import { SourcesForm } from './source/sources-form'
+import { MetadataForm } from '@/components/metadata/metadata-form'
 import { Button } from '@/components/ui/button'
 import {
   Card,

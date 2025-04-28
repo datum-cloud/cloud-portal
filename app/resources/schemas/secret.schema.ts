@@ -20,7 +20,6 @@ export const secretVariablesSchema = z.object({
     message: 'At least one secret entry is required',
   }),
 })
-
 export const secretBaseSchema = z
   .object({
     type: z.enum(Object.values(SecretType) as [string, ...string[]], {

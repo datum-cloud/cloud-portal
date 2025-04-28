@@ -80,12 +80,9 @@ export const StorageField = ({
               className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
               <SelectValue placeholder="Select a storage type" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="w-[var(--radix-select-trigger-width)]">
               {Object.keys(STORAGE_TYPES).map((storageType) => (
-                <SelectItem
-                  key={storageType}
-                  value={storageType}
-                  className="w-[var(--radix-select-trigger-width)]">
+                <SelectItem key={storageType} value={storageType}>
                   {STORAGE_TYPES[storageType as keyof typeof STORAGE_TYPES].label}
                 </SelectItem>
               ))}

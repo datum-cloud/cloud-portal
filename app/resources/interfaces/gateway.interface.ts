@@ -6,7 +6,25 @@ export interface IGatewayControlResponse {
   namespace?: string
   name?: string
   gatewayClass?: string
-  numberOfListeners?: number
+  listeners?: IoK8sNetworkingGatewayV1Gateway['spec']['listeners']
+  // numberOfListeners?: number
   status?: IoK8sNetworkingGatewayV1Gateway['status']
   createdAt?: Date
+  labels?: Record<string, string>
+  annotations?: Record<string, string>
+}
+
+export enum GatewayProtocol {
+  HTTP = 'HTTP',
+  HTTPS = 'HTTPS',
+}
+
+export enum GatewayTlsMode {
+  TERMINATE = 'Terminate',
+}
+
+export enum GatewayAllowedRoutes {
+  // ALL = 'All',
+  // SELECTOR = 'Selector',
+  SAME = 'Same',
 }

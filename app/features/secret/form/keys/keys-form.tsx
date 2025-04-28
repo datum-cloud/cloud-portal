@@ -1,10 +1,10 @@
 import { KeyField } from './key-field'
+import { FieldLabel } from '@/components/field/field-label'
 import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { SecretEnvSchema, SecretVariablesSchema } from '@/resources/schemas/secret.schema'
 import { cn } from '@/utils/misc'
 import { FormMetadata, useForm } from '@conform-to/react'
-import { InfoIcon, PlusIcon, TrashIcon } from 'lucide-react'
+import { PlusIcon, TrashIcon } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 
 export const KeysForm = ({
@@ -46,19 +46,10 @@ export const KeysForm = ({
   return (
     <div className="flex flex-col gap-3">
       {mode === 'inline' && (
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Key-value pairs</span>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <InfoIcon className="size-4 cursor-pointer" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="text-xs">
-                If not already base64-encoded, values will be encoded automatically.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </div>
+        <FieldLabel
+          label="Key-value pairs"
+          tooltipInfo="If not already base64-encoded, values will be encoded automatically."
+        />
       )}
       <div className="space-y-4">
         {variableList.map((field, index) => {

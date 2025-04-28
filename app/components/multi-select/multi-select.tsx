@@ -316,7 +316,7 @@ export const MultiSelect = ({
               </div>
             ) : (
               <div className="mx-auto flex w-full items-center justify-between">
-                <span className="text-primary mx-3 text-sm">{placeholder}</span>
+                <span className="text-muted-foreground mx-3 text-sm">{placeholder}</span>
                 <ChevronDown className="text-muted-foreground mx-2 h-4 cursor-pointer" />
               </div>
             )}

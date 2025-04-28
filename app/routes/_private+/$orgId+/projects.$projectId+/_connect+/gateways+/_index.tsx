@@ -114,7 +114,10 @@ export default function ConnectGatewaysPage() {
       },
       {
         header: '# of Listeners',
-        accessorKey: 'numberOfListeners',
+        accessorKey: 'listeners',
+        cell: ({ row }) => {
+          return row.original.listeners?.length ?? 0
+        },
       },
       {
         header: 'Status',
