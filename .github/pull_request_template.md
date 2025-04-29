@@ -14,6 +14,7 @@ Briefly describe what this PR changes and why. Focus on:
 
 - What problem is being solved or what feature is being added
 - The impact of the change
+- The related issue number, if applicable (e.g., “Fixes #123” or “Closes #456”)
 
 ## Labels
 
@@ -23,6 +24,7 @@ Please add the appropriate label(s) to your PR:
 - `enhancement` - For new features or improvements
 - `chore` - For dependency updates, refactoring, or maintenance tasks
 - `highlight` - For particularly notable changes that should be featured in the changelog
+- `invalid` – For PRs that are incorrect, unnecessary, or should not be included in the changelog (typically when closing the PR)
 
 ## AI Changelog Generation
 
