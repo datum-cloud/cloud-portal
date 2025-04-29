@@ -35,7 +35,7 @@ export const loader = withMiddleware(async ({ params, context }) => {
     throw new CustomError('Project ID is required', 400)
   }
 
-  const networks = await networksControl.getNetworks(projectId)
+  const networks = await networksControl.list(projectId)
 
   return networks
 }, authMiddleware)
@@ -49,7 +49,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
       const formData = Object.fromEntries(await request.formData())
       const { networkId, projectId } = formData
 
-      await networksControl.deleteNetwork(projectId as string, networkId as string)
+      await networksControl.delete(projectId as string, networkId as string)
       return dataWithToast(null, {
         title: 'Network deleted successfully',
         description: 'The network has been deleted successfully',

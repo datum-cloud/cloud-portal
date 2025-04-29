@@ -9,19 +9,19 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { createGatewaysControl } from '@/resources/control-plane/gateways.control'
 import { IGatewayControlResponse } from '@/resources/interfaces/gateway.interface'
+import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api+/networks+/gateways+/actions'
 import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast } from '@/utils/toast.server'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import {
-  ActionFunctionArgs,
   AppLoadContext,
   Link,
   useLoaderData,
+  useNavigate,
   useParams,
   useSubmit,
 } from 'react-router'
@@ -39,31 +39,11 @@ export const loader = withMiddleware(async ({ context, params }) => {
   return gateways
 }, authMiddleware)
 
-export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { controlPlaneClient } = context as AppLoadContext
-  const gatewaysControl = createGatewaysControl(controlPlaneClient as Client)
-
-  switch (request.method) {
-    case 'DELETE': {
-      const formData = Object.fromEntries(await request.formData())
-      const { id, projectId } = formData
-
-      await gatewaysControl.delete(projectId as string, id as string)
-      return dataWithToast(null, {
-        title: 'Gateway deleted successfully',
-        description: 'The gateway has been deleted successfully',
-        type: 'success',
-      })
-    }
-    default:
-      throw new Error('Method not allowed')
-  }
-}, authMiddleware)
-
 export default function ConnectGatewaysPage() {
   const { orgId, projectId } = useParams()
   const data = useLoaderData<typeof loader>()
   const submit = useSubmit()
+  const navigate = useNavigate()
 
   const { confirm } = useConfirmationDialog()
 
@@ -88,11 +68,13 @@ export default function ConnectGatewaysPage() {
           {
             id: gateway.name ?? '',
             projectId: projectId ?? '',
+            orgId: orgId ?? '',
           },
           {
             method: 'DELETE',
             fetcherKey: 'gateway-resources',
             navigate: false,
+            action: GATEWAYS_ACTIONS_PATH,
           },
         )
       },
@@ -105,7 +87,17 @@ export default function ConnectGatewaysPage() {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return <span className="text-primary font-semibold">{row.original.name}</span>
+          return (
+            <Link
+              to={getPathWithParams(routes.projects.connect.gateways.edit, {
+                orgId,
+                projectId,
+                gatewayId: row.original.name,
+              })}
+              className="text-primary font-semibold">
+              {row.original.name}
+            </Link>
+          )
         },
       },
       {
@@ -149,19 +141,19 @@ export default function ConnectGatewaysPage() {
 
   const rowActions: DataTableRowActionsProps<IGatewayControlResponse>[] = useMemo(
     () => [
-      /* {
+      {
         key: 'edit',
         label: 'Edit',
         action: (row) => {
           navigate(
-            getPathWithParams(routes.projects.observe.exportPolicies.edit, {
+            getPathWithParams(routes.projects.connect.gateways.edit, {
               orgId,
               projectId,
-              exportPolicyId: row.name,
+              gatewayId: row.name,
             }),
           )
         },
-      }, */
+      },
       {
         key: 'delete',
         label: 'Delete',

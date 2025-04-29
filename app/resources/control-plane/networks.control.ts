@@ -33,7 +33,7 @@ export const createNetworksControl = (client: Client) => {
   }
 
   return {
-    getNetworks: async (projectId: string) => {
+    list: async (projectId: string) => {
       const response = await listNetworkingDatumapisComV1AlphaNamespacedNetwork({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -44,7 +44,7 @@ export const createNetworksControl = (client: Client) => {
 
       return response.data?.items?.map(transformNetwork) ?? []
     },
-    getNetwork: async (projectId: string, networkId: string) => {
+    detail: async (projectId: string, networkId: string) => {
       const response = await readNetworkingDatumapisComV1AlphaNamespacedNetwork({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -57,11 +57,7 @@ export const createNetworksControl = (client: Client) => {
 
       return transformNetwork(response.data)
     },
-    createNetwork: async (
-      projectId: string,
-      payload: NewNetworkSchema,
-      dryRun: boolean,
-    ) => {
+    create: async (projectId: string, payload: NewNetworkSchema, dryRun: boolean) => {
       const response = await createNetworkingDatumapisComV1AlphaNamespacedNetwork({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -94,7 +90,7 @@ export const createNetworksControl = (client: Client) => {
 
       return dryRun ? response.data : transformNetwork(response.data)
     },
-    updateNetwork: async (
+    update: async (
       projectId: string,
       networkId: string,
       payload: UpdateNetworkSchema,
@@ -133,7 +129,7 @@ export const createNetworksControl = (client: Client) => {
 
       return dryRun ? response.data : transformNetwork(response.data)
     },
-    deleteNetwork: async (projectId: string, networkId: string) => {
+    delete: async (projectId: string, networkId: string) => {
       const response = await deleteNetworkingDatumapisComV1AlphaNamespacedNetwork({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
