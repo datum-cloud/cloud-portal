@@ -5,10 +5,15 @@ import {
   readGatewayNetworkingV1NamespacedGatewayStatus,
 } from '@/modules/control-plane/gateway/sdk.gen'
 import { IoK8sNetworkingGatewayV1Gateway } from '@/modules/control-plane/gateway/types.gen'
-import { IGatewayControlResponse } from '@/resources/interfaces/gateway.interface'
+import {
+  GatewayAllowedRoutes,
+  GatewayProtocol,
+  GatewayTlsMode,
+  IGatewayControlResponse,
+} from '@/resources/interfaces/gateway.interface'
 import { GatewaySchema } from '@/resources/schemas/gateway.schema'
 import { CustomError } from '@/utils/errorHandle'
-import { transformControlPlaneStatus } from '@/utils/misc'
+import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
 export const createGatewaysControl = (client: Client) => {
@@ -24,9 +29,55 @@ export const createGatewaysControl = (client: Client) => {
       namespace: metadata?.namespace,
       name: metadata?.name,
       gatewayClass: spec.gatewayClassName,
-      numberOfListeners: spec.listeners.length,
+      listeners: spec.listeners,
+      // numberOfListeners: spec.listeners.length,
       status: status,
       createdAt: metadata?.creationTimestamp,
+    }
+  }
+
+  const formatGateway = (payload: GatewaySchema): IoK8sNetworkingGatewayV1Gateway => {
+    return {
+      metadata: {
+        name: payload?.name,
+        labels: convertLabelsToObject(payload?.labels ?? []),
+        annotations: convertLabelsToObject(payload?.annotations ?? []),
+      },
+      spec: {
+        gatewayClassName: 'datum-external-global-proxy', // TODO: make it configurable.
+        listeners: payload?.listeners?.map((listener) => ({
+          name: listener?.name,
+          port: listener?.port,
+          protocol: listener?.protocol,
+          allowedRoutes: {
+            namespaces: {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              from: (listener?.allowedRoutes ?? GatewayAllowedRoutes.SAME) as any,
+              // matchLabels on for selector
+              // Enable match labels when allowed routes is selector available
+              /* ...(listener?.allowedRoutes === GatewayAllowedRoutes.SELECTOR
+                ? {
+                    selector: {
+                      matchLabels: convertLabelsToObject(listener?.matchLabels ?? []),
+                    },
+                  }
+                : {}), */
+            },
+          },
+          ...(listener?.protocol === GatewayProtocol.HTTPS
+            ? {
+                tls: {
+                  mode: (listener?.tlsConfiguration?.mode ??
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    GatewayTlsMode.TERMINATE) as any,
+                  options: {
+                    'gateway.networking.datumapis.com/certificate-issuer': 'auto',
+                  },
+                },
+              }
+            : {}),
+        })),
+      },
     }
   }
 
@@ -41,9 +92,10 @@ export const createGatewaysControl = (client: Client) => {
     },
     create: async (
       projectId: string,
-      gateway: GatewaySchema,
+      payload: GatewaySchema,
       dryRun: boolean = false,
     ) => {
+      const formatted = formatGateway(payload)
       const response = await createGatewayNetworkingV1NamespacedGateway({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -51,11 +103,11 @@ export const createGatewaysControl = (client: Client) => {
         query: {
           dryRun: dryRun ? 'All' : undefined,
         },
-        headers: {
-          'Content-Type':
-            gateway.format === 'yaml' ? 'application/yaml' : 'application/json',
+        body: {
+          ...formatted,
+          apiVersion: 'gateway.networking.k8s.io/v1',
+          kind: 'Gateway',
         },
-        body: gateway.configuration as unknown as IoK8sNetworkingGatewayV1Gateway,
       })
 
       if (!response.data) {

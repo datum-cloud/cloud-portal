@@ -32,6 +32,7 @@ export const action = withMiddleware(
 
     try {
       await validateCSRF(formData, clonedRequest.headers)
+
       const parsed = parseWithZod(formData, { schema: gatewaySchema })
 
       if (parsed.status !== 'success') {

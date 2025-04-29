@@ -1,4 +1,4 @@
-import { MetadataForm } from '../metadata-form'
+import { SecretMetadataForm } from '../metadata-form'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -111,7 +111,7 @@ export const EditSecretMetadata = ({
           className="flex flex-col gap-6">
           <AuthenticityTokenInput />
           <CardContent className="space-y-4">
-            <MetadataForm
+            <SecretMetadataForm
               fields={
                 fields as unknown as ReturnType<typeof useForm<SecretBaseSchema>>[1]
               }

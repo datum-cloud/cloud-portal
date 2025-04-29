@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { WorkloadHelper } from '../helper'
-import { MetadataForm, MetadataPreview } from './metadata-form'
 import { NetworksForm, NetworkPreview } from './network/networks-form'
 import { PlacementsForm, PlacementsPreview } from './placement/placements-form'
 import { RuntimeForm, RuntimePreview } from './runtime/runtime-form'
 import { StoragesForm, StoragesPreview } from './storage/storages-form'
+import { MetadataForm } from '@/components/metadata/metadata-form'
+import { MetadataPreview } from '@/components/metadata/metadata-preview'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { BOOT_IMAGES } from '@/constants/bootImages'
+import { WorkloadHelper } from '@/features/workload/helper'
 import { useIsPending } from '@/hooks/useIsPending'
 import {
   IWorkloadControlResponse,

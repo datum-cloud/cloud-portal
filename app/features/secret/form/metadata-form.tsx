@@ -20,7 +20,7 @@ import {
 import { useEffect, useRef } from 'react'
 import { useHydrated } from 'remix-utils/use-hydrated'
 
-export const MetadataForm = ({
+export const SecretMetadataForm = ({
   fields,
   defaultValue,
   isEdit = false,

@@ -1,12 +1,10 @@
 import { Field } from '@/components/field/field'
-import { List, ListItem } from '@/components/list/list'
 import { SelectAnnotations } from '@/components/select-annotations/select-annotations'
 import { SelectLabels } from '@/components/select-labels/select-labels'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { MetadataSchema } from '@/resources/schemas/metadata.schema'
 import { getInputProps, useForm, useInputControl } from '@conform-to/react'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useHydrated } from 'remix-utils/use-hydrated'
 
 export const MetadataForm = ({
@@ -43,14 +41,14 @@ export const MetadataForm = ({
       <Field
         isRequired
         label="Name"
-        description="A namespace-unique stable identifier for your workload. This cannot be changed once the workload is created"
+        description="A namespace-unique stable identifier for your export policy. This cannot be changed once the export policy is created"
         errors={fields.name.errors}>
         <Input
-          readOnly={isEdit}
           {...getInputProps(fields.name, { type: 'text' })}
+          readOnly={isEdit}
           key={fields.name.id}
-          ref={inputRef}
-          placeholder="e.g. my-workload-us-3sd122"
+          ref={isEdit ? undefined : inputRef}
+          placeholder="e.g. my-name-3sd122"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             const value = (e.target as HTMLInputElement).value
             nameControl.change(value)
@@ -60,7 +58,7 @@ export const MetadataForm = ({
       <Field
         label="Labels"
         errors={fields.labels.errors}
-        description="Add labels to help identify, organize, and filter your workloads.">
+        description="Add labels to help identify, organize, and filter your export policies.">
         <SelectLabels
           defaultValue={fields.labels.value as string[]}
           onChange={(value) => {
@@ -71,7 +69,7 @@ export const MetadataForm = ({
       <Field
         label="Annotations"
         errors={fields.annotations.errors}
-        description="Add annotations to help identify, organize, and filter your workloads.">
+        description="Add annotations to help identify, organize, and filter your export policies.">
         <SelectAnnotations
           defaultValue={fields.annotations.value as string[]}
           onChange={(value) => {
@@ -81,44 +79,4 @@ export const MetadataForm = ({
       </Field>
     </div>
   )
-}
-
-export const MetadataPreview = ({ values }: { values: MetadataSchema }) => {
-  const listItems: ListItem[] = useMemo(() => {
-    if (values) {
-      return [
-        { label: 'Name', content: values.name },
-        {
-          label: 'Labels',
-          hidden: (values.labels ?? []).length === 0,
-          content: (
-            <div className="flex flex-wrap gap-2">
-              {values.labels?.map((label: string) => (
-                <Badge key={label} variant="outline">
-                  {label}
-                </Badge>
-              ))}
-            </div>
-          ),
-        },
-        {
-          label: 'Annotations',
-          hidden: (values.annotations ?? []).length === 0,
-          content: (
-            <div className="flex flex-wrap gap-2">
-              {values.annotations?.map((annotation: string) => (
-                <Badge key={annotation} variant="outline">
-                  {annotation}
-                </Badge>
-              ))}
-            </div>
-          ),
-        },
-      ]
-    }
-
-    return []
-  }, [values])
-
-  return <List items={listItems} itemClassName="!border-b-0 !px-0 py-1.5" />
 }

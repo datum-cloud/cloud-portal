@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { MetadataForm, MetadataPreview } from './metadata-form'
 import { SinksForm } from './sink/sinks-form'
 import { SinksPreview } from './sink/sinks-preview'
 import { SourcesForm } from './source/sources-form'
 import { SourcesPreview } from './source/sources-preview'
+import { MetadataForm } from '@/components/metadata/metadata-form'
+import { MetadataPreview } from '@/components/metadata/metadata-preview'
 import { Button } from '@/components/ui/button'
 import {
   Card,
