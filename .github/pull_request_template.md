@@ -23,8 +23,8 @@ Please add the appropriate label(s) to your PR:
 - `bug` - For fixing bugs or issues
 - `enhancement` - For new features or improvements
 - `chore` - For dependency updates, refactoring, or maintenance tasks
-- `highlight` - For particularly notable changes that should be featured in the changelog
-- `invalid` – For PRs that are incorrect, unnecessary, or should not be included in the changelog (typically when closing the PR)
+- `changelog:highlight` - For particularly notable changes that should be featured in the changelog
+- `invalid` or `changelog:ignore`– For PRs that are incorrect, unnecessary, or should not be included in the changelog (typically when closing the PR)
 
 ## AI Changelog Generation
 
