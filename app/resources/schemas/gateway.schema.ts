@@ -14,15 +14,6 @@ export const gatewayTlsSchema = z.object({
 
 export const gatewayListenerFieldSchema = z
   .object({
-    port: z.coerce
-      .number({ required_error: 'Port is required.' })
-      .min(1, {
-        message: 'Port must be at least 1.',
-      })
-      .max(65535, {
-        message: 'Port must be at most 65535.',
-      })
-      .transform((val) => Number(val)),
     protocol: z.enum(Object.values(GatewayProtocol) as [string, ...string[]], {
       required_error: 'Protocol is required.',
     }),
@@ -30,7 +21,7 @@ export const gatewayListenerFieldSchema = z
     allowedRoutes: z.enum(Object.values(GatewayAllowedRoutes) as [string, ...string[]], {
       required_error: 'Allowed routes is required.',
     }),
-    matchLabels: z.array(z.string()).optional(),
+    // matchLabels: z.array(z.string()).optional(),
   })
   .and(nameSchema)
   .refine(
@@ -65,7 +56,9 @@ export const gatewayListenerSchema = z.object({
 })
 
 export const gatewaySchema = z
-  .object({})
+  .object({
+    resourceVersion: z.string().optional(),
+  })
   .and(gatewayListenerSchema)
   .and(metadataSchema)
   .superRefine((data, ctx) => {

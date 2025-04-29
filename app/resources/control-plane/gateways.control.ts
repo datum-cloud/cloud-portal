@@ -2,11 +2,14 @@ import {
   createGatewayNetworkingV1NamespacedGateway,
   deleteGatewayNetworkingV1NamespacedGateway,
   listGatewayNetworkingV1GatewayForAllNamespaces,
+  readGatewayNetworkingV1NamespacedGateway,
   readGatewayNetworkingV1NamespacedGatewayStatus,
+  replaceGatewayNetworkingV1NamespacedGateway,
 } from '@/modules/control-plane/gateway/sdk.gen'
 import { IoK8sNetworkingGatewayV1Gateway } from '@/modules/control-plane/gateway/types.gen'
 import {
   GatewayAllowedRoutes,
+  GatewayPort,
   GatewayProtocol,
   GatewayTlsMode,
   IGatewayControlResponse,
@@ -42,12 +45,15 @@ export const createGatewaysControl = (client: Client) => {
         name: payload?.name,
         labels: convertLabelsToObject(payload?.labels ?? []),
         annotations: convertLabelsToObject(payload?.annotations ?? []),
+        ...(payload?.resourceVersion
+          ? { resourceVersion: payload?.resourceVersion }
+          : {}),
       },
       spec: {
         gatewayClassName: 'datum-external-global-proxy', // TODO: make it configurable.
         listeners: payload?.listeners?.map((listener) => ({
           name: listener?.name,
-          port: listener?.port,
+          port: GatewayPort[listener.protocol as keyof typeof GatewayPort],
           protocol: listener?.protocol,
           allowedRoutes: {
             namespaces: {
@@ -128,6 +134,46 @@ export const createGatewaysControl = (client: Client) => {
       }
 
       return response.data
+    },
+    detail: async (projectId: string, gatewayId: string) => {
+      const response = await readGatewayNetworkingV1NamespacedGateway({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { name: gatewayId, namespace: 'default' },
+      })
+
+      if (!response.data) {
+        throw new CustomError(`Gateway ${gatewayId} not found`, 404)
+      }
+
+      return transformGateway(response.data)
+    },
+    update: async (
+      projectId: string,
+      gatewayId: string,
+      payload: GatewaySchema,
+      dryRun: boolean = false,
+    ) => {
+      const formatted = formatGateway(payload)
+      const response = await replaceGatewayNetworkingV1NamespacedGateway({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { name: gatewayId, namespace: 'default' },
+        query: {
+          dryRun: dryRun ? 'All' : undefined,
+        },
+        body: {
+          ...formatted,
+          apiVersion: 'gateway.networking.k8s.io/v1',
+          kind: 'Gateway',
+        },
+      })
+
+      if (!response.data) {
+        throw new CustomError('Failed to update gateway', 500)
+      }
+
+      return dryRun ? response.data : transformGateway(response.data)
     },
     getStatus: async (projectId: string, gatewayId: string) => {
       const response = await readGatewayNetworkingV1NamespacedGatewayStatus({

@@ -19,6 +19,11 @@ export enum GatewayProtocol {
   HTTPS = 'HTTPS',
 }
 
+export enum GatewayPort {
+  HTTP = 80,
+  HTTPS = 443,
+}
+
 export enum GatewayTlsMode {
   TERMINATE = 'Terminate',
 }

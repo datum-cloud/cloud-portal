@@ -51,7 +51,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
 
         const formattedPayload = parsed.data as NewNetworkSchema
 
-        const dryRunRes = await networksControl.createNetwork(
+        const dryRunRes = await networksControl.create(
           projectId as string,
           formattedPayload,
           true,
@@ -59,7 +59,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
 
         let res: INetworkControlResponse | undefined
         if (dryRunRes) {
-          res = (await networksControl.createNetwork(
+          res = (await networksControl.create(
             projectId as string,
             formattedPayload,
             false,
@@ -90,7 +90,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
 
         const formattedPayload = parsed.data as UpdateNetworkSchema
         // First try with dryRun to validate
-        const dryRunRes = await networksControl.updateNetwork(
+        const dryRunRes = await networksControl.update(
           projectId,
           networkId,
           formattedPayload,
@@ -100,7 +100,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
         // If dryRun succeeds, update for real
         let res: INetworkControlResponse | undefined
         if (dryRunRes) {
-          res = (await networksControl.updateNetwork(
+          res = (await networksControl.update(
             projectId,
             networkId,
             formattedPayload,

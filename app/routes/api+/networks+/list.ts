@@ -33,7 +33,7 @@ export const loader = withMiddleware(async ({ request, context }) => {
   }
 
   // Fetch fresh networks from control plane
-  const networks = await networksControl.getNetworks(projectId)
+  const networks = await networksControl.list(projectId)
 
   // Cache the fresh networks if caching is enabled
   await cache.setItem(key, networks).catch((error) => {

@@ -16,7 +16,6 @@ import { PlusIcon, TrashIcon } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 
 const defaultValue = {
-  port: 80,
   protocol: GatewayProtocol.HTTP,
   allowedRoutes: GatewayAllowedRoutes.SAME,
   tlsConfiguration: {

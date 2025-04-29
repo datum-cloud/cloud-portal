@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { useIsPending } from '@/hooks/useIsPending'
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import {
   GatewayProtocol,
   GatewayAllowedRoutes,
@@ -23,21 +24,63 @@ import {
   gatewaySchema,
 } from '@/resources/schemas/gateway.schema'
 import { MetadataSchema } from '@/resources/schemas/metadata.schema'
+import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api+/networks+/gateways+/actions'
 import { convertObjectToLabels } from '@/utils/misc'
 import { FormProvider, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { get } from 'es-toolkit/compat'
 import { useEffect, useMemo, useState } from 'react'
-import { Form, useNavigate } from 'react-router'
+import { Form, useNavigate, useSubmit } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 
 export const GatewayForm = ({
   defaultValue,
+  projectId,
+  orgId,
 }: {
   defaultValue?: IGatewayControlResponse
+  projectId?: string
+  orgId?: string
 }) => {
   const navigate = useNavigate()
   const isPending = useIsPending()
+  const submit = useSubmit()
+
+  const { confirm } = useConfirmationDialog()
+
+  const deleteGateway = async () => {
+    await confirm({
+      title: 'Delete Gateway',
+      description: (
+        <span>
+          Are you sure you want to delete&nbsp;
+          <strong>{defaultValue?.name}</strong>?
+        </span>
+      ),
+      submitText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      showConfirmInput: true,
+      confirmInputLabel: `Type "${defaultValue?.name}" to confirm.`,
+      confirmInputPlaceholder: 'Type the gateway name to confirm deletion',
+      confirmValue: defaultValue?.name ?? 'delete',
+      onSubmit: async () => {
+        await submit(
+          {
+            id: defaultValue?.name ?? '',
+            projectId: projectId ?? '',
+            orgId: orgId ?? '',
+          },
+          {
+            method: 'DELETE',
+            fetcherKey: 'gateway-resources',
+            navigate: false,
+            action: GATEWAYS_ACTIONS_PATH,
+          },
+        )
+      },
+    })
+  }
 
   const [formattedValues, setFormattedValues] = useState<GatewaySchema>()
   const [form, fields] = useForm({
@@ -69,11 +112,11 @@ export const GatewayForm = ({
             'allowedRoutes.namespaces.from',
             GatewayAllowedRoutes.SAME,
           )
-          const matchLabels = get(
+          /* const matchLabels = get(
             listener,
             'allowedRoutes.namespaces.selector.matchLabels',
             {},
-          )
+          ) */
 
           const tls =
             listener.protocol === GatewayProtocol.HTTPS
@@ -87,7 +130,7 @@ export const GatewayForm = ({
             port: listener.port ?? 80,
             protocol: listener.protocol ?? '',
             allowedRoutes: from,
-            matchLabels: from === 'Selector' ? convertObjectToLabels(matchLabels) : [],
+            // matchLabels: from === 'Selector' ? convertObjectToLabels(matchLabels) : [],
             tlsConfiguration: tls,
           }
         },
@@ -119,6 +162,14 @@ export const GatewayForm = ({
           className="flex flex-col gap-6">
           <AuthenticityTokenInput />
 
+          {isEdit && (
+            <input
+              type="hidden"
+              name="resourceVersion"
+              value={defaultValue?.resourceVersion}
+            />
+          )}
+
           <CardContent className="space-y-4">
             <MetadataForm
               fields={fields as unknown as ReturnType<typeof useForm<MetadataSchema>>[1]}
@@ -132,25 +183,38 @@ export const GatewayForm = ({
               defaultValues={{ listeners: formattedValues?.listeners ?? [] }}
             />
           </CardContent>
-          <CardFooter className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="link"
-              disabled={isPending}
-              onClick={() => {
-                navigate(-1)
-              }}>
-              Return to List
-            </Button>
-            <Button
-              variant="default"
-              type="submit"
-              disabled={isPending}
-              isLoading={isPending}>
-              {isPending
-                ? `${isEdit ? 'Saving' : 'Creating'}`
-                : `${isEdit ? 'Save' : 'Create'}`}
-            </Button>
+          <CardFooter className="flex justify-between gap-2">
+            {isEdit ? (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => deleteGateway()}
+                disabled={isPending}>
+                Delete
+              </Button>
+            ) : (
+              <div />
+            )}
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="link"
+                disabled={isPending}
+                onClick={() => {
+                  navigate(-1)
+                }}>
+                Return to List
+              </Button>
+              <Button
+                variant="default"
+                type="submit"
+                disabled={isPending}
+                isLoading={isPending}>
+                {isPending
+                  ? `${isEdit ? 'Saving' : 'Creating'}`
+                  : `${isEdit ? 'Save' : 'Create'}`}
+              </Button>
+            </div>
           </CardFooter>
         </Form>
       </FormProvider>

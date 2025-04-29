@@ -18,14 +18,14 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export const action = withMiddleware(
   async ({ request, context, params }: ActionFunctionArgs) => {
-    const { controlPlaneClient } = context as AppLoadContext
     const { projectId, orgId } = params
-
-    const gatewaysControl = createGatewaysControl(controlPlaneClient as Client)
 
     if (!projectId) {
       throw new Error('Project ID is required')
     }
+
+    const { controlPlaneClient } = context as AppLoadContext
+    const gatewaysControl = createGatewaysControl(controlPlaneClient as Client)
 
     const clonedRequest = request.clone()
     const formData = await clonedRequest.formData()
