@@ -8,9 +8,10 @@ import {
   replaceTelemetryDatumapisComV1Alpha1NamespacedExportPolicy,
 } from '@/modules/control-plane/telemetry/sdk.gen'
 import {
+  ExportPolicyAuthenticationType,
   ExportPolicySinkType,
   IExportPolicyControlResponse,
-} from '@/resources/interfaces/policy.interface'
+} from '@/resources/interfaces/export-policy.interface'
 import { NewExportPolicySchema } from '@/resources/schemas/export-policy.schema'
 import { CustomError } from '@/utils/errorHandle'
 import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/misc'
@@ -57,7 +58,7 @@ export const createExportPoliciesControl = (client: Client) => {
         })),
         sinks: (value?.sinks ?? []).map((sink) => ({
           name: sink.name,
-          sources: sink.sources ?? [],
+          sources: [...new Set(sink.sources ?? [])],
           target: {
             ...(sink.type === ExportPolicySinkType.PROMETHEUS && {
               prometheusRemoteWrite: {
@@ -70,6 +71,19 @@ export const createExportPoliciesControl = (client: Client) => {
                   backoffDuration: `${sink.prometheusRemoteWrite?.retry?.backoffDuration ?? 1}s`,
                   maxAttempts: sink.prometheusRemoteWrite?.retry?.maxAttempts ?? 3,
                 },
+                ...(sink.prometheusRemoteWrite?.authentication?.authType && {
+                  authentication: {
+                    ...(sink.prometheusRemoteWrite?.authentication?.authType ===
+                      ExportPolicyAuthenticationType.BASIC_AUTH && {
+                      basicAuth: {
+                        secretRef: {
+                          name:
+                            sink.prometheusRemoteWrite?.authentication?.secretName ?? '',
+                        },
+                      },
+                    }),
+                  },
+                }),
               },
             }),
           },

@@ -94,12 +94,10 @@ export const SourceField = ({
             value={typeControl.value}
             defaultValue={defaultValues?.type}
             onValueChange={typeControl.change}>
-            <SelectTrigger
-              disabled
-              className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+            <SelectTrigger disabled>
               <SelectValue placeholder="Select a source type" />
             </SelectTrigger>
-            <SelectContent className="w-[var(--radix-select-trigger-width)]">
+            <SelectContent>
               {Object.keys(POLICY_SOURCE_TYPES).map((type) => (
                 <SelectItem key={type} value={type}>
                   {POLICY_SOURCE_TYPES[type as keyof typeof POLICY_SOURCE_TYPES].label}

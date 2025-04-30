@@ -18,7 +18,7 @@ import {
   ExportPolicySinkType,
   ExportPolicySourceType,
   IExportPolicyControlResponse,
-} from '@/resources/interfaces/policy.interface'
+} from '@/resources/interfaces/export-policy.interface'
 import {
   exportPolicySourcesSchema,
   exportPolicySinksSchema,
@@ -75,8 +75,10 @@ const { useStepper } = defineStepper(
 )
 
 export const ExportPolicyStepperForm = ({
+  projectId,
   defaultValue,
 }: {
+  projectId?: string
   defaultValue?: IExportPolicyControlResponse
 }) => {
   const submit = useSubmit()
@@ -264,6 +266,7 @@ export const ExportPolicyStepperForm = ({
                           ),
                           sinks: () => (
                             <SinksForm
+                              projectId={projectId}
                               isEdit={isEdit}
                               fields={
                                 fields as unknown as ReturnType<

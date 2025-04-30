@@ -1,8 +1,9 @@
 import { nameSchema, metadataSchema } from './metadata.schema'
 import {
+  ExportPolicyAuthenticationType,
   ExportPolicySinkType,
   ExportPolicySourceType,
-} from '@/resources/interfaces/policy.interface'
+} from '@/resources/interfaces/export-policy.interface'
 import { z } from 'zod'
 
 // Source Field Schema
@@ -11,7 +12,7 @@ export const sourceFieldSchema = z
     type: z.enum(Object.values(ExportPolicySourceType) as [string, ...string[]], {
       required_error: 'Source type is required.',
     }),
-    metricQuery: z.string({ required_error: 'MetricsQL query is required.' }).optional(),
+    metricQuery: z.string().optional(),
   })
   .and(nameSchema)
   .refine(
@@ -57,40 +58,58 @@ export const exportPolicySourcesSchema = z
   })
 
 // Sinks Field Schema
+
+export const sinkAuthenticationSchema = z
+  .object({
+    authType: z
+      .enum(Object.values(ExportPolicyAuthenticationType) as [string, ...string[]])
+      .optional(),
+    secretName: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data?.authType === ExportPolicyAuthenticationType.BASIC_AUTH) {
+        return !!data?.secretName
+      }
+      return true
+    },
+    {
+      message: 'Secret is required for basic auth',
+      path: ['secretName'],
+    },
+  )
+
 export const sinkPrometheusSchema = z.object({
   endpoint: z.string({ required_error: 'Endpoint URL is required.' }).url({
     message: 'Please enter a valid URL',
   }),
+  authentication: sinkAuthenticationSchema.optional(),
   batch: z.object({
     maxSize: z.coerce
-      .number()
+      .number({ required_error: 'Max size is required.' })
       .min(1, {
-        message: 'Batch size must be at least 1.',
+        message: 'Max size must be at least 1.',
       })
-      .default(100)
       .transform((val) => Number(val)),
     timeout: z.coerce
-      .number()
+      .number({ required_error: 'Timeout is required.' })
       .min(5, {
-        message: 'Batch timeout must be at least 5s.',
+        message: 'Timeout must be at least 5s.',
       })
-      .default(5)
       .transform((val) => Number(val)),
   }),
   retry: z.object({
     backoffDuration: z.coerce
-      .number()
+      .number({ required_error: 'Backoff duration is required.' })
       .min(5, {
         message: 'Backoff duration must be at least 5s.',
       })
-      .default(5)
       .transform((val) => Number(val)),
     maxAttempts: z.coerce
-      .number()
+      .number({ required_error: 'Max attempts is required.' })
       .min(1, {
         message: 'Max attempts must be at least 1.',
       })
-      .default(3)
       .transform((val) => Number(val)),
   }),
 })
@@ -156,6 +175,9 @@ export type ExportPolicySourceFieldSchema = z.infer<typeof sourceFieldSchema>
 export type ExportPolicySinksSchema = z.infer<typeof exportPolicySinksSchema>
 export type ExportPolicySinkFieldSchema = z.infer<typeof sinkFieldSchema>
 export type ExportPolicySinkPrometheusFieldSchema = z.infer<typeof sinkPrometheusSchema>
+export type ExportPolicySinkAuthenticationSchema = z.infer<
+  typeof sinkAuthenticationSchema
+>
 
 export type NewExportPolicySchema = z.infer<typeof newExportPolicySchema>
 export type UpdateExportPolicySchema = z.infer<typeof updateExportPolicySchema>

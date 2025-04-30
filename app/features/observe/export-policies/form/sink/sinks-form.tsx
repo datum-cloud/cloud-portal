@@ -1,6 +1,6 @@
 import { SinkField } from './sink-field'
 import { Button } from '@/components/ui/button'
-import { ExportPolicySinkType } from '@/resources/interfaces/policy.interface'
+import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.interface'
 import {
   ExportPolicySinkFieldSchema,
   ExportPolicySinksSchema,
@@ -17,11 +17,13 @@ export const SinksForm = ({
   defaultValues,
   isEdit = false,
   sourceList,
+  projectId,
 }: {
   fields: ReturnType<typeof useForm<UpdateExportPolicySchema>>[1]
   defaultValues?: ExportPolicySinksSchema
   isEdit?: boolean
   sourceList?: ExportPolicySourceFieldSchema[]
+  projectId?: string
 }) => {
   const form = useFormMetadata('export-policy-form')
   const fieldList = fields.sinks.getFieldList()
@@ -54,7 +56,6 @@ export const SinksForm = ({
 
   return (
     <div className="flex flex-col gap-2">
-      {sourceNames}
       <div className="space-y-4">
         {fieldList.map((field, index) => {
           const sinkFields = field.getFieldset()
@@ -63,6 +64,7 @@ export const SinksForm = ({
               className="relative flex items-center gap-2 rounded-md border p-4"
               key={field.key}>
               <SinkField
+                projectId={projectId}
                 isEdit={isEdit}
                 fields={
                   sinkFields as unknown as ReturnType<

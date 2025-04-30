@@ -84,15 +84,11 @@ export const RuntimeForm = ({
           key={fields.instanceType.id}
           value={instanceTypeControl.value}
           defaultValue={defaultValues?.instanceType}>
-          <SelectTrigger
-            disabled
-            className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+          <SelectTrigger disabled>
             <SelectValue placeholder="Select an instance type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem
-              value="datumcloud/d1-standard-2"
-              className="w-[var(--radix-select-trigger-width)]">
+            <SelectItem value="datumcloud/d1-standard-2">
               datumcloud/d1-standard-2
             </SelectItem>
           </SelectContent>
@@ -121,15 +117,12 @@ export const RuntimeForm = ({
           key={fields.runtimeType.id}
           value={runtimeTypeControl.value?.toString()}
           defaultValue={defaultValues?.runtimeType}>
-          <SelectTrigger className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+          <SelectTrigger disabled>
             <SelectValue placeholder="Select a type" />
           </SelectTrigger>
           <SelectContent>
             {Object.keys(RUNTIME_TYPES).map((runtimeType) => (
-              <SelectItem
-                key={runtimeType}
-                value={runtimeType}
-                className="w-[var(--radix-select-trigger-width)]">
+              <SelectItem key={runtimeType} value={runtimeType}>
                 {RUNTIME_TYPES[runtimeType as keyof typeof RUNTIME_TYPES].label}
               </SelectItem>
             ))}

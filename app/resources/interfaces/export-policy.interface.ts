@@ -20,3 +20,7 @@ export enum ExportPolicySourceType {
 export enum ExportPolicySinkType {
   PROMETHEUS = 'Prometheus',
 }
+
+export enum ExportPolicyAuthenticationType {
+  BASIC_AUTH = 'basic-auth',
+}

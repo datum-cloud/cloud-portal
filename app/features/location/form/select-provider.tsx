@@ -35,9 +35,7 @@ export const SelectLocationProvider = ({
       }}
       key={meta.id}
       defaultValue={meta.value?.toString()}>
-      <SelectTrigger
-        disabled
-        className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+      <SelectTrigger disabled>
         <SelectValue placeholder="Select a provider" />
       </SelectTrigger>
       <SelectContent>

@@ -1,4 +1,5 @@
 import { Field } from '@/components/field/field'
+import { FieldLabel } from '@/components/field/field-label'
 import { Input } from '@/components/ui/input'
 import { InputWithAddons } from '@/components/ui/input-with-addons'
 import { ExportPolicySinkPrometheusFieldSchema } from '@/resources/schemas/export-policy.schema'
@@ -34,7 +35,7 @@ export const BatchField = ({
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <h3 className="text-sm font-medium">Batch Configuration</h3>
+      <FieldLabel label="Batch Configuration" />
       <div className="flex w-full gap-2">
         <Field
           isRequired
