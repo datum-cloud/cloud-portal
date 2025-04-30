@@ -107,10 +107,10 @@ export const PortField = ({
           value={protocolControl.value}
           defaultValue={defaultValues?.protocol}
           onValueChange={protocolControl.change}>
-          <SelectTrigger className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+          <SelectTrigger>
             <SelectValue placeholder="Select a protocol" />
           </SelectTrigger>
-          <SelectContent className="w-[var(--radix-select-trigger-width)]">
+          <SelectContent>
             {Object.keys(PortProtocol).map((protocol) => (
               <SelectItem key={protocol} value={protocol}>
                 {protocol}

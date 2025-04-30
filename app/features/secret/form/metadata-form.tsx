@@ -80,18 +80,12 @@ export const SecretMetadataForm = ({
             value={fields.type.value}
             defaultValue={fields.type.value}
             onValueChange={typeControl.change}>
-            <SelectTrigger
-              autoFocus
-              disabled={isEdit}
-              className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+            <SelectTrigger autoFocus disabled={isEdit}>
               <SelectValue placeholder="Select a Type" />
             </SelectTrigger>
             <SelectContent>
               {Object.keys(SECRET_TYPES).map((type) => (
-                <SelectItem
-                  key={type}
-                  value={type}
-                  className="w-[var(--radix-select-trigger-width)]">
+                <SelectItem key={type} value={type}>
                   {SECRET_TYPES[type as keyof typeof SECRET_TYPES].label}
                 </SelectItem>
               ))}

@@ -1,6 +1,6 @@
 import { SourceField } from './source-field'
 import { Button } from '@/components/ui/button'
-import { ExportPolicySourceType } from '@/resources/interfaces/policy.interface'
+import { ExportPolicySourceType } from '@/resources/interfaces/export-policy.interface'
 import {
   ExportPolicySourceFieldSchema,
   ExportPolicySourcesSchema,

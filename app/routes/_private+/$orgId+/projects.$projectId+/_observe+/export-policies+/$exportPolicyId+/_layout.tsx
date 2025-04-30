@@ -1,5 +1,5 @@
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control'
-import { IExportPolicyControlResponse } from '@/resources/interfaces/policy.interface'
+import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { Client } from '@hey-api/client-axios'

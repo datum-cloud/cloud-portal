@@ -36,10 +36,10 @@ export const TlsConfiguration = ({
         onValueChange={(value) => {
           modeControl.change(value)
         }}>
-        <SelectTrigger className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+        <SelectTrigger>
           <SelectValue placeholder="Select mode" />
         </SelectTrigger>
-        <SelectContent className="w-[var(--radix-select-trigger-width)]">
+        <SelectContent>
           {Object.values(GatewayTlsMode).map((mode) => (
             <SelectItem key={mode} value={mode}>
               {mode}

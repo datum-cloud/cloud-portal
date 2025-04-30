@@ -14,10 +14,11 @@ import { routes } from '@/constants/routes'
 import { useIsPending } from '@/hooks/useIsPending'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import {
+  ExportPolicyAuthenticationType,
   ExportPolicySinkType,
   ExportPolicySourceType,
   IExportPolicyControlResponse,
-} from '@/resources/interfaces/policy.interface'
+} from '@/resources/interfaces/export-policy.interface'
 import {
   ExportPolicySinkFieldSchema,
   ExportPolicySourceFieldSchema,
@@ -136,30 +137,36 @@ export const ExportPolicyUpdateForm = ({
 
       const sinks: ExportPolicySinkFieldSchema[] = (defaultValue?.sinks ?? []).map(
         (sink) => {
-          const prometheusRemoteWrite = has(sink.target, 'prometheusRemoteWrite')
-            ? {
-                prometheusRemoteWrite: {
-                  endpoint: sink?.target.prometheusRemoteWrite?.endpoint ?? '',
-                  batch: {
-                    maxSize: sink?.target.prometheusRemoteWrite?.batch?.maxSize ?? 100,
-                    timeout: Number(
-                      sink?.target.prometheusRemoteWrite?.batch?.timeout.replace('s', ''),
-                    ),
-                  },
-                  retry: {
-                    backoffDuration: Number(
-                      sink?.target.prometheusRemoteWrite?.retry?.backoffDuration.replace(
-                        's',
-                        '',
-                      ),
-                    ),
-                    maxAttempts: Number(
-                      sink?.target.prometheusRemoteWrite?.retry?.maxAttempts,
-                    ),
-                  },
-                },
+          let prometheusRemoteWrite = undefined
+          if (has(sink.target, 'prometheusRemoteWrite')) {
+            const {
+              authentication: promAuth,
+              endpoint = '',
+              batch,
+              retry,
+            } = sink?.target.prometheusRemoteWrite ?? {}
+
+            let authentication = undefined
+            if (has(promAuth, 'basicAuth')) {
+              authentication = {
+                authType: ExportPolicyAuthenticationType.BASIC_AUTH,
+                secretName: promAuth?.basicAuth?.secretRef?.name ?? '',
               }
-            : {}
+            }
+
+            prometheusRemoteWrite = {
+              authentication,
+              endpoint,
+              batch: {
+                maxSize: batch?.maxSize ?? 100,
+                timeout: Number((batch?.timeout ?? '').replace('s', '')),
+              },
+              retry: {
+                backoffDuration: Number((retry?.backoffDuration ?? '').replace('s', '')),
+                maxAttempts: Number(retry?.maxAttempts),
+              },
+            }
+          }
 
           return {
             name: sink.name ?? '',
@@ -167,7 +174,7 @@ export const ExportPolicyUpdateForm = ({
               ? ExportPolicySinkType.PROMETHEUS
               : ExportPolicySinkType.PROMETHEUS,
             sources: sink.sources ?? [],
-            ...prometheusRemoteWrite,
+            prometheusRemoteWrite,
           }
         },
       )
@@ -278,6 +285,7 @@ export const ExportPolicyUpdateForm = ({
                       {section.id === 'sinks' && (
                         <SinksForm
                           isEdit
+                          projectId={projectId}
                           fields={
                             fields as unknown as ReturnType<
                               typeof useForm<UpdateExportPolicySchema>

@@ -8,7 +8,7 @@ import { WorkloadSinksTable } from '@/features/observe/export-policies/sinks-tab
 import { WorkloadSourcesTable } from '@/features/observe/export-policies/sources-table'
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { IExportPolicyControlResponse } from '@/resources/interfaces/policy.interface'
+import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface'
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'

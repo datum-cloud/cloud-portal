@@ -1,11 +1,12 @@
 import {
+  ExportPolicyAuthenticationType,
+  ExportPolicySinkType,
+  ExportPolicySourceType,
+} from '@/resources/interfaces/export-policy.interface'
+import {
   LocationClass,
   LocationProvider,
 } from '@/resources/interfaces/location.interface'
-import {
-  ExportPolicySinkType,
-  ExportPolicySourceType,
-} from '@/resources/interfaces/policy.interface'
 import { SecretType } from '@/resources/interfaces/secret.interface'
 import { RuntimeType, StorageType } from '@/resources/interfaces/workload.interface'
 
@@ -104,5 +105,12 @@ export const SECRET_TYPES = {
   [SecretType.BOOTSTRAP_TOKEN]: {
     label: 'Bootstrap Token',
     description: 'A bootstrap token is a secret that is used to store a bootstrap token.',
+  },
+}
+
+export const SINK_AUTH_TYPES = {
+  [ExportPolicyAuthenticationType.BASIC_AUTH]: {
+    label: 'Basic Auth',
+    description: 'A basic auth is a secret that is used to store a basic auth.',
   },
 }

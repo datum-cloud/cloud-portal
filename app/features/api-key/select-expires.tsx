@@ -58,7 +58,7 @@ export const SelectExpires = ({
       }}
       key={meta.id}
       defaultValue={meta.value?.toString()}>
-      <SelectTrigger className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+      <SelectTrigger>
         <SelectValue placeholder="Select a expiration" />
       </SelectTrigger>
       <SelectContent>

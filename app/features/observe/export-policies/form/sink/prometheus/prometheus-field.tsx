@@ -1,18 +1,25 @@
+import { AuthField } from './auth-field'
 import { BatchField } from './batch-field'
 import { RetryField } from './retry-field'
 import { Field } from '@/components/field/field'
+import { FieldLabel } from '@/components/field/field-label'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
-import { ExportPolicySinkPrometheusFieldSchema } from '@/resources/schemas/export-policy.schema'
+import {
+  ExportPolicySinkAuthenticationSchema,
+  ExportPolicySinkPrometheusFieldSchema,
+} from '@/resources/schemas/export-policy.schema'
 import { getInputProps, useForm, useInputControl } from '@conform-to/react'
 import { useEffect } from 'react'
 
 export const PrometheusField = ({
   fields,
   defaultValues,
+  projectId,
 }: {
   fields: ReturnType<typeof useForm<ExportPolicySinkPrometheusFieldSchema>>[1]
   defaultValues?: ExportPolicySinkPrometheusFieldSchema
+  projectId?: string
 }) => {
   const endpointUrlControl = useInputControl(fields.endpoint)
 
@@ -26,7 +33,7 @@ export const PrometheusField = ({
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <h3 className="text-sm font-medium">Prometheus Configuration</h3>
+      <FieldLabel label="Prometheus Configuration" />
       <div className="flex w-full flex-col gap-4 rounded-md border p-4">
         <Field
           isRequired
@@ -68,6 +75,20 @@ export const PrometheusField = ({
           }
           defaultValues={
             defaultValues?.retry as ExportPolicySinkPrometheusFieldSchema['retry']
+          }
+        />
+
+        {/* Authentication Section */}
+        <Separator />
+        <AuthField
+          projectId={projectId}
+          fields={
+            fields.authentication.getFieldset() as unknown as ReturnType<
+              typeof useForm<ExportPolicySinkAuthenticationSchema>
+            >[1]
+          }
+          defaultValues={
+            defaultValues?.authentication as ExportPolicySinkAuthenticationSchema
           }
         />
       </div>

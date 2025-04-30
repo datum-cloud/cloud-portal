@@ -1,7 +1,7 @@
 import { routes } from '@/constants/routes'
 import { ExportPolicyUpdateForm } from '@/features/observe/export-policies/form/update-form'
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control'
-import { IExportPolicyControlResponse } from '@/resources/interfaces/policy.interface'
+import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface'
 import { newExportPolicySchema } from '@/resources/schemas/export-policy.schema'
 import { validateCSRF } from '@/utils/csrf.server'
 import { CustomError } from '@/utils/errorHandle'

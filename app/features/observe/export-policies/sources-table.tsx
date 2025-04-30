@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useTheme } from '@/hooks/useTheme'
-import { IExportPolicyControlResponse } from '@/resources/interfaces/policy.interface'
+import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface'
 import { CodeIcon } from 'lucide-react'
 import { useMemo } from 'react'
 

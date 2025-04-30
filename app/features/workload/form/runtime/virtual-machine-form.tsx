@@ -70,12 +70,10 @@ export const VirtualMachineForm = ({
           key={fields.bootImage.id}
           value={fields.bootImage.value?.toString()}
           defaultValue={defaultValues?.bootImage}>
-          <SelectTrigger
-            disabled
-            className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+          <SelectTrigger disabled>
             <SelectValue placeholder="Select a boot image" />
           </SelectTrigger>
-          <SelectContent className="w-[var(--radix-select-trigger-width)]">
+          <SelectContent>
             {BOOT_IMAGES.map((bootImage) => (
               <SelectItem key={bootImage} value={bootImage}>
                 {bootImage}

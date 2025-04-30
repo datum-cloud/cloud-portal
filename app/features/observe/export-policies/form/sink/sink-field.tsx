@@ -1,4 +1,4 @@
-import { PrometheusField } from './prometheus-field'
+import { PrometheusField } from './prometheus/prometheus-field'
 import { Field } from '@/components/field/field'
 import { MultiSelect } from '@/components/multi-select/multi-select'
 import { Input } from '@/components/ui/input'
@@ -10,7 +10,7 @@ import {
   SelectItem,
 } from '@/components/ui/select'
 import { POLICY_SINK_TYPES } from '@/constants/options'
-import { ExportPolicySinkType } from '@/resources/interfaces/policy.interface'
+import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.interface'
 import {
   ExportPolicySinkFieldSchema,
   ExportPolicySinkPrometheusFieldSchema,
@@ -30,11 +30,13 @@ export const SinkField = ({
   isEdit = false,
   defaultValues,
   sourceList = [],
+  projectId,
 }: {
   fields: ReturnType<typeof useForm<ExportPolicySinkFieldSchema>>[1]
   isEdit?: boolean
   defaultValues?: ExportPolicySinkFieldSchema
   sourceList: string[]
+  projectId?: string
 }) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
@@ -108,17 +110,12 @@ export const SinkField = ({
             value={typeControl.value}
             defaultValue={defaultValues?.type}
             onValueChange={typeControl.change}>
-            <SelectTrigger
-              disabled
-              className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+            <SelectTrigger disabled>
               <SelectValue placeholder="Select a sink type" />
             </SelectTrigger>
             <SelectContent>
               {Object.keys(POLICY_SINK_TYPES).map((type) => (
-                <SelectItem
-                  key={type}
-                  value={type}
-                  className="w-[var(--radix-select-trigger-width)]">
+                <SelectItem key={type} value={type}>
                   {POLICY_SINK_TYPES[type as keyof typeof POLICY_SINK_TYPES].label}
                 </SelectItem>
               ))}
@@ -133,7 +130,7 @@ export const SinkField = ({
           errors={fields.sources.errors}
           className="w-1/2">
           <MultiSelect
-            {...getSelectProps(fields.sources)}
+            {...getSelectProps(fields.sources, { value: false })}
             name={fields.sources.name}
             placeholder="Select Sources"
             disabled={sourcesName.length === 0}
@@ -152,6 +149,7 @@ export const SinkField = ({
 
       {typeControl.value === ExportPolicySinkType.PROMETHEUS && (
         <PrometheusField
+          projectId={projectId}
           fields={
             fields.prometheusRemoteWrite.getFieldset() as unknown as ReturnType<
               typeof useForm<ExportPolicySinkPrometheusFieldSchema>

@@ -102,12 +102,10 @@ export const ListenerField = ({
               // Clear match labels when allowed routes is changed
               // matchLabelsControl.change([])
             }}>
-            <SelectTrigger
-              disabled
-              className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+            <SelectTrigger disabled>
               <SelectValue placeholder="Select allowed routes" />
             </SelectTrigger>
-            <SelectContent className="w-[var(--radix-select-trigger-width)]">
+            <SelectContent>
               {Object.values(GatewayAllowedRoutes).map((route) => (
                 <SelectItem key={route} value={route}>
                   {route}
@@ -130,10 +128,10 @@ export const ListenerField = ({
             onValueChange={(value) => {
               protocolControl.change(value)
             }}>
-            <SelectTrigger className="h-auto min-h-10 w-full items-center justify-between px-3 text-sm font-medium [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+            <SelectTrigger>
               <SelectValue placeholder="Select a storage type" />
             </SelectTrigger>
-            <SelectContent className="w-[var(--radix-select-trigger-width)]">
+            <SelectContent>
               {Object.values(GatewayProtocol).map((protocol) => (
                 <SelectItem key={protocol} value={protocol} className="uppercase">
                   {protocol}
