@@ -1,5 +1,6 @@
 import { nameSchema, metadataSchema } from './metadata.schema'
 import {
+  ContainerEnvType,
   PortProtocol,
   RuntimeType,
   StorageType,
@@ -74,14 +75,78 @@ export const runtimeVMSchema = z
     })
   })
 
+export const runtimeEnvSchema = z
+  .object({
+    name: z
+      .string({ required_error: 'Name is required.' })
+      .min(1, { message: 'Key is required' })
+      .max(63, { message: 'Key must be at most 63 characters long.' })
+      .regex(/^[a-zA-Z0-9._-]+$/, {
+        message: 'Key must only contain letters, numbers, dots, underscores, or hyphens',
+      }),
+    type: z.enum(Object.values(ContainerEnvType) as [string, ...string[]], {
+      required_error: 'Value Source is required.',
+    }),
+    value: z.string().optional(), // For text
+
+    refName: z.string().optional(), // For secret and config map
+    key: z.string().optional(), // For secret and config map
+  })
+  .refine(
+    (data) => {
+      if (data?.type === ContainerEnvType.TEXT) {
+        return !!data?.value
+      }
+      return true
+    },
+    {
+      message: 'Value is required',
+      path: ['value'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (
+        data?.type === ContainerEnvType.SECRET ||
+        data?.type === ContainerEnvType.CONFIG_MAP
+      ) {
+        return !!data?.key
+      }
+      return true
+    },
+    {
+      message: 'Key is required',
+      path: ['key'],
+    },
+  )
+  .refine(
+    (data) => {
+      if (
+        data?.type === ContainerEnvType.SECRET ||
+        data?.type === ContainerEnvType.CONFIG_MAP
+      ) {
+        return !!data?.refName
+      }
+      return true
+    },
+    (data) => ({
+      message:
+        data?.type === ContainerEnvType.SECRET
+          ? 'Secret is required'
+          : 'Config Map is required',
+      path: ['refName'],
+    }),
+  )
+
 export const runtimeContainerSchema = z
   .object({
     image: z.string({ required_error: 'Image is required.' }),
     ports: z.array(runtimePortSchema).optional(),
+    envs: z.array(runtimeEnvSchema).optional(),
   })
   .and(nameSchema)
   .superRefine((data, ctx) => {
-    // Check for duplicate storage names
+    // Check for duplicate ports names
     const usedNames = new Set<string>()
 
     data.ports?.forEach((port, index) => {
@@ -94,6 +159,28 @@ export const runtimeContainerSchema = z
             code: z.ZodIssueCode.custom,
             message: `Name "${name}" is already used`,
             path: ['ports', index, 'name'],
+          })
+        } else {
+          // Track this name as used
+          usedNames.add(name)
+        }
+      }
+    })
+  })
+  .superRefine((data, ctx) => {
+    // Check for duplicate envs names
+    const usedNames = new Set<string>()
+
+    data.envs?.forEach((env, index) => {
+      const name = env.name?.trim()
+
+      if (name) {
+        if (usedNames.has(name)) {
+          // If name already exists, add validation error
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Name "${name}" is already used`,
+            path: ['envs', index, 'name'],
           })
         } else {
           // Track this name as used
@@ -266,11 +353,15 @@ export const updateWorkloadSchema = z
 export type RuntimeSchema = z.infer<typeof runtimeSchema>
 export type RuntimePortSchema = z.infer<typeof runtimePortSchema>
 export type RuntimeVMSchema = z.infer<typeof runtimeVMSchema>
+export type RuntimeEnvSchema = z.infer<typeof runtimeEnvSchema>
 export type RuntimeContainerSchema = z.infer<typeof runtimeContainerSchema>
+
 export type NetworksSchema = z.infer<typeof networksSchema>
 export type NetworkFieldSchema = z.infer<typeof networkFieldSchema>
+
 export type StoragesSchema = z.infer<typeof storagesSchema>
 export type StorageFieldSchema = z.infer<typeof storageFieldSchema>
+
 export type PlacementsSchema = z.infer<typeof placementsSchema>
 export type PlacementFieldSchema = z.infer<typeof placementFieldSchema>
 

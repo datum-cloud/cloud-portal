@@ -1,6 +1,7 @@
 import { ContainerForm } from './container-form'
 import { VirtualMachineForm } from './virtual-machine-form'
 import { Field } from '@/components/field/field'
+import { FieldLabel } from '@/components/field/field-label'
 import { List, ListItem } from '@/components/list/list'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -30,10 +31,12 @@ export const RuntimeForm = ({
   fields,
   defaultValues,
   isEdit = false,
+  projectId,
 }: {
   fields: ReturnType<typeof useForm<RuntimeSchema>>[1]
   defaultValues?: RuntimeSchema
   isEdit?: boolean
+  projectId?: string
 }) => {
   const form = useFormMetadata('workload-form')
   const instanceTypeControl = useInputControl(fields.instanceType)
@@ -117,7 +120,7 @@ export const RuntimeForm = ({
           key={fields.runtimeType.id}
           value={runtimeTypeControl.value?.toString()}
           defaultValue={defaultValues?.runtimeType}>
-          <SelectTrigger disabled>
+          <SelectTrigger>
             <SelectValue placeholder="Select a type" />
           </SelectTrigger>
           <SelectContent>
@@ -141,8 +144,9 @@ export const RuntimeForm = ({
         />
       ) : fields.runtimeType.value === RuntimeType.CONTAINER ? (
         <div className="flex w-full flex-col gap-2">
-          <h3 className="text-sm font-medium">Containers</h3>
+          <FieldLabel label="Containers" />
           <ContainerForm
+            projectId={projectId}
             isEdit={isEdit}
             fields={fields as unknown as ReturnType<typeof useForm<RuntimeSchema>>[1]}
             defaultValues={defaultValues?.containers as RuntimeContainerSchema[]}
