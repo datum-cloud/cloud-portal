@@ -259,6 +259,7 @@ export const WorkloadUpdateForm = ({
                       {section.id === 'runtime' && (
                         <RuntimeForm
                           isEdit
+                          projectId={projectId}
                           defaultValues={formattedValues?.runtime}
                           fields={
                             fields as unknown as ReturnType<

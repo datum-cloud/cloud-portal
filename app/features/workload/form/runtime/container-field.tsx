@@ -1,8 +1,11 @@
+import { EnvsForm } from './envs-form'
 import { PortsForm } from './ports-form'
 import { Field } from '@/components/field/field'
+import { FieldLabel } from '@/components/field/field-label'
 import { Input } from '@/components/ui/input'
 import {
   RuntimeContainerSchema,
+  RuntimeEnvSchema,
   RuntimePortSchema,
 } from '@/resources/schemas/workload.schema'
 import { getInputProps, useForm, useInputControl } from '@conform-to/react'
@@ -12,10 +15,12 @@ import { useHydrated } from 'remix-utils/use-hydrated'
 export const ContainerField = ({
   isEdit,
   defaultValues,
+  projectId,
   fields,
 }: {
   isEdit: boolean
   defaultValues?: RuntimeContainerSchema
+  projectId?: string
   fields: ReturnType<typeof useForm<RuntimeContainerSchema>>[1]
 }) => {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -44,8 +49,8 @@ export const ContainerField = ({
   }, [isHydrated])
 
   return (
-    <div className="flex w-full flex-col gap-2">
-      <div className="relative flex w-full items-start gap-4">
+    <div className="flex w-full flex-col gap-4">
+      <div className="relative flex w-full items-start gap-2">
         <Field isRequired label="Name" errors={fields.name.errors} className="w-full">
           <Input
             {...getInputProps(fields.name, { type: 'text' })}
@@ -73,7 +78,7 @@ export const ContainerField = ({
       </div>
 
       <div className="flex w-full flex-col gap-2">
-        <h3 className="text-sm font-medium">Ports</h3>
+        <FieldLabel label="Ports" />
         <PortsForm
           fields={
             fields as unknown as ReturnType<
@@ -82,6 +87,20 @@ export const ContainerField = ({
           }
           defaultValues={defaultValues?.ports}
           isEdit={isEdit}
+        />
+      </div>
+
+      <div className="flex w-full flex-col gap-2">
+        <FieldLabel label="Environment Variables" />
+        <EnvsForm
+          fields={
+            fields as unknown as ReturnType<
+              typeof useForm<{ envs: RuntimeEnvSchema[] }>
+            >[1]
+          }
+          defaultValues={defaultValues?.envs}
+          isEdit={isEdit}
+          projectId={projectId}
         />
       </div>
     </div>

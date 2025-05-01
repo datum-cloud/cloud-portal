@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  ContainerEnvType,
   IWorkloadControlResponse,
   RuntimeType,
   StorageType,
@@ -8,6 +9,7 @@ import { MetadataSchema } from '@/resources/schemas/metadata.schema'
 import {
   NetworkFieldSchema,
   PlacementFieldSchema,
+  RuntimeEnvSchema,
   RuntimeSchema,
   StorageFieldSchema,
 } from '@/resources/schemas/workload.schema'
@@ -60,6 +62,35 @@ const mappingSpecToForm = (value: IWorkloadControlResponse) => {
           name: container.name,
           image: container.image,
           ports: container?.ports ?? [],
+          envs: (container?.env ?? []).map((env: any) => {
+            const payload = {
+              name: env.name,
+              type: ContainerEnvType.TEXT,
+            }
+
+            if (has(env, 'value') && env.value) {
+              Object.assign(payload, {
+                type: ContainerEnvType.TEXT,
+                value: env.value,
+              })
+            } else if (has(env, 'valueFrom.secretKeyRef')) {
+              const secret = get(env, 'valueFrom.secretKeyRef', {})
+              Object.assign(payload, {
+                type: ContainerEnvType.SECRET,
+                refName: secret.name,
+                key: secret.key,
+              })
+            } else if (has(env, 'valueFrom.configMapKeyRef')) {
+              const configMap = get(env, 'valueFrom.configMapKeyRef', {})
+              Object.assign(payload, {
+                type: ContainerEnvType.CONFIG_MAP,
+                refName: configMap.name,
+                key: configMap.key,
+              })
+            }
+
+            return payload
+          }) as RuntimeEnvSchema[],
         }))
       : undefined,
   }

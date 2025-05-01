@@ -62,3 +62,9 @@ export enum PortProtocol {
   UDP = 'UDP',
   SCTP = 'SCTP',
 }
+
+export enum ContainerEnvType {
+  TEXT = 'text',
+  SECRET = 'secret',
+  CONFIG_MAP = 'config-map',
+}

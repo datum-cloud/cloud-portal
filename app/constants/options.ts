@@ -8,7 +8,11 @@ import {
   LocationProvider,
 } from '@/resources/interfaces/location.interface'
 import { SecretType } from '@/resources/interfaces/secret.interface'
-import { RuntimeType, StorageType } from '@/resources/interfaces/workload.interface'
+import {
+  ContainerEnvType,
+  RuntimeType,
+  StorageType,
+} from '@/resources/interfaces/workload.interface'
 
 export const LOCATION_PROVIDERS = {
   [LocationProvider.GCP]: {
@@ -53,6 +57,21 @@ export const STORAGE_TYPES = {
   [StorageType.BOOT]: {
     label: 'Boot volume',
     description: 'A boot volume is a volume that is used to store the boot image.',
+  },
+}
+
+export const ENV_TYPES = {
+  [ContainerEnvType.TEXT]: {
+    label: 'Text',
+    description: 'A text is a value that is used to store a text.',
+  },
+  [ContainerEnvType.SECRET]: {
+    label: 'Secret',
+    description: 'A secret is a value that is used to store a secret.',
+  },
+  [ContainerEnvType.CONFIG_MAP]: {
+    label: 'Config Map',
+    description: 'A config map is a value that is used to store a config map.',
   },
 }
 

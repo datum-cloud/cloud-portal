@@ -13,10 +13,12 @@ export const ContainerForm = ({
   isEdit,
   fields,
   defaultValues,
+  projectId,
 }: {
   isEdit: boolean
   fields: ReturnType<typeof useForm<RuntimeSchema>>[1]
   defaultValues?: RuntimeContainerSchema[]
+  projectId?: string
 }) => {
   const form = useFormMetadata('workload-form')
   const containers = fields.containers.getFieldList()
@@ -42,6 +44,7 @@ export const ContainerForm = ({
               <ContainerField
                 isEdit={isEdit}
                 defaultValues={defaultValues?.[index]}
+                projectId={projectId}
                 fields={
                   containerFields as unknown as ReturnType<
                     typeof useForm<RuntimeContainerSchema>

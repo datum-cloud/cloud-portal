@@ -318,6 +318,7 @@ export const WorkloadStepper = ({
                           ),
                           runtime: () => (
                             <RuntimeForm
+                              projectId={projectId}
                               defaultValues={
                                 stepper.getMetadata('runtime') as RuntimeSchema
                               }

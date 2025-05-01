@@ -8,10 +8,11 @@ import {
   replaceComputeDatumapisComV1AlphaNamespacedWorkload,
 } from '@/modules/control-plane/compute'
 import {
+  ContainerEnvType,
   IWorkloadControlResponse,
   RuntimeType,
 } from '@/resources/interfaces/workload.interface'
-import { NewWorkloadSchema } from '@/resources/schemas/workload.schema'
+import { NewWorkloadSchema, RuntimeEnvSchema } from '@/resources/schemas/workload.schema'
 import { CustomError } from '@/utils/errorHandle'
 import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
@@ -72,6 +73,37 @@ export const createWorkloadsControl = (client: Client) => {
             image: container.image,
             ports: container.ports ?? [],
             volumeAttachments,
+            env: (container.envs ?? []).map((env: RuntimeEnvSchema) => {
+              const envPayload = {
+                name: env.name,
+              }
+
+              if (env.type === ContainerEnvType.TEXT) {
+                Object.assign(envPayload, {
+                  value: env.value,
+                })
+              } else if (env.type === ContainerEnvType.SECRET) {
+                Object.assign(envPayload, {
+                  valueFrom: {
+                    secretKeyRef: {
+                      name: env.refName,
+                      key: env.key,
+                    },
+                  },
+                })
+              } else if (env.type === ContainerEnvType.CONFIG_MAP) {
+                Object.assign(envPayload, {
+                  valueFrom: {
+                    configMapKeyRef: {
+                      name: env.refName,
+                      key: env.key,
+                    },
+                  },
+                })
+              }
+
+              return envPayload
+            }),
           })),
         },
       }
