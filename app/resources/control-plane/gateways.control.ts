@@ -13,11 +13,13 @@ import {
   GatewayProtocol,
   GatewayTlsMode,
   IGatewayControlResponse,
+  IGatewayControlResponseLite,
 } from '@/resources/interfaces/gateway.interface'
 import { GatewaySchema } from '@/resources/schemas/gateway.schema'
 import { CustomError } from '@/utils/errorHandle'
 import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
+import { omit } from 'es-toolkit/compat'
 
 export const createGatewaysControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL
@@ -33,8 +35,23 @@ export const createGatewaysControl = (client: Client) => {
       name: metadata?.name,
       gatewayClass: spec.gatewayClassName,
       listeners: spec.listeners,
-      // numberOfListeners: spec.listeners.length,
-      status: status,
+      addresses: status?.addresses ?? [],
+      status: omit(status, ['addresses']),
+      createdAt: metadata?.creationTimestamp,
+    }
+  }
+
+  const transformGatewayLite = (
+    gateway: IoK8sNetworkingGatewayV1Gateway,
+  ): IGatewayControlResponseLite => {
+    const { metadata, spec, status } = gateway
+    return {
+      uid: metadata?.uid,
+      name: metadata?.name,
+      gatewayClass: spec.gatewayClassName,
+      numberOfListeners: spec.listeners.length,
+      addresses: status?.addresses ?? [],
+      status: omit(status, ['addresses']),
       createdAt: metadata?.creationTimestamp,
     }
   }
@@ -94,7 +111,7 @@ export const createGatewaysControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
       })
 
-      return response.data?.items?.map(transformGateway) ?? []
+      return response.data?.items?.map(transformGatewayLite) ?? []
     },
     create: async (
       projectId: string,

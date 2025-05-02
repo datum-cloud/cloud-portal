@@ -7,11 +7,21 @@ export interface IGatewayControlResponse {
   name?: string
   gatewayClass?: string
   listeners?: IoK8sNetworkingGatewayV1Gateway['spec']['listeners']
-  // numberOfListeners?: number
   status?: IoK8sNetworkingGatewayV1Gateway['status']
+  addresses?: IoK8sNetworkingGatewayV1Gateway['spec']['addresses']
   createdAt?: Date
   labels?: Record<string, string>
   annotations?: Record<string, string>
+}
+
+export interface IGatewayControlResponseLite {
+  uid?: string
+  name?: string
+  gatewayClass?: string
+  numberOfListeners?: number
+  addresses?: IoK8sNetworkingGatewayV1Gateway['spec']['addresses']
+  status?: IoK8sNetworkingGatewayV1Gateway['status']
+  createdAt?: Date
 }
 
 export enum GatewayProtocol {

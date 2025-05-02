@@ -34,7 +34,7 @@ export const TextCopy = ({
   }
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       <span className={className}>{text ?? value}</span>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -42,13 +42,16 @@ export const TextCopy = ({
             type="button"
             variant="ghost"
             size="icon"
-            className={cn('size-4', buttonClassName)}
+            className={cn(
+              'size-3 focus-visible:ring-0 focus-visible:ring-offset-0',
+              buttonClassName,
+            )}
             onClick={(event) => {
               event.preventDefault()
               event.stopPropagation()
               copyToClipboard()
             }}>
-            <CopyIcon className="size-4" />
+            <CopyIcon className="size-3" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>{copied ? 'Copied!' : 'Copy'}</TooltipContent>

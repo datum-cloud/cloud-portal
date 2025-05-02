@@ -1,21 +1,24 @@
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 import { DateFormat } from '@/components/date-format/date-format'
+import { TextCopy } from '@/components/text-copy/text-copy'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { routes } from '@/constants/routes'
 import { GatewayStatus } from '@/features/connect/gateway/status'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { createGatewaysControl } from '@/resources/control-plane/gateways.control'
-import { IGatewayControlResponse } from '@/resources/interfaces/gateway.interface'
+import { IGatewayControlResponseLite } from '@/resources/interfaces/gateway.interface'
 import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api+/networks+/gateways+/actions'
 import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
-import { PlusIcon } from 'lucide-react'
+import { InfoIcon, PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import {
   AppLoadContext,
@@ -47,7 +50,7 @@ export default function ConnectGatewaysPage() {
 
   const { confirm } = useConfirmationDialog()
 
-  const deleteGateway = async (gateway: IGatewayControlResponse) => {
+  const deleteGateway = async (gateway: IGatewayControlResponseLite) => {
     await confirm({
       title: 'Delete Gateway',
       description: (
@@ -81,7 +84,7 @@ export default function ConnectGatewaysPage() {
     })
   }
 
-  const columns: ColumnDef<IGatewayControlResponse>[] = useMemo(
+  const columns: ColumnDef<IGatewayControlResponseLite>[] = useMemo(
     () => [
       {
         header: 'Name',
@@ -108,7 +111,47 @@ export default function ConnectGatewaysPage() {
         header: '# of Listeners',
         accessorKey: 'listeners',
         cell: ({ row }) => {
-          return row.original.listeners?.length ?? 0
+          return row.original.numberOfListeners ?? 0
+        },
+      },
+      {
+        header: '# of Addresses',
+        accessorKey: 'addresses',
+        cell: ({ row }) => {
+          return (
+            <Popover>
+              <PopoverTrigger asChild>
+                <div className="flex w-fit cursor-pointer items-center gap-1 data-[state=open]:underline">
+                  <span>{row.original.addresses?.length ?? 0}</span>
+                  <InfoIcon className="size-3" />
+                </div>
+              </PopoverTrigger>
+              <PopoverContent
+                className="min-w-[500px] p-3"
+                align="center"
+                onOpenAutoFocus={(event) => {
+                  event.preventDefault()
+                }}>
+                <div className="space-y-3">
+                  {row.original.addresses?.map((address, idx) => (
+                    <div
+                      key={`${address.type}-${idx}`}
+                      className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="px-2 py-0.5 text-xs">
+                          {address.type}
+                        </Badge>
+                        <TextCopy
+                          value={address.value}
+                          className="font-mono text-xs break-all"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )
         },
       },
       {
@@ -139,7 +182,7 @@ export default function ConnectGatewaysPage() {
     [orgId, projectId],
   )
 
-  const rowActions: DataTableRowActionsProps<IGatewayControlResponse>[] = useMemo(
+  const rowActions: DataTableRowActionsProps<IGatewayControlResponseLite>[] = useMemo(
     () => [
       {
         key: 'edit',
