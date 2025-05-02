@@ -23,7 +23,7 @@ import {
 } from '@/utils/misc'
 import { FormProvider, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useNavigate, Form, useFetcher } from 'react-router'
 import { AuthenticityTokenInput, useAuthenticityToken } from 'remix-utils/csrf/react'
 import { toast } from 'sonner'
@@ -42,7 +42,6 @@ export const EditSecretMetadata = ({
 
   const [form, fields] = useForm({
     id: 'edit-secret-form',
-    defaultValue: defaultValue,
     constraint: getZodConstraint(secretEditSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
@@ -96,6 +95,16 @@ export const EditSecretMetadata = ({
     }
   }, [fetcher.data, fetcher.state])
 
+  const formattedValues = useMemo(() => {
+    if (!defaultValue) return {}
+
+    return {
+      ...defaultValue,
+      labels: convertObjectToLabels(defaultValue?.labels ?? {}),
+      annotations: convertObjectToLabels(defaultValue?.annotations ?? {}),
+    }
+  }, [defaultValue])
+
   return (
     <Card>
       <CardHeader>
@@ -115,7 +124,7 @@ export const EditSecretMetadata = ({
               fields={
                 fields as unknown as ReturnType<typeof useForm<SecretBaseSchema>>[1]
               }
-              defaultValue={defaultValue as SecretBaseSchema}
+              defaultValue={formattedValues as SecretBaseSchema}
               isEdit={true}
             />
           </CardContent>

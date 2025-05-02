@@ -39,10 +39,18 @@ export const SecretMetadataForm = ({
 
   useEffect(() => {
     if (defaultValue) {
-      nameControl.change(defaultValue.name)
-      labelsControl.change(defaultValue.labels)
-      annotationsControl.change(defaultValue.annotations)
-      typeControl.change(defaultValue.type)
+      if (defaultValue.name && fields.name.value === '') {
+        nameControl.change(defaultValue.name)
+      }
+      if (defaultValue.labels && !fields.labels.value) {
+        labelsControl.change(defaultValue.labels)
+      }
+      if (defaultValue.annotations && !fields.annotations.value) {
+        annotationsControl.change(defaultValue.annotations)
+      }
+      if (defaultValue.type && !fields.type.value) {
+        typeControl.change(defaultValue.type)
+      }
     }
   }, [defaultValue])
 
