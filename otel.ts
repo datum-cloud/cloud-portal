@@ -1,10 +1,8 @@
 import { credentials } from '@grpc/grpc-js'
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc'
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express'
-import { PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import dotenv from 'dotenv'
 import { RemixInstrumentation } from 'opentelemetry-instrumentation-remix'
@@ -19,11 +17,6 @@ const sdk = isOtelEnabled
       traceExporter: new OTLPTraceExporter({
         url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
         credentials: credentials.createInsecure(),
-      }),
-      metricReader: new PeriodicExportingMetricReader({
-        exporter: new OTLPMetricExporter({
-          url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
-        }),
       }),
       instrumentations: [
         getNodeAutoInstrumentations(),
