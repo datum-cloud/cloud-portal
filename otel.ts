@@ -1,4 +1,5 @@
 import { credentials } from '@grpc/grpc-js'
+import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc'
@@ -32,12 +33,16 @@ const sdk = isOtelEnabled
     })
   : null
 
-export function startOpenTelemetry() {
-  if (!isOtelEnabled) {
-    console.log('OpenTelemetry is disabled or endpoint not configured')
-    console.log('OTEL_ENABLED:', process.env.OTEL_ENABLED)
-    console.log('OTEL_EXPORTER_OTLP_ENDPOINT:', process.env.OTEL_EXPORTER_OTLP_ENDPOINT)
-    return
+if (!isOtelEnabled) {
+  console.log('OpenTelemetry is disabled or endpoint not configured')
+  console.log('OTEL_ENABLED:', process.env.OTEL_ENABLED)
+  console.log('OTEL_EXPORTER_OTLP_ENDPOINT:', process.env.OTEL_EXPORTER_OTLP_ENDPOINT)
+} else {
+  // Enable logging for development
+  if (process.env.NODE_ENV === 'development') {
+    const logLevel =
+      process.env.OTEL_LOG_LEVEL === 'debug' ? DiagLogLevel.DEBUG : DiagLogLevel.INFO
+    diag.setLogger(new DiagConsoleLogger(), logLevel)
   }
 
   try {
