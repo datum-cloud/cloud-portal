@@ -26,7 +26,7 @@ COPY --link . .
 RUN bun run build
 
 # Remove development dependencies
-RUN bun install --production --frozen-lockfile
+# RUN bun install --production --frozen-lockfile
 
 # Add empty .env file so it can be parsed correctly.
 RUN touch .env
@@ -39,4 +39,9 @@ COPY --from=build /app /app
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-CMD [ "bun", "run", "start" ]
+
+# Copy the start script (already created in the repo)
+COPY --from=build /app/start.mjs /app/start.mjs
+
+# Use the start script
+CMD [ "bun", "start.mjs" ]

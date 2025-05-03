@@ -1,4 +1,6 @@
-import { startOpenTelemetry } from './otel'
+// import { startOpenTelemetry } from './otel'
+// Initialize OpenTelemetry
+// startOpenTelemetry()
 // Initialize OpenTelemetry before anything else
 /* eslint-disable import/no-unresolved */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -16,9 +18,6 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import crypto from 'node:crypto'
 import { type ServerBuild } from 'react-router'
-
-// Initialize OpenTelemetry
-startOpenTelemetry()
 
 const PORT = process.env.PORT || 3000
 const MODE = process.env.NODE_ENV ?? 'development'
