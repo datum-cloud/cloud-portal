@@ -37,6 +37,14 @@ FROM base
 # Copy built application
 COPY --from=build /app /app
 
+# Copy start script
+COPY docker-start.js /app/docker-start.js
+
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
+
+# # Set environment variables
+# ENV OTEL_ENABLED=true
+
+# Use the start script from package.json
 CMD [ "bun", "run", "start" ]
