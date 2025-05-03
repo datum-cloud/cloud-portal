@@ -14,10 +14,6 @@ dotenv.config()
 const isOtelEnabled =
   process.env.OTEL_ENABLED === 'true' && process.env.OTEL_EXPORTER_OTLP_ENDPOINT
 
-const logLevel =
-  process.env.OTEL_LOG_LEVEL === 'debug' ? DiagLogLevel.DEBUG : DiagLogLevel.INFO
-diag.setLogger(new DiagConsoleLogger(), logLevel)
-
 const sdk = isOtelEnabled
   ? new NodeSDK({
       traceExporter: new OTLPTraceExporter({
@@ -42,6 +38,13 @@ if (!isOtelEnabled) {
   console.log('OTEL_ENABLED:', process.env.OTEL_ENABLED)
   console.log('OTEL_EXPORTER_OTLP_ENDPOINT:', process.env.OTEL_EXPORTER_OTLP_ENDPOINT)
 } else {
+  // Enable logging for development
+  if (process.env.NODE_ENV === 'development') {
+    const logLevel =
+      process.env.OTEL_LOG_LEVEL === 'debug' ? DiagLogLevel.DEBUG : DiagLogLevel.INFO
+    diag.setLogger(new DiagConsoleLogger(), logLevel)
+  }
+
   try {
     sdk?.start()
     console.log('OpenTelemetry initialized successfully')
