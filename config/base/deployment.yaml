@@ -37,7 +37,7 @@ spec:
               protocol: TCP
           env:
             - name: OTEL_LOG_LEVEL
-              value: 'debug'
+              value: 'info'
             - name: OTEL_ENABLED
               value: 'true'
             - name: API_URL
