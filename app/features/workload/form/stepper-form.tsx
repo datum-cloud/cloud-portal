@@ -336,7 +336,7 @@ export const WorkloadStepper = ({
                                 stepper.getMetadata('networks') as NetworksSchema
                               }
                               fields={
-                                fields as ReturnType<
+                                fields as unknown as ReturnType<
                                   typeof useForm<UpdateWorkloadSchema>
                                 >[1]
                               }
