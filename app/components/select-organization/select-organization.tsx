@@ -12,7 +12,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { routes } from '@/constants/routes'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/list'
+import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index'
 import { cn } from '@/utils/misc'
 import {
   CheckIcon,

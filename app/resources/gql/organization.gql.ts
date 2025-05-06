@@ -42,6 +42,39 @@ export const createOrganizationGql = (client: GraphqlClient) => {
       })
       return data.createOrganization
     },
+    updateOrganization: async (id: string, name: string) => {
+      const query = mutation(
+        'UpdateOrganization($updateOrganizationId: ID!, $input: UpdateOrganizationInput!)',
+        {
+          [alias(
+            'updateOrganization',
+            'updateOrganization(id: $updateOrganizationId, input: $input)',
+          )]: {
+            organization: {
+              id: types.string,
+            },
+          },
+        },
+      )
+
+      const data = await client.request(query.toString(), {
+        input: { name },
+        updateOrganizationId: id,
+      })
+      return data.updateOrganization
+    },
+    deleteOrganization: async (id: string) => {
+      const query = mutation('DeleteOrganization($deleteOrganizationId: ID!)', {
+        [alias('deleteOrganization', 'deleteOrganization(id: $deleteOrganizationId)')]: {
+          deletedID: types.string,
+        },
+      })
+
+      const data = await client.request(query.toString(), {
+        deleteOrganizationId: id,
+      })
+      return data.deleteOrganization
+    },
   }
 }
 

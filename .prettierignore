@@ -10,3 +10,4 @@ Dockerfile
 
 /public/js/elk-worker.min.js
 
+CHANGELOG.md

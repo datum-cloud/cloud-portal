@@ -1,6 +1,6 @@
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { UserModel } from '@/resources/gql/models/user.model'
-import { ReactNode, createContext, useContext, useState } from 'react'
+import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
 interface AppContextType {
   user: UserModel | undefined
@@ -39,6 +39,12 @@ export function AppProvider({
   const updateOrganizationData = (orgData: OrganizationModel) => {
     setOrganization(orgData)
   }
+
+  useEffect(() => {
+    if (initialUser) {
+      setUser(initialUser)
+    }
+  }, [initialUser])
 
   return (
     <AppContext.Provider
