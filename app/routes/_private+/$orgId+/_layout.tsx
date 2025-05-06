@@ -1,28 +1,29 @@
 import { commitSession, getSession } from '@/modules/auth/authSession.server'
-import { GraphqlClient } from '@/modules/graphql/graphql'
 import { useApp } from '@/providers/app.provider'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { createOrganizationGql } from '@/resources/gql/organization.gql'
+import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api+/organizations+/$orgId'
 import { CustomError } from '@/utils/errorHandle'
+import { getPathWithParams } from '@/utils/path'
 import { useEffect } from 'react'
-import {
-  AppLoadContext,
-  LoaderFunctionArgs,
-  Outlet,
-  data,
-  useLoaderData,
-} from 'react-router'
+import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router'
 
-export async function loader({ request, params, context }: LoaderFunctionArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const { orgId } = params
-  const { gqlClient } = context as AppLoadContext
-  const organizationGql = createOrganizationGql(gqlClient as GraphqlClient)
 
   if (!orgId) {
     throw new CustomError('Organization ID is required', 400)
   }
 
-  const org: OrganizationModel = await organizationGql.getOrganizationDetail(orgId)
+  const res = await fetch(
+    `${process.env.APP_URL}${getPathWithParams(ORG_DETAIL_PATH, { orgId })}`,
+    {
+      method: 'GET',
+      headers: {
+        Cookie: request.headers.get('Cookie') || '',
+      },
+    },
+  )
+
+  const org = await res.json()
 
   // Update the current organization in session
   const session = await getSession(request.headers.get('Cookie'))
