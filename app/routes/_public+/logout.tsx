@@ -1,12 +1,12 @@
 import { routes } from '@/constants/routes'
-import { destroySession, getSession } from '@/modules/auth/authSession.server'
+import { destroyAuthSession, getAuthSession } from '@/modules/auth/authSession.server'
 import type { ActionFunctionArgs, AppLoadContext } from 'react-router'
 import { LoaderFunctionArgs, redirect } from 'react-router'
 
 const signOut = async (request: Request) => {
-  const session = await getSession(request.headers.get('cookie'))
+  const session = await getAuthSession(request.headers.get('cookie'))
   return redirect(routes.auth.logIn, {
-    headers: { 'Set-Cookie': await destroySession(session) },
+    headers: { 'Set-Cookie': await destroyAuthSession(session) },
   })
 }
 

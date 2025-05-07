@@ -1,18 +1,14 @@
-import { GitHubIcon } from '@/components/icons/github'
-import { GoogleIcon } from '@/components/icons/google'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
-import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
+import { isAuthenticated } from '@/modules/auth/auth.server'
 import { mergeMeta, metaObject } from '@/utils/meta'
-import { dataWithToast } from '@/utils/toast.server'
 import {
-  ActionFunctionArgs,
-  Form,
   Link,
   LoaderFunctionArgs,
   MetaFunction,
   useNavigation,
+  useSubmit,
 } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
@@ -22,28 +18,13 @@ export const meta: MetaFunction = mergeMeta(() => {
   )
 })
 
-export async function action({ request }: ActionFunctionArgs) {
-  try {
-    return authenticator.authenticate('google', request)
-  } catch (error) {
-    return dataWithToast(
-      {},
-      {
-        title: 'Signup failed',
-        description: error instanceof Error ? error.message : 'Signup failed',
-        type: 'error',
-      },
-      { status: 401 },
-    )
-  }
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
   return isAuthenticated(request, routes.home)
 }
 
 export default function Signup() {
   const navigation = useNavigation()
+  const submit = useSubmit()
 
   return (
     <Card className="overflow-hidden py-0">
@@ -56,33 +37,19 @@ export default function Signup() {
             </p>
           </div>
           <div className="grid w-full grid-cols-1 gap-4">
-            <Form action={routes.auth.google} method="POST" className="w-full">
-              <Button
-                variant="outline"
-                className="w-full"
-                isLoading={
-                  navigation.state === 'submitting' &&
-                  navigation.formAction === routes.auth.google
-                }
-                disabled={navigation.state === 'submitting'}>
-                <GoogleIcon className="size-4" />
-                <span>Sign up with Google</span>
-              </Button>
-            </Form>
-
-            <Form action={routes.auth.github} method="POST" className="w-full">
-              <Button
-                variant="outline"
-                className="w-full"
-                isLoading={
-                  navigation.state === 'submitting' &&
-                  navigation.formAction === routes.auth.github
-                }
-                disabled={navigation.state === 'submitting'}>
-                <GitHubIcon className="size-4" />
-                <span>Sign up with GitHub</span>
-              </Button>
-            </Form>
+            <Button
+              variant="outline"
+              className="w-full cursor-pointer"
+              isLoading={
+                navigation.state === 'submitting' &&
+                navigation.formAction === routes.auth.root
+              }
+              disabled={navigation.state === 'submitting'}
+              onClick={() => {
+                submit(null, { method: 'POST', action: routes.auth.root })
+              }}>
+              <span>Sign up</span>
+            </Button>
           </div>
           <div className="text-center text-sm">
             Already have an account?{' '}

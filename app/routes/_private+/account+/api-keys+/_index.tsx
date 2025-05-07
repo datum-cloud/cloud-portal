@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { PreviewKey } from '@/features/api-key/preview-key'
-import { commitSession, getSession } from '@/modules/auth/authSession.server'
+import { commitAuthSession, getAuthSession } from '@/modules/auth/authSession.server'
 import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
@@ -38,7 +38,7 @@ export const loader = withMiddleware(async ({ request, context }) => {
 
   const apiKeys = await userGql.getUserApiKeys()
 
-  const session = await getSession(request.headers.get('Cookie'))
+  const session = await getAuthSession(request.headers.get('Cookie'))
   const apiKey = session.get('apiKey')
 
   // Remove the apiKey from the session
@@ -48,7 +48,7 @@ export const loader = withMiddleware(async ({ request, context }) => {
     { apiKeys, apiKey },
     {
       headers: {
-        'Set-Cookie': await commitSession(session),
+        'Set-Cookie': await commitAuthSession(session),
       },
     },
   )

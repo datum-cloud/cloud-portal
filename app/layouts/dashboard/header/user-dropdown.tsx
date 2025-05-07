@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -11,35 +11,30 @@ import {
 } from '@/components/ui/dropdown'
 import { routes } from '@/constants/routes'
 import { useApp } from '@/providers/app.provider'
-import { UserModel } from '@/resources/gql/models/user.model'
 import { cn, getInitials } from '@/utils/misc'
 import { KeyIcon, LogOut, UserIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useSubmit } from 'react-router'
 
 const UserItem = ({
-  user,
+  fullName,
   description,
   className,
 }: {
-  user: UserModel
+  fullName: string
   description?: string
   className?: string
 }) => {
-  const fullName = `${user?.firstName} ${user?.lastName}`
-
   return (
     <div
       className={cn('flex items-center gap-2 px-1 py-1.5 text-left text-sm', className)}>
       <Avatar className="size-8 rounded-lg">
-        <AvatarImage src={user?.avatarRemoteURL} alt={fullName} />
+        {/* <AvatarImage src={user?.avatarRemoteURL} alt={fullName} /> */}
         <AvatarFallback>{getInitials(fullName)}</AvatarFallback>
       </Avatar>
 
       <div className="grid flex-1 text-left text-sm leading-tight">
-        <span className="truncate font-semibold">
-          {user?.firstName} {user?.lastName}
-        </span>
+        <span className="truncate font-semibold">{fullName}</span>
         {description && (
           <span className="text-muted-foreground truncate text-xs">{description}</span>
         )}
@@ -53,6 +48,8 @@ export const UserDropdown = () => {
   const { user } = useApp()
   const [open, setOpen] = useState(false)
 
+  const fullName = `${user?.given_name} ${user?.family_name}`
+
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
@@ -62,10 +59,8 @@ export const UserDropdown = () => {
           size="sm"
           className="h-8 cursor-pointer p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden data-[state=open]:bg-transparent">
           <Avatar className="size-8 rounded-full">
-            <AvatarImage src={user?.avatarRemoteURL} alt={user?.displayName} />
-            <AvatarFallback>
-              {getInitials(`${user?.firstName} ${user?.lastName}`)}
-            </AvatarFallback>
+            {/* <AvatarImage src={user?.avatarRemoteURL} alt={user?.displayName} /> */}
+            <AvatarFallback>{getInitials(fullName)}</AvatarFallback>
           </Avatar>
           {/* <ChevronDownIcon className="size-4 text-primary/60" /> */}
         </Button>
@@ -75,7 +70,7 @@ export const UserDropdown = () => {
         align="end"
         sideOffset={4}>
         <DropdownMenuLabel className="p-0 font-normal">
-          <UserItem user={user!} description={user?.email} />
+          <UserItem fullName={fullName} description={user?.email} />
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

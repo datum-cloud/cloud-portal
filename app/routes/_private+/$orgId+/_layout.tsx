@@ -1,4 +1,4 @@
-import { commitSession, getSession } from '@/modules/auth/authSession.server'
+import { commitAuthSession, getAuthSession } from '@/modules/auth/authSession.server'
 import { useApp } from '@/providers/app.provider'
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api+/organizations+/$orgId'
 import { CustomError } from '@/utils/errorHandle'
@@ -26,13 +26,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const org = await res.json()
 
   // Update the current organization in session
-  const session = await getSession(request.headers.get('Cookie'))
+  const session = await getAuthSession(request.headers.get('Cookie'))
   session.set('currentOrgId', org.id)
   session.set('currentOrgEntityID', org.userEntityID)
 
   return data(org, {
     headers: {
-      'Set-Cookie': await commitSession(session),
+      'Set-Cookie': await commitAuthSession(session),
     },
   })
 }

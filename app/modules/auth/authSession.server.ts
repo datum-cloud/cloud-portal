@@ -16,4 +16,8 @@ export const authSessionStorage = createCookieSessionStorage({
 
 const { getSession, commitSession, destroySession } = authSessionStorage
 
-export { getSession, commitSession, destroySession }
+export {
+  getSession as getAuthSession,
+  commitSession as commitAuthSession,
+  destroySession as destroyAuthSession,
+}

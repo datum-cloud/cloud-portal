@@ -3,7 +3,9 @@ import { isProduction } from '@/utils/misc'
 import { createCookie } from 'react-router'
 import { RemixI18Next } from 'remix-i18next/server'
 
-export const localeCookie = createCookie('lng', {
+export const LOCALE_COOKIE_KEY = '_lng'
+
+export const localeCookie = createCookie(LOCALE_COOKIE_KEY, {
   path: '/',
   domain: process.env?.APP_URL ? new URL(process.env.APP_URL).hostname : 'localhost',
   sameSite: 'lax',
