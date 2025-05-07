@@ -4,9 +4,8 @@ export const routes = {
     logIn: '/login',
     logOut: '/logout',
     signUp: '/signup',
-    callback: '/auth/[provider]/callback',
-    google: '/auth/google',
-    github: '/auth/github',
+    callback: '/auth/callback',
+    logOutCallback: '/auth/logout-callback',
   },
   home: '/',
   org: {

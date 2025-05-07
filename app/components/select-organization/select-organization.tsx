@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { routes } from '@/constants/routes'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { IOrganization } from '@/resources/interfaces/organization.inteface'
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index'
 import { cn } from '@/utils/misc'
 import {
@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useFetcher } from 'react-router'
+import { toast } from 'sonner'
 
 export const SelectOrganization = ({
   currentOrg,
@@ -32,8 +33,8 @@ export const SelectOrganization = ({
   hideContent = false,
   hideNewOrganization = false,
 }: {
-  currentOrg: Partial<OrganizationModel>
-  onSelect?: (org: OrganizationModel) => void
+  currentOrg: Partial<IOrganization>
+  onSelect?: (org: IOrganization) => void
   selectedContent?: React.ReactNode
   triggerClassName?: string
   hideContent?: boolean
@@ -42,11 +43,25 @@ export const SelectOrganization = ({
   const [open, setOpen] = useState(false)
   const fetcher = useFetcher({ key: 'org-list' })
 
+  const [organizations, setOrganizations] = useState<IOrganization[]>([])
+
   useEffect(() => {
     if (open) {
       fetcher.load(ORG_LIST_PATH)
     }
   }, [open])
+
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      const { success, error, data } = fetcher.data
+      if (!success) {
+        toast.error(error)
+        return
+      }
+
+      setOrganizations(data)
+    }
+  }, [fetcher.data, fetcher.state])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -73,7 +88,7 @@ export const SelectOrganization = ({
           />
           <CommandList className="max-h-none">
             <CommandEmpty>No results found.</CommandEmpty>
-            {fetcher.state === 'loading' ? (
+            {fetcher.state === 'loading' && organizations.length === 0 ? (
               <CommandItem disabled className="px-3">
                 <div className="flex w-6 items-center justify-center">
                   <Loader2 className="size-4 animate-spin" />
@@ -82,9 +97,9 @@ export const SelectOrganization = ({
               </CommandItem>
             ) : (
               <CommandGroup className="max-h-[300px] overflow-y-auto">
-                {fetcher.data?.length > 0 &&
-                  (fetcher.data ?? []).map((org: OrganizationModel) => {
-                    const isSelected = org.id === currentOrg?.id
+                {organizations.length > 0 &&
+                  organizations.map((org: IOrganization) => {
+                    const isSelected = org.name === currentOrg?.name
                     return (
                       <CommandItem
                         value={`${org.name}-${org.id}`}

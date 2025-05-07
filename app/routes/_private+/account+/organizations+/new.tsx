@@ -1,41 +1,24 @@
-import { Field } from '@/components/field/field'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { routes } from '@/constants/routes'
-import { useIsPending } from '@/hooks/useIsPending'
-import { GraphqlClient } from '@/modules/graphql/graphql'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { createOrganizationGql } from '@/resources/gql/organization.gql'
+import { OrganizationForm } from '@/features/organization/form'
+import { validateCSRF } from '@/modules/cookie/csrf.server'
+import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
+import { iamOrganizationsAPI } from '@/resources/api/iam/organizations.api'
 import {
-  NewOrganizationSchema,
-  newOrganizationSchema,
+  OrganizationSchema,
+  organizationSchema,
 } from '@/resources/schemas/organization.schema'
-import { validateCSRF } from '@/utils/csrf'
 import { mergeMeta, metaObject } from '@/utils/meta'
-import { dataWithToast, redirectWithToast } from '@/utils/toast'
-import { getFormProps, getInputProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect, useRef } from 'react'
-import { AppLoadContext, Form, MetaFunction, useNavigate } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+import { parseWithZod } from '@conform-to/zod'
+import { AxiosInstance } from 'axios'
+import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('New Organization')
 })
 
-export const action = withMiddleware(async ({ request, context }) => {
-  const { gqlClient, cache } = context as AppLoadContext
-  const organizationGql = createOrganizationGql(gqlClient as GraphqlClient)
+export const action = async ({ request, context }: ActionFunctionArgs) => {
+  const { apiClient, cache } = context as AppLoadContext
+  const orgAPI = iamOrganizationsAPI(apiClient as AxiosInstance)
 
   const clonedRequest = request.clone()
   const formData = await clonedRequest.formData()
@@ -44,10 +27,19 @@ export const action = withMiddleware(async ({ request, context }) => {
     await validateCSRF(formData, clonedRequest.headers)
 
     // Validate form data with Zod
-    const parsed = parseWithZod(formData, { schema: newOrganizationSchema })
-    const payload = parsed.payload as NewOrganizationSchema
+    const parsed = parseWithZod(formData, { schema: organizationSchema })
+    if (parsed.status !== 'success') {
+      throw new Error('Invalid form data')
+    }
+    const payload = parsed.value as OrganizationSchema
 
-    await organizationGql.createOrganization(payload.name)
+    // Dry run to validate
+    const validateRes = await orgAPI.create(payload, true)
+
+    // If dry run succeeds, create for real
+    if (validateRes) {
+      await orgAPI.create(payload)
+    }
 
     // Invalidate the organizations cache
     await cache.removeItem('organizations')
@@ -68,77 +60,12 @@ export const action = withMiddleware(async ({ request, context }) => {
       },
     )
   }
-}, authMiddleware)
+}
 
 export default function AccountOrganizationsNew() {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
-  const isPending = useIsPending()
-  const navigate = useNavigate()
-
-  const [form, { name }] = useForm({
-    constraint: getZodConstraint(newOrganizationSchema),
-    shouldValidate: 'onInput',
-    shouldRevalidate: 'onInput',
-    onValidate({ formData }) {
-      return parseWithZod(formData, { schema: newOrganizationSchema })
-    },
-  })
-
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
-
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Create a new organization</CardTitle>
-          <CardDescription>
-            Create a new organization to manage projects in Datum Cloud.
-          </CardDescription>
-        </CardHeader>
-        <Form
-          method="POST"
-          autoComplete="off"
-          {...getFormProps(form)}
-          className="flex flex-col gap-6">
-          <AuthenticityTokenInput />
-          <CardContent className="space-y-4">
-            <Field
-              isRequired
-              label="Name"
-              description="Enter a short, human-friendly name. Can be changed later."
-              errors={name.errors}>
-              <Input
-                {...getInputProps(name, { type: 'text' })}
-                key={name.id}
-                placeholder="e.g. My Organization"
-                ref={inputRef}
-              />
-            </Field>
-          </CardContent>
-          <CardFooter className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="link"
-              disabled={isPending}
-              onClick={() => {
-                navigate(routes.account.organizations.root)
-              }}>
-              Return to List
-            </Button>
-            <Button
-              variant="default"
-              type="submit"
-              disabled={isPending}
-              isLoading={isPending}>
-              {isPending ? 'Creating' : 'Create'} Organization
-            </Button>
-          </CardFooter>
-        </Form>
-      </Card>
+      <OrganizationForm />
     </div>
   )
 }

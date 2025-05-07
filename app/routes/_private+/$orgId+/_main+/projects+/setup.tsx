@@ -1,7 +1,6 @@
 import { WaitingPage } from '@/components/waiting-page/waiting-page'
 import { routes } from '@/constants/routes'
-import { getSession } from '@/modules/auth/authSession.server'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { authMiddleware } from '@/modules/middleware/auth.middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { CustomError } from '@/utils/errorHandle'
@@ -25,14 +24,11 @@ export const loader = withMiddleware(async ({ request, params, context }) => {
     const { orgId } = params
     const projectId = new URL(request.url).searchParams.get('projectId')
 
-    if (!projectId) {
+    if (!projectId || !orgId) {
       throw new CustomError('No project ID found', 404)
     }
 
-    const session = await getSession(request.headers.get('Cookie'))
-    const orgEntityId: string = session.get('currentOrgEntityID')
-
-    await projectsControl.detail(orgEntityId, projectId)
+    await projectsControl.detail(orgId, projectId)
 
     return redirect(
       getPathWithParams(routes.projects.dashboard, {

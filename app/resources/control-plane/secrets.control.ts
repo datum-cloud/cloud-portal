@@ -1,4 +1,3 @@
-import { SecretNewSchema, SecretEditSchema } from './../schemas/secret.schema'
 import {
   IoK8sApiCoreV1Secret,
   createCoreV1NamespacedSecret,
@@ -11,6 +10,7 @@ import {
   ISecretControlResponse,
   SecretType,
 } from '@/resources/interfaces/secret.interface'
+import { SecretNewSchema, SecretEditSchema } from '@/resources/schemas/secret.schema'
 import { CustomError } from '@/utils/errorHandle'
 import { convertLabelsToObject, isBase64, toBase64 } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'

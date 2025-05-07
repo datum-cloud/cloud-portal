@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // cypress/support/RemixStub.tsx
 import React from 'react'
-import { createMemoryRouter, RouterProvider, RouteObject } from 'react-router-dom'
+import { createMemoryRouter, RouterProvider, RouteObject } from 'react-router'
 
 // Create a request object creator
 const createRequest = (url: string = 'http://localhost:3000', init: RequestInit = {}) => {

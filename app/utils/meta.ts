@@ -5,7 +5,20 @@ import type {
   MetaDescriptor,
   MetaFunction,
 } from 'react-router'
-import type { CreateMetaArgs, MetaDescriptors } from 'react-router/route-module'
+
+// Define the types that were previously imported from 'react-router/route-module'
+type MetaDescriptors = Array<MetaDescriptor>
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type CreateMetaArgs<RouteData = any> = {
+  data: RouteData
+  params: Record<string, string>
+  location: Location
+  matches: Array<{
+    meta: MetaDescriptor[]
+    [key: string]: unknown
+  }>
+}
 
 /**
  * Merging helper
@@ -98,7 +111,8 @@ export function mergeRouteModuleMeta<TMetaArgs extends CreateMetaArgs<any>>(
   return (args) => {
     const leafMeta = leafMetaFn(args)
 
-    return args.matches.reduceRight((acc, match) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return args.matches.reduceRight((acc: MetaDescriptor[], match: any) => {
       for (const parentMeta of match?.meta ?? []) {
         addUniqueMeta(acc, parentMeta)
       }
@@ -115,10 +129,18 @@ function addUniqueMeta(acc: MetaDescriptor[] | undefined, parentMeta: MetaDescri
 }
 
 function isMetaEqual(meta1: MetaDescriptor, meta2: MetaDescriptor): boolean {
-  // prettier-ignore
-  return ('name' in meta1 && 'name' in meta2 && meta1.name === meta2.name) ||
+  return (
+    ('name' in meta1 && 'name' in meta2 && meta1.name === meta2.name) ||
     ('property' in meta1 && 'property' in meta2 && meta1.property === meta2.property) ||
-    ('title' in meta1 && 'title' in meta2);
+    ('title' in meta1 && 'title' in meta2) ||
+    /**
+     * Final attempt where some meta slips through the above checks and duplication is still possible.
+     *
+     * E.g. `{ href: "https://example.com/my-stylesheet/${aDynamicOrgId}", rel: "stylesheet", tagName: "link" }` where
+     * we wouldn't want two of the same link to exist.
+     */
+    JSON.stringify(meta1) === JSON.stringify(meta2)
+  )
 }
 
 export function metaObject(title?: string, description?: string) {

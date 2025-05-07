@@ -1,28 +1,40 @@
-import { getSession } from '@/modules/auth/authSession.server'
-import { GraphqlClient } from '@/modules/graphql/graphql'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { routes } from '@/constants/routes'
+import { zitadelIssuer } from '@/modules/auth/strategies/zitadel.server'
+import { createAxiosClient } from '@/modules/axios/axios'
+import { getSession } from '@/modules/cookie/session.server'
+import { authMiddleware } from '@/modules/middleware/auth.middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { AppProvider } from '@/providers/app.provider'
 import { ConfirmationDialogProvider } from '@/providers/confirmationDialog.provider'
-import { UserModel } from '@/resources/gql/models/user.model'
-import { createUserGql } from '@/resources/gql/user.gql'
-import { AppLoadContext, Outlet, data, useLoaderData } from 'react-router'
+import { IUser } from '@/resources/interfaces/user.interface'
+import { LoaderFunctionArgs, Outlet, data, redirect, useLoaderData } from 'react-router'
 
-export const loader = withMiddleware(async ({ request, context }) => {
-  const { gqlClient } = context as AppLoadContext
-  const userGql = createUserGql(gqlClient as GraphqlClient)
+export const loader = withMiddleware(async ({ request }: LoaderFunctionArgs) => {
+  try {
+    const { session } = await getSession(request)
 
-  const session = await getSession(request.headers.get('Cookie'))
-  const userId = session.get('userId')
+    if (!session) {
+      return redirect(routes.auth.logOut)
+    }
 
-  // Get user info
-  const user: UserModel = await userGql.getUserProfile(userId)
+    // Get user info from Zitadel
+    const apiClient = createAxiosClient({
+      baseURL: zitadelIssuer,
+      headers: {
+        Authorization: `Bearer ${session.accessToken}`,
+      },
+    })
 
-  return data({ user })
+    const user = await apiClient.get<IUser>('/oidc/v1/userinfo')
+
+    return data(user.data)
+  } catch {
+    return redirect(routes.auth.logOut)
+  }
 }, authMiddleware)
 
 export default function MainLayout() {
-  const { user } = useLoaderData<typeof loader>()
+  const user = useLoaderData<typeof loader>()
 
   return (
     <AppProvider initialUser={user}>

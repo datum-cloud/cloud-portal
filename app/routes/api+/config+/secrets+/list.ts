@@ -1,4 +1,4 @@
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { authMiddleware } from '@/modules/middleware/auth.middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createSecretsControl } from '@/resources/control-plane/secrets.control'
 import { CustomError } from '@/utils/errorHandle'

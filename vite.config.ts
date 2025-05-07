@@ -48,5 +48,6 @@ export default defineConfig({
    */
   build: {
     chunkSizeWarningLimit: 1000, // Increase size limit to 1000kb
+    target: 'esnext', // Compiles to modern JavaScript features for latest browsers
   },
 })

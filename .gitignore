@@ -7,8 +7,8 @@ node_modules
 .react-router/
 
 .cursor/
+.windsurf/
 
 cypress/screenshots
 cypress/videos
 cypress/results
-.windsurfrules

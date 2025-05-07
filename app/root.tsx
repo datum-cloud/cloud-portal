@@ -1,6 +1,4 @@
-import { FathomAnalytics } from './components/fathom/fathom'
-import { getSharedEnvs } from './utils/env'
-import { themeSessionResolver } from './utils/theme'
+import { FathomAnalytics } from '@/components/fathom/fathom'
 import { ClientHintCheck } from '@/components/misc/ClientHints'
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
 import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher'
@@ -9,14 +7,17 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { getHints } from '@/hooks/useHints'
 import { useNonce } from '@/hooks/useNonce'
 import { useToast } from '@/hooks/useToast'
-import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/handle-cache'
+import { csrf } from '@/modules/cookie/csrf.server'
+import { themeSessionResolver } from '@/modules/cookie/theme.server'
+import { getToastSession } from '@/modules/cookie/toast.server'
+import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/cache'
+import { ROUTE_PATH as SET_THEME_ROUTE_PATH } from '@/routes/api+/set-theme'
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
 import RootCSS from '@/styles/root.css?url'
-import { csrf } from '@/utils/csrf'
+import { getSharedEnvs } from '@/utils/env'
 import { metaObject } from '@/utils/meta'
 import { isProduction, combineHeaders, getDomainUrl } from '@/utils/misc'
-import { getToastSession } from '@/utils/toast'
 import NProgress from 'nprogress'
 import { useEffect, useMemo } from 'react'
 import {
@@ -96,7 +97,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider
       specifiedTheme={data?.theme ?? Theme.LIGHT}
-      themeAction="/api/set-theme">
+      themeAction={SET_THEME_ROUTE_PATH}>
       {children}
     </ThemeProvider>
   )

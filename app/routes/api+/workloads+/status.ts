@@ -1,10 +1,10 @@
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { dataWithToast } from '@/modules/cookie/toast.server'
+import { authMiddleware } from '@/modules/middleware/auth.middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createInstancesControl } from '@/resources/control-plane/instances.control'
 import { createWorkloadDeploymentsControl } from '@/resources/control-plane/workload-deployments.control'
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { CustomError } from '@/utils/errorHandle'
-import { dataWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { AppLoadContext, data } from 'react-router'
 

@@ -1,13 +1,13 @@
 import { routes } from '@/constants/routes'
 import { WorkloadUpdateForm } from '@/features/workload/form/update-form'
+import { validateCSRF } from '@/modules/cookie/csrf.server'
+import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
 import { newWorkloadSchema } from '@/resources/schemas/workload.schema'
-import { validateCSRF } from '@/utils/csrf'
 import { CustomError } from '@/utils/errorHandle'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast, redirectWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import {
   ActionFunctionArgs,

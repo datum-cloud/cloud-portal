@@ -1,4 +1,4 @@
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { authMiddleware } from '@/modules/middleware/auth.middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createLocationsControl } from '@/resources/control-plane/locations.control'
 import { CustomError } from '@/utils/errorHandle'
