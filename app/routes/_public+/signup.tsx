@@ -3,7 +3,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
 import { isAuthenticated } from '@/modules/auth/auth.server'
 import { mergeMeta, metaObject } from '@/utils/meta'
-
 import {
   Link,
   LoaderFunctionArgs,
