@@ -1,6 +1,6 @@
 import { routes } from '@/constants/routes'
 import { ApiKeyForm } from '@/features/api-key/form'
-import { commitSession, getSession } from '@/modules/auth/authSession.server'
+import { commitAuthSession, getAuthSession } from '@/modules/auth/authSession.server'
 import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
@@ -35,8 +35,8 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
 
     const payload = parsed.value as NewApiKeySchema
 
-    const session = await getSession(request.headers.get('Cookie'))
-    const userId = session.get('userId')
+    const session = await getAuthSession(request.headers.get('Cookie'))
+    const user = session.get('user')
     const orgId = session.get('currentOrgId')
 
     const apiKey = await userGql.createApiKey({
@@ -45,7 +45,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
         payload.expiresAt === 0
           ? undefined
           : addDays(new Date(), Number(payload.expiresAt)).toISOString(),
-      ownerId: userId,
+      ownerId: user?.sub,
       // TODO: Need more information, because it's array and on the old portal use default org of user
       orgIds: [orgId],
     })
@@ -61,7 +61,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
       },
       {
         headers: {
-          'Set-Cookie': await commitSession(session),
+          'Set-Cookie': await commitAuthSession(session),
         },
       },
     )
