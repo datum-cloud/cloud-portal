@@ -14,8 +14,8 @@ const AppContext = createContext<AppContextType>({
   user: undefined,
   organization: undefined,
   orgId: undefined,
-  setUser: () => { },
-  setOrganization: () => { },
+  setUser: () => {},
+  setOrganization: () => {},
 })
 
 interface AppProviderProps {
