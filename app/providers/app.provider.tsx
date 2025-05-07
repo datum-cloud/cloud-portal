@@ -1,12 +1,12 @@
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { UserModel } from '@/resources/gql/models/user.model'
-import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { IOidcUser } from '@/resources/interfaces/auth.interface'
+import { ReactNode, createContext, useContext, useEffect, useState, useMemo } from 'react'
 
 interface AppContextType {
-  user: UserModel | undefined
+  user: IOidcUser | undefined
   organization: OrganizationModel | undefined
   orgId: string | undefined
-  setUser: (user: UserModel) => void
+  setUser: (user: IOidcUser) => void
   setOrganization: (organization: OrganizationModel) => void
 }
 
@@ -14,13 +14,13 @@ const AppContext = createContext<AppContextType>({
   user: undefined,
   organization: undefined,
   orgId: undefined,
-  setUser: () => {},
-  setOrganization: () => {},
+  setUser: () => { },
+  setOrganization: () => { },
 })
 
 interface AppProviderProps {
   children: ReactNode
-  initialUser?: UserModel
+  initialUser?: IOidcUser
   initialOrganization?: OrganizationModel
 }
 
@@ -29,12 +29,12 @@ export function AppProvider({
   initialUser,
   initialOrganization,
 }: AppProviderProps) {
-  const [user, setUser] = useState<UserModel | undefined>(initialUser)
+  const [user, setUser] = useState<IOidcUser | undefined>(initialUser)
   const [organization, setOrganization] = useState<OrganizationModel | undefined>(
     initialOrganization,
   )
 
-  const updateUserData = (userData: UserModel) => {
+  const updateUserData = (userData: IOidcUser) => {
     setUser(userData)
   }
 

@@ -1,5 +1,3 @@
-import { GitHubIcon } from '@/components/icons/github'
-import { GoogleIcon } from '@/components/icons/google'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
@@ -44,29 +42,13 @@ export default function Login() {
               className="w-full cursor-pointer"
               isLoading={
                 navigation.state === 'submitting' &&
-                navigation.formAction === routes.auth.google
+                navigation.formAction === routes.auth.root
               }
               disabled={navigation.state === 'submitting'}
               onClick={() => {
-                submit(null, { method: 'POST', action: routes.auth.google })
+                submit(null, { method: 'POST', action: routes.auth.root })
               }}>
-              <GoogleIcon className="size-4" />
-              <span>Sign in with Google</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="w-full cursor-pointer"
-              isLoading={
-                navigation.state === 'submitting' &&
-                navigation.formAction === routes.auth.github
-              }
-              disabled={navigation.state === 'submitting'}
-              onClick={() => {
-                submit(null, { method: 'POST', action: routes.auth.github })
-              }}>
-              <GitHubIcon className="size-4" />
-              <span>Sign in with GitHub</span>
+              <span>Sign in</span>
             </Button>
           </div>
           <div className="text-muted-foreground text-center text-sm">

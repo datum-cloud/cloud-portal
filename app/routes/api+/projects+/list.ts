@@ -1,4 +1,4 @@
-import { getSession } from '@/modules/auth/authSession.server'
+import { getAuthSession } from '@/modules/auth/authSession.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
@@ -11,7 +11,7 @@ export const loader = withMiddleware(async ({ request, context }) => {
   const { controlPlaneClient, cache } = context as AppLoadContext
   const projectsControl = createProjectsControl(controlPlaneClient as Client)
 
-  const session = await getSession(request.headers.get('Cookie'))
+  const session = await getAuthSession(request.headers.get('Cookie'))
   const orgEntityId: string = session.get('currentOrgEntityID')
 
   const key = `projects:${orgEntityId}`

@@ -7,7 +7,6 @@ export async function loader() {
   return redirect(routes.auth.logIn)
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
-  if (typeof params.provider !== 'string') throw new Error('Invalid provider.')
-  return authenticator.authenticate(params.provider, request)
+export async function action({ request }: ActionFunctionArgs) {
+  return authenticator.authenticate('oidc', request)
 }
