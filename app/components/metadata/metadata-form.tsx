@@ -41,7 +41,7 @@ export const MetadataForm = ({
       <Field
         isRequired
         label="Name"
-        description="A namespace-unique stable identifier for your export policy. This cannot be changed once the export policy is created"
+        description="A namespace-unique stable identifier for your resource. This cannot be changed once the resource is created"
         errors={fields.name.errors}>
         <Input
           {...getInputProps(fields.name, { type: 'text' })}
@@ -58,7 +58,7 @@ export const MetadataForm = ({
       <Field
         label="Labels"
         errors={fields.labels.errors}
-        description="Add labels to help identify, organize, and filter your export policies.">
+        description="Add labels to help identify, organize, and filter your resource.">
         <SelectLabels
           defaultValue={fields.labels.value as string[]}
           onChange={(value) => {
@@ -69,7 +69,7 @@ export const MetadataForm = ({
       <Field
         label="Annotations"
         errors={fields.annotations.errors}
-        description="Add annotations to help identify, organize, and filter your export policies.">
+        description="Add annotations to help identify, organize, and filter your resource.">
         <SelectAnnotations
           defaultValue={fields.annotations.value as string[]}
           onChange={(value) => {

@@ -88,7 +88,6 @@ export const runtimeEnvSchema = z
       required_error: 'Value Source is required.',
     }),
     value: z.string().optional(), // For text
-
     refName: z.string().optional(), // For secret and config map
     key: z.string().optional(), // For secret and config map
   })

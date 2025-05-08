@@ -2,7 +2,7 @@ import { ComDatumapisTelemetryV1Alpha1ExportPolicy } from '@/modules/control-pla
 import {
   createTelemetryDatumapisComV1Alpha1NamespacedExportPolicy,
   deleteTelemetryDatumapisComV1Alpha1NamespacedExportPolicy,
-  listTelemetryDatumapisComV1Alpha1ExportPolicyForAllNamespaces,
+  listTelemetryDatumapisComV1Alpha1NamespacedExportPolicy,
   readTelemetryDatumapisComV1Alpha1NamespacedExportPolicy,
   readTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatus,
   replaceTelemetryDatumapisComV1Alpha1NamespacedExportPolicy,
@@ -94,11 +94,11 @@ export const createExportPoliciesControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response =
-        await listTelemetryDatumapisComV1Alpha1ExportPolicyForAllNamespaces({
-          client,
-          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        })
+      const response = await listTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { namespace: 'default' },
+      })
 
       return response.data?.items?.map(transformPolicy) ?? []
     },
