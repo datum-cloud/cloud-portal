@@ -3,11 +3,11 @@ import { WorkloadUpdateForm } from '@/features/workload/form/update-form'
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
 import { newWorkloadSchema } from '@/resources/schemas/workload.schema'
-import { validateCSRF } from '@/utils/csrf.server'
+import { validateCSRF } from '@/utils/csrf'
 import { CustomError } from '@/utils/errorHandle'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
+import { dataWithToast, redirectWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import {
   ActionFunctionArgs,
@@ -106,11 +106,11 @@ export default function WorkloadEditPage() {
   const { workload } = useRouteLoaderData(
     'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout',
   )
-  const { projectId, orgId } = useParams()
+  const { projectId } = useParams()
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <WorkloadUpdateForm projectId={projectId} orgId={orgId} defaultValue={workload} />
+      <WorkloadUpdateForm projectId={projectId} defaultValue={workload} />
     </div>
   )
 }

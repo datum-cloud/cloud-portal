@@ -5,11 +5,11 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { createLocationsControl } from '@/resources/control-plane/locations.control'
 import { ILocationControlResponse } from '@/resources/interfaces/location.interface'
 import { NewLocationSchema, newLocationSchema } from '@/resources/schemas/location.schema'
-import { validateCSRF } from '@/utils/csrf.server'
+import { validateCSRF } from '@/utils/csrf'
 import { CustomError } from '@/utils/errorHandle'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
+import { dataWithToast, redirectWithToast } from '@/utils/toast'
 import { parseWithZod } from '@conform-to/zod'
 import { Client } from '@hey-api/client-axios'
 import {
@@ -99,7 +99,7 @@ export default function EditLocation() {
   const location = useLoaderData<typeof loader>()
 
   return (
-    <div className="mx-auto w-full max-w-2xl py-8">
+    <div className="mx-auto w-full max-w-3xl py-8">
       <CreateLocationForm defaultValue={location} />
     </div>
   )

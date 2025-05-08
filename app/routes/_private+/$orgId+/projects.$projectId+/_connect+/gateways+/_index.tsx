@@ -210,7 +210,7 @@ export default function ConnectGatewaysPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-lg)"
+      className="mx-auto max-w-(--breakpoint-xl)"
       loadingText="Loading..."
       emptyText="No gateways found."
       tableTitle={{

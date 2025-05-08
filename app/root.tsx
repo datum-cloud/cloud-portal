@@ -1,5 +1,5 @@
 import { FathomAnalytics } from './components/fathom/fathom'
-import { getSharedEnvs } from './utils/env.server'
+import { getSharedEnvs } from './utils/env'
 import { ClientHintCheck } from '@/components/misc/ClientHints'
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
 import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher'
@@ -14,11 +14,10 @@ import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/handle-cache'
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
 import RootCSS from '@/styles/root.css?url'
-import { csrf } from '@/utils/csrf.server'
+import { csrf } from '@/utils/csrf'
 import { metaObject } from '@/utils/meta'
-import { isProduction } from '@/utils/misc'
-import { combineHeaders, getDomainUrl } from '@/utils/misc.server'
-import { getToastSession } from '@/utils/toast.server'
+import { isProduction, combineHeaders, getDomainUrl } from '@/utils/misc'
+import { getToastSession } from '@/utils/toast'
 import NProgress from 'nprogress'
 import { useEffect, useMemo } from 'react'
 import {

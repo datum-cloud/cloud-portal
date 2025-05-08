@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { useIsPending } from '@/hooks/useIsPending'
+import { useApp } from '@/providers/app.provider'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import {
   GatewayProtocol,
@@ -36,15 +37,14 @@ import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 export const GatewayForm = ({
   defaultValue,
   projectId,
-  orgId,
 }: {
   defaultValue?: IGatewayControlResponse
   projectId?: string
-  orgId?: string
 }) => {
   const navigate = useNavigate()
   const isPending = useIsPending()
   const submit = useSubmit()
+  const { orgId } = useApp()
 
   const { confirm } = useConfirmationDialog()
 

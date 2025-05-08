@@ -3,10 +3,10 @@ import { GatewayForm } from '@/features/connect/gateway/form'
 import { createGatewaysControl } from '@/resources/control-plane/gateways.control'
 import { IGatewayControlResponse } from '@/resources/interfaces/gateway.interface'
 import { gatewaySchema } from '@/resources/schemas/gateway.schema'
-import { validateCSRF } from '@/utils/csrf.server'
+import { validateCSRF } from '@/utils/csrf'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
+import { dataWithToast, redirectWithToast } from '@/utils/toast'
 import { parseWithZod } from '@conform-to/zod'
 import { Client } from '@hey-api/client-axios'
 import {
@@ -92,11 +92,11 @@ export const action = async ({ params, context, request }: LoaderFunctionArgs) =
 
 export default function ConnectGatewaysEditPage() {
   const gateway = useLoaderData<typeof loader>()
-  const { orgId, projectId } = useParams()
+  const { projectId } = useParams()
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <GatewayForm defaultValue={gateway} projectId={projectId} orgId={orgId} />
+      <GatewayForm defaultValue={gateway} projectId={projectId} />
     </div>
   )
 }

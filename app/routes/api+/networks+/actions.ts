@@ -8,9 +8,9 @@ import {
   UpdateNetworkSchema,
   updateNetworkSchema,
 } from '@/resources/schemas/network.schema'
-import { validateCSRF } from '@/utils/csrf.server'
+import { validateCSRF } from '@/utils/csrf'
 import { CustomError } from '@/utils/errorHandle'
-import { dataWithToast } from '@/utils/toast.server'
+import { dataWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 

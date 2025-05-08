@@ -3,11 +3,11 @@ import { ExportPolicyUpdateForm } from '@/features/observe/export-policies/form/
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control'
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface'
 import { newExportPolicySchema } from '@/resources/schemas/export-policy.schema'
-import { validateCSRF } from '@/utils/csrf.server'
+import { validateCSRF } from '@/utils/csrf'
 import { CustomError } from '@/utils/errorHandle'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
+import { dataWithToast, redirectWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import {
   ActionFunctionArgs,
@@ -107,15 +107,11 @@ export default function ExportPolicyEditPage() {
     'routes/_private+/$orgId+/projects.$projectId+/_observe+/export-policies+/$exportPolicyId+/_layout',
   )
 
-  const { orgId, projectId } = useParams()
+  const { projectId } = useParams()
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <ExportPolicyUpdateForm
-        defaultValue={exportPolicy}
-        projectId={projectId}
-        orgId={orgId}
-      />
+      <ExportPolicyUpdateForm defaultValue={exportPolicy} projectId={projectId} />
     </div>
   )
 }

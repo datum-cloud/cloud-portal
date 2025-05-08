@@ -137,7 +137,7 @@ export default function ConnectHttpRoutesPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-lg)"
+      className="mx-auto max-w-(--breakpoint-xl)"
       loadingText="Loading..."
       emptyText="No http routes found."
       tableTitle={{

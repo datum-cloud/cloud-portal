@@ -4,7 +4,7 @@ import { createInstancesControl } from '@/resources/control-plane/instances.cont
 import { createWorkloadDeploymentsControl } from '@/resources/control-plane/workload-deployments.control'
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { CustomError } from '@/utils/errorHandle'
-import { dataWithToast } from '@/utils/toast.server'
+import { dataWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { AppLoadContext, data } from 'react-router'
 

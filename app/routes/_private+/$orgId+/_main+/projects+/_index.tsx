@@ -7,6 +7,7 @@ import { ProjectStatus } from '@/features/project/status'
 import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { useApp } from '@/providers/app.provider'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { createOrganizationGql } from '@/resources/gql/organization.gql'
@@ -18,14 +19,7 @@ import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
-import {
-  AppLoadContext,
-  data,
-  Link,
-  useLoaderData,
-  useNavigate,
-  useParams,
-} from 'react-router'
+import { AppLoadContext, data, Link, useLoaderData, useNavigate } from 'react-router'
 
 export const loader = withMiddleware(async ({ params, context }) => {
   const { orgId } = params
@@ -45,7 +39,7 @@ export const loader = withMiddleware(async ({ params, context }) => {
 }, authMiddleware)
 
 export default function ProjectsPage() {
-  const { orgId } = useParams()
+  const { orgId } = useApp()
   const projects = useLoaderData<typeof loader>()
 
   const navigate = useNavigate()
@@ -80,7 +74,6 @@ export default function ProjectsPage() {
             row.original.status && (
               <ProjectStatus
                 currentStatus={transformControlPlaneStatus(row.original.status)}
-                orgId={orgId}
                 projectId={row.original.name}
                 type="badge"
                 badgeClassName="px-0"
@@ -132,7 +125,7 @@ export default function ProjectsPage() {
       columns={columns}
       data={projects ?? []}
       rowActions={rowActions}
-      className="mx-auto max-w-(--breakpoint-lg)"
+      className="mx-auto max-w-(--breakpoint-xl)"
       loadingText="Loading projects..."
       emptyText="No projects found. Create your first project to get started."
       tableTitle={{

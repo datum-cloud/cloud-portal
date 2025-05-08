@@ -2,8 +2,7 @@
  * Server-Side Toasts.
  * Implementation based on github.com/epicweb-dev/epic-stack
  */
-import { isProduction } from './misc'
-import { combineHeaders } from '@/utils/misc.server'
+import { isProduction, combineHeaders } from '@/utils/misc'
 import { createCookieSessionStorage, data as dataFn, redirect } from 'react-router'
 import { z } from 'zod'
 

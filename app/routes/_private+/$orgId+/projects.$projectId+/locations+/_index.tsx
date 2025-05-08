@@ -17,7 +17,7 @@ import {
 import { CustomError } from '@/utils/errorHandle'
 import { toTitleCase } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast } from '@/utils/toast.server'
+import { dataWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
@@ -284,7 +284,6 @@ export default function LocationsPage() {
           </Link>
         ),
       }}
-      defaultSorting={[{ id: 'createdAt', desc: true }]}
       rowActions={rowActions}
     />
   )

@@ -1,7 +1,7 @@
 import { NonceProvider } from '@/hooks/useNonce'
 import * as i18n from '@/modules/i18n/i18n'
 import i18nServer from '@/modules/i18n/i18n.server'
-import { initEnvs } from '@/utils/env.server'
+import { initEnvs } from '@/utils/env'
 import { createReadableStreamFromReadable } from '@react-router/node'
 import { createInstance } from 'i18next'
 import { isbot } from 'isbot'

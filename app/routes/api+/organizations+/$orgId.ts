@@ -8,9 +8,9 @@ import {
   NewOrganizationSchema,
   newOrganizationSchema,
 } from '@/resources/schemas/organization.schema'
-import { validateCSRF } from '@/utils/csrf.server'
+import { validateCSRF } from '@/utils/csrf'
 import { CustomError } from '@/utils/errorHandle'
-import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
+import { dataWithToast, redirectWithToast } from '@/utils/toast'
 import { parseWithZod } from '@conform-to/zod'
 import { find } from 'es-toolkit/compat'
 import { AppLoadContext, data } from 'react-router'

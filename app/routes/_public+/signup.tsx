@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
 import { authenticator, isAuthenticated } from '@/modules/auth/auth.server'
 import { mergeMeta, metaObject } from '@/utils/meta'
-import { dataWithToast } from '@/utils/toast.server'
+import { dataWithToast } from '@/utils/toast'
 import {
   ActionFunctionArgs,
   Form,

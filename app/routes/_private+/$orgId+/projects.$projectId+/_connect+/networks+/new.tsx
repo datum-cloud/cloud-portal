@@ -13,7 +13,7 @@ export default function ConnectNetworksNewPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="mx-auto w-full max-w-2xl py-8">
+    <div className="mx-auto w-full max-w-3xl py-8">
       <NetworkForm
         projectId={projectId}
         onSuccess={() => {

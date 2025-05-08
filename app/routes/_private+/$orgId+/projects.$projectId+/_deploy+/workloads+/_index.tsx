@@ -15,7 +15,7 @@ import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/worklo
 import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
-import { deletedWorkloadIdsCookie } from '@/utils/workload.server'
+import { deletedWorkloadIdsCookie } from '@/utils/workload'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { Loader2, PlusIcon } from 'lucide-react'
@@ -214,7 +214,7 @@ export default function WorkloadsPage() {
     <DataTable
       columns={columns}
       data={workloads ?? []}
-      className="mx-auto max-w-(--breakpoint-lg)"
+      className="mx-auto max-w-(--breakpoint-xl)"
       loadingText="Loading..."
       emptyText="No workloads found."
       tableTitle={{

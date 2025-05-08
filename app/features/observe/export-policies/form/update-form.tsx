@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
 import { useIsPending } from '@/hooks/useIsPending'
+import { useApp } from '@/providers/app.provider'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import {
   ExportPolicyAuthenticationType,
@@ -64,13 +65,12 @@ const sections = [
 
 export const ExportPolicyUpdateForm = ({
   projectId,
-  orgId,
   defaultValue,
 }: {
   projectId?: string
-  orgId?: string
   defaultValue?: IExportPolicyControlResponse
 }) => {
+  const { orgId } = useApp()
   const csrf = useAuthenticityToken()
   const submit = useSubmit()
   const navigate = useNavigate()

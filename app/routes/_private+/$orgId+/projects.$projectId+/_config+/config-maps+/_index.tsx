@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { useApp } from '@/providers/app.provider'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control'
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast } from '@/utils/toast.server'
+import { dataWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
@@ -66,7 +67,8 @@ export default function ConfigMapsPage() {
   const submit = useSubmit()
 
   const { confirm } = useConfirmationDialog()
-  const { orgId, projectId } = useParams()
+  const { projectId } = useParams()
+  const { orgId } = useApp()
 
   const deleteConfigMap = async (configMap: IConfigMapControlResponse) => {
     await confirm({
@@ -159,7 +161,7 @@ export default function ConfigMapsPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-lg)"
+      className="mx-auto max-w-(--breakpoint-xl)"
       loadingText="Loading..."
       emptyText="No config maps found."
       tableTitle={{
@@ -178,7 +180,6 @@ export default function ConfigMapsPage() {
           </Link>
         ),
       }}
-      defaultSorting={[{ id: 'createdAt', desc: true }]}
       rowActions={rowActions}
     />
   )
