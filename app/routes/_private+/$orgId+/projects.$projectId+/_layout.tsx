@@ -142,6 +142,14 @@ export default function ProjectLayout() {
             type: 'link',
           },
           {
+            title: 'HTTP Routes',
+            href: getPathWithParams(routes.projects.connect.httpRoutes.root, {
+              orgId,
+              projectId,
+            }),
+            type: 'link',
+          },
+          {
             title: 'Services',
             href: getPathWithParams(routes.projects.services, { orgId, projectId }),
             type: 'link',
