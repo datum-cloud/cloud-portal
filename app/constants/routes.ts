@@ -72,6 +72,11 @@ export const routes = {
         new: '/[orgId]/projects/[projectId]/gateways/new',
         edit: '/[orgId]/projects/[projectId]/gateways/[gatewayId]/edit',
       },
+      httpRoutes: {
+        root: '/[orgId]/projects/[projectId]/httproutes',
+        new: '/[orgId]/projects/[projectId]/httproutes/new',
+        edit: '/[orgId]/projects/[projectId]/httproutes/[httpRouteId]/edit',
+      },
     },
     // Deploy Sections
     deploy: {

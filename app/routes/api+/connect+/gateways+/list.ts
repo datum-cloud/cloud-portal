@@ -1,15 +1,15 @@
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { createNetworksControl } from '@/resources/control-plane/networks.control'
+import { createGatewaysControl } from '@/resources/control-plane/gateways.control'
 import { CustomError } from '@/utils/errorHandle'
 import { Client } from '@hey-api/client-axios'
-import { AppLoadContext, data } from 'react-router'
+import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router'
 
-export const ROUTE_PATH = '/api/networks/list' as const
+export const ROUTE_PATH = '/api/connect/gateways/list' as const
 
-export const loader = withMiddleware(async ({ request, context }) => {
+export const loader = withMiddleware(async ({ request, context }: LoaderFunctionArgs) => {
   const { controlPlaneClient, cache } = context as AppLoadContext
-  const networksControl = createNetworksControl(controlPlaneClient as Client)
+  const gatewaysControl = createGatewaysControl(controlPlaneClient as Client)
 
   const url = new URL(request.url)
   const projectId = url.searchParams.get('projectId')
@@ -19,25 +19,25 @@ export const loader = withMiddleware(async ({ request, context }) => {
     throw new CustomError('Project ID is required', 400)
   }
 
-  const key = `networks:${projectId}`
+  const key = `gateways:${projectId}`
 
   // Try to get cached networks if caching is enabled
-  const [isCached, cachedNetworks] = await Promise.all([
+  const [isCached, cachedGateways] = await Promise.all([
     !noCache && cache.hasItem(key),
     !noCache && cache.getItem(key),
   ])
 
   // Return cached networks if available and caching is enabled
-  if (isCached && cachedNetworks) {
-    return data(cachedNetworks)
+  if (isCached && cachedGateways) {
+    return data(cachedGateways)
   }
 
   // Fetch fresh networks from control plane
-  const networks = await networksControl.list(projectId)
+  const gateways = await gatewaysControl.list(projectId)
 
   // Cache the fresh networks if caching is enabled
-  await cache.setItem(key, networks).catch((error) => {
-    console.error('Failed to cache networks:', error)
+  await cache.setItem(key, gateways).catch((error) => {
+    console.error('Failed to cache gateways:', error)
   })
-  return data(networks)
+  return data(gateways)
 }, authMiddleware)

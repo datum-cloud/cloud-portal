@@ -4,13 +4,14 @@ import { NavItem } from '@/layouts/dashboard/sidebar/nav-main'
 import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { useApp } from '@/providers/app.provider'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { createOrganizationGql } from '@/resources/gql/organization.gql'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
-import { redirectWithToast } from '@/utils/toast.server'
+import { redirectWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import {
   AreaChartIcon,
@@ -23,7 +24,7 @@ import {
   TerminalIcon,
 } from 'lucide-react'
 import { useMemo } from 'react'
-import { AppLoadContext, Outlet, redirect, useLoaderData, useParams } from 'react-router'
+import { AppLoadContext, Outlet, redirect, useLoaderData } from 'react-router'
 
 export const loader = withMiddleware(async ({ params, context }) => {
   const { controlPlaneClient, gqlClient } = context as AppLoadContext
@@ -72,10 +73,11 @@ export const loader = withMiddleware(async ({ params, context }) => {
 }, authMiddleware)
 
 export default function ProjectLayout() {
-  const { orgId, projectId } = useParams()
-  const project = useLoaderData<typeof loader>()
+  const project: IProjectControlResponse = useLoaderData<typeof loader>()
+  const { orgId } = useApp()
 
   const navItems: NavItem[] = useMemo(() => {
+    const projectId = project.name
     return [
       {
         title: 'Dashboard',
@@ -136,6 +138,14 @@ export default function ProjectLayout() {
           {
             title: 'Gateways',
             href: getPathWithParams(routes.projects.connect.gateways.root, {
+              orgId,
+              projectId,
+            }),
+            type: 'link',
+          },
+          {
+            title: 'HTTP Routes',
+            href: getPathWithParams(routes.projects.connect.httpRoutes.root, {
               orgId,
               projectId,
             }),
@@ -239,7 +249,7 @@ export default function ProjectLayout() {
         icon: SettingsIcon,
       },
     ]
-  }, [orgId, projectId])
+  }, [orgId, project])
 
   return (
     <DashboardLayout

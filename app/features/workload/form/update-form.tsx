@@ -17,6 +17,7 @@ import { BOOT_IMAGES } from '@/constants/bootImages'
 import { routes } from '@/constants/routes'
 import { WorkloadHelper } from '@/features/workload/helper'
 import { useIsPending } from '@/hooks/useIsPending'
+import { useApp } from '@/providers/app.provider'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
 import { MetadataSchema } from '@/resources/schemas/metadata.schema'
@@ -73,13 +74,12 @@ const sections = [
 
 export const WorkloadUpdateForm = ({
   projectId,
-  orgId,
   defaultValue,
 }: {
   projectId?: string
-  orgId?: string
   defaultValue?: IWorkloadControlResponse
 }) => {
+  const { orgId } = useApp()
   const csrf = useAuthenticityToken()
   const submit = useSubmit()
   const navigate = useNavigate()

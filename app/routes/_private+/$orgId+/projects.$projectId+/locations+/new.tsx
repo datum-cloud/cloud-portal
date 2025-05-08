@@ -4,10 +4,10 @@ import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createLocationsControl } from '@/resources/control-plane/locations.control'
 import { NewLocationSchema, newLocationSchema } from '@/resources/schemas/location.schema'
-import { validateCSRF } from '@/utils/csrf.server'
+import { validateCSRF } from '@/utils/csrf'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
+import { dataWithToast, redirectWithToast } from '@/utils/toast'
 import { parseWithZod } from '@conform-to/zod'
 import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router'
@@ -71,7 +71,7 @@ export const action = withMiddleware(
 
 export default function NewLocation() {
   return (
-    <div className="mx-auto w-full max-w-2xl py-8">
+    <div className="mx-auto w-full max-w-3xl py-8">
       <CreateLocationForm />
     </div>
   )

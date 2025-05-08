@@ -1,16 +1,11 @@
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 import { DateFormat } from '@/components/date-format/date-format'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { SECRET_TYPES } from '@/constants/options'
 import { routes } from '@/constants/routes'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createSecretsControl } from '@/resources/control-plane/secrets.control'
-import { ISecretControlResponse } from '@/resources/interfaces/secret.interface'
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions'
+import { createHttpRoutesControl } from '@/resources/control-plane/httproutes.control'
+import { IHttpRouteControlResponseLite } from '@/resources/interfaces/httproute.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { Client } from '@hey-api/client-axios'
@@ -18,68 +13,72 @@ import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import {
-  LoaderFunctionArgs,
   AppLoadContext,
-  useLoaderData,
-  useParams,
   Link,
+  LoaderFunctionArgs,
+  useLoaderData,
+  useNavigate,
+  useParams,
   useSubmit,
 } from 'react-router'
 
-export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
+export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params
   const { controlPlaneClient } = context as AppLoadContext
-  const secretControl = createSecretsControl(controlPlaneClient as Client)
+  const httpRoutesControl = createHttpRoutesControl(controlPlaneClient as Client)
 
   if (!projectId) {
     throw new CustomError('Project ID is required', 400)
   }
 
-  const secrets = await secretControl.list(projectId)
-  return secrets
-}, authMiddleware)
+  const httpRoutes = await httpRoutesControl.list(projectId)
+  return httpRoutes
+}
 
-export default function SecretsPage() {
-  const data = useLoaderData<typeof loader>()
-  const submit = useSubmit()
-  const { confirm } = useConfirmationDialog()
+export default function ConnectHttpRoutesPage() {
   const { orgId, projectId } = useParams()
+  const data = useLoaderData<typeof loader>()
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const submit = useSubmit()
+  const navigate = useNavigate()
 
-  const deleteSecret = async (secret: ISecretControlResponse) => {
+  const { confirm } = useConfirmationDialog()
+
+  const deleteHttpRoute = async (httpRoute: IHttpRouteControlResponseLite) => {
     await confirm({
-      title: 'Delete Secret',
+      title: 'Delete HTTP Route',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{secret.name}</strong>?
+          <strong>{httpRoute.name}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${secret.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the secret name to confirm deletion',
-      confirmValue: secret.name ?? 'delete',
+      confirmInputLabel: `Type "${httpRoute.name}" to confirm.`,
+      confirmInputPlaceholder: 'Type the http route name to confirm deletion',
+      confirmValue: httpRoute.name ?? 'delete',
       onSubmit: async () => {
-        await submit(
+        /* await submit(
           {
-            secretId: secret.name ?? '',
+            id: httpRoute.name ?? '',
             projectId: projectId ?? '',
             orgId: orgId ?? '',
           },
           {
-            action: SECRET_ACTIONS_ROUTE_PATH,
             method: 'DELETE',
-            fetcherKey: 'secret-resources',
+            fetcherKey: 'http-route-resources',
             navigate: false,
+            action: GATEWAYS_ACTIONS_PATH,
           },
-        )
+        ) */
       },
     })
   }
 
-  const columns: ColumnDef<ISecretControlResponse>[] = useMemo(
+  const columns: ColumnDef<IHttpRouteControlResponseLite>[] = useMemo(
     () => [
       {
         header: 'Name',
@@ -87,25 +86,14 @@ export default function SecretsPage() {
         cell: ({ row }) => {
           return (
             <Link
-              to={getPathWithParams(routes.projects.config.secrets.edit, {
+              to={getPathWithParams(routes.projects.connect.httpRoutes.edit, {
                 orgId,
                 projectId,
-                secretId: row.original.name,
+                httpRouteId: row.original.name,
               })}
               className="text-primary font-semibold">
               {row.original.name}
             </Link>
-          )
-        },
-      },
-      {
-        header: 'Type',
-        accessorKey: 'type',
-        cell: ({ row }) => {
-          return (
-            <Badge variant="outline">
-              {SECRET_TYPES[row.original.type as keyof typeof SECRET_TYPES].label}
-            </Badge>
           )
         },
       },
@@ -120,26 +108,26 @@ export default function SecretsPage() {
     [orgId, projectId],
   )
 
-  const rowActions: DataTableRowActionsProps<ISecretControlResponse>[] = useMemo(
+  const rowActions: DataTableRowActionsProps<IHttpRouteControlResponseLite>[] = useMemo(
     () => [
-      /* {
+      {
         key: 'edit',
         label: 'Edit',
         action: (row) => {
           navigate(
-            getPathWithParams(routes.projects.config.secrets.edit, {
+            getPathWithParams(routes.projects.connect.gateways.edit, {
               orgId,
               projectId,
-              secretId: row.name,
+              gatewayId: row.name,
             }),
           )
         },
-      }, */
+      },
       {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
-        action: (row) => deleteSecret(row),
+        action: (row) => deleteHttpRoute(row),
       },
     ],
     [orgId, projectId],
@@ -151,24 +139,23 @@ export default function SecretsPage() {
       data={data ?? []}
       className="mx-auto max-w-(--breakpoint-xl)"
       loadingText="Loading..."
-      emptyText="No secrets found."
+      emptyText="No http routes found."
       tableTitle={{
-        title: 'Secrets',
-        description: 'Manage secrets for your project resources',
+        title: 'HTTP Routes',
+        description: 'Manage http routes for your project resources',
         actions: (
           <Link
-            to={getPathWithParams(routes.projects.config.secrets.new, {
+            to={getPathWithParams(routes.projects.connect.httpRoutes.new, {
               orgId,
               projectId,
             })}>
             <Button>
               <PlusIcon className="size-4" />
-              New Secret
+              New HTTP Route
             </Button>
           </Link>
         ),
       }}
-      defaultSorting={[{ id: 'createdAt', desc: true }]}
       rowActions={rowActions}
     />
   )

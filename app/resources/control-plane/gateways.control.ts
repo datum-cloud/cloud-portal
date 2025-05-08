@@ -1,7 +1,7 @@
 import {
   createGatewayNetworkingV1NamespacedGateway,
   deleteGatewayNetworkingV1NamespacedGateway,
-  listGatewayNetworkingV1GatewayForAllNamespaces,
+  listGatewayNetworkingV1NamespacedGateway,
   readGatewayNetworkingV1NamespacedGateway,
   readGatewayNetworkingV1NamespacedGatewayStatus,
   replaceGatewayNetworkingV1NamespacedGateway,
@@ -106,9 +106,10 @@ export const createGatewaysControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listGatewayNetworkingV1GatewayForAllNamespaces({
+      const response = await listGatewayNetworkingV1NamespacedGateway({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { namespace: 'default' },
       })
 
       return response.data?.items?.map(transformGatewayLite) ?? []

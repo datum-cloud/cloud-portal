@@ -1,52 +1,51 @@
-import { SelectAutocomplete } from '@/components/select-autocomplete/select-autocomplete'
-import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
-import { cn } from '@/utils/misc'
-import { useEffect, useMemo, useState } from 'react'
-
-const options = [
-  {
-    value: 'IPv4',
-    label: 'IPv4',
-  },
-  {
-    value: 'IPv6',
-    label: 'IPv6',
-  },
-]
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react'
 
 export const SelectIPFamily = ({
-  defaultValue,
-  className,
-  onValueChange,
+  meta,
+  onChange,
 }: {
-  defaultValue?: string
-  className?: string
-  onValueChange: (value: Option) => void
+  meta: FieldMetadata<string>
+  onChange?: (value: string) => void
 }) => {
-  const [value, setValue] = useState(defaultValue)
+  const control = useInputControl(meta)
 
-  const selectedValue = useMemo(() => {
-    return options.find((option) => option.value === value)
-  }, [value, options])
-
-  useEffect(() => {
-    if (defaultValue) {
-      setValue(defaultValue)
-    }
-  }, [defaultValue])
+  const options = [
+    {
+      value: 'IPv4',
+      label: 'IPv4',
+    },
+    {
+      value: 'IPv6',
+      label: 'IPv6',
+    },
+  ]
 
   return (
-    <SelectAutocomplete
-      selectedValue={selectedValue}
-      triggerClassName={cn('w-full h-auto min-h-10', className)}
-      options={options}
-      placeholder="Select a IP Family"
-      boxClassName="h-[100px]"
-      onValueChange={(option) => {
-        setValue(option.value)
-        onValueChange(option)
+    <Select
+      {...getSelectProps(meta)}
+      onValueChange={(value) => {
+        control.change(value)
+        onChange?.(value)
       }}
-      disableSearch
-    />
+      key={meta.id}
+      defaultValue={meta.value?.toString()}>
+      <SelectTrigger>
+        <SelectValue placeholder="Select a IP Family" />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }

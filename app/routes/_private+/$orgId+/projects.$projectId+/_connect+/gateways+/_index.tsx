@@ -7,12 +7,10 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { routes } from '@/constants/routes'
 import { GatewayStatus } from '@/features/connect/gateway/status'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { createGatewaysControl } from '@/resources/control-plane/gateways.control'
 import { IGatewayControlResponseLite } from '@/resources/interfaces/gateway.interface'
-import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api+/networks+/gateways+/actions'
+import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api+/connect+/gateways+/actions'
 import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
@@ -23,13 +21,14 @@ import { useMemo } from 'react'
 import {
   AppLoadContext,
   Link,
+  LoaderFunctionArgs,
   useLoaderData,
   useNavigate,
   useParams,
   useSubmit,
 } from 'react-router'
 
-export const loader = withMiddleware(async ({ context, params }) => {
+export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params
   const { controlPlaneClient } = context as AppLoadContext
   const gatewaysControl = createGatewaysControl(controlPlaneClient as Client)
@@ -40,7 +39,7 @@ export const loader = withMiddleware(async ({ context, params }) => {
 
   const gateways = await gatewaysControl.list(projectId)
   return gateways
-}, authMiddleware)
+}
 
 export default function ConnectGatewaysPage() {
   const { orgId, projectId } = useParams()
@@ -211,7 +210,7 @@ export default function ConnectGatewaysPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-lg)"
+      className="mx-auto max-w-(--breakpoint-xl)"
       loadingText="Loading..."
       emptyText="No gateways found."
       tableTitle={{

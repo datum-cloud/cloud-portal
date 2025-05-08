@@ -1,10 +1,11 @@
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { UserModel } from '@/resources/gql/models/user.model'
-import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
+import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react'
 
 interface AppContextType {
   user: UserModel | undefined
   organization: OrganizationModel | undefined
+  orgId: string | undefined
   setUser: (user: UserModel) => void
   setOrganization: (organization: OrganizationModel) => void
 }
@@ -12,6 +13,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType>({
   user: undefined,
   organization: undefined,
+  orgId: undefined,
   setUser: () => {},
   setOrganization: () => {},
 })
@@ -40,6 +42,8 @@ export function AppProvider({
     setOrganization(orgData)
   }
 
+  const orgId = useMemo(() => organization?.id, [organization])
+
   useEffect(() => {
     if (initialUser) {
       setUser(initialUser)
@@ -51,6 +55,7 @@ export function AppProvider({
       value={{
         user,
         organization,
+        orgId,
         setUser: updateUserData,
         setOrganization: updateOrganizationData,
       }}>
