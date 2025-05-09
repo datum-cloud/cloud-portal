@@ -2,9 +2,8 @@ import { routes } from '@/constants/routes'
 import { authenticator } from '@/modules/auth/auth.server'
 import { commitAuthSession, getAuthSession } from '@/modules/auth/authSession.server'
 import { CustomError } from '@/utils/errorHandle'
-import { combineHeaders } from '@/utils/misc.server'
 import { redirectWithToast } from '@/utils/toast.server'
-import { LoaderFunctionArgs, redirect } from 'react-router'
+import { LoaderFunctionArgs, data, redirect } from 'react-router'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
@@ -26,6 +25,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       throw new CustomError('Authentication failed', 401)
     }
 
+    console.log(credentials)
+
     const { user, ...rest } = credentials
 
     session.set('user', user)
@@ -34,9 +35,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     // TODO: Get Default Organization
     // session.set('currentOrgId', credentials.user.sub)
 
-    return redirect(routes.home, {
-      headers: combineHeaders({ 'Set-Cookie': await commitAuthSession(session) }),
-    })
+    return data(credentials)
+    // return redirect(routes.home, {
+    //   headers: combineHeaders({ 'Set-Cookie': await commitAuthSession(session) }),
+    // })
   } catch (error) {
     return redirectWithToast(routes.auth.logIn, {
       title: 'Authentication failed',
