@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Field } from '@/components/field/field'
 import { MetadataForm } from '@/components/metadata/metadata-form'
+import { SelectGateways } from '@/components/select-gateways/select-gateways'
 import {
   Card,
   CardContent,
@@ -10,7 +11,7 @@ import {
 import { IHttpRouteControlResponse } from '@/resources/interfaces/httproute.interface'
 import { HttpRouteSchema, httpRouteSchema } from '@/resources/schemas/httproute.schema'
 import { MetadataSchema } from '@/resources/schemas/metadata.schema'
-import { FormProvider, getFormProps, useForm } from '@conform-to/react'
+import { FormProvider, getFormProps, useForm, useInputControl } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useMemo, useState } from 'react'
 import { Form } from 'react-router'
@@ -23,6 +24,7 @@ export const HttpRouteForm = ({
   projectId?: string
   defaultValue?: IHttpRouteControlResponse
 }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [formattedValues, setFormattedValues] = useState<HttpRouteSchema>()
   const [form, fields] = useForm({
     id: 'http-route-form',
@@ -33,6 +35,8 @@ export const HttpRouteForm = ({
       return parseWithZod(formData, { schema: httpRouteSchema })
     },
   })
+
+  const parentRefsControl = useInputControl(fields.parentRefs)
 
   const isEdit = useMemo(() => {
     return defaultValue?.uid !== undefined
@@ -67,6 +71,14 @@ export const HttpRouteForm = ({
               }
               isEdit={isEdit}
             />
+
+            <Field label="Gateways" errors={fields.parentRefs.errors}>
+              <SelectGateways
+                projectId={projectId}
+                defaultValue={formattedValues?.parentRefs}
+                onChange={(value) => parentRefsControl.change(value)}
+              />
+            </Field>
           </CardContent>
         </Form>
       </FormProvider>

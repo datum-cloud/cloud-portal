@@ -9,7 +9,7 @@ import {
   NetworksSchema,
   UpdateWorkloadSchema,
 } from '@/resources/schemas/workload.schema'
-import { ROUTE_PATH as NETWORKS_LIST_ROUTE_PATH } from '@/routes/api+/networks+/list'
+import { ROUTE_PATH as NETWORKS_LIST_ROUTE_PATH } from '@/routes/api+/connect+/networks+/list'
 import { cn } from '@/utils/misc'
 import { useForm, useFormMetadata } from '@conform-to/react'
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react'

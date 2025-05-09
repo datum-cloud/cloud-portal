@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input'
 import { useIsPending } from '@/hooks/useIsPending'
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import { newNetworkSchema, updateNetworkSchema } from '@/resources/schemas/network.schema'
-import { ROUTE_PATH as NETWORK_ACTIONS_ROUTE_PATH } from '@/routes/api+/networks+/actions'
+import { ROUTE_PATH as NETWORK_ACTIONS_ROUTE_PATH } from '@/routes/api+/connect+/networks+/actions'
 // import { generateId, generateRandomString } from '@/utils/idGenerator'
 import {
   FormProvider,
@@ -142,8 +142,6 @@ export const NetworkForm = ({
 
   // Field Controls
   const nameControl = useInputControl(fields.name)
-  const ipFamilyControl = useInputControl(fields.ipFamily)
-  const ipamControl = useInputControl(fields.ipam)
 
   // Focus the input when the form is hydrated
   useEffect(() => {
@@ -255,30 +253,30 @@ export const NetworkForm = ({
                 }}
               />
             </Field>
-            <Field isRequired label="IP Family" errors={fields.ipFamily.errors}>
-              <SelectIPFamily
-                defaultValue={fields.ipFamily.value}
-                onValueChange={(value) => {
-                  ipFamilyControl.change(value.value)
-                }}
-              />
-            </Field>
-            <Field isRequired label="IPAM Mode" errors={fields.ipam.errors}>
-              <SelectIPAM
-                meta={fields.ipam}
-                onChange={(value) => {
-                  ipamControl.change(value)
-                }}
-              />
-            </Field>
-            <Field isRequired label="MTU" errors={fields.mtu.errors}>
-              <Input
-                {...getInputProps(fields.mtu, { type: 'number' })}
-                defaultValue={fields.mtu.value}
-                key={fields.mtu.id}
-                placeholder="e.g. 1460"
-              />
-            </Field>
+            <div className="flex items-start gap-2">
+              <Field
+                isRequired
+                label="IP Family"
+                errors={fields.ipFamily.errors}
+                className="w-1/3">
+                <SelectIPFamily meta={fields.ipFamily} />
+              </Field>
+              <Field
+                isRequired
+                label="IPAM Mode"
+                errors={fields.ipam.errors}
+                className="w-1/3">
+                <SelectIPAM meta={fields.ipam} />
+              </Field>
+              <Field isRequired label="MTU" errors={fields.mtu.errors} className="w-1/3">
+                <Input
+                  {...getInputProps(fields.mtu, { type: 'number' })}
+                  defaultValue={fields.mtu.value}
+                  key={fields.mtu.id}
+                  placeholder="e.g. 1460"
+                />
+              </Field>
+            </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             <Button

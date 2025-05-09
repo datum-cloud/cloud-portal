@@ -14,7 +14,7 @@ import { dataWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 
-export const ROUTE_PATH = '/api/networks/actions' as const
+export const ROUTE_PATH = '/api/connect/networks/actions' as const
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext
