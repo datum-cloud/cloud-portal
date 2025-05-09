@@ -31,7 +31,7 @@ authenticator.use(
     {
       issuer: process.env.AUTH_OIDC_ISSUER ?? 'http://localhost:3000',
       client_id: process.env.AUTH_OIDC_CLIENT_ID ?? '',
-      client_secret: process.env.AUTH_OIDC_CLIENT_SECRET ?? '',
+      client_secret: '',
       redirect_uris: [`${process.env.APP_URL}${routes.auth.callback}`],
       post_logout_redirect_uris: [`${process.env.APP_URL}${routes.auth.logIn}`],
       scopes: ['openid', 'profile', 'email', 'phone', 'address', 'offline_access'],
