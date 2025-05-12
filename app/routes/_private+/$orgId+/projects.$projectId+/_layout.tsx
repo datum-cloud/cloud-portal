@@ -152,6 +152,14 @@ export default function ProjectLayout() {
             type: 'link',
           },
           {
+            title: 'Endpoint Slices',
+            href: getPathWithParams(routes.projects.connect.endpointSlices.root, {
+              orgId,
+              projectId,
+            }),
+            type: 'link',
+          },
+          {
             title: 'Services',
             href: getPathWithParams(routes.projects.services, { orgId, projectId }),
             type: 'link',

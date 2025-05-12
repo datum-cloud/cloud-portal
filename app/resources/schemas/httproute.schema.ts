@@ -3,7 +3,7 @@ import {
   HTTPFilterType,
   HTTPPathMatchType,
   HTTPPathRewriteType,
-} from '@/resources/interfaces/httproute.interface'
+} from '@/resources/interfaces/http-route.interface'
 import { z } from 'zod'
 
 // ----- Match Section -----

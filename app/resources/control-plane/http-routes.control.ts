@@ -1,6 +1,6 @@
 import { listGatewayNetworkingV1NamespacedHttpRoute } from '@/modules/control-plane/gateway/sdk.gen'
 import { IoK8sNetworkingGatewayV1HttpRoute } from '@/modules/control-plane/gateway/types.gen'
-import { IHttpRouteControlResponseLite } from '@/resources/interfaces/httproute.interface'
+import { IHttpRouteControlResponseLite } from '@/resources/interfaces/http-route.interface'
 import { Client } from '@hey-api/client-axios'
 
 export const createHttpRoutesControl = (client: Client) => {

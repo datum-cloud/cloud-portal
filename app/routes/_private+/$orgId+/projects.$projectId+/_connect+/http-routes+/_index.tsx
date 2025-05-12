@@ -1,20 +1,17 @@
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 import { DateFormat } from '@/components/date-format/date-format'
-import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createHttpRoutesControl } from '@/resources/control-plane/httproutes.control'
-import { IHttpRouteControlResponseLite } from '@/resources/interfaces/httproute.interface'
+import { createHttpRoutesControl } from '@/resources/control-plane/http-routes.control'
+import { IHttpRouteControlResponseLite } from '@/resources/interfaces/http-route.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
-import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import {
   AppLoadContext,
-  Link,
   LoaderFunctionArgs,
   useLoaderData,
   useNavigate,
@@ -38,7 +35,6 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 export default function ConnectHttpRoutesPage() {
   const { orgId, projectId } = useParams()
   const data = useLoaderData<typeof loader>()
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const submit = useSubmit()
   const navigate = useNavigate()
 
@@ -61,7 +57,7 @@ export default function ConnectHttpRoutesPage() {
       confirmInputPlaceholder: 'Type the http route name to confirm deletion',
       confirmValue: httpRoute.name ?? 'delete',
       onSubmit: async () => {
-        /* await submit(
+        await submit(
           {
             id: httpRoute.name ?? '',
             projectId: projectId ?? '',
@@ -71,9 +67,9 @@ export default function ConnectHttpRoutesPage() {
             method: 'DELETE',
             fetcherKey: 'http-route-resources',
             navigate: false,
-            action: GATEWAYS_ACTIONS_PATH,
+            // action: GATEWAYS_ACTIONS_PATH,
           },
-        ) */
+        )
       },
     })
   }
@@ -84,17 +80,7 @@ export default function ConnectHttpRoutesPage() {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return (
-            <Link
-              to={getPathWithParams(routes.projects.connect.httpRoutes.edit, {
-                orgId,
-                projectId,
-                httpRouteId: row.original.name,
-              })}
-              className="text-primary font-semibold">
-              {row.original.name}
-            </Link>
-          )
+          return <span className="text-primary font-semibold">{row.original.name}</span>
         },
       },
       {
@@ -108,6 +94,7 @@ export default function ConnectHttpRoutesPage() {
     [orgId, projectId],
   )
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const rowActions: DataTableRowActionsProps<IHttpRouteControlResponseLite>[] = useMemo(
     () => [
       {
@@ -143,7 +130,7 @@ export default function ConnectHttpRoutesPage() {
       tableTitle={{
         title: 'HTTP Routes',
         description: 'Manage http routes for your project resources',
-        actions: (
+        /* actions: (
           <Link
             to={getPathWithParams(routes.projects.connect.httpRoutes.new, {
               orgId,
@@ -154,9 +141,9 @@ export default function ConnectHttpRoutesPage() {
               New HTTP Route
             </Button>
           </Link>
-        ),
+        ), */
       }}
-      rowActions={rowActions}
+      rowActions={[]}
     />
   )
 }

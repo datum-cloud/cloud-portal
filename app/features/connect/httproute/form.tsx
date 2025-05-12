@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { IHttpRouteControlResponse } from '@/resources/interfaces/httproute.interface'
+import { IHttpRouteControlResponse } from '@/resources/interfaces/http-route.interface'
 import { HttpRouteSchema, httpRouteSchema } from '@/resources/schemas/httproute.schema'
 import { MetadataSchema } from '@/resources/schemas/metadata.schema'
 import { FormProvider, getFormProps, useForm, useInputControl } from '@conform-to/react'

@@ -1,7 +1,7 @@
 import { MatchesForm } from './matches-form'
 import { FieldLabel } from '@/components/field/field-label'
 import { Button } from '@/components/ui/button'
-import { HTTPPathMatchType } from '@/resources/interfaces/httproute.interface'
+import { HTTPPathMatchType } from '@/resources/interfaces/http-route.interface'
 import {
   HttpRouteRuleSchema,
   HttpRouteSchema,
