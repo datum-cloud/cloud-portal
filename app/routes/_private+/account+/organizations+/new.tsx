@@ -19,9 +19,9 @@ import {
   NewOrganizationSchema,
   newOrganizationSchema,
 } from '@/resources/schemas/organization.schema'
-import { validateCSRF } from '@/utils/csrf.server'
+import { validateCSRF } from '@/utils/csrf'
 import { mergeMeta, metaObject } from '@/utils/meta'
-import { dataWithToast, redirectWithToast } from '@/utils/toast.server'
+import { dataWithToast, redirectWithToast } from '@/utils/toast'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useEffect, useRef } from 'react'
@@ -91,7 +91,7 @@ export default function AccountOrganizationsNew() {
   }, [isHydrated])
 
   return (
-    <div className="mx-auto w-full max-w-2xl py-8">
+    <div className="mx-auto w-full max-w-3xl py-8">
       <Card>
         <CardHeader>
           <CardTitle>Create a new organization</CardTitle>

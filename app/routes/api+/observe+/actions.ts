@@ -3,7 +3,7 @@ import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control'
 import { getPathWithParams } from '@/utils/path'
-import { redirectWithToast } from '@/utils/toast.server'
+import { redirectWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 

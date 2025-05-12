@@ -149,7 +149,7 @@ export default function SecretsPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-lg)"
+      className="mx-auto max-w-(--breakpoint-xl)"
       loadingText="Loading..."
       emptyText="No secrets found."
       tableTitle={{

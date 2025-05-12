@@ -17,7 +17,7 @@ import { createProjectsControl } from '@/resources/control-plane/projects.contro
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
-import { redirectWithToast } from '@/utils/toast.server'
+import { redirectWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { CircleAlertIcon } from 'lucide-react'
 import {
@@ -102,7 +102,7 @@ export default function ProjectSettingsPage() {
   }
 
   return (
-    <div className="mx-auto my-4 w-full max-w-2xl md:my-6">
+    <div className="mx-auto my-4 w-full max-w-3xl md:my-6">
       <div className="grid grid-cols-1 gap-6">
         {/* Project Name Section */}
         <Card>

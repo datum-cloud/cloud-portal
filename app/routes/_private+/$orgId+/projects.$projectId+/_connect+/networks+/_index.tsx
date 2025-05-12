@@ -11,7 +11,7 @@ import { createNetworksControl } from '@/resources/control-plane/networks.contro
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast } from '@/utils/toast.server'
+import { dataWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
@@ -224,7 +224,6 @@ export default function ConnectNetworksPage() {
           </Link>
         ),
       }}
-      defaultSorting={[{ id: 'createdAt', desc: true }]}
       rowActions={rowActions}
     />
   )

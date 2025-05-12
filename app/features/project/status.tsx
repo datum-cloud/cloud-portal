@@ -1,4 +1,5 @@
 import { StatusBadge } from '@/components/status-badge/status-badge'
+import { useApp } from '@/providers/app.provider'
 import {
   ControlPlaneStatus,
   IControlPlaneStatus,
@@ -9,19 +10,18 @@ import { useFetcher } from 'react-router'
 
 export const ProjectStatus = ({
   currentStatus,
-  orgId,
   projectId,
   type = 'dot',
   showTooltip = true,
   badgeClassName,
 }: {
   currentStatus?: IControlPlaneStatus
-  orgId?: string
   projectId?: string
   type?: 'dot' | 'badge'
   showTooltip?: boolean
   badgeClassName?: string
 }) => {
+  const { orgId } = useApp()
   const fetcher = useFetcher({ key: `project-status-${projectId}` })
   const intervalRef = useRef<NodeJS.Timeout>(null)
   const [status, setStatus] = useState<IControlPlaneStatus>()

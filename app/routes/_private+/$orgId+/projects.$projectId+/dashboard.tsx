@@ -8,19 +8,20 @@ import {
   SectionDescription,
   SectionTitle,
 } from '@/features/project/dashboard'
+import { useApp } from '@/providers/app.provider'
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
 import { motion } from 'framer-motion'
 import { ArrowRight, Mail } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
-import { Link, useParams, useRevalidator, useRouteLoaderData } from 'react-router'
+import { Link, useRevalidator, useRouteLoaderData } from 'react-router'
 
 export default function ProjectDashboardPage() {
-  const { orgId, projectId } = useParams()
   const project = useRouteLoaderData(
     'routes/_private+/$orgId+/projects.$projectId+/_layout',
   )
+  const { orgId } = useApp()
   const intervalId = useRef<NodeJS.Timeout | null>(null)
 
   const { revalidate } = useRevalidator()
@@ -117,7 +118,7 @@ export default function ProjectDashboardPage() {
                       <Link
                         to={getPathWithParams(routes.projects.locations.root, {
                           orgId,
-                          projectId,
+                          projectId: project.name,
                         })}>
                         Explore Locations
                       </Link>

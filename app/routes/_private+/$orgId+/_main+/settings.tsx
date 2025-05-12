@@ -103,7 +103,7 @@ export default function OrgSettingsPage() {
   }, [fetcher.data])
 
   return (
-    <div className="mx-auto my-4 w-full max-w-2xl md:my-6">
+    <div className="mx-auto my-4 w-full max-w-3xl md:my-6">
       <div className="grid grid-cols-1 gap-6">
         {/* Organization Name Section */}
         <Card>
