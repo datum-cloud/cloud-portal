@@ -6,3 +6,25 @@ export interface IEndpointSliceControlResponseLite {
   addressType?: IoK8sApiDiscoveryV1EndpointSlice['addressType']
   createdAt?: Date
 }
+
+export interface IEndpointSliceControlResponse {
+  uid?: string
+  name?: string
+  addressType?: IoK8sApiDiscoveryV1EndpointSlice['addressType']
+  createdAt?: Date
+  resourceVersion?: string
+  namespace?: string
+  labels?: Record<string, string>
+  annotations?: Record<string, string>
+}
+
+export enum EndpointSliceAddressType {
+  IPv4 = 'IPv4',
+  IPv6 = 'IPv6',
+  FQDN = 'FQDN',
+}
+
+export enum EndpointSlicePortProtocol {
+  HTTP = 'HTTP',
+  HTTPS = 'HTTPS',
+}

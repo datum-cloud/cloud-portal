@@ -1,4 +1,4 @@
-import { HttpRouteForm } from '@/features/connect/httproute/form'
+import { HttpRouteForm } from '@/features/connect/http-route/form'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { MetaFunction, useParams } from 'react-router'
 

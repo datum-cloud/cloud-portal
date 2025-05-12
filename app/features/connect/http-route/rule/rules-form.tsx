@@ -5,7 +5,7 @@ import { HTTPPathMatchType } from '@/resources/interfaces/http-route.interface'
 import {
   HttpRouteRuleSchema,
   HttpRouteSchema,
-} from '@/resources/schemas/httproute.schema'
+} from '@/resources/schemas/http-route.schema'
 import { cn } from '@/utils/misc'
 import { useForm, useFormMetadata } from '@conform-to/react'
 import { PlusIcon, TrashIcon } from 'lucide-react'
