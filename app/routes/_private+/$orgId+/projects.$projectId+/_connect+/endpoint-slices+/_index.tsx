@@ -1,17 +1,21 @@
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 import { DateFormat } from '@/components/date-format/date-format'
+import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { createEndpointSlicesControl } from '@/resources/control-plane/endpoint-slices.control'
 import { IEndpointSliceControlResponseLite } from '@/resources/interfaces/endpoint-slice.interface'
+import { ROUTE_PATH as ENDPOINT_SLICES_ACTIONS_PATH } from '@/routes/api+/connect+/endpoint-slices+/actions'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
+import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import {
   AppLoadContext,
+  Link,
   LoaderFunctionArgs,
   useLoaderData,
   useNavigate,
@@ -67,9 +71,9 @@ export default function ConnectEndpointSlicesPage() {
           },
           {
             method: 'DELETE',
-            fetcherKey: 'http-route-resources',
+            fetcherKey: 'endpoint-slices-resources',
             navigate: false,
-            // action: GATEWAYS_ACTIONS_PATH,
+            action: ENDPOINT_SLICES_ACTIONS_PATH,
           },
         )
       },
@@ -82,7 +86,17 @@ export default function ConnectEndpointSlicesPage() {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return <span className="text-primary font-semibold">{row.original.name}</span>
+          return (
+            <Link
+              to={getPathWithParams(routes.projects.connect.endpointSlices.edit, {
+                orgId,
+                projectId,
+                endpointId: row.original.name,
+              })}
+              className="text-primary font-semibold">
+              {row.original.name}
+            </Link>
+          )
         },
       },
       {
@@ -103,7 +117,6 @@ export default function ConnectEndpointSlicesPage() {
     [orgId, projectId],
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const rowActions: DataTableRowActionsProps<IEndpointSliceControlResponseLite>[] =
     useMemo(
       () => [
@@ -115,7 +128,7 @@ export default function ConnectEndpointSlicesPage() {
               getPathWithParams(routes.projects.connect.endpointSlices.edit, {
                 orgId,
                 projectId,
-                endpointSliceId: row.name,
+                endpointId: row.name,
               }),
             )
           },
@@ -140,7 +153,7 @@ export default function ConnectEndpointSlicesPage() {
       tableTitle={{
         title: 'Endpoint Slices',
         description: 'Manage endpoint slices for your project resources',
-        /* actions: (
+        actions: (
           <Link
             to={getPathWithParams(routes.projects.connect.endpointSlices.new, {
               orgId,
@@ -148,12 +161,12 @@ export default function ConnectEndpointSlicesPage() {
             })}>
             <Button>
               <PlusIcon className="size-4" />
-              New HTTP Route
+              New Endpoint Slice
             </Button>
           </Link>
-        ), */
+        ),
       }}
-      rowActions={[]}
+      rowActions={rowActions}
     />
   )
 }

@@ -36,7 +36,6 @@ export const SelectGateways = ({
 
   useEffect(() => {
     if (projectId) {
-      console.log(projectId)
       fetchOptions(projectId)
     }
   }, [projectId])

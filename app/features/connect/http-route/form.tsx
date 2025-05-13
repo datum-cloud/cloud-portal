@@ -1,6 +1,5 @@
 import { Field } from '@/components/field/field'
 import { MetadataForm } from '@/components/metadata/metadata-form'
-import { SelectGateways } from '@/components/select-gateways/select-gateways'
 import {
   Card,
   CardContent,
@@ -8,8 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { SelectGateways } from '@/features/connect/http-route/select-gateways'
 import { IHttpRouteControlResponse } from '@/resources/interfaces/http-route.interface'
-import { HttpRouteSchema, httpRouteSchema } from '@/resources/schemas/httproute.schema'
+import { HttpRouteSchema, httpRouteSchema } from '@/resources/schemas/http-route.schema'
 import { MetadataSchema } from '@/resources/schemas/metadata.schema'
 import { FormProvider, getFormProps, useForm, useInputControl } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'

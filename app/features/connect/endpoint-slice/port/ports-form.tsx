@@ -1,53 +1,40 @@
-import { MatchesForm } from './matches-form'
+import { PortField } from './port-field'
 import { FieldLabel } from '@/components/field/field-label'
 import { Button } from '@/components/ui/button'
-import { HTTPPathMatchType } from '@/resources/interfaces/http-route.interface'
+import { EndpointSlicePortProtocol } from '@/resources/interfaces/endpoint-slice.interface'
 import {
-  HttpRouteRuleSchema,
-  HttpRouteSchema,
-} from '@/resources/schemas/httproute.schema'
+  EndpointSlicePortSchema,
+  EndpointSliceSchema,
+} from '@/resources/schemas/endpoint-slice.schema'
 import { cn } from '@/utils/misc'
 import { useForm, useFormMetadata } from '@conform-to/react'
 import { PlusIcon, TrashIcon } from 'lucide-react'
 import { useEffect } from 'react'
 
-const defaultValue: HttpRouteRuleSchema = {
-  matches: [
-    {
-      path: {
-        type: HTTPPathMatchType.PATH_PREFIX,
-        value: '/',
-      },
-    },
-  ],
-  backendRefs: [
-    {
-      name: '',
-      port: 80,
-    },
-  ],
-  filters: [],
+const defaultValue: EndpointSlicePortSchema = {
+  name: '',
+  appProtocol: EndpointSlicePortProtocol.HTTPS,
 }
 
-export const RulesForm = ({
+export const PortsForm = ({
   fields,
   defaultValues,
 }: {
-  fields: ReturnType<typeof useForm<HttpRouteSchema>>[1]
-  defaultValues?: HttpRouteRuleSchema[]
+  fields: ReturnType<typeof useForm<EndpointSliceSchema>>[1]
+  defaultValues?: EndpointSlicePortSchema[]
 }) => {
-  const form = useFormMetadata('http-route-form')
-  const ruleList = fields.rules.getFieldList()
+  const form = useFormMetadata('endpoint-slice-form')
+  const portList = fields.ports.getFieldList()
 
   useEffect(() => {
     if (defaultValues && defaultValues.length > 0) {
       form.update({
-        name: fields.rules.name,
+        name: fields.ports.name,
         value: defaultValues,
       })
-    } else if (ruleList.length === 0) {
+    } else if (portList.length === 0) {
       form.insert({
-        name: fields.rules.name,
+        name: fields.ports.name,
         defaultValue: defaultValue,
       })
     }
@@ -55,31 +42,30 @@ export const RulesForm = ({
 
   return (
     <div className="flex flex-col gap-3">
-      <FieldLabel label="Rules" />
+      <FieldLabel label="Ports" />
 
       <div className="space-y-4">
-        {ruleList.map((field, index) => {
-          const ruleFields = field.getFieldset()
+        {portList.map((port, index) => {
+          const portFields = port.getFieldset()
           return (
             <div
               className="relative flex items-center gap-2 rounded-md border p-4"
-              key={field.key}>
-              <MatchesForm
+              key={port.key}>
+              <PortField
                 fields={
-                  ruleFields as unknown as ReturnType<
-                    typeof useForm<HttpRouteRuleSchema>
+                  portFields as unknown as ReturnType<
+                    typeof useForm<EndpointSlicePortSchema>
                   >[1]
                 }
-                defaultValues={defaultValues?.[index].matches}
+                defaultValues={defaultValues?.[index]}
               />
-
-              {ruleList.length > 1 && (
+              {portList.length > 1 && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   className={cn('text-destructive relative top-2 w-fit')}
-                  onClick={() => form.remove({ name: fields.rules.name, index })}>
+                  onClick={() => form.remove({ name: fields.ports.name, index })}>
                   <TrashIcon className="size-4" />
                 </Button>
               )}
@@ -87,6 +73,7 @@ export const RulesForm = ({
           )
         })}
       </div>
+
       <Button
         type="button"
         variant="outline"
@@ -94,7 +81,7 @@ export const RulesForm = ({
         className="ml-1 w-fit"
         onClick={() =>
           form.insert({
-            name: fields.rules.name,
+            name: fields.ports.name,
             defaultValue: defaultValue,
           })
         }>

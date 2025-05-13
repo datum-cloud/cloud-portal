@@ -9,7 +9,6 @@ import { getHints } from '@/hooks/useHints'
 import { useNonce } from '@/hooks/useNonce'
 import { Theme, getTheme, useTheme } from '@/hooks/useTheme'
 import { useToast } from '@/hooks/useToast'
-import i18nServer, { localeCookie } from '@/modules/i18n/i18n.server'
 import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/handle-cache'
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
@@ -34,13 +33,10 @@ import {
   useNavigation,
 } from 'react-router'
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router'
-import { useChangeLanguage } from 'remix-i18next/react'
 import { AuthenticityTokenProvider } from 'remix-utils/csrf/react'
 
 // NProgress configuration
 NProgress.configure({ showSpinner: false })
-
-export const handle = { i18n: ['translation'] }
 
 export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
   // Get the current page title from the pathname
@@ -66,14 +62,12 @@ export const links: LinksFunction = () => {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const locale = await i18nServer.getLocale(request)
   const { toast, headers: toastHeaders } = await getToastSession(request)
   const [csrfToken, csrfCookieHeader] = await csrf.commitToken(request)
   const sharedEnv = getSharedEnvs()
 
   return data(
     {
-      locale,
       toast,
       csrfToken,
       sharedEnv,
@@ -86,7 +80,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
     } as const,
     {
       headers: combineHeaders(
-        { 'Set-Cookie': await localeCookie.serialize(locale) },
         toastHeaders,
         csrfCookieHeader ? { 'Set-Cookie': csrfCookieHeader } : null,
       ),
@@ -133,15 +126,12 @@ function Document({
 }
 
 export default function AppWithProviders() {
-  const { locale, toast, csrfToken, sharedEnv } = useLoaderData<typeof loader>()
+  const { toast, csrfToken, sharedEnv } = useLoaderData<typeof loader>()
 
   const nonce = useNonce()
   const theme = useTheme()
   const navigation = useNavigation()
   const fetchers = useFetchers()
-
-  // Updates the i18n instance language.
-  useChangeLanguage(locale)
 
   // Renders toast (if any).
   useToast(toast)
@@ -181,7 +171,7 @@ export default function AppWithProviders() {
   })
 
   return (
-    <Document nonce={nonce} theme={theme} lang={locale ?? 'en'}>
+    <Document nonce={nonce} theme={theme} lang="en">
       <AuthenticityTokenProvider token={csrfToken}>
         {sharedEnv.FATHOM_ID && isProduction() && (
           <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />

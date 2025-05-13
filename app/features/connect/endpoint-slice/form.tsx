@@ -1,4 +1,7 @@
-import { ListenersForm } from './listener/listeners-form'
+import { EndpointsForm } from './endpoint/endpoints-form'
+import { PortsForm } from './port/ports-form'
+import { SelectAddressType } from './select-address-type'
+import { Field } from '@/components/field/field'
 import { MetadataForm } from '@/components/metadata/metadata-form'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,33 +16,28 @@ import { useIsPending } from '@/hooks/useIsPending'
 import { useApp } from '@/providers/app.provider'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import {
-  GatewayProtocol,
-  GatewayAllowedRoutes,
-  GatewayTlsMode,
-  IGatewayControlResponse,
-} from '@/resources/interfaces/gateway.interface'
+  EndpointSliceAddressType,
+  IEndpointSliceControlResponse,
+} from '@/resources/interfaces/endpoint-slice.interface'
 import {
-  GatewayListenerFieldSchema,
-  GatewayListenerSchema,
-  GatewaySchema,
-  gatewaySchema,
-} from '@/resources/schemas/gateway.schema'
+  EndpointSliceSchema,
+  endpointSliceSchema,
+} from '@/resources/schemas/endpoint-slice.schema'
 import { MetadataSchema } from '@/resources/schemas/metadata.schema'
-import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api+/connect+/gateways+/actions'
+import { ROUTE_PATH as ENDPOINT_SLICES_ACTIONS_PATH } from '@/routes/api+/connect+/endpoint-slices+/actions'
 import { convertObjectToLabels } from '@/utils/misc'
 import { FormProvider, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { get } from 'es-toolkit/compat'
 import { useEffect, useMemo, useState } from 'react'
 import { Form, useNavigate, useSubmit } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 
-export const GatewayForm = ({
-  defaultValue,
+export const EndpointSliceForm = ({
   projectId,
+  defaultValue,
 }: {
-  defaultValue?: IGatewayControlResponse
   projectId?: string
+  defaultValue?: IEndpointSliceControlResponse
 }) => {
   const navigate = useNavigate()
   const isPending = useIsPending()
@@ -47,9 +45,27 @@ export const GatewayForm = ({
   const { orgId } = useApp()
   const { confirm } = useConfirmationDialog()
 
-  const deleteGateway = async () => {
+  const [formattedValues, setFormattedValues] = useState<EndpointSliceSchema>()
+  const [form, fields] = useForm({
+    id: 'endpoint-slice-form',
+    constraint: getZodConstraint(endpointSliceSchema),
+    defaultValue: {
+      addressType: EndpointSliceAddressType.FQDN,
+    },
+    shouldValidate: 'onInput',
+    shouldRevalidate: 'onInput',
+    onValidate({ formData }) {
+      return parseWithZod(formData, { schema: endpointSliceSchema })
+    },
+  })
+
+  const isEdit = useMemo(() => {
+    return defaultValue?.uid !== undefined
+  }, [defaultValue])
+
+  const deleteEndpointSlice = async () => {
     await confirm({
-      title: 'Delete Gateway',
+      title: 'Delete Endpoint Slice',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
@@ -61,7 +77,7 @@ export const GatewayForm = ({
       variant: 'destructive',
       showConfirmInput: true,
       confirmInputLabel: `Type "${defaultValue?.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the gateway name to confirm deletion',
+      confirmInputPlaceholder: 'Type the endpoint slice name to confirm deletion',
       confirmValue: defaultValue?.name ?? 'delete',
       onSubmit: async () => {
         await submit(
@@ -72,29 +88,14 @@ export const GatewayForm = ({
           },
           {
             method: 'DELETE',
-            fetcherKey: 'gateway-resources',
+            fetcherKey: 'endpoint-slices-resources',
             navigate: false,
-            action: GATEWAYS_ACTIONS_PATH,
+            action: ENDPOINT_SLICES_ACTIONS_PATH,
           },
         )
       },
     })
   }
-
-  const [formattedValues, setFormattedValues] = useState<GatewaySchema>()
-  const [form, fields] = useForm({
-    id: 'gateway-form',
-    constraint: getZodConstraint(gatewaySchema),
-    shouldValidate: 'onInput',
-    shouldRevalidate: 'onInput',
-    onValidate({ formData }) {
-      return parseWithZod(formData, { schema: gatewaySchema })
-    },
-  })
-
-  const isEdit = useMemo(() => {
-    return defaultValue?.uid !== undefined
-  }, [defaultValue])
 
   useEffect(() => {
     if (defaultValue && defaultValue.name) {
@@ -104,40 +105,11 @@ export const GatewayForm = ({
         annotations: convertObjectToLabels(defaultValue.annotations ?? {}),
       }
 
-      const listeners: GatewayListenerFieldSchema[] = (defaultValue?.listeners ?? []).map(
-        (listener) => {
-          const from = get(
-            listener,
-            'allowedRoutes.namespaces.from',
-            GatewayAllowedRoutes.SAME,
-          )
-          /* const matchLabels = get(
-            listener,
-            'allowedRoutes.namespaces.selector.matchLabels',
-            {},
-          ) */
-
-          const tls =
-            listener.protocol === GatewayProtocol.HTTPS
-              ? {
-                  mode: get(listener, 'tlsConfiguration.mode', GatewayTlsMode.TERMINATE),
-                }
-              : undefined
-
-          return {
-            name: listener.name ?? '',
-            port: listener.port ?? 80,
-            protocol: listener.protocol ?? '',
-            allowedRoutes: from,
-            // matchLabels: from === 'Selector' ? convertObjectToLabels(matchLabels) : [],
-            tlsConfiguration: tls,
-          }
-        },
-      )
-
       setFormattedValues({
         ...metadata,
-        listeners,
+        addressType: defaultValue?.addressType ?? EndpointSliceAddressType.FQDN,
+        endpoints: defaultValue?.endpoints ?? [],
+        ports: defaultValue?.ports ?? [],
       })
     }
   }, [defaultValue])
@@ -145,13 +117,12 @@ export const GatewayForm = ({
   return (
     <Card className="relative">
       <CardHeader>
-        <CardTitle>{isEdit ? 'Update' : 'Create a new'} gateway</CardTitle>
+        <CardTitle>Create a new Endpoint Slice</CardTitle>
         <CardDescription>
-          {isEdit
-            ? 'Update the gateway with the new values below.'
-            : 'Create a new gateway to get started with Datum Cloud.'}
+          Create a new Endpoint Slice to get started with Datum Cloud.
         </CardDescription>
       </CardHeader>
+
       <FormProvider context={form.context}>
         <Form
           {...getFormProps(form)}
@@ -160,26 +131,30 @@ export const GatewayForm = ({
           autoComplete="off"
           className="flex flex-col gap-6">
           <AuthenticityTokenInput />
-
-          {isEdit && (
-            <input
-              type="hidden"
-              name="resourceVersion"
-              value={defaultValue?.resourceVersion}
-            />
-          )}
-
           <CardContent className="space-y-4">
             <MetadataForm
               fields={fields as unknown as ReturnType<typeof useForm<MetadataSchema>>[1]}
               defaultValues={formattedValues as MetadataSchema}
               isEdit={isEdit}
             />
-            <ListenersForm
+            <Field
+              isRequired
+              label="Address Type"
+              errors={fields.addressType.errors}
+              className="w-1/4">
+              <SelectAddressType meta={fields.addressType} />
+            </Field>
+            <EndpointsForm
               fields={
-                fields as unknown as ReturnType<typeof useForm<GatewayListenerSchema>>[1]
+                fields as unknown as ReturnType<typeof useForm<EndpointSliceSchema>>[1]
               }
-              defaultValues={{ listeners: formattedValues?.listeners ?? [] }}
+              defaultValues={formattedValues?.endpoints}
+            />
+            <PortsForm
+              fields={
+                fields as unknown as ReturnType<typeof useForm<EndpointSliceSchema>>[1]
+              }
+              defaultValues={formattedValues?.ports}
             />
           </CardContent>
           <CardFooter className="flex justify-between gap-2">
@@ -187,8 +162,8 @@ export const GatewayForm = ({
               <Button
                 type="button"
                 variant="destructive"
-                onClick={() => deleteGateway()}
-                disabled={isPending}>
+                disabled={isPending}
+                onClick={deleteEndpointSlice}>
                 Delete
               </Button>
             ) : (

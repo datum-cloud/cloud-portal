@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import {
   HttpRouteMatchSchema,
   HttpRouteRuleSchema,
-} from '@/resources/schemas/httproute.schema'
+} from '@/resources/schemas/http-route.schema'
 import { cn } from '@/utils/misc'
 import { useForm, useFormMetadata } from '@conform-to/react'
 import { TrashIcon } from 'lucide-react'

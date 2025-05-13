@@ -1,7 +1,7 @@
 import { routes } from '@/constants/routes'
-import { GatewayForm } from '@/features/connect/gateway/form'
-import { createGatewaysControl } from '@/resources/control-plane/gateways.control'
-import { gatewaySchema } from '@/resources/schemas/gateway.schema'
+import { EndpointSliceForm } from '@/features/connect/endpoint-slice/form'
+import { createEndpointSlicesControl } from '@/resources/control-plane/endpoint-slices.control'
+import { endpointSliceSchema } from '@/resources/schemas/endpoint-slice.schema'
 import { validateCSRF } from '@/utils/csrf'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
@@ -11,7 +11,7 @@ import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('New Gateway')
+  return metaObject('New Endpoint Slice')
 })
 
 export const action = async ({ request, context, params }: ActionFunctionArgs) => {
@@ -22,7 +22,7 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
   }
 
   const { controlPlaneClient } = context as AppLoadContext
-  const gatewaysControl = createGatewaysControl(controlPlaneClient as Client)
+  const endpointSlicesControl = createEndpointSlicesControl(controlPlaneClient as Client)
 
   const clonedRequest = request.clone()
   const formData = await clonedRequest.formData()
@@ -30,26 +30,26 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
   try {
     await validateCSRF(formData, clonedRequest.headers)
 
-    const parsed = parseWithZod(formData, { schema: gatewaySchema })
+    const parsed = parseWithZod(formData, { schema: endpointSliceSchema })
 
     if (parsed.status !== 'success') {
       throw new Error('Invalid form data')
     }
 
-    const dryRunRes = await gatewaysControl.create(projectId, parsed.value, true)
+    const dryRunRes = await endpointSlicesControl.create(projectId, parsed.value, true)
 
     if (dryRunRes) {
-      await gatewaysControl.create(projectId, parsed.value, false)
+      await endpointSlicesControl.create(projectId, parsed.value, false)
     }
 
     return redirectWithToast(
-      getPathWithParams(routes.projects.connect.gateways.root, {
+      getPathWithParams(routes.projects.connect.endpointSlices.root, {
         orgId,
         projectId,
       }),
       {
-        title: 'Gateway created successfully',
-        description: 'You have successfully created a gateway.',
+        title: 'Endpoint Slice created successfully',
+        description: 'You have successfully created an endpoint slice.',
         type: 'success',
       },
     )
@@ -63,10 +63,10 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
   }
 }
 
-export default function ConnectGatewaysNewPage() {
+export default function ConnectEndpointSlicesNewPage() {
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <GatewayForm />
+      <EndpointSliceForm />
     </div>
   )
 }
