@@ -1,6 +1,16 @@
-import { listDiscoveryV1NamespacedEndpointSlice } from '@/modules/control-plane/discovery/sdk.gen'
+import {
+  createDiscoveryV1NamespacedEndpointSlice,
+  deleteDiscoveryV1NamespacedEndpointSlice,
+  listDiscoveryV1NamespacedEndpointSlice,
+} from '@/modules/control-plane/discovery/sdk.gen'
 import { IoK8sApiDiscoveryV1EndpointSlice } from '@/modules/control-plane/discovery/types.gen'
-import { IEndpointSliceControlResponseLite } from '@/resources/interfaces/endpoint-slice.interface'
+import {
+  EndpointSlicePortPort,
+  IEndpointSliceControlResponseLite,
+} from '@/resources/interfaces/endpoint-slice.interface'
+import { EndpointSliceSchema } from '@/resources/schemas/endpoint-slice.schema'
+import { CustomError } from '@/utils/errorHandle'
+import { convertLabelsToObject } from '@/utils/misc'
 import { Client } from '@hey-api/client-axios'
 
 export const createEndpointSlicesControl = (client: Client) => {
@@ -18,6 +28,38 @@ export const createEndpointSlicesControl = (client: Client) => {
     }
   }
 
+  const formatEndpointSlice = (
+    payload: EndpointSliceSchema,
+  ): IoK8sApiDiscoveryV1EndpointSlice => {
+    return {
+      metadata: {
+        name: payload?.name,
+        labels: convertLabelsToObject(payload?.labels ?? []),
+        annotations: convertLabelsToObject(payload?.annotations ?? []),
+        ...(payload?.resourceVersion
+          ? { resourceVersion: payload?.resourceVersion }
+          : {}),
+      },
+      addressType:
+        payload?.addressType as IoK8sApiDiscoveryV1EndpointSlice['addressType'],
+      endpoints: payload?.endpoints.map((endpoint) => ({
+        addresses: endpoint?.addresses,
+        conditions: {
+          ready: endpoint.conditions?.includes('ready'),
+          reachable: endpoint.conditions?.includes('reachable'),
+          terminating: endpoint.conditions?.includes('terminating'),
+        },
+      })),
+      ports: payload?.ports.map((port) => ({
+        appProtocol: port.appProtocol,
+        name: port.name,
+        port: EndpointSlicePortPort[
+          port.appProtocol as keyof typeof EndpointSlicePortPort
+        ],
+      })),
+    }
+  }
+
   return {
     list: async (projectId: string) => {
       const response = await listDiscoveryV1NamespacedEndpointSlice({
@@ -27,6 +69,48 @@ export const createEndpointSlicesControl = (client: Client) => {
       })
 
       return response.data?.items?.map(transformEndpointSliceLite) ?? []
+    },
+    create: async (
+      projectId: string,
+      payload: EndpointSliceSchema,
+      dryRun: boolean = false,
+    ) => {
+      const formatted = formatEndpointSlice(payload)
+      const response = await createDiscoveryV1NamespacedEndpointSlice({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { namespace: 'default' },
+        query: {
+          dryRun: dryRun ? 'All' : undefined,
+        },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: {
+          ...formatted,
+          kind: 'EndpointSlice',
+          apiVersion: 'discovery.k8s.io/v1',
+        },
+      })
+
+      if (!response.data) {
+        throw new CustomError('Failed to create endpoint slice', 500)
+      }
+
+      return dryRun ? response.data : transformEndpointSliceLite(response.data)
+    },
+    delete: async (projectId: string, id: string) => {
+      const response = await deleteDiscoveryV1NamespacedEndpointSlice({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: { namespace: 'default', name: id },
+      })
+
+      if (!response.data) {
+        throw new CustomError('Failed to delete endpoint slice', 500)
+      }
+
+      return response.data
     },
   }
 }

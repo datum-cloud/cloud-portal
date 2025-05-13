@@ -28,3 +28,8 @@ export enum EndpointSlicePortProtocol {
   HTTP = 'HTTP',
   HTTPS = 'HTTPS',
 }
+
+export enum EndpointSlicePortPort {
+  HTTP = 80,
+  HTTPS = 443,
+}

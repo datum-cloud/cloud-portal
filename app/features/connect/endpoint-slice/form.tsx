@@ -1,13 +1,18 @@
+import { EndpointsForm } from './endpoint/endpoints-form'
+import { PortsForm } from './port/ports-form'
 import { SelectAddressType } from './select-address-type'
 import { Field } from '@/components/field/field'
 import { MetadataForm } from '@/components/metadata/metadata-form'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { useIsPending } from '@/hooks/useIsPending'
 import {
   EndpointSliceAddressType,
   IEndpointSliceControlResponse,
@@ -20,7 +25,7 @@ import { MetadataSchema } from '@/resources/schemas/metadata.schema'
 import { FormProvider, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useMemo, useState } from 'react'
-import { Form } from 'react-router'
+import { Form, useNavigate } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 
 export const EndpointSliceForm = ({
@@ -28,6 +33,9 @@ export const EndpointSliceForm = ({
 }: {
   defaultValue?: IEndpointSliceControlResponse
 }) => {
+  const navigate = useNavigate()
+  const isPending = useIsPending()
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [formattedValues, setFormattedValues] = useState<EndpointSliceSchema>()
   const [form, fields] = useForm({
@@ -63,22 +71,61 @@ export const EndpointSliceForm = ({
           autoComplete="off"
           className="flex flex-col gap-6">
           <AuthenticityTokenInput />
-          <CardContent>
+          <CardContent className="space-y-4">
             <MetadataForm
               fields={fields as unknown as ReturnType<typeof useForm<MetadataSchema>>[1]}
-              defaultValues={
-                {
-                  name: formattedValues?.name,
-                  labels: formattedValues?.labels,
-                  annotations: formattedValues?.annotations,
-                } as MetadataSchema
-              }
+              defaultValues={formattedValues as MetadataSchema}
               isEdit={isEdit}
             />
-            <Field label="Address Type" errors={fields.addressType.errors}>
+            <Field
+              isRequired
+              label="Address Type"
+              errors={fields.addressType.errors}
+              className="w-1/4">
               <SelectAddressType meta={fields.addressType} />
             </Field>
+            <EndpointsForm
+              fields={
+                fields as unknown as ReturnType<typeof useForm<EndpointSliceSchema>>[1]
+              }
+              defaultValues={formattedValues?.endpoints}
+            />
+            <PortsForm
+              fields={
+                fields as unknown as ReturnType<typeof useForm<EndpointSliceSchema>>[1]
+              }
+              defaultValues={formattedValues?.ports}
+            />
           </CardContent>
+          <CardFooter className="flex justify-between gap-2">
+            {isEdit ? (
+              <Button type="button" variant="destructive" disabled={isPending}>
+                Delete
+              </Button>
+            ) : (
+              <div />
+            )}
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="link"
+                disabled={isPending}
+                onClick={() => {
+                  navigate(-1)
+                }}>
+                Return to List
+              </Button>
+              <Button
+                variant="default"
+                type="submit"
+                disabled={isPending}
+                isLoading={isPending}>
+                {isPending
+                  ? `${isEdit ? 'Saving' : 'Creating'}`
+                  : `${isEdit ? 'Save' : 'Create'}`}
+              </Button>
+            </div>
+          </CardFooter>
         </Form>
       </FormProvider>
     </Card>

@@ -7,11 +7,7 @@ import { z } from 'zod'
 
 export const endpointSliceEndpointSchema = z.object({
   addresses: z.array(z.string()).min(1, { message: 'At least one address is required' }),
-  conditions: z.object({
-    ready: z.boolean(),
-    reachable: z.boolean(),
-    terminating: z.boolean(),
-  }),
+  conditions: z.array(z.enum(['ready', 'reachable', 'terminating'])).optional(),
 })
 
 export const endpointSlicePortSchema = z
