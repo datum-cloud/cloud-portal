@@ -1,7 +1,12 @@
 import { Field } from '@/components/field/field'
 import { TagsInput } from '@/components/ui/tag-input'
 import { EndpointSliceEndpointSchema } from '@/resources/schemas/endpoint-slice.schema'
-import { getCollectionProps, useForm, useInputControl } from '@conform-to/react'
+import {
+  getCollectionProps,
+  getSelectProps,
+  useForm,
+  useInputControl,
+} from '@conform-to/react'
 import { useEffect } from 'react'
 
 export const EndpointField = ({
@@ -12,14 +17,15 @@ export const EndpointField = ({
   defaultValues?: EndpointSliceEndpointSchema
 }) => {
   const addressesControl = useInputControl(fields.addresses)
+  const conditionsControl = useInputControl(fields.conditions)
 
   useEffect(() => {
     if (defaultValues) {
-      if (defaultValues.addresses && !fields.addresses.value) {
-        addressesControl.change(defaultValues?.addresses)
+      if (defaultValues.conditions && !fields.conditions.value) {
+        conditionsControl.change(defaultValues?.conditions)
       }
     }
-  }, [defaultValues, addressesControl, fields.addresses.value])
+  }, [defaultValues, conditionsControl, fields.conditions.value])
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
@@ -31,10 +37,8 @@ export const EndpointField = ({
           className="w-1/2"
           description="Enter one or more addresses (e.g example.com)">
           <TagsInput
+            {...getSelectProps(fields.addresses, { value: false })}
             showValidationErrors={false}
-            name={fields.addresses.name}
-            id={fields.addresses.id}
-            key={fields.addresses.key}
             value={(addressesControl.value as string[]) || []}
             onValueChange={(newValue) => addressesControl.change(newValue)}
             placeholder="Enter addresses"

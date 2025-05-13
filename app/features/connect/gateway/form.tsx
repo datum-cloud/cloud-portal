@@ -45,7 +45,6 @@ export const GatewayForm = ({
   const isPending = useIsPending()
   const submit = useSubmit()
   const { orgId } = useApp()
-
   const { confirm } = useConfirmationDialog()
 
   const deleteGateway = async () => {

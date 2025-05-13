@@ -1,13 +1,16 @@
 import { metadataSchema, nameSchema } from './metadata.schema'
 import {
   EndpointSliceAddressType,
+  EndpointSliceCondition,
   EndpointSlicePortProtocol,
 } from '@/resources/interfaces/endpoint-slice.interface'
 import { z } from 'zod'
 
 export const endpointSliceEndpointSchema = z.object({
   addresses: z.array(z.string()).min(1, { message: 'At least one address is required' }),
-  conditions: z.array(z.enum(['ready', 'reachable', 'terminating'])).optional(),
+  conditions: z
+    .array(z.enum(Object.values(EndpointSliceCondition) as [string, ...string[]]))
+    .optional(),
 })
 
 export const endpointSlicePortSchema = z

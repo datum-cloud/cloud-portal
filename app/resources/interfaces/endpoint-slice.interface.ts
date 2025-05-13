@@ -16,6 +16,14 @@ export interface IEndpointSliceControlResponse {
   namespace?: string
   labels?: Record<string, string>
   annotations?: Record<string, string>
+  endpoints?: {
+    addresses: string[]
+    conditions: Array<EndpointSliceCondition>
+  }[]
+  ports?: {
+    name: string
+    appProtocol: string
+  }[]
 }
 
 export enum EndpointSliceAddressType {
@@ -32,4 +40,10 @@ export enum EndpointSlicePortProtocol {
 export enum EndpointSlicePortPort {
   HTTP = 80,
   HTTPS = 443,
+}
+
+export enum EndpointSliceCondition {
+  Ready = 'ready',
+  Reachable = 'reachable',
+  Terminating = 'terminating',
 }

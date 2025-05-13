@@ -18,6 +18,7 @@ import {
   useForm,
   useInputControl,
 } from '@conform-to/react'
+import { useEffect } from 'react'
 
 export const PortField = ({
   fields,
@@ -28,6 +29,24 @@ export const PortField = ({
 }) => {
   const nameControl = useInputControl(fields.name)
   const appProtocolControl = useInputControl(fields.appProtocol)
+
+  useEffect(() => {
+    if (defaultValues) {
+      if (defaultValues.name && !fields.name.value) {
+        nameControl.change(defaultValues?.name)
+      }
+
+      if (defaultValues.appProtocol && !fields.appProtocol.value) {
+        appProtocolControl.change(defaultValues?.appProtocol)
+      }
+    }
+  }, [
+    defaultValues,
+    nameControl,
+    fields.name.value,
+    appProtocolControl,
+    fields.appProtocol.value,
+  ])
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">

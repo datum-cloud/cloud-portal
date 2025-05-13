@@ -86,7 +86,17 @@ export default function ConnectEndpointSlicesPage() {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return <span className="text-primary font-semibold">{row.original.name}</span>
+          return (
+            <Link
+              to={getPathWithParams(routes.projects.connect.endpointSlices.edit, {
+                orgId,
+                projectId,
+                endpointId: row.original.name,
+              })}
+              className="text-primary font-semibold">
+              {row.original.name}
+            </Link>
+          )
         },
       },
       {
@@ -118,7 +128,7 @@ export default function ConnectEndpointSlicesPage() {
               getPathWithParams(routes.projects.connect.endpointSlices.edit, {
                 orgId,
                 projectId,
-                endpointSliceId: row.name,
+                endpointId: row.name,
               }),
             )
           },

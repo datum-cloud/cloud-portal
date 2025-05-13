@@ -13,6 +13,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { useIsPending } from '@/hooks/useIsPending'
+import { useApp } from '@/providers/app.provider'
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import {
   EndpointSliceAddressType,
   IEndpointSliceControlResponse,
@@ -22,21 +24,27 @@ import {
   endpointSliceSchema,
 } from '@/resources/schemas/endpoint-slice.schema'
 import { MetadataSchema } from '@/resources/schemas/metadata.schema'
+import { ROUTE_PATH as ENDPOINT_SLICES_ACTIONS_PATH } from '@/routes/api+/connect+/endpoint-slices+/actions'
+import { convertObjectToLabels } from '@/utils/misc'
 import { FormProvider, getFormProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useMemo, useState } from 'react'
-import { Form, useNavigate } from 'react-router'
+import { useEffect, useMemo, useState } from 'react'
+import { Form, useNavigate, useSubmit } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 
 export const EndpointSliceForm = ({
+  projectId,
   defaultValue,
 }: {
+  projectId?: string
   defaultValue?: IEndpointSliceControlResponse
 }) => {
   const navigate = useNavigate()
   const isPending = useIsPending()
+  const submit = useSubmit()
+  const { orgId } = useApp()
+  const { confirm } = useConfirmationDialog()
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [formattedValues, setFormattedValues] = useState<EndpointSliceSchema>()
   const [form, fields] = useForm({
     id: 'endpoint-slice-form',
@@ -54,6 +62,58 @@ export const EndpointSliceForm = ({
   const isEdit = useMemo(() => {
     return defaultValue?.uid !== undefined
   }, [defaultValue])
+
+  const deleteEndpointSlice = async () => {
+    await confirm({
+      title: 'Delete Endpoint Slice',
+      description: (
+        <span>
+          Are you sure you want to delete&nbsp;
+          <strong>{defaultValue?.name}</strong>?
+        </span>
+      ),
+      submitText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      showConfirmInput: true,
+      confirmInputLabel: `Type "${defaultValue?.name}" to confirm.`,
+      confirmInputPlaceholder: 'Type the endpoint slice name to confirm deletion',
+      confirmValue: defaultValue?.name ?? 'delete',
+      onSubmit: async () => {
+        await submit(
+          {
+            id: defaultValue?.name ?? '',
+            projectId: projectId ?? '',
+            orgId: orgId ?? '',
+          },
+          {
+            method: 'DELETE',
+            fetcherKey: 'endpoint-slices-resources',
+            navigate: false,
+            action: ENDPOINT_SLICES_ACTIONS_PATH,
+          },
+        )
+      },
+    })
+  }
+
+  useEffect(() => {
+    if (defaultValue && defaultValue.name) {
+      const metadata = {
+        name: defaultValue.name,
+        labels: convertObjectToLabels(defaultValue.labels ?? {}),
+        annotations: convertObjectToLabels(defaultValue.annotations ?? {}),
+      }
+
+      setFormattedValues({
+        ...metadata,
+        addressType: defaultValue?.addressType ?? EndpointSliceAddressType.FQDN,
+        endpoints: defaultValue?.endpoints ?? [],
+        ports: defaultValue?.ports ?? [],
+      })
+    }
+  }, [defaultValue])
+
   return (
     <Card className="relative">
       <CardHeader>
@@ -99,7 +159,11 @@ export const EndpointSliceForm = ({
           </CardContent>
           <CardFooter className="flex justify-between gap-2">
             {isEdit ? (
-              <Button type="button" variant="destructive" disabled={isPending}>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={isPending}
+                onClick={deleteEndpointSlice}>
                 Delete
               </Button>
             ) : (

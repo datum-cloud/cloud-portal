@@ -80,7 +80,7 @@ export const routes = {
       endpointSlices: {
         root: '/[orgId]/projects/[projectId]/endpoint-slices',
         new: '/[orgId]/projects/[projectId]/endpoint-slices/new',
-        edit: '/[orgId]/projects/[projectId]/endpoint-slices/[endpointSliceId]/edit',
+        edit: '/[orgId]/projects/[projectId]/endpoint-slices/[endpointId]/edit',
       },
     },
     // Deploy Sections

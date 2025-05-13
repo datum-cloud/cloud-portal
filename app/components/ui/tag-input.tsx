@@ -403,8 +403,7 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
           defaultValue={undefined}
           className="absolute top-0 left-0 h-0 w-0"
           onChange={() => undefined}>
-          <option value="test"></option>
-          <option value="test-1"></option>
+          <option value=""></option>
           {value.map((option, idx) => (
             <option key={`${option}-${idx}`} value={option} />
           ))}
