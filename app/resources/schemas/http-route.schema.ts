@@ -25,7 +25,7 @@ export const httpRouteMatchSchema = z.object({
 // ----- End Match Section -----
 
 // ----- Backend Reference Section -----
-export const httpBackendRefSchema = z
+export const httpRouteBackendRefSchema = z
   .object({
     port: z
       .number({ required_error: 'Port is required' })
@@ -165,7 +165,7 @@ export const httpRouteRuleSchema = z.object({
     .array(httpRouteMatchSchema)
     .min(1, { message: 'At least one match is required' }),
   backendRefs: z
-    .array(httpBackendRefSchema)
+    .array(httpRouteBackendRefSchema)
     .min(1, { message: 'At least one backend reference is required' }),
   filters: z.array(httpRouteFilterSchema).optional(),
 })
@@ -200,7 +200,7 @@ export type HttpRouteMatchSchema = z.infer<typeof httpRouteMatchSchema>
 export type HttpPathMatchSchema = z.infer<typeof httpPathMatchSchema>
 
 // ----- Backend Reference Section -----
-export type HttpBackendRefSchema = z.infer<typeof httpBackendRefSchema>
+export type HttpRouteBackendRefSchema = z.infer<typeof httpRouteBackendRefSchema>
 
 // ----- Filter Section -----
 export type HttpRouteFilterSchema = z.infer<typeof httpRouteFilterSchema>

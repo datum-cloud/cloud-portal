@@ -1,3 +1,4 @@
+import { RulesForm } from './rule/rules-form'
 import { Field } from '@/components/field/field'
 import { MetadataForm } from '@/components/metadata/metadata-form'
 import {
@@ -70,13 +71,7 @@ export const HttpRouteForm = ({
           <CardContent className="space-y-4">
             <MetadataForm
               fields={fields as unknown as ReturnType<typeof useForm<MetadataSchema>>[1]}
-              defaultValues={
-                {
-                  name: formattedValues?.name,
-                  labels: formattedValues?.labels,
-                  annotations: formattedValues?.annotations,
-                } as MetadataSchema
-              }
+              defaultValues={formattedValues as MetadataSchema}
               isEdit={isEdit}
             />
 
@@ -87,6 +82,12 @@ export const HttpRouteForm = ({
                 onChange={(value) => parentRefsControl.change(value)}
               />
             </Field>
+
+            <RulesForm
+              fields={fields as unknown as ReturnType<typeof useForm<HttpRouteSchema>>[1]}
+              defaultValues={formattedValues?.rules}
+              projectId={projectId}
+            />
           </CardContent>
         </Form>
       </FormProvider>

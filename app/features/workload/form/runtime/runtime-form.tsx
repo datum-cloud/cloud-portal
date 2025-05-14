@@ -88,7 +88,7 @@ export const RuntimeForm = ({
           value={instanceTypeControl.value}
           defaultValue={defaultValues?.instanceType}>
           <SelectTrigger disabled>
-            <SelectValue placeholder="Select an instance type" />
+            <SelectValue placeholder="Select a instance type" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="datumcloud/d1-standard-2">

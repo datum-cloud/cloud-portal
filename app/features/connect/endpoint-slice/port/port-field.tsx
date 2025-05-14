@@ -32,7 +32,7 @@ export const PortField = ({
 
   useEffect(() => {
     if (defaultValues) {
-      if (defaultValues.name && !fields.name.value) {
+      if (defaultValues.name && fields.name.value === '') {
         nameControl.change(defaultValues?.name)
       }
 

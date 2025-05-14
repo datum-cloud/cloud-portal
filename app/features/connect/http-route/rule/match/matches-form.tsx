@@ -1,6 +1,8 @@
+import { PathField } from './path-field'
 import { FieldLabel } from '@/components/field/field-label'
 import { Button } from '@/components/ui/button'
 import {
+  HttpPathMatchSchema,
   HttpRouteMatchSchema,
   HttpRouteRuleSchema,
 } from '@/resources/schemas/http-route.schema'
@@ -38,6 +40,15 @@ export const MatchesForm = ({
             <div
               className="relative flex items-center gap-2 rounded-md border p-4"
               key={match.key}>
+              <PathField
+                fields={
+                  matchFields.path.getFieldset() as unknown as ReturnType<
+                    typeof useForm<HttpPathMatchSchema>
+                  >[1]
+                }
+                defaultValues={defaultValues?.[index].path}
+              />
+
               {matchList.length > 1 && (
                 <Button
                   type="button"
