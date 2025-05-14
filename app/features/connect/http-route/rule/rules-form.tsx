@@ -1,4 +1,5 @@
-import { MatchesForm } from './matches-form'
+import { BackendRefsForm } from './backend-ref/backend-refs-form'
+import { MatchesForm } from './match/matches-form'
 import { FieldLabel } from '@/components/field/field-label'
 import { Button } from '@/components/ui/button'
 import { HTTPPathMatchType } from '@/resources/interfaces/http-route.interface'
@@ -16,7 +17,7 @@ const defaultValue: HttpRouteRuleSchema = {
     {
       path: {
         type: HTTPPathMatchType.PATH_PREFIX,
-        value: '/',
+        value: '',
       },
     },
   ],
@@ -32,9 +33,11 @@ const defaultValue: HttpRouteRuleSchema = {
 export const RulesForm = ({
   fields,
   defaultValues,
+  projectId,
 }: {
   fields: ReturnType<typeof useForm<HttpRouteSchema>>[1]
   defaultValues?: HttpRouteRuleSchema[]
+  projectId?: string
 }) => {
   const form = useFormMetadata('http-route-form')
   const ruleList = fields.rules.getFieldList()
@@ -64,14 +67,26 @@ export const RulesForm = ({
             <div
               className="relative flex items-center gap-2 rounded-md border p-4"
               key={field.key}>
-              <MatchesForm
-                fields={
-                  ruleFields as unknown as ReturnType<
-                    typeof useForm<HttpRouteRuleSchema>
-                  >[1]
-                }
-                defaultValues={defaultValues?.[index].matches}
-              />
+              <div className="w-full space-y-4">
+                <MatchesForm
+                  fields={
+                    ruleFields as unknown as ReturnType<
+                      typeof useForm<HttpRouteRuleSchema>
+                    >[1]
+                  }
+                  defaultValues={defaultValues?.[index].matches}
+                />
+
+                <BackendRefsForm
+                  fields={
+                    ruleFields as unknown as ReturnType<
+                      typeof useForm<HttpRouteRuleSchema>
+                    >[1]
+                  }
+                  defaultValues={defaultValues?.[index].backendRefs}
+                  projectId={projectId}
+                />
+              </div>
 
               {ruleList.length > 1 && (
                 <Button

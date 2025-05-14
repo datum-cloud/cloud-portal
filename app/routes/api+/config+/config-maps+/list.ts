@@ -3,11 +3,11 @@ import { withMiddleware } from '@/modules/middleware/middleware'
 import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control'
 import { CustomError } from '@/utils/errorHandle'
 import { Client } from '@hey-api/client-axios'
-import { AppLoadContext, data } from 'react-router'
+import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router'
 
 export const ROUTE_PATH = '/api/config/config-maps/list' as const
 
-export const loader = withMiddleware(async ({ request, context }) => {
+export const loader = withMiddleware(async ({ request, context }: LoaderFunctionArgs) => {
   const { controlPlaneClient, cache } = context as AppLoadContext
   const configMapsControl = createConfigMapsControl(controlPlaneClient as Client)
 
