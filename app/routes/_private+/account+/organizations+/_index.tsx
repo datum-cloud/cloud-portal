@@ -96,6 +96,18 @@ export default function AccountOrganizations() {
                       </Avatar>
                     )}
                   </div>
+                  {Object.keys(org.labels ?? {}).length > 0 && (
+                    <div className="mt-2 flex items-center gap-2">
+                      {Object.keys(org.labels ?? {}).map((key) => (
+                        <Badge
+                          key={key}
+                          variant="secondary"
+                          className="border-input shrink-0 border">
+                          {key}:{org.labels?.[key]}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                   {/* <div className="pt-2">
                     <MembersAvatar org={org} />
                   </div> */}

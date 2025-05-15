@@ -1,6 +1,5 @@
 import { Field } from '@/components/field/field'
 import { SelectLabels } from '@/components/select-labels/select-labels'
-import { SelectOrganization } from '@/components/select-organization/select-organization'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -13,37 +12,31 @@ import {
 import { Input } from '@/components/ui/input'
 import { routes } from '@/constants/routes'
 import { useIsPending } from '@/hooks/useIsPending'
-import { useApp } from '@/providers/app.provider'
 import { IOrganization } from '@/resources/interfaces/organization.inteface'
-import { projectSchema } from '@/resources/schemas/project.schema'
+import { organizationSchema } from '@/resources/schemas/organization.schema'
 import { generateId, generateRandomString } from '@/utils/idGenerator'
-import { getPathWithParams } from '@/utils/path'
+import { convertObjectToLabels } from '@/utils/misc'
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { RocketIcon } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { Form, useNavigate } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { useHydrated } from 'remix-utils/use-hydrated'
 
-export const CreateProjectForm = () => {
-  const { organization } = useApp()
+export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganization }) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
   const isPending = useIsPending()
   const navigate = useNavigate()
 
-  const [currentOrg, setCurrentOrg] = useState<IOrganization | undefined>(organization)
-
-  const [form, { name, description, orgEntityId, labels }] = useForm({
-    constraint: getZodConstraint(projectSchema),
+  const [form, { name, description, labels }] = useForm({
+    constraint: getZodConstraint(organizationSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: projectSchema })
+      return parseWithZod(formData, { schema: organizationSchema })
     },
     defaultValue: {
-      orgEntityId: organization?.id,
       name: '',
       description: '',
       labels: [] as string[],
@@ -55,26 +48,35 @@ export const CreateProjectForm = () => {
     isHydrated && inputRef.current?.focus()
   }, [isHydrated])
 
-  useEffect(() => {
-    setCurrentOrg(organization)
-  }, [organization])
-
   const randomSuffix = useMemo(() => generateRandomString(6), [])
 
   const nameControl = useInputControl(name)
-  const orgEntityIdControl = useInputControl(orgEntityId)
   const labelsControl = useInputControl(labels)
 
+  const isEdit = useMemo(() => defaultValue?.id !== undefined, [defaultValue])
+
   useEffect(() => {
-    orgEntityIdControl.change(organization?.id)
-  }, [organization])
+    if (defaultValue) {
+      form.update({
+        value: {
+          name: defaultValue.organizationId,
+          description: defaultValue.displayName,
+          labels: convertObjectToLabels(defaultValue.labels ?? {}),
+        },
+      })
+    }
+  }, [defaultValue])
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create a new project</CardTitle>
+        <CardTitle>
+          {isEdit ? 'Edit Organization' : 'Create a new organization'}
+        </CardTitle>
         <CardDescription>
-          Create a new project to get started with Datum Cloud.
+          {isEdit
+            ? 'Update the organization details to manage projects in Datum Cloud.'
+            : 'Create a new organization to manage projects in Datum Cloud.'}
         </CardDescription>
       </CardHeader>
       <Form
@@ -85,30 +87,18 @@ export const CreateProjectForm = () => {
         <AuthenticityTokenInput />
 
         <CardContent className="space-y-4">
-          <Field isRequired label="Choose organization">
-            <SelectOrganization
-              hideNewOrganization
-              currentOrg={currentOrg!}
-              triggerClassName="py-2"
-              onSelect={(org) => {
-                setCurrentOrg(org)
-                orgEntityIdControl.change(org.id)
-                navigate(getPathWithParams(routes.org.projects.new, { orgId: org.id }))
-              }}
-            />
-          </Field>
           <Field
             isRequired
-            label="Display Name"
+            label="Description"
             description="Enter a short, human-friendly name. Can be changed later."
             errors={description.errors}>
             <Input
-              placeholder="e.g. My Project"
+              placeholder="e.g. My Organization"
               ref={inputRef}
               onInput={(e: React.FormEvent<HTMLInputElement>) => {
                 const value = (e.target as HTMLInputElement).value
 
-                if (value) {
+                if (value && !isEdit) {
                   nameControl.change(generateId(value, { randomText: randomSuffix }))
                 }
               }}
@@ -118,10 +108,11 @@ export const CreateProjectForm = () => {
           <Field
             isRequired
             label="Name"
-            description="A namespace-unique stable identifier for your project. This cannot be changed once the project is created"
+            description="A namespace-unique stable identifier for your organization. This cannot be changed once the organization is created"
             errors={name.errors}>
             <Input
-              placeholder="e.g. my-project-343j33"
+              readOnly={isEdit}
+              placeholder="e.g. my-organization-343j33"
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 const value = (e.target as HTMLInputElement).value
                 nameControl.change(value)
@@ -155,11 +146,7 @@ export const CreateProjectForm = () => {
             variant="link"
             disabled={isPending}
             onClick={() => {
-              navigate(
-                getPathWithParams(routes.org.projects.root, {
-                  orgId: organization?.id,
-                }),
-              )
+              navigate(routes.account.organizations.root)
             }}>
             Return to List
           </Button>
@@ -168,8 +155,9 @@ export const CreateProjectForm = () => {
             type="submit"
             disabled={isPending}
             isLoading={isPending}>
-            {isPending ? 'Creating' : 'Create'} Project
-            <RocketIcon className="size-4" />
+            {isPending
+              ? `${isEdit ? 'Saving' : 'Creating'}`
+              : `${isEdit ? 'Save' : 'Create'}`}
           </Button>
         </CardFooter>
       </Form>
