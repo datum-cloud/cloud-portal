@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Login from '@/routes/_public+/login'
+import AuthCard from '@/features/auth/auth'
 
 const mockModule = {
   path: '/login',
@@ -26,22 +26,21 @@ const mockModule = {
         commit: async () => 'session-cookie',
       },
       authenticator: {
-        isAuthenticated: async () => null,
+        isAuthenticated: async () => false,
       },
     },
   },
 }
 describe('LogIn Component', () => {
-  it('renders login page with all elements', () => {
-    cy.mountRemixRoute(<Login />, mockModule)
+  it('renders login page with all elements when not authenticated', () => {
+    cy.mountRemixRoute(<AuthCard mode="login" />, mockModule)
 
     // Check if the card and main elements are present
     cy.findByText('Welcome to Datum Cloud').should('be.visible')
     cy.findByText('Unlock your networking superpowers').should('be.visible')
 
-    // Check if both auth buttons are rendered
-    cy.findByText('Sign in with Google').should('be.visible')
-    cy.findByText('Sign in with GitHub').should('be.visible')
+    // Check if sign in button is rendered
+    cy.findByText('Sign in').should('be.visible')
 
     // Check if signup link is present
     cy.findByText(/Don't have an account?/).should('be.visible')
@@ -53,7 +52,7 @@ describe('LogIn Component', () => {
 
   it('displays correct theme-based image', () => {
     // Test with light theme
-    cy.mountRemixRoute(<Login />, mockModule)
+    cy.mountRemixRoute(<AuthCard mode="login" />, mockModule)
     cy.get('img[src*="abstract-1-light.png"]').should('exist')
 
     // Test with dark theme
@@ -70,7 +69,7 @@ describe('LogIn Component', () => {
       },
     }
 
-    cy.mountRemixRoute(<Login />, darkThemeMock)
+    cy.mountRemixRoute(<AuthCard mode="login" />, darkThemeMock)
     cy.get('img[src*="abstract-1-dark.png"]').should('exist')
   })
 })

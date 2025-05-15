@@ -67,8 +67,6 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
     let res: IOrganization | null = null
     if (validateRes) {
       res = await orgAPI.update(orgId, payload)
-
-      console.log(res)
     }
 
     await cache.removeItem(`organizations:${orgId}`)

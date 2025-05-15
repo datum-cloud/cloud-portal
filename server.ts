@@ -5,7 +5,6 @@ import { userSessionStorage, USER_SESSION_KEY } from '@/modules/cookie/user.serv
 import { createCacheClient } from '@/modules/unstorage/unstorage.js'
 import { createAPIFactory } from '@/resources/api/api.factory.js'
 import { createControlPlaneFactory } from '@/resources/control-plane/control.factory.js'
-import { createGqlFactory } from '@/resources/gql/gql.factory.js'
 import { createRequestHandler } from '@react-router/express'
 import compression from 'compression'
 import express, { Request, Response } from 'express'
@@ -227,12 +226,10 @@ async function apiContext(request: Request) {
 
   const apiClient = createAPIFactory(sessionData?.accessToken)
   const controlPlaneClient = createControlPlaneFactory(sessionData?.accessToken)
-  const gqlClient = createGqlFactory(sessionData?.accessToken)
 
   return {
     apiClient,
     controlPlaneClient,
-    gqlClient,
   }
 }
 
