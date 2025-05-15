@@ -14,8 +14,6 @@ describe('Log in', () => {
 
     cy.contains('p', 'Welcome to Datum Cloud').should('be.visible')
 
-    cy.contains('button', 'Sign in with Google').should('be.visible')
-
-    cy.contains('button', 'Sign in with GitHub').should('be.visible')
+    cy.contains('button', 'Sign in').should('be.visible')
   })
 })

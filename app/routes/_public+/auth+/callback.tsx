@@ -53,6 +53,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
         Cookie: cookies?.[0],
       },
     })
+    if (!req.ok) {
+      const error = await req.text()
+      throw new CustomError(error, req.status)
+    }
+
     const organizations: IOrganization[] = await req.json()
 
     // TODO: Improve how to handle default organization. currently the process here is to take the first index of organizations
