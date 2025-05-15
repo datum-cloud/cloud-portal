@@ -18,8 +18,8 @@ export const authSessionStorage = createCookieSessionStorage({
 /**
  * Type for the response object from auth session operations
  */
-type AuthSessionResponse<T = unknown> = {
-  session?: T
+type AuthSessionResponse = {
+  session?: Omit<IAuthSession, 'user'>
   headers: Headers
 }
 
@@ -29,10 +29,10 @@ type AuthSessionResponse<T = unknown> = {
  * @param cookieHeader Cookie header value
  * @returns Response object with session data and headers
  */
-const createSessionResponse = <T>(
-  sessionData: T | undefined,
+const createSessionResponse = (
+  sessionData: Omit<IAuthSession, 'user'> | undefined,
   cookieHeader: string,
-): AuthSessionResponse<T> => ({
+): AuthSessionResponse => ({
   ...(sessionData ? { session: sessionData } : {}),
   headers: new Headers({
     'Set-Cookie': cookieHeader,
@@ -48,7 +48,7 @@ const createSessionResponse = <T>(
 export async function setAuthSession(
   request: Request,
   sessionData: Omit<IAuthSession, 'user'>,
-): Promise<AuthSessionResponse<Omit<IAuthSession, 'user'>>> {
+): Promise<AuthSessionResponse> {
   const session = await authSessionStorage.getSession(request.headers.get('Cookie'))
   session.set(AUTH_SESSION_KEY, sessionData)
   const cookieHeader = await authSessionStorage.commitSession(session)
@@ -61,7 +61,7 @@ export async function setAuthSession(
  * @param request Request object
  * @returns Response with session data and headers
  */
-export async function getAuthSession(request: Request) {
+export async function getAuthSession(request: Request): Promise<AuthSessionResponse> {
   const session = await authSessionStorage.getSession(request.headers.get('Cookie'))
   const sessionData = session.get(AUTH_SESSION_KEY)
   const cookieHeader = await authSessionStorage.commitSession(session)

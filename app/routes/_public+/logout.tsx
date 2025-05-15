@@ -1,26 +1,39 @@
 import { routes } from '@/constants/routes'
 import { authenticator } from '@/modules/auth/auth.server'
-import { destroyAuthSession } from '@/modules/cookie/auth.server'
+import { destroyAuthSession, getAuthSession } from '@/modules/cookie/auth.server'
 import { destroyOrgSession } from '@/modules/cookie/org.server'
+import { redirectWithToast } from '@/modules/cookie/toast.server'
 import { destroyUserSession } from '@/modules/cookie/user.server'
 import { combineHeaders } from '@/utils/misc'
 import type { ActionFunctionArgs, AppLoadContext } from 'react-router'
 import { LoaderFunctionArgs, redirect } from 'react-router'
 
 const signOut = async (request: Request) => {
-  // Do OIDC Logout
-  const res = await authenticator.get('oidc')
-  console.log(res)
+  try {
+    const res = await authenticator.get('oidc')
+    const { session } = await getAuthSession(request)
 
-  const { headers: authHeaders } = await destroyAuthSession(request)
-  const { headers: orgHeaders } = await destroyOrgSession(request)
-  const { headers: userHeaders } = await destroyUserSession(request)
+    // OIDC Logout
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const oidcLogout = await (res as any).postLogoutUrl(session?.idToken)
 
-  // revoke oidc session
+    if (oidcLogout.ok) {
+      // Destroy sessions
+      const { headers: authHeaders } = await destroyAuthSession(request)
+      const { headers: orgHeaders } = await destroyOrgSession(request)
+      const { headers: userHeaders } = await destroyUserSession(request)
 
-  return redirect(routes.auth.logIn, {
-    headers: combineHeaders(authHeaders, orgHeaders, userHeaders),
-  })
+      return redirect(routes.auth.logIn, {
+        headers: combineHeaders(authHeaders, orgHeaders, userHeaders),
+      })
+    }
+  } catch (error) {
+    return redirectWithToast(routes.home, {
+      title: 'Logout failed',
+      description: (error as Error).message,
+      type: 'error',
+    })
+  }
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
