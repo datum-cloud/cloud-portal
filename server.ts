@@ -1,6 +1,7 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getAuthSession } from '@/modules/auth/authSession.server'
+import { authSessionStorage, AUTH_SESSION_KEY } from '@/modules/cookie/auth.server'
+import { userSessionStorage, USER_SESSION_KEY } from '@/modules/cookie/user.server'
 import { createCacheClient } from '@/modules/unstorage/unstorage.js'
 import { createAPIFactory } from '@/resources/api/api.factory.js'
 import { createControlPlaneFactory } from '@/resources/control-plane/control.factory.js'
@@ -221,8 +222,8 @@ async function getBuild() {
 }
 
 async function apiContext(request: Request) {
-  const session = await getAuthSession((request.headers as any).cookie)
-  const sessionData = session.get('session')
+  const session = await authSessionStorage.getSession(request.headers.cookie)
+  const sessionData = session.get(AUTH_SESSION_KEY)
 
   const apiClient = createAPIFactory(sessionData?.accessToken)
   const controlPlaneClient = createControlPlaneFactory(sessionData?.accessToken)
@@ -236,8 +237,8 @@ async function apiContext(request: Request) {
 }
 
 async function cacheContext(request: Request) {
-  const session = await getAuthSession((request.headers as any).cookie)
-  const user = session.get('user')
+  const session = await userSessionStorage.getSession(request.headers.cookie)
+  const user = session.get(USER_SESSION_KEY)
 
   return createCacheClient(user?.sub ?? 'cloud-portal')
 }

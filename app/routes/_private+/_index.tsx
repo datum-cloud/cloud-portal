@@ -1,20 +1,16 @@
 import { routes } from '@/constants/routes'
-import { getAuthSession } from '@/modules/auth/authSession.server'
+import { getOrgSession } from '@/modules/cookie/org.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
 import { LoaderFunctionArgs, redirect } from 'react-router'
 
 export const loader = withMiddleware(async ({ request }: LoaderFunctionArgs) => {
-  const session = await getAuthSession(request.headers.get('Cookie'))
-  const orgId = session.get('currentOrgId')
+  const { org } = await getOrgSession(request)
 
-  if (!orgId) {
-    throw new CustomError('No organization ID found', 404)
+  if (!org) {
+    return redirect(routes.account.organizations.root)
   }
 
-  // TODO: change to the org root when the dashboard is ready
-  // Redirect to the organization root
-  return redirect(getPathWithParams(routes.org.projects.root, { orgId }))
+  return redirect(getPathWithParams(routes.org.projects.root, { orgId: org.id }))
 }, authMiddleware)

@@ -1,4 +1,4 @@
-import { DataTable } from '@/components/data-table/data-table'
+/* import { DataTable } from '@/components/data-table/data-table'
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 import { DateFormat } from '@/components/date-format/date-format'
 import { PageTitle } from '@/components/page-title/page-title'
@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { PreviewKey } from '@/features/api-key/preview-key'
-import { commitAuthSession, getAuthSession } from '@/modules/auth/authSession.server'
+import { getAuthSession } from '@/modules/cookie/auth.server'
+import { dataWithToast } from '@/modules/cookie/toast.server'
 import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
@@ -14,7 +15,6 @@ import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { UserApiKeyModel } from '@/resources/gql/models/user.model'
 import { createUserGql } from '@/resources/gql/user.gql'
 import { mergeMeta, metaObject } from '@/utils/meta'
-import { dataWithToast } from '@/utils/toast'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
@@ -204,4 +204,10 @@ export default function AccountApiKeys() {
       />
     </div>
   )
+}
+ */
+import { ComingSoon } from '@/components/coming-soon/coming-soon'
+
+export default function ApiKeys() {
+  return <ComingSoon />
 }

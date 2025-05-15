@@ -1,6 +1,7 @@
-import { commitAuthSession, getAuthSession } from './authSession.server'
+import { getAuthSession } from '../cookie/auth.server'
 import { routes } from '@/constants/routes'
-import { IAuthSession, IOidcUser } from '@/resources/interfaces/auth.interface'
+import { IAuthSession } from '@/resources/interfaces/auth.interface'
+import { IUser } from '@/resources/interfaces/user.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { redirect } from 'react-router'
 import { Authenticator } from 'remix-auth'
@@ -46,7 +47,7 @@ authenticator.use(
           throw new CustomError('No access_token in response', 400)
         }
 
-        const profile = await fetchOauthProfile<IOidcUser>(
+        const profile = await fetchOauthProfile<IUser>(
           `${process.env.AUTH_OIDC_ISSUER}/oidc/v1/userinfo`,
           tokens.access_token,
         )
@@ -73,15 +74,12 @@ export async function isAuthenticated(
   redirectTo?: string,
   noAuthRedirect?: boolean,
 ) {
-  const session = await getAuthSession(request.headers.get('cookie'))
-  const sessionData = session.get('session')
+  const { session, headers } = await getAuthSession(request)
 
-  if (!sessionData) {
+  if (!session) {
     if (noAuthRedirect) {
       return redirect(safeRedirect(routes.auth.logIn), {
-        headers: {
-          'Set-Cookie': await commitAuthSession(session),
-        },
+        headers,
       })
     }
 
@@ -90,9 +88,7 @@ export async function isAuthenticated(
 
   if (redirectTo) {
     return redirect(safeRedirect(redirectTo), {
-      headers: {
-        'Set-Cookie': await commitAuthSession(session),
-      },
+      headers,
     })
   }
 

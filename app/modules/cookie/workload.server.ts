@@ -1,4 +1,4 @@
-import { isProduction } from './misc'
+import { isProduction } from '../../utils/misc'
 import { createCookie } from 'react-router'
 
 export const deletedWorkloadIdsCookie = createCookie('_deleted-workload-ids', {

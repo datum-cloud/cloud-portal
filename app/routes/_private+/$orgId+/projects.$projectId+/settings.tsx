@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
+import { redirectWithToast } from '@/modules/cookie/toast.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
@@ -17,7 +18,6 @@ import { createProjectsControl } from '@/resources/control-plane/projects.contro
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
-import { redirectWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { CircleAlertIcon } from 'lucide-react'
 import {

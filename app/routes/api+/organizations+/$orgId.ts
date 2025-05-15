@@ -1,31 +1,32 @@
 import { routes } from '@/constants/routes'
+import { validateCSRF } from '@/modules/cookie/csrf.server'
+import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { GraphqlClient } from '@/modules/graphql/graphql'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
+import { iamOrganizationsService } from '@/resources/api/iam/organizations.factory'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { createOrganizationGql } from '@/resources/gql/organization.gql'
 import {
   NewOrganizationSchema,
   newOrganizationSchema,
 } from '@/resources/schemas/organization.schema'
-import { validateCSRF } from '@/utils/csrf'
 import { CustomError } from '@/utils/errorHandle'
-import { dataWithToast, redirectWithToast } from '@/utils/toast'
 import { parseWithZod } from '@conform-to/zod'
+import { AxiosInstance } from 'axios'
 import { find } from 'es-toolkit/compat'
 import { AppLoadContext, data } from 'react-router'
 
 export const ROUTE_PATH = '/api/organizations/:orgId' as const
 
 export const loader = withMiddleware(async ({ context, params }) => {
+  const { apiClient, cache } = context as AppLoadContext
   const { orgId } = params
 
   if (!orgId) {
     throw new CustomError('Organization ID is required', 400)
   }
 
-  const { gqlClient, cache } = context as AppLoadContext
-  const organizationGql = createOrganizationGql(gqlClient as GraphqlClient)
   const key = `organizations:${orgId}`
 
   const isCached = await cache.hasItem(key)
@@ -34,7 +35,8 @@ export const loader = withMiddleware(async ({ context, params }) => {
     return data(org)
   }
 
-  const org = await organizationGql.getOrganizationDetail(orgId)
+  const orgService = iamOrganizationsService(apiClient as AxiosInstance)
+  const org = await orgService.detail(orgId)
 
   await cache.setItem(key, org)
 

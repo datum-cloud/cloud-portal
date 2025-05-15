@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input'
 import { useIsPending } from '@/hooks/useIsPending'
 import { useApp } from '@/providers/app.provider'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
+import { IOrganization } from '@/resources/interfaces/organization.inteface'
 import { newOrganizationSchema } from '@/resources/schemas/organization.schema'
 import { ROUTE_PATH as ORG_ACTION_PATH } from '@/routes/api+/organizations+/$orgId'
 import { mergeMeta, metaObject } from '@/utils/meta'
@@ -65,16 +65,16 @@ export default function OrgSettingsPage() {
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{organization?.name}</strong>?
+          <strong>{organization?.displayName}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${organization?.name}" to confirm.`,
+      confirmInputLabel: `Type "${organization?.displayName}" to confirm.`,
       confirmInputPlaceholder: 'Type the organization name to confirm deletion',
-      confirmValue: organization?.name ?? 'delete',
+      confirmValue: organization?.displayName ?? 'delete',
       onSubmit: async () => {
         await fetcher.submit(
           {},
@@ -97,7 +97,7 @@ export default function OrgSettingsPage() {
     if (fetcher.data?.success) {
       if (currentAction === 'update') {
         form.update({ value: { name: fetcher.data.name } })
-        setOrganization({ ...organization, name: fetcher.data.name } as OrganizationModel)
+        setOrganization({ ...organization, name: fetcher.data.name } as IOrganization)
       }
     }
   }, [fetcher.data])
@@ -140,7 +140,7 @@ export default function OrgSettingsPage() {
 
         {/* Danger Zone */}
 
-        {!organization?.personalOrg && (
+        {!organization?.status?.personal && (
           <Card className="border-destructive/50 hover:border-destructive border pb-0 transition-colors">
             <CardHeader>
               <CardTitle className="text-destructive">Danger Zone</CardTitle>

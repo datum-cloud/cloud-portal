@@ -1,14 +1,12 @@
-import { getAuthSession } from '@/modules/auth/authSession.server'
+import { getUserSession } from '@/modules/cookie/user.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { AppProvider } from '@/providers/app.provider'
 import { ConfirmationDialogProvider } from '@/providers/confirmationDialog.provider'
-import { IOidcUser } from '@/resources/interfaces/auth.interface'
-import { Outlet, data, useLoaderData } from 'react-router'
+import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router'
 
-export const loader = withMiddleware(async ({ request }) => {
-  const session = await getAuthSession(request.headers.get('Cookie'))
-  const user: IOidcUser = session.get('user')
+export const loader = withMiddleware(async ({ request }: LoaderFunctionArgs) => {
+  const { user } = await getUserSession(request)
   return data(user)
 }, authMiddleware)
 

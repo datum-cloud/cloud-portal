@@ -6,7 +6,7 @@ import { useTheme } from '@/hooks/useTheme'
 import PublicLayout from '@/layouts/public/public'
 import { isDevelopment } from '@/utils/misc'
 import { HomeIcon, Loader2, RefreshCcwIcon } from 'lucide-react'
-import { JSX, useEffect, useState } from 'react'
+import { JSX, useEffect, useMemo, useState } from 'react'
 import type { ErrorResponse } from 'react-router'
 import {
   Link,
@@ -73,6 +73,16 @@ export function GenericErrorBoundary({
     }
   }, [error])
 
+  const isProjectNotFound = useMemo(() => {
+    if (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return ((error as any)?.message ?? '').includes(
+        'projects.resourcemanager.datumapis.com is forbidden',
+      )
+    }
+    return false
+  }, [error])
+
   return (
     <PublicLayout>
       <Card className="overflow-hidden">
@@ -114,7 +124,10 @@ export function GenericErrorBoundary({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Link to={routes.home}>
+                <Link
+                  to={
+                    isProjectNotFound ? routes.account.organizations.root : routes.home
+                  }>
                   <Button size="sm">
                     <HomeIcon className="size-4" />
                     Back to Home

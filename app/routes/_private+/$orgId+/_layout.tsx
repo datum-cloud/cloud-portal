@@ -1,4 +1,6 @@
-import { commitAuthSession, getAuthSession } from '@/modules/auth/authSession.server'
+import { routes } from '@/constants/routes'
+import { setOrgSession } from '@/modules/cookie/org.server'
+import { redirectWithToast } from '@/modules/cookie/toast.server'
 import { useApp } from '@/providers/app.provider'
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api+/organizations+/$orgId'
 import { CustomError } from '@/utils/errorHandle'
@@ -7,34 +9,36 @@ import { useEffect } from 'react'
 import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { orgId } = params
+  try {
+    const { orgId } = params
 
-  if (!orgId) {
-    throw new CustomError('Organization ID is required', 400)
-  }
+    if (!orgId) {
+      throw new CustomError('Organization ID is required', 400)
+    }
 
-  const res = await fetch(
-    `${process.env.APP_URL}${getPathWithParams(ORG_DETAIL_PATH, { orgId })}`,
-    {
-      method: 'GET',
-      headers: {
-        Cookie: request.headers.get('Cookie') || '',
+    const res = await fetch(
+      `${process.env.APP_URL}${getPathWithParams(ORG_DETAIL_PATH, { orgId })}`,
+      {
+        method: 'GET',
+        headers: {
+          Cookie: request.headers.get('Cookie') || '',
+        },
       },
-    },
-  )
+    )
 
-  const org = await res.json()
+    const org = await res.json()
 
-  // Update the current organization in session
-  const session = await getAuthSession(request.headers.get('Cookie'))
-  session.set('currentOrgId', org.id)
-  session.set('currentOrgEntityID', org.userEntityID)
+    const { headers } = await setOrgSession(request, org)
 
-  return data(org, {
-    headers: {
-      'Set-Cookie': await commitAuthSession(session),
-    },
-  })
+    return data(org, { headers })
+  } catch (error) {
+    return redirectWithToast(routes.account.organizations.root, {
+      title: 'Error',
+      description:
+        error instanceof Error ? error.message : (error as Response).statusText,
+      type: 'error',
+    })
+  }
 }
 
 export default function OrgLayout() {
@@ -43,7 +47,9 @@ export default function OrgLayout() {
   const { setOrganization } = useApp()
 
   useEffect(() => {
-    setOrganization(org)
+    if (org) {
+      setOrganization(org)
+    }
   }, [org])
 
   return <Outlet />
