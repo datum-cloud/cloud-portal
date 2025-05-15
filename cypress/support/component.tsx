@@ -21,7 +21,7 @@ import '@/styles/root.css'
 import '@testing-library/cypress/add-commands'
 import { mount, MountOptions, MountReturn } from 'cypress/react'
 import React from 'react'
-import { MemoryRouter, MemoryRouterProps, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, MemoryRouterProps, Route, Routes } from 'react-router'
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

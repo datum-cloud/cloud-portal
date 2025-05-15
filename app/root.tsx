@@ -9,14 +9,14 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { getHints } from '@/hooks/useHints'
 import { useNonce } from '@/hooks/useNonce'
 import { useToast } from '@/hooks/useToast'
+import { csrf } from '@/modules/cookie/csrf.server'
+import { getToastSession } from '@/modules/cookie/toast.server'
 import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/handle-cache'
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
 import RootCSS from '@/styles/root.css?url'
-import { csrf } from '@/utils/csrf'
 import { metaObject } from '@/utils/meta'
 import { isProduction, combineHeaders, getDomainUrl } from '@/utils/misc'
-import { getToastSession } from '@/utils/toast'
 import NProgress from 'nprogress'
 import { useEffect, useMemo } from 'react'
 import {

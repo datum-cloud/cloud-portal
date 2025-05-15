@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { LOCATION_CLASSES, LOCATION_PROVIDERS } from '@/constants/options'
 import { routes } from '@/constants/routes'
+import { dataWithToast } from '@/modules/cookie/toast.server'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { createLocationsControl } from '@/resources/control-plane/locations.control'
 import {
@@ -16,7 +17,6 @@ import { loader as apiLocationsLoader } from '@/routes/api+/locations/_index'
 // CustomError import removed as it's no longer used
 import { toTitleCase } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
@@ -172,9 +172,9 @@ export default function LocationsPage() {
         cell: ({ row }) => {
           const provider =
             LOCATION_PROVIDERS[
-              Object.keys(
-                row.original.provider ?? {},
-              )[0] as keyof typeof LOCATION_PROVIDERS
+            Object.keys(
+              row.original.provider ?? {},
+            )[0] as keyof typeof LOCATION_PROVIDERS
             ]
 
           return Object.keys(row.original.provider ?? {}).length > 0 ? (
