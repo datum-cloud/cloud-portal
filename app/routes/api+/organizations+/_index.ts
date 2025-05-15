@@ -1,6 +1,6 @@
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { iamOrganizationsService } from '@/resources/api/iam/organizations.factory'
+import { iamOrganizationsAPI } from '@/resources/api/iam/organizations.api'
 import { AxiosInstance } from 'axios'
 import { AppLoadContext, data } from 'react-router'
 
@@ -24,8 +24,8 @@ export const loader = withMiddleware(async ({ context, request }) => {
   }
 
   // get default organization
-  const orgService = iamOrganizationsService(apiClient as AxiosInstance)
-  const organizations = await orgService.list()
+  const orgAPI = iamOrganizationsAPI(apiClient as AxiosInstance)
+  const organizations = await orgAPI.list()
 
   await cache.setItem('organizations', organizations)
   return data(organizations)

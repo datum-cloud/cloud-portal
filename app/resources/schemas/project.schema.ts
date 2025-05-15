@@ -14,7 +14,7 @@ export const projectMetadataSchema = z.object({
   annotations: z.array(z.string()).optional(),
 })
 
-export const newProjectSchema = z
+export const projectSchema = z
   .object({
     description: z
       .string({ required_error: 'Description is required.' })
@@ -23,4 +23,4 @@ export const newProjectSchema = z
   })
   .and(projectMetadataSchema)
 
-export type NewProjectSchema = z.infer<typeof newProjectSchema>
+export type ProjectSchema = z.infer<typeof projectSchema>

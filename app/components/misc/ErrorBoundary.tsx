@@ -130,7 +130,7 @@ export function GenericErrorBoundary({
                   }>
                   <Button size="sm">
                     <HomeIcon className="size-4" />
-                    Back to Home
+                    Back to {isProjectNotFound ? 'Organizations' : 'Home'}
                   </Button>
                 </Link>
                 <Button

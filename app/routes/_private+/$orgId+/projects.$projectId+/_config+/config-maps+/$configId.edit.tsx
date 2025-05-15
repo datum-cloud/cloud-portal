@@ -87,7 +87,7 @@ export const action = withMiddleware(
         }),
         {
           title: 'Config map updated',
-          description: 'Config map updated successfully',
+          description: 'You have successfully updated a config map.',
           type: 'success',
         },
       )

@@ -79,7 +79,7 @@ export const action = withMiddleware(
         }),
         {
           title: 'Location updated',
-          description: 'Location updated successfully',
+          description: 'You have successfully updated a location.',
           type: 'success',
         },
       )

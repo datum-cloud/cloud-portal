@@ -5,7 +5,7 @@ import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
-import { newProjectSchema, NewProjectSchema } from '@/resources/schemas/project.schema'
+import { projectSchema, ProjectSchema } from '@/resources/schemas/project.schema'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { parseWithZod } from '@conform-to/zod'
@@ -28,13 +28,13 @@ export const action = withMiddleware(
       await validateCSRF(formData, clonedRequest.headers)
 
       // Validate form data with Zod
-      const parsed = parseWithZod(formData, { schema: newProjectSchema })
+      const parsed = parseWithZod(formData, { schema: projectSchema })
 
       if (parsed.status !== 'success') {
         throw new Error('Invalid form data')
       }
 
-      const payload = parsed.value as NewProjectSchema
+      const payload = parsed.value as ProjectSchema
 
       // Dry run to validate
       const dryRunRes = await projectsControl.create(payload, true)
