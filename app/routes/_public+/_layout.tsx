@@ -1,17 +1,5 @@
-import { routes } from '@/constants/routes'
 import PublicLayout from '@/layouts/public/public'
-import { getDomainPathname } from '@/utils/misc'
-import { Link, LoaderFunctionArgs, Outlet, redirect } from 'react-router'
-
-export async function loader({ request }: LoaderFunctionArgs) {
-  const pathname = getDomainPathname(request)
-
-  if (pathname === routes.auth.root) {
-    return redirect(routes.auth.logIn)
-  }
-
-  return null
-}
+import { Link, Outlet } from 'react-router'
 
 export default function layout() {
   return (

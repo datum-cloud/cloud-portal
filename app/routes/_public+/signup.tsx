@@ -1,5 +1,4 @@
 import { routes } from '@/constants/routes'
-import AuthCard from '@/features/auth/auth'
 import { isAuthenticated } from '@/modules/auth/auth.server'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { LoaderFunctionArgs, MetaFunction } from 'react-router'
@@ -15,6 +14,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return isAuthenticated(request, routes.home)
 }
 
-export default function Signup() {
+/* export default function Signup() {
   return <AuthCard mode="signup" />
 }
+ */

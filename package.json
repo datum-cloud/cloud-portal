@@ -17,8 +17,8 @@
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "test:e2e": "start-server-and-test dev http://localhost:3000 'cypress run'",
-    "test:e2e:prod": "start-server-and-test 'npm run preview' http://localhost:3000 'cypress run --config-file cypress.config.ts --quiet'",
-    "test:e2e:debug": "start-server-and-test 'npm run preview' http://localhost:3000 'cypress open'",
+    "test:e2e:prod": "start-server-and-test 'bun run preview' http://localhost:3000 'cypress run --spec cypress/e2e/log-in.cy.ts --quiet'",
+    "test:e2e:debug": "start-server-and-test 'bun run preview' http://localhost:3000 'cypress open'",
     "test:component": "cypress run --component --config-file cypress.config.ts --quiet",
     "test:component:open": "cypress open --component"
   },

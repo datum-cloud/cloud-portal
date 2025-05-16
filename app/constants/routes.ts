@@ -5,6 +5,7 @@ export const routes = {
     logOut: '/logout',
     signUp: '/signup',
     callback: '/auth/callback',
+    error: '/auth/error',
   },
   home: '/',
   org: {
