@@ -1,3 +1,5 @@
+import { validateCSRF } from '@/modules/cookie/csrf.server'
+import { dataWithToast } from '@/modules/cookie/toast.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createNetworksControl } from '@/resources/control-plane/networks.control'
@@ -8,9 +10,7 @@ import {
   UpdateNetworkSchema,
   updateNetworkSchema,
 } from '@/resources/schemas/network.schema'
-import { validateCSRF } from '@/utils/csrf'
 import { CustomError } from '@/utils/errorHandle'
-import { dataWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 
@@ -112,7 +112,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
           { success: true, data: res },
           {
             title: 'Network updated successfully',
-            description: 'The network has been updated successfully',
+            description: 'You have successfully updated a network.',
             type: 'success',
           },
         )

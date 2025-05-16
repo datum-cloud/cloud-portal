@@ -1,16 +1,16 @@
 import { routes } from '@/constants/routes'
 import { ConfigMapForm } from '@/features/config-map/form'
+import { validateCSRF } from '@/modules/cookie/csrf.server'
+import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control'
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
 import { updateConfigMapSchema } from '@/resources/schemas/config-map.schema'
-import { validateCSRF } from '@/utils/csrf'
 import { yamlToJson } from '@/utils/editor'
 import { CustomError } from '@/utils/errorHandle'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
-import { dataWithToast, redirectWithToast } from '@/utils/toast'
 import { parseWithZod } from '@conform-to/zod'
 import { Client } from '@hey-api/client-axios'
 import {
@@ -87,7 +87,7 @@ export const action = withMiddleware(
         }),
         {
           title: 'Config map updated',
-          description: 'Config map updated successfully',
+          description: 'You have successfully updated a config map.',
           type: 'success',
         },
       )

@@ -1,3 +1,4 @@
+// TODO: for now login test is disabled because of new auth flow
 import { routes } from '@/constants/routes'
 
 describe('Log in', () => {
@@ -6,16 +7,26 @@ describe('Log in', () => {
     cy.clearCookies()
     cy.clearLocalStorage()
 
-    cy.visit(routes.auth.logIn)
+    cy.request(routes.auth.logIn, {
+      failOnStatusCode: false,
+      headers: {
+        cookie: '',
+      },
+    }).then(() => {
+      cy.visit(routes.auth.logIn, {
+        failOnStatusCode: false,
+        headers: {
+          cookie: '',
+        },
+      })
+    })
   })
 
   it('should render the log in page', () => {
-    cy.url().should('include', routes.auth.logIn)
+    // Check if we're redirected to the OIDC provider
+    cy.url().should('include', Cypress.env('AUTH_OIDC_ISSUER'))
 
-    cy.contains('p', 'Welcome to Datum Cloud').should('be.visible')
-
-    cy.contains('button', 'Sign in with Google').should('be.visible')
-
-    cy.contains('button', 'Sign in with GitHub').should('be.visible')
+    cy.contains('.provider-name', 'Google').should('be.visible')
+    cy.contains('.provider-name', 'GitHub').should('be.visible')
   })
 })

@@ -7,7 +7,7 @@ import {
   readResourcemanagerDatumapisComV1AlphaProjectStatus,
 } from '@/modules/control-plane/resource-manager'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { NewProjectSchema } from '@/resources/schemas/project.schema'
+import { ProjectSchema } from '@/resources/schemas/project.schema'
 import { CustomError } from '@/utils/errorHandle'
 import {
   convertLabelsToObject,
@@ -65,7 +65,7 @@ export const createProjectsControl = (client: Client) => {
 
       return transform(response.data)
     },
-    create: async (payload: NewProjectSchema, dryRun: boolean = false) => {
+    create: async (payload: ProjectSchema, dryRun: boolean = false) => {
       const response = await createResourcemanagerDatumapisComV1AlphaProject({
         client,
         baseURL: `${baseUrl}/organizations/${payload.orgEntityId}/control-plane`,

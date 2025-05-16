@@ -1,10 +1,10 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getSession } from '@/modules/auth/authSession.server'
+import { authSessionStorage, AUTH_SESSION_KEY } from '@/modules/cookie/auth.server'
+import { userSessionStorage, USER_SESSION_KEY } from '@/modules/cookie/user.server'
 import { createCacheClient } from '@/modules/unstorage/unstorage.js'
 import { createAPIFactory } from '@/resources/api/api.factory.js'
 import { createControlPlaneFactory } from '@/resources/control-plane/control.factory.js'
-import { createGqlFactory } from '@/resources/gql/gql.factory.js'
 import { createRequestHandler } from '@react-router/express'
 import compression from 'compression'
 import express, { Request, Response } from 'express'
@@ -221,26 +221,23 @@ async function getBuild() {
 }
 
 async function apiContext(request: Request) {
-  const session = await getSession((request.headers as any).cookie)
-  const authToken = session.get('accessToken')
-  const controlPlaneToken = session.get('controlPlaneToken')
+  const session = await authSessionStorage.getSession(request.headers.cookie)
+  const sessionData = session.get(AUTH_SESSION_KEY)
 
-  const apiClient = createAPIFactory(authToken)
-  const controlPlaneClient = createControlPlaneFactory(controlPlaneToken)
-  const gqlClient = createGqlFactory(authToken)
+  const apiClient = createAPIFactory(sessionData?.accessToken)
+  const controlPlaneClient = createControlPlaneFactory(sessionData?.accessToken)
 
   return {
     apiClient,
     controlPlaneClient,
-    gqlClient,
   }
 }
 
 async function cacheContext(request: Request) {
-  const session = await getSession((request.headers as any).cookie)
-  const userId = session.get('userId')
+  const session = await userSessionStorage.getSession(request.headers.cookie)
+  const user = session.get(USER_SESSION_KEY)
 
-  return createCacheClient(userId ?? 'cloud-portal')
+  return createCacheClient(user?.sub ?? 'cloud-portal')
 }
 
 // Health check endpoints
