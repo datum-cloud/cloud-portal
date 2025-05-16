@@ -45,7 +45,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     let headers = combineHeaders(authHeaders, userHeaders)
 
-    // Handle Organization
+    // TODO: Improve how to handle default organization. currently the process here is get organizations list and take the first index
     const cookies = headers.getSetCookie()
     const req = await fetch(`${process.env.APP_URL}${ORG_LIST_PATH}?noCache=true`, {
       method: 'GET',
@@ -60,7 +60,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     const organizations: IOrganization[] = await req.json()
 
-    // TODO: Improve how to handle default organization. currently the process here is to take the first index of organizations
     if (organizations.length > 0) {
       // Set Default Organizations
       const { headers: orgHeaders } = await setOrgSession(request, organizations[0])
@@ -72,7 +71,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       { headers },
     )
   } catch (error) {
-    return redirectWithToast(routes.auth.logIn, {
+    return redirectWithToast(routes.auth.error, {
       title: 'Authentication failed',
       description:
         (error as Error).message || 'Something went wrong with callback from provider',

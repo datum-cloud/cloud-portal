@@ -83,7 +83,12 @@ export async function isAuthenticated(
       })
     }
 
-    return null
+    // Generate a new request without search params
+    const url = new URL(request.url)
+    url.search = ''
+
+    // Redirect to OIDC Page
+    return authenticator.authenticate('oidc', new Request(url.toString(), request))
   }
 
   if (redirectTo) {

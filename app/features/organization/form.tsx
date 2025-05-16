@@ -16,7 +16,13 @@ import { IOrganization } from '@/resources/interfaces/organization.inteface'
 import { organizationSchema } from '@/resources/schemas/organization.schema'
 import { generateId, generateRandomString } from '@/utils/idGenerator'
 import { convertObjectToLabels } from '@/utils/misc'
-import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
+import {
+  FormProvider,
+  getFormProps,
+  getInputProps,
+  useForm,
+  useInputControl,
+} from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useEffect, useMemo, useRef } from 'react'
 import { Form, useNavigate } from 'react-router'
@@ -79,88 +85,90 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
             : 'Create a new organization to manage projects in Datum Cloud.'}
         </CardDescription>
       </CardHeader>
-      <Form
-        method="POST"
-        autoComplete="off"
-        {...getFormProps(form)}
-        className="flex flex-col gap-6">
-        <AuthenticityTokenInput />
+      <FormProvider context={form.context}>
+        <Form
+          method="POST"
+          autoComplete="off"
+          {...getFormProps(form)}
+          className="flex flex-col gap-6">
+          <AuthenticityTokenInput />
 
-        <CardContent className="space-y-4">
-          <Field
-            isRequired
-            label="Description"
-            description="Enter a short, human-friendly name. Can be changed later."
-            errors={description.errors}>
-            <Input
-              placeholder="e.g. My Organization"
-              ref={inputRef}
-              onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                const value = (e.target as HTMLInputElement).value
+          <CardContent className="space-y-4">
+            <Field
+              isRequired
+              label="Description"
+              description="Enter a short, human-friendly name. Can be changed later."
+              errors={description.errors}>
+              <Input
+                placeholder="e.g. My Organization"
+                ref={inputRef}
+                onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                  const value = (e.target as HTMLInputElement).value
 
-                if (value && !isEdit) {
-                  nameControl.change(generateId(value, { randomText: randomSuffix }))
-                }
-              }}
-              {...getInputProps(description, { type: 'text' })}
-            />
-          </Field>
-          <Field
-            isRequired
-            label="Name"
-            description="A namespace-unique stable identifier for your organization. This cannot be changed once the organization is created"
-            errors={name.errors}>
-            <Input
-              readOnly={isEdit}
-              placeholder="e.g. my-organization-343j33"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const value = (e.target as HTMLInputElement).value
-                nameControl.change(value)
-              }}
-              onBlur={(e: React.FormEvent<HTMLInputElement>) => {
-                const value = (e.target as HTMLInputElement).value
-                if (value.length === 0) {
-                  nameControl.change(
-                    generateId(description.value ?? '', { randomText: randomSuffix }),
-                  )
-                }
-              }}
-              {...getInputProps(name, { type: 'text' })}
-            />
-          </Field>
-          <Field
-            label="Labels"
-            errors={labels.errors}
-            description="Add labels to help identify, organize, and filter your projects.">
-            <SelectLabels
-              defaultValue={labels.value as string[]}
-              onChange={(value) => {
-                labelsControl.change(value)
-              }}
-            />
-          </Field>
-        </CardContent>
-        <CardFooter className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="link"
-            disabled={isPending}
-            onClick={() => {
-              navigate(routes.account.organizations.root)
-            }}>
-            Return to List
-          </Button>
-          <Button
-            variant="default"
-            type="submit"
-            disabled={isPending}
-            isLoading={isPending}>
-            {isPending
-              ? `${isEdit ? 'Saving' : 'Creating'}`
-              : `${isEdit ? 'Save' : 'Create'}`}
-          </Button>
-        </CardFooter>
-      </Form>
+                  if (value && !isEdit) {
+                    nameControl.change(generateId(value, { randomText: randomSuffix }))
+                  }
+                }}
+                {...getInputProps(description, { type: 'text' })}
+              />
+            </Field>
+            <Field
+              isRequired
+              label="Name"
+              description="A namespace-unique stable identifier for your organization. This cannot be changed once the organization is created"
+              errors={name.errors}>
+              <Input
+                readOnly={isEdit}
+                placeholder="e.g. my-organization-343j33"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = (e.target as HTMLInputElement).value
+                  nameControl.change(value)
+                }}
+                onBlur={(e: React.FormEvent<HTMLInputElement>) => {
+                  const value = (e.target as HTMLInputElement).value
+                  if (value.length === 0) {
+                    nameControl.change(
+                      generateId(description.value ?? '', { randomText: randomSuffix }),
+                    )
+                  }
+                }}
+                {...getInputProps(name, { type: 'text' })}
+              />
+            </Field>
+            <Field
+              label="Labels"
+              errors={labels.errors}
+              description="Add labels to help identify, organize, and filter your projects.">
+              <SelectLabels
+                defaultValue={labels.value as string[]}
+                onChange={(value) => {
+                  labelsControl.change(value)
+                }}
+              />
+            </Field>
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="link"
+              disabled={isPending}
+              onClick={() => {
+                navigate(routes.account.organizations.root)
+              }}>
+              Return to List
+            </Button>
+            <Button
+              variant="default"
+              type="submit"
+              disabled={isPending}
+              isLoading={isPending}>
+              {isPending
+                ? `${isEdit ? 'Saving' : 'Creating'}`
+                : `${isEdit ? 'Save' : 'Create'}`}
+            </Button>
+          </CardFooter>
+        </Form>
+      </FormProvider>
     </Card>
   )
 }

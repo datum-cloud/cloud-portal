@@ -73,15 +73,9 @@ export function GenericErrorBoundary({
     }
   }, [error])
 
-  const isProjectNotFound = useMemo(() => {
-    if (error) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return ((error as any)?.message ?? '').includes(
-        'projects.resourcemanager.datumapis.com is forbidden',
-      )
-    }
-    return false
-  }, [error])
+  const isOrganizationNotFound = useMemo(() => {
+    return error && typeof params?.orgId !== 'undefined'
+  }, [error, params])
 
   return (
     <PublicLayout>
@@ -126,11 +120,13 @@ export function GenericErrorBoundary({
               <div className="flex items-center gap-2">
                 <Link
                   to={
-                    isProjectNotFound ? routes.account.organizations.root : routes.home
+                    isOrganizationNotFound
+                      ? routes.account.organizations.root
+                      : routes.home
                   }>
                   <Button size="sm">
                     <HomeIcon className="size-4" />
-                    Back to {isProjectNotFound ? 'Organizations' : 'Home'}
+                    Back to {isOrganizationNotFound ? 'Organizations' : 'Home'}
                   </Button>
                 </Link>
                 <Button
