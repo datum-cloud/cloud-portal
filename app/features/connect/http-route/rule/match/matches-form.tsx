@@ -1,13 +1,23 @@
+import { PathField } from './path-field'
 import { FieldLabel } from '@/components/field/field-label'
 import { Button } from '@/components/ui/button'
+import { HTTPPathMatchType } from '@/resources/interfaces/http-route.interface'
 import {
+  HttpPathMatchSchema,
   HttpRouteMatchSchema,
   HttpRouteRuleSchema,
 } from '@/resources/schemas/http-route.schema'
 import { cn } from '@/utils/misc'
 import { useForm, useFormMetadata } from '@conform-to/react'
-import { TrashIcon } from 'lucide-react'
+import { PlusIcon, TrashIcon } from 'lucide-react'
 import { useEffect } from 'react'
+
+export const MatchDefaultValues: HttpRouteMatchSchema = {
+  path: {
+    type: HTTPPathMatchType.PATH_PREFIX,
+    value: '',
+  },
+}
 
 export const MatchesForm = ({
   fields,
@@ -30,7 +40,7 @@ export const MatchesForm = ({
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <FieldLabel label="Matches" />
+      <FieldLabel label="Matches" isRequired />
       <div className="space-y-4">
         {matchList.map((match, index) => {
           const matchFields = match.getFieldset()
@@ -38,6 +48,15 @@ export const MatchesForm = ({
             <div
               className="relative flex items-center gap-2 rounded-md border p-4"
               key={match.key}>
+              <PathField
+                fields={
+                  matchFields.path.getFieldset() as unknown as ReturnType<
+                    typeof useForm<HttpPathMatchSchema>
+                  >[1]
+                }
+                defaultValues={defaultValues?.[index]?.path}
+              />
+
               {matchList.length > 1 && (
                 <Button
                   type="button"
@@ -55,6 +74,21 @@ export const MatchesForm = ({
           )
         })}
       </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="ml-1 w-fit"
+        onClick={() =>
+          form.insert({
+            name: fields.matches.name,
+            defaultValue: MatchDefaultValues,
+          })
+        }>
+        <PlusIcon className="size-4" />
+        Add
+      </Button>
     </div>
   )
 }

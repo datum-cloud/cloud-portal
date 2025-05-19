@@ -21,9 +21,6 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
     throw new Error('Project ID is required')
   }
 
-  const { controlPlaneClient } = context as AppLoadContext
-  const endpointSlicesControl = createEndpointSlicesControl(controlPlaneClient as Client)
-
   const clonedRequest = request.clone()
   const formData = await clonedRequest.formData()
 
@@ -35,6 +32,11 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
     if (parsed.status !== 'success') {
       throw new Error('Invalid form data')
     }
+
+    const { controlPlaneClient } = context as AppLoadContext
+    const endpointSlicesControl = createEndpointSlicesControl(
+      controlPlaneClient as Client,
+    )
 
     const dryRunRes = await endpointSlicesControl.create(projectId, parsed.value, true)
 

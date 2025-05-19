@@ -25,7 +25,7 @@ export const httpRouteMatchSchema = z.object({
 // ----- End Match Section -----
 
 // ----- Backend Reference Section -----
-export const httpBackendRefSchema = z
+export const httpRouteBackendRefSchema = z
   .object({
     port: z
       .number({ required_error: 'Port is required' })
@@ -39,32 +39,12 @@ export const httpBackendRefSchema = z
 
 // ----- Filter Section -----
 
-export const httpPathRewriteSchema = z
-  .object({
-    type: z.enum(Object.values(HTTPPathRewriteType) as [string, ...string[]]),
-    replaceFullPath: z.string({ required_error: 'Replace path is required' }).optional(),
-    replacePrefixMatch: z
-      .string({ required_error: 'Replace path is required' })
-      .optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.type === HTTPPathRewriteType.REPLACE_FULL_PATH && !data.replaceFullPath) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Replace path is required',
-        path: ['replaceFullPath'],
-      })
-    } else if (
-      data.type === HTTPPathRewriteType.REPLACE_PREFIX_MATCH &&
-      !data.replacePrefixMatch
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Replace path is required',
-        path: ['replacePrefixMatch'],
-      })
-    }
-  })
+export const httpPathRewriteSchema = z.object({
+  type: z.enum(Object.values(HTTPPathRewriteType) as [string, ...string[]]),
+  value: z
+    .string({ required_error: 'Path value is required' })
+    .min(1, { message: 'Path value is required' }),
+})
 // Schema for request header modifier filter
 export const httpRequestHeaderModifierSchema = z.object({
   set: z
@@ -141,13 +121,16 @@ export const httpRouteFilterSchema = z
   })
   .refine(
     (data) => {
-      if (data.type === HTTPFilterType.REQUEST_HEADER_MODIFIER) {
+      if (data.type === HTTPFilterType.URL_REWRITE) {
+        return !!data.urlRewrite
+      }
+      /* if (data.type === HTTPFilterType.REQUEST_HEADER_MODIFIER) {
         return !!data.requestHeaderModifier
       } else if (data.type === HTTPFilterType.REQUEST_REDIRECT) {
         return !!data.requestRedirect
       } else if (data.type === HTTPFilterType.URL_REWRITE) {
         return !!data.urlRewrite
-      }
+      } */
       return false
     },
     {
@@ -165,7 +148,7 @@ export const httpRouteRuleSchema = z.object({
     .array(httpRouteMatchSchema)
     .min(1, { message: 'At least one match is required' }),
   backendRefs: z
-    .array(httpBackendRefSchema)
+    .array(httpRouteBackendRefSchema)
     .min(1, { message: 'At least one backend reference is required' }),
   filters: z.array(httpRouteFilterSchema).optional(),
 })
@@ -200,11 +183,11 @@ export type HttpRouteMatchSchema = z.infer<typeof httpRouteMatchSchema>
 export type HttpPathMatchSchema = z.infer<typeof httpPathMatchSchema>
 
 // ----- Backend Reference Section -----
-export type HttpBackendRefSchema = z.infer<typeof httpBackendRefSchema>
+export type HttpRouteBackendRefSchema = z.infer<typeof httpRouteBackendRefSchema>
 
 // ----- Filter Section -----
 export type HttpRouteFilterSchema = z.infer<typeof httpRouteFilterSchema>
 export type HttpPathRewriteSchema = z.infer<typeof httpPathRewriteSchema>
-export type RequestHeaderModifierSchema = z.infer<typeof httpRequestHeaderModifierSchema>
-export type RequestRedirectSchema = z.infer<typeof httpRequestRedirectSchema>
-export type URLRewriteSchema = z.infer<typeof httpURLRewriteSchema>
+export type HttpURLRewriteSchema = z.infer<typeof httpURLRewriteSchema>
+export type HttpHeaderModifierSchema = z.infer<typeof httpRequestHeaderModifierSchema>
+export type HttpRedirectSchema = z.infer<typeof httpRequestRedirectSchema>

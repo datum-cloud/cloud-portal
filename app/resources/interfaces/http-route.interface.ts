@@ -1,7 +1,15 @@
+import { HttpRouteRuleSchema, HttpRouteSchema } from '../schemas/http-route.schema'
+
 export interface IHttpRouteControlResponseLite {
   uid?: string
   name?: string
   createdAt?: Date
+}
+
+export interface IHttpRouteRuleControlResponse {
+  matches?: HttpRouteRuleSchema['matches']
+  backendRefs?: HttpRouteRuleSchema['backendRefs']
+  filters?: HttpRouteRuleSchema['filters']
 }
 
 export interface IHttpRouteControlResponse {
@@ -12,6 +20,10 @@ export interface IHttpRouteControlResponse {
   labels?: Record<string, string>
   annotations?: Record<string, string>
   createdAt?: Date
+
+  // Spec Section
+  parentRefs?: HttpRouteSchema['parentRefs']
+  rules?: IHttpRouteRuleControlResponse[]
 }
 
 export enum HTTPPathMatchType {
@@ -21,8 +33,8 @@ export enum HTTPPathMatchType {
 }
 
 export enum HTTPFilterType {
-  REQUEST_HEADER_MODIFIER = 'RequestHeaderModifier',
-  REQUEST_REDIRECT = 'RequestRedirect',
+  // REQUEST_HEADER_MODIFIER = 'RequestHeaderModifier',
+  // REQUEST_REDIRECT = 'RequestRedirect',
   URL_REWRITE = 'URLRewrite',
 }
 

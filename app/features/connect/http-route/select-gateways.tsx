@@ -8,6 +8,7 @@ export const SelectGateways = ({
   projectId,
   defaultValue,
   onChange,
+  ...props
 }: {
   projectId?: string
   defaultValue?: string[]
@@ -59,6 +60,7 @@ export const SelectGateways = ({
 
   return (
     <MultiSelect
+      {...props}
       clickableBadges
       defaultValue={selectedOptions}
       options={options ?? []}

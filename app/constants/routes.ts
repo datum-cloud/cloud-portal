@@ -75,7 +75,7 @@ export const routes = {
       httpRoutes: {
         root: '/[orgId]/projects/[projectId]/http-routes',
         new: '/[orgId]/projects/[projectId]/http-routes/new',
-        edit: '/[orgId]/projects/[projectId]/http-routes/[httpRouteId]/edit',
+        edit: '/[orgId]/projects/[projectId]/http-routes/[httpId]/edit',
       },
       endpointSlices: {
         root: '/[orgId]/projects/[projectId]/endpoint-slices',

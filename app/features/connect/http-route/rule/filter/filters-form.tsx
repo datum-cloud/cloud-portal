@@ -1,0 +1,100 @@
+import { FilterField } from './filter-field'
+import { FieldLabel } from '@/components/field/field-label'
+import { Button } from '@/components/ui/button'
+import {
+  HTTPFilterType,
+  HTTPPathRewriteType,
+} from '@/resources/interfaces/http-route.interface'
+import {
+  HttpRouteFilterSchema,
+  HttpRouteRuleSchema,
+} from '@/resources/schemas/http-route.schema'
+import { cn } from '@/utils/misc'
+import { useForm, useFormMetadata } from '@conform-to/react'
+import { PlusIcon, TrashIcon } from 'lucide-react'
+import { useEffect } from 'react'
+
+export const FilterDefaultValues: HttpRouteFilterSchema = {
+  type: HTTPFilterType.URL_REWRITE,
+  urlRewrite: {
+    hostname: '',
+    path: {
+      type: HTTPPathRewriteType.REPLACE_PREFIX_MATCH,
+      value: '',
+    },
+  },
+}
+
+export const FiltersForm = ({
+  fields,
+  defaultValues,
+}: {
+  fields: ReturnType<typeof useForm<HttpRouteRuleSchema>>[1]
+  defaultValues?: HttpRouteFilterSchema[]
+}) => {
+  const form = useFormMetadata('http-route-form')
+  const filterList = fields.filters.getFieldList()
+
+  useEffect(() => {
+    if (defaultValues) {
+      form.update({
+        name: fields.filters.name,
+        value: defaultValues,
+      })
+    }
+  }, [defaultValues])
+
+  return (
+    <div className="flex flex-col gap-3">
+      <FieldLabel label="Filters" isRequired />
+
+      <div className="space-y-4">
+        {filterList.map((filter, index) => {
+          const filterFields = filter.getFieldset()
+          return (
+            <div
+              className="relative flex items-center gap-2 rounded-md border p-4"
+              key={filter.key}>
+              <FilterField
+                fields={
+                  filterFields as unknown as ReturnType<
+                    typeof useForm<HttpRouteFilterSchema>
+                  >[1]
+                }
+                defaultValues={defaultValues?.[index]}
+              />
+              {filterList.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'text-destructive relative w-fit',
+                    (filterFields.type.errors ?? []).length > 0 ? '-top-1' : 'top-2.5',
+                  )}
+                  onClick={() => form.remove({ name: fields.filters.name, index })}>
+                  <TrashIcon className="size-4" />
+                </Button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="ml-1 w-fit"
+        onClick={() =>
+          form.insert({
+            name: fields.filters.name,
+            defaultValue: FilterDefaultValues,
+          })
+        }>
+        <PlusIcon className="size-4" />
+        Add
+      </Button>
+    </div>
+  )
+}
