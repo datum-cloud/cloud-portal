@@ -21,8 +21,8 @@ export enum HTTPPathMatchType {
 }
 
 export enum HTTPFilterType {
-  REQUEST_HEADER_MODIFIER = 'RequestHeaderModifier',
-  REQUEST_REDIRECT = 'RequestRedirect',
+  // REQUEST_HEADER_MODIFIER = 'RequestHeaderModifier',
+  // REQUEST_REDIRECT = 'RequestRedirect',
   URL_REWRITE = 'URLRewrite',
 }
 

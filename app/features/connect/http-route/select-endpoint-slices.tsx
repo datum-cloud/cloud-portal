@@ -6,7 +6,7 @@ import { useFetcher } from 'react-router'
 
 export const SelectEndpointSlice = ({
   projectId,
-  defaultValue,
+  value,
   className,
   onValueChange,
   name,
@@ -14,7 +14,7 @@ export const SelectEndpointSlice = ({
   exceptItems = [],
 }: {
   projectId?: string
-  defaultValue?: string
+  value?: string
   className?: string
   onValueChange: (value?: SelectBoxOption) => void
   name?: string
@@ -49,18 +49,17 @@ export const SelectEndpointSlice = ({
   }, [fetcher.data, fetcher.state])
 
   const filteredOpt = useMemo(() => {
-    console.log(exceptItems)
     return options.map((opt) => {
       return {
         ...opt,
-        disabled: exceptItems?.includes(opt.value),
+        disabled: exceptItems?.includes(opt.value) && opt.value !== value,
       }
     })
-  }, [options, exceptItems, defaultValue])
+  }, [options, exceptItems, value])
 
   return (
     <SelectBox
-      value={defaultValue}
+      value={value}
       className={className}
       onChange={(value: SelectBoxOption) => {
         if (value) {

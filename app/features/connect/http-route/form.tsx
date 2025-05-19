@@ -39,7 +39,9 @@ export const HttpRouteForm = ({
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: httpRouteSchema })
+      const result = parseWithZod(formData, { schema: httpRouteSchema })
+      console.log(result)
+      return result
     },
   })
 
@@ -75,7 +77,7 @@ export const HttpRouteForm = ({
               isEdit={isEdit}
             />
 
-            <Field label="Gateways" errors={fields.parentRefs.errors}>
+            <Field isRequired label="Gateways" errors={fields.parentRefs.errors}>
               <SelectGateways
                 projectId={projectId}
                 defaultValue={formattedValues?.parentRefs}

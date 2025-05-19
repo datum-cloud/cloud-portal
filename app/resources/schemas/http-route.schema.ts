@@ -39,32 +39,12 @@ export const httpRouteBackendRefSchema = z
 
 // ----- Filter Section -----
 
-export const httpPathRewriteSchema = z
-  .object({
-    type: z.enum(Object.values(HTTPPathRewriteType) as [string, ...string[]]),
-    replaceFullPath: z.string({ required_error: 'Replace path is required' }).optional(),
-    replacePrefixMatch: z
-      .string({ required_error: 'Replace path is required' })
-      .optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.type === HTTPPathRewriteType.REPLACE_FULL_PATH && !data.replaceFullPath) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Replace path is required',
-        path: ['replaceFullPath'],
-      })
-    } else if (
-      data.type === HTTPPathRewriteType.REPLACE_PREFIX_MATCH &&
-      !data.replacePrefixMatch
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Replace path is required',
-        path: ['replacePrefixMatch'],
-      })
-    }
-  })
+export const httpPathRewriteSchema = z.object({
+  type: z.enum(Object.values(HTTPPathRewriteType) as [string, ...string[]]),
+  value: z
+    .string({ required_error: 'Path value is required' })
+    .min(1, { message: 'Path value is required' }),
+})
 // Schema for request header modifier filter
 export const httpRequestHeaderModifierSchema = z.object({
   set: z
@@ -141,13 +121,16 @@ export const httpRouteFilterSchema = z
   })
   .refine(
     (data) => {
-      if (data.type === HTTPFilterType.REQUEST_HEADER_MODIFIER) {
+      if (data.type === HTTPFilterType.URL_REWRITE) {
+        return !!data.urlRewrite
+      }
+      /* if (data.type === HTTPFilterType.REQUEST_HEADER_MODIFIER) {
         return !!data.requestHeaderModifier
       } else if (data.type === HTTPFilterType.REQUEST_REDIRECT) {
         return !!data.requestRedirect
       } else if (data.type === HTTPFilterType.URL_REWRITE) {
         return !!data.urlRewrite
-      }
+      } */
       return false
     },
     {
@@ -207,4 +190,4 @@ export type HttpRouteFilterSchema = z.infer<typeof httpRouteFilterSchema>
 export type HttpPathRewriteSchema = z.infer<typeof httpPathRewriteSchema>
 export type RequestHeaderModifierSchema = z.infer<typeof httpRequestHeaderModifierSchema>
 export type RequestRedirectSchema = z.infer<typeof httpRequestRedirectSchema>
-export type URLRewriteSchema = z.infer<typeof httpURLRewriteSchema>
+export type HTTPURLRewriteSchema = z.infer<typeof httpURLRewriteSchema>

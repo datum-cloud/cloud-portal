@@ -1,0 +1,62 @@
+import { URLRewriteField } from './url-rewrite-field'
+import { Field } from '@/components/field/field'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { HTTPFilterType } from '@/resources/interfaces/http-route.interface'
+import {
+  HTTPURLRewriteSchema,
+  HttpRouteFilterSchema,
+} from '@/resources/schemas/http-route.schema'
+import { getSelectProps, useForm, useInputControl } from '@conform-to/react'
+
+export const FilterField = ({
+  fields,
+  defaultValues,
+}: {
+  fields: ReturnType<typeof useForm<HttpRouteFilterSchema>>[1]
+  defaultValues?: HttpRouteFilterSchema
+}) => {
+  const typeControl = useInputControl(fields.type)
+
+  return (
+    <div className="relative flex w-full flex-col items-start gap-4">
+      <Field isRequired label="Type" errors={fields.type.errors} className="w-1/2">
+        <Select
+          {...getSelectProps(fields.type)}
+          key={fields.type.id}
+          value={typeControl.value}
+          defaultValue={defaultValues?.type}
+          onValueChange={(value) => {
+            typeControl.change(value)
+          }}>
+          <SelectTrigger disabled>
+            <SelectValue placeholder="Select a type" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(HTTPFilterType).map((type) => (
+              <SelectItem key={type} value={type}>
+                {type}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+
+      {typeControl.value === HTTPFilterType.URL_REWRITE && (
+        <URLRewriteField
+          fields={
+            fields.urlRewrite.getFieldset() as unknown as ReturnType<
+              typeof useForm<HTTPURLRewriteSchema>
+            >[1]
+          }
+          defaultValues={defaultValues?.urlRewrite}
+        />
+      )}
+    </div>
+  )
+}

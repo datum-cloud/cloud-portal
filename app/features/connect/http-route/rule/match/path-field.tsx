@@ -42,7 +42,7 @@ export const PathField = ({
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
       <div className="flex w-full gap-2">
-        <Field isRequired label="Type" errors={fields.type.errors} className="w-1/4">
+        <Field isRequired label="Type" errors={fields.type.errors} className="w-1/3">
           <Select
             {...getSelectProps(fields.type)}
             key={fields.type.id}
@@ -63,7 +63,7 @@ export const PathField = ({
             </SelectContent>
           </Select>
         </Field>
-        <Field isRequired label="Value" errors={fields.value.errors} className="w-3/4">
+        <Field isRequired label="Value" errors={fields.value.errors} className="w-2/3">
           <Input
             {...getInputProps(fields.value, { type: 'text' })}
             key={fields.value.id}

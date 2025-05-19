@@ -49,7 +49,7 @@ export const BackendRefField = ({
             name={fields.name.name}
             id={fields.name.id}
             key={fields.name.id}
-            defaultValue={nameControl.value}
+            value={nameControl.value}
             projectId={projectId}
             exceptItems={selectedEndpointSlice}
             onValueChange={(value) => {
