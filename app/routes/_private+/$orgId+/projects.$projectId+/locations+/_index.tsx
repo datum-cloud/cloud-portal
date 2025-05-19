@@ -42,7 +42,7 @@ export const loader = withMiddleware(async ({ context, params }: LoaderFunctionA
     throw new CustomError('Project ID is required', 400)
   }
 
-  const locations = await locationsControl.getLocations(projectId)
+  const locations = await locationsControl.list(projectId)
   return locations
 }, authMiddleware)
 
@@ -55,7 +55,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
       const formData = Object.fromEntries(await request.formData())
       const { locationName, projectId } = formData
 
-      await locationsControl.deleteLocation(projectId as string, locationName as string)
+      await locationsControl.delete(projectId as string, locationName as string)
       return dataWithToast(null, {
         title: 'Location deleted successfully',
         description: 'The location has been deleted successfully',

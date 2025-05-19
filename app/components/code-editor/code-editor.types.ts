@@ -11,7 +11,6 @@ export interface CodeEditorProps {
   name?: string
   error?: string
   className?: string
-  darkMode?: boolean
   readOnly?: boolean
   minHeight?: string
 }
@@ -31,8 +30,6 @@ export interface CodeEditorTabsProps {
   id?: string
   /** Name of the field (for form integration) */
   name?: string
-  /** Whether to use dark mode */
-  darkMode?: boolean
   /** Minimum height of the editor */
   minHeight?: string
   /** Default value when reset is clicked */

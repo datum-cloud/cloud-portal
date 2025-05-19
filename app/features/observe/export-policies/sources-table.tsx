@@ -5,7 +5,6 @@ import { TextCopy } from '@/components/text-copy/text-copy'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { useTheme } from '@/hooks/useTheme'
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface'
 import { CodeIcon } from 'lucide-react'
 import { useMemo } from 'react'
@@ -15,7 +14,6 @@ export const WorkloadSourcesTable = ({
 }: {
   data: IExportPolicyControlResponse['sources']
 }) => {
-  const theme = useTheme()
   const columns = useMemo(
     () => [
       {
@@ -49,7 +47,6 @@ export const WorkloadSourcesTable = ({
               </PopoverTrigger>
               <PopoverContent className="min-w-[400px]">
                 <CodeEditor
-                  darkMode={theme === 'dark'}
                   value={row.original?.metrics?.metricsql}
                   language="promql"
                   readOnly
@@ -61,7 +58,7 @@ export const WorkloadSourcesTable = ({
         },
       },
     ],
-    [theme],
+    [],
   )
 
   return (

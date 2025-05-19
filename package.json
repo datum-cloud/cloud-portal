@@ -93,6 +93,7 @@
     "remix-auth": "^4.1.0",
     "remix-auth-github": "^3.0.2",
     "remix-auth-oauth2": "^3.2.2",
+    "remix-themes": "^2.0.4",
     "remix-utils": "8.7.0",
     "sonner": "^2.0.0",
     "tailwind-merge": "^3.0.2",

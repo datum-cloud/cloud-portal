@@ -1,9 +1,11 @@
 import { LogoProps } from './logo'
 import { logoStyles } from './logo.styles'
 import { cn } from '@/utils/misc'
+import { useTheme, Theme } from 'remix-themes'
 
-export const LogoIcon = ({ theme = 'light', width = 385, className }: LogoProps) => {
-  const { base, icon } = logoStyles({ theme })
+export const LogoIcon = ({ width = 385, className }: LogoProps) => {
+  const [theme] = useTheme()
+  const { base, icon } = logoStyles({ theme: theme ?? Theme.LIGHT })
 
   return (
     <svg

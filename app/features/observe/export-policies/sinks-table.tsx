@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { useTheme } from '@/hooks/useTheme'
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface'
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface'
 import { transformControlPlaneStatus } from '@/utils/misc'
@@ -22,7 +21,6 @@ export const WorkloadSinksTable = ({
   data: IExportPolicyControlResponse['sinks']
   status: IExportPolicyControlResponse['status']
 }) => {
-  const theme = useTheme()
   const columns = useMemo(() => {
     const sinkStatus = status?.sinks
     return [
@@ -105,7 +103,6 @@ export const WorkloadSinksTable = ({
               </PopoverTrigger>
               <PopoverContent className="min-w-[500px]">
                 <CodeEditor
-                  darkMode={theme === 'dark'}
                   value={JSON.stringify(
                     row.original?.target?.prometheusRemoteWrite,
                     null,
@@ -121,7 +118,7 @@ export const WorkloadSinksTable = ({
         },
       },
     ]
-  }, [status, theme])
+  }, [status])
 
   return (
     <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
