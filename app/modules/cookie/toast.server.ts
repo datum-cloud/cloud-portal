@@ -12,6 +12,7 @@ export const TOAST_SESSION_FLASH_KEY = '_toast_flash'
 export const toastSessionStorage = createCookieSessionStorage({
   cookie: {
     name: TOAST_SESSION_KEY,
+    domain: process.env?.APP_URL ? new URL(process.env.APP_URL).hostname : 'localhost',
     path: '/',
     sameSite: 'lax',
     httpOnly: true,
