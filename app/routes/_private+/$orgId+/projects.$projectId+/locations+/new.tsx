@@ -38,11 +38,11 @@ export const action = withMiddleware(
       const payload = parsed.payload as NewLocationSchema
 
       // First try with dryRun to validate
-      const dryRunRes = await locationsControl.createLocation(projectId, payload, true)
+      const dryRunRes = await locationsControl.create(projectId, payload, true)
 
       // If dryRun succeeds, create for real
       if (dryRunRes) {
-        await locationsControl.createLocation(projectId, payload, false)
+        await locationsControl.create(projectId, payload, false)
       }
 
       return redirectWithToast(

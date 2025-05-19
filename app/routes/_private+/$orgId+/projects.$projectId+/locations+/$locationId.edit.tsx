@@ -33,7 +33,7 @@ export const loader = withMiddleware(async ({ params, context }: LoaderFunctionA
     throw new CustomError('Project ID and location ID are required', 400)
   }
 
-  const location = await locationsControl.getLocation(projectId, locationId)
+  const location = await locationsControl.detail(projectId, locationId)
 
   return location
 }, authMiddleware)
@@ -60,7 +60,7 @@ export const action = withMiddleware(
       const payload = parsed.payload as NewLocationSchema
 
       // First try with dryRun to validate
-      const dryRunRes = await locationsControl.updateLocation(
+      const dryRunRes = await locationsControl.update(
         projectId,
         locationId,
         payload,
@@ -69,7 +69,7 @@ export const action = withMiddleware(
 
       // If dryRun succeeds, update for real
       if (dryRunRes) {
-        await locationsControl.updateLocation(projectId, locationId, payload, false)
+        await locationsControl.update(projectId, locationId, payload, false)
       }
 
       return redirectWithToast(

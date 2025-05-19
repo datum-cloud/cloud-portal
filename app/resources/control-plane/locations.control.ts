@@ -42,7 +42,7 @@ export const createLocationsControl = (client: Client) => {
   }
 
   return {
-    getLocations: async (projectId: string) => {
+    list: async (projectId: string) => {
       const response = await listNetworkingDatumapisComV1AlphaNamespacedLocation({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -53,7 +53,7 @@ export const createLocationsControl = (client: Client) => {
 
       return response.data?.items?.map(transformLocation) ?? []
     },
-    getLocation: async (projectId: string, locationName: string) => {
+    detail: async (projectId: string, locationName: string) => {
       const response = await readNetworkingDatumapisComV1AlphaNamespacedLocation({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -69,7 +69,7 @@ export const createLocationsControl = (client: Client) => {
 
       return transformLocation(response.data)
     },
-    createLocation: async (
+    create: async (
       projectId: string,
       payload: NewLocationSchema,
       dryRun: boolean = false,
@@ -109,7 +109,7 @@ export const createLocationsControl = (client: Client) => {
 
       return dryRun ? response.data : transformLocation(response.data)
     },
-    updateLocation: async (
+    update: async (
       projectId: string,
       locationId: string,
       payload: NewLocationSchema,
@@ -152,9 +152,9 @@ export const createLocationsControl = (client: Client) => {
         throw new CustomError('Failed to update location', 500)
       }
 
-      return transformLocation(response.data)
+      return dryRun ? response.data : transformLocation(response.data)
     },
-    deleteLocation: async (projectId: string, locationName: string) => {
+    delete: async (projectId: string, locationName: string) => {
       const response = await deleteNetworkingDatumapisComV1AlphaNamespacedLocation({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,

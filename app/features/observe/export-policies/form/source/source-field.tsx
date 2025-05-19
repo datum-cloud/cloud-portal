@@ -9,7 +9,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { POLICY_SOURCE_TYPES } from '@/constants/options'
-import { useTheme } from '@/hooks/useTheme'
 import { ExportPolicySourceFieldSchema } from '@/resources/schemas/export-policy.schema'
 import { cn } from '@/utils/misc'
 import {
@@ -32,7 +31,6 @@ export const SourceField = ({
   isEdit?: boolean
   isMultiple?: boolean
 }) => {
-  const theme = useTheme()
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
 
@@ -116,7 +114,6 @@ export const SourceField = ({
           className={cn('w-full', isMultiple ? 'max-w-[590px]' : '')}
           tooltipInfo="MetricsQL query to select metrics. Default {} selects all metrics.">
           <CodeEditor
-            darkMode={theme === 'dark'}
             language="promql"
             value={fields.metricQuery.value ?? '{}'}
             onChange={(newValue) => {

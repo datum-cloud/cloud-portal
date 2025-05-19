@@ -1,5 +1,6 @@
 import { FathomAnalytics } from './components/fathom/fathom'
 import { getSharedEnvs } from './utils/env'
+import { themeSessionResolver } from './utils/theme'
 import { ClientHintCheck } from '@/components/misc/ClientHints'
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
 import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher'
@@ -7,7 +8,6 @@ import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { getHints } from '@/hooks/useHints'
 import { useNonce } from '@/hooks/useNonce'
-import { Theme, getTheme, useTheme } from '@/hooks/useTheme'
 import { useToast } from '@/hooks/useToast'
 import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/handle-cache'
 // Import global CSS styles for the application
@@ -31,8 +31,10 @@ import {
   useFetchers,
   useLoaderData,
   useNavigation,
+  useRouteLoaderData,
 } from 'react-router'
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router'
+import { ThemeProvider, useTheme, PreventFlashOnWrongTheme, Theme } from 'remix-themes'
 import { AuthenticityTokenProvider } from 'remix-utils/csrf/react'
 
 // NProgress configuration
@@ -65,17 +67,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const { toast, headers: toastHeaders } = await getToastSession(request)
   const [csrfToken, csrfCookieHeader] = await csrf.commitToken(request)
   const sharedEnv = getSharedEnvs()
+  const { getTheme } = await themeSessionResolver(request)
 
   return data(
     {
       toast,
       csrfToken,
       sharedEnv,
+      theme: getTheme(),
       requestInfo: {
         hints: getHints(request),
         origin: getDomainUrl(request),
         path: new URL(request.url).pathname,
-        userPrefs: { theme: getTheme(request) },
       },
     } as const,
     {
@@ -87,38 +90,57 @@ export async function loader({ request }: LoaderFunctionArgs) {
   )
 }
 
+export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useRouteLoaderData<typeof loader>('root')
+
+  return (
+    <ThemeProvider
+      specifiedTheme={data?.theme ?? Theme.LIGHT}
+      themeAction="/api/set-theme">
+      {children}
+    </ThemeProvider>
+  )
+}
+
 function Document({
   children,
   nonce,
   lang = 'en',
   dir = 'ltr',
-  theme = 'light',
 }: {
   children: React.ReactNode
   nonce: string
   lang?: string
   dir?: 'ltr' | 'rtl'
-  theme?: Theme
 }) {
+  const data = useLoaderData<typeof loader>()
+  const [theme] = useTheme()
+
   return (
     <html
       lang={lang}
       dir={dir}
       className={`${theme} overflow-x-hidden`}
-      style={{ colorScheme: theme }}
+      data-theme={theme ?? ''}
       suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <ClientHintCheck nonce={nonce} />
         <Meta />
+        <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} />
         <Links />
       </head>
       <body className="h-auto w-full" suppressHydrationWarning>
         <TooltipProvider>{children}</TooltipProvider>
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
-        <Toaster closeButton position="top-right" theme={theme} richColors />
+        <Toaster
+          closeButton
+          position="top-right"
+          theme={theme ?? Theme.LIGHT}
+          richColors
+        />
         <ThemeSwitcher />
       </body>
     </html>
@@ -129,7 +151,6 @@ export default function AppWithProviders() {
   const { toast, csrfToken, sharedEnv } = useLoaderData<typeof loader>()
 
   const nonce = useNonce()
-  const theme = useTheme()
   const navigation = useNavigation()
   const fetchers = useFetchers()
 
@@ -171,7 +192,7 @@ export default function AppWithProviders() {
   })
 
   return (
-    <Document nonce={nonce} theme={theme} lang="en">
+    <Document nonce={nonce} lang="en">
       <AuthenticityTokenProvider token={csrfToken}>
         {sharedEnv.FATHOM_ID && isProduction() && (
           <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />
@@ -184,10 +205,9 @@ export default function AppWithProviders() {
 
 export function ErrorBoundary() {
   const nonce = useNonce()
-  const theme = useTheme()
 
   return (
-    <Document nonce={nonce} theme={theme}>
+    <Document nonce={nonce}>
       <GenericErrorBoundary />
     </Document>
   )

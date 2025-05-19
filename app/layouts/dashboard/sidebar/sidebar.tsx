@@ -9,7 +9,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { routes } from '@/constants/routes'
-import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/utils/misc'
 import { useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router'
@@ -20,7 +19,6 @@ export function DashboardSidebar({
 }: React.ComponentProps<typeof Sidebar> & {
   navItems: NavItem[]
 }) {
-  const theme = useTheme()
   const { setOpen, open, state } = useSidebar()
   const [searchParams] = useSearchParams()
 
@@ -38,18 +36,13 @@ export function DashboardSidebar({
         <Link to={routes.account.root} className="flex items-center gap-2">
           <LogoIcon
             width={24}
-            theme={theme}
             className={cn(
               'transition-transform duration-500',
               !open && 'rotate-[360deg]',
             )}
           />
           {state === 'expanded' && (
-            <LogoText
-              width={55}
-              theme={theme}
-              className="transition-opacity duration-500"
-            />
+            <LogoText width={55} className="transition-opacity duration-500" />
           )}
         </Link>
       </SidebarHeader>

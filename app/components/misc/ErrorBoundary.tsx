@@ -2,7 +2,6 @@ import { LogoIcon } from '@/components/logo/logo-icon'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
-import { useTheme } from '@/hooks/useTheme'
 import PublicLayout from '@/layouts/public/public'
 import { isDevelopment } from '@/utils/misc'
 import { HomeIcon, Loader2, RefreshCcwIcon } from 'lucide-react'
@@ -39,7 +38,6 @@ export function GenericErrorBoundary({
   const error = useRouteError()
   const navigate = useNavigate()
   const fetcher = useFetcher()
-  const theme = useTheme()
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
   if (typeof document !== 'undefined') {
@@ -77,7 +75,7 @@ export function GenericErrorBoundary({
     <PublicLayout>
       <Card className="overflow-hidden">
         <CardContent className="flex min-h-[500px] flex-col items-center justify-center gap-6">
-          <LogoIcon width={64} theme={theme} className="mb-4" />
+          <LogoIcon width={64} className="mb-4" />
           {isLoading ? (
             <div className="flex items-center justify-center gap-2">
               <Loader2 className="size-4 animate-spin" />

@@ -4,6 +4,7 @@ import { cn } from '@/utils/misc'
 import Editor, { Monaco } from '@monaco-editor/react'
 import { editor } from 'monaco-editor'
 import { useRef } from 'react'
+import { useTheme, Theme } from 'remix-themes'
 
 export const CodeEditor = ({
   value = '',
@@ -13,10 +14,10 @@ export const CodeEditor = ({
   name,
   error,
   className,
-  darkMode = false,
   readOnly = false,
   minHeight = '200px',
 }: CodeEditorProps) => {
+  const [theme] = useTheme()
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
 
   // Handle editor mounting
@@ -67,7 +68,7 @@ export const CodeEditor = ({
         <Editor
           value={value}
           language={language}
-          theme={darkMode ? 'vs-dark' : 'light'}
+          theme={theme === Theme.DARK ? 'vs-dark' : 'light'}
           options={{
             readOnly,
             automaticLayout: true,

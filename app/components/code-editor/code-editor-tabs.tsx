@@ -14,7 +14,6 @@ export function CodeEditorTabs({
   error,
   id,
   name = 'code-editor',
-  darkMode = true,
   minHeight = '300px',
   defaultValue,
   label,
@@ -179,7 +178,6 @@ export function CodeEditorTabs({
             name={name}
             id={id}
             error={activeTab === 'yaml' ? error : undefined}
-            darkMode={darkMode}
             minHeight={minHeight}
           />
         </TabsContent>
@@ -191,7 +189,6 @@ export function CodeEditorTabs({
             name={name}
             id={id}
             error={activeTab === 'json' ? error : undefined}
-            darkMode={darkMode}
             minHeight={minHeight}
           />
         </TabsContent>

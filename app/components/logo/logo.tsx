@@ -1,14 +1,16 @@
-import { LogoVariants, logoStyles } from './logo.styles'
+import { logoStyles } from './logo.styles'
 import { cn } from '@/utils/misc'
+import { useTheme, Theme } from 'remix-themes'
 
-export interface LogoProps extends LogoVariants {
+export interface LogoProps {
   width?: number
   asIcon?: boolean
   className?: string
 }
 
-export const Logo = ({ theme = 'light', width = 385, className }: LogoProps) => {
-  const { base, icon, text } = logoStyles({ theme })
+export const Logo = ({ width = 385, className }: LogoProps) => {
+  const [theme] = useTheme()
+  const { base, icon, text } = logoStyles({ theme: theme ?? Theme.LIGHT })
 
   return (
     <svg
