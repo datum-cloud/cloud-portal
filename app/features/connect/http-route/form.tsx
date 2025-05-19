@@ -11,7 +11,13 @@ import { SelectGateways } from '@/features/connect/http-route/select-gateways'
 import { IHttpRouteControlResponse } from '@/resources/interfaces/http-route.interface'
 import { HttpRouteSchema, httpRouteSchema } from '@/resources/schemas/http-route.schema'
 import { MetadataSchema } from '@/resources/schemas/metadata.schema'
-import { FormProvider, getFormProps, useForm, useInputControl } from '@conform-to/react'
+import {
+  FieldMetadata,
+  FormProvider,
+  getFormProps,
+  useForm,
+  useInputControl,
+} from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useMemo, useState } from 'react'
 import { Form } from 'react-router'
@@ -36,7 +42,9 @@ export const HttpRouteForm = ({
     },
   })
 
-  const parentRefsControl = useInputControl(fields.parentRefs)
+  const parentRefsControl = useInputControl(
+    fields.parentRefs as unknown as FieldMetadata<string[]>,
+  )
 
   const isEdit = useMemo(() => {
     return defaultValue?.uid !== undefined
