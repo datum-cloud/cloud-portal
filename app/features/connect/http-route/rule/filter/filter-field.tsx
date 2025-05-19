@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/select'
 import { HTTPFilterType } from '@/resources/interfaces/http-route.interface'
 import {
-  HTTPURLRewriteSchema,
+  HttpURLRewriteSchema,
   HttpRouteFilterSchema,
 } from '@/resources/schemas/http-route.schema'
 import { getSelectProps, useForm, useInputControl } from '@conform-to/react'
@@ -51,7 +51,7 @@ export const FilterField = ({
         <URLRewriteField
           fields={
             fields.urlRewrite.getFieldset() as unknown as ReturnType<
-              typeof useForm<HTTPURLRewriteSchema>
+              typeof useForm<HttpURLRewriteSchema>
             >[1]
           }
           defaultValues={defaultValues?.urlRewrite}

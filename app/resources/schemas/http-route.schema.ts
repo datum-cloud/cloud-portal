@@ -188,6 +188,6 @@ export type HttpRouteBackendRefSchema = z.infer<typeof httpRouteBackendRefSchema
 // ----- Filter Section -----
 export type HttpRouteFilterSchema = z.infer<typeof httpRouteFilterSchema>
 export type HttpPathRewriteSchema = z.infer<typeof httpPathRewriteSchema>
-export type RequestHeaderModifierSchema = z.infer<typeof httpRequestHeaderModifierSchema>
-export type RequestRedirectSchema = z.infer<typeof httpRequestRedirectSchema>
-export type HTTPURLRewriteSchema = z.infer<typeof httpURLRewriteSchema>
+export type HttpURLRewriteSchema = z.infer<typeof httpURLRewriteSchema>
+export type HttpHeaderModifierSchema = z.infer<typeof httpRequestHeaderModifierSchema>
+export type HttpRedirectSchema = z.infer<typeof httpRequestRedirectSchema>

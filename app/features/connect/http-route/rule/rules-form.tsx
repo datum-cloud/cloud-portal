@@ -45,6 +45,7 @@ export const RulesForm = ({
     }
   }, [defaultValues])
 
+  // Enable this when you don't want to implement same endpoint slice for all backend refs
   /* const selectedEndpointSlice = useMemo(() => {
     // Extract all selected network names from the form fields
     return ruleList

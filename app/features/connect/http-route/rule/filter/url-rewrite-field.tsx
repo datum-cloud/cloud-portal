@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { HTTPPathRewriteType } from '@/resources/interfaces/http-route.interface'
-import { HTTPURLRewriteSchema } from '@/resources/schemas/http-route.schema'
+import { HttpURLRewriteSchema } from '@/resources/schemas/http-route.schema'
 import {
   getInputProps,
   getSelectProps,
@@ -21,8 +21,8 @@ export const URLRewriteField = ({
   fields,
   defaultValues,
 }: {
-  fields: ReturnType<typeof useForm<HTTPURLRewriteSchema>>[1]
-  defaultValues?: HTTPURLRewriteSchema
+  fields: ReturnType<typeof useForm<HttpURLRewriteSchema>>[1]
+  defaultValues?: HttpURLRewriteSchema
 }) => {
   const hostnameControl = useInputControl(fields.hostname)
   const pathFields = fields.path.getFieldset()

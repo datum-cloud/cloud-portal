@@ -1,14 +1,17 @@
 import { RulesForm } from './rule/rules-form'
 import { Field } from '@/components/field/field'
 import { MetadataForm } from '@/components/metadata/metadata-form'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
 import { SelectGateways } from '@/features/connect/http-route/select-gateways'
+import { useIsPending } from '@/hooks/useIsPending'
 import { IHttpRouteControlResponse } from '@/resources/interfaces/http-route.interface'
 import { HttpRouteSchema, httpRouteSchema } from '@/resources/schemas/http-route.schema'
 import { MetadataSchema } from '@/resources/schemas/metadata.schema'
@@ -21,7 +24,7 @@ import {
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { useMemo, useState } from 'react'
-import { Form } from 'react-router'
+import { Form, useNavigate } from 'react-router'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 
 export const HttpRouteForm = ({
@@ -31,6 +34,9 @@ export const HttpRouteForm = ({
   projectId?: string
   defaultValue?: IHttpRouteControlResponse
 }) => {
+  const navigate = useNavigate()
+  const isPending = useIsPending()
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [formattedValues, setFormattedValues] = useState<HttpRouteSchema>()
   const [form, fields] = useForm({
@@ -39,9 +45,7 @@ export const HttpRouteForm = ({
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      const result = parseWithZod(formData, { schema: httpRouteSchema })
-      console.log(result)
-      return result
+      return parseWithZod(formData, { schema: httpRouteSchema })
     },
   })
 
@@ -91,6 +95,35 @@ export const HttpRouteForm = ({
               projectId={projectId}
             />
           </CardContent>
+          <CardFooter className="flex justify-between gap-2">
+            {isEdit ? (
+              <Button type="button" variant="destructive" disabled={isPending}>
+                Delete
+              </Button>
+            ) : (
+              <div />
+            )}
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="link"
+                disabled={isPending}
+                onClick={() => {
+                  navigate(-1)
+                }}>
+                Return to List
+              </Button>
+              <Button
+                variant="default"
+                type="submit"
+                disabled={isPending}
+                isLoading={isPending}>
+                {isPending
+                  ? `${isEdit ? 'Saving' : 'Creating'}`
+                  : `${isEdit ? 'Save' : 'Create'}`}
+              </Button>
+            </div>
+          </CardFooter>
         </Form>
       </FormProvider>
     </Card>
