@@ -1,23 +1,33 @@
 import { DataTable } from '@/components/data-table/data-table'
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
 import { DateFormat } from '@/components/date-format/date-format'
+import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { createHttpRoutesControl } from '@/resources/control-plane/http-routes.control'
 import { IHttpRouteControlResponseLite } from '@/resources/interfaces/http-route.interface'
+import { ROUTE_PATH as HTTP_ROUTES_ACTIONS_PATH } from '@/routes/api+/connect+/http-routes+/actions'
 import { CustomError } from '@/utils/errorHandle'
+import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
 import { Client } from '@hey-api/client-axios'
 import { ColumnDef } from '@tanstack/react-table'
+import { PlusIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import {
   AppLoadContext,
+  Link,
   LoaderFunctionArgs,
+  MetaFunction,
   useLoaderData,
   useNavigate,
   useParams,
   useSubmit,
 } from 'react-router'
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return metaObject('HTTP Routes')
+})
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params
@@ -67,7 +77,7 @@ export default function ConnectHttpRoutesPage() {
             method: 'DELETE',
             fetcherKey: 'http-route-resources',
             navigate: false,
-            // action: GATEWAYS_ACTIONS_PATH,
+            action: HTTP_ROUTES_ACTIONS_PATH,
           },
         )
       },
@@ -80,7 +90,16 @@ export default function ConnectHttpRoutesPage() {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return <span className="text-primary font-semibold">{row.original.name}</span>
+          return (
+            <Link
+              to={getPathWithParams(routes.projects.connect.httpRoutes.edit, {
+                orgId,
+                projectId,
+                httpId: row.original.name,
+              })}>
+              <span className="text-primary font-semibold">{row.original.name}</span>
+            </Link>
+          )
         },
       },
       {
@@ -102,10 +121,10 @@ export default function ConnectHttpRoutesPage() {
         label: 'Edit',
         action: (row) => {
           navigate(
-            getPathWithParams(routes.projects.connect.gateways.edit, {
+            getPathWithParams(routes.projects.connect.httpRoutes.edit, {
               orgId,
               projectId,
-              gatewayId: row.name,
+              httpId: row.name,
             }),
           )
         },
@@ -130,7 +149,7 @@ export default function ConnectHttpRoutesPage() {
       tableTitle={{
         title: 'HTTP Routes',
         description: 'Manage http routes for your project resources',
-        /* actions: (
+        actions: (
           <Link
             to={getPathWithParams(routes.projects.connect.httpRoutes.new, {
               orgId,
@@ -141,9 +160,9 @@ export default function ConnectHttpRoutesPage() {
               New HTTP Route
             </Button>
           </Link>
-        ), */
+        ),
       }}
-      rowActions={[]}
+      rowActions={rowActions}
     />
   )
 }

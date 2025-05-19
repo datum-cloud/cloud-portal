@@ -13,6 +13,7 @@ import {
   HttpRouteFilterSchema,
 } from '@/resources/schemas/http-route.schema'
 import { getSelectProps, useForm, useInputControl } from '@conform-to/react'
+import { useEffect } from 'react'
 
 export const FilterField = ({
   fields,
@@ -22,6 +23,12 @@ export const FilterField = ({
   defaultValues?: HttpRouteFilterSchema
 }) => {
   const typeControl = useInputControl(fields.type)
+
+  useEffect(() => {
+    if (defaultValues && !fields.type.value) {
+      typeControl.change(defaultValues.type)
+    }
+  }, [defaultValues, fields.type.value, typeControl])
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">

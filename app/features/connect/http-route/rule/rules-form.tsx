@@ -73,36 +73,39 @@ export const RulesForm = ({
               key={field.key}>
               <div className="w-full space-y-4">
                 <MatchesForm
+                  key={ruleFields.matches.id}
                   fields={
                     ruleFields as unknown as ReturnType<
                       typeof useForm<HttpRouteRuleSchema>
                     >[1]
                   }
-                  defaultValues={defaultValues?.[index].matches}
+                  defaultValues={defaultValues?.[index]?.matches}
                 />
 
                 <Separator />
 
                 <BackendRefsForm
+                  key={ruleFields.backendRefs.id}
                   selectedEndpointSlice={[]}
                   fields={
                     ruleFields as unknown as ReturnType<
                       typeof useForm<HttpRouteRuleSchema>
                     >[1]
                   }
-                  defaultValues={defaultValues?.[index].backendRefs}
+                  defaultValues={defaultValues?.[index]?.backendRefs}
                   projectId={projectId}
                 />
 
                 <Separator />
 
                 <FiltersForm
+                  key={ruleFields.filters.id}
                   fields={
                     ruleFields as unknown as ReturnType<
                       typeof useForm<HttpRouteRuleSchema>
                     >[1]
                   }
-                  defaultValues={defaultValues?.[index].filters}
+                  defaultValues={defaultValues?.[index]?.filters}
                 />
               </div>
 
@@ -112,7 +115,10 @@ export const RulesForm = ({
                   variant="ghost"
                   size="sm"
                   className={cn('text-destructive relative top-2 w-fit')}
-                  onClick={() => form.remove({ name: fields.rules.name, index })}>
+                  onClick={() => {
+                    defaultValues?.splice(index, 1)
+                    form.remove({ name: fields.rules.name, index })
+                  }}>
                   <TrashIcon className="size-4" />
                 </Button>
               )}

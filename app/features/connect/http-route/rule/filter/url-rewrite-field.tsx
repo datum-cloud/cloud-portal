@@ -25,13 +25,14 @@ export const URLRewriteField = ({
   defaultValues?: HttpURLRewriteSchema
 }) => {
   const hostnameControl = useInputControl(fields.hostname)
+
   const pathFields = fields.path.getFieldset()
   const typeControl = useInputControl(pathFields?.type)
   const valueControl = useInputControl(pathFields?.value)
 
   useEffect(() => {
     if (defaultValues) {
-      if (defaultValues.hostname && hostnameControl.value === '') {
+      if (defaultValues.hostname && fields.hostname.value === '') {
         hostnameControl.change(defaultValues?.hostname)
       }
 
@@ -45,6 +46,7 @@ export const URLRewriteField = ({
     }
   }, [
     defaultValues,
+    fields.hostname.value,
     typeControl,
     pathFields?.type.value,
     valueControl,

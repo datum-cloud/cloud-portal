@@ -54,7 +54,7 @@ export const MatchesForm = ({
                     typeof useForm<HttpPathMatchSchema>
                   >[1]
                 }
-                defaultValues={defaultValues?.[index].path}
+                defaultValues={defaultValues?.[index]?.path}
               />
 
               {matchList.length > 1 && (
