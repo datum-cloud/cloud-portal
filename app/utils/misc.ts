@@ -151,8 +151,13 @@ export function convertLabelsToObject(
  * @param labels - Object containing label key-value pairs
  * @returns Array of strings in the format "key:value"
  */
-export function convertObjectToLabels(labels: ILabel): string[] {
-  return Object.entries(labels).map(([key, value]) => `${key}:${value}`)
+export function convertObjectToLabels(
+  labels: ILabel,
+  skipPrefixes: string[] = ['resourcemanager'],
+): string[] {
+  return Object.entries(labels)
+    .filter(([key]) => !skipPrefixes.some((prefix) => key.startsWith(prefix)))
+    .map(([key, value]) => `${key}:${value}`)
 }
 
 /**

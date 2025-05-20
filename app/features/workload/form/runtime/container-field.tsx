@@ -14,12 +14,12 @@ import { useHydrated } from 'remix-utils/use-hydrated'
 
 export const ContainerField = ({
   isEdit,
-  defaultValues,
+  defaultValue,
   projectId,
   fields,
 }: {
   isEdit: boolean
-  defaultValues?: RuntimeContainerSchema
+  defaultValue?: RuntimeContainerSchema
   projectId?: string
   fields: ReturnType<typeof useForm<RuntimeContainerSchema>>[1]
 }) => {
@@ -30,17 +30,17 @@ export const ContainerField = ({
   const nameControl = useInputControl(fields.name)
 
   useEffect(() => {
-    if (defaultValues) {
-      // Only set values if they exist in defaultValues and current fields are empty
-      if (defaultValues.name && fields.name.value === '') {
-        nameControl.change(defaultValues?.name)
+    if (defaultValue) {
+      // Only set values if they exist in defaultValue and current fields are empty
+      if (defaultValue.name && fields.name.value === '') {
+        nameControl.change(defaultValue?.name)
       }
 
-      if (defaultValues.image && fields.image.value === '') {
-        imageControl.change(defaultValues?.image)
+      if (defaultValue.image && fields.image.value === '') {
+        imageControl.change(defaultValue?.image)
       }
     }
-  }, [defaultValues, imageControl, nameControl, fields.name.value, fields.image.value])
+  }, [defaultValue, imageControl, nameControl, fields.name.value, fields.image.value])
 
   // Focus the input when the form is hydrated
   useEffect(() => {
@@ -85,7 +85,7 @@ export const ContainerField = ({
               typeof useForm<{ ports: RuntimePortSchema[] }>
             >[1]
           }
-          defaultValues={defaultValues?.ports}
+          defaultValue={defaultValue?.ports}
           isEdit={isEdit}
         />
       </div>
@@ -98,7 +98,7 @@ export const ContainerField = ({
               typeof useForm<{ envs: RuntimeEnvSchema[] }>
             >[1]
           }
-          defaultValues={defaultValues?.envs}
+          defaultValue={defaultValue?.envs}
           isEdit={isEdit}
           projectId={projectId}
         />

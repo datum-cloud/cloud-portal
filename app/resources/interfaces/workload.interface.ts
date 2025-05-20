@@ -1,3 +1,4 @@
+import { ILabel } from './label.interface'
 import {
   ComDatumapisComputeV1AlphaInstance,
   ComDatumapisComputeV1AlphaWorkload,
@@ -12,8 +13,8 @@ export interface IWorkloadControlResponse {
   resourceVersion?: string
   spec?: ComDatumapisComputeV1AlphaWorkload['spec']
   status?: ComDatumapisComputeV1AlphaWorkload['status']
-  labels?: Record<string, string>
-  annotations?: Record<string, string>
+  labels?: ILabel
+  annotations?: ILabel
 }
 
 export interface IWorkloadDeploymentControlResponse {

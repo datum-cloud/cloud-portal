@@ -87,8 +87,8 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
         projectId,
       }),
       {
-        title: 'Export policy updated',
-        description: 'Export policy updated successfully',
+        title: 'Export policy updated successfully',
+        description: 'You have successfully updated an export policy.',
         type: 'success',
       },
     )

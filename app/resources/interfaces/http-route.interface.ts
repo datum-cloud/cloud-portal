@@ -1,4 +1,5 @@
 import { HttpRouteRuleSchema, HttpRouteSchema } from '../schemas/http-route.schema'
+import { ILabel } from './label.interface'
 
 export interface IHttpRouteControlResponseLite {
   uid?: string
@@ -17,8 +18,8 @@ export interface IHttpRouteControlResponse {
   resourceVersion?: string
   namespace?: string
   name?: string
-  labels?: Record<string, string>
-  annotations?: Record<string, string>
+  labels?: ILabel
+  annotations?: ILabel
   createdAt?: Date
 
   // Spec Section

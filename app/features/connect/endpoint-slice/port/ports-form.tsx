@@ -11,34 +11,34 @@ import { useForm, useFormMetadata } from '@conform-to/react'
 import { PlusIcon, TrashIcon } from 'lucide-react'
 import { useEffect } from 'react'
 
-const defaultValue: EndpointSlicePortSchema = {
+const defaultPortValue: EndpointSlicePortSchema = {
   name: '',
   appProtocol: EndpointSlicePortProtocol.HTTPS,
 }
 
 export const PortsForm = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<EndpointSliceSchema>>[1]
-  defaultValues?: EndpointSlicePortSchema[]
+  defaultValue?: EndpointSlicePortSchema[]
 }) => {
   const form = useFormMetadata('endpoint-slice-form')
   const portList = fields.ports.getFieldList()
 
   useEffect(() => {
-    if (defaultValues && defaultValues.length > 0) {
+    if (defaultValue && defaultValue.length > 0) {
       form.update({
         name: fields.ports.name,
-        value: defaultValues,
+        value: defaultValue,
       })
     } else if (portList.length === 0) {
       form.insert({
         name: fields.ports.name,
-        defaultValue: defaultValue,
+        defaultValue: defaultPortValue,
       })
     }
-  }, [defaultValues])
+  }, [defaultValue])
 
   return (
     <div className="flex flex-col gap-3">
@@ -57,7 +57,7 @@ export const PortsForm = ({
                     typeof useForm<EndpointSlicePortSchema>
                   >[1]
                 }
-                defaultValues={defaultValues?.[index]}
+                defaultValue={defaultValue?.[index]}
               />
               {portList.length > 1 && (
                 <Button
@@ -82,7 +82,7 @@ export const PortsForm = ({
         onClick={() =>
           form.insert({
             name: fields.ports.name,
-            defaultValue: defaultValue,
+            defaultValue: defaultPortValue,
           })
         }>
         <PlusIcon className="size-4" />

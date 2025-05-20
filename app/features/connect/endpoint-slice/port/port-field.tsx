@@ -22,26 +22,26 @@ import { useEffect } from 'react'
 
 export const PortField = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<EndpointSlicePortSchema>>[1]
-  defaultValues?: EndpointSlicePortSchema
+  defaultValue?: EndpointSlicePortSchema
 }) => {
   const nameControl = useInputControl(fields.name)
   const appProtocolControl = useInputControl(fields.appProtocol)
 
   useEffect(() => {
-    if (defaultValues) {
-      if (defaultValues.name && fields.name.value === '') {
-        nameControl.change(defaultValues?.name)
+    if (defaultValue) {
+      if (defaultValue.name && fields.name.value === '') {
+        nameControl.change(defaultValue?.name)
       }
 
-      if (defaultValues.appProtocol && !fields.appProtocol.value) {
-        appProtocolControl.change(defaultValues?.appProtocol)
+      if (defaultValue.appProtocol && !fields.appProtocol.value) {
+        appProtocolControl.change(defaultValue?.appProtocol)
       }
     }
   }, [
-    defaultValues,
+    defaultValue,
     nameControl,
     fields.name.value,
     appProtocolControl,
@@ -72,7 +72,7 @@ export const PortField = ({
             {...getSelectProps(fields.appProtocol)}
             key={fields.appProtocol.id}
             value={appProtocolControl.value}
-            defaultValue={defaultValues?.appProtocol}
+            defaultValue={defaultValue?.appProtocol}
             onValueChange={(value) => {
               appProtocolControl.change(value)
             }}>

@@ -150,7 +150,7 @@ export const HttpRouteForm = ({
           <CardContent className="space-y-4">
             <MetadataForm
               fields={fields as unknown as ReturnType<typeof useForm<MetadataSchema>>[1]}
-              defaultValues={formattedValues as MetadataSchema}
+              defaultValue={formattedValues as MetadataSchema}
               isEdit={isEdit}
             />
 
@@ -165,7 +165,7 @@ export const HttpRouteForm = ({
 
             <RulesForm
               fields={fields as unknown as ReturnType<typeof useForm<HttpRouteSchema>>[1]}
-              defaultValues={formattedValues?.rules}
+              defaultValue={formattedValues?.rules}
               projectId={projectId}
             />
           </CardContent>

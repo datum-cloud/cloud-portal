@@ -9,11 +9,11 @@ import { useHydrated } from 'remix-utils/use-hydrated'
 
 export const MetadataForm = ({
   fields,
-  defaultValues,
+  defaultValue,
   isEdit = false,
 }: {
   fields: ReturnType<typeof useForm<MetadataSchema>>[1]
-  defaultValues?: MetadataSchema
+  defaultValue?: MetadataSchema
   isEdit?: boolean
 }) => {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -23,12 +23,12 @@ export const MetadataForm = ({
   const annotationsControl = useInputControl(fields.annotations)
 
   useEffect(() => {
-    if (defaultValues) {
-      nameControl.change(defaultValues.name)
-      labelsControl.change(defaultValues.labels)
-      annotationsControl.change(defaultValues.annotations)
+    if (defaultValue) {
+      nameControl.change(defaultValue.name)
+      labelsControl.change(defaultValue.labels)
+      annotationsControl.change(defaultValue.annotations)
     }
-  }, [defaultValues])
+  }, [defaultValue])
 
   // Focus the input when the form is hydrated
   useEffect(() => {

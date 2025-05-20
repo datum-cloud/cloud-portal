@@ -239,7 +239,7 @@ export const ExportPolicyStepperForm = ({
                           metadata: () => (
                             <MetadataForm
                               isEdit={isEdit}
-                              defaultValues={
+                              defaultValue={
                                 stepper.getMetadata('metadata') as MetadataSchema
                               }
                               fields={
@@ -257,7 +257,7 @@ export const ExportPolicyStepperForm = ({
                                   typeof useForm<UpdateExportPolicySchema>
                                 >[1]
                               }
-                              defaultValues={
+                              defaultValue={
                                 stepper.getMetadata(
                                   'sources',
                                 ) as ExportPolicySourcesSchema
@@ -273,7 +273,7 @@ export const ExportPolicyStepperForm = ({
                                   typeof useForm<UpdateExportPolicySchema>
                                 >[1]
                               }
-                              defaultValues={
+                              defaultValue={
                                 stepper.getMetadata('sinks') as ExportPolicySinksSchema
                               }
                               sourceList={

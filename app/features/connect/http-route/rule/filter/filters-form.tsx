@@ -27,22 +27,22 @@ export const FilterDefaultValues: HttpRouteFilterSchema = {
 
 export const FiltersForm = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<HttpRouteRuleSchema>>[1]
-  defaultValues?: HttpRouteFilterSchema[]
+  defaultValue?: HttpRouteFilterSchema[]
 }) => {
   const form = useFormMetadata('http-route-form')
   const filterList = fields.filters.getFieldList()
 
   useEffect(() => {
-    if (defaultValues) {
+    if (defaultValue) {
       form.update({
         name: fields.filters.name,
-        value: defaultValues,
+        value: defaultValue,
       })
     }
-  }, [defaultValues])
+  }, [defaultValue])
 
   return (
     <div className="flex flex-col gap-3">
@@ -61,7 +61,7 @@ export const FiltersForm = ({
                     typeof useForm<HttpRouteFilterSchema>
                   >[1]
                 }
-                defaultValues={defaultValues?.[index]}
+                defaultValue={defaultValue?.[index]}
               />
               {filterList.length > 1 && (
                 <Button

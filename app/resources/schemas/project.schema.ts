@@ -23,4 +23,14 @@ export const newProjectSchema = z
   })
   .and(projectMetadataSchema)
 
+export const updateProjectSchema = z.object({
+  description: z
+    .string({ required_error: 'Description is required.' })
+    .max(100, { message: 'Description must be less than 100 characters long.' }),
+  labels: z.array(z.string()).optional(),
+  resourceVersion: z.string().optional(),
+  orgEntityId: z.string().optional(),
+})
+
 export type NewProjectSchema = z.infer<typeof newProjectSchema>
+export type UpdateProjectSchema = z.infer<typeof updateProjectSchema>

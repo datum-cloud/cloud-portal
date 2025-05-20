@@ -134,7 +134,7 @@ export const EndpointSliceForm = ({
           <CardContent className="space-y-4">
             <MetadataForm
               fields={fields as unknown as ReturnType<typeof useForm<MetadataSchema>>[1]}
-              defaultValues={formattedValues as MetadataSchema}
+              defaultValue={formattedValues as MetadataSchema}
               isEdit={isEdit}
             />
             <Field
@@ -148,13 +148,13 @@ export const EndpointSliceForm = ({
               fields={
                 fields as unknown as ReturnType<typeof useForm<EndpointSliceSchema>>[1]
               }
-              defaultValues={formattedValues?.endpoints}
+              defaultValue={formattedValues?.endpoints}
             />
             <PortsForm
               fields={
                 fields as unknown as ReturnType<typeof useForm<EndpointSliceSchema>>[1]
               }
-              defaultValues={formattedValues?.ports}
+              defaultValue={formattedValues?.ports}
             />
           </CardContent>
           <CardFooter className="flex justify-between gap-2">

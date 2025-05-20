@@ -306,7 +306,7 @@ export const WorkloadStepper = ({
                           metadata: () => (
                             <MetadataForm
                               isEdit={isEdit}
-                              defaultValues={
+                              defaultValue={
                                 stepper.getMetadata('metadata') as MetadataSchema
                               }
                               fields={
@@ -319,7 +319,7 @@ export const WorkloadStepper = ({
                           runtime: () => (
                             <RuntimeForm
                               projectId={projectId}
-                              defaultValues={
+                              defaultValue={
                                 stepper.getMetadata('runtime') as RuntimeSchema
                               }
                               fields={
@@ -332,7 +332,7 @@ export const WorkloadStepper = ({
                           networks: () => (
                             <NetworksForm
                               projectId={projectId}
-                              defaultValues={
+                              defaultValue={
                                 stepper.getMetadata('networks') as NetworksSchema
                               }
                               fields={
@@ -344,7 +344,7 @@ export const WorkloadStepper = ({
                           ),
                           storages: () => (
                             <StoragesForm
-                              defaultValues={
+                              defaultValue={
                                 stepper.getMetadata('storages') as StoragesSchema
                               }
                               fields={
@@ -364,7 +364,7 @@ export const WorkloadStepper = ({
                               fields={
                                 fields as ReturnType<typeof useForm<PlacementsSchema>>[1]
                               }
-                              defaultValues={
+                              defaultValue={
                                 stepper.getMetadata('placements') as PlacementsSchema
                               }
                             />

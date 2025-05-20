@@ -11,21 +11,21 @@ import { useEffect } from 'react'
 
 export const EndpointField = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<EndpointSliceEndpointSchema>>[1]
-  defaultValues?: EndpointSliceEndpointSchema
+  defaultValue?: EndpointSliceEndpointSchema
 }) => {
   const addressesControl = useInputControl(fields.addresses)
   const conditionsControl = useInputControl(fields.conditions)
 
   useEffect(() => {
-    if (defaultValues) {
-      if (defaultValues.conditions && !fields.conditions.value) {
-        conditionsControl.change(defaultValues?.conditions)
+    if (defaultValue) {
+      if (defaultValue.conditions && !fields.conditions.value) {
+        conditionsControl.change(defaultValue?.conditions)
       }
     }
-  }, [defaultValues, conditionsControl, fields.conditions.value])
+  }, [defaultValue, conditionsControl, fields.conditions.value])
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">

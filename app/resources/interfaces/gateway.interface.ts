@@ -1,3 +1,4 @@
+import { ILabel } from './label.interface'
 import { IoK8sNetworkingGatewayV1Gateway } from '@/modules/control-plane/gateway/types.gen'
 
 export interface IGatewayControlResponse {
@@ -10,8 +11,8 @@ export interface IGatewayControlResponse {
   status?: IoK8sNetworkingGatewayV1Gateway['status']
   addresses?: IoK8sNetworkingGatewayV1Gateway['spec']['addresses']
   createdAt?: Date
-  labels?: Record<string, string>
-  annotations?: Record<string, string>
+  labels?: ILabel
+  annotations?: ILabel
 }
 
 export interface IGatewayControlResponseLite {

@@ -9,10 +9,10 @@ import { useHydrated } from 'remix-utils/use-hydrated'
 export const PlacementField = ({
   isEdit = false,
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<PlacementFieldSchema>>[1]
-  defaultValues?: PlacementFieldSchema
+  defaultValue?: PlacementFieldSchema
   isEdit?: boolean
 }) => {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -23,22 +23,22 @@ export const PlacementField = ({
   const minimumReplicasControl = useInputControl(fields.minimumReplicas)
 
   useEffect(() => {
-    if (defaultValues) {
-      // Only set values if they exist in defaultValues and current fields are empty
-      if (defaultValues.name && fields.name.value === '') {
-        nameControl.change(defaultValues?.name)
+    if (defaultValue) {
+      // Only set values if they exist in defaultValue and current fields are empty
+      if (defaultValue.name && fields.name.value === '') {
+        nameControl.change(defaultValue?.name)
       }
 
-      if (defaultValues.cityCode && fields.cityCode.value === '') {
-        cityCodeControl.change(defaultValues?.cityCode)
+      if (defaultValue.cityCode && fields.cityCode.value === '') {
+        cityCodeControl.change(defaultValue?.cityCode)
       }
 
-      if (defaultValues.minimumReplicas && !fields.minimumReplicas.value) {
-        minimumReplicasControl.change(defaultValues?.minimumReplicas.toString() ?? '1')
+      if (defaultValue.minimumReplicas && !fields.minimumReplicas.value) {
+        minimumReplicasControl.change(defaultValue?.minimumReplicas.toString() ?? '1')
       }
     }
   }, [
-    defaultValues,
+    defaultValue,
     nameControl,
     cityCodeControl,
     minimumReplicasControl,

@@ -247,7 +247,7 @@ export const WorkloadUpdateForm = ({
                       {section.id === 'metadata' && (
                         <MetadataForm
                           isEdit
-                          defaultValues={formattedValues?.metadata}
+                          defaultValue={formattedValues?.metadata}
                           fields={
                             fields as unknown as ReturnType<
                               typeof useForm<MetadataSchema>
@@ -260,7 +260,7 @@ export const WorkloadUpdateForm = ({
                         <RuntimeForm
                           isEdit
                           projectId={projectId}
-                          defaultValues={formattedValues?.runtime}
+                          defaultValue={formattedValues?.runtime}
                           fields={
                             fields as unknown as ReturnType<
                               typeof useForm<RuntimeSchema>
@@ -272,7 +272,7 @@ export const WorkloadUpdateForm = ({
                       {section.id === 'networks' && (
                         <NetworksForm
                           projectId={projectId}
-                          defaultValues={{ networks: formattedValues?.networks ?? [] }}
+                          defaultValue={{ networks: formattedValues?.networks ?? [] }}
                           fields={
                             fields as unknown as ReturnType<
                               typeof useForm<UpdateWorkloadSchema>
@@ -284,7 +284,7 @@ export const WorkloadUpdateForm = ({
                       {section.id === 'storages' && (
                         <StoragesForm
                           isEdit
-                          defaultValues={{ storages: formattedValues?.storages ?? [] }}
+                          defaultValue={{ storages: formattedValues?.storages ?? [] }}
                           fields={
                             fields as unknown as ReturnType<
                               typeof useForm<UpdateWorkloadSchema>
@@ -299,7 +299,7 @@ export const WorkloadUpdateForm = ({
                           fields={
                             fields as ReturnType<typeof useForm<PlacementsSchema>>[1]
                           }
-                          defaultValues={{
+                          defaultValue={{
                             placements: formattedValues?.placements ?? [],
                           }}
                         />

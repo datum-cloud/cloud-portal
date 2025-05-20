@@ -9,13 +9,13 @@ import { useEffect, useState } from 'react'
 export const NetworkFieldForm = ({
   projectId,
   fields,
-  defaultValues,
+  defaultValue,
   networkOptions = [],
   exceptItems,
 }: {
   projectId?: string
   fields: ReturnType<typeof useForm<NetworkFieldSchema>>[1]
-  defaultValues?: NetworkFieldSchema
+  defaultValue?: NetworkFieldSchema
   networkOptions?: Option[]
   exceptItems: string[]
 }) => {
@@ -40,18 +40,18 @@ export const NetworkFieldForm = ({
   }
 
   useEffect(() => {
-    if (defaultValues) {
-      // Only set values if they exist in defaultValues and current fields are empty
-      if (defaultValues.name && fields.name.value === '') {
-        networkNameControl.change(defaultValues?.name ?? '')
+    if (defaultValue) {
+      // Only set values if they exist in defaultValue and current fields are empty
+      if (defaultValue.name && fields.name.value === '') {
+        networkNameControl.change(defaultValue?.name ?? '')
       }
 
-      if (defaultValues.ipFamilies && !fields.ipFamilies.value) {
-        ipFamiliesControl.change(defaultValues.ipFamilies ?? [])
+      if (defaultValue.ipFamilies && !fields.ipFamilies.value) {
+        ipFamiliesControl.change(defaultValue.ipFamilies ?? [])
       }
     }
   }, [
-    defaultValues,
+    defaultValue,
     networkNameControl,
     ipFamiliesControl,
     fields.name.value,

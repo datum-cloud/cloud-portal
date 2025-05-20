@@ -28,13 +28,13 @@ import { useHydrated } from 'remix-utils/use-hydrated'
 export const SinkField = ({
   fields,
   isEdit = false,
-  defaultValues,
+  defaultValue,
   sourceList = [],
   projectId,
 }: {
   fields: ReturnType<typeof useForm<ExportPolicySinkFieldSchema>>[1]
   isEdit?: boolean
-  defaultValues?: ExportPolicySinkFieldSchema
+  defaultValue?: ExportPolicySinkFieldSchema
   sourceList: string[]
   projectId?: string
 }) => {
@@ -49,24 +49,24 @@ export const SinkField = ({
   const [selectedSources, setSelectedSources] = useState<string[]>([])
 
   useEffect(() => {
-    if (defaultValues) {
-      // Only set values if they exist in defaultValues and current fields are empty
-      if (defaultValues.name && fields.name.value === '') {
-        nameControl.change(defaultValues?.name)
+    if (defaultValue) {
+      // Only set values if they exist in defaultValue and current fields are empty
+      if (defaultValue.name && fields.name.value === '') {
+        nameControl.change(defaultValue?.name)
       }
 
-      if (defaultValues.type && !fields.type.value) {
-        typeControl.change(defaultValues?.type)
+      if (defaultValue.type && !fields.type.value) {
+        typeControl.change(defaultValue?.type)
       }
     }
-  }, [defaultValues, nameControl, fields.name.value, typeControl, fields.type.value])
+  }, [defaultValue, nameControl, fields.name.value, typeControl, fields.type.value])
 
   useEffect(() => {
-    if (defaultValues?.sources && !fields.sources.value) {
-      setSelectedSources(defaultValues?.sources)
-      sourcesControl.change(defaultValues?.sources)
+    if (defaultValue?.sources && !fields.sources.value) {
+      setSelectedSources(defaultValue?.sources)
+      sourcesControl.change(defaultValue?.sources)
     }
-  }, [defaultValues])
+  }, [defaultValue])
 
   // Focus the input when the form is hydrated
   useEffect(() => {
@@ -108,7 +108,7 @@ export const SinkField = ({
             {...getSelectProps(fields.type)}
             key={fields.type.id}
             value={typeControl.value}
-            defaultValue={defaultValues?.type}
+            defaultValue={defaultValue?.type}
             onValueChange={typeControl.change}>
             <SelectTrigger disabled>
               <SelectValue placeholder="Select a sink type" />
@@ -155,8 +155,8 @@ export const SinkField = ({
               typeof useForm<ExportPolicySinkPrometheusFieldSchema>
             >[1]
           }
-          defaultValues={
-            defaultValues?.prometheusRemoteWrite as ExportPolicySinkPrometheusFieldSchema
+          defaultValue={
+            defaultValue?.prometheusRemoteWrite as ExportPolicySinkPrometheusFieldSchema
           }
         />
       )}

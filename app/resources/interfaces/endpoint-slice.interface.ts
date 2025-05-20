@@ -1,3 +1,4 @@
+import { ILabel } from './label.interface'
 import { IoK8sApiDiscoveryV1EndpointSlice } from '@/modules/control-plane/discovery/types.gen'
 
 export interface IEndpointSliceControlResponseLite {
@@ -14,8 +15,8 @@ export interface IEndpointSliceControlResponse {
   createdAt?: Date
   resourceVersion?: string
   namespace?: string
-  labels?: Record<string, string>
-  annotations?: Record<string, string>
+  labels?: ILabel
+  annotations?: ILabel
   endpoints?: {
     addresses: string[]
     conditions: Array<EndpointSliceCondition>

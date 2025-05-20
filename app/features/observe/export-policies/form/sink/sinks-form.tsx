@@ -14,13 +14,13 @@ import { useMemo, useEffect } from 'react'
 
 export const SinksForm = ({
   fields,
-  defaultValues,
+  defaultValue,
   isEdit = false,
   sourceList,
   projectId,
 }: {
   fields: ReturnType<typeof useForm<UpdateExportPolicySchema>>[1]
-  defaultValues?: ExportPolicySinksSchema
+  defaultValue?: ExportPolicySinksSchema
   isEdit?: boolean
   sourceList?: ExportPolicySourceFieldSchema[]
   projectId?: string
@@ -30,10 +30,10 @@ export const SinksForm = ({
   const sourceFieldList = fields.sources.getFieldList()
 
   const values = useMemo(() => {
-    return defaultValues?.sinks
-      ? defaultValues.sinks
-      : ((defaultValues ?? []) as ExportPolicySinkFieldSchema[])
-  }, [defaultValues])
+    return defaultValue?.sinks
+      ? defaultValue.sinks
+      : ((defaultValue ?? []) as ExportPolicySinkFieldSchema[])
+  }, [defaultValue])
 
   useEffect(() => {
     form.update({
@@ -71,7 +71,7 @@ export const SinksForm = ({
                     typeof useForm<ExportPolicySinkFieldSchema>
                   >[1]
                 }
-                defaultValues={values?.[index] as ExportPolicySinkFieldSchema}
+                defaultValue={values?.[index] as ExportPolicySinkFieldSchema}
                 sourceList={
                   typeof sourceList !== 'undefined'
                     ? sourceList.map((source) => source.name)

@@ -10,21 +10,21 @@ import { useEffect, useMemo } from 'react'
 export const KeysForm = ({
   form,
   fields,
-  defaultValues,
+  defaultValue,
   mode = 'inline',
 }: {
   form: FormMetadata<SecretVariablesSchema>
   fields: ReturnType<typeof useForm<SecretVariablesSchema>>[1]
-  defaultValues?: SecretVariablesSchema
+  defaultValue?: SecretVariablesSchema
   mode?: 'inline' | 'dialog'
 }) => {
   const variableList = fields.variables.getFieldList()
 
   const variableValue = useMemo(() => {
-    return defaultValues?.variables
-      ? defaultValues.variables
-      : ((defaultValues ?? []) as SecretEnvSchema[])
-  }, [defaultValues])
+    return defaultValue?.variables
+      ? defaultValue.variables
+      : ((defaultValue ?? []) as SecretEnvSchema[])
+  }, [defaultValue])
 
   useEffect(() => {
     if (variableValue && variableValue.length > 0) {
@@ -68,7 +68,7 @@ export const KeysForm = ({
                     typeof useForm<SecretEnvSchema>
                   >[1]
                 }
-                defaultValues={variableValue?.[index]}
+                defaultValue={variableValue?.[index]}
               />
 
               {variableList.length > 1 && (

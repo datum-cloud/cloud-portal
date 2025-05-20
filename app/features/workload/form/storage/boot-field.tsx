@@ -10,9 +10,9 @@ import {
 import { BOOT_IMAGES } from '@/constants/bootImages'
 
 export const BootField = ({
-  defaultValues,
+  defaultValue,
 }: {
-  defaultValues?: { name: string; bootImage: string }
+  defaultValue?: { name: string; bootImage: string }
 }) => {
   return (
     <div className="relative flex w-full items-start gap-4">
@@ -21,11 +21,11 @@ export const BootField = ({
           type="text"
           readOnly
           placeholder="e.g. my-storage-us-3sd122"
-          value={defaultValues?.name}
+          value={defaultValue?.name}
         />
       </Field>
       <Field isRequired label="Boot Image" className="w-1/2">
-        <Select value={defaultValues?.bootImage}>
+        <Select value={defaultValue?.bootImage}>
           <SelectTrigger disabled>
             <SelectValue placeholder="Select a boot image" />
           </SelectTrigger>

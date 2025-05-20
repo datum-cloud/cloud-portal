@@ -14,22 +14,22 @@ import { useEffect } from 'react'
 
 export const PrometheusField = ({
   fields,
-  defaultValues,
+  defaultValue,
   projectId,
 }: {
   fields: ReturnType<typeof useForm<ExportPolicySinkPrometheusFieldSchema>>[1]
-  defaultValues?: ExportPolicySinkPrometheusFieldSchema
+  defaultValue?: ExportPolicySinkPrometheusFieldSchema
   projectId?: string
 }) => {
   const endpointUrlControl = useInputControl(fields.endpoint)
 
   useEffect(() => {
-    if (defaultValues) {
-      if (defaultValues.endpoint && !fields.endpoint.value) {
-        endpointUrlControl.change(defaultValues.endpoint)
+    if (defaultValue) {
+      if (defaultValue.endpoint && !fields.endpoint.value) {
+        endpointUrlControl.change(defaultValue.endpoint)
       }
     }
-  }, [defaultValues, endpointUrlControl, fields.endpoint.value])
+  }, [defaultValue, endpointUrlControl, fields.endpoint.value])
 
   return (
     <div className="flex w-full flex-col gap-2">
@@ -60,8 +60,8 @@ export const PrometheusField = ({
               typeof useForm<ExportPolicySinkPrometheusFieldSchema['batch']>
             >[1]
           }
-          defaultValues={
-            defaultValues?.batch as ExportPolicySinkPrometheusFieldSchema['batch']
+          defaultValue={
+            defaultValue?.batch as ExportPolicySinkPrometheusFieldSchema['batch']
           }
         />
 
@@ -73,8 +73,8 @@ export const PrometheusField = ({
               typeof useForm<ExportPolicySinkPrometheusFieldSchema['retry']>
             >[1]
           }
-          defaultValues={
-            defaultValues?.retry as ExportPolicySinkPrometheusFieldSchema['retry']
+          defaultValue={
+            defaultValue?.retry as ExportPolicySinkPrometheusFieldSchema['retry']
           }
         />
 
@@ -87,8 +87,8 @@ export const PrometheusField = ({
               typeof useForm<ExportPolicySinkAuthenticationSchema>
             >[1]
           }
-          defaultValues={
-            defaultValues?.authentication as ExportPolicySinkAuthenticationSchema
+          defaultValue={
+            defaultValue?.authentication as ExportPolicySinkAuthenticationSchema
           }
         />
       </div>

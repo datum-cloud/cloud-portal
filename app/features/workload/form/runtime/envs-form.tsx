@@ -8,12 +8,12 @@ import { useEffect } from 'react'
 
 export const EnvsForm = ({
   fields,
-  defaultValues,
+  defaultValue,
   isEdit = false,
   projectId,
 }: {
   fields: ReturnType<typeof useForm<{ envs: RuntimeEnvSchema[] }>>[1]
-  defaultValues?: RuntimeEnvSchema[]
+  defaultValue?: RuntimeEnvSchema[]
   isEdit?: boolean
   projectId?: string
 }) => {
@@ -21,13 +21,13 @@ export const EnvsForm = ({
   const envs = fields.envs?.getFieldList()
 
   useEffect(() => {
-    if (defaultValues) {
+    if (defaultValue) {
       form.update({
         name: fields.envs.name,
-        value: defaultValues as RuntimeEnvSchema[],
+        value: defaultValue as RuntimeEnvSchema[],
       })
     }
-  }, [defaultValues])
+  }, [defaultValue])
 
   return (
     <div className="flex w-full flex-col gap-2">
@@ -41,7 +41,7 @@ export const EnvsForm = ({
                 key={env.key}>
                 <EnvField
                   isEdit={isEdit}
-                  defaultValues={defaultValues?.[index]}
+                  defaultValue={defaultValue?.[index]}
                   projectId={projectId}
                   fields={envFields as ReturnType<typeof useForm<RuntimeEnvSchema>>[1]}
                 />

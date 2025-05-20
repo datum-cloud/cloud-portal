@@ -261,7 +261,7 @@ export const ExportPolicyUpdateForm = ({
                       {section.id === 'metadata' && (
                         <MetadataForm
                           isEdit
-                          defaultValues={formattedValues?.metadata}
+                          defaultValue={formattedValues?.metadata}
                           fields={
                             fields as unknown as ReturnType<
                               typeof useForm<MetadataSchema>
@@ -278,7 +278,7 @@ export const ExportPolicyUpdateForm = ({
                               typeof useForm<UpdateExportPolicySchema>
                             >[1]
                           }
-                          defaultValues={{ sources: formattedValues?.sources ?? [] }}
+                          defaultValue={{ sources: formattedValues?.sources ?? [] }}
                         />
                       )}
 
@@ -291,7 +291,7 @@ export const ExportPolicyUpdateForm = ({
                               typeof useForm<UpdateExportPolicySchema>
                             >[1]
                           }
-                          defaultValues={{ sinks: formattedValues?.sinks ?? [] }}
+                          defaultValue={{ sinks: formattedValues?.sinks ?? [] }}
                         />
                       )}
                     </div>

@@ -1,23 +1,25 @@
-import { InputWithCopy } from '@/components/input-with-copy/input-with-copy'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
+import { UpdateProjectForm } from '@/features/project/update-form'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
+import { updateProjectSchema } from '@/resources/schemas/project.schema'
+import { validateCSRF } from '@/utils/csrf'
 import { CustomError } from '@/utils/errorHandle'
 import { getPathWithParams } from '@/utils/path'
-import { redirectWithToast } from '@/utils/toast'
+import { dataWithToast, redirectWithToast } from '@/utils/toast'
+import { parseWithZod } from '@conform-to/zod'
 import { Client } from '@hey-api/client-axios'
 import { CircleAlertIcon } from 'lucide-react'
 import {
@@ -33,6 +35,59 @@ export const action = withMiddleware(
     const projectsControl = createProjectsControl(controlPlaneClient as Client)
 
     switch (request.method) {
+      case 'POST': {
+        const { projectId } = params
+        if (!projectId) {
+          throw new Error('Project ID is required')
+        }
+
+        const clonedRequest = request.clone()
+        const formData = await clonedRequest.formData()
+
+        try {
+          await validateCSRF(formData, clonedRequest.headers)
+
+          const parsed = parseWithZod(formData, { schema: updateProjectSchema })
+
+          if (parsed.status !== 'success') {
+            throw new Error('Invalid form data')
+          }
+
+          const orgId = parsed.value.orgEntityId
+          if (!orgId) {
+            throw new Error('Organization ID is required')
+          }
+
+          const { controlPlaneClient } = context as AppLoadContext
+          const projectsControl = createProjectsControl(controlPlaneClient as Client)
+
+          const dryRunRes = await projectsControl.update(
+            orgId,
+            projectId,
+            parsed.value,
+            true,
+          )
+
+          if (dryRunRes) {
+            await projectsControl.update(orgId, projectId, parsed.value, false)
+          }
+
+          await cache.removeItem(`projects:${orgId}`)
+
+          return dataWithToast(null, {
+            title: 'Project updated successfully',
+            description: 'You have successfully updated a project.',
+            type: 'success',
+          })
+        } catch (error) {
+          return dataWithToast(null, {
+            title: 'Error',
+            description:
+              error instanceof Error ? error.message : (error as Response).statusText,
+            type: 'error',
+          })
+        }
+      }
       case 'DELETE': {
         const formData = Object.fromEntries(await request.formData())
         const { projectName, orgId: orgEntityId } = formData
@@ -105,19 +160,7 @@ export default function ProjectSettingsPage() {
     <div className="mx-auto my-4 w-full max-w-3xl md:my-6">
       <div className="grid grid-cols-1 gap-6">
         {/* Project Name Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Project Name</CardTitle>
-            <CardDescription>
-              Used to identify your Project on the Dashboard, Datum CLI, and in the URL of
-              your Deployments.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <InputWithCopy value={project.name} className="bg-muted h-9" />
-          </CardContent>
-        </Card>
-
+        <UpdateProjectForm defaultValue={project} />
         {/* Danger Zone */}
         <Card className="border-destructive/50 hover:border-destructive border pb-0 transition-colors">
           <CardHeader>

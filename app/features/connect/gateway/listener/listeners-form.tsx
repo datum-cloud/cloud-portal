@@ -15,7 +15,8 @@ import { useForm, useFormMetadata } from '@conform-to/react'
 import { PlusIcon, TrashIcon } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 
-const defaultValue = {
+const defaultListenerValue: GatewayListenerFieldSchema = {
+  name: '',
   protocol: GatewayProtocol.HTTP,
   allowedRoutes: GatewayAllowedRoutes.SAME,
   tlsConfiguration: {
@@ -25,19 +26,19 @@ const defaultValue = {
 
 export const ListenersForm = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<GatewayListenerSchema>>[1]
-  defaultValues?: GatewayListenerSchema
+  defaultValue?: GatewayListenerSchema
 }) => {
   const form = useFormMetadata('gateway-form')
   const listenerList = fields.listeners.getFieldList()
 
   const values = useMemo(() => {
-    return defaultValues?.listeners
-      ? defaultValues.listeners
-      : ((defaultValues ?? []) as GatewayListenerFieldSchema[])
-  }, [defaultValues])
+    return defaultValue?.listeners
+      ? defaultValue.listeners
+      : ((defaultValue ?? []) as GatewayListenerFieldSchema[])
+  }, [defaultValue])
 
   useEffect(() => {
     if (values && values.length > 0) {
@@ -48,7 +49,7 @@ export const ListenersForm = ({
     } else if (listenerList.length === 0) {
       form.insert({
         name: fields.listeners.name,
-        defaultValue: defaultValue,
+        defaultValue: defaultListenerValue,
       })
     }
   }, [values])
@@ -70,7 +71,7 @@ export const ListenersForm = ({
                     typeof useForm<GatewayListenerFieldSchema>
                   >[1]
                 }
-                defaultValues={values?.[index]}
+                defaultValue={values?.[index]}
               />
 
               {listenerList.length > 1 && (
@@ -95,7 +96,7 @@ export const ListenersForm = ({
         onClick={() =>
           form.insert({
             name: fields.listeners.name,
-            defaultValue: defaultValue,
+            defaultValue: defaultListenerValue,
           })
         }>
         <PlusIcon className="size-4" />

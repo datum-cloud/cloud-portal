@@ -19,10 +19,10 @@ import { useEffect } from 'react'
 
 export const URLRewriteField = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<HttpURLRewriteSchema>>[1]
-  defaultValues?: HttpURLRewriteSchema
+  defaultValue?: HttpURLRewriteSchema
 }) => {
   const hostnameControl = useInputControl(fields.hostname)
 
@@ -31,21 +31,21 @@ export const URLRewriteField = ({
   const valueControl = useInputControl(pathFields?.value)
 
   useEffect(() => {
-    if (defaultValues) {
-      if (defaultValues.hostname && fields.hostname.value === '') {
-        hostnameControl.change(defaultValues?.hostname)
+    if (defaultValue) {
+      if (defaultValue.hostname && fields.hostname.value === '') {
+        hostnameControl.change(defaultValue?.hostname)
       }
 
-      if (defaultValues.path?.type && !pathFields?.type.value) {
-        typeControl.change(defaultValues?.path?.type)
+      if (defaultValue.path?.type && !pathFields?.type.value) {
+        typeControl.change(defaultValue?.path?.type)
       }
 
-      if (defaultValues.path?.value && pathFields?.value.value === '') {
-        valueControl.change(defaultValues?.path?.value)
+      if (defaultValue.path?.value && pathFields?.value.value === '') {
+        valueControl.change(defaultValue?.path?.value)
       }
     }
   }, [
-    defaultValues,
+    defaultValue,
     fields.hostname.value,
     typeControl,
     pathFields?.type.value,
@@ -76,7 +76,7 @@ export const URLRewriteField = ({
             {...getSelectProps(pathFields?.type)}
             key={pathFields?.type.id}
             value={typeControl.value}
-            defaultValue={defaultValues?.path?.type}
+            defaultValue={defaultValue?.path?.type}
             onValueChange={(value) => {
               typeControl.change(value)
             }}>

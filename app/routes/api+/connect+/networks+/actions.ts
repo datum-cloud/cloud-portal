@@ -70,7 +70,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
           { success: true, data: res },
           {
             title: 'Network created successfully',
-            description: 'The network has been created successfully',
+            description: 'You have successfully created a network.',
             type: 'success',
           },
         )
@@ -112,7 +112,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
           { success: true, data: res },
           {
             title: 'Network updated successfully',
-            description: 'The network has been updated successfully',
+            description: 'You have successfully updated a network.',
             type: 'success',
           },
         )

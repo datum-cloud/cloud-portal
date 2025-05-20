@@ -87,8 +87,8 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
         projectId,
       }),
       {
-        title: 'Workload updated',
-        description: 'Workload updated successfully',
+        title: 'Workload updated successfully',
+        description: 'You have successfully updated a workload.',
         type: 'success',
       },
     )

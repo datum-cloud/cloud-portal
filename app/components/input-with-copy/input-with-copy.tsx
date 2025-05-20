@@ -38,6 +38,7 @@ export const InputWithCopy = ({
       containerClassName={cn('focus-within:ring-0', className)}
       trailing={
         <Button
+          type="button"
           variant="outline"
           size="sm"
           className={cn('h-7 w-fit gap-1 px-2 text-xs', buttonClassName)}

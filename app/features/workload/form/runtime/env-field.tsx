@@ -24,12 +24,12 @@ import { useHydrated } from 'remix-utils/use-hydrated'
 
 export const EnvField = ({
   isEdit,
-  defaultValues,
+  defaultValue,
   projectId,
   fields,
 }: {
   isEdit?: boolean
-  defaultValues?: RuntimeEnvSchema
+  defaultValue?: RuntimeEnvSchema
   projectId?: string
   fields: ReturnType<typeof useForm<RuntimeEnvSchema>>[1]
 }) => {
@@ -48,26 +48,26 @@ export const EnvField = ({
   const keyControl = useInputControl(fields.key)
 
   useEffect(() => {
-    if (defaultValues) {
-      // Only set values if they exist in defaultValues and current fields are empty
-      if (defaultValues.name && fields.name.value === '') {
-        nameControl.change(defaultValues?.name)
+    if (defaultValue) {
+      // Only set values if they exist in defaultValue and current fields are empty
+      if (defaultValue.name && fields.name.value === '') {
+        nameControl.change(defaultValue?.name)
       }
 
-      if (defaultValues.type && !fields.type.value) {
-        typeControl.change(defaultValues?.type)
+      if (defaultValue.type && !fields.type.value) {
+        typeControl.change(defaultValue?.type)
 
         if (
-          defaultValues.type === ContainerEnvType.TEXT &&
-          defaultValues.value &&
+          defaultValue.type === ContainerEnvType.TEXT &&
+          defaultValue.value &&
           fields.value.value === ''
         ) {
-          valueControl.change(defaultValues?.value)
+          valueControl.change(defaultValue?.value)
         }
       }
     }
   }, [
-    defaultValues,
+    defaultValue,
     typeControl,
     nameControl,
     valueControl,
@@ -202,7 +202,7 @@ export const EnvField = ({
             {...getSelectProps(fields.key, { value: false })}
             key={fields.key.id}
             value={keyControl.value}
-            defaultValue={defaultValues?.key}
+            defaultValue={defaultValue?.key}
             onValueChange={(value) => {
               keyControl.change(value)
             }}>

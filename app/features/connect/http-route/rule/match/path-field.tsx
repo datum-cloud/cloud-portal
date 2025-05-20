@@ -19,25 +19,25 @@ import { useEffect } from 'react'
 
 export const PathField = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<HttpPathMatchSchema>>[1]
-  defaultValues?: HttpPathMatchSchema
+  defaultValue?: HttpPathMatchSchema
 }) => {
   const typeControl = useInputControl(fields.type)
   const valueControl = useInputControl(fields.value)
 
   useEffect(() => {
-    if (defaultValues) {
-      if (defaultValues.type && !fields.type.value) {
-        typeControl.change(defaultValues?.type)
+    if (defaultValue) {
+      if (defaultValue.type && !fields.type.value) {
+        typeControl.change(defaultValue?.type)
       }
 
-      if (defaultValues.value && fields.value.value === '') {
-        valueControl.change(defaultValues?.value)
+      if (defaultValue.value && fields.value.value === '') {
+        valueControl.change(defaultValue?.value)
       }
     }
-  }, [defaultValues, typeControl, fields.type.value, valueControl, fields.value.value])
+  }, [defaultValue, typeControl, fields.type.value, valueControl, fields.value.value])
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
@@ -47,7 +47,7 @@ export const PathField = ({
             {...getSelectProps(fields.type)}
             key={fields.type.id}
             value={typeControl.value}
-            defaultValue={defaultValues?.type}
+            defaultValue={defaultValue?.type}
             onValueChange={(value) => {
               typeControl.change(value)
             }}>

@@ -10,34 +10,34 @@ import { useForm, useFormMetadata } from '@conform-to/react'
 import { PlusIcon, TrashIcon } from 'lucide-react'
 import { useEffect } from 'react'
 
-const defaultValue: EndpointSliceEndpointSchema = {
+const defaultEndpointValue: EndpointSliceEndpointSchema = {
   addresses: [],
   conditions: ['ready', 'reachable', 'terminating'],
 }
 
 export const EndpointsForm = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<EndpointSliceSchema>>[1]
-  defaultValues?: EndpointSliceEndpointSchema[]
+  defaultValue?: EndpointSliceEndpointSchema[]
 }) => {
   const form = useFormMetadata('endpoint-slice-form')
   const endpointList = fields.endpoints.getFieldList()
 
   useEffect(() => {
-    if (defaultValues && defaultValues.length > 0) {
+    if (defaultValue && defaultValue.length > 0) {
       form.update({
         name: fields.endpoints.name,
-        value: defaultValues,
+        value: defaultValue,
       })
     } else if (endpointList.length === 0) {
       form.insert({
         name: fields.endpoints.name,
-        defaultValue: defaultValue,
+        defaultValue: defaultEndpointValue,
       })
     }
-  }, [defaultValues])
+  }, [defaultValue])
 
   return (
     <div className="flex flex-col gap-3">
@@ -56,7 +56,7 @@ export const EndpointsForm = ({
                     typeof useForm<EndpointSliceEndpointSchema>
                   >[1]
                 }
-                defaultValues={defaultValues?.[index]}
+                defaultValue={defaultValue?.[index]}
               />
 
               {endpointList.length > 1 && (
@@ -81,7 +81,7 @@ export const EndpointsForm = ({
         onClick={() =>
           form.insert({
             name: fields.endpoints.name,
-            defaultValue: defaultValue,
+            defaultValue: defaultEndpointValue,
           })
         }>
         <PlusIcon className="size-4" />
