@@ -1,6 +1,29 @@
 # Change Log
 
 <!-- CHANGELOG:INSERT_HERE -->
+## [v0.1.18] 2025-05-20
+
+### Changes
+
+- **Organization Management Enhancements**:
+  - **Organization Rename Functionality**: Users can now rename their organizations via the settings page, offering greater flexibility.
+  - **Organization Deletion Capability**: Users can delete non-personal organizations, providing complete control over their organization lifecycle.
+
+- **Relaxed Naming Restrictions**: The strict 6-character minimum requirement for resource and section names has been removed, allowing for more flexibility in naming.
+
+- **HTTP Routes and Endpoint Slices Management**:
+  - Added functionality for listing HTTP routes and endpoint slices, along with new UI components and API endpoints.
+  - Users can now create, edit, and delete endpoint slices with a comprehensive form interface.
+
+- **Advanced HTTP Routes Management**:
+  - Users can create, edit, and delete HTTP routes with advanced configuration options, such as path-based routing and URL rewrites.
+
+- **Theme Switching Enhancement**:
+  - Improved theme switching functionality allows users to switch between light and dark themes without page reloads, enhancing the user experience.
+
+- **Bug Fixes and Performance Improvements**:
+  - Multiple enhancements related to data handling and user interactions to ensure a smoother experience.
+
 ## [v0.1.17] 2025-05-05
 
 ### Changes
