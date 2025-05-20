@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useFetcher } from 'react-router'
+import { toast } from 'sonner'
 
 export const SelectOrganization = ({
   currentOrg,
@@ -52,7 +53,13 @@ export const SelectOrganization = ({
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
-      setOrganizations(fetcher.data)
+      const { success, error, data } = fetcher.data
+      if (!success) {
+        toast.error(error)
+        return
+      }
+
+      setOrganizations(data)
     }
   }, [fetcher.data, fetcher.state])
 

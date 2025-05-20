@@ -5,6 +5,7 @@ import { routes } from '@/constants/routes'
 import PublicLayout from '@/layouts/public/public'
 import { isDevelopment } from '@/utils/misc'
 import { HomeIcon, Loader2, RefreshCcwIcon } from 'lucide-react'
+import NProgress from 'nprogress'
 import { JSX, useEffect, useMemo, useState } from 'react'
 import type { ErrorResponse } from 'react-router'
 import {
@@ -45,6 +46,7 @@ export function GenericErrorBoundary({
   }
 
   useEffect(() => {
+    NProgress.done()
     // Check for 401 Unauthorized error
     if (isRouteErrorResponse(error) && error.status === 401) {
       // Perform sign out

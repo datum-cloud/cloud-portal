@@ -1,14 +1,24 @@
+import { LogoIcon } from '@/components/logo/logo-icon'
+import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { authenticator } from '@/modules/auth/auth.server'
 import { getAuthSession, setAuthSession } from '@/modules/cookie/auth.server'
-import { setOrgSession } from '@/modules/cookie/org.server'
-import { redirectWithToast } from '@/modules/cookie/toast.server'
 import { setUserSession } from '@/modules/cookie/user.server'
-import { IOrganization } from '@/resources/interfaces/organization.inteface'
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index'
 import { CustomError } from '@/utils/errorHandle'
 import { combineHeaders } from '@/utils/misc'
-import { LoaderFunctionArgs, redirect } from 'react-router'
+import { getPathWithParams } from '@/utils/path'
+import { Loader2 } from 'lucide-react'
+import { useEffect } from 'react'
+import {
+  LoaderFunctionArgs,
+  redirect,
+  useLoaderData,
+  useNavigation,
+  data,
+  useFetcher,
+  useNavigate,
+} from 'react-router'
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
@@ -20,62 +30,93 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     // Authenticate user
-    const credentials = await authenticator.authenticate('oidc', request)
+    const credentials = await authenticator.authenticate('oauth2', request)
     if (!credentials) {
       throw new CustomError('Authentication failed', 401)
     }
 
     const { user, ...rest } = credentials
 
-    // Handle auth session
-    const { headers: authHeaders } = await setAuthSession(request, {
-      accessToken: rest.accessToken,
-      refreshToken: rest.refreshToken,
-      expiredAt: rest.expiredAt,
-      sub: rest.sub,
-      idToken: rest.idToken,
-    })
-
     // Handle user session
     if (!user) {
       throw new CustomError('User not found', 404)
     }
 
+    // Handle auth session
+    const { headers: authHeaders } = await setAuthSession(request, {
+      accessToken: rest.accessToken,
+      refreshToken: rest.refreshToken,
+      expiredAt: rest.expiredAt,
+      // sub: rest.sub,
+      // idToken: rest.idToken,
+    })
+
     const { headers: userHeaders } = await setUserSession(request, user)
 
-    let headers = combineHeaders(authHeaders, userHeaders)
+    const headers = combineHeaders(authHeaders, userHeaders)
 
-    // TODO: Improve how to handle default organization. currently the process here is get organizations list and take the first index
-    const cookies = headers.getSetCookie()
-    const req = await fetch(`${process.env.APP_URL}${ORG_LIST_PATH}?noCache=true`, {
-      method: 'GET',
-      headers: {
-        Cookie: cookies?.[0],
-      },
-    })
-    if (!req.ok) {
-      const error = await req.text()
-      throw new CustomError(error, req.status)
-    }
-
-    const organizations: IOrganization[] = await req.json()
-
-    if (organizations.length > 0) {
-      // Set Default Organizations
-      const { headers: orgHeaders } = await setOrgSession(request, organizations[0])
-      headers = combineHeaders(headers, orgHeaders)
-    }
-
-    return redirect(
-      organizations.length === 0 ? routes.account.organizations.new : routes.home,
-      { headers },
-    )
+    // Return auth data for client loader to handle organization fetching
+    return data({ success: true, user }, { headers: headers })
   } catch (error) {
-    return redirectWithToast(routes.auth.error, {
-      title: 'Authentication failed',
-      description:
-        (error as Error).message || 'Something went wrong with callback from provider',
-      type: 'error',
-    })
+    const errMessage =
+      error instanceof CustomError
+        ? error.message
+        : 'Something went wrong with callback from provider'
+
+    return data({ success: false, error: errMessage })
   }
+}
+
+export default function AuthCallbackPage() {
+  const data = useLoaderData()
+  const navigation = useNavigation()
+  const navigate = useNavigate()
+
+  const fetcher = useFetcher({ key: 'org-list' })
+
+  useEffect(() => {
+    if (data?.success) {
+      fetcher.load(ORG_LIST_PATH)
+    }
+  }, [data])
+
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      const { success, data: org } = fetcher.data
+
+      if (!success) {
+        navigate(routes.account.organizations.root)
+        return
+      }
+
+      navigate(getPathWithParams(routes.org.root, { orgId: org[0].id }))
+      return
+    }
+  }, [fetcher.data, fetcher.state])
+
+  return (
+    <div className="flex min-h-[300px] flex-col items-center justify-center gap-4">
+      <LogoIcon width={32} className="mb-4" />
+
+      {data?.success ? (
+        <>
+          <Loader2 className="text-primary h-8 w-8 animate-spin" />
+          <h2 className="text-xl font-semibold">Authenticating...</h2>
+          <p className="text-muted-foreground text-sm">
+            {navigation.state === 'loading'
+              ? 'Verifying your credentials...'
+              : 'Setting up your account...'}
+          </p>
+        </>
+      ) : (
+        <>
+          <h2 className="text-xl font-semibold">Authentication failed</h2>
+          <p className="text-muted-foreground text-sm">{data?.error}</p>
+          <Button variant="outline" onClick={() => navigate(routes.auth.logOut)}>
+            Go back to login
+          </Button>
+        </>
+      )}
+    </div>
+  )
 }

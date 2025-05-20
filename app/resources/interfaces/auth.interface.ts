@@ -1,6 +1,10 @@
 import { IUser } from './user.interface'
-import { OIDCStrategy } from 'remix-auth-openid'
 
-export interface IAuthSession extends OIDCStrategy.BaseUser {
+export interface IAuthSession {
+  sub?: string
+  accessToken: string
+  idToken?: string
+  refreshToken?: string
+  expiredAt: number
   user?: IUser
 }

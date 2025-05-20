@@ -6,20 +6,26 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { routes } from '@/constants/routes'
 import { IOrganization } from '@/resources/interfaces/organization.inteface'
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index'
+import { CustomError } from '@/utils/errorHandle'
 import { getInitials } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
 import { HomeIcon, PlusIcon, SettingsIcon } from 'lucide-react'
 import { Link, useLoaderData, useNavigate, LoaderFunctionArgs } from 'react-router'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const orgs = await fetch(`${process.env.APP_URL}${ORG_LIST_PATH}`, {
+  const req = await fetch(`${process.env.APP_URL}${ORG_LIST_PATH}`, {
     method: 'GET',
     headers: {
       Cookie: request.headers.get('Cookie') || '',
     },
   })
 
-  const data = await orgs.json()
+  const res = await req.json()
+  if (!res.success) {
+    throw new CustomError(res.error, res.status)
+  }
+
+  const data = res.data
   return data
 }
 

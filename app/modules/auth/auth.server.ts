@@ -1,73 +1,15 @@
-import { getAuthSession } from '../cookie/auth.server'
+import { getAuthSession, setAuthSession } from '../cookie/auth.server'
+import { OAuth2Strategy } from './oauth'
 import { routes } from '@/constants/routes'
 import { IAuthSession } from '@/resources/interfaces/auth.interface'
-import { IUser } from '@/resources/interfaces/user.interface'
-import { CustomError } from '@/utils/errorHandle'
 import { redirect } from 'react-router'
 import { Authenticator } from 'remix-auth'
-import { OIDCStrategy } from 'remix-auth-openid'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 
 export const authenticator = new Authenticator<IAuthSession>()
 
-async function fetchOauthProfile<T>(url: string, accessToken: string): Promise<T> {
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  })
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch user profile: ${response.statusText}`)
-  }
-
-  const profile = await response.json()
-  if (!profile) {
-    throw new Error('Failed to parse profile data')
-  }
-
-  return profile
-}
-
-authenticator.use(
-  await OIDCStrategy.init<IAuthSession>(
-    {
-      issuer: process.env.AUTH_OIDC_ISSUER ?? 'http://localhost:3000',
-      client_id: process.env.AUTH_OIDC_CLIENT_ID ?? '',
-      client_secret: '',
-      redirect_uris: [`${process.env.APP_URL}${routes.auth.callback}`],
-      post_logout_redirect_uris: [`${process.env.APP_URL}${routes.auth.logIn}`],
-      scopes: ['openid', 'profile', 'email', 'phone', 'address', 'offline_access'],
-    },
-    async ({ tokens }): Promise<IAuthSession> => {
-      try {
-        if (!tokens.id_token) {
-          throw new CustomError('No id_token in response', 400)
-        }
-
-        if (!tokens.access_token) {
-          throw new CustomError('No access_token in response', 400)
-        }
-
-        const profile = await fetchOauthProfile<IUser>(
-          `${process.env.AUTH_OIDC_ISSUER}/oidc/v1/userinfo`,
-          tokens.access_token,
-        )
-
-        return {
-          sub: profile.sub ?? '',
-          accessToken: tokens.access_token,
-          idToken: tokens.id_token,
-          refreshToken: tokens.refresh_token,
-          expiredAt: tokens.expires_at ?? 0,
-          user: profile,
-        }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        throw new CustomError(error?.message ?? 'Failed to fetch user profile', 500)
-      }
-    },
-  ),
-  'oidc',
-)
+// Register the OAuth2 strategy with the authenticator
+authenticator.use(OAuth2Strategy, 'oauth2')
 
 export async function isAuthenticated(
   request: Request,
@@ -75,11 +17,12 @@ export async function isAuthenticated(
   noAuthRedirect?: boolean,
 ) {
   const { session, headers } = await getAuthSession(request)
+  let currentHeaders = headers
 
   if (!session) {
     if (noAuthRedirect) {
       return redirect(safeRedirect(routes.auth.logIn), {
-        headers,
+        headers: currentHeaders,
       })
     }
 
@@ -88,14 +31,39 @@ export async function isAuthenticated(
     url.search = ''
 
     // Redirect to OIDC Page
-    return authenticator.authenticate('oidc', new Request(url.toString(), request))
-  }
+    return authenticator.authenticate('oauth2', new Request(url.toString(), request))
+  } else {
+    // Check the session expired
+    // if expired return to logout page
+    if (new Date(session.expiredAt) < new Date()) {
+      return redirect(safeRedirect(routes.auth.logOut), {
+        headers: currentHeaders,
+      })
+    }
 
-  if (redirectTo) {
-    return redirect(safeRedirect(redirectTo), {
-      headers,
-    })
-  }
+    // Refresh the token
+    if (session.refreshToken) {
+      try {
+        const refreshSession = await OAuth2Strategy.refreshToken(session.refreshToken)
 
-  return true
+        const { headers: authHeaders } = await setAuthSession(request, {
+          accessToken: refreshSession.accessToken(),
+          refreshToken: refreshSession.refreshToken(),
+          expiredAt: refreshSession.accessTokenExpiresAt().getTime(),
+          // sub: refreshSession.sub(),
+          // idToken: refreshSession.idToken(),
+        })
+
+        currentHeaders = authHeaders
+      } catch (error) {
+        console.log('Refresh token failed', error)
+      }
+    }
+
+    if (redirectTo) {
+      return redirect(safeRedirect(redirectTo), { headers: currentHeaders })
+    }
+
+    return true
+  }
 }
