@@ -50,7 +50,7 @@ export const PortField = ({
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
-      <div className="flex w-full gap-2">
+      <div className="flex w-full gap-4">
         <Field isRequired label="Name" errors={fields.name.errors} className="w-3/4">
           <Input
             {...getInputProps(fields.name, { type: 'text' })}

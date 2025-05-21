@@ -10,10 +10,12 @@ export const PlacementField = ({
   isEdit = false,
   fields,
   defaultValue,
+  availableLocations = []
 }: {
   fields: ReturnType<typeof useForm<PlacementFieldSchema>>[1]
   defaultValue?: PlacementFieldSchema
   isEdit?: boolean
+  availableLocations?: string[]
 }) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
@@ -68,9 +70,10 @@ export const PlacementField = ({
         />
       </Field>
 
-      <div className="flex w-full gap-2">
+      <div className="flex w-full gap-4">
         <Field isRequired label="City" errors={fields.cityCode.errors} className="w-1/2">
           <SelectIATA
+            availableItems={availableLocations}
             name={fields.cityCode.name}
             id={fields.cityCode.id}
             placeholder="Select a city"

@@ -41,7 +41,7 @@ export const KeyField = ({
 
   return (
     <div className="relative flex flex-1 flex-col items-start gap-4 overflow-x-hidden p-1">
-      <div className="flex w-full gap-2">
+      <div className="flex w-full gap-4">
         <Field isRequired label="Key" errors={fields.key.errors} className="w-1/3">
           <Input
             {...getInputProps(fields.key, { type: 'text' })}

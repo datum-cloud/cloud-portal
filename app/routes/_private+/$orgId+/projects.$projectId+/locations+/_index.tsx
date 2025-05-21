@@ -6,15 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { LOCATION_CLASSES, LOCATION_PROVIDERS } from '@/constants/options'
 import { routes } from '@/constants/routes'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
 import { createLocationsControl } from '@/resources/control-plane/locations.control'
 import {
   ILocationControlResponse,
   LocationClass,
 } from '@/resources/interfaces/location.interface'
-import { CustomError } from '@/utils/errorHandle'
+import { loader as apiLocationsLoader } from '@/routes/api+/locations/_index'
+// CustomError import removed as it's no longer used
 import { toTitleCase } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
 import { dataWithToast } from '@/utils/toast'
@@ -33,20 +32,20 @@ import {
   useSubmit,
 } from 'react-router'
 
-export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
-  const { projectId } = params
-  const { controlPlaneClient } = context as AppLoadContext
-  const locationsControl = createLocationsControl(controlPlaneClient as Client)
+export const loader = async ({ context, params, request }: LoaderFunctionArgs) => {
+  // Create a new request with the projectId as a query parameter
+  const url = new URL(request.url)
+  url.searchParams.set('projectId', params.projectId as string)
+  const modifiedRequest = new Request(url.toString(), request)
 
-  if (!projectId) {
-    throw new CustomError('Project ID is required', 400)
-  }
+  // Call the API locations loader
+  const response = await apiLocationsLoader({ request: modifiedRequest, context, params })
+  // The API loader returns data wrapped with the data() function
+  // We can directly return the response as it contains the locations data
+  return response
+}
 
-  const locations = await locationsControl.list(projectId)
-  return locations
-}, authMiddleware)
-
-export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
+export const action = async ({ request, context }: ActionFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext
   const locationsControl = createLocationsControl(controlPlaneClient as Client)
 
@@ -65,7 +64,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
     default:
       throw new Error('Method not allowed')
   }
-}, authMiddleware)
+}
 
 export default function LocationsPage() {
   const data = useLoaderData<typeof loader>()

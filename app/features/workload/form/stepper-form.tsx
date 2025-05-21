@@ -361,6 +361,7 @@ export const WorkloadStepper = ({
                           ),
                           placements: () => (
                             <PlacementsForm
+                              projectId={projectId}
                               fields={
                                 fields as ReturnType<typeof useForm<PlacementsSchema>>[1]
                               }
