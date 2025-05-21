@@ -13,25 +13,25 @@ import { useEffect } from 'react'
 
 export const TlsConfiguration = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<GatewayTlsSchema>>[1]
-  defaultValues?: GatewayTlsSchema
+  defaultValue?: GatewayTlsSchema
 }) => {
   const modeControl = useInputControl(fields.mode)
 
   useEffect(() => {
-    if (defaultValues && !fields.mode.value) {
-      modeControl.change(defaultValues?.mode)
+    if (defaultValue && !fields.mode.value) {
+      modeControl.change(defaultValue?.mode)
     }
-  }, [defaultValues, modeControl, fields.mode.value])
+  }, [defaultValue, modeControl, fields.mode.value])
 
   return (
     <Field isRequired label="TLS Mode" errors={fields.mode.errors}>
       <Select
         {...getSelectProps(fields.mode)}
         key={fields.mode.id}
-        defaultValue={defaultValues?.mode}
+        defaultValue={defaultValue?.mode}
         value={fields.mode.value}
         onValueChange={(value) => {
           modeControl.change(value)

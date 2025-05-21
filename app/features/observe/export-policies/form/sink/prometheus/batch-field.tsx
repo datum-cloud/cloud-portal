@@ -8,25 +8,25 @@ import { useEffect } from 'react'
 
 export const BatchField = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<ExportPolicySinkPrometheusFieldSchema['batch']>>[1]
-  defaultValues?: ExportPolicySinkPrometheusFieldSchema['batch']
+  defaultValue?: ExportPolicySinkPrometheusFieldSchema['batch']
 }) => {
   const maxSizeControl = useInputControl(fields.maxSize)
   const timeoutControl = useInputControl(fields.timeout)
 
   useEffect(() => {
-    if (defaultValues) {
-      if (defaultValues.maxSize && !fields.maxSize.value) {
-        maxSizeControl.change(String(defaultValues.maxSize))
+    if (defaultValue) {
+      if (defaultValue.maxSize && !fields.maxSize.value) {
+        maxSizeControl.change(String(defaultValue.maxSize))
       }
-      if (defaultValues.timeout && !fields.timeout.value) {
-        timeoutControl.change(String(defaultValues.timeout))
+      if (defaultValue.timeout && !fields.timeout.value) {
+        timeoutControl.change(String(defaultValue.timeout))
       }
     }
   }, [
-    defaultValues,
+    defaultValue,
     maxSizeControl,
     fields.maxSize.value,
     timeoutControl,

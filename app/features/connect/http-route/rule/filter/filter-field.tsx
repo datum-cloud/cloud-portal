@@ -17,18 +17,18 @@ import { useEffect } from 'react'
 
 export const FilterField = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<HttpRouteFilterSchema>>[1]
-  defaultValues?: HttpRouteFilterSchema
+  defaultValue?: HttpRouteFilterSchema
 }) => {
   const typeControl = useInputControl(fields.type)
 
   useEffect(() => {
-    if (defaultValues && !fields.type.value) {
-      typeControl.change(defaultValues.type)
+    if (defaultValue && !fields.type.value) {
+      typeControl.change(defaultValue.type)
     }
-  }, [defaultValues, fields.type.value, typeControl])
+  }, [defaultValue, fields.type.value, typeControl])
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
@@ -37,7 +37,7 @@ export const FilterField = ({
           {...getSelectProps(fields.type)}
           key={fields.type.id}
           value={typeControl.value}
-          defaultValue={defaultValues?.type}
+          defaultValue={defaultValue?.type}
           onValueChange={(value) => {
             typeControl.change(value)
           }}>
@@ -61,7 +61,7 @@ export const FilterField = ({
               typeof useForm<HttpURLRewriteSchema>
             >[1]
           }
-          defaultValues={defaultValues?.urlRewrite}
+          defaultValue={defaultValue?.urlRewrite}
         />
       )}
     </div>

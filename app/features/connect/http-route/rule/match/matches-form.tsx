@@ -21,22 +21,22 @@ export const MatchDefaultValues: HttpRouteMatchSchema = {
 
 export const MatchesForm = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<HttpRouteRuleSchema>>[1]
-  defaultValues?: HttpRouteMatchSchema[]
+  defaultValue?: HttpRouteMatchSchema[]
 }) => {
   const form = useFormMetadata('http-route-form')
   const matchList = fields.matches.getFieldList()
 
   useEffect(() => {
-    if (defaultValues) {
+    if (defaultValue) {
       form.update({
         name: fields.matches.name,
-        value: defaultValues as HttpRouteMatchSchema[],
+        value: defaultValue as HttpRouteMatchSchema[],
       })
     }
-  }, [defaultValues])
+  }, [defaultValue])
 
   return (
     <div className="flex w-full flex-col gap-2">
@@ -54,7 +54,7 @@ export const MatchesForm = ({
                     typeof useForm<HttpPathMatchSchema>
                   >[1]
                 }
-                defaultValues={defaultValues?.[index]?.path}
+                defaultValue={defaultValue?.[index]?.path}
               />
 
               {matchList.length > 1 && (

@@ -18,11 +18,11 @@ import { useEffect, useMemo, useState } from 'react'
 export const NetworksForm = ({
   projectId,
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   projectId?: string
   fields: ReturnType<typeof useForm<UpdateWorkloadSchema>>[1]
-  defaultValues?: NetworksSchema
+  defaultValue?: NetworksSchema
 }) => {
   const form = useFormMetadata('workload-form')
   const networks = fields.networks.getFieldList()
@@ -41,10 +41,10 @@ export const NetworksForm = ({
   }, [networks])
 
   const values = useMemo(() => {
-    return defaultValues?.networks
-      ? defaultValues.networks
-      : ((defaultValues ?? []) as NetworkFieldSchema[])
-  }, [defaultValues])
+    return defaultValue?.networks
+      ? defaultValue.networks
+      : ((defaultValue ?? []) as NetworkFieldSchema[])
+  }, [defaultValue])
 
   useEffect(() => {
     if (values && networkOptions.length > 0) {
@@ -100,7 +100,7 @@ export const NetworksForm = ({
                   typeof useForm<NetworkFieldSchema>
                 >[1]
               }
-              defaultValues={values?.[index] as NetworkFieldSchema}
+              defaultValue={values?.[index] as NetworkFieldSchema}
             />
             {networks.length > 1 && (
               <Button

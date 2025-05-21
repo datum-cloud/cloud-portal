@@ -1,3 +1,4 @@
+import { routes } from '@/constants/routes'
 import { ApiKeyForm } from '@/features/api-key/form'
 import { commitSession, getSession } from '@/modules/auth/authSession.server'
 import { GraphqlClient } from '@/modules/graphql/graphql'
@@ -7,6 +8,7 @@ import { createUserGql } from '@/resources/gql/user.gql'
 import { NewApiKeySchema, newApiKeySchema } from '@/resources/schemas/api-key.schema'
 import { validateCSRF } from '@/utils/csrf'
 import { mergeMeta, metaObject } from '@/utils/meta'
+import { getPathWithParams } from '@/utils/path'
 import { dataWithToast, redirectWithToast } from '@/utils/toast'
 import { parseWithZod } from '@conform-to/zod'
 import { addDays } from 'date-fns'
@@ -51,10 +53,10 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
     session.set('apiKey', apiKey.token)
 
     return redirectWithToast(
-      '/account/api-keys',
+      getPathWithParams(routes.account.apiKeys.root),
       {
-        title: 'API Key Created',
-        description: 'API Key created successfully',
+        title: 'API Key created successfully',
+        description: 'You have successfully created an API key.',
         type: 'success',
       },
       {

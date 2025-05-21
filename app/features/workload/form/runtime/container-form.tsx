@@ -12,25 +12,25 @@ import { useEffect } from 'react'
 export const ContainerForm = ({
   isEdit,
   fields,
-  defaultValues,
+  defaultValue,
   projectId,
 }: {
   isEdit: boolean
   fields: ReturnType<typeof useForm<RuntimeSchema>>[1]
-  defaultValues?: RuntimeContainerSchema[]
+  defaultValue?: RuntimeContainerSchema[]
   projectId?: string
 }) => {
   const form = useFormMetadata('workload-form')
   const containers = fields.containers.getFieldList()
 
   useEffect(() => {
-    if (defaultValues) {
+    if (defaultValue) {
       form.update({
         name: fields.containers.name,
-        value: defaultValues as RuntimeContainerSchema[],
+        value: defaultValue as RuntimeContainerSchema[],
       })
     }
-  }, [defaultValues])
+  }, [defaultValue])
 
   return (
     <div className="flex w-full flex-col gap-2">
@@ -43,7 +43,7 @@ export const ContainerForm = ({
               key={container.key}>
               <ContainerField
                 isEdit={isEdit}
-                defaultValues={defaultValues?.[index]}
+                defaultValue={defaultValue?.[index]}
                 projectId={projectId}
                 fields={
                   containerFields as unknown as ReturnType<

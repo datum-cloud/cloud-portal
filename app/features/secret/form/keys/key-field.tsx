@@ -13,10 +13,10 @@ import { useEffect, useRef } from 'react'
 
 export const KeyField = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<SecretEnvSchema>>[1]
-  defaultValues?: SecretEnvSchema
+  defaultValue?: SecretEnvSchema
 }) => {
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -28,16 +28,16 @@ export const KeyField = ({
   })
 
   useEffect(() => {
-    if (defaultValues) {
-      if (defaultValues.key && !fields.key.value) {
-        keyControl.change(defaultValues?.key)
+    if (defaultValue) {
+      if (defaultValue.key && !fields.key.value) {
+        keyControl.change(defaultValue?.key)
       }
 
-      if (defaultValues.value && !fields.value.value) {
-        valueControl.change(defaultValues?.value)
+      if (defaultValue.value && !fields.value.value) {
+        valueControl.change(defaultValue?.value)
       }
     }
-  }, [defaultValues, keyControl, fields.key.value, valueControl, fields.value.value])
+  }, [defaultValue, keyControl, fields.key.value, valueControl, fields.value.value])
 
   return (
     <div className="relative flex flex-1 flex-col items-start gap-4 overflow-x-hidden p-1">

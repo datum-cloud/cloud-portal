@@ -21,11 +21,11 @@ import { useHydrated } from 'remix-utils/use-hydrated'
 
 export const VirtualMachineForm = ({
   fields,
-  defaultValues,
+  defaultValue,
   isEdit = false,
 }: {
   fields: ReturnType<typeof useForm<RuntimeVMSchema>>[1]
-  defaultValues?: RuntimeVMSchema
+  defaultValue?: RuntimeVMSchema
   isEdit?: boolean
 }) => {
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -34,17 +34,17 @@ export const VirtualMachineForm = ({
   const sshKeyControl = useInputControl(fields.sshKey)
 
   useEffect(() => {
-    if (defaultValues) {
-      if (defaultValues.sshKey && !fields.sshKey.value) {
-        sshKeyControl.change(defaultValues.sshKey)
+    if (defaultValue) {
+      if (defaultValue.sshKey && !fields.sshKey.value) {
+        sshKeyControl.change(defaultValue.sshKey)
       }
 
-      if (defaultValues.bootImage && !fields.bootImage.value) {
-        bootImageControl.change(defaultValues.bootImage)
+      if (defaultValue.bootImage && !fields.bootImage.value) {
+        bootImageControl.change(defaultValue.bootImage)
       }
     }
   }, [
-    defaultValues,
+    defaultValue,
     bootImageControl,
     sshKeyControl,
     fields.bootImage.value,
@@ -69,7 +69,7 @@ export const VirtualMachineForm = ({
           onValueChange={(value) => bootImageControl.change(value?.toString())}
           key={fields.bootImage.id}
           value={fields.bootImage.value?.toString()}
-          defaultValue={defaultValues?.bootImage}>
+          defaultValue={defaultValue?.bootImage}>
           <SelectTrigger disabled>
             <SelectValue placeholder="Select a boot image" />
           </SelectTrigger>
@@ -119,7 +119,7 @@ export const VirtualMachineForm = ({
               typeof useForm<{ ports: RuntimePortSchema[] }>
             >[1]
           }
-          defaultValues={defaultValues?.ports}
+          defaultValue={defaultValue?.ports}
           isEdit={isEdit}
         />
       </div>

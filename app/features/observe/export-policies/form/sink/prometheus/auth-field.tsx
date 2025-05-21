@@ -19,11 +19,11 @@ import { useEffect, useState } from 'react'
 
 export const AuthField = ({
   fields,
-  defaultValues,
+  defaultValue,
   projectId,
 }: {
   fields: ReturnType<typeof useForm<ExportPolicySinkAuthenticationSchema>>[1]
-  defaultValues?: ExportPolicySinkAuthenticationSchema
+  defaultValue?: ExportPolicySinkAuthenticationSchema
   projectId?: string
 }) => {
   const authTypeControl = useInputControl(fields.authType)
@@ -32,18 +32,18 @@ export const AuthField = ({
   const [isAuthenticationEnabled, setIsAuthenticationEnabled] = useState<boolean>(false)
 
   useEffect(() => {
-    if (defaultValues) {
-      setIsAuthenticationEnabled(!!defaultValues.authType)
+    if (defaultValue) {
+      setIsAuthenticationEnabled(!!defaultValue.authType)
 
-      if (defaultValues.authType && !fields.authType.value) {
-        authTypeControl.change(defaultValues.authType)
+      if (defaultValue.authType && !fields.authType.value) {
+        authTypeControl.change(defaultValue.authType)
       }
 
-      if (defaultValues.secretName && !fields.secretName.value) {
-        secretNameControl.change(defaultValues.secretName)
+      if (defaultValue.secretName && !fields.secretName.value) {
+        secretNameControl.change(defaultValue.secretName)
       }
     }
-  }, [defaultValues])
+  }, [defaultValue])
 
   return (
     <div className="flex w-full flex-col gap-2">
@@ -57,9 +57,9 @@ export const AuthField = ({
 
             if (value) {
               authTypeControl.change(
-                defaultValues?.authType ?? ExportPolicyAuthenticationType.BASIC_AUTH,
+                defaultValue?.authType ?? ExportPolicyAuthenticationType.BASIC_AUTH,
               )
-              secretNameControl.change(defaultValues?.secretName ?? undefined)
+              secretNameControl.change(defaultValue?.secretName ?? undefined)
             } else {
               authTypeControl.change(undefined)
               secretNameControl.change(undefined)

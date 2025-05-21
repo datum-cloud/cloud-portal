@@ -22,11 +22,11 @@ import { useHydrated } from 'remix-utils/use-hydrated'
 export const StorageField = ({
   isEdit = false,
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   isEdit?: boolean
   fields: ReturnType<typeof useForm<StorageFieldSchema>>[1]
-  defaultValues?: StorageFieldSchema
+  defaultValue?: StorageFieldSchema
 }) => {
   const inputRef = useRef<HTMLInputElement>(null)
   const isHydrated = useHydrated()
@@ -35,17 +35,17 @@ export const StorageField = ({
   const nameControl = useInputControl(fields.name)
 
   useEffect(() => {
-    if (defaultValues) {
-      // Only set values if they exist in defaultValues and current fields are empty
-      if (defaultValues.name && fields.name.value === '') {
-        nameControl.change(defaultValues?.name)
+    if (defaultValue) {
+      // Only set values if they exist in defaultValue and current fields are empty
+      if (defaultValue.name && fields.name.value === '') {
+        nameControl.change(defaultValue?.name)
       }
 
-      if (defaultValues.type && !fields.type.value) {
-        typeControl.change(defaultValues?.type)
+      if (defaultValue.type && !fields.type.value) {
+        typeControl.change(defaultValue?.type)
       }
     }
-  }, [defaultValues, typeControl, nameControl, fields.name.value, fields.type.value])
+  }, [defaultValue, typeControl, nameControl, fields.name.value, fields.type.value])
 
   // Focus the input when the form is hydrated
   useEffect(() => {
@@ -73,7 +73,7 @@ export const StorageField = ({
             {...getSelectProps(fields.type)}
             key={fields.type.id}
             value={typeControl.value}
-            defaultValue={defaultValues?.type}
+            defaultValue={defaultValue?.type}
             onValueChange={typeControl.change}>
             <SelectTrigger disabled>
               <SelectValue placeholder="Select a storage type" />

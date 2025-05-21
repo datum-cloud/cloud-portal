@@ -12,12 +12,12 @@ import { useEffect } from 'react'
 
 export const BackendRefField = ({
   fields,
-  defaultValues,
+  defaultValue,
   projectId,
   selectedEndpointSlice,
 }: {
   fields: ReturnType<typeof useForm<HttpRouteBackendRefSchema>>[1]
-  defaultValues?: HttpRouteBackendRefSchema
+  defaultValue?: HttpRouteBackendRefSchema
   projectId?: string
   selectedEndpointSlice?: string[]
 }) => {
@@ -25,16 +25,16 @@ export const BackendRefField = ({
   const portControl = useInputControl(fields.port)
 
   useEffect(() => {
-    if (defaultValues) {
-      if (defaultValues.name && fields.name.value === '') {
-        nameControl.change(defaultValues?.name)
+    if (defaultValue) {
+      if (defaultValue.name && fields.name.value === '') {
+        nameControl.change(defaultValue?.name)
       }
 
-      if (defaultValues.port && fields.port.value === '') {
-        portControl.change(defaultValues?.port.toString())
+      if (defaultValue.port && fields.port.value === '') {
+        portControl.change(defaultValue?.port.toString())
       }
     }
-  }, [defaultValues, nameControl, fields.name.value, portControl, fields.port.value])
+  }, [defaultValue, nameControl, fields.name.value, portControl, fields.port.value])
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">

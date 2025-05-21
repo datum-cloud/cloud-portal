@@ -172,14 +172,14 @@ export const GatewayForm = ({
           <CardContent className="space-y-4">
             <MetadataForm
               fields={fields as unknown as ReturnType<typeof useForm<MetadataSchema>>[1]}
-              defaultValues={formattedValues as MetadataSchema}
+              defaultValue={formattedValues as MetadataSchema}
               isEdit={isEdit}
             />
             <ListenersForm
               fields={
                 fields as unknown as ReturnType<typeof useForm<GatewayListenerSchema>>[1]
               }
-              defaultValues={{ listeners: formattedValues?.listeners ?? [] }}
+              defaultValue={{ listeners: formattedValues?.listeners ?? [] }}
             />
           </CardContent>
           <CardFooter className="flex justify-between gap-2">

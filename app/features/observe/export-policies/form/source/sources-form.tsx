@@ -13,20 +13,20 @@ import { useMemo, useEffect } from 'react'
 
 export const SourcesForm = ({
   fields,
-  defaultValues,
+  defaultValue,
   isEdit = false,
 }: {
   fields: ReturnType<typeof useForm<UpdateExportPolicySchema>>[1]
-  defaultValues?: ExportPolicySourcesSchema
+  defaultValue?: ExportPolicySourcesSchema
   isEdit?: boolean
 }) => {
   const form = useFormMetadata('export-policy-form')
   const fieldList = fields.sources.getFieldList()
   const values = useMemo(() => {
-    return defaultValues?.sources
-      ? defaultValues.sources
-      : ((defaultValues ?? []) as ExportPolicySourceFieldSchema[])
-  }, [defaultValues])
+    return defaultValue?.sources
+      ? defaultValue.sources
+      : ((defaultValue ?? []) as ExportPolicySourceFieldSchema[])
+  }, [defaultValue])
 
   useEffect(() => {
     if (values) {
@@ -54,7 +54,7 @@ export const SourcesForm = ({
                     typeof useForm<ExportPolicySourceFieldSchema>
                   >[1]
                 }
-                defaultValues={values?.[index] as ExportPolicySourceFieldSchema}
+                defaultValue={values?.[index] as ExportPolicySourceFieldSchema}
               />
 
               {fieldList.length > 1 && (

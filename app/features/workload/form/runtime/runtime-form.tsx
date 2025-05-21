@@ -29,12 +29,12 @@ import { useEffect, useMemo } from 'react'
 
 export const RuntimeForm = ({
   fields,
-  defaultValues,
+  defaultValue,
   isEdit = false,
   projectId,
 }: {
   fields: ReturnType<typeof useForm<RuntimeSchema>>[1]
-  defaultValues?: RuntimeSchema
+  defaultValue?: RuntimeSchema
   isEdit?: boolean
   projectId?: string
 }) => {
@@ -43,17 +43,17 @@ export const RuntimeForm = ({
   const runtimeTypeControl = useInputControl(fields.runtimeType)
 
   useEffect(() => {
-    if (!defaultValues) return
+    if (!defaultValue) return
 
-    if (defaultValues.instanceType && !fields.instanceType.value) {
-      instanceTypeControl.change(defaultValues.instanceType)
+    if (defaultValue.instanceType && !fields.instanceType.value) {
+      instanceTypeControl.change(defaultValue.instanceType)
     }
 
-    if (defaultValues.runtimeType && !fields.runtimeType.value) {
-      runtimeTypeControl.change(defaultValues.runtimeType)
+    if (defaultValue.runtimeType && !fields.runtimeType.value) {
+      runtimeTypeControl.change(defaultValue.runtimeType)
     }
   }, [
-    defaultValues,
+    defaultValue,
     instanceTypeControl,
     runtimeTypeControl,
     fields.instanceType.value,
@@ -65,7 +65,7 @@ export const RuntimeForm = ({
 
     if (
       value === RuntimeType.CONTAINER &&
-      (defaultValues?.containers ?? []).length === 0
+      (defaultValue?.containers ?? []).length === 0
     ) {
       form.update({
         name: fields.containers.name,
@@ -86,7 +86,7 @@ export const RuntimeForm = ({
           onValueChange={instanceTypeControl.change}
           key={fields.instanceType.id}
           value={instanceTypeControl.value}
-          defaultValue={defaultValues?.instanceType}>
+          defaultValue={defaultValue?.instanceType}>
           <SelectTrigger disabled>
             <SelectValue placeholder="Select a instance type" />
           </SelectTrigger>
@@ -119,7 +119,7 @@ export const RuntimeForm = ({
           onValueChange={handleRuntimeTypeChange}
           key={fields.runtimeType.id}
           value={runtimeTypeControl.value?.toString()}
-          defaultValue={defaultValues?.runtimeType}>
+          defaultValue={defaultValue?.runtimeType}>
           <SelectTrigger>
             <SelectValue placeholder="Select a type" />
           </SelectTrigger>
@@ -140,7 +140,7 @@ export const RuntimeForm = ({
               typeof useForm<RuntimeVMSchema>
             >[1]
           }
-          defaultValues={defaultValues?.virtualMachine as RuntimeVMSchema}
+          defaultValue={defaultValue?.virtualMachine as RuntimeVMSchema}
         />
       ) : fields.runtimeType.value === RuntimeType.CONTAINER ? (
         <div className="flex w-full flex-col gap-2">
@@ -149,7 +149,7 @@ export const RuntimeForm = ({
             projectId={projectId}
             isEdit={isEdit}
             fields={fields as unknown as ReturnType<typeof useForm<RuntimeSchema>>[1]}
-            defaultValues={defaultValues?.containers as RuntimeContainerSchema[]}
+            defaultValue={defaultValue?.containers as RuntimeContainerSchema[]}
           />
         </div>
       ) : null}

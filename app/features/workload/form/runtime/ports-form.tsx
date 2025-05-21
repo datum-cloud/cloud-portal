@@ -9,24 +9,24 @@ import { useEffect } from 'react'
 
 export const PortsForm = ({
   fields,
-  defaultValues,
+  defaultValue,
   isEdit = false,
 }: {
   fields: ReturnType<typeof useForm<{ ports: RuntimePortSchema[] }>>[1]
-  defaultValues?: RuntimePortSchema[]
+  defaultValue?: RuntimePortSchema[]
   isEdit?: boolean
 }) => {
   const form = useFormMetadata('workload-form')
   const ports = fields.ports?.getFieldList()
 
   useEffect(() => {
-    if (defaultValues) {
+    if (defaultValue) {
       form.update({
         name: fields.ports.name,
-        value: defaultValues as RuntimePortSchema[],
+        value: defaultValue as RuntimePortSchema[],
       })
     }
-  }, [defaultValues])
+  }, [defaultValue])
 
   return (
     <div className="flex w-full flex-col gap-2">
@@ -40,7 +40,7 @@ export const PortsForm = ({
                 key={port.key}>
                 <PortField
                   isEdit={isEdit}
-                  defaultValues={defaultValues?.[index]}
+                  defaultValue={defaultValue?.[index]}
                   fields={portFields as ReturnType<typeof useForm<RuntimePortSchema>>[1]}
                 />
                 {ports.length > 0 && (

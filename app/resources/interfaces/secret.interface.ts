@@ -1,3 +1,5 @@
+import { ILabel } from './label.interface'
+
 export interface ISecretControlResponse {
   name?: string
   namespace?: string
@@ -6,8 +8,8 @@ export interface ISecretControlResponse {
   resourceVersion?: string
   data?: string[]
   type?: SecretType
-  labels?: Record<string, string>
-  annotations?: Record<string, string>
+  labels?: ILabel
+  annotations?: ILabel
 }
 
 export enum SecretType {

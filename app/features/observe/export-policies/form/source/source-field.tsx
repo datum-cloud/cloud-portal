@@ -22,12 +22,12 @@ import { useHydrated } from 'remix-utils/use-hydrated'
 
 export const SourceField = ({
   fields,
-  defaultValues,
+  defaultValue,
   isEdit = false,
   isMultiple = false,
 }: {
   fields: ReturnType<typeof useForm<ExportPolicySourceFieldSchema>>[1]
-  defaultValues?: ExportPolicySourceFieldSchema
+  defaultValue?: ExportPolicySourceFieldSchema
   isEdit?: boolean
   isMultiple?: boolean
 }) => {
@@ -39,22 +39,22 @@ export const SourceField = ({
   const metricQueryControl = useInputControl(fields.metricQuery)
 
   useEffect(() => {
-    if (defaultValues) {
-      // Only set values if they exist in defaultValues and current fields are empty
-      if (defaultValues.name && fields.name.value === '') {
-        nameControl.change(defaultValues?.name)
+    if (defaultValue) {
+      // Only set values if they exist in defaultValue and current fields are empty
+      if (defaultValue.name && fields.name.value === '') {
+        nameControl.change(defaultValue?.name)
       }
 
-      if (defaultValues.type && !fields.type.value) {
-        typeControl.change(defaultValues?.type)
+      if (defaultValue.type && !fields.type.value) {
+        typeControl.change(defaultValue?.type)
       }
 
-      if (defaultValues.metricQuery && fields.metricQuery.value === '') {
-        metricQueryControl.change(defaultValues?.metricQuery)
+      if (defaultValue.metricQuery && fields.metricQuery.value === '') {
+        metricQueryControl.change(defaultValue?.metricQuery)
       }
     }
   }, [
-    defaultValues,
+    defaultValue,
     nameControl,
     fields.name.value,
     typeControl,
@@ -90,7 +90,7 @@ export const SourceField = ({
             {...getSelectProps(fields.type)}
             key={fields.type.id}
             value={typeControl.value}
-            defaultValue={defaultValues?.type}
+            defaultValue={defaultValue?.type}
             onValueChange={typeControl.change}>
             <SelectTrigger disabled>
               <SelectValue placeholder="Select a source type" />

@@ -8,25 +8,25 @@ import { useEffect } from 'react'
 
 export const RetryField = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<ExportPolicySinkPrometheusFieldSchema['retry']>>[1]
-  defaultValues?: ExportPolicySinkPrometheusFieldSchema['retry']
+  defaultValue?: ExportPolicySinkPrometheusFieldSchema['retry']
 }) => {
   const backoffDurationControl = useInputControl(fields.backoffDuration)
   const maxAttemptsControl = useInputControl(fields.maxAttempts)
 
   useEffect(() => {
-    if (defaultValues) {
-      if (defaultValues.backoffDuration && !fields.backoffDuration.value) {
-        backoffDurationControl.change(String(defaultValues.backoffDuration))
+    if (defaultValue) {
+      if (defaultValue.backoffDuration && !fields.backoffDuration.value) {
+        backoffDurationControl.change(String(defaultValue.backoffDuration))
       }
-      if (defaultValues.maxAttempts && !fields.maxAttempts.value) {
-        maxAttemptsControl.change(String(defaultValues.maxAttempts))
+      if (defaultValue.maxAttempts && !fields.maxAttempts.value) {
+        maxAttemptsControl.change(String(defaultValue.maxAttempts))
       }
     }
   }, [
-    defaultValues,
+    defaultValue,
     backoffDurationControl,
     fields.backoffDuration.value,
     maxAttemptsControl,

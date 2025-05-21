@@ -18,12 +18,12 @@ import { useEffect, useMemo } from 'react'
 
 export const StoragesForm = ({
   fields,
-  defaultValues,
+  defaultValue,
   isEdit = false,
   vmBootImage,
 }: {
   fields: ReturnType<typeof useForm<UpdateWorkloadSchema>>[1]
-  defaultValues?: StoragesSchema
+  defaultValue?: StoragesSchema
   isEdit?: boolean
   vmBootImage?: string
 }) => {
@@ -32,10 +32,10 @@ export const StoragesForm = ({
   const virtualMachineFieldSet = fields.virtualMachine.getFieldset()
 
   const values = useMemo(() => {
-    return defaultValues?.storages
-      ? defaultValues.storages
-      : ((defaultValues ?? []) as StorageFieldSchema[])
-  }, [defaultValues])
+    return defaultValue?.storages
+      ? defaultValue.storages
+      : ((defaultValue ?? []) as StorageFieldSchema[])
+  }, [defaultValue])
 
   const bootImage = useMemo(() => {
     if (vmBootImage) {
@@ -56,7 +56,7 @@ export const StoragesForm = ({
       <div className="space-y-4">
         {bootImage !== undefined && (
           <div className="relative flex items-center gap-2 rounded-md border p-4">
-            <BootField defaultValues={{ name: 'boot', bootImage: bootImage ?? '' }} />
+            <BootField defaultValue={{ name: 'boot', bootImage: bootImage ?? '' }} />
           </div>
         )}
         {storages.map((storage, index) => {
@@ -72,7 +72,7 @@ export const StoragesForm = ({
                     typeof useForm<StorageFieldSchema>
                   >[1]
                 }
-                defaultValues={values?.[index] as StorageFieldSchema}
+                defaultValue={values?.[index] as StorageFieldSchema}
               />
 
               {storages.length > 0 && (

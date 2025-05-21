@@ -78,8 +78,8 @@ export const action = withMiddleware(
           projectId,
         }),
         {
-          title: 'Location updated',
-          description: 'Location updated successfully',
+          title: 'Location updated successfully',
+          description: 'You have successfully updated a location.',
           type: 'success',
         },
       )

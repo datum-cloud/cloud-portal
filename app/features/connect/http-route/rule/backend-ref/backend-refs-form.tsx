@@ -17,12 +17,12 @@ export const BackendRefDefaultValues: HttpRouteBackendRefSchema = {
 
 export const BackendRefsForm = ({
   fields,
-  defaultValues,
+  defaultValue,
   projectId,
   selectedEndpointSlice,
 }: {
   fields: ReturnType<typeof useForm<HttpRouteRuleSchema>>[1]
-  defaultValues?: HttpRouteBackendRefSchema[]
+  defaultValue?: HttpRouteBackendRefSchema[]
   projectId?: string
   selectedEndpointSlice?: string[]
 }) => {
@@ -30,13 +30,13 @@ export const BackendRefsForm = ({
   const backendRefList = fields.backendRefs.getFieldList()
 
   useEffect(() => {
-    if (defaultValues) {
+    if (defaultValue) {
       form.update({
         name: fields.backendRefs.name,
-        value: defaultValues,
+        value: defaultValue,
       })
     }
-  }, [defaultValues])
+  }, [defaultValue])
 
   return (
     <div className="flex flex-col gap-3">
@@ -56,7 +56,7 @@ export const BackendRefsForm = ({
                     typeof useForm<HttpRouteBackendRefSchema>
                   >[1]
                 }
-                defaultValues={defaultValues?.[index]}
+                defaultValue={defaultValue?.[index]}
                 projectId={projectId}
               />
               {backendRefList.length > 1 && (

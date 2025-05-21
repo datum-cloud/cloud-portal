@@ -5,9 +5,10 @@ import {
   listResourcemanagerDatumapisComV1AlphaProject,
   readResourcemanagerDatumapisComV1AlphaProject,
   readResourcemanagerDatumapisComV1AlphaProjectStatus,
+  replaceResourcemanagerDatumapisComV1AlphaProject,
 } from '@/modules/control-plane/resource-manager'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { NewProjectSchema } from '@/resources/schemas/project.schema'
+import { NewProjectSchema, UpdateProjectSchema } from '@/resources/schemas/project.schema'
 import { CustomError } from '@/utils/errorHandle'
 import {
   convertLabelsToObject,
@@ -96,13 +97,52 @@ export const createProjectsControl = (client: Client) => {
 
       return dryRun ? response.data : transform(response.data)
     },
+    update: async (
+      orgEntityId: string,
+      projectName: string,
+      payload: UpdateProjectSchema,
+      dryRun: boolean = false,
+    ) => {
+      const response = await replaceResourcemanagerDatumapisComV1AlphaProject({
+        client,
+        baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
+        path: { name: projectName },
+        query: {
+          dryRun: dryRun ? 'All' : undefined,
+        },
+        body: {
+          apiVersion: 'resourcemanager.datumapis.com/v1alpha',
+          kind: 'Project',
+          metadata: {
+            name: projectName,
+            annotations: {
+              'kubernetes.io/description': payload.description,
+            },
+            labels: {
+              ...convertLabelsToObject(payload.labels ?? []),
+              'resourcemanager.datumapis.com/organization-id': orgEntityId,
+            },
+            resourceVersion: payload.resourceVersion,
+          },
+          spec: {
+            parent: {
+              external: '', // TODO: need to confirm about this part. because it's required
+            },
+          },
+        },
+      })
+
+      if (!response.data) {
+        throw new CustomError(`Project ${projectName} not found`, 404)
+      }
+
+      return dryRun ? response.data : transform(response.data)
+    },
     delete: async (orgEntityId: string, projectName: string) => {
       const response = await deleteResourcemanagerDatumapisComV1AlphaProject({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
-        path: {
-          name: projectName,
-        },
+        path: { name: projectName },
       })
 
       if (!response.data) {
@@ -115,9 +155,7 @@ export const createProjectsControl = (client: Client) => {
       const response = await readResourcemanagerDatumapisComV1AlphaProjectStatus({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
-        path: {
-          name: projectName,
-        },
+        path: { name: projectName },
       })
 
       if (!response.data) {

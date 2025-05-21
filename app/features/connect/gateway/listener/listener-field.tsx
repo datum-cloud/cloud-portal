@@ -27,10 +27,10 @@ import { useEffect } from 'react'
 
 export const ListenerField = ({
   fields,
-  defaultValues,
+  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<GatewayListenerFieldSchema>>[1]
-  defaultValues?: GatewayListenerFieldSchema
+  defaultValue?: GatewayListenerFieldSchema
 }) => {
   const nameControl = useInputControl(fields.name)
   const protocolControl = useInputControl(fields.protocol)
@@ -40,25 +40,25 @@ export const ListenerField = ({
   const tlsFieldset = fields.tlsConfiguration.getFieldset()
 
   useEffect(() => {
-    if (defaultValues) {
-      if (defaultValues.name && fields.name.value === '') {
-        nameControl.change(defaultValues?.name)
+    if (defaultValue) {
+      if (defaultValue.name && fields.name.value === '') {
+        nameControl.change(defaultValue?.name)
       }
 
-      if (defaultValues.protocol && !fields.protocol.value) {
-        protocolControl.change(defaultValues?.protocol)
+      if (defaultValue.protocol && !fields.protocol.value) {
+        protocolControl.change(defaultValue?.protocol)
       }
 
-      if (defaultValues.allowedRoutes && !fields.allowedRoutes.value) {
-        allowedRoutesControl.change(defaultValues?.allowedRoutes)
+      if (defaultValue.allowedRoutes && !fields.allowedRoutes.value) {
+        allowedRoutesControl.change(defaultValue?.allowedRoutes)
       }
 
-      /* if (defaultValues.matchLabels && !fields.matchLabels.value) {
-        matchLabelsControl.change(defaultValues?.matchLabels)
+      /* if (defaultValue.matchLabels && !fields.matchLabels.value) {
+        matchLabelsControl.change(defaultValue?.matchLabels)
       } */
     }
   }, [
-    defaultValues,
+    defaultValue,
     nameControl,
     fields.name.value,
     protocolControl,
@@ -95,7 +95,7 @@ export const ListenerField = ({
             {...getSelectProps(fields.allowedRoutes)}
             key={fields.allowedRoutes.id}
             value={fields.allowedRoutes.value}
-            defaultValue={defaultValues?.allowedRoutes}
+            defaultValue={defaultValue?.allowedRoutes}
             onValueChange={(value) => {
               allowedRoutesControl.change(value)
 
@@ -124,7 +124,7 @@ export const ListenerField = ({
             {...getSelectProps(fields.protocol)}
             key={fields.protocol.id}
             value={protocolControl.value}
-            defaultValue={defaultValues?.protocol}
+            defaultValue={defaultValue?.protocol}
             onValueChange={(value) => {
               protocolControl.change(value)
             }}>
@@ -162,7 +162,7 @@ export const ListenerField = ({
               fields={
                 tlsFieldset as unknown as ReturnType<typeof useForm<GatewayTlsSchema>>[1]
               }
-              defaultValues={defaultValues?.tlsConfiguration}
+              defaultValue={defaultValue?.tlsConfiguration}
             />
           </div>
         )}

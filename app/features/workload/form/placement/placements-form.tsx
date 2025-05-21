@@ -17,12 +17,12 @@ import { useFetcher } from 'react-router'
 
 export const PlacementsForm = ({
   fields,
-  defaultValues,
+  defaultValue,
   isEdit = false,
   projectId,
 }: {
   fields: ReturnType<typeof useForm<PlacementsSchema>>[1]
-  defaultValues?: PlacementsSchema
+  defaultValue?: PlacementsSchema
   isEdit?: boolean
   projectId?: string
 }) => {
@@ -32,10 +32,10 @@ export const PlacementsForm = ({
   const [availableLocations, setAvailableLocations] = useState<string[]>([])
 
   const values = useMemo(() => {
-    return defaultValues?.placements
-      ? defaultValues.placements
-      : ((defaultValues ?? []) as PlacementFieldSchema[])
-  }, [defaultValues])
+    return defaultValue?.placements
+      ? defaultValue.placements
+      : ((defaultValue ?? []) as PlacementFieldSchema[])
+  }, [defaultValue])
 
   useEffect(() => {
     if (values) {
@@ -78,7 +78,7 @@ export const PlacementsForm = ({
                     typeof useForm<PlacementFieldSchema>
                   >[1]
                 }
-                defaultValues={values?.[index] as PlacementFieldSchema}
+                defaultValue={values?.[index] as PlacementFieldSchema}
               />
 
               {placements.length > 1 && (

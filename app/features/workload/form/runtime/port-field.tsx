@@ -20,11 +20,11 @@ import { useHydrated } from 'remix-utils/use-hydrated'
 
 export const PortField = ({
   isEdit,
-  defaultValues,
+  defaultValue,
   fields,
 }: {
   isEdit?: boolean
-  defaultValues?: RuntimePortSchema
+  defaultValue?: RuntimePortSchema
   fields: ReturnType<typeof useForm<RuntimePortSchema>>[1]
 }) => {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -35,22 +35,22 @@ export const PortField = ({
   const protocolControl = useInputControl(fields.protocol)
 
   useEffect(() => {
-    if (defaultValues) {
-      // Only set values if they exist in defaultValues and current fields are empty
-      if (defaultValues.name && fields.name.value === '') {
-        nameControl.change(defaultValues?.name)
+    if (defaultValue) {
+      // Only set values if they exist in defaultValue and current fields are empty
+      if (defaultValue.name && fields.name.value === '') {
+        nameControl.change(defaultValue?.name)
       }
 
-      if (defaultValues.port && fields.port.value === '') {
-        portControl.change(defaultValues?.port.toString())
+      if (defaultValue.port && fields.port.value === '') {
+        portControl.change(defaultValue?.port.toString())
       }
 
-      if (defaultValues.protocol && !fields.protocol.value) {
-        protocolControl.change(defaultValues?.protocol)
+      if (defaultValue.protocol && !fields.protocol.value) {
+        protocolControl.change(defaultValue?.protocol)
       }
     }
   }, [
-    defaultValues,
+    defaultValue,
     portControl,
     protocolControl,
     nameControl,
@@ -105,7 +105,7 @@ export const PortField = ({
           {...getSelectProps(fields.protocol)}
           key={fields.protocol.id}
           value={protocolControl.value}
-          defaultValue={defaultValues?.protocol}
+          defaultValue={defaultValue?.protocol}
           onValueChange={protocolControl.change}>
           <SelectTrigger>
             <SelectValue placeholder="Select a protocol" />

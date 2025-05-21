@@ -138,7 +138,7 @@ export const KeysFormDialog = ({
             className="flex flex-col gap-6">
             <KeysForm
               mode="dialog"
-              defaultValues={defaultValue}
+              defaultValue={defaultValue}
               form={form as FormMetadata<SecretVariablesSchema>}
               fields={
                 fields as unknown as ReturnType<typeof useForm<SecretVariablesSchema>>[1]
