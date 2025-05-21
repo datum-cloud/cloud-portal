@@ -67,7 +67,7 @@ export const StorageField = ({
           }}
         />
       </Field>
-      <div className="flex w-full gap-2">
+      <div className="flex w-full gap-4">
         <Field isRequired label="Type" errors={fields.type.errors} className="w-1/2">
           <Select
             {...getSelectProps(fields.type)}

@@ -29,7 +29,7 @@ export const EndpointField = ({
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
-      <div className="flex w-full gap-2">
+      <div className="flex w-full gap-4">
         <Field
           isRequired
           label="Addresses"

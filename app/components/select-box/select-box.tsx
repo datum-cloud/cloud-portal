@@ -3,6 +3,7 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
@@ -29,6 +30,8 @@ export const SelectBox = ({
   placeholder = 'Select a option',
   disabled = false,
   isLoading = false,
+  searchable = false,
+  itemPreview,
 }: {
   value?: string
   className?: string
@@ -39,6 +42,8 @@ export const SelectBox = ({
   placeholder?: string
   disabled?: boolean
   isLoading?: boolean
+  searchable?: boolean
+  itemPreview?: (option: SelectBoxOption) => React.ReactNode
 }) => {
   const [open, setOpen] = useState(false)
   const [initValue, setInitValue] = useState(value)
@@ -60,6 +65,10 @@ export const SelectBox = ({
     }
   }, [selectedValue])
 
+  const previewHandler = (option: SelectBoxOption): React.ReactNode => {
+    return itemPreview ? itemPreview(option) : <span>{option.label}</span>
+  }
+
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
@@ -70,7 +79,7 @@ export const SelectBox = ({
             role="combobox"
             aria-expanded={open}
             className="relative w-full justify-between">
-            {selectedValue ? selectedValue?.label : placeholder}
+            {selectedValue ? previewHandler(selectedValue) : placeholder}
             <ChevronDown className="size-4 opacity-50" />
             {isLoading && (
               <Loader2 className="absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2 animate-spin" />
@@ -82,6 +91,7 @@ export const SelectBox = ({
           align="center"
           onEscapeKeyDown={() => setOpen(false)}>
           <Command>
+            {searchable && <CommandInput placeholder="Search..." />}
             <CommandList>
               <CommandEmpty>No results found.</CommandEmpty>
               {options.length > 0 && (
@@ -97,8 +107,8 @@ export const SelectBox = ({
                           setOpen(false)
                         }}
                         disabled={option.disabled}
-                        className="cursor-pointer justify-between">
-                        <span>{option.label}</span>
+                        className="flex cursor-pointer items-center justify-between">
+                        {previewHandler(option)}
                         {isSelected && <CheckIcon className="text-primary size-4" />}
                       </CommandItem>
                     )

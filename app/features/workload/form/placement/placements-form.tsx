@@ -3,26 +3,33 @@ import { List, ListItem } from '@/components/list/list'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { ILocationControlResponse } from '@/resources/interfaces/location.interface'
 import {
   PlacementFieldSchema,
   PlacementsSchema,
 } from '@/resources/schemas/workload.schema'
+import { ROUTE_PATH as LOCATION_LIST_ROUTE_PATH } from '@/routes/api+/locations/_index'
 import { cn } from '@/utils/misc'
 import { useForm, useFormMetadata } from '@conform-to/react'
 import { PlusIcon, TrashIcon } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useFetcher } from 'react-router'
 
 export const PlacementsForm = ({
   fields,
   defaultValues,
   isEdit = false,
+  projectId,
 }: {
   fields: ReturnType<typeof useForm<PlacementsSchema>>[1]
   defaultValues?: PlacementsSchema
   isEdit?: boolean
+  projectId?: string
 }) => {
+  const fetcher = useFetcher({ key: 'location-resources' })
   const form = useFormMetadata('workload-form')
   const placements = fields.placements.getFieldList()
+  const [availableLocations, setAvailableLocations] = useState<string[]>([])
 
   const values = useMemo(() => {
     return defaultValues?.placements
@@ -39,6 +46,21 @@ export const PlacementsForm = ({
     }
   }, [values])
 
+  useEffect(() => {
+    if (projectId) {
+      fetcher.load(`${LOCATION_LIST_ROUTE_PATH}?projectId=${projectId}`)
+    }
+  }, [projectId])
+
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      const cities = ((fetcher.data ?? []) as ILocationControlResponse[]).map(
+        (location) => location.cityCode,
+      )
+      setAvailableLocations(cities as string[])
+    }
+  }, [fetcher.data, fetcher.state])
+
   return (
     <div className="flex flex-col gap-2">
       <div className="space-y-4">
@@ -49,6 +71,7 @@ export const PlacementsForm = ({
               className="relative flex items-center gap-2 rounded-md border p-4"
               key={placement.key}>
               <PlacementField
+                availableLocations={availableLocations}
                 isEdit={isEdit}
                 fields={
                   placementFields as unknown as ReturnType<

@@ -84,7 +84,7 @@ export const EnvField = ({
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
-      <div className="flex w-full gap-2">
+      <div className="flex w-full gap-4">
         <Field isRequired label="Name" errors={fields.name.errors} className="w-2/3">
           <Input
             {...getInputProps(fields.name, { type: 'text' })}
@@ -128,7 +128,7 @@ export const EnvField = ({
         </Field>
       </div>
 
-      <div className={cn('flex w-full gap-2', { hidden: !fields.type.value })}>
+      <div className={cn('flex w-full gap-4', { hidden: !fields.type.value })}>
         <Field
           isRequired
           label="Value"

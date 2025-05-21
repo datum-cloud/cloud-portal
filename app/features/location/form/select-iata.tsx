@@ -1,35 +1,19 @@
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
-import { Button } from '@/components/ui/button'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { cn } from '@/utils/misc'
-import { CheckIcon, ChevronDown } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { SelectBox } from '@/components/select-box/select-box'
+import { useMemo } from 'react'
 
-const iata = [
+const iataOptions = [
   {
-    name: 'Dallas Fort Worth Intl',
-    city: 'Dallas-Fort Worth',
-    country: 'United States',
-    iata_code: 'DFW',
+    value: 'DFW',
+    label: 'Dallas Fort Worth Intl (DFW)',
   },
   {
-    name: 'Heathrow',
-    city: 'London',
-    country: 'United Kingdom',
-    iata_code: 'LHR',
+    value: 'LHR',
+    label: 'Heathrow (LHR)',
   },
   {
-    name: 'Columbia Gorge Regional',
-    city: 'The Dalles',
-    country: 'United States',
-    iata_code: 'DLS',
+    value: 'DLS',
+    label: 'Columbia Gorge Regional (DLS)',
   },
 ]
 
@@ -40,6 +24,7 @@ export const SelectIATA = ({
   placeholder = 'Select IATA',
   name,
   id,
+  availableItems = [],
 }: {
   defaultValue?: string
   className?: string
@@ -47,114 +32,23 @@ export const SelectIATA = ({
   placeholder?: string
   name?: string
   id?: string
+  availableItems?: string[]
 }) => {
-  const [open, setOpen] = useState(false)
-
-  const iataOptions = useMemo(() => {
-    return iata.map((i) => ({
-      value: i.iata_code,
-      label: `${i.name} (${i.iata_code})`,
-      ...i,
-    }))
-  }, [])
-
-  const [value, setValue] = useState(defaultValue)
-  const selectedValue = useMemo(() => {
-    return iataOptions.find((option) => option.value === value)
-  }, [value, iataOptions])
-
-  useEffect(() => {
-    if (defaultValue) {
-      setValue(defaultValue)
-    }
-  }, [defaultValue])
-
-  useEffect(() => {
-    if (selectedValue) {
-      onValueChange(selectedValue)
-    }
-  }, [selectedValue])
+  const filteredOptions = useMemo(() => {
+    return availableItems.length > 0
+      ? iataOptions.filter((option) => availableItems.includes(option.value))
+      : iataOptions
+  }, [availableItems])
 
   return (
-    <>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between">
-            {selectedValue ? selectedValue?.label : placeholder}
-            <ChevronDown className="size-4 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className={cn('popover-content-width-full min-w-[300px] p-0', className)}
-          align="center"
-          onEscapeKeyDown={() => setOpen(false)}>
-          <Command>
-            <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              {iataOptions.length > 0 && (
-                <CommandGroup className="max-h-[250px] overflow-y-auto">
-                  {iataOptions.map((option) => {
-                    const isSelected = selectedValue?.value === option.value
-                    return (
-                      <CommandItem
-                        value={option.value}
-                        key={option.value}
-                        onSelect={() => {
-                          setValue(option.value)
-                          setOpen(false)
-                        }}
-                        className="cursor-pointer justify-between">
-                        <span>{option.label}</span>
-                        {isSelected && <CheckIcon className="text-primary size-4" />}
-                      </CommandItem>
-                    )
-                  })}
-                </CommandGroup>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-
-      {/* Hidden input for form submission */}
-      <select
-        name={name}
-        id={id}
-        value={selectedValue?.value ?? ''}
-        defaultValue={selectedValue?.value ?? ''}
-        className="absolute top-0 left-0 h-0 w-0"
-        onChange={() => undefined}>
-        <option value=""></option>
-        {iataOptions.map((option, idx) => (
-          <option key={`${option.value}-${idx}`} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </>
-  )
-
-  /* return (
-    <SelectAutocomplete
+    <SelectBox
+      value={defaultValue}
+      onChange={(value) => onValueChange(value)}
+      options={filteredOptions}
+      placeholder={placeholder}
       name={name}
       id={id}
-      isLoading={isLoading}
-      keyValue="iata_code"
-      selectedValue={selectedValue}
-      triggerClassName={cn('w-full h-auto min-h-10', className)}
-      options={iataOptions}
-      placeholder={placeholder}
-      itemPreview={(option) => <span className="font-medium">{option.iata_code}</span>}
-      itemContent={(option) => <ItemContent option={option} />}
-      onValueChange={(option) => {
-        setValue(option.iata_code)
-        onValueChange(option)
-      }}
-      boxClassName="h-[150px]"
+      className={className}
     />
-  ) */
+  )
 }
