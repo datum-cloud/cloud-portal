@@ -296,6 +296,7 @@ export const WorkloadUpdateForm = ({
                       {section.id === 'placements' && (
                         <PlacementsForm
                           isEdit
+                          projectId={projectId}
                           fields={
                             fields as ReturnType<typeof useForm<PlacementsSchema>>[1]
                           }

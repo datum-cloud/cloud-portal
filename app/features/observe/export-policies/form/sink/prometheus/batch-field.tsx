@@ -36,7 +36,7 @@ export const BatchField = ({
   return (
     <div className="flex w-full flex-col gap-2">
       <FieldLabel label="Batch Configuration" />
-      <div className="flex w-full gap-2">
+      <div className="flex w-full gap-4">
         <Field
           isRequired
           label="Max Size"

@@ -14,7 +14,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
 import { useIsPending } from '@/hooks/useIsPending'
 import {
   ILocationControlResponse,
@@ -200,16 +199,6 @@ export const CreateLocationForm = ({
             />
           </Field>
 
-          <Field isRequired label="City" errors={fields.cityCode.errors}>
-            <SelectIATA
-              placeholder="Select a city"
-              defaultValue={fields.cityCode.value}
-              onValueChange={(value) => {
-                cityCodeControl.change(value.iata_code)
-              }}
-            />
-          </Field>
-
           <Field
             label="Labels"
             errors={fields.labels.errors}
@@ -222,20 +211,40 @@ export const CreateLocationForm = ({
             />
           </Field>
 
-          <Field isRequired label="Provider" errors={fields.provider.errors}>
-            <SelectLocationProvider
-              meta={fields.provider}
-              onChange={(value) => {
-                providerConfigControl.change(value)
-              }}
-            />
-          </Field>
+          <div className="flex w-full gap-4">
+            <Field
+              isRequired
+              label="City"
+              errors={fields.cityCode.errors}
+              className="w-1/2">
+              <SelectIATA
+                placeholder="Select a city"
+                defaultValue={fields.cityCode.value}
+                onValueChange={(value) => {
+                  cityCodeControl.change(value.value)
+                }}
+              />
+            </Field>
 
-          <Separator />
-          <h2 className="text-base font-medium">Provider Configuration</h2>
-          {fields.provider.value === LocationProvider.GCP && (
-            <GCPProvider isEdit={isEdit} meta={fields.providerConfig.getFieldset()} />
-          )}
+            <Field
+              isRequired
+              label="Provider"
+              errors={fields.provider.errors}
+              className="w-1/2">
+              <SelectLocationProvider
+                meta={fields.provider}
+                onChange={(value) => {
+                  providerConfigControl.change(value)
+                }}
+              />
+            </Field>
+          </div>
+
+          <div className="gap-2 rounded-md border p-4">
+            {fields.provider.value === LocationProvider.GCP && (
+              <GCPProvider isEdit={isEdit} meta={fields.providerConfig.getFieldset()} />
+            )}
+          </div>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
           <Button
