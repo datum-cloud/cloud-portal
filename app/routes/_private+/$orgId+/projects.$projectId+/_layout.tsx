@@ -8,8 +8,10 @@ import { useApp } from '@/providers/app.provider'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
 import { OrganizationModel } from '@/resources/gql/models/organization.model'
 import { createOrganizationGql } from '@/resources/gql/organization.gql'
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { CustomError } from '@/utils/errorHandle'
+import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
 import { redirectWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
@@ -23,7 +25,7 @@ import {
   ShieldCheckIcon,
   TerminalIcon,
 } from 'lucide-react'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { AppLoadContext, Outlet, redirect, useLoaderData } from 'react-router'
 
 export const loader = withMiddleware(async ({ params, context }) => {
@@ -76,8 +78,15 @@ export default function ProjectLayout() {
   const project: IProjectControlResponse = useLoaderData<typeof loader>()
   const { orgId } = useApp()
 
+  useEffect(() => {
+    console.log(project)
+  }, [project])
+
   const navItems: NavItem[] = useMemo(() => {
+    const currentStatus = transformControlPlaneStatus(project.status)
+    const isReady = currentStatus.status === ControlPlaneStatus.Success
     const projectId = project.name
+
     return [
       {
         title: 'Dashboard',
@@ -93,12 +102,14 @@ export default function ProjectLayout() {
         href: getPathWithParams(routes.projects.locations.root, { orgId, projectId }),
         type: 'link',
         icon: MapIcon,
+        disabled: !isReady,
       },
       {
         title: 'Config',
         href: getPathWithParams(routes.projects.config.root, { orgId, projectId }),
         type: 'collapsible',
         icon: BoltIcon,
+        disabled: !isReady,
         children: [
           {
             title: 'Config Maps',
@@ -126,6 +137,7 @@ export default function ProjectLayout() {
         }),
         type: 'collapsible',
         icon: GlobeIcon,
+        disabled: !isReady,
         children: [
           {
             title: 'Networks',
@@ -174,6 +186,7 @@ export default function ProjectLayout() {
         }),
         type: 'collapsible',
         icon: TerminalIcon,
+        disabled: !isReady,
         children: [
           {
             title: 'Workloads',
@@ -198,6 +211,7 @@ export default function ProjectLayout() {
         href: getPathWithParams(routes.projects.observe.root, { orgId, projectId }),
         type: 'collapsible',
         icon: AreaChartIcon,
+        disabled: !isReady,
         children: [
           {
             title: 'Metrics',
@@ -229,6 +243,7 @@ export default function ProjectLayout() {
         href: getPathWithParams(routes.projects.iam, { orgId, projectId }),
         type: 'collapsible',
         icon: ShieldCheckIcon,
+        disabled: !isReady,
         children: [
           {
             title: 'IAM Policies',

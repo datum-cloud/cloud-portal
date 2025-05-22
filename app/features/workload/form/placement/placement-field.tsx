@@ -10,7 +10,7 @@ export const PlacementField = ({
   isEdit = false,
   fields,
   defaultValue,
-  availableLocations = []
+  availableLocations = [],
 }: {
   fields: ReturnType<typeof useForm<PlacementFieldSchema>>[1]
   defaultValue?: PlacementFieldSchema

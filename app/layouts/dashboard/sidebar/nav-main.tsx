@@ -118,7 +118,9 @@ export const NavMain = forwardRef<
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 tooltip={item.title}
-                isActive={isActive || hasActiveChild}>
+                isActive={isActive || hasActiveChild}
+                disabled={item.disabled}
+                className={cn(item.disabled && 'pointer-events-none opacity-50')}>
                 {item.icon && <item.icon />}
               </SidebarMenuButton>
             </DropdownMenuTrigger>
@@ -207,7 +209,9 @@ export const NavMain = forwardRef<
               <CollapsibleTrigger asChild className="w-full">
                 <SidebarMenuButton
                   tooltip={item.title}
-                  isActive={isActive || hasActiveChild}>
+                  isActive={isActive || hasActiveChild}
+                  disabled={item.disabled}
+                  className={cn(item.disabled && 'pointer-events-none opacity-50')}>
                   {item?.icon && <item.icon />}
                   <span>{item.title}</span>
                   <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -237,7 +241,10 @@ export const NavMain = forwardRef<
         className="group/collapsible">
         <SidebarMenuItem key={`collapsible-sidebar-${currentItem.title}-${currentLevel}`}>
           <CollapsibleTrigger asChild className="w-full">
-            <SidebarMenuButton tooltip={currentItem.title}>
+            <SidebarMenuButton
+              tooltip={currentItem.title}
+              disabled={currentItem.disabled}
+              className={cn(currentItem.disabled && 'pointer-events-none opacity-50')}>
               {currentItem?.icon && <currentItem.icon />}
               <span>{currentItem.title}</span>
               <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -265,8 +272,12 @@ export const NavMain = forwardRef<
             asChild
             tooltip={item.title}
             isActive={isActive && !hasActiveChild}
+            disabled={item.disabled}
             onClick={() => hasChildren && toggleItem(item.href as string)}
-            className="data-[active=true]:text-primary">
+            className={cn(
+              'data-[active=true]:text-primary',
+              item.disabled && 'pointer-events-none opacity-50',
+            )}>
             {item.type === 'externalLink' ? (
               <a
                 href={item.href || ''}

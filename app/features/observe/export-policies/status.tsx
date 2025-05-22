@@ -26,7 +26,7 @@ export const ExportPolicyStatus = ({
   const intervalRef = useRef<NodeJS.Timeout>(null)
   const [status, setStatus] = useState<IControlPlaneStatus>(
     currentStatus ?? {
-      isReady: ControlPlaneStatus.Pending,
+      status: ControlPlaneStatus.Pending,
       message: '',
     },
   )
@@ -59,8 +59,8 @@ export const ExportPolicyStatus = ({
       setStatus(currentStatus)
 
       if (
-        currentStatus?.isReady === ControlPlaneStatus.Success ||
-        currentStatus?.isReady === ControlPlaneStatus.Error
+        currentStatus?.status === ControlPlaneStatus.Success ||
+        currentStatus?.status === ControlPlaneStatus.Error
       ) {
         if (intervalRef.current) {
           clearInterval(intervalRef.current)
@@ -78,7 +78,7 @@ export const ExportPolicyStatus = ({
     // Initial load if:
     // 1. No current status exists, or
     // 2. Current status is pending
-    if (currentStatus?.isReady === ControlPlaneStatus.Pending) {
+    if (currentStatus?.status === ControlPlaneStatus.Pending) {
       loadStatus(id)
 
       // Set up polling interval
@@ -95,10 +95,9 @@ export const ExportPolicyStatus = ({
 
   useEffect(() => {
     if (fetcher.data) {
-      const { isReady } = fetcher.data as IControlPlaneStatus
+      const { status } = fetcher.data as IControlPlaneStatus
       if (
-        (isReady === ControlPlaneStatus.Success ||
-          isReady === ControlPlaneStatus.Error) &&
+        (status === ControlPlaneStatus.Success || status === ControlPlaneStatus.Error) &&
         intervalRef.current
       ) {
         clearInterval(intervalRef.current)
@@ -113,7 +112,7 @@ export const ExportPolicyStatus = ({
       showTooltip={showTooltip}
       badgeClassName={badgeClassName}
       tooltipText={
-        fetcher.data?.isReady === ControlPlaneStatus.Success ? (
+        fetcher.data?.status === ControlPlaneStatus.Success ? (
           'Active'
         ) : (
           <>

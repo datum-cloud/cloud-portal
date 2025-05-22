@@ -199,7 +199,7 @@ export function transformControlPlaneStatus(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   status: any,
 ): IControlPlaneStatus {
-  if (!status) return { isReady: ControlPlaneStatus.Pending, message: '' }
+  if (!status) return { status: ControlPlaneStatus.Pending, message: '' }
 
   const { conditions, ...rest } = status
   if (status && (conditions ?? []).length > 0) {
@@ -209,7 +209,7 @@ export function transformControlPlaneStatus(
     //   : false
     const isFailed = false
     return {
-      isReady:
+      status:
         condition?.status === 'True'
           ? ControlPlaneStatus.Success
           : isFailed
@@ -221,7 +221,7 @@ export function transformControlPlaneStatus(
   }
 
   return {
-    isReady: ControlPlaneStatus.Pending,
+    status: ControlPlaneStatus.Pending,
     message: 'Resource is being provisioned...',
   }
 }
