@@ -41,7 +41,7 @@ export default function ProjectDashboardPage() {
     }
 
     // Only start new interval if status is Pending
-    if (status?.isReady === ControlPlaneStatus.Pending) {
+    if (status?.status === ControlPlaneStatus.Pending) {
       intervalId.current = setInterval(revalidate, REVALIDATE_INTERVAL)
     }
 
@@ -72,7 +72,7 @@ export default function ProjectDashboardPage() {
             </div>
             <p className="text-muted-foreground text-xl">{project.name}</p>
           </div>
-          {status?.isReady === ControlPlaneStatus.Pending && (
+          {status?.status === ControlPlaneStatus.Pending && (
             <SectionDescription>
               {status.message}
               <span className="ml-1 inline-flex after:animate-[ellipsis_1s_steps(4,end)_infinite] after:content-['.']"></span>
@@ -80,7 +80,7 @@ export default function ProjectDashboardPage() {
           )}
         </div>
 
-        {status?.isReady === ControlPlaneStatus.Success ? (
+        {status?.status === ControlPlaneStatus.Success ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

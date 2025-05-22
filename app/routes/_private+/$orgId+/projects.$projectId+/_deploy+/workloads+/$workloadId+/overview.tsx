@@ -105,7 +105,7 @@ export default function WorkloadOverviewPage() {
   const isWorkloadReady: boolean = useMemo(() => {
     if (workload) {
       const status: IControlPlaneStatus = transformControlPlaneStatus(workload.status)
-      return status.isReady === ControlPlaneStatus.Success
+      return status.status === ControlPlaneStatus.Success
     }
     return false
   }, [workload])
@@ -117,7 +117,7 @@ export default function WorkloadOverviewPage() {
         (instance: IInstanceControlResponse) =>
           transformControlPlaneStatus(instance.status),
       )
-      return statuses.every((status) => status.isReady === ControlPlaneStatus.Success)
+      return statuses.every((status) => status.status === ControlPlaneStatus.Success)
     }
     return false
   }, [instances])
@@ -131,7 +131,7 @@ export default function WorkloadOverviewPage() {
       )
 
       // Check if all deployments are ready
-      return statuses?.every((status) => status.isReady === ControlPlaneStatus.Success)
+      return statuses?.every((status) => status.status === ControlPlaneStatus.Success)
     }
     return false
   }, [deployments])

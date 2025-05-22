@@ -56,7 +56,7 @@ export const WorkloadStatus = ({
     // Initial load if:
     // 1. No current status exists, or
     // 2. Current status is pending
-    if (!currentStatus || currentStatus?.isReady === ControlPlaneStatus.Pending) {
+    if (!currentStatus || currentStatus?.status === ControlPlaneStatus.Pending) {
       loadStatus(id, workloadType)
 
       // Set up polling interval
@@ -73,10 +73,9 @@ export const WorkloadStatus = ({
 
   useEffect(() => {
     if (fetcher.data) {
-      const { isReady } = fetcher.data as IControlPlaneStatus
+      const { status } = fetcher.data as IControlPlaneStatus
       if (
-        (isReady === ControlPlaneStatus.Success ||
-          isReady === ControlPlaneStatus.Error) &&
+        (status === ControlPlaneStatus.Success || status === ControlPlaneStatus.Error) &&
         intervalRef.current
       ) {
         clearInterval(intervalRef.current)
@@ -91,7 +90,7 @@ export const WorkloadStatus = ({
       showTooltip={showTooltip}
       badgeClassName={badgeClassName}
       tooltipText={
-        fetcher.data?.isReady === ControlPlaneStatus.Success ? 'Active' : undefined
+        fetcher.data?.status === ControlPlaneStatus.Success ? 'Active' : undefined
       }
       readyText={readyText}
     />

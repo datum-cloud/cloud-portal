@@ -27,28 +27,30 @@ export const StatusBadge = ({
   readyText?: string
   tooltipText?: string | React.ReactNode
 }) => {
-  const [isReady, setIsReady] = useState<ControlPlaneStatus>(ControlPlaneStatus.Pending)
+  const [planeStatus, setPlaneStatus] = useState<ControlPlaneStatus>(
+    ControlPlaneStatus.Pending,
+  )
   const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
     if (status) {
-      setIsReady(status.isReady)
+      setPlaneStatus(status.status)
       setMessage(status.message)
     }
   }, [status])
 
   const Dot = () => {
-    return isReady === ControlPlaneStatus.Success ? (
+    return planeStatus === ControlPlaneStatus.Success ? (
       <CircleIcon
         className="size-3 cursor-default fill-green-500 text-green-500"
         aria-hidden="true"
       />
-    ) : isReady === ControlPlaneStatus.Error ? (
+    ) : planeStatus === ControlPlaneStatus.Error ? (
       <CircleIcon
         className="size-3 cursor-default fill-red-500 text-red-500"
         aria-hidden="true"
       />
-    ) : isReady === ControlPlaneStatus.Pending ? (
+    ) : planeStatus === ControlPlaneStatus.Pending ? (
       <Loader2 className="size-3 animate-spin cursor-default" />
     ) : null
   }
@@ -58,7 +60,7 @@ export const StatusBadge = ({
       <TooltipTrigger
         className={cn(
           'w-fit',
-          !showTooltip || isReady === ControlPlaneStatus.Success
+          !showTooltip || planeStatus === ControlPlaneStatus.Success
             ? 'pointer-events-none'
             : '',
         )}>
@@ -72,9 +74,9 @@ export const StatusBadge = ({
               badgeClassName,
             )}>
             <Dot />
-            {isReady === ControlPlaneStatus.Success
+            {planeStatus === ControlPlaneStatus.Success
               ? readyText
-              : isReady === ControlPlaneStatus.Error
+              : planeStatus === ControlPlaneStatus.Error
                 ? errorText
                 : loadingText}
           </Badge>
