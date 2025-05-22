@@ -25,7 +25,7 @@ import {
   ShieldCheckIcon,
   TerminalIcon,
 } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { AppLoadContext, Outlet, redirect, useLoaderData } from 'react-router'
 
 export const loader = withMiddleware(async ({ params, context }) => {
@@ -77,10 +77,6 @@ export const loader = withMiddleware(async ({ params, context }) => {
 export default function ProjectLayout() {
   const project: IProjectControlResponse = useLoaderData<typeof loader>()
   const { orgId } = useApp()
-
-  useEffect(() => {
-    console.log(project)
-  }, [project])
 
   const navItems: NavItem[] = useMemo(() => {
     const currentStatus = transformControlPlaneStatus(project.status)
@@ -269,6 +265,7 @@ export default function ProjectLayout() {
         title: 'Settings',
         href: getPathWithParams(routes.projects.settings, { orgId, projectId }),
         type: 'link',
+        disabled: !isReady,
         icon: SettingsIcon,
       },
     ]
