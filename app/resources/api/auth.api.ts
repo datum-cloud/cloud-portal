@@ -1,30 +1,20 @@
-import {
-  IAuthTokenPayload,
-  IAuthTokenResponse,
-  IExchangeTokenResponse,
-} from '@/resources/interfaces/auth.interface'
-import { IUserProfile } from '@/resources/interfaces/user.interface'
-import { AxiosInstance } from 'axios'
-
-export const authAPIService = (client: AxiosInstance) => {
+export const authAPI = () => {
   return {
-    async postRegisterOauth(payload: IAuthTokenPayload): Promise<IAuthTokenResponse> {
-      const response = await client.post('/oauth/register', payload)
-      return response.data
-    },
-    async getUserInfo(): Promise<IUserProfile> {
-      const response = await client.get('/oauth/userinfo')
-      return response.data
-    },
-    async getExchangeToken(accessToken: string): Promise<IExchangeTokenResponse> {
-      const response = await client.get('/oauth/token/exchange', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+    async getOAuthUser<T>(url: string, accessToken: string): Promise<T> {
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
-      return response.data
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch user profile: ${response.statusText}`)
+      }
+
+      const profile = await response.json()
+      if (!profile) {
+        throw new Error('Failed to parse profile data')
+      }
+
+      return profile
     },
   }
 }
-
-export type AuthAPIService = ReturnType<typeof authAPIService>

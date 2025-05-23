@@ -1,9 +1,9 @@
 import { routes } from '@/constants/routes'
+import { redirectWithToast } from '@/modules/cookie/toast.server'
 import { authMiddleware } from '@/modules/middleware/authMiddleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createHttpRoutesControl } from '@/resources/control-plane/http-routes.control'
 import { getPathWithParams } from '@/utils/path'
-import { redirectWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 

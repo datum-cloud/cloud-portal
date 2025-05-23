@@ -14,12 +14,17 @@ const schema = z.object({
   AUTH_GOOGLE_ID: z.string().optional(),
   AUTH_GOOGLE_SECRET: z.string().optional(),
 
+  // Zitadel
+  AUTH_OIDC_ISSUER: z.string().optional(),
+  AUTH_OIDC_CLIENT_ID: z.string().optional(),
+
   FATHOM_ID: z.string().optional(),
 })
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
+    // eslint-disable-next-line import/namespace
     interface ProcessEnv extends z.infer<typeof schema> {
       [key: string]: string | undefined
     }
@@ -60,6 +65,7 @@ export function getSharedEnvs() {
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
+    // eslint-disable-next-line import/namespace
     interface ProcessEnv extends z.infer<typeof schema> {
       [key: string]: string | undefined
     }

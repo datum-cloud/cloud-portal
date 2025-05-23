@@ -1,166 +1,69 @@
-import { commitSession, getSession } from './authSession.server'
+import { getAuthSession, setAuthSession } from '../cookie/auth.server'
+import { OAuth2Strategy } from './oauth'
 import { routes } from '@/constants/routes'
 import { IAuthSession } from '@/resources/interfaces/auth.interface'
-import { IGithubProfile, IGoogleProfile } from '@/resources/interfaces/user.interface'
-import { getPathWithParams } from '@/utils/path'
-import { jwtDecode } from 'jwt-decode'
 import { redirect } from 'react-router'
 import { Authenticator } from 'remix-auth'
-import { GitHubStrategy } from 'remix-auth-github'
-import { OAuth2Strategy } from 'remix-auth-oauth2'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 
 export const authenticator = new Authenticator<IAuthSession>()
 
-async function fetchOauthProfile<T>(url: string, accessToken: string): Promise<T> {
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  })
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch user profile: ${response.statusText}`)
-  }
-
-  const profile = await response.json()
-  if (!profile) {
-    throw new Error('Failed to parse profile data')
-  }
-
-  return profile
-}
-
-async function handleOAuthFlow(
-  accessToken: string,
-  authProvider: 'google' | 'github',
-  profile: IGoogleProfile | IGithubProfile,
-) {
-  try {
-    const payload = {
-      externalUserId: 'id' in profile ? String(profile.id) : profile.sub,
-      email: profile.email,
-      name: profile.name,
-      image: 'picture' in profile ? profile.picture : profile.avatar_url,
-      authProvider,
-      clientToken: accessToken,
-    }
-
-    // Register the user
-    const register = await fetch(`${process.env.API_URL}/datum-os/oauth/register`, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!register.ok) {
-      throw new Error('Failed to register oauth')
-    }
-
-    const data = await register.json()
-    const decoded = jwtDecode<{ org: string; user_id: string; user_entity_id: string }>(
-      data.access_token,
-    )
-
-    return {
-      userId: decoded.user_id,
-      userEntityId: decoded.user_entity_id,
-      accessToken: data.access_token,
-      defaultOrgId: decoded.org,
-    }
-  } catch (error) {
-    throw new Error(error instanceof Error ? error.message : 'Failed to register oauth')
-  }
-}
-
-authenticator
-  .use(
-    new OAuth2Strategy(
-      {
-        cookie: {
-          name: 'oauth2',
-          maxAge: 60 * 60 * 24 * 1, // 1 day
-          path: '/auth',
-          httpOnly: true,
-          sameSite: 'Lax',
-        },
-        clientId: process.env?.AUTH_GOOGLE_ID ?? '',
-        clientSecret: process.env?.AUTH_GOOGLE_SECRET ?? '',
-        redirectURI: `${process.env?.APP_URL ?? 'http://localhost:3000'}${getPathWithParams(routes.auth.callback, { provider: 'google' })}`,
-        authorizationEndpoint:
-          'https://accounts.google.com/o/oauth2/v2/auth?prompt=login&response_type=code',
-        tokenEndpoint: 'https://oauth2.googleapis.com/token',
-        scopes: ['email', 'profile', 'openid'],
-      },
-      async ({ tokens }) => {
-        try {
-          const accessToken = tokens.accessToken()
-          const profile = await fetchOauthProfile<IGoogleProfile>(
-            'https://www.googleapis.com/oauth2/v3/userinfo',
-            accessToken,
-          )
-          return handleOAuthFlow(accessToken, 'google', profile)
-        } catch (error) {
-          throw new Error(
-            error instanceof Error ? error.message : 'Authentication failed',
-          )
-        }
-      },
-    ),
-    'google',
-  )
-  .use(
-    new GitHubStrategy(
-      {
-        clientId: process.env?.AUTH_GITHUB_ID ?? '',
-        clientSecret: process.env?.AUTH_GITHUB_SECRET ?? '',
-        redirectURI: `${process.env?.APP_URL ?? 'http://localhost:3000'}${getPathWithParams(routes.auth.callback, { provider: 'github' })}`,
-      },
-      async ({ tokens }) => {
-        try {
-          const accessToken = tokens.accessToken()
-          const profile = await fetchOauthProfile<IGithubProfile>(
-            'https://api.github.com/user',
-            accessToken,
-          )
-          return handleOAuthFlow(accessToken, 'github', profile)
-        } catch (error) {
-          throw new Error(
-            error instanceof Error ? error.message : 'Authentication failed',
-          )
-        }
-      },
-    ),
-    'github',
-  )
+// Register the OAuth2 strategy with the authenticator
+authenticator.use(OAuth2Strategy, 'oauth2')
 
 export async function isAuthenticated(
   request: Request,
   redirectTo?: string,
   noAuthRedirect?: boolean,
 ) {
-  const session = await getSession(request.headers.get('cookie'))
-  const accessToken = session.get('accessToken')
+  const { session, headers } = await getAuthSession(request)
+  let currentHeaders = headers
 
-  if (!accessToken) {
+  if (!session) {
     if (noAuthRedirect) {
       return redirect(safeRedirect(routes.auth.logIn), {
-        headers: {
-          'Set-Cookie': await commitSession(session),
-        },
+        headers: currentHeaders,
       })
     }
 
-    return null
-  }
+    // Generate a new request without search params
+    const url = new URL(request.url)
+    url.search = ''
 
-  if (redirectTo) {
-    return redirect(safeRedirect(redirectTo), {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    })
-  }
+    // Redirect to OIDC Page
+    return authenticator.authenticate('oauth2', new Request(url.toString(), request))
+  } else {
+    // Check the session expired
+    // if expired return to logout page
+    if (new Date(session.expiredAt) < new Date()) {
+      return redirect(safeRedirect(routes.auth.logOut), {
+        headers: currentHeaders,
+      })
+    }
 
-  return true
+    // Refresh the token
+    if (session.refreshToken) {
+      try {
+        const refreshSession = await OAuth2Strategy.refreshToken(session.refreshToken)
+
+        const { headers: authHeaders } = await setAuthSession(request, {
+          accessToken: refreshSession.accessToken(),
+          refreshToken: refreshSession.refreshToken(),
+          expiredAt: refreshSession.accessTokenExpiresAt().getTime(),
+          // sub: refreshSession.sub(),
+          // idToken: refreshSession.idToken(),
+        })
+
+        currentHeaders = authHeaders
+      } catch (error) {
+        console.log('Refresh token failed', error)
+      }
+    }
+
+    if (redirectTo) {
+      return redirect(safeRedirect(redirectTo), { headers: currentHeaders })
+    }
+
+    return true
+  }
 }

@@ -14,8 +14,8 @@ import { Input } from '@/components/ui/input'
 import { routes } from '@/constants/routes'
 import { useIsPending } from '@/hooks/useIsPending'
 import { useApp } from '@/providers/app.provider'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { newProjectSchema } from '@/resources/schemas/project.schema'
+import { IOrganization } from '@/resources/interfaces/organization.inteface'
+import { projectSchema } from '@/resources/schemas/project.schema'
 import { generateId, generateRandomString } from '@/utils/idGenerator'
 import { getPathWithParams } from '@/utils/path'
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
@@ -33,19 +33,17 @@ export const CreateProjectForm = () => {
   const isPending = useIsPending()
   const navigate = useNavigate()
 
-  const [currentOrg, setCurrentOrg] = useState<OrganizationModel | undefined>(
-    organization,
-  )
+  const [currentOrg, setCurrentOrg] = useState<IOrganization | undefined>(organization)
 
   const [form, { name, description, orgEntityId, labels }] = useForm({
-    constraint: getZodConstraint(newProjectSchema),
+    constraint: getZodConstraint(projectSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: newProjectSchema })
+      return parseWithZod(formData, { schema: projectSchema })
     },
     defaultValue: {
-      orgEntityId: organization?.userEntityID,
+      orgEntityId: organization?.id,
       name: '',
       description: '',
       labels: [] as string[],
@@ -68,7 +66,7 @@ export const CreateProjectForm = () => {
   const labelsControl = useInputControl(labels)
 
   useEffect(() => {
-    orgEntityIdControl.change(organization?.userEntityID)
+    orgEntityIdControl.change(organization?.id)
   }, [organization])
 
   return (
@@ -94,7 +92,7 @@ export const CreateProjectForm = () => {
               triggerClassName="py-2"
               onSelect={(org) => {
                 setCurrentOrg(org)
-                orgEntityIdControl.change(org.userEntityID)
+                orgEntityIdControl.change(org.id)
                 navigate(getPathWithParams(routes.org.projects.new, { orgId: org.id }))
               }}
             />
