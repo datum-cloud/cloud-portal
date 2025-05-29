@@ -1,25 +1,25 @@
-import { FathomAnalytics } from '@/components/fathom/fathom'
-import { ClientHintCheck } from '@/components/misc/ClientHints'
-import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
-import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher'
-import { Toaster } from '@/components/ui/sonner'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { getHints } from '@/hooks/useHints'
-import { useNonce } from '@/hooks/useNonce'
-import { useToast } from '@/hooks/useToast'
-import { csrf } from '@/modules/cookie/csrf.server'
-import { themeSessionResolver } from '@/modules/cookie/theme.server'
-import { getToastSession } from '@/modules/cookie/toast.server'
-import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/cache'
-import { ROUTE_PATH as SET_THEME_ROUTE_PATH } from '@/routes/api+/set-theme'
+import { FathomAnalytics } from '@/components/fathom/fathom';
+import { ClientHintCheck } from '@/components/misc/ClientHints';
+import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary';
+import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher';
+import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { getHints } from '@/hooks/useHints';
+import { useNonce } from '@/hooks/useNonce';
+import { useToast } from '@/hooks/useToast';
+import { csrf } from '@/modules/cookie/csrf.server';
+import { themeSessionResolver } from '@/modules/cookie/theme.server';
+import { getToastSession } from '@/modules/cookie/toast.server';
+import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/cache';
+import { ROUTE_PATH as SET_THEME_ROUTE_PATH } from '@/routes/api+/set-theme';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
-import RootCSS from '@/styles/root.css?url'
-import { getSharedEnvs } from '@/utils/env'
-import { metaObject } from '@/utils/meta'
-import { isProduction, combineHeaders, getDomainUrl } from '@/utils/misc'
-import NProgress from 'nprogress'
-import { useEffect, useMemo } from 'react'
+import RootCSS from '@/styles/root.css?url';
+import { getSharedEnvs } from '@/utils/env';
+import { metaObject } from '@/utils/meta';
+import { isProduction, combineHeaders, getDomainUrl } from '@/utils/misc';
+import NProgress from 'nprogress';
+import { useEffect, useMemo } from 'react';
 import {
   Links,
   Meta,
@@ -33,42 +33,42 @@ import {
   useLoaderData,
   useNavigation,
   useRouteLoaderData,
-} from 'react-router'
-import type { LinksFunction, LoaderFunctionArgs } from 'react-router'
-import { ThemeProvider, useTheme, PreventFlashOnWrongTheme, Theme } from 'remix-themes'
-import { AuthenticityTokenProvider } from 'remix-utils/csrf/react'
+} from 'react-router';
+import type { LinksFunction, LoaderFunctionArgs } from 'react-router';
+import { ThemeProvider, useTheme, PreventFlashOnWrongTheme, Theme } from 'remix-themes';
+import { AuthenticityTokenProvider } from 'remix-utils/csrf/react';
 
 // NProgress configuration
-NProgress.configure({ showSpinner: false })
+NProgress.configure({ showSpinner: false });
 
 export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
   // Get the current page title from the pathname
   const getPageTitle = () => {
-    const path = location.pathname
+    const path = location.pathname;
     // Remove leading slash and convert to title case
-    if (path === '/') return 'Home'
+    if (path === '/') return 'Home';
 
-    const pageName = path.split('/').pop() || ''
+    const pageName = path.split('/').pop() || '';
     return pageName
       .split('-')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  }
+      .join(' ');
+  };
 
-  const pageTitle = getPageTitle()
+  const pageTitle = getPageTitle();
 
-  return metaObject(data ? pageTitle : 'Error')
-}
+  return metaObject(data ? pageTitle : 'Error');
+};
 
 export const links: LinksFunction = () => {
-  return [{ rel: 'stylesheet', href: RootCSS }]
-}
+  return [{ rel: 'stylesheet', href: RootCSS }];
+};
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { toast, headers: toastHeaders } = await getToastSession(request)
-  const [csrfToken, csrfCookieHeader] = await csrf.commitToken(request)
-  const sharedEnv = getSharedEnvs()
-  const { getTheme } = await themeSessionResolver(request)
+  const { toast, headers: toastHeaders } = await getToastSession(request);
+  const [csrfToken, csrfCookieHeader] = await csrf.commitToken(request);
+  const sharedEnv = getSharedEnvs();
+  const { getTheme } = await themeSessionResolver(request);
 
   return data(
     {
@@ -85,22 +85,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
     {
       headers: combineHeaders(
         toastHeaders,
-        csrfCookieHeader ? { 'Set-Cookie': csrfCookieHeader } : null,
+        csrfCookieHeader ? { 'Set-Cookie': csrfCookieHeader } : null
       ),
-    },
-  )
+    }
+  );
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const data = useRouteLoaderData<typeof loader>('root')
+  const data = useRouteLoaderData<typeof loader>('root');
 
   return (
-    <ThemeProvider
-      specifiedTheme={data?.theme ?? Theme.LIGHT}
-      themeAction={SET_THEME_ROUTE_PATH}>
+    <ThemeProvider specifiedTheme={data?.theme ?? Theme.LIGHT} themeAction={SET_THEME_ROUTE_PATH}>
       {children}
     </ThemeProvider>
-  )
+  );
 }
 
 function Document({
@@ -109,13 +107,13 @@ function Document({
   lang = 'en',
   dir = 'ltr',
 }: {
-  children: React.ReactNode
-  nonce: string
-  lang?: string
-  dir?: 'ltr' | 'rtl'
+  children: React.ReactNode;
+  nonce: string;
+  lang?: string;
+  dir?: 'ltr' | 'rtl';
 }) {
-  const data = useLoaderData<typeof loader>()
-  const [theme] = useTheme()
+  const data = useLoaderData<typeof loader>();
+  const [theme] = useTheme();
 
   return (
     <html
@@ -136,27 +134,22 @@ function Document({
         <TooltipProvider>{children}</TooltipProvider>
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
-        <Toaster
-          closeButton
-          position="top-right"
-          theme={theme ?? Theme.LIGHT}
-          richColors
-        />
+        <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />
         <ThemeSwitcher />
       </body>
     </html>
-  )
+  );
 }
 
 export default function AppWithProviders() {
-  const { toast, csrfToken, sharedEnv } = useLoaderData<typeof loader>()
+  const { toast, csrfToken, sharedEnv } = useLoaderData<typeof loader>();
 
-  const nonce = useNonce()
-  const navigation = useNavigation()
-  const fetchers = useFetchers()
+  const nonce = useNonce();
+  const navigation = useNavigation();
+  const fetchers = useFetchers();
 
   // Renders toast (if any).
-  useToast(toast)
+  useToast(toast);
 
   /**
    * This gets the state of every fetcher active on the app and combine it with
@@ -166,20 +159,20 @@ export default function AppWithProviders() {
    */
   const state = useMemo<'idle' | 'loading'>(
     function getGlobalState() {
-      const states = [navigation.state, ...fetchers.map((fetcher) => fetcher.state)]
-      if (states.every((state) => state === 'idle')) return 'idle'
-      return 'loading'
+      const states = [navigation.state, ...fetchers.map((fetcher) => fetcher.state)];
+      if (states.every((state) => state === 'idle')) return 'idle';
+      return 'loading';
     },
-    [navigation.state, fetchers],
-  )
+    [navigation.state, fetchers]
+  );
 
   useEffect(() => {
     // and when it's something else it means it's either submitting a form or
     // waiting for the loaders of the next location so we start it
-    if (state === 'loading') NProgress.start()
+    if (state === 'loading') NProgress.start();
     // when the state is idle then we can to complete the progress bar
-    if (state === 'idle') NProgress.done()
-  }, [state])
+    if (state === 'idle') NProgress.done();
+  }, [state]);
 
   /**
    * Clears the application cache by making a POST request to the cache route
@@ -189,8 +182,8 @@ export default function AppWithProviders() {
    */
   useBeforeUnload(() => {
     // Clear Cache with hit API
-    fetch(CACHE_ROUTE_PATH, { method: 'POST' })
-  })
+    fetch(CACHE_ROUTE_PATH, { method: 'POST' });
+  });
 
   return (
     <Document nonce={nonce} lang="en">
@@ -201,15 +194,15 @@ export default function AppWithProviders() {
         <Outlet />
       </AuthenticityTokenProvider>
     </Document>
-  )
+  );
 }
 
 export function ErrorBoundary() {
-  const nonce = useNonce()
+  const nonce = useNonce();
 
   return (
     <Document nonce={nonce}>
       <GenericErrorBoundary />
     </Document>
-  )
+  );
 }

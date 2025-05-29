@@ -41,7 +41,7 @@ export const io_k8s_api_core_v1_ObjectReferenceSchema = {
     },
   },
   'x-kubernetes-map-type': 'atomic',
-} as const
+} as const;
 
 export const io_k8s_api_discovery_v1_EndpointSchema = {
   description: 'Endpoint represents a single logical "backend" implementing a service.',
@@ -59,8 +59,7 @@ export const io_k8s_api_discovery_v1_EndpointSchema = {
       'x-kubernetes-list-type': 'set',
     },
     conditions: {
-      description:
-        'conditions contains information about the current status of the endpoint.',
+      description: 'conditions contains information about the current status of the endpoint.',
       default: {},
       allOf: [
         {
@@ -78,8 +77,7 @@ export const io_k8s_api_discovery_v1_EndpointSchema = {
       },
     },
     hints: {
-      description:
-        'hints contains information associated with how an endpoint should be consumed.',
+      description: 'hints contains information associated with how an endpoint should be consumed.',
       allOf: [
         {
           $ref: '#/components/schemas/io.k8s.api.discovery.v1.EndpointHints',
@@ -97,8 +95,7 @@ export const io_k8s_api_discovery_v1_EndpointSchema = {
       type: 'string',
     },
     targetRef: {
-      description:
-        'targetRef is a reference to a Kubernetes object that represents this endpoint.',
+      description: 'targetRef is a reference to a Kubernetes object that represents this endpoint.',
       allOf: [
         {
           $ref: '#/components/schemas/io.k8s.api.core.v1.ObjectReference',
@@ -110,7 +107,7 @@ export const io_k8s_api_discovery_v1_EndpointSchema = {
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_api_discovery_v1_EndpointConditionsSchema = {
   description: 'EndpointConditions represents the current condition of an endpoint.',
@@ -132,11 +129,10 @@ export const io_k8s_api_discovery_v1_EndpointConditionsSchema = {
       type: 'boolean',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_api_discovery_v1_EndpointHintsSchema = {
-  description:
-    'EndpointHints provides hints describing how an endpoint should be consumed.',
+  description: 'EndpointHints provides hints describing how an endpoint should be consumed.',
   type: 'object',
   properties: {
     forZones: {
@@ -154,7 +150,7 @@ export const io_k8s_api_discovery_v1_EndpointHintsSchema = {
       'x-kubernetes-list-type': 'atomic',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_api_discovery_v1_EndpointPortSchema = {
   description: 'EndpointPort represents a Port used by an EndpointSlice',
@@ -196,7 +192,7 @@ Possible enum values:
     },
   },
   'x-kubernetes-map-type': 'atomic',
-} as const
+} as const;
 
 export const io_k8s_api_discovery_v1_EndpointSliceSchema = {
   description:
@@ -270,7 +266,7 @@ Possible enum values:
       version: 'v1',
     },
   ],
-} as const
+} as const;
 
 export const io_k8s_api_discovery_v1_EndpointSliceListSchema = {
   description: 'EndpointSliceList represents a list of endpoint slices',
@@ -316,11 +312,10 @@ export const io_k8s_api_discovery_v1_EndpointSliceListSchema = {
       version: 'v1',
     },
   ],
-} as const
+} as const;
 
 export const io_k8s_api_discovery_v1_ForZoneSchema = {
-  description:
-    'ForZone provides information about which zones should consume this endpoint.',
+  description: 'ForZone provides information about which zones should consume this endpoint.',
   type: 'object',
   required: ['name'],
   properties: {
@@ -330,11 +325,10 @@ export const io_k8s_api_discovery_v1_ForZoneSchema = {
       default: '',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_APIResourceSchema = {
-  description:
-    'APIResource specifies the name of a resource and whether it is namespaced.',
+  description: 'APIResource specifies the name of a resource and whether it is namespaced.',
   type: 'object',
   required: ['name', 'singularName', 'namespaced', 'kind', 'verbs'],
   properties: {
@@ -403,7 +397,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_APIResourceSchema = {
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_APIResourceListSchema = {
   description:
@@ -427,8 +421,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_APIResourceListSchema = {
       type: 'string',
     },
     resources: {
-      description:
-        'resources contains the name of the resources and if they are namespaced.',
+      description: 'resources contains the name of the resources and if they are namespaced.',
       type: 'array',
       items: {
         default: {},
@@ -448,7 +441,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_APIResourceListSchema = {
       version: 'v1',
     },
   ],
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
   description: 'DeleteOptions may be provided when deleting an API object.',
@@ -811,7 +804,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       version: 'v1alpha1',
     },
   ],
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_FieldsV1Schema = {
   description: `FieldsV1 stores a set of fields in a data structure like a Trie, in JSON format.
@@ -820,7 +813,7 @@ Each key is either a '.' representing the field itself, and will always map to a
 
 The exact format is defined in sigs.k8s.io/structured-merge-diff`,
   type: 'object',
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_ListMetaSchema = {
   description:
@@ -849,7 +842,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ListMetaSchema = {
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_ManagedFieldsEntrySchema = {
   description:
@@ -899,7 +892,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ManagedFieldsEntrySchema = {
       ],
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMetaSchema = {
   description:
@@ -1034,7 +1027,7 @@ Populated by the system. Read-only. More info: https://kubernetes.io/docs/concep
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_OwnerReferenceSchema = {
   description:
@@ -1076,13 +1069,13 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_OwnerReferenceSchema = {
     },
   },
   'x-kubernetes-map-type': 'atomic',
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_PatchSchema = {
   description:
     'Patch is provided to give a concrete name and type to the Kubernetes PATCH request body.',
   type: 'object',
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_PreconditionsSchema = {
   description:
@@ -1098,7 +1091,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_PreconditionsSchema = {
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
   description: "Status is a return value for calls that don't return other objects.",
@@ -1161,7 +1154,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
       version: 'v1',
     },
   ],
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusCauseSchema = {
   description:
@@ -1187,7 +1180,7 @@ Examples:
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusDetailsSchema = {
   description:
@@ -1209,8 +1202,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusDetailsSchema = {
       'x-kubernetes-list-type': 'atomic',
     },
     group: {
-      description:
-        'The group attribute of the resource associated with the status StatusReason.',
+      description: 'The group attribute of the resource associated with the status StatusReason.',
       type: 'string',
     },
     kind: {
@@ -1235,14 +1227,14 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusDetailsSchema = {
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_TimeSchema = {
   description:
     'Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.',
   type: 'string',
   format: 'date-time',
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_WatchEventSchema = {
   description: 'Event represents a single event to a watched resource.',
@@ -1573,7 +1565,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_WatchEventSchema = {
       version: 'v1alpha1',
     },
   ],
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_runtime_RawExtensionSchema = {
   description: `RawExtension is used to hold extensions in external versions.
@@ -1615,4 +1607,4 @@ To use this, make a field which has RawExtension as its type in your external, v
 
 So what happens? Decode first uses json or yaml to unmarshal the serialized data into your external MyAPIObject. That causes the raw JSON to be stored, but not unpacked. The next step is to copy (using pkg/conversion) into the internal struct. The runtime package's DefaultScheme has conversion functions installed which will unpack the JSON stored in RawExtension, turning it into the correct object type, and storing it in the Object. (TODO: In the case where the object is of an unknown type, a runtime.Unknown object will be created and stored.)`,
   type: 'object',
-} as const
+} as const;

@@ -1,17 +1,17 @@
-import { routes } from '@/constants/routes'
-import { DashboardLayout } from '@/layouts/dashboard/dashboard'
-import { NavItem } from '@/layouts/dashboard/sidebar/nav-main'
-import { redirectWithToast } from '@/modules/cookie/toast.server'
-import { authMiddleware } from '@/modules/middleware/auth.middleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { useApp } from '@/providers/app.provider'
-import { createProjectsControl } from '@/resources/control-plane/projects.control'
-import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface'
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { CustomError } from '@/utils/errorHandle'
-import { transformControlPlaneStatus } from '@/utils/misc'
-import { getPathWithParams } from '@/utils/path'
-import { Client } from '@hey-api/client-axios'
+import { routes } from '@/constants/routes';
+import { DashboardLayout } from '@/layouts/dashboard/dashboard';
+import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
+import { redirectWithToast } from '@/modules/cookie/toast.server';
+import { authMiddleware } from '@/modules/middleware/auth.middleware';
+import { withMiddleware } from '@/modules/middleware/middleware';
+import { useApp } from '@/providers/app.provider';
+import { createProjectsControl } from '@/resources/control-plane/projects.control';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { CustomError } from '@/utils/errorHandle';
+import { transformControlPlaneStatus } from '@/utils/misc';
+import { getPathWithParams } from '@/utils/path';
+import { Client } from '@hey-api/client-axios';
 import {
   AreaChartIcon,
   BoltIcon,
@@ -21,38 +21,34 @@ import {
   SettingsIcon,
   ShieldCheckIcon,
   TerminalIcon,
-} from 'lucide-react'
-import { useMemo } from 'react'
-import { AppLoadContext, Outlet, redirect, useLoaderData } from 'react-router'
+} from 'lucide-react';
+import { useMemo } from 'react';
+import { AppLoadContext, Outlet, redirect, useLoaderData } from 'react-router';
 
 export const loader = withMiddleware(async ({ params, context }) => {
-  const { controlPlaneClient } = context as AppLoadContext
-  const { projectId, orgId } = params
+  const { controlPlaneClient } = context as AppLoadContext;
+  const { projectId, orgId } = params;
 
-  const projectsControl = createProjectsControl(controlPlaneClient as Client)
+  const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
   try {
     if (!projectId || !orgId) {
-      throw new CustomError('Project ID and Organization ID are required', 400)
+      throw new CustomError('Project ID and Organization ID are required', 400);
     }
 
-    const project: IProjectControlResponse = await projectsControl.detail(
-      orgId,
-      projectId,
-    )
+    const project: IProjectControlResponse = await projectsControl.detail(orgId, projectId);
 
-    return project
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return project;
   } catch (error) {
     // TODO: temporary solution for handle delay on new project
     // https://github.com/datum-cloud/cloud-portal/issues/45
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     if ((error as any).status === 403) {
       return redirect(
         getPathWithParams(`${routes.org.projects.setup}?projectId=${projectId}`, {
           orgId: params.orgId,
-        }),
-      )
+        })
+      );
     }
 
     return redirectWithToast(
@@ -63,19 +59,19 @@ export const loader = withMiddleware(async ({ params, context }) => {
         title: 'Something went wrong',
         description: (error as CustomError).message,
         type: 'error',
-      },
-    )
+      }
+    );
   }
-}, authMiddleware)
+}, authMiddleware);
 
 export default function ProjectLayout() {
-  const project: IProjectControlResponse = useLoaderData<typeof loader>()
-  const { orgId } = useApp()
+  const project: IProjectControlResponse = useLoaderData<typeof loader>();
+  const { orgId } = useApp();
 
   const navItems: NavItem[] = useMemo(() => {
-    const currentStatus = transformControlPlaneStatus(project.status)
-    const isReady = currentStatus.status === ControlPlaneStatus.Success
-    const projectId = project.name
+    const currentStatus = transformControlPlaneStatus(project.status);
+    const isReady = currentStatus.status === ControlPlaneStatus.Success;
+    const projectId = project.name;
 
     return [
       {
@@ -262,15 +258,12 @@ export default function ProjectLayout() {
         disabled: !isReady,
         icon: SettingsIcon,
       },
-    ]
-  }, [orgId, project])
+    ];
+  }, [orgId, project]);
 
   return (
-    <DashboardLayout
-      navItems={navItems}
-      sidebarCollapsible="icon"
-      currentProject={project}>
+    <DashboardLayout navItems={navItems} sidebarCollapsible="icon" currentProject={project}>
       <Outlet />
     </DashboardLayout>
-  )
+  );
 }

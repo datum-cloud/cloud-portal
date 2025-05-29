@@ -1,5 +1,5 @@
-import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
-import { Button } from '@/components/ui/button'
+import { Option } from '@/components/select-autocomplete/select-autocomplete.types';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -7,15 +7,15 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { NetworkDialogForm, NetworkDialogFormRef } from '@/features/network/dialog-form'
-import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
-import { ROUTE_PATH as NETWORKS_LIST_ROUTE_PATH } from '@/routes/api+/connect+/networks+/list'
-import { cn } from '@/utils/misc'
-import { CheckIcon, ChevronDown, Loader2, PlusIcon } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useFetcher } from 'react-router'
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { NetworkDialogForm, NetworkDialogFormRef } from '@/features/network/dialog-form';
+import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
+import { ROUTE_PATH as NETWORKS_LIST_ROUTE_PATH } from '@/routes/api+/connect+/networks+/list';
+import { cn } from '@/utils/misc';
+import { CheckIcon, ChevronDown, Loader2, PlusIcon } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useFetcher } from 'react-router';
 
 export const SelectNetwork = ({
   projectId,
@@ -27,44 +27,44 @@ export const SelectNetwork = ({
   name,
   id,
 }: {
-  projectId?: string
-  defaultValue?: string
-  className?: string
-  onValueChange: (value: Option) => void
-  defaultOptions?: Option[]
-  exceptItems?: string[]
-  name?: string
-  id?: string
+  projectId?: string;
+  defaultValue?: string;
+  className?: string;
+  onValueChange: (value: Option) => void;
+  defaultOptions?: Option[];
+  exceptItems?: string[];
+  name?: string;
+  id?: string;
 }) => {
-  const fetcher = useFetcher({ key: 'select-network' })
+  const fetcher = useFetcher({ key: 'select-network' });
 
-  const [open, setOpen] = useState(false)
-  const networkDialogFormRef = useRef<NetworkDialogFormRef>(null)
+  const [open, setOpen] = useState(false);
+  const networkDialogFormRef = useRef<NetworkDialogFormRef>(null);
 
-  const [value, setValue] = useState(defaultValue)
-  const [options, setOptions] = useState<Option[]>(defaultOptions ?? [])
+  const [value, setValue] = useState(defaultValue);
+  const [options, setOptions] = useState<Option[]>(defaultOptions ?? []);
 
   const selectedValue = useMemo(() => {
-    return options.find((option) => option.value === value)
-  }, [value, options])
+    return options.find((option) => option.value === value);
+  }, [value, options]);
 
   const fetchOptions = async (noCache = false) => {
-    fetcher.load(`${NETWORKS_LIST_ROUTE_PATH}?projectId=${projectId}&noCache=${noCache}`)
-  }
+    fetcher.load(`${NETWORKS_LIST_ROUTE_PATH}?projectId=${projectId}&noCache=${noCache}`);
+  };
 
   useEffect(() => {
     if (typeof defaultOptions === 'undefined') {
-      fetchOptions()
+      fetchOptions();
     } else {
-      setOptions(defaultOptions)
+      setOptions(defaultOptions);
     }
-  }, [projectId, defaultOptions])
+  }, [projectId, defaultOptions]);
 
   useEffect(() => {
     if (defaultValue) {
-      setValue(defaultValue)
+      setValue(defaultValue);
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
@@ -72,38 +72,38 @@ export const SelectNetwork = ({
         value: network.name,
         label: network.name,
         ...network,
-      }))
+      }));
 
-      setOptions(opt)
+      setOptions(opt);
     }
-  }, [fetcher.data, fetcher.state])
+  }, [fetcher.data, fetcher.state]);
 
   useEffect(() => {
     if (selectedValue) {
-      onValueChange(selectedValue)
+      onValueChange(selectedValue);
     }
-  }, [selectedValue])
+  }, [selectedValue]);
 
   const handleNetworkCreated = (newNetwork?: INetworkControlResponse) => {
-    if (!newNetwork?.name) return
+    if (!newNetwork?.name) return;
 
     const newOption = {
       value: newNetwork.name,
       label: newNetwork.name,
       ...newNetwork,
-    }
+    };
 
     setOptions((prevOptions) => {
       if (prevOptions.some((opt) => opt.value === newNetwork.name)) {
-        return prevOptions
+        return prevOptions;
       }
-      return [...prevOptions, newOption]
-    })
+      return [...prevOptions, newOption];
+    });
 
-    setValue(newNetwork.name)
+    setValue(newNetwork.name);
 
-    fetchOptions(true)
-  }
+    fetchOptions(true);
+  };
 
   return (
     <>
@@ -134,23 +134,23 @@ export const SelectNetwork = ({
               {options.length > 0 && (
                 <CommandGroup className="max-h-[250px] overflow-y-auto">
                   {options.map((option) => {
-                    const isSelected = selectedValue?.value === option.value
+                    const isSelected = selectedValue?.value === option.value;
                     const isDisabled =
-                      option.value !== value && exceptItems?.includes(option.value)
+                      option.value !== value && exceptItems?.includes(option.value);
                     return (
                       <CommandItem
                         value={option.value}
                         key={option.value}
                         onSelect={() => {
-                          setValue(option.value)
-                          setOpen(false)
+                          setValue(option.value);
+                          setOpen(false);
                         }}
                         disabled={isDisabled}
                         className="cursor-pointer justify-between">
                         <span>{option.label}</span>
                         {isSelected && <CheckIcon className="text-primary size-4" />}
                       </CommandItem>
-                    )
+                    );
                   })}
                 </CommandGroup>
               )}
@@ -189,5 +189,5 @@ export const SelectNetwork = ({
         ))}
       </select>
     </>
-  )
-}
+  );
+};

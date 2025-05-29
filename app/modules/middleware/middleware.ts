@@ -5,36 +5,33 @@
  * It allows you to chain multiple middleware functions that can process requests before they reach
  * the final handler.
  */
-import { ActionFunction, LoaderFunction, LoaderFunctionArgs } from 'react-router'
+import { ActionFunction, LoaderFunction, LoaderFunctionArgs } from 'react-router';
 
 /**
  * Represents the next middleware function in the chain
  */
-export type NextFunction = () => Promise<Response>
+export type NextFunction = () => Promise<Response>;
 
 /**
  * Middleware function type definition
  * @param request The incoming Request object
  * @param next Function to call the next middleware in chain
  */
-export type MiddlewareFunction = (
-  request: Request,
-  next: NextFunction,
-) => Promise<Response>
+export type MiddlewareFunction = (request: Request, next: NextFunction) => Promise<Response>;
 
 /**
  * Class that manages the middleware chain execution
  */
 class MiddlewareChain {
-  private middlewares: MiddlewareFunction[] = []
+  private middlewares: MiddlewareFunction[] = [];
 
   /**
    * Adds a middleware function to the chain
    * @param middleware The middleware function to add
    */
   use(middleware: MiddlewareFunction) {
-    this.middlewares.push(middleware)
-    return this
+    this.middlewares.push(middleware);
+    return this;
   }
 
   /**
@@ -43,18 +40,18 @@ class MiddlewareChain {
    * @param finalHandler The final handler to call after all middleware
    */
   async execute(request: Request, finalHandler: NextFunction): Promise<Response> {
-    let index = 0
+    let index = 0;
 
     const next = async (): Promise<Response> => {
       if (index >= this.middlewares.length) {
-        return finalHandler()
+        return finalHandler();
       }
 
-      const middleware = this.middlewares[index++]
-      return middleware(request, next)
-    }
+      const middleware = this.middlewares[index++];
+      return middleware(request, next);
+    };
 
-    return next()
+    return next();
   }
 }
 
@@ -70,12 +67,12 @@ class MiddlewareChain {
  * ```
  */
 export function createMiddleware(...middlewares: MiddlewareFunction[]) {
-  const chain = new MiddlewareChain()
-  middlewares.forEach((middleware) => chain.use(middleware))
+  const chain = new MiddlewareChain();
+  middlewares.forEach((middleware) => chain.use(middleware));
 
   return (request: Request, finalHandler: NextFunction) => {
-    return chain.execute(request, finalHandler)
-  }
+    return chain.execute(request, finalHandler);
+  };
 }
 
 /**
@@ -144,19 +141,19 @@ export function withMiddleware(
 ) {
   return async ({ request, ...rest }: LoaderFunctionArgs) => {
     const next = async () => {
-      const result = await handler({ request, ...rest })
+      const result = await handler({ request, ...rest });
       // Return result directly if it's not a Response
-      return result
-    }
+      return result;
+    };
 
-    const response = await createMiddleware(...middleware)(request, next as NextFunction)
+    const response = await createMiddleware(...middleware)(request, next as NextFunction);
 
     if (response instanceof Response) {
       // If it's already a Response, return it directly
-      return response
+      return response;
     }
 
     // Return non-Response data directly
-    return response
-  }
+    return response;
+  };
 }

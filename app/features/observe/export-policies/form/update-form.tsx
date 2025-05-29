@@ -1,7 +1,7 @@
-import { SinksForm } from './sink/sinks-form'
-import { SourcesForm } from './source/sources-form'
-import { MetadataForm } from '@/components/metadata/metadata-form'
-import { Button } from '@/components/ui/button'
+import { SinksForm } from './sink/sinks-form';
+import { SourcesForm } from './source/sources-form';
+import { MetadataForm } from '@/components/metadata/metadata-form';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -9,42 +9,41 @@ import {
   CardHeader,
   CardFooter,
   CardTitle,
-} from '@/components/ui/card'
-import { routes } from '@/constants/routes'
-import { useIsPending } from '@/hooks/useIsPending'
-import { useApp } from '@/providers/app.provider'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
+} from '@/components/ui/card';
+import { routes } from '@/constants/routes';
+import { useIsPending } from '@/hooks/useIsPending';
+import { useApp } from '@/providers/app.provider';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import {
   ExportPolicyAuthenticationType,
   ExportPolicySinkType,
   ExportPolicySourceType,
   IExportPolicyControlResponse,
-} from '@/resources/interfaces/export-policy.interface'
+} from '@/resources/interfaces/export-policy.interface';
 import {
   ExportPolicySinkFieldSchema,
   ExportPolicySourceFieldSchema,
   NewExportPolicySchema,
   UpdateExportPolicySchema,
   updateExportPolicySchema,
-} from '@/resources/schemas/export-policy.schema'
-import { MetadataSchema } from '@/resources/schemas/metadata.schema'
-import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions'
-import { convertObjectToLabels } from '@/utils/misc'
-import { getPathWithParams } from '@/utils/path'
-import { useForm, FormProvider, getFormProps } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { has } from 'es-toolkit/compat'
-import { FileIcon, Layers, Terminal } from 'lucide-react'
-import { Fragment, cloneElement, useMemo } from 'react'
-import { useSubmit, useNavigate, Form } from 'react-router'
-import { useAuthenticityToken } from 'remix-utils/csrf/react'
+} from '@/resources/schemas/export-policy.schema';
+import { MetadataSchema } from '@/resources/schemas/metadata.schema';
+import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions';
+import { convertObjectToLabels } from '@/utils/misc';
+import { getPathWithParams } from '@/utils/path';
+import { useForm, FormProvider, getFormProps } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { has } from 'es-toolkit/compat';
+import { FileIcon, Layers, Terminal } from 'lucide-react';
+import { Fragment, cloneElement, useMemo } from 'react';
+import { useSubmit, useNavigate, Form } from 'react-router';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 const sections = [
   {
     id: 'metadata',
     label: 'Metadata',
-    description:
-      'Define essential information and labels for your export policy resource.',
+    description: 'Define essential information and labels for your export policy resource.',
     icon: () => <Layers />,
   },
   {
@@ -57,25 +56,24 @@ const sections = [
   {
     id: 'sinks',
     label: 'Sinks',
-    description:
-      'Configure sink settings for your Kubernetes export policy in sink management.',
+    description: 'Configure sink settings for your Kubernetes export policy in sink management.',
     icon: () => <Terminal />,
   },
-]
+];
 
 export const ExportPolicyUpdateForm = ({
   projectId,
   defaultValue,
 }: {
-  projectId?: string
-  defaultValue?: IExportPolicyControlResponse
+  projectId?: string;
+  defaultValue?: IExportPolicyControlResponse;
 }) => {
-  const { orgId } = useApp()
-  const csrf = useAuthenticityToken()
-  const submit = useSubmit()
-  const navigate = useNavigate()
-  const isPending = useIsPending()
-  const { confirm } = useConfirmationDialog()
+  const { orgId } = useApp();
+  const csrf = useAuthenticityToken();
+  const submit = useSubmit();
+  const navigate = useNavigate();
+  const isPending = useIsPending();
+  const { confirm } = useConfirmationDialog();
 
   const [form, fields] = useForm({
     id: 'export-policy-form',
@@ -83,15 +81,15 @@ export const ExportPolicyUpdateForm = ({
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: updateExportPolicySchema })
+      return parseWithZod(formData, { schema: updateExportPolicySchema });
     },
     onSubmit(event, { submission }) {
-      event.preventDefault()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const data: any = submission?.status === 'success' ? submission.value : {}
+      event.preventDefault();
+
+      const data: any = submission?.status === 'success' ? submission.value : {};
 
       // Get the form element
-      const formElement = event.currentTarget as HTMLFormElement
+      const formElement = event.currentTarget as HTMLFormElement;
 
       const payload: NewExportPolicySchema = {
         metadata: {
@@ -101,7 +99,7 @@ export const ExportPolicyUpdateForm = ({
         },
         sources: data?.sources,
         sinks: data?.sinks,
-      }
+      };
 
       // Submit the form using the Remix submit function
       // This will trigger the action defined in the route
@@ -112,10 +110,10 @@ export const ExportPolicyUpdateForm = ({
           action: formElement.getAttribute('action') || undefined,
           encType: 'application/json',
           replace: true,
-        },
-      )
+        }
+      );
     },
-  })
+  });
 
   const formattedValues: NewExportPolicySchema | undefined = useMemo(() => {
     if (defaultValue) {
@@ -123,7 +121,7 @@ export const ExportPolicyUpdateForm = ({
         name: defaultValue?.name ?? '',
         labels: convertObjectToLabels(defaultValue?.labels ?? {}),
         annotations: convertObjectToLabels(defaultValue?.annotations ?? {}),
-      }
+      };
 
       const sources: ExportPolicySourceFieldSchema[] = (defaultValue?.sources ?? []).map(
         (source) => ({
@@ -132,57 +130,55 @@ export const ExportPolicyUpdateForm = ({
             ? ExportPolicySourceType.METRICS
             : ExportPolicySourceType.METRICS, // the else value will be used default value
           metricQuery: source.metrics?.metricsql ?? '{}',
-        }),
-      )
+        })
+      );
 
-      const sinks: ExportPolicySinkFieldSchema[] = (defaultValue?.sinks ?? []).map(
-        (sink) => {
-          let prometheusRemoteWrite = undefined
-          if (has(sink.target, 'prometheusRemoteWrite')) {
-            const {
-              authentication: promAuth,
-              endpoint = '',
-              batch,
-              retry,
-            } = sink?.target.prometheusRemoteWrite ?? {}
+      const sinks: ExportPolicySinkFieldSchema[] = (defaultValue?.sinks ?? []).map((sink) => {
+        let prometheusRemoteWrite = undefined;
+        if (has(sink.target, 'prometheusRemoteWrite')) {
+          const {
+            authentication: promAuth,
+            endpoint = '',
+            batch,
+            retry,
+          } = sink?.target.prometheusRemoteWrite ?? {};
 
-            let authentication = undefined
-            if (has(promAuth, 'basicAuth')) {
-              authentication = {
-                authType: ExportPolicyAuthenticationType.BASIC_AUTH,
-                secretName: promAuth?.basicAuth?.secretRef?.name ?? '',
-              }
-            }
-
-            prometheusRemoteWrite = {
-              authentication,
-              endpoint,
-              batch: {
-                maxSize: batch?.maxSize ?? 100,
-                timeout: Number((batch?.timeout ?? '').replace('s', '')),
-              },
-              retry: {
-                backoffDuration: Number((retry?.backoffDuration ?? '').replace('s', '')),
-                maxAttempts: Number(retry?.maxAttempts),
-              },
-            }
+          let authentication = undefined;
+          if (has(promAuth, 'basicAuth')) {
+            authentication = {
+              authType: ExportPolicyAuthenticationType.BASIC_AUTH,
+              secretName: promAuth?.basicAuth?.secretRef?.name ?? '',
+            };
           }
 
-          return {
-            name: sink.name ?? '',
-            type: has(sink, 'prometheusRemoteWrite')
-              ? ExportPolicySinkType.PROMETHEUS
-              : ExportPolicySinkType.PROMETHEUS,
-            sources: sink.sources ?? [],
-            prometheusRemoteWrite,
-          }
-        },
-      )
+          prometheusRemoteWrite = {
+            authentication,
+            endpoint,
+            batch: {
+              maxSize: batch?.maxSize ?? 100,
+              timeout: Number((batch?.timeout ?? '').replace('s', '')),
+            },
+            retry: {
+              backoffDuration: Number((retry?.backoffDuration ?? '').replace('s', '')),
+              maxAttempts: Number(retry?.maxAttempts),
+            },
+          };
+        }
 
-      return { metadata, sources, sinks }
+        return {
+          name: sink.name ?? '',
+          type: has(sink, 'prometheusRemoteWrite')
+            ? ExportPolicySinkType.PROMETHEUS
+            : ExportPolicySinkType.PROMETHEUS,
+          sources: sink.sources ?? [],
+          prometheusRemoteWrite,
+        };
+      });
+
+      return { metadata, sources, sinks };
     }
-    return undefined
-  }, [defaultValue])
+    return undefined;
+  }, [defaultValue]);
 
   const deleteExportPolicy = async () => {
     await confirm({
@@ -212,11 +208,11 @@ export const ExportPolicyUpdateForm = ({
             method: 'DELETE',
             fetcherKey: 'export-policy-resources',
             navigate: false,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   return (
     <Card>
@@ -231,11 +227,7 @@ export const ExportPolicyUpdateForm = ({
           method="POST"
           autoComplete="off"
           className="flex flex-col gap-6">
-          <input
-            type="hidden"
-            name="resourceVersion"
-            value={defaultValue?.resourceVersion}
-          />
+          <input type="hidden" name="resourceVersion" value={defaultValue?.resourceVersion} />
 
           <CardContent>
             <nav aria-label="Export Policy Steps" className="group">
@@ -249,12 +241,8 @@ export const ExportPolicyUpdateForm = ({
                         })}
                       </span>
                       <div className="flex flex-col gap-1 pt-1.5">
-                        <p className="text-base leading-tight font-medium">
-                          {section.label}
-                        </p>
-                        <p className="text-muted-foreground text-sm">
-                          {section.description}
-                        </p>
+                        <p className="text-base leading-tight font-medium">{section.label}</p>
+                        <p className="text-muted-foreground text-sm">{section.description}</p>
                       </div>
                     </li>
                     <div className="flex-1 py-6 pl-7">
@@ -263,9 +251,7 @@ export const ExportPolicyUpdateForm = ({
                           isEdit
                           defaultValue={formattedValues?.metadata}
                           fields={
-                            fields as unknown as ReturnType<
-                              typeof useForm<MetadataSchema>
-                            >[1]
+                            fields as unknown as ReturnType<typeof useForm<MetadataSchema>>[1]
                           }
                         />
                       )}
@@ -318,16 +304,12 @@ export const ExportPolicyUpdateForm = ({
                     getPathWithParams(routes.projects.observe.exportPolicies.root, {
                       projectId,
                       orgId,
-                    }),
-                  )
+                    })
+                  );
                 }}>
                 Return to List
               </Button>
-              <Button
-                variant="default"
-                type="submit"
-                disabled={isPending}
-                isLoading={isPending}>
+              <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
                 {isPending ? `Saving` : `Save`}
               </Button>
             </div>
@@ -335,5 +317,5 @@ export const ExportPolicyUpdateForm = ({
         </Form>
       </FormProvider>
     </Card>
-  )
-}
+  );
+};

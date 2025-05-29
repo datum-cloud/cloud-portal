@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 // Import required types
-import { APIFactory } from '@/resources/api/api.factory'
-import { ControlPlaneFactory } from '@/resources/control-plane/control.factory'
-import 'react-router'
-import { Storage } from 'unstorage'
+import { APIFactory } from '@/resources/api/api.factory';
+import { ControlPlaneFactory } from '@/resources/control-plane/control.factory';
+import 'react-router';
+import { Storage } from 'unstorage';
 
 // Enable absolute imports from the root directory
-declare module '@/*'
+declare module '@/*';
 
 /**
  * Extend the React Router AppLoadContext interface to include our custom factories
@@ -14,12 +13,12 @@ declare module '@/*'
 declare module 'react-router' {
   interface AppLoadContext extends APIFactory, ControlPlaneFactory {
     // Add any additional context properties here
-    cache: Storage
+    cache: Storage;
   }
 }
 
 declare module '@tanstack/table-core' {
   interface ColumnMeta<TData extends RowData, TValue> {
-    className?: string
+    className?: string;
   }
 }

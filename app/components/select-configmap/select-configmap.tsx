@@ -1,8 +1,8 @@
-import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box'
-import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
-import { ROUTE_PATH as CONFIGS_LIST_ROUTE_PATH } from '@/routes/api+/config+/config-maps+/list'
-import { useEffect, useState } from 'react'
-import { useFetcher } from 'react-router'
+import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
+import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
+import { ROUTE_PATH as CONFIGS_LIST_ROUTE_PATH } from '@/routes/api+/config+/config-maps+/list';
+import { useEffect, useState } from 'react';
+import { useFetcher } from 'react-router';
 
 export const SelectConfigMap = ({
   projectId,
@@ -12,25 +12,25 @@ export const SelectConfigMap = ({
   name,
   id,
 }: {
-  projectId?: string
-  defaultValue?: string
-  className?: string
-  onValueChange: (value?: SelectBoxOption) => void
-  name?: string
-  id?: string
+  projectId?: string;
+  defaultValue?: string;
+  className?: string;
+  onValueChange: (value?: SelectBoxOption) => void;
+  name?: string;
+  id?: string;
 }) => {
-  const fetcher = useFetcher({ key: 'select-configmap' })
-  const [options, setOptions] = useState<SelectBoxOption[]>([])
+  const fetcher = useFetcher({ key: 'select-configmap' });
+  const [options, setOptions] = useState<SelectBoxOption[]>([]);
 
   const fetchOptions = async () => {
-    fetcher.load(`${CONFIGS_LIST_ROUTE_PATH}?projectId=${projectId}`)
-  }
+    fetcher.load(`${CONFIGS_LIST_ROUTE_PATH}?projectId=${projectId}`);
+  };
 
   useEffect(() => {
     if (projectId) {
-      fetchOptions()
+      fetchOptions();
     }
-  }, [projectId])
+  }, [projectId]);
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
@@ -38,11 +38,11 @@ export const SelectConfigMap = ({
         value: configMap.name,
         label: configMap.name,
         ...configMap,
-      }))
+      }));
 
-      setOptions(opt)
+      setOptions(opt);
     }
-  }, [fetcher.data, fetcher.state])
+  }, [fetcher.data, fetcher.state]);
 
   return (
     <SelectBox
@@ -50,7 +50,7 @@ export const SelectConfigMap = ({
       className={className}
       onChange={(value: SelectBoxOption) => {
         if (value) {
-          onValueChange(value)
+          onValueChange(value);
         }
       }}
       options={options}
@@ -59,5 +59,5 @@ export const SelectConfigMap = ({
       placeholder="Select a Config Map"
       isLoading={fetcher.state === 'loading'}
     />
-  )
-}
+  );
+};

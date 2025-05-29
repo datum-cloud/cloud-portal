@@ -1,12 +1,12 @@
-import { WorkloadStatus } from './status'
-import { DataTable } from '@/components/data-table/data-table'
-import { DateFormat } from '@/components/date-format/date-format'
-import { TextCopy } from '@/components/text-copy/text-copy'
-import { CardContent, CardHeader, CardTitle, Card } from '@/components/ui/card'
-import { IInstanceControlResponse } from '@/resources/interfaces/workload.interface'
-import { transformControlPlaneStatus } from '@/utils/misc'
-import { ColumnDef } from '@tanstack/react-table'
-import { useMemo } from 'react'
+import { WorkloadStatus } from './status';
+import { DataTable } from '@/components/data-table/data-table';
+import { DateFormat } from '@/components/date-format/date-format';
+import { TextCopy } from '@/components/text-copy/text-copy';
+import { CardContent, CardHeader, CardTitle, Card } from '@/components/ui/card';
+import { IInstanceControlResponse } from '@/resources/interfaces/workload.interface';
+import { transformControlPlaneStatus } from '@/utils/misc';
+import { ColumnDef } from '@tanstack/react-table';
+import { useMemo } from 'react';
 
 export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) => {
   const columns: ColumnDef<IInstanceControlResponse>[] = useMemo(
@@ -21,7 +21,7 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
               value={row.original.name ?? ''}
               className="text-primary leading-none font-semibold"
             />
-          )
+          );
         },
       },
       {
@@ -34,11 +34,7 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
         accessorKey: 'externalIp',
         enableSorting: false,
         cell: ({ row }) => {
-          return row.original.externalIp ? (
-            <TextCopy value={row.original.externalIp} />
-          ) : (
-            '-'
-          )
+          return row.original.externalIp ? <TextCopy value={row.original.externalIp} /> : '-';
         },
       },
       {
@@ -46,11 +42,7 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
         accessorKey: 'networkIp',
         enableSorting: false,
         cell: ({ row }) => {
-          return row.original.networkIp ? (
-            <TextCopy value={row.original.networkIp} />
-          ) : (
-            '-'
-          )
+          return row.original.networkIp ? <TextCopy value={row.original.networkIp} /> : '-';
         },
       },
       {
@@ -67,7 +59,7 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
                 badgeClassName="px-0"
               />
             )
-          )
+          );
         },
       },
       {
@@ -75,12 +67,12 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
         accessorKey: 'createdAt',
         enableSorting: false,
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
         },
       },
     ],
-    [],
-  )
+    []
+  );
 
   return (
     <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
@@ -96,5 +88,5 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
         />
       </CardContent>
     </Card>
-  )
-}
+  );
+};

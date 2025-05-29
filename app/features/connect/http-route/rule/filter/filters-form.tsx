@@ -1,18 +1,12 @@
-import { FilterField } from './filter-field'
-import { FieldLabel } from '@/components/field/field-label'
-import { Button } from '@/components/ui/button'
-import {
-  HTTPFilterType,
-  HTTPPathRewriteType,
-} from '@/resources/interfaces/http-route.interface'
-import {
-  HttpRouteFilterSchema,
-  HttpRouteRuleSchema,
-} from '@/resources/schemas/http-route.schema'
-import { cn } from '@/utils/misc'
-import { useForm, useFormMetadata } from '@conform-to/react'
-import { PlusIcon, TrashIcon } from 'lucide-react'
-import { useEffect } from 'react'
+import { FilterField } from './filter-field';
+import { FieldLabel } from '@/components/field/field-label';
+import { Button } from '@/components/ui/button';
+import { HTTPFilterType, HTTPPathRewriteType } from '@/resources/interfaces/http-route.interface';
+import { HttpRouteFilterSchema, HttpRouteRuleSchema } from '@/resources/schemas/http-route.schema';
+import { cn } from '@/utils/misc';
+import { useForm, useFormMetadata } from '@conform-to/react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useEffect } from 'react';
 
 export const FilterDefaultValues: HttpRouteFilterSchema = {
   type: HTTPFilterType.URL_REWRITE,
@@ -23,26 +17,26 @@ export const FilterDefaultValues: HttpRouteFilterSchema = {
       value: '',
     },
   },
-}
+};
 
 export const FiltersForm = ({
   fields,
   defaultValue,
 }: {
-  fields: ReturnType<typeof useForm<HttpRouteRuleSchema>>[1]
-  defaultValue?: HttpRouteFilterSchema[]
+  fields: ReturnType<typeof useForm<HttpRouteRuleSchema>>[1];
+  defaultValue?: HttpRouteFilterSchema[];
 }) => {
-  const form = useFormMetadata('http-route-form')
-  const filterList = fields.filters.getFieldList()
+  const form = useFormMetadata('http-route-form');
+  const filterList = fields.filters.getFieldList();
 
   useEffect(() => {
     if (defaultValue) {
       form.update({
         name: fields.filters.name,
         value: defaultValue,
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -50,16 +44,14 @@ export const FiltersForm = ({
 
       <div className="space-y-4">
         {filterList.map((filter, index) => {
-          const filterFields = filter.getFieldset()
+          const filterFields = filter.getFieldset();
           return (
             <div
               className="relative flex items-center gap-2 rounded-md border p-4"
               key={filter.key}>
               <FilterField
                 fields={
-                  filterFields as unknown as ReturnType<
-                    typeof useForm<HttpRouteFilterSchema>
-                  >[1]
+                  filterFields as unknown as ReturnType<typeof useForm<HttpRouteFilterSchema>>[1]
                 }
                 defaultValue={defaultValue?.[index]}
               />
@@ -70,14 +62,14 @@ export const FiltersForm = ({
                   size="sm"
                   className={cn(
                     'text-destructive relative w-fit',
-                    (filterFields.type.errors ?? []).length > 0 ? '-top-1' : 'top-2.5',
+                    (filterFields.type.errors ?? []).length > 0 ? '-top-1' : 'top-2.5'
                   )}
                   onClick={() => form.remove({ name: fields.filters.name, index })}>
                   <TrashIcon className="size-4" />
                 </Button>
               )}
             </div>
-          )
+          );
         })}
       </div>
 
@@ -96,5 +88,5 @@ export const FiltersForm = ({
         Add
       </Button>
     </div>
-  )
-}
+  );
+};

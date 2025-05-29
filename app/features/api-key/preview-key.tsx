@@ -1,7 +1,7 @@
-import { InputWithCopy } from '@/components/input-with-copy/input-with-copy'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { motion } from 'framer-motion'
-import { Terminal } from 'lucide-react'
+import { InputWithCopy } from '@/components/input-with-copy/input-with-copy';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { motion } from 'framer-motion';
+import { Terminal } from 'lucide-react';
 
 export const PreviewKey = ({ value }: { value: string }) => {
   return (
@@ -20,5 +20,5 @@ export const PreviewKey = ({ value }: { value: string }) => {
         </div>
       </Alert>
     </motion.div>
-  )
-}
+  );
+};

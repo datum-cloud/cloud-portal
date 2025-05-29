@@ -1,14 +1,14 @@
-import { SelectOrganization } from '@/components/select-organization/select-organization'
-import { Badge } from '@/components/ui/badge'
-import { routes } from '@/constants/routes'
-import { useApp } from '@/providers/app.provider'
-import { IOrganization } from '@/resources/interfaces/organization.inteface'
-import { getPathWithParams } from '@/utils/path'
-import { Link, useNavigate } from 'react-router'
+import { SelectOrganization } from '@/components/select-organization/select-organization';
+import { Badge } from '@/components/ui/badge';
+import { routes } from '@/constants/routes';
+import { useApp } from '@/providers/app.provider';
+import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { getPathWithParams } from '@/utils/path';
+import { Link, useNavigate } from 'react-router';
 
 export const OrganizationSwitcher = () => {
-  const { organization: currentOrg, setOrganization } = useApp()
-  const navigate = useNavigate()
+  const { organization: currentOrg, setOrganization } = useApp();
+  const navigate = useNavigate();
 
   return (
     <div className="flex items-center gap-1 pl-2">
@@ -29,10 +29,10 @@ export const OrganizationSwitcher = () => {
         currentOrg={currentOrg!}
         hideContent
         onSelect={(org: IOrganization) => {
-          setOrganization(org)
-          navigate(getPathWithParams(routes.org.projects.root, { orgId: org.id }))
+          setOrganization(org);
+          navigate(getPathWithParams(routes.org.projects.root, { orgId: org.id }));
         }}
       />
     </div>
-  )
-}
+  );
+};

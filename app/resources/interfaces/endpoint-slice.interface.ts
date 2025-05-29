@@ -1,30 +1,30 @@
-import { ILabel } from './label.interface'
-import { IoK8sApiDiscoveryV1EndpointSlice } from '@/modules/control-plane/discovery/types.gen'
+import { ILabel } from './label.interface';
+import { IoK8sApiDiscoveryV1EndpointSlice } from '@/modules/control-plane/discovery/types.gen';
 
 export interface IEndpointSliceControlResponseLite {
-  uid?: string
-  name?: string
-  addressType?: IoK8sApiDiscoveryV1EndpointSlice['addressType']
-  createdAt?: Date
+  uid?: string;
+  name?: string;
+  addressType?: IoK8sApiDiscoveryV1EndpointSlice['addressType'];
+  createdAt?: Date;
 }
 
 export interface IEndpointSliceControlResponse {
-  uid?: string
-  name?: string
-  addressType?: IoK8sApiDiscoveryV1EndpointSlice['addressType']
-  createdAt?: Date
-  resourceVersion?: string
-  namespace?: string
-  labels?: ILabel
-  annotations?: ILabel
+  uid?: string;
+  name?: string;
+  addressType?: IoK8sApiDiscoveryV1EndpointSlice['addressType'];
+  createdAt?: Date;
+  resourceVersion?: string;
+  namespace?: string;
+  labels?: ILabel;
+  annotations?: ILabel;
   endpoints?: {
-    addresses: string[]
-    conditions: Array<EndpointSliceCondition>
-  }[]
+    addresses: string[];
+    conditions: Array<EndpointSliceCondition>;
+  }[];
   ports?: {
-    name: string
-    appProtocol: string
-  }[]
+    name: string;
+    appProtocol: string;
+  }[];
 }
 
 export enum EndpointSliceAddressType {

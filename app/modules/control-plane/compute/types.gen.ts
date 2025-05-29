@@ -7,15 +7,15 @@ export type ComDatumapisComputeV1AlphaInstance = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
   /**
    * InstanceSpec defines the desired state of Instance
    */
@@ -31,14 +31,14 @@ export type ComDatumapisComputeV1AlphaInstance = {
         /**
          * The network name
          */
-        name: string
+        name: string;
         /**
          * The network namespace.
          *
          * Defaults to the namespace for the type the reference is embedded in.
          */
-        namespace?: string
-      }
+        namespace?: string;
+      };
       /**
        * Interface specific network policy.
        *
@@ -66,15 +66,15 @@ export type ComDatumapisComputeV1AlphaInstance = {
                * cidr is a string representing the IPBlock
                * Valid examples are "192.168.1.0/24" or "2001:db8::/64"
                */
-              cidr: string
+              cidr: string;
               /**
                * except is a slice of CIDRs that should not be included within an IPBlock
                * Valid examples are "192.168.1.0/24" or "2001:db8::/64"
                * Except values will be rejected if they are outside the cidr range
                */
-              except?: Array<string>
-            }
-          }>
+              except?: Array<string>;
+            };
+          }>;
           /**
            * ports is a list of ports which should be made accessible on the instances selected for
            * this rule. Each item in this list is combined using a logical OR. If this field is
@@ -89,23 +89,23 @@ export type ComDatumapisComputeV1AlphaInstance = {
              * is not defined or if the port field is defined as a named (string) port.
              * The endPort must be equal or greater than port.
              */
-            endPort?: number
+            endPort?: number;
             /**
              * port represents the port on the given protocol. This can either be a numerical or named
              * port on an instance. If this field is not provided, this matches all port names and
              * numbers.
              * If present, only traffic on the specified protocol AND port will be matched.
              */
-            port?: number | string
+            port?: number | string;
             /**
              * protocol represents the protocol (TCP, UDP, or SCTP) which traffic must match.
              * If not specified, this field defaults to TCP.
              */
-            protocol?: string
-          }>
-        }>
-      }
-    }>
+            protocol?: string;
+          }>;
+        }>;
+      };
+    }>;
     /**
      * The runtime type of the instance, such as a container sandbox or a VM.
      */
@@ -131,14 +131,14 @@ export type ComDatumapisComputeV1AlphaInstance = {
          * instance families that support customization. Instance types which support
          * customization will appear in the form `<project>/<instanceFamily>-custom`.
          */
-        instanceType: string
+        instanceType: string;
         /**
          * Describes adjustments to the resources defined by the instance type.
          */
         requests?: {
-          [key: string]: number | string
-        }
-      }
+          [key: string]: number | string;
+        };
+      };
       /**
        * A sandbox is a managed isolated environment capable of running containers.
        */
@@ -156,7 +156,7 @@ export type ComDatumapisComputeV1AlphaInstance = {
             /**
              * Name of the environment variable. Must be a C_IDENTIFIER.
              */
-            name: string
+            name: string;
             /**
              * Variable references $(VAR_NAME) are expanded
              * using the previously defined environment variables in the container and
@@ -168,7 +168,7 @@ export type ComDatumapisComputeV1AlphaInstance = {
              * exists or not.
              * Defaults to "".
              */
-            value?: string
+            value?: string;
             /**
              * Source for the environment variable's value. Cannot be used if value is not empty.
              */
@@ -180,7 +180,7 @@ export type ComDatumapisComputeV1AlphaInstance = {
                 /**
                  * The key to select.
                  */
-                key: string
+                key: string;
                 /**
                  * Name of the referent.
                  * This field is effectively required, but due to backwards compatibility is
@@ -188,12 +188,12 @@ export type ComDatumapisComputeV1AlphaInstance = {
                  * almost certainly wrong.
                  * More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                  */
-                name?: string
+                name?: string;
                 /**
                  * Specify whether the ConfigMap or its key must be defined
                  */
-                optional?: boolean
-              }
+                optional?: boolean;
+              };
               /**
                * Selects a field of the pod: supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`,
                * spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.
@@ -202,12 +202,12 @@ export type ComDatumapisComputeV1AlphaInstance = {
                 /**
                  * Version of the schema the FieldPath is written in terms of, defaults to "v1".
                  */
-                apiVersion?: string
+                apiVersion?: string;
                 /**
                  * Path of the field to select in the specified API version.
                  */
-                fieldPath: string
-              }
+                fieldPath: string;
+              };
               /**
                * Selects a resource of the container: only resources limits and requests
                * (limits.cpu, limits.memory, limits.ephemeral-storage, requests.cpu, requests.memory and requests.ephemeral-storage) are currently supported.
@@ -216,16 +216,16 @@ export type ComDatumapisComputeV1AlphaInstance = {
                 /**
                  * Container name: required for volumes, optional for env vars
                  */
-                containerName?: string
+                containerName?: string;
                 /**
                  * Specifies the output format of the exposed resources, defaults to "1"
                  */
-                divisor?: number | string
+                divisor?: number | string;
                 /**
                  * Required: resource to select
                  */
-                resource: string
-              }
+                resource: string;
+              };
               /**
                * Selects a key of a secret in the pod's namespace
                */
@@ -233,7 +233,7 @@ export type ComDatumapisComputeV1AlphaInstance = {
                 /**
                  * The key of the secret to select from.  Must be a valid secret key.
                  */
-                key: string
+                key: string;
                 /**
                  * Name of the referent.
                  * This field is effectively required, but due to backwards compatibility is
@@ -241,22 +241,22 @@ export type ComDatumapisComputeV1AlphaInstance = {
                  * almost certainly wrong.
                  * More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                  */
-                name?: string
+                name?: string;
                 /**
                  * Specify whether the Secret or its key must be defined
                  */
-                optional?: boolean
-              }
-            }
-          }>
+                optional?: boolean;
+              };
+            };
+          }>;
           /**
            * The fully qualified container image name.
            */
-          image: string
+          image: string;
           /**
            * The name of the container.
            */
-          name: string
+          name: string;
           /**
            * A list of named ports for the container.
            */
@@ -264,17 +264,17 @@ export type ComDatumapisComputeV1AlphaInstance = {
             /**
              * The name of the port that can be referenced by other platform features.
              */
-            name: string
+            name: string;
             /**
              * The port number, which can be a value between 1 and 65535.
              */
-            port: number
+            port: number;
             /**
              * protocol represents the protocol (TCP, UDP, or SCTP) which traffic must match.
              * If not specified, this field defaults to TCP.
              */
-            protocol?: string
-          }>
+            protocol?: string;
+          }>;
           /**
            * The resource requirements for the container, such as CPU, memory, and GPUs.
            */
@@ -283,15 +283,15 @@ export type ComDatumapisComputeV1AlphaInstance = {
              * Limits describes the maximum amount of compute resources allowed.
              */
             limits?: {
-              [key: string]: number | string
-            }
+              [key: string]: number | string;
+            };
             /**
              * Requests describes the minimum amount of compute resources required.
              */
             requests?: {
-              [key: string]: number | string
-            }
-          }
+              [key: string]: number | string;
+            };
+          };
           /**
            * A list of volumes to attach to the container.
            */
@@ -305,13 +305,13 @@ export type ComDatumapisComputeV1AlphaInstance = {
              * For VM based instances, this functionality requires certain capabilities
              * to be annotated on the boot image, such as cloud-init.
              */
-            mountPath?: string
+            mountPath?: string;
             /**
              * The name of the volume to attach as defined in InstanceSpec.Volumes.
              */
-            name: string
-          }>
-        }>
+            name: string;
+          }>;
+        }>;
         /**
          * An optional list of secrets in the same namespace to use for pulling images
          * used by the instance.
@@ -320,9 +320,9 @@ export type ComDatumapisComputeV1AlphaInstance = {
           /**
            * The name of the secret
            */
-          name: string
-        }>
-      }
+          name: string;
+        }>;
+      };
       /**
        * A virtual machine is a classical VM environment, booting a full OS provided by the user via an image.
        */
@@ -334,17 +334,17 @@ export type ComDatumapisComputeV1AlphaInstance = {
           /**
            * The name of the port that can be referenced by other platform features.
            */
-          name: string
+          name: string;
           /**
            * The port number, which can be a value between 1 and 65535.
            */
-          port: number
+          port: number;
           /**
            * protocol represents the protocol (TCP, UDP, or SCTP) which traffic must match.
            * If not specified, this field defaults to TCP.
            */
-          protocol?: string
-        }>
+          protocol?: string;
+        }>;
         /**
          * A list of volumes to attach to the VM.
          */
@@ -358,14 +358,14 @@ export type ComDatumapisComputeV1AlphaInstance = {
            * For VM based instances, this functionality requires certain capabilities
            * to be annotated on the boot image, such as cloud-init.
            */
-          mountPath?: string
+          mountPath?: string;
           /**
            * The name of the volume to attach as defined in InstanceSpec.Volumes.
            */
-          name: string
-        }>
-      }
-    }
+          name: string;
+        }>;
+      };
+    };
     volumes?: Array<{
       /**
        * A configMap that should populate this volume
@@ -380,7 +380,7 @@ export type ComDatumapisComputeV1AlphaInstance = {
          * This might be in conflict with other options that affect the file
          * mode, like fsGroup, and the result can be other mode bits set.
          */
-        defaultMode?: number
+        defaultMode?: number;
         /**
          * items if unspecified, each key-value pair in the Data field of the referenced
          * ConfigMap will be projected into the volume as a file whose name is the
@@ -394,7 +394,7 @@ export type ComDatumapisComputeV1AlphaInstance = {
           /**
            * key is the key to project.
            */
-          key: string
+          key: string;
           /**
            * mode is Optional: mode bits used to set permissions on this file.
            * Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.
@@ -403,15 +403,15 @@ export type ComDatumapisComputeV1AlphaInstance = {
            * This might be in conflict with other options that affect the file
            * mode, like fsGroup, and the result can be other mode bits set.
            */
-          mode?: number
+          mode?: number;
           /**
            * path is the relative path of the file to map the key to.
            * May not be an absolute path.
            * May not contain the path element '..'.
            * May not start with the string '..'.
            */
-          path: string
-        }>
+          path: string;
+        }>;
         /**
          * Name of the referent.
          * This field is effectively required, but due to backwards compatibility is
@@ -419,12 +419,12 @@ export type ComDatumapisComputeV1AlphaInstance = {
          * almost certainly wrong.
          * More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
          */
-        name?: string
+        name?: string;
         /**
          * optional specify whether the ConfigMap or its keys must be defined
          */
-        optional?: boolean
-      }
+        optional?: boolean;
+      };
       /**
        * A persistent disk backed volume.
        */
@@ -440,7 +440,7 @@ export type ComDatumapisComputeV1AlphaInstance = {
          * apply to this disk, in the form persistent-disk-x, where x is a
          * number assigned by Datum Cloud.
          */
-        deviceName?: string
+        deviceName?: string;
         /**
          * Settings to create a new disk for an attached disk
          */
@@ -450,15 +450,15 @@ export type ComDatumapisComputeV1AlphaInstance = {
            */
           metadata?: {
             annotations?: {
-              [key: string]: string
-            }
-            finalizers?: Array<string>
+              [key: string]: string;
+            };
+            finalizers?: Array<string>;
             labels?: {
-              [key: string]: string
-            }
-            name?: string
-            namespace?: string
-          }
+              [key: string]: string;
+            };
+            name?: string;
+            namespace?: string;
+          };
           /**
            * Describes the desired configuration of a disk
            */
@@ -474,8 +474,8 @@ export type ComDatumapisComputeV1AlphaInstance = {
                 /**
                  * The type of filesystem to populate the disk with.
                  */
-                type: 'ext4'
-              }
+                type: 'ext4';
+              };
               /**
                * Populate the disk from an image
                */
@@ -485,9 +485,9 @@ export type ComDatumapisComputeV1AlphaInstance = {
                  *
                  * in `populator.image.imageRef.name` though.
                  */
-                name: string
-              }
-            }
+                name: string;
+              };
+            };
             /**
              * The resource requirements for the disk.
              */
@@ -496,23 +496,23 @@ export type ComDatumapisComputeV1AlphaInstance = {
                * Requests describes the minimum amount of storage resources required.
                */
               requests?: {
-                [key: string]: number | string
-              }
-            }
+                [key: string]: number | string;
+              };
+            };
             /**
              * The type the disk, such as `pd-standard`.
              */
-            type?: string
-          }
-        }
-      }
+            type?: string;
+          };
+        };
+      };
       /**
        * Name is used to reference the volume in `volumeAttachments` for
        * containers and VMs, and will be used to derive the platform resource
        * name when required by prefixing this name with the instance name upon
        * creation.
        */
-      name: string
+      name: string;
       /**
        * A secret that should populate this volume
        */
@@ -526,7 +526,7 @@ export type ComDatumapisComputeV1AlphaInstance = {
          * This might be in conflict with other options that affect the file
          * mode, like fsGroup, and the result can be other mode bits set.
          */
-        defaultMode?: number
+        defaultMode?: number;
         /**
          * items If unspecified, each key-value pair in the Data field of the referenced
          * Secret will be projected into the volume as a file whose name is the
@@ -540,7 +540,7 @@ export type ComDatumapisComputeV1AlphaInstance = {
           /**
            * key is the key to project.
            */
-          key: string
+          key: string;
           /**
            * mode is Optional: mode bits used to set permissions on this file.
            * Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.
@@ -549,27 +549,27 @@ export type ComDatumapisComputeV1AlphaInstance = {
            * This might be in conflict with other options that affect the file
            * mode, like fsGroup, and the result can be other mode bits set.
            */
-          mode?: number
+          mode?: number;
           /**
            * path is the relative path of the file to map the key to.
            * May not be an absolute path.
            * May not contain the path element '..'.
            * May not start with the string '..'.
            */
-          path: string
-        }>
+          path: string;
+        }>;
         /**
          * optional field specify whether the Secret or its keys must be defined
          */
-        optional?: boolean
+        optional?: boolean;
         /**
          * secretName is the name of the secret in the pod's namespace to use.
          * More info: https://kubernetes.io/docs/concepts/storage/volumes#secret
          */
-        secretName?: string
-      }
-    }>
-  }
+        secretName?: string;
+      };
+    }>;
+  };
   /**
    * InstanceStatus defines the observed state of Instance
    */
@@ -583,18 +583,18 @@ export type ComDatumapisComputeV1AlphaInstance = {
        * lastTransitionTime is the last time the condition transitioned from one status to another.
        * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
        */
-      lastTransitionTime: Date
+      lastTransitionTime: Date;
       /**
        * message is a human readable message indicating details about the transition.
        * This may be an empty string.
        */
-      message: string
+      message: string;
       /**
        * observedGeneration represents the .metadata.generation that the condition was set based upon.
        * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
        * with respect to the current state of the instance.
        */
-      observedGeneration?: bigint
+      observedGeneration?: bigint;
       /**
        * reason contains a programmatic identifier indicating the reason for the condition's last transition.
        * Producers of specific condition types may define expected values and meanings for this field,
@@ -602,16 +602,16 @@ export type ComDatumapisComputeV1AlphaInstance = {
        * The value should be a CamelCase string.
        * This field may not be empty.
        */
-      reason: string
+      reason: string;
       /**
        * status of the condition, one of True, False, Unknown.
        */
-      status: 'True' | 'False' | 'Unknown'
+      status: 'True' | 'False' | 'Unknown';
       /**
        * type of condition in CamelCase or in foo.example.com/CamelCase.
        */
-      type: string
-    }>
+      type: string;
+    }>;
     /**
      * Network interface information
      */
@@ -621,15 +621,15 @@ export type ComDatumapisComputeV1AlphaInstance = {
          * The external IP address used for the interface. A one to one NAT will be
          * performed for this address with the interface's network IP.
          */
-        externalIP?: string
+        externalIP?: string;
         /**
          * The IP address assigned as the primary IP from the attached network.
          */
-        networkIP?: string
-      }
-    }>
-  }
-}
+        networkIP?: string;
+      };
+    }>;
+  };
+};
 
 /**
  * InstanceList is a list of Instance
@@ -638,20 +638,20 @@ export type ComDatumapisComputeV1AlphaInstanceList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * List of instances. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
    */
-  items: Array<ComDatumapisComputeV1AlphaInstance>
+  items: Array<ComDatumapisComputeV1AlphaInstance>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
 
 /**
  * Workload is the Schema for the workloads API
@@ -660,15 +660,15 @@ export type ComDatumapisComputeV1AlphaWorkload = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
   /**
    * WorkloadSpec defines the desired state of Workload
    */
@@ -681,11 +681,11 @@ export type ComDatumapisComputeV1AlphaWorkload = {
       /**
        * A list of city codes that define where the instances should be deployed.
        */
-      cityCodes: Array<string>
+      cityCodes: Array<string>;
       /**
        * The name of the placement
        */
-      name: string
+      name: string;
       /**
        * Scale settings such as minimum and maximum replica counts.
        */
@@ -693,7 +693,7 @@ export type ComDatumapisComputeV1AlphaWorkload = {
         /**
          * The maximum number of replicas.
          */
-        maxReplicas?: number
+        maxReplicas?: number;
         /**
          * A list of metrics that determine scaling behavior, such as external metrics.
          */
@@ -705,7 +705,7 @@ export type ComDatumapisComputeV1AlphaWorkload = {
             /**
              * The name of the resource in question.
              */
-            name: string
+            name: string;
             /**
              * The target value for the given metric
              */
@@ -715,25 +715,25 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                * resource metric across all relevant instances, represented as a percentage of
                * the requested value of the resource for the instances.
                */
-              averageUtilization?: number
+              averageUtilization?: number;
               /**
                * The target value of the average of the metric across all relevant instances
                * (as a quantity)
                */
-              averageValue?: number | string
+              averageValue?: number | string;
               /**
                * The target value of the metric (as a quantity).
                */
-              value?: number | string
-            }
-          }
-        }>
+              value?: number | string;
+            };
+          };
+        }>;
         /**
          * The minimum number of replicas.
          */
-        minReplicas: number
-      }
-    }>
+        minReplicas: number;
+      };
+    }>;
     /**
      * Defines settings for each instance.
      */
@@ -743,15 +743,15 @@ export type ComDatumapisComputeV1AlphaWorkload = {
        */
       metadata?: {
         annotations?: {
-          [key: string]: string
-        }
-        finalizers?: Array<string>
+          [key: string]: string;
+        };
+        finalizers?: Array<string>;
         labels?: {
-          [key: string]: string
-        }
-        name?: string
-        namespace?: string
-      }
+          [key: string]: string;
+        };
+        name?: string;
+        namespace?: string;
+      };
       /**
        * Describes the desired configuration of an instance
        */
@@ -767,14 +767,14 @@ export type ComDatumapisComputeV1AlphaWorkload = {
             /**
              * The network name
              */
-            name: string
+            name: string;
             /**
              * The network namespace.
              *
              * Defaults to the namespace for the type the reference is embedded in.
              */
-            namespace?: string
-          }
+            namespace?: string;
+          };
           /**
            * Interface specific network policy.
            *
@@ -802,15 +802,15 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                    * cidr is a string representing the IPBlock
                    * Valid examples are "192.168.1.0/24" or "2001:db8::/64"
                    */
-                  cidr: string
+                  cidr: string;
                   /**
                    * except is a slice of CIDRs that should not be included within an IPBlock
                    * Valid examples are "192.168.1.0/24" or "2001:db8::/64"
                    * Except values will be rejected if they are outside the cidr range
                    */
-                  except?: Array<string>
-                }
-              }>
+                  except?: Array<string>;
+                };
+              }>;
               /**
                * ports is a list of ports which should be made accessible on the instances selected for
                * this rule. Each item in this list is combined using a logical OR. If this field is
@@ -825,23 +825,23 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                  * is not defined or if the port field is defined as a named (string) port.
                  * The endPort must be equal or greater than port.
                  */
-                endPort?: number
+                endPort?: number;
                 /**
                  * port represents the port on the given protocol. This can either be a numerical or named
                  * port on an instance. If this field is not provided, this matches all port names and
                  * numbers.
                  * If present, only traffic on the specified protocol AND port will be matched.
                  */
-                port?: number | string
+                port?: number | string;
                 /**
                  * protocol represents the protocol (TCP, UDP, or SCTP) which traffic must match.
                  * If not specified, this field defaults to TCP.
                  */
-                protocol?: string
-              }>
-            }>
-          }
-        }>
+                protocol?: string;
+              }>;
+            }>;
+          };
+        }>;
         /**
          * The runtime type of the instance, such as a container sandbox or a VM.
          */
@@ -867,14 +867,14 @@ export type ComDatumapisComputeV1AlphaWorkload = {
              * instance families that support customization. Instance types which support
              * customization will appear in the form `<project>/<instanceFamily>-custom`.
              */
-            instanceType: string
+            instanceType: string;
             /**
              * Describes adjustments to the resources defined by the instance type.
              */
             requests?: {
-              [key: string]: number | string
-            }
-          }
+              [key: string]: number | string;
+            };
+          };
           /**
            * A sandbox is a managed isolated environment capable of running containers.
            */
@@ -892,7 +892,7 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                 /**
                  * Name of the environment variable. Must be a C_IDENTIFIER.
                  */
-                name: string
+                name: string;
                 /**
                  * Variable references $(VAR_NAME) are expanded
                  * using the previously defined environment variables in the container and
@@ -904,7 +904,7 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                  * exists or not.
                  * Defaults to "".
                  */
-                value?: string
+                value?: string;
                 /**
                  * Source for the environment variable's value. Cannot be used if value is not empty.
                  */
@@ -916,7 +916,7 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                     /**
                      * The key to select.
                      */
-                    key: string
+                    key: string;
                     /**
                      * Name of the referent.
                      * This field is effectively required, but due to backwards compatibility is
@@ -924,12 +924,12 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                      * almost certainly wrong.
                      * More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                      */
-                    name?: string
+                    name?: string;
                     /**
                      * Specify whether the ConfigMap or its key must be defined
                      */
-                    optional?: boolean
-                  }
+                    optional?: boolean;
+                  };
                   /**
                    * Selects a field of the pod: supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`,
                    * spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.
@@ -938,12 +938,12 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                     /**
                      * Version of the schema the FieldPath is written in terms of, defaults to "v1".
                      */
-                    apiVersion?: string
+                    apiVersion?: string;
                     /**
                      * Path of the field to select in the specified API version.
                      */
-                    fieldPath: string
-                  }
+                    fieldPath: string;
+                  };
                   /**
                    * Selects a resource of the container: only resources limits and requests
                    * (limits.cpu, limits.memory, limits.ephemeral-storage, requests.cpu, requests.memory and requests.ephemeral-storage) are currently supported.
@@ -952,16 +952,16 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                     /**
                      * Container name: required for volumes, optional for env vars
                      */
-                    containerName?: string
+                    containerName?: string;
                     /**
                      * Specifies the output format of the exposed resources, defaults to "1"
                      */
-                    divisor?: number | string
+                    divisor?: number | string;
                     /**
                      * Required: resource to select
                      */
-                    resource: string
-                  }
+                    resource: string;
+                  };
                   /**
                    * Selects a key of a secret in the pod's namespace
                    */
@@ -969,7 +969,7 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                     /**
                      * The key of the secret to select from.  Must be a valid secret key.
                      */
-                    key: string
+                    key: string;
                     /**
                      * Name of the referent.
                      * This field is effectively required, but due to backwards compatibility is
@@ -977,22 +977,22 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                      * almost certainly wrong.
                      * More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                      */
-                    name?: string
+                    name?: string;
                     /**
                      * Specify whether the Secret or its key must be defined
                      */
-                    optional?: boolean
-                  }
-                }
-              }>
+                    optional?: boolean;
+                  };
+                };
+              }>;
               /**
                * The fully qualified container image name.
                */
-              image: string
+              image: string;
               /**
                * The name of the container.
                */
-              name: string
+              name: string;
               /**
                * A list of named ports for the container.
                */
@@ -1000,17 +1000,17 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                 /**
                  * The name of the port that can be referenced by other platform features.
                  */
-                name: string
+                name: string;
                 /**
                  * The port number, which can be a value between 1 and 65535.
                  */
-                port: number
+                port: number;
                 /**
                  * protocol represents the protocol (TCP, UDP, or SCTP) which traffic must match.
                  * If not specified, this field defaults to TCP.
                  */
-                protocol?: string
-              }>
+                protocol?: string;
+              }>;
               /**
                * The resource requirements for the container, such as CPU, memory, and GPUs.
                */
@@ -1019,15 +1019,15 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                  * Limits describes the maximum amount of compute resources allowed.
                  */
                 limits?: {
-                  [key: string]: number | string
-                }
+                  [key: string]: number | string;
+                };
                 /**
                  * Requests describes the minimum amount of compute resources required.
                  */
                 requests?: {
-                  [key: string]: number | string
-                }
-              }
+                  [key: string]: number | string;
+                };
+              };
               /**
                * A list of volumes to attach to the container.
                */
@@ -1041,13 +1041,13 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                  * For VM based instances, this functionality requires certain capabilities
                  * to be annotated on the boot image, such as cloud-init.
                  */
-                mountPath?: string
+                mountPath?: string;
                 /**
                  * The name of the volume to attach as defined in InstanceSpec.Volumes.
                  */
-                name: string
-              }>
-            }>
+                name: string;
+              }>;
+            }>;
             /**
              * An optional list of secrets in the same namespace to use for pulling images
              * used by the instance.
@@ -1056,9 +1056,9 @@ export type ComDatumapisComputeV1AlphaWorkload = {
               /**
                * The name of the secret
                */
-              name: string
-            }>
-          }
+              name: string;
+            }>;
+          };
           /**
            * A virtual machine is a classical VM environment, booting a full OS provided by the user via an image.
            */
@@ -1070,17 +1070,17 @@ export type ComDatumapisComputeV1AlphaWorkload = {
               /**
                * The name of the port that can be referenced by other platform features.
                */
-              name: string
+              name: string;
               /**
                * The port number, which can be a value between 1 and 65535.
                */
-              port: number
+              port: number;
               /**
                * protocol represents the protocol (TCP, UDP, or SCTP) which traffic must match.
                * If not specified, this field defaults to TCP.
                */
-              protocol?: string
-            }>
+              protocol?: string;
+            }>;
             /**
              * A list of volumes to attach to the VM.
              */
@@ -1094,14 +1094,14 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                * For VM based instances, this functionality requires certain capabilities
                * to be annotated on the boot image, such as cloud-init.
                */
-              mountPath?: string
+              mountPath?: string;
               /**
                * The name of the volume to attach as defined in InstanceSpec.Volumes.
                */
-              name: string
-            }>
-          }
-        }
+              name: string;
+            }>;
+          };
+        };
         volumes?: Array<{
           /**
            * A configMap that should populate this volume
@@ -1116,7 +1116,7 @@ export type ComDatumapisComputeV1AlphaWorkload = {
              * This might be in conflict with other options that affect the file
              * mode, like fsGroup, and the result can be other mode bits set.
              */
-            defaultMode?: number
+            defaultMode?: number;
             /**
              * items if unspecified, each key-value pair in the Data field of the referenced
              * ConfigMap will be projected into the volume as a file whose name is the
@@ -1130,7 +1130,7 @@ export type ComDatumapisComputeV1AlphaWorkload = {
               /**
                * key is the key to project.
                */
-              key: string
+              key: string;
               /**
                * mode is Optional: mode bits used to set permissions on this file.
                * Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.
@@ -1139,15 +1139,15 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                * This might be in conflict with other options that affect the file
                * mode, like fsGroup, and the result can be other mode bits set.
                */
-              mode?: number
+              mode?: number;
               /**
                * path is the relative path of the file to map the key to.
                * May not be an absolute path.
                * May not contain the path element '..'.
                * May not start with the string '..'.
                */
-              path: string
-            }>
+              path: string;
+            }>;
             /**
              * Name of the referent.
              * This field is effectively required, but due to backwards compatibility is
@@ -1155,12 +1155,12 @@ export type ComDatumapisComputeV1AlphaWorkload = {
              * almost certainly wrong.
              * More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
              */
-            name?: string
+            name?: string;
             /**
              * optional specify whether the ConfigMap or its keys must be defined
              */
-            optional?: boolean
-          }
+            optional?: boolean;
+          };
           /**
            * A persistent disk backed volume.
            */
@@ -1176,7 +1176,7 @@ export type ComDatumapisComputeV1AlphaWorkload = {
              * apply to this disk, in the form persistent-disk-x, where x is a
              * number assigned by Datum Cloud.
              */
-            deviceName?: string
+            deviceName?: string;
             /**
              * Settings to create a new disk for an attached disk
              */
@@ -1186,15 +1186,15 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                */
               metadata?: {
                 annotations?: {
-                  [key: string]: string
-                }
-                finalizers?: Array<string>
+                  [key: string]: string;
+                };
+                finalizers?: Array<string>;
                 labels?: {
-                  [key: string]: string
-                }
-                name?: string
-                namespace?: string
-              }
+                  [key: string]: string;
+                };
+                name?: string;
+                namespace?: string;
+              };
               /**
                * Describes the desired configuration of a disk
                */
@@ -1210,8 +1210,8 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                     /**
                      * The type of filesystem to populate the disk with.
                      */
-                    type: 'ext4'
-                  }
+                    type: 'ext4';
+                  };
                   /**
                    * Populate the disk from an image
                    */
@@ -1221,9 +1221,9 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                      *
                      * in `populator.image.imageRef.name` though.
                      */
-                    name: string
-                  }
-                }
+                    name: string;
+                  };
+                };
                 /**
                  * The resource requirements for the disk.
                  */
@@ -1232,23 +1232,23 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                    * Requests describes the minimum amount of storage resources required.
                    */
                   requests?: {
-                    [key: string]: number | string
-                  }
-                }
+                    [key: string]: number | string;
+                  };
+                };
                 /**
                  * The type the disk, such as `pd-standard`.
                  */
-                type?: string
-              }
-            }
-          }
+                type?: string;
+              };
+            };
+          };
           /**
            * Name is used to reference the volume in `volumeAttachments` for
            * containers and VMs, and will be used to derive the platform resource
            * name when required by prefixing this name with the instance name upon
            * creation.
            */
-          name: string
+          name: string;
           /**
            * A secret that should populate this volume
            */
@@ -1262,7 +1262,7 @@ export type ComDatumapisComputeV1AlphaWorkload = {
              * This might be in conflict with other options that affect the file
              * mode, like fsGroup, and the result can be other mode bits set.
              */
-            defaultMode?: number
+            defaultMode?: number;
             /**
              * items If unspecified, each key-value pair in the Data field of the referenced
              * Secret will be projected into the volume as a file whose name is the
@@ -1276,7 +1276,7 @@ export type ComDatumapisComputeV1AlphaWorkload = {
               /**
                * key is the key to project.
                */
-              key: string
+              key: string;
               /**
                * mode is Optional: mode bits used to set permissions on this file.
                * Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.
@@ -1285,29 +1285,29 @@ export type ComDatumapisComputeV1AlphaWorkload = {
                * This might be in conflict with other options that affect the file
                * mode, like fsGroup, and the result can be other mode bits set.
                */
-              mode?: number
+              mode?: number;
               /**
                * path is the relative path of the file to map the key to.
                * May not be an absolute path.
                * May not contain the path element '..'.
                * May not start with the string '..'.
                */
-              path: string
-            }>
+              path: string;
+            }>;
             /**
              * optional field specify whether the Secret or its keys must be defined
              */
-            optional?: boolean
+            optional?: boolean;
             /**
              * secretName is the name of the secret in the pod's namespace to use.
              * More info: https://kubernetes.io/docs/concepts/storage/volumes#secret
              */
-            secretName?: string
-          }
-        }>
-      }
-    }
-  }
+            secretName?: string;
+          };
+        }>;
+      };
+    };
+  };
   /**
    * WorkloadStatus defines the observed state of Workload
    */
@@ -1321,18 +1321,18 @@ export type ComDatumapisComputeV1AlphaWorkload = {
        * lastTransitionTime is the last time the condition transitioned from one status to another.
        * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
        */
-      lastTransitionTime: Date
+      lastTransitionTime: Date;
       /**
        * message is a human readable message indicating details about the transition.
        * This may be an empty string.
        */
-      message: string
+      message: string;
       /**
        * observedGeneration represents the .metadata.generation that the condition was set based upon.
        * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
        * with respect to the current state of the instance.
        */
-      observedGeneration?: bigint
+      observedGeneration?: bigint;
       /**
        * reason contains a programmatic identifier indicating the reason for the condition's last transition.
        * Producers of specific condition types may define expected values and meanings for this field,
@@ -1340,25 +1340,25 @@ export type ComDatumapisComputeV1AlphaWorkload = {
        * The value should be a CamelCase string.
        * This field may not be empty.
        */
-      reason: string
+      reason: string;
       /**
        * status of the condition, one of True, False, Unknown.
        */
-      status: 'True' | 'False' | 'Unknown'
+      status: 'True' | 'False' | 'Unknown';
       /**
        * type of condition in CamelCase or in foo.example.com/CamelCase.
        */
-      type: string
-    }>
+      type: string;
+    }>;
     /**
      * The number of instances created by a placement and have the latest
      * workload generation settings applied.
      */
-    currentReplicas: number
+    currentReplicas: number;
     /**
      * The desired number of instances to be managed by a placement.
      */
-    desiredReplicas: number
+    desiredReplicas: number;
     /**
      * The status of the workload gateway if configured.
      */
@@ -1380,15 +1380,15 @@ export type ComDatumapisComputeV1AlphaWorkload = {
         /**
          * Type of the address.
          */
-        type?: string
+        type?: string;
         /**
          * Value of the address. The validity of the values will depend
          * on the type and support by the controller.
          *
          * Examples: `1.2.3.4`, `128::1`, `my-ip-address`.
          */
-        value: string
-      }>
+        value: string;
+      }>;
       /**
        * Conditions describe the current conditions of the Gateway.
        *
@@ -1408,18 +1408,18 @@ export type ComDatumapisComputeV1AlphaWorkload = {
          * lastTransitionTime is the last time the condition transitioned from one status to another.
          * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
          */
-        lastTransitionTime: Date
+        lastTransitionTime: Date;
         /**
          * message is a human readable message indicating details about the transition.
          * This may be an empty string.
          */
-        message: string
+        message: string;
         /**
          * observedGeneration represents the .metadata.generation that the condition was set based upon.
          * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
          * with respect to the current state of the instance.
          */
-        observedGeneration?: bigint
+        observedGeneration?: bigint;
         /**
          * reason contains a programmatic identifier indicating the reason for the condition's last transition.
          * Producers of specific condition types may define expected values and meanings for this field,
@@ -1427,16 +1427,16 @@ export type ComDatumapisComputeV1AlphaWorkload = {
          * The value should be a CamelCase string.
          * This field may not be empty.
          */
-        reason: string
+        reason: string;
         /**
          * status of the condition, one of True, False, Unknown.
          */
-        status: 'True' | 'False' | 'Unknown'
+        status: 'True' | 'False' | 'Unknown';
         /**
          * type of condition in CamelCase or in foo.example.com/CamelCase.
          */
-        type: string
-      }>
+        type: string;
+      }>;
       /**
        * Listeners provide status for each unique listener port defined in the Spec.
        */
@@ -1460,7 +1460,7 @@ export type ComDatumapisComputeV1AlphaWorkload = {
          * Uses for this field include troubleshooting Route attachment and
          * measuring blast radius/impact of changes to a Listener.
          */
-        attachedRoutes: number
+        attachedRoutes: number;
         /**
          * Conditions describe the current condition of this listener.
          */
@@ -1469,18 +1469,18 @@ export type ComDatumapisComputeV1AlphaWorkload = {
            * lastTransitionTime is the last time the condition transitioned from one status to another.
            * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
            */
-          lastTransitionTime: Date
+          lastTransitionTime: Date;
           /**
            * message is a human readable message indicating details about the transition.
            * This may be an empty string.
            */
-          message: string
+          message: string;
           /**
            * observedGeneration represents the .metadata.generation that the condition was set based upon.
            * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
            * with respect to the current state of the instance.
            */
-          observedGeneration?: bigint
+          observedGeneration?: bigint;
           /**
            * reason contains a programmatic identifier indicating the reason for the condition's last transition.
            * Producers of specific condition types may define expected values and meanings for this field,
@@ -1488,20 +1488,20 @@ export type ComDatumapisComputeV1AlphaWorkload = {
            * The value should be a CamelCase string.
            * This field may not be empty.
            */
-          reason: string
+          reason: string;
           /**
            * status of the condition, one of True, False, Unknown.
            */
-          status: 'True' | 'False' | 'Unknown'
+          status: 'True' | 'False' | 'Unknown';
           /**
            * type of condition in CamelCase or in foo.example.com/CamelCase.
            */
-          type: string
-        }>
+          type: string;
+        }>;
         /**
          * Name is the name of the Listener that this status corresponds to.
          */
-        name: string
+        name: string;
         /**
          * SupportedKinds is the list indicating the Kinds supported by this
          * listener. This MUST represent the kinds an implementation supports for
@@ -1517,14 +1517,14 @@ export type ComDatumapisComputeV1AlphaWorkload = {
           /**
            * Group is the group of the Route.
            */
-          group?: string
+          group?: string;
           /**
            * Kind is the kind of the Route.
            */
-          kind: string
-        }>
-      }>
-    }
+          kind: string;
+        }>;
+      }>;
+    };
     /**
      * The current status of placemetns in a workload.
      */
@@ -1538,18 +1538,18 @@ export type ComDatumapisComputeV1AlphaWorkload = {
          * lastTransitionTime is the last time the condition transitioned from one status to another.
          * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
          */
-        lastTransitionTime: Date
+        lastTransitionTime: Date;
         /**
          * message is a human readable message indicating details about the transition.
          * This may be an empty string.
          */
-        message: string
+        message: string;
         /**
          * observedGeneration represents the .metadata.generation that the condition was set based upon.
          * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
          * with respect to the current state of the instance.
          */
-        observedGeneration?: bigint
+        observedGeneration?: bigint;
         /**
          * reason contains a programmatic identifier indicating the reason for the condition's last transition.
          * Producers of specific condition types may define expected values and meanings for this field,
@@ -1557,40 +1557,40 @@ export type ComDatumapisComputeV1AlphaWorkload = {
          * The value should be a CamelCase string.
          * This field may not be empty.
          */
-        reason: string
+        reason: string;
         /**
          * status of the condition, one of True, False, Unknown.
          */
-        status: 'True' | 'False' | 'Unknown'
+        status: 'True' | 'False' | 'Unknown';
         /**
          * type of condition in CamelCase or in foo.example.com/CamelCase.
          */
-        type: string
-      }>
+        type: string;
+      }>;
       /**
        * The number of instances created by a placement and have the latest
        * workload generation settings applied.
        */
-      currentReplicas: number
+      currentReplicas: number;
       /**
        * The desired number of instances to be managed by a placement.
        */
-      desiredReplicas: number
+      desiredReplicas: number;
       /**
        * The name of the placement
        */
-      name: string
+      name: string;
       /**
        * The number of instances created by a placement
        */
-      replicas: number
-    }>
+      replicas: number;
+    }>;
     /**
      * The number of instances created by a placement
      */
-    replicas: number
-  }
-}
+    replicas: number;
+  };
+};
 
 /**
  * WorkloadDeployment is the Schema for the workloaddeployments API
@@ -1599,15 +1599,15 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
   /**
    * WorkloadDeploymentSpec defines the desired state of WorkloadDeployment
    */
@@ -1615,11 +1615,11 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
     /**
      * deployments can be scheduled in ways other than just a city code.
      */
-    cityCode: string
+    cityCode: string;
     /**
      * The placement in the workload which is driving a deployment
      */
-    placementName: string
+    placementName: string;
     /**
      * Scale settings such as minimum and maximum replica counts.
      */
@@ -1627,7 +1627,7 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
       /**
        * The maximum number of replicas.
        */
-      maxReplicas?: number
+      maxReplicas?: number;
       /**
        * A list of metrics that determine scaling behavior, such as external metrics.
        */
@@ -1639,7 +1639,7 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
           /**
            * The name of the resource in question.
            */
-          name: string
+          name: string;
           /**
            * The target value for the given metric
            */
@@ -1649,24 +1649,24 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
              * resource metric across all relevant instances, represented as a percentage of
              * the requested value of the resource for the instances.
              */
-            averageUtilization?: number
+            averageUtilization?: number;
             /**
              * The target value of the average of the metric across all relevant instances
              * (as a quantity)
              */
-            averageValue?: number | string
+            averageValue?: number | string;
             /**
              * The target value of the metric (as a quantity).
              */
-            value?: number | string
-          }
-        }
-      }>
+            value?: number | string;
+          };
+        };
+      }>;
       /**
        * The minimum number of replicas.
        */
-      minReplicas: number
-    }
+      minReplicas: number;
+    };
     /**
      * Defines settings for each instance.
      */
@@ -1676,15 +1676,15 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
        */
       metadata?: {
         annotations?: {
-          [key: string]: string
-        }
-        finalizers?: Array<string>
+          [key: string]: string;
+        };
+        finalizers?: Array<string>;
         labels?: {
-          [key: string]: string
-        }
-        name?: string
-        namespace?: string
-      }
+          [key: string]: string;
+        };
+        name?: string;
+        namespace?: string;
+      };
       /**
        * Describes the desired configuration of an instance
        */
@@ -1700,14 +1700,14 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
             /**
              * The network name
              */
-            name: string
+            name: string;
             /**
              * The network namespace.
              *
              * Defaults to the namespace for the type the reference is embedded in.
              */
-            namespace?: string
-          }
+            namespace?: string;
+          };
           /**
            * Interface specific network policy.
            *
@@ -1735,15 +1735,15 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                    * cidr is a string representing the IPBlock
                    * Valid examples are "192.168.1.0/24" or "2001:db8::/64"
                    */
-                  cidr: string
+                  cidr: string;
                   /**
                    * except is a slice of CIDRs that should not be included within an IPBlock
                    * Valid examples are "192.168.1.0/24" or "2001:db8::/64"
                    * Except values will be rejected if they are outside the cidr range
                    */
-                  except?: Array<string>
-                }
-              }>
+                  except?: Array<string>;
+                };
+              }>;
               /**
                * ports is a list of ports which should be made accessible on the instances selected for
                * this rule. Each item in this list is combined using a logical OR. If this field is
@@ -1758,23 +1758,23 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                  * is not defined or if the port field is defined as a named (string) port.
                  * The endPort must be equal or greater than port.
                  */
-                endPort?: number
+                endPort?: number;
                 /**
                  * port represents the port on the given protocol. This can either be a numerical or named
                  * port on an instance. If this field is not provided, this matches all port names and
                  * numbers.
                  * If present, only traffic on the specified protocol AND port will be matched.
                  */
-                port?: number | string
+                port?: number | string;
                 /**
                  * protocol represents the protocol (TCP, UDP, or SCTP) which traffic must match.
                  * If not specified, this field defaults to TCP.
                  */
-                protocol?: string
-              }>
-            }>
-          }
-        }>
+                protocol?: string;
+              }>;
+            }>;
+          };
+        }>;
         /**
          * The runtime type of the instance, such as a container sandbox or a VM.
          */
@@ -1800,14 +1800,14 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
              * instance families that support customization. Instance types which support
              * customization will appear in the form `<project>/<instanceFamily>-custom`.
              */
-            instanceType: string
+            instanceType: string;
             /**
              * Describes adjustments to the resources defined by the instance type.
              */
             requests?: {
-              [key: string]: number | string
-            }
-          }
+              [key: string]: number | string;
+            };
+          };
           /**
            * A sandbox is a managed isolated environment capable of running containers.
            */
@@ -1825,7 +1825,7 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                 /**
                  * Name of the environment variable. Must be a C_IDENTIFIER.
                  */
-                name: string
+                name: string;
                 /**
                  * Variable references $(VAR_NAME) are expanded
                  * using the previously defined environment variables in the container and
@@ -1837,7 +1837,7 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                  * exists or not.
                  * Defaults to "".
                  */
-                value?: string
+                value?: string;
                 /**
                  * Source for the environment variable's value. Cannot be used if value is not empty.
                  */
@@ -1849,7 +1849,7 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                     /**
                      * The key to select.
                      */
-                    key: string
+                    key: string;
                     /**
                      * Name of the referent.
                      * This field is effectively required, but due to backwards compatibility is
@@ -1857,12 +1857,12 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                      * almost certainly wrong.
                      * More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                      */
-                    name?: string
+                    name?: string;
                     /**
                      * Specify whether the ConfigMap or its key must be defined
                      */
-                    optional?: boolean
-                  }
+                    optional?: boolean;
+                  };
                   /**
                    * Selects a field of the pod: supports metadata.name, metadata.namespace, `metadata.labels['<KEY>']`, `metadata.annotations['<KEY>']`,
                    * spec.nodeName, spec.serviceAccountName, status.hostIP, status.podIP, status.podIPs.
@@ -1871,12 +1871,12 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                     /**
                      * Version of the schema the FieldPath is written in terms of, defaults to "v1".
                      */
-                    apiVersion?: string
+                    apiVersion?: string;
                     /**
                      * Path of the field to select in the specified API version.
                      */
-                    fieldPath: string
-                  }
+                    fieldPath: string;
+                  };
                   /**
                    * Selects a resource of the container: only resources limits and requests
                    * (limits.cpu, limits.memory, limits.ephemeral-storage, requests.cpu, requests.memory and requests.ephemeral-storage) are currently supported.
@@ -1885,16 +1885,16 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                     /**
                      * Container name: required for volumes, optional for env vars
                      */
-                    containerName?: string
+                    containerName?: string;
                     /**
                      * Specifies the output format of the exposed resources, defaults to "1"
                      */
-                    divisor?: number | string
+                    divisor?: number | string;
                     /**
                      * Required: resource to select
                      */
-                    resource: string
-                  }
+                    resource: string;
+                  };
                   /**
                    * Selects a key of a secret in the pod's namespace
                    */
@@ -1902,7 +1902,7 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                     /**
                      * The key of the secret to select from.  Must be a valid secret key.
                      */
-                    key: string
+                    key: string;
                     /**
                      * Name of the referent.
                      * This field is effectively required, but due to backwards compatibility is
@@ -1910,22 +1910,22 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                      * almost certainly wrong.
                      * More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
                      */
-                    name?: string
+                    name?: string;
                     /**
                      * Specify whether the Secret or its key must be defined
                      */
-                    optional?: boolean
-                  }
-                }
-              }>
+                    optional?: boolean;
+                  };
+                };
+              }>;
               /**
                * The fully qualified container image name.
                */
-              image: string
+              image: string;
               /**
                * The name of the container.
                */
-              name: string
+              name: string;
               /**
                * A list of named ports for the container.
                */
@@ -1933,17 +1933,17 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                 /**
                  * The name of the port that can be referenced by other platform features.
                  */
-                name: string
+                name: string;
                 /**
                  * The port number, which can be a value between 1 and 65535.
                  */
-                port: number
+                port: number;
                 /**
                  * protocol represents the protocol (TCP, UDP, or SCTP) which traffic must match.
                  * If not specified, this field defaults to TCP.
                  */
-                protocol?: string
-              }>
+                protocol?: string;
+              }>;
               /**
                * The resource requirements for the container, such as CPU, memory, and GPUs.
                */
@@ -1952,15 +1952,15 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                  * Limits describes the maximum amount of compute resources allowed.
                  */
                 limits?: {
-                  [key: string]: number | string
-                }
+                  [key: string]: number | string;
+                };
                 /**
                  * Requests describes the minimum amount of compute resources required.
                  */
                 requests?: {
-                  [key: string]: number | string
-                }
-              }
+                  [key: string]: number | string;
+                };
+              };
               /**
                * A list of volumes to attach to the container.
                */
@@ -1974,13 +1974,13 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                  * For VM based instances, this functionality requires certain capabilities
                  * to be annotated on the boot image, such as cloud-init.
                  */
-                mountPath?: string
+                mountPath?: string;
                 /**
                  * The name of the volume to attach as defined in InstanceSpec.Volumes.
                  */
-                name: string
-              }>
-            }>
+                name: string;
+              }>;
+            }>;
             /**
              * An optional list of secrets in the same namespace to use for pulling images
              * used by the instance.
@@ -1989,9 +1989,9 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
               /**
                * The name of the secret
                */
-              name: string
-            }>
-          }
+              name: string;
+            }>;
+          };
           /**
            * A virtual machine is a classical VM environment, booting a full OS provided by the user via an image.
            */
@@ -2003,17 +2003,17 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
               /**
                * The name of the port that can be referenced by other platform features.
                */
-              name: string
+              name: string;
               /**
                * The port number, which can be a value between 1 and 65535.
                */
-              port: number
+              port: number;
               /**
                * protocol represents the protocol (TCP, UDP, or SCTP) which traffic must match.
                * If not specified, this field defaults to TCP.
                */
-              protocol?: string
-            }>
+              protocol?: string;
+            }>;
             /**
              * A list of volumes to attach to the VM.
              */
@@ -2027,14 +2027,14 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                * For VM based instances, this functionality requires certain capabilities
                * to be annotated on the boot image, such as cloud-init.
                */
-              mountPath?: string
+              mountPath?: string;
               /**
                * The name of the volume to attach as defined in InstanceSpec.Volumes.
                */
-              name: string
-            }>
-          }
-        }
+              name: string;
+            }>;
+          };
+        };
         volumes?: Array<{
           /**
            * A configMap that should populate this volume
@@ -2049,7 +2049,7 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
              * This might be in conflict with other options that affect the file
              * mode, like fsGroup, and the result can be other mode bits set.
              */
-            defaultMode?: number
+            defaultMode?: number;
             /**
              * items if unspecified, each key-value pair in the Data field of the referenced
              * ConfigMap will be projected into the volume as a file whose name is the
@@ -2063,7 +2063,7 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
               /**
                * key is the key to project.
                */
-              key: string
+              key: string;
               /**
                * mode is Optional: mode bits used to set permissions on this file.
                * Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.
@@ -2072,15 +2072,15 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                * This might be in conflict with other options that affect the file
                * mode, like fsGroup, and the result can be other mode bits set.
                */
-              mode?: number
+              mode?: number;
               /**
                * path is the relative path of the file to map the key to.
                * May not be an absolute path.
                * May not contain the path element '..'.
                * May not start with the string '..'.
                */
-              path: string
-            }>
+              path: string;
+            }>;
             /**
              * Name of the referent.
              * This field is effectively required, but due to backwards compatibility is
@@ -2088,12 +2088,12 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
              * almost certainly wrong.
              * More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
              */
-            name?: string
+            name?: string;
             /**
              * optional specify whether the ConfigMap or its keys must be defined
              */
-            optional?: boolean
-          }
+            optional?: boolean;
+          };
           /**
            * A persistent disk backed volume.
            */
@@ -2109,7 +2109,7 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
              * apply to this disk, in the form persistent-disk-x, where x is a
              * number assigned by Datum Cloud.
              */
-            deviceName?: string
+            deviceName?: string;
             /**
              * Settings to create a new disk for an attached disk
              */
@@ -2119,15 +2119,15 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                */
               metadata?: {
                 annotations?: {
-                  [key: string]: string
-                }
-                finalizers?: Array<string>
+                  [key: string]: string;
+                };
+                finalizers?: Array<string>;
                 labels?: {
-                  [key: string]: string
-                }
-                name?: string
-                namespace?: string
-              }
+                  [key: string]: string;
+                };
+                name?: string;
+                namespace?: string;
+              };
               /**
                * Describes the desired configuration of a disk
                */
@@ -2143,8 +2143,8 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                     /**
                      * The type of filesystem to populate the disk with.
                      */
-                    type: 'ext4'
-                  }
+                    type: 'ext4';
+                  };
                   /**
                    * Populate the disk from an image
                    */
@@ -2154,9 +2154,9 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                      *
                      * in `populator.image.imageRef.name` though.
                      */
-                    name: string
-                  }
-                }
+                    name: string;
+                  };
+                };
                 /**
                  * The resource requirements for the disk.
                  */
@@ -2165,23 +2165,23 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                    * Requests describes the minimum amount of storage resources required.
                    */
                   requests?: {
-                    [key: string]: number | string
-                  }
-                }
+                    [key: string]: number | string;
+                  };
+                };
                 /**
                  * The type the disk, such as `pd-standard`.
                  */
-                type?: string
-              }
-            }
-          }
+                type?: string;
+              };
+            };
+          };
           /**
            * Name is used to reference the volume in `volumeAttachments` for
            * containers and VMs, and will be used to derive the platform resource
            * name when required by prefixing this name with the instance name upon
            * creation.
            */
-          name: string
+          name: string;
           /**
            * A secret that should populate this volume
            */
@@ -2195,7 +2195,7 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
              * This might be in conflict with other options that affect the file
              * mode, like fsGroup, and the result can be other mode bits set.
              */
-            defaultMode?: number
+            defaultMode?: number;
             /**
              * items If unspecified, each key-value pair in the Data field of the referenced
              * Secret will be projected into the volume as a file whose name is the
@@ -2209,7 +2209,7 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
               /**
                * key is the key to project.
                */
-              key: string
+              key: string;
               /**
                * mode is Optional: mode bits used to set permissions on this file.
                * Must be an octal value between 0000 and 0777 or a decimal value between 0 and 511.
@@ -2218,28 +2218,28 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
                * This might be in conflict with other options that affect the file
                * mode, like fsGroup, and the result can be other mode bits set.
                */
-              mode?: number
+              mode?: number;
               /**
                * path is the relative path of the file to map the key to.
                * May not be an absolute path.
                * May not contain the path element '..'.
                * May not start with the string '..'.
                */
-              path: string
-            }>
+              path: string;
+            }>;
             /**
              * optional field specify whether the Secret or its keys must be defined
              */
-            optional?: boolean
+            optional?: boolean;
             /**
              * secretName is the name of the secret in the pod's namespace to use.
              * More info: https://kubernetes.io/docs/concepts/storage/volumes#secret
              */
-            secretName?: string
-          }
-        }>
-      }
-    }
+            secretName?: string;
+          };
+        }>;
+      };
+    };
     /**
      * The workload that a deployment belongs to
      */
@@ -2247,13 +2247,13 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
       /**
        * The name of the workload
        */
-      name: string
+      name: string;
       /**
        * UID of the Workload
        */
-      uid: string
-    }
-  }
+      uid: string;
+    };
+  };
   /**
    * WorkloadDeploymentStatus defines the observed state of WorkloadDeployment
    */
@@ -2267,18 +2267,18 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
        * lastTransitionTime is the last time the condition transitioned from one status to another.
        * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
        */
-      lastTransitionTime: Date
+      lastTransitionTime: Date;
       /**
        * message is a human readable message indicating details about the transition.
        * This may be an empty string.
        */
-      message: string
+      message: string;
       /**
        * observedGeneration represents the .metadata.generation that the condition was set based upon.
        * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
        * with respect to the current state of the instance.
        */
-      observedGeneration?: bigint
+      observedGeneration?: bigint;
       /**
        * reason contains a programmatic identifier indicating the reason for the condition's last transition.
        * Producers of specific condition types may define expected values and meanings for this field,
@@ -2286,25 +2286,25 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
        * The value should be a CamelCase string.
        * This field may not be empty.
        */
-      reason: string
+      reason: string;
       /**
        * status of the condition, one of True, False, Unknown.
        */
-      status: 'True' | 'False' | 'Unknown'
+      status: 'True' | 'False' | 'Unknown';
       /**
        * type of condition in CamelCase or in foo.example.com/CamelCase.
        */
-      type: string
-    }>
+      type: string;
+    }>;
     /**
      * The number of instances created by a deployment and have the latest
      * deployment generation settings applied.
      */
-    currentReplicas: number
+    currentReplicas: number;
     /**
      * The desired number of instances to be managed by a deployment.
      */
-    desiredReplicas: number
+    desiredReplicas: number;
     /**
      * The location which the deployment has been scheduled to
      */
@@ -2312,18 +2312,18 @@ export type ComDatumapisComputeV1AlphaWorkloadDeployment = {
       /**
        * Name of a datum location
        */
-      name: string
+      name: string;
       /**
        * Namespace for the datum location
        */
-      namespace: string
-    }
+      namespace: string;
+    };
     /**
      * The number of instances created by a deployment
      */
-    replicas: number
-  }
-}
+    replicas: number;
+  };
+};
 
 /**
  * WorkloadDeploymentList is a list of WorkloadDeployment
@@ -2332,20 +2332,20 @@ export type ComDatumapisComputeV1AlphaWorkloadDeploymentList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * List of workloaddeployments. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
    */
-  items: Array<ComDatumapisComputeV1AlphaWorkloadDeployment>
+  items: Array<ComDatumapisComputeV1AlphaWorkloadDeployment>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
 
 /**
  * WorkloadList is a list of Workload
@@ -2354,20 +2354,20 @@ export type ComDatumapisComputeV1AlphaWorkloadList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * List of workloads. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
    */
-  items: Array<ComDatumapisComputeV1AlphaWorkload>
+  items: Array<ComDatumapisComputeV1AlphaWorkload>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
 
 /**
  * DeleteOptions may be provided when deleting an API object.
@@ -2376,36 +2376,36 @@ export type IoK8sApimachineryPkgApisMetaV1DeleteOptions = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
    */
-  dryRun?: Array<string>
+  dryRun?: Array<string>;
   /**
    * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
    */
-  gracePeriodSeconds?: bigint
+  gracePeriodSeconds?: bigint;
   /**
    * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
    */
-  ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+  ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
    */
-  orphanDependents?: boolean
+  orphanDependents?: boolean;
   /**
    * Must be fulfilled before a deletion is carried out. If not possible, a 409 Conflict status will be returned.
    */
-  preconditions?: IoK8sApimachineryPkgApisMetaV1Preconditions
+  preconditions?: IoK8sApimachineryPkgApisMetaV1Preconditions;
   /**
    * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
    */
-  propagationPolicy?: string
-}
+  propagationPolicy?: string;
+};
 
 /**
  * FieldsV1 stores a set of fields in a data structure like a Trie, in JSON format.
@@ -2415,8 +2415,8 @@ export type IoK8sApimachineryPkgApisMetaV1DeleteOptions = {
  * The exact format is defined in sigs.k8s.io/structured-merge-diff
  */
 export type IoK8sApimachineryPkgApisMetaV1FieldsV1 = {
-  [key: string]: unknown
-}
+  [key: string]: unknown;
+};
 
 /**
  * ListMeta describes metadata that synthetic resources must have, including lists and various status objects. A resource may have only one of {ObjectMeta, ListMeta}.
@@ -2425,20 +2425,20 @@ export type IoK8sApimachineryPkgApisMetaV1ListMeta = {
   /**
    * continue may be set if the user set a limit on the number of items returned, and indicates that the server has more data available. The value is opaque and may be used to issue another request to the endpoint that served this list to retrieve the next set of available objects. Continuing a consistent list may not be possible if the server configuration has changed or more than a few minutes have passed. The resourceVersion field returned when using this continue value will be identical to the value in the first response, unless you have received this token from an error message.
    */
-  continue?: string
+  continue?: string;
   /**
    * remainingItemCount is the number of subsequent items in the list which are not included in this list response. If the list request contained label or field selectors, then the number of remaining items is unknown and the field will be left unset and omitted during serialization. If the list is complete (either because it is not chunking or because this is the last chunk), then there are no more remaining items and this field will be left unset and omitted during serialization. Servers older than v1.15 do not set this field. The intended use of the remainingItemCount is *estimating* the size of a collection. Clients should not rely on the remainingItemCount to be set or to be exact.
    */
-  remainingItemCount?: bigint
+  remainingItemCount?: bigint;
   /**
    * String that identifies the server's internal version of this object that can be used by clients to determine when objects have changed. Value must be treated as opaque by clients and passed unmodified back to the server. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
    */
-  resourceVersion?: string
+  resourceVersion?: string;
   /**
    * Deprecated: selfLink is a legacy read-only field that is no longer populated by the system.
    */
-  selfLink?: string
-}
+  selfLink?: string;
+};
 
 /**
  * ManagedFieldsEntry is a workflow-id, a FieldSet and the group version of the resource that the fieldset applies to.
@@ -2447,32 +2447,32 @@ export type IoK8sApimachineryPkgApisMetaV1ManagedFieldsEntry = {
   /**
    * APIVersion defines the version of this resource that this field set applies to. The format is "group/version" just like the top-level APIVersion field. It is necessary to track the version of a field set because it cannot be automatically converted.
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * FieldsType is the discriminator for the different fields format and version. There is currently only one possible value: "FieldsV1"
    */
-  fieldsType?: string
+  fieldsType?: string;
   /**
    * FieldsV1 holds the first JSON version format as described in the "FieldsV1" type.
    */
-  fieldsV1?: IoK8sApimachineryPkgApisMetaV1FieldsV1
+  fieldsV1?: IoK8sApimachineryPkgApisMetaV1FieldsV1;
   /**
    * Manager is an identifier of the workflow managing these fields.
    */
-  manager?: string
+  manager?: string;
   /**
    * Operation is the type of operation which lead to this ManagedFieldsEntry being created. The only valid values for this field are 'Apply' and 'Update'.
    */
-  operation?: string
+  operation?: string;
   /**
    * Subresource is the name of the subresource used to update that object, or empty string if the object was updated through the main resource. The value of this field is used to distinguish between managers, even if they share the same name. For example, a status update will be distinct from a regular update using the same manager name. Note that the APIVersion field is not related to the Subresource field and it always corresponds to the version of the main resource.
    */
-  subresource?: string
+  subresource?: string;
   /**
    * Time is the timestamp of when the ManagedFields entry was added. The timestamp will also be updated if a field is added, the manager changes any of the owned fields value or removes a field. The timestamp does not update when a field is removed from the entry because another manager took it over.
    */
-  time?: IoK8sApimachineryPkgApisMetaV1Time
-}
+  time?: IoK8sApimachineryPkgApisMetaV1Time;
+};
 
 /**
  * ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.
@@ -2482,28 +2482,28 @@ export type IoK8sApimachineryPkgApisMetaV1ObjectMeta = {
    * Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
    */
   annotations?: {
-    [key: string]: string
-  }
+    [key: string]: string;
+  };
   /**
    * CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
    *
    * Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  creationTimestamp?: IoK8sApimachineryPkgApisMetaV1Time
+  creationTimestamp?: IoK8sApimachineryPkgApisMetaV1Time;
   /**
    * Number of seconds allowed for this object to gracefully terminate before it will be removed from the system. Only set when deletionTimestamp is also set. May only be shortened. Read-only.
    */
-  deletionGracePeriodSeconds?: bigint
+  deletionGracePeriodSeconds?: bigint;
   /**
    * DeletionTimestamp is RFC 3339 date and time at which this resource will be deleted. This field is set by the server when a graceful deletion is requested by the user, and is not directly settable by a client. The resource is expected to be deleted (no longer visible from resource lists, and not reachable by name) after the time in this field, once the finalizers list is empty. As long as the finalizers list contains items, deletion is blocked. Once the deletionTimestamp is set, this value may not be unset or be set further into the future, although it may be shortened or the resource may be deleted prior to this time. For example, a user may request that a pod is deleted in 30 seconds. The Kubelet will react by sending a graceful termination signal to the containers in the pod. After that 30 seconds, the Kubelet will send a hard termination signal (SIGKILL) to the container and after cleanup, remove the pod from the API. In the presence of network partitions, this object may still exist after this timestamp, until an administrator or automated process can determine the resource is fully terminated. If not set, graceful deletion of the object has not been requested.
    *
    * Populated by the system when a graceful deletion is requested. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  deletionTimestamp?: IoK8sApimachineryPkgApisMetaV1Time
+  deletionTimestamp?: IoK8sApimachineryPkgApisMetaV1Time;
   /**
    * Must be empty before the object is deleted from the registry. Each entry is an identifier for the responsible component that will remove the entry from the list. If the deletionTimestamp of the object is non-nil, entries in this list can only be removed. Finalizers may be processed and removed in any order.  Order is NOT enforced because it introduces significant risk of stuck finalizers. finalizers is a shared field, any actor with permission can reorder it. If the finalizer list is processed in order, then this can lead to a situation in which the component responsible for the first finalizer in the list is waiting for a signal (field value, external system, or other) produced by a component responsible for a finalizer later in the list, resulting in a deadlock. Without enforced ordering finalizers are free to order amongst themselves and are not vulnerable to ordering changes in the list.
    */
-  finalizers?: Array<string>
+  finalizers?: Array<string>;
   /**
    * GenerateName is an optional prefix, used by the server, to generate a unique name ONLY IF the Name field has not been provided. If this field is used, the name returned to the client will be different than the name passed. This value will also be combined with a unique suffix. The provided value has the same validation rules as the Name field, and may be truncated by the length of the suffix required to make the value unique on the server.
    *
@@ -2511,52 +2511,52 @@ export type IoK8sApimachineryPkgApisMetaV1ObjectMeta = {
    *
    * Applied only if Name is not specified. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#idempotency
    */
-  generateName?: string
+  generateName?: string;
   /**
    * A sequence number representing a specific generation of the desired state. Populated by the system. Read-only.
    */
-  generation?: bigint
+  generation?: bigint;
   /**
    * Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels
    */
   labels?: {
-    [key: string]: string
-  }
+    [key: string]: string;
+  };
   /**
    * ManagedFields maps workflow-id and version to the set of fields that are managed by that workflow. This is mostly for internal housekeeping, and users typically shouldn't need to set or understand this field. A workflow can be the user's name, a controller's name, or the name of a specific apply path like "ci-cd". The set of fields is always in the version that the workflow used when modifying the object.
    */
-  managedFields?: Array<IoK8sApimachineryPkgApisMetaV1ManagedFieldsEntry>
+  managedFields?: Array<IoK8sApimachineryPkgApisMetaV1ManagedFieldsEntry>;
   /**
    * Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names
    */
-  name?: string
+  name?: string;
   /**
    * Namespace defines the space within which each name must be unique. An empty namespace is equivalent to the "default" namespace, but "default" is the canonical representation. Not all objects are required to be scoped to a namespace - the value of this field for those objects will be empty.
    *
    * Must be a DNS_LABEL. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces
    */
-  namespace?: string
+  namespace?: string;
   /**
    * List of objects depended by this object. If ALL objects in the list have been deleted, this object will be garbage collected. If this object is managed by a controller, then an entry in this list will point to this controller, with the controller field set to true. There cannot be more than one managing controller.
    */
-  ownerReferences?: Array<IoK8sApimachineryPkgApisMetaV1OwnerReference>
+  ownerReferences?: Array<IoK8sApimachineryPkgApisMetaV1OwnerReference>;
   /**
    * An opaque value that represents the internal version of this object that can be used by clients to determine when objects have changed. May be used for optimistic concurrency, change detection, and the watch operation on a resource or set of resources. Clients must treat these values as opaque and passed unmodified back to the server. They may only be valid for a particular resource or set of resources.
    *
    * Populated by the system. Read-only. Value must be treated as opaque by clients and . More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
    */
-  resourceVersion?: string
+  resourceVersion?: string;
   /**
    * Deprecated: selfLink is a legacy read-only field that is no longer populated by the system.
    */
-  selfLink?: string
+  selfLink?: string;
   /**
    * UID is the unique in time and space value for this object. It is typically generated by the server on successful creation of a resource and is not allowed to change on PUT operations.
    *
    * Populated by the system. Read-only. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
    */
-  uid?: string
-}
+  uid?: string;
+};
 
 /**
  * OwnerReference contains enough information to let you identify an owning object. An owning object must be in the same namespace as the dependent, or be cluster-scoped, so there is no namespace field.
@@ -2565,35 +2565,35 @@ export type IoK8sApimachineryPkgApisMetaV1OwnerReference = {
   /**
    * API version of the referent.
    */
-  apiVersion: string
+  apiVersion: string;
   /**
    * If true, AND if the owner has the "foregroundDeletion" finalizer, then the owner cannot be deleted from the key-value store until this reference is removed. See https://kubernetes.io/docs/concepts/architecture/garbage-collection/#foreground-deletion for how the garbage collector interacts with this field and enforces the foreground deletion. Defaults to false. To set this field, a user needs "delete" permission of the owner, otherwise 422 (Unprocessable Entity) will be returned.
    */
-  blockOwnerDeletion?: boolean
+  blockOwnerDeletion?: boolean;
   /**
    * If true, this reference points to the managing controller.
    */
-  controller?: boolean
+  controller?: boolean;
   /**
    * Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind: string
+  kind: string;
   /**
    * Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names
    */
-  name: string
+  name: string;
   /**
    * UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
    */
-  uid: string
-}
+  uid: string;
+};
 
 /**
  * Patch is provided to give a concrete name and type to the Kubernetes PATCH request body.
  */
 export type IoK8sApimachineryPkgApisMetaV1Patch = {
-  [key: string]: unknown
-}
+  [key: string]: unknown;
+};
 
 /**
  * Preconditions must be fulfilled before an operation (update, delete, etc.) is carried out.
@@ -2602,12 +2602,12 @@ export type IoK8sApimachineryPkgApisMetaV1Preconditions = {
   /**
    * Specifies the target ResourceVersion
    */
-  resourceVersion?: string
+  resourceVersion?: string;
   /**
    * Specifies the target UID.
    */
-  uid?: string
-}
+  uid?: string;
+};
 
 /**
  * Status is a return value for calls that don't return other objects.
@@ -2616,36 +2616,36 @@ export type IoK8sApimachineryPkgApisMetaV1Status = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Suggested HTTP return code for this status, 0 if not set.
    */
-  code?: number
+  code?: number;
   /**
    * Extended data associated with the reason.  Each reason may define its own extended details. This field is optional and the data returned is not guaranteed to conform to any schema except that defined by the reason type.
    */
-  details?: IoK8sApimachineryPkgApisMetaV1StatusDetails
+  details?: IoK8sApimachineryPkgApisMetaV1StatusDetails;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * A human-readable description of the status of this operation.
    */
-  message?: string
+  message?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
   /**
    * A machine-readable description of why this operation is in the "Failure" status. If this value is empty there is no information available. A Reason clarifies an HTTP status code but does not override it.
    */
-  reason?: string
+  reason?: string;
   /**
    * Status of the operation. One of: "Success" or "Failure". More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
    */
-  status?: string
-}
+  status?: string;
+};
 
 /**
  * StatusCause provides more information about an api.Status failure, including cases when multiple errors are encountered.
@@ -2658,16 +2658,16 @@ export type IoK8sApimachineryPkgApisMetaV1StatusCause = {
    * "name" - the field "name" on the current resource
    * "items[0].name" - the field "name" on the first array entry in "items"
    */
-  field?: string
+  field?: string;
   /**
    * A human-readable description of the cause of the error.  This field may be presented as-is to a reader.
    */
-  message?: string
+  message?: string;
   /**
    * A machine-readable description of the cause of the error. If this value is empty there is no information available.
    */
-  reason?: string
-}
+  reason?: string;
+};
 
 /**
  * StatusDetails is a set of additional properties that MAY be set by the server to provide additional information about a response. The Reason field of a Status object defines what attributes will be set. Clients must ignore fields that do not match the defined type of each attribute, and should assume that any attribute may be empty, invalid, or under defined.
@@ -2676,78 +2676,78 @@ export type IoK8sApimachineryPkgApisMetaV1StatusDetails = {
   /**
    * The Causes array includes more details associated with the StatusReason failure. Not all StatusReasons may provide detailed causes.
    */
-  causes?: Array<IoK8sApimachineryPkgApisMetaV1StatusCause>
+  causes?: Array<IoK8sApimachineryPkgApisMetaV1StatusCause>;
   /**
    * The group attribute of the resource associated with the status StatusReason.
    */
-  group?: string
+  group?: string;
   /**
    * The kind attribute of the resource associated with the status StatusReason. On some operations may differ from the requested resource Kind. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * The name attribute of the resource associated with the status StatusReason (when there is a single name which can be described).
    */
-  name?: string
+  name?: string;
   /**
    * If specified, the time in seconds before the operation should be retried. Some errors may indicate the client must take an alternate action - for those errors this field may indicate how long to wait before taking the alternate action.
    */
-  retryAfterSeconds?: number
+  retryAfterSeconds?: number;
   /**
    * UID of the resource. (when there is a single resource which can be described). More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
    */
-  uid?: string
-}
+  uid?: string;
+};
 
 /**
  * Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.
  */
-export type IoK8sApimachineryPkgApisMetaV1Time = Date
+export type IoK8sApimachineryPkgApisMetaV1Time = Date;
 
 export type ListComputeDatumapisComV1AlphaInstanceForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -2763,85 +2763,85 @@ export type ListComputeDatumapisComV1AlphaInstanceForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/instances'
-}
+    watch?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/instances';
+};
 
 export type ListComputeDatumapisComV1AlphaInstanceForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListComputeDatumapisComV1AlphaInstanceForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaInstanceList
-}
+  200: ComDatumapisComputeV1AlphaInstanceList;
+};
 
 export type ListComputeDatumapisComV1AlphaInstanceForAllNamespacesResponse =
-  ListComputeDatumapisComV1AlphaInstanceForAllNamespacesResponses[keyof ListComputeDatumapisComV1AlphaInstanceForAllNamespacesResponses]
+  ListComputeDatumapisComV1AlphaInstanceForAllNamespacesResponses[keyof ListComputeDatumapisComV1AlphaInstanceForAllNamespacesResponses];
 
 export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedInstanceData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -2857,85 +2857,85 @@ export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedInstanceData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances'
-}
+    watch?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances';
+};
 
 export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedInstanceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedInstanceResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
-}
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedInstanceResponse =
-  DeleteComputeDatumapisComV1AlphaCollectionNamespacedInstanceResponses[keyof DeleteComputeDatumapisComV1AlphaCollectionNamespacedInstanceResponses]
+  DeleteComputeDatumapisComV1AlphaCollectionNamespacedInstanceResponses[keyof DeleteComputeDatumapisComV1AlphaCollectionNamespacedInstanceResponses];
 
 export type ListComputeDatumapisComV1AlphaNamespacedInstanceData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -2951,505 +2951,505 @@ export type ListComputeDatumapisComV1AlphaNamespacedInstanceData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances'
-}
+    watch?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances';
+};
 
 export type ListComputeDatumapisComV1AlphaNamespacedInstanceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListComputeDatumapisComV1AlphaNamespacedInstanceResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaInstanceList
-}
+  200: ComDatumapisComputeV1AlphaInstanceList;
+};
 
 export type ListComputeDatumapisComV1AlphaNamespacedInstanceResponse =
-  ListComputeDatumapisComV1AlphaNamespacedInstanceResponses[keyof ListComputeDatumapisComV1AlphaNamespacedInstanceResponses]
+  ListComputeDatumapisComV1AlphaNamespacedInstanceResponses[keyof ListComputeDatumapisComV1AlphaNamespacedInstanceResponses];
 
 export type CreateComputeDatumapisComV1AlphaNamespacedInstanceData = {
-  body: ComDatumapisComputeV1AlphaInstance
+  body: ComDatumapisComputeV1AlphaInstance;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances';
+};
 
 export type CreateComputeDatumapisComV1AlphaNamespacedInstanceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateComputeDatumapisComV1AlphaNamespacedInstanceResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaInstance
+  200: ComDatumapisComputeV1AlphaInstance;
   /**
    * Created
    */
-  201: ComDatumapisComputeV1AlphaInstance
+  201: ComDatumapisComputeV1AlphaInstance;
   /**
    * Accepted
    */
-  202: ComDatumapisComputeV1AlphaInstance
-}
+  202: ComDatumapisComputeV1AlphaInstance;
+};
 
 export type CreateComputeDatumapisComV1AlphaNamespacedInstanceResponse =
-  CreateComputeDatumapisComV1AlphaNamespacedInstanceResponses[keyof CreateComputeDatumapisComV1AlphaNamespacedInstanceResponses]
+  CreateComputeDatumapisComV1AlphaNamespacedInstanceResponses[keyof CreateComputeDatumapisComV1AlphaNamespacedInstanceResponses];
 
 export type DeleteComputeDatumapisComV1AlphaNamespacedInstanceData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * name of the Instance
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}'
-}
+    propagationPolicy?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}';
+};
 
 export type DeleteComputeDatumapisComV1AlphaNamespacedInstanceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteComputeDatumapisComV1AlphaNamespacedInstanceResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
+  200: IoK8sApimachineryPkgApisMetaV1Status;
   /**
    * Accepted
    */
-  202: IoK8sApimachineryPkgApisMetaV1Status
-}
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteComputeDatumapisComV1AlphaNamespacedInstanceResponse =
-  DeleteComputeDatumapisComV1AlphaNamespacedInstanceResponses[keyof DeleteComputeDatumapisComV1AlphaNamespacedInstanceResponses]
+  DeleteComputeDatumapisComV1AlphaNamespacedInstanceResponses[keyof DeleteComputeDatumapisComV1AlphaNamespacedInstanceResponses];
 
 export type ReadComputeDatumapisComV1AlphaNamespacedInstanceData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Instance
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}'
-}
+    resourceVersion?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}';
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedInstanceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedInstanceResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaInstance
-}
+  200: ComDatumapisComputeV1AlphaInstance;
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedInstanceResponse =
-  ReadComputeDatumapisComV1AlphaNamespacedInstanceResponses[keyof ReadComputeDatumapisComV1AlphaNamespacedInstanceResponses]
+  ReadComputeDatumapisComV1AlphaNamespacedInstanceResponses[keyof ReadComputeDatumapisComV1AlphaNamespacedInstanceResponses];
 
 export type PatchComputeDatumapisComV1AlphaNamespacedInstanceData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the Instance
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}'
-}
+    force?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}';
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedInstanceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedInstanceResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaInstance
-}
+  200: ComDatumapisComputeV1AlphaInstance;
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedInstanceResponse =
-  PatchComputeDatumapisComV1AlphaNamespacedInstanceResponses[keyof PatchComputeDatumapisComV1AlphaNamespacedInstanceResponses]
+  PatchComputeDatumapisComV1AlphaNamespacedInstanceResponses[keyof PatchComputeDatumapisComV1AlphaNamespacedInstanceResponses];
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedInstanceData = {
-  body: ComDatumapisComputeV1AlphaInstance
+  body: ComDatumapisComputeV1AlphaInstance;
   path: {
     /**
      * name of the Instance
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}';
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedInstanceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedInstanceResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaInstance
+  200: ComDatumapisComputeV1AlphaInstance;
   /**
    * Created
    */
-  201: ComDatumapisComputeV1AlphaInstance
-}
+  201: ComDatumapisComputeV1AlphaInstance;
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedInstanceResponse =
-  ReplaceComputeDatumapisComV1AlphaNamespacedInstanceResponses[keyof ReplaceComputeDatumapisComV1AlphaNamespacedInstanceResponses]
+  ReplaceComputeDatumapisComV1AlphaNamespacedInstanceResponses[keyof ReplaceComputeDatumapisComV1AlphaNamespacedInstanceResponses];
 
 export type ReadComputeDatumapisComV1AlphaNamespacedInstanceStatusData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Instance
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}/status'
-}
+    resourceVersion?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}/status';
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedInstanceStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaInstance
-}
+  200: ComDatumapisComputeV1AlphaInstance;
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedInstanceStatusResponse =
-  ReadComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses[keyof ReadComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses]
+  ReadComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses[keyof ReadComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses];
 
 export type PatchComputeDatumapisComV1AlphaNamespacedInstanceStatusData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the Instance
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}/status'
-}
+    force?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}/status';
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedInstanceStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaInstance
-}
+  200: ComDatumapisComputeV1AlphaInstance;
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedInstanceStatusResponse =
-  PatchComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses[keyof PatchComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses]
+  PatchComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses[keyof PatchComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses];
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedInstanceStatusData = {
-  body: ComDatumapisComputeV1AlphaInstance
+  body: ComDatumapisComputeV1AlphaInstance;
   path: {
     /**
      * name of the Instance
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}/status'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/instances/{name}/status';
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedInstanceStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaInstance
+  200: ComDatumapisComputeV1AlphaInstance;
   /**
    * Created
    */
-  201: ComDatumapisComputeV1AlphaInstance
-}
+  201: ComDatumapisComputeV1AlphaInstance;
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedInstanceStatusResponse =
-  ReplaceComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses[keyof ReplaceComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses]
+  ReplaceComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses[keyof ReplaceComputeDatumapisComV1AlphaNamespacedInstanceStatusResponses];
 
 export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadDeploymentData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -3465,87 +3465,85 @@ export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadDeployme
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments'
-}
+    watch?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments';
+};
 
-export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadDeploymentErrors =
-  {
-    /**
-     * Unauthorized
-     */
-    401: unknown
-  }
+export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadDeploymentErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
 
-export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadDeploymentResponses =
-  {
-    /**
-     * OK
-     */
-    200: IoK8sApimachineryPkgApisMetaV1Status
-  }
+export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadDeploymentResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadDeploymentResponse =
-  DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadDeploymentResponses[keyof DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadDeploymentResponses]
+  DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadDeploymentResponses[keyof DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadDeploymentResponses];
 
 export type ListComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -3561,506 +3559,505 @@ export type ListComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments'
-}
+    watch?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments';
+};
 
 export type ListComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkloadDeploymentList
-}
+  200: ComDatumapisComputeV1AlphaWorkloadDeploymentList;
+};
 
 export type ListComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponse =
-  ListComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses[keyof ListComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses]
+  ListComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses[keyof ListComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses];
 
 export type CreateComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentData = {
-  body: ComDatumapisComputeV1AlphaWorkloadDeployment
+  body: ComDatumapisComputeV1AlphaWorkloadDeployment;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments';
+};
 
 export type CreateComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkloadDeployment
+  200: ComDatumapisComputeV1AlphaWorkloadDeployment;
   /**
    * Created
    */
-  201: ComDatumapisComputeV1AlphaWorkloadDeployment
+  201: ComDatumapisComputeV1AlphaWorkloadDeployment;
   /**
    * Accepted
    */
-  202: ComDatumapisComputeV1AlphaWorkloadDeployment
-}
+  202: ComDatumapisComputeV1AlphaWorkloadDeployment;
+};
 
 export type CreateComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponse =
-  CreateComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses[keyof CreateComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses]
+  CreateComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses[keyof CreateComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses];
 
 export type DeleteComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * name of the WorkloadDeployment
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}'
-}
+    propagationPolicy?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}';
+};
 
 export type DeleteComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
+  200: IoK8sApimachineryPkgApisMetaV1Status;
   /**
    * Accepted
    */
-  202: IoK8sApimachineryPkgApisMetaV1Status
-}
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponse =
-  DeleteComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses[keyof DeleteComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses]
+  DeleteComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses[keyof DeleteComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses];
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the WorkloadDeployment
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}'
-}
+    resourceVersion?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}';
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkloadDeployment
-}
+  200: ComDatumapisComputeV1AlphaWorkloadDeployment;
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponse =
-  ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses[keyof ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses]
+  ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses[keyof ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses];
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the WorkloadDeployment
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}'
-}
+    force?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}';
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkloadDeployment
-}
+  200: ComDatumapisComputeV1AlphaWorkloadDeployment;
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponse =
-  PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses[keyof PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses]
+  PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses[keyof PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses];
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentData = {
-  body: ComDatumapisComputeV1AlphaWorkloadDeployment
+  body: ComDatumapisComputeV1AlphaWorkloadDeployment;
   path: {
     /**
      * name of the WorkloadDeployment
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}';
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkloadDeployment
+  200: ComDatumapisComputeV1AlphaWorkloadDeployment;
   /**
    * Created
    */
-  201: ComDatumapisComputeV1AlphaWorkloadDeployment
-}
+  201: ComDatumapisComputeV1AlphaWorkloadDeployment;
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponse =
-  ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses[keyof ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses]
+  ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses[keyof ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentResponses];
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the WorkloadDeployment
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}/status'
-}
+    resourceVersion?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}/status';
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkloadDeployment
-}
+  200: ComDatumapisComputeV1AlphaWorkloadDeployment;
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponse =
-  ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses[keyof ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses]
+  ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses[keyof ReadComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses];
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the WorkloadDeployment
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}/status'
-}
+    force?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}/status';
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkloadDeployment
-}
+  200: ComDatumapisComputeV1AlphaWorkloadDeployment;
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponse =
-  PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses[keyof PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses]
+  PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses[keyof PatchComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses];
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusData = {
-  body: ComDatumapisComputeV1AlphaWorkloadDeployment
+  body: ComDatumapisComputeV1AlphaWorkloadDeployment;
   path: {
     /**
      * name of the WorkloadDeployment
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}/status'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloaddeployments/{name}/status';
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
-export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses =
-  {
-    /**
-     * OK
-     */
-    200: ComDatumapisComputeV1AlphaWorkloadDeployment
-    /**
-     * Created
-     */
-    201: ComDatumapisComputeV1AlphaWorkloadDeployment
-  }
+export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisComputeV1AlphaWorkloadDeployment;
+  /**
+   * Created
+   */
+  201: ComDatumapisComputeV1AlphaWorkloadDeployment;
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponse =
-  ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses[keyof ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses]
+  ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses[keyof ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatusResponses];
 
 export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4076,85 +4073,85 @@ export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads'
-}
+    watch?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads';
+};
 
 export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
-}
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadResponse =
-  DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadResponses[keyof DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadResponses]
+  DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadResponses[keyof DeleteComputeDatumapisComV1AlphaCollectionNamespacedWorkloadResponses];
 
 export type ListComputeDatumapisComV1AlphaNamespacedWorkloadData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4170,500 +4167,500 @@ export type ListComputeDatumapisComV1AlphaNamespacedWorkloadData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads'
-}
+    watch?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads';
+};
 
 export type ListComputeDatumapisComV1AlphaNamespacedWorkloadErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListComputeDatumapisComV1AlphaNamespacedWorkloadResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkloadList
-}
+  200: ComDatumapisComputeV1AlphaWorkloadList;
+};
 
 export type ListComputeDatumapisComV1AlphaNamespacedWorkloadResponse =
-  ListComputeDatumapisComV1AlphaNamespacedWorkloadResponses[keyof ListComputeDatumapisComV1AlphaNamespacedWorkloadResponses]
+  ListComputeDatumapisComV1AlphaNamespacedWorkloadResponses[keyof ListComputeDatumapisComV1AlphaNamespacedWorkloadResponses];
 
 export type CreateComputeDatumapisComV1AlphaNamespacedWorkloadData = {
-  body: ComDatumapisComputeV1AlphaWorkload
+  body: ComDatumapisComputeV1AlphaWorkload;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads';
+};
 
 export type CreateComputeDatumapisComV1AlphaNamespacedWorkloadErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateComputeDatumapisComV1AlphaNamespacedWorkloadResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkload
+  200: ComDatumapisComputeV1AlphaWorkload;
   /**
    * Created
    */
-  201: ComDatumapisComputeV1AlphaWorkload
+  201: ComDatumapisComputeV1AlphaWorkload;
   /**
    * Accepted
    */
-  202: ComDatumapisComputeV1AlphaWorkload
-}
+  202: ComDatumapisComputeV1AlphaWorkload;
+};
 
 export type CreateComputeDatumapisComV1AlphaNamespacedWorkloadResponse =
-  CreateComputeDatumapisComV1AlphaNamespacedWorkloadResponses[keyof CreateComputeDatumapisComV1AlphaNamespacedWorkloadResponses]
+  CreateComputeDatumapisComV1AlphaNamespacedWorkloadResponses[keyof CreateComputeDatumapisComV1AlphaNamespacedWorkloadResponses];
 
 export type DeleteComputeDatumapisComV1AlphaNamespacedWorkloadData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * name of the Workload
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}'
-}
+    propagationPolicy?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}';
+};
 
 export type DeleteComputeDatumapisComV1AlphaNamespacedWorkloadErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteComputeDatumapisComV1AlphaNamespacedWorkloadResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
+  200: IoK8sApimachineryPkgApisMetaV1Status;
   /**
    * Accepted
    */
-  202: IoK8sApimachineryPkgApisMetaV1Status
-}
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteComputeDatumapisComV1AlphaNamespacedWorkloadResponse =
-  DeleteComputeDatumapisComV1AlphaNamespacedWorkloadResponses[keyof DeleteComputeDatumapisComV1AlphaNamespacedWorkloadResponses]
+  DeleteComputeDatumapisComV1AlphaNamespacedWorkloadResponses[keyof DeleteComputeDatumapisComV1AlphaNamespacedWorkloadResponses];
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Workload
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}'
-}
+    resourceVersion?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}';
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkload
-}
+  200: ComDatumapisComputeV1AlphaWorkload;
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadResponse =
-  ReadComputeDatumapisComV1AlphaNamespacedWorkloadResponses[keyof ReadComputeDatumapisComV1AlphaNamespacedWorkloadResponses]
+  ReadComputeDatumapisComV1AlphaNamespacedWorkloadResponses[keyof ReadComputeDatumapisComV1AlphaNamespacedWorkloadResponses];
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the Workload
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}'
-}
+    force?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}';
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkload
-}
+  200: ComDatumapisComputeV1AlphaWorkload;
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadResponse =
-  PatchComputeDatumapisComV1AlphaNamespacedWorkloadResponses[keyof PatchComputeDatumapisComV1AlphaNamespacedWorkloadResponses]
+  PatchComputeDatumapisComV1AlphaNamespacedWorkloadResponses[keyof PatchComputeDatumapisComV1AlphaNamespacedWorkloadResponses];
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadData = {
-  body: ComDatumapisComputeV1AlphaWorkload
+  body: ComDatumapisComputeV1AlphaWorkload;
   path: {
     /**
      * name of the Workload
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}';
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkload
+  200: ComDatumapisComputeV1AlphaWorkload;
   /**
    * Created
    */
-  201: ComDatumapisComputeV1AlphaWorkload
-}
+  201: ComDatumapisComputeV1AlphaWorkload;
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadResponse =
-  ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadResponses[keyof ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadResponses]
+  ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadResponses[keyof ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadResponses];
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadStatusData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Workload
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}/status'
-}
+    resourceVersion?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}/status';
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkload
-}
+  200: ComDatumapisComputeV1AlphaWorkload;
+};
 
 export type ReadComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponse =
-  ReadComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses[keyof ReadComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses]
+  ReadComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses[keyof ReadComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses];
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadStatusData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the Workload
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}/status'
-}
+    force?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}/status';
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkload
-}
+  200: ComDatumapisComputeV1AlphaWorkload;
+};
 
 export type PatchComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponse =
-  PatchComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses[keyof PatchComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses]
+  PatchComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses[keyof PatchComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses];
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadStatusData = {
-  body: ComDatumapisComputeV1AlphaWorkload
+  body: ComDatumapisComputeV1AlphaWorkload;
   path: {
     /**
      * name of the Workload
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}/status'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/namespaces/{namespace}/workloads/{name}/status';
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkload
+  200: ComDatumapisComputeV1AlphaWorkload;
   /**
    * Created
    */
-  201: ComDatumapisComputeV1AlphaWorkload
-}
+  201: ComDatumapisComputeV1AlphaWorkload;
+};
 
 export type ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponse =
-  ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses[keyof ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses]
+  ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses[keyof ReplaceComputeDatumapisComV1AlphaNamespacedWorkloadStatusResponses];
 
 export type ListComputeDatumapisComV1AlphaWorkloadDeploymentForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4679,80 +4676,80 @@ export type ListComputeDatumapisComV1AlphaWorkloadDeploymentForAllNamespacesData
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/workloaddeployments'
-}
+    watch?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/workloaddeployments';
+};
 
 export type ListComputeDatumapisComV1AlphaWorkloadDeploymentForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListComputeDatumapisComV1AlphaWorkloadDeploymentForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkloadDeploymentList
-}
+  200: ComDatumapisComputeV1AlphaWorkloadDeploymentList;
+};
 
 export type ListComputeDatumapisComV1AlphaWorkloadDeploymentForAllNamespacesResponse =
-  ListComputeDatumapisComV1AlphaWorkloadDeploymentForAllNamespacesResponses[keyof ListComputeDatumapisComV1AlphaWorkloadDeploymentForAllNamespacesResponses]
+  ListComputeDatumapisComV1AlphaWorkloadDeploymentForAllNamespacesResponses[keyof ListComputeDatumapisComV1AlphaWorkloadDeploymentForAllNamespacesResponses];
 
 export type ListComputeDatumapisComV1AlphaWorkloadForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4768,36 +4765,36 @@ export type ListComputeDatumapisComV1AlphaWorkloadForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/compute.datumapis.com/v1alpha/workloads'
-}
+    watch?: boolean;
+  };
+  url: '/apis/compute.datumapis.com/v1alpha/workloads';
+};
 
 export type ListComputeDatumapisComV1AlphaWorkloadForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListComputeDatumapisComV1AlphaWorkloadForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: ComDatumapisComputeV1AlphaWorkloadList
-}
+  200: ComDatumapisComputeV1AlphaWorkloadList;
+};
 
 export type ListComputeDatumapisComV1AlphaWorkloadForAllNamespacesResponse =
-  ListComputeDatumapisComV1AlphaWorkloadForAllNamespacesResponses[keyof ListComputeDatumapisComV1AlphaWorkloadForAllNamespacesResponses]
+  ListComputeDatumapisComV1AlphaWorkloadForAllNamespacesResponses[keyof ListComputeDatumapisComV1AlphaWorkloadForAllNamespacesResponses];
 
 export type ClientOptions = {
-  baseURL: `${string}://${string}` | (string & {})
-}
+  baseURL: `${string}://${string}` | (string & {});
+};

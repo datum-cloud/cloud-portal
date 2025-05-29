@@ -1,4 +1,4 @@
-import { LogoIcon } from '@/components/logo/logo-icon'
+import { LogoIcon } from '@/components/logo/logo-icon';
 
 export const ComingSoon = () => {
   return (
@@ -9,5 +9,5 @@ export const ComingSoon = () => {
         This feature is currently under development. Check back later!
       </p>
     </div>
-  )
-}
+  );
+};

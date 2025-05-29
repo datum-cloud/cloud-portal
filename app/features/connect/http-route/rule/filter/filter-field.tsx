@@ -1,34 +1,31 @@
-import { URLRewriteField } from './url-rewrite-field'
-import { Field } from '@/components/field/field'
+import { URLRewriteField } from './url-rewrite-field';
+import { Field } from '@/components/field/field';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { HTTPFilterType } from '@/resources/interfaces/http-route.interface'
-import {
-  HttpURLRewriteSchema,
-  HttpRouteFilterSchema,
-} from '@/resources/schemas/http-route.schema'
-import { getSelectProps, useForm, useInputControl } from '@conform-to/react'
-import { useEffect } from 'react'
+} from '@/components/ui/select';
+import { HTTPFilterType } from '@/resources/interfaces/http-route.interface';
+import { HttpURLRewriteSchema, HttpRouteFilterSchema } from '@/resources/schemas/http-route.schema';
+import { getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { useEffect } from 'react';
 
 export const FilterField = ({
   fields,
   defaultValue,
 }: {
-  fields: ReturnType<typeof useForm<HttpRouteFilterSchema>>[1]
-  defaultValue?: HttpRouteFilterSchema
+  fields: ReturnType<typeof useForm<HttpRouteFilterSchema>>[1];
+  defaultValue?: HttpRouteFilterSchema;
 }) => {
-  const typeControl = useInputControl(fields.type)
+  const typeControl = useInputControl(fields.type);
 
   useEffect(() => {
     if (defaultValue && !fields.type.value) {
-      typeControl.change(defaultValue.type)
+      typeControl.change(defaultValue.type);
     }
-  }, [defaultValue, fields.type.value, typeControl])
+  }, [defaultValue, fields.type.value, typeControl]);
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
@@ -39,7 +36,7 @@ export const FilterField = ({
           value={typeControl.value}
           defaultValue={defaultValue?.type}
           onValueChange={(value) => {
-            typeControl.change(value)
+            typeControl.change(value);
           }}>
           <SelectTrigger disabled>
             <SelectValue placeholder="Select a type" />
@@ -65,5 +62,5 @@ export const FilterField = ({
         />
       )}
     </div>
-  )
-}
+  );
+};

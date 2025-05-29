@@ -1,10 +1,10 @@
-import { metadataSchema, nameSchema } from './metadata.schema'
+import { metadataSchema, nameSchema } from './metadata.schema';
 import {
   HTTPFilterType,
   HTTPPathMatchType,
   HTTPPathRewriteType,
-} from '@/resources/interfaces/http-route.interface'
-import { z } from 'zod'
+} from '@/resources/interfaces/http-route.interface';
+import { z } from 'zod';
 
 // ----- Match Section -----
 // Schema for HTTP path match
@@ -15,12 +15,12 @@ export const httpPathMatchSchema = z.object({
   value: z
     .string({ required_error: 'Path value is required' })
     .min(1, { message: 'Path value is required' }),
-})
+});
 
 // Schema for matches
 export const httpRouteMatchSchema = z.object({
   path: httpPathMatchSchema.optional(),
-})
+});
 
 // ----- End Match Section -----
 
@@ -33,7 +33,7 @@ export const httpRouteBackendRefSchema = z
       .min(1, { message: 'Port must be at least 1' })
       .max(65535, { message: 'Port must be at most 65535' }),
   })
-  .and(nameSchema)
+  .and(nameSchema);
 
 // ----- End Backend Reference Section -----
 
@@ -44,7 +44,7 @@ export const httpPathRewriteSchema = z.object({
   value: z
     .string({ required_error: 'Path value is required' })
     .min(1, { message: 'Path value is required' }),
-})
+});
 // Schema for request header modifier filter
 export const httpRequestHeaderModifierSchema = z.object({
   set: z
@@ -58,7 +58,7 @@ export const httpRequestHeaderModifierSchema = z.object({
             message: 'Name must be a valid HTTP header name',
           }),
         value: z.string().min(1, { message: 'Value is required' }),
-      }),
+      })
     )
     .optional(),
   add: z
@@ -72,18 +72,18 @@ export const httpRequestHeaderModifierSchema = z.object({
             message: 'Name must be a valid HTTP header name',
           }),
         value: z.string().min(1, { message: 'Value is required' }),
-      }),
+      })
     )
     .optional(),
   remove: z.array(z.string()).optional(),
-})
+});
 
 // Schema for request redirect filter
 export const httpRequestRedirectSchema = z.object({
   hostname: z.string().optional(),
   path: httpPathRewriteSchema.optional(),
   port: z.number().int().min(1).max(65535).optional(),
-})
+});
 
 // Schema for URL rewrite filter
 export const httpURLRewriteSchema = z.object({
@@ -93,12 +93,12 @@ export const httpURLRewriteSchema = z.object({
       (val) =>
         !val ||
         /^(\*\.)?[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(
-          val,
+          val
         ),
       {
         message:
           "Hostname must follow RFC 1123 format with optional wildcard prefix (e.g., '*.example.com')",
-      },
+      }
     )
     .refine((val) => !val || !val.includes('*') || val.startsWith('*.'), {
       message: 'Wildcard label (*) must appear by itself as the first label',
@@ -107,7 +107,7 @@ export const httpURLRewriteSchema = z.object({
       message: 'IP addresses are not allowed as hostnames',
     }),
   path: httpPathRewriteSchema.optional(),
-})
+});
 
 // Schema for filters
 export const httpRouteFilterSchema = z
@@ -122,7 +122,7 @@ export const httpRouteFilterSchema = z
   .refine(
     (data) => {
       if (data.type === HTTPFilterType.URL_REWRITE) {
-        return !!data.urlRewrite
+        return !!data.urlRewrite;
       }
       /* if (data.type === HTTPFilterType.REQUEST_HEADER_MODIFIER) {
         return !!data.requestHeaderModifier
@@ -131,27 +131,25 @@ export const httpRouteFilterSchema = z
       } else if (data.type === HTTPFilterType.URL_REWRITE) {
         return !!data.urlRewrite
       } */
-      return false
+      return false;
     },
     {
       message: 'Filter configuration must match the selected filter type',
       path: ['type'],
-    },
-  )
+    }
+  );
 
 // ----- End Filter Section -----
 
 // ----- Rule Section -----
 // Schema for rules
 export const httpRouteRuleSchema = z.object({
-  matches: z
-    .array(httpRouteMatchSchema)
-    .min(1, { message: 'At least one match is required' }),
+  matches: z.array(httpRouteMatchSchema).min(1, { message: 'At least one match is required' }),
   backendRefs: z
     .array(httpRouteBackendRefSchema)
     .min(1, { message: 'At least one backend reference is required' }),
   filters: z.array(httpRouteFilterSchema).optional(),
-})
+});
 
 // ----- End Rule Section -----
 
@@ -163,31 +161,29 @@ export const httpRouteSchema = z
     parentRefs: z
       .array(z.string({ required_error: 'Gateway reference is required' }))
       .min(1, { message: 'At least one Gateway reference is required' }),
-    rules: z
-      .array(httpRouteRuleSchema)
-      .min(1, { message: 'At least one rule is required' }),
+    rules: z.array(httpRouteRuleSchema).min(1, { message: 'At least one rule is required' }),
   })
-  .and(metadataSchema)
+  .and(metadataSchema);
 
 // ----- End Main HTTP Route Schema -----
 
 // Type exports
 // ----- Main HTTP Route Schema -----
-export type HttpRouteSchema = z.infer<typeof httpRouteSchema>
+export type HttpRouteSchema = z.infer<typeof httpRouteSchema>;
 
 // ----- Rule Section -----
-export type HttpRouteRuleSchema = z.infer<typeof httpRouteRuleSchema>
+export type HttpRouteRuleSchema = z.infer<typeof httpRouteRuleSchema>;
 
 // ----- Match Section -----
-export type HttpRouteMatchSchema = z.infer<typeof httpRouteMatchSchema>
-export type HttpPathMatchSchema = z.infer<typeof httpPathMatchSchema>
+export type HttpRouteMatchSchema = z.infer<typeof httpRouteMatchSchema>;
+export type HttpPathMatchSchema = z.infer<typeof httpPathMatchSchema>;
 
 // ----- Backend Reference Section -----
-export type HttpRouteBackendRefSchema = z.infer<typeof httpRouteBackendRefSchema>
+export type HttpRouteBackendRefSchema = z.infer<typeof httpRouteBackendRefSchema>;
 
 // ----- Filter Section -----
-export type HttpRouteFilterSchema = z.infer<typeof httpRouteFilterSchema>
-export type HttpPathRewriteSchema = z.infer<typeof httpPathRewriteSchema>
-export type HttpURLRewriteSchema = z.infer<typeof httpURLRewriteSchema>
-export type HttpHeaderModifierSchema = z.infer<typeof httpRequestHeaderModifierSchema>
-export type HttpRedirectSchema = z.infer<typeof httpRequestRedirectSchema>
+export type HttpRouteFilterSchema = z.infer<typeof httpRouteFilterSchema>;
+export type HttpPathRewriteSchema = z.infer<typeof httpPathRewriteSchema>;
+export type HttpURLRewriteSchema = z.infer<typeof httpURLRewriteSchema>;
+export type HttpHeaderModifierSchema = z.infer<typeof httpRequestHeaderModifierSchema>;
+export type HttpRedirectSchema = z.infer<typeof httpRequestRedirectSchema>;

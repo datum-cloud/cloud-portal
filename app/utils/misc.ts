@@ -1,11 +1,11 @@
 import {
   ControlPlaneStatus,
   IControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface'
-import { ILabel } from '@/resources/interfaces/label.interface'
-import { IOrganization } from '@/resources/interfaces/organization.inteface'
-import { type ClassValue, clsx } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+} from '@/resources/interfaces/control-plane.interface';
+import { ILabel } from '@/resources/interfaces/label.interface';
+import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 /**
  * Combines multiple class names using clsx and tailwind-merge
@@ -14,15 +14,15 @@ import { twMerge } from 'tailwind-merge'
  * @returns Merged class string with Tailwind conflicts resolved
  */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export function isProduction() {
-  return process.env.NODE_ENV === 'production'
+  return process.env.NODE_ENV === 'production';
 }
 
 export function isDevelopment() {
-  return process.env.NODE_ENV === 'development'
+  return process.env.NODE_ENV === 'development';
 }
 
 /**
@@ -31,33 +31,31 @@ export function isDevelopment() {
  */
 
 export function getDomainUrl(request: Request) {
-  const host = request.headers.get('X-Forwarded-Host') ?? request.headers.get('Host')
-  if (!host) return null
+  const host = request.headers.get('X-Forwarded-Host') ?? request.headers.get('Host');
+  if (!host) return null;
 
-  const protocol = host.includes('localhost') ? 'http' : 'https'
-  return `${protocol}://${host}`
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  return `${protocol}://${host}`;
 }
 
 export function getDomainPathname(request: Request) {
-  const pathname = new URL(request.url).pathname
-  if (!pathname) return null
-  return pathname
+  const pathname = new URL(request.url).pathname;
+  if (!pathname) return null;
+  return pathname;
 }
 
 /**
  * Combines multiple header objects into one (Headers are appended not overwritten).
  */
-export function combineHeaders(
-  ...headers: Array<ResponseInit['headers'] | null | undefined>
-) {
-  const combined = new Headers()
+export function combineHeaders(...headers: Array<ResponseInit['headers'] | null | undefined>) {
+  const combined = new Headers();
   for (const header of headers) {
-    if (!header) continue
+    if (!header) continue;
     for (const [key, value] of new Headers(header).entries()) {
-      combined.append(key, value)
+      combined.append(key, value);
     }
   }
-  return combined
+  return combined;
 }
 
 /**
@@ -65,13 +63,13 @@ export function combineHeaders(
  */
 export function singleton<Value>(name: string, value: () => Value): Value {
   const globalStore = global as unknown as {
-    __singletons?: Record<string, Value>
-  }
+    __singletons?: Record<string, Value>;
+  };
 
-  globalStore.__singletons ??= {}
-  globalStore.__singletons[name] ??= value()
+  globalStore.__singletons ??= {};
+  globalStore.__singletons[name] ??= value();
 
-  return globalStore.__singletons[name]
+  return globalStore.__singletons[name];
 }
 
 /**
@@ -81,16 +79,16 @@ export function singleton<Value>(name: string, value: () => Value): Value {
  * @returns String containing up to 2 uppercase initials
  */
 export function getInitials(name: string): string {
-  if (!name) return ''
+  if (!name) return '';
 
   // Split on whitespace and get first letter of each part
-  const parts = name.trim().split(/\s+/)
+  const parts = name.trim().split(/\s+/);
   const initials = parts
     .map((part) => part.charAt(0).toUpperCase())
     .slice(0, 2) // Take max 2 initials
-    .join('')
+    .join('');
 
-  return initials
+  return initials;
 }
 
 /**
@@ -104,7 +102,7 @@ export function toTitleCase(str: string): string {
   return str
     .split(/(?=[A-Z])|_/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
+    .join(' ');
 }
 
 /**
@@ -114,14 +112,11 @@ export function toTitleCase(str: string): string {
  * @param separator - The separator character (default: ':')
  * @returns Object containing the key and value parts
  */
-export function splitOption(
-  option: string,
-  separator = ':',
-): { key: string; value: string } {
-  const firstColonIndex = option.indexOf(separator)
-  const key = option.substring(0, firstColonIndex)
-  const value = option.substring(firstColonIndex + 1)
-  return { key, value }
+export function splitOption(option: string, separator = ':'): { key: string; value: string } {
+  const firstColonIndex = option.indexOf(separator);
+  const key = option.substring(0, firstColonIndex);
+  const value = option.substring(firstColonIndex + 1);
+  return { key, value };
 }
 
 /**
@@ -130,20 +125,17 @@ export function splitOption(
  * @param labels - Array of strings or single string in the format "key:value" to convert to object
  * @returns Record object with keys and values extracted from the labels
  */
-export function convertLabelsToObject(
-  labels: string | string[],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Record<string, any> {
-  const labelArray = Array.isArray(labels) ? labels : [labels]
+export function convertLabelsToObject(labels: string | string[]): Record<string, any> {
+  const labelArray = Array.isArray(labels) ? labels : [labels];
   return labelArray.reduce(
     (acc, opt) => {
-      const { key, value } = splitOption(opt)
-      acc[key] = value === 'null' ? null : value
-      return acc
+      const { key, value } = splitOption(opt);
+      acc[key] = value === 'null' ? null : value;
+      return acc;
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    {} as Record<string, any>,
-  )
+
+    {} as Record<string, any>
+  );
 }
 
 /**
@@ -154,11 +146,11 @@ export function convertLabelsToObject(
  */
 export function convertObjectToLabels(
   labels: ILabel,
-  skipPrefixes: string[] = ['resourcemanager'],
+  skipPrefixes: string[] = ['resourcemanager']
 ): string[] {
   return Object.entries(labels)
     .filter(([key]) => !skipPrefixes.some((prefix) => key.startsWith(prefix)))
-    .map(([key, value]) => `${key}:${value}`)
+    .map(([key, value]) => `${key}:${value}`);
 }
 
 /**
@@ -170,13 +162,11 @@ export function convertObjectToLabels(
  */
 export function filterLabels(
   labels: Record<string, string>,
-  skipPrefixes: string[] = ['resourcemanager'],
+  skipPrefixes: string[] = ['resourcemanager']
 ): Record<string, string> {
   return Object.fromEntries(
-    Object.entries(labels).filter(
-      ([key]) => !skipPrefixes.some((prefix) => key.startsWith(prefix)),
-    ),
-  )
+    Object.entries(labels).filter(([key]) => !skipPrefixes.some((prefix) => key.startsWith(prefix)))
+  );
 }
 
 /**
@@ -187,28 +177,25 @@ export function filterLabels(
  * @returns The shortened ID string
  */
 export function getShortId(id: string, length: number = 8): string {
-  if (!id) return ''
+  if (!id) return '';
 
   // If the ID is already shorter than or equal to the desired length, return it as is
-  if (id.length <= length) return id
+  if (id.length <= length) return id;
 
   // Otherwise, return the first 'length' characters
-  return id.substring(0, length)
+  return id.substring(0, length);
 }
 
-export function transformControlPlaneStatus(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  status: any,
-): IControlPlaneStatus {
-  if (!status) return { status: ControlPlaneStatus.Pending, message: '' }
+export function transformControlPlaneStatus(status: any): IControlPlaneStatus {
+  if (!status) return { status: ControlPlaneStatus.Pending, message: '' };
 
-  const { conditions, ...rest } = status
+  const { conditions, ...rest } = status;
   if (status && (conditions ?? []).length > 0) {
-    const condition = conditions?.[0]
+    const condition = conditions?.[0];
     // const isFailed = condition?.lastTransitionTime
     //   ? differenceInMinutes(new Date(), new Date(condition.lastTransitionTime)) > 10
     //   : false
-    const isFailed = false
+    const isFailed = false;
     return {
       status:
         condition?.status === 'True'
@@ -218,50 +205,49 @@ export function transformControlPlaneStatus(
             : ControlPlaneStatus.Pending,
       message: condition?.message ?? '',
       ...rest,
-    }
+    };
   }
 
   return {
     status: ControlPlaneStatus.Pending,
     message: 'Resource is being provisioned...',
-  }
+  };
 }
 
 export function isBase64(str: string): boolean {
   if (typeof str !== 'string' || !str) {
-    return false
+    return false;
   }
 
   try {
-    const decoded = atob(str)
-    return btoa(decoded) === str
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const decoded = atob(str);
+    return btoa(decoded) === str;
   } catch (e) {
-    return false
+    return false;
   }
 }
 
 export function toBase64(str: string): string {
   if (typeof str !== 'string') {
-    return ''
+    return '';
   }
   try {
     // Step 1: Use TextEncoder to get UTF-8 bytes (Uint8Array)
-    const utf8Bytes = new TextEncoder().encode(str)
+    const utf8Bytes = new TextEncoder().encode(str);
 
     // Step 2: Convert the ArrayBuffer/Uint8Array to a binary string
     // (a string where each character's code point is a byte value 0-255)
-    let binaryString = ''
+    let binaryString = '';
     utf8Bytes.forEach((byte) => {
-      binaryString += String.fromCharCode(byte)
-    })
+      binaryString += String.fromCharCode(byte);
+    });
 
     // Step 3: Use btoa on the binary string
-    return btoa(binaryString)
+    return btoa(binaryString);
   } catch (error) {
-    console.error('Base64 encoding failed:', error)
+    console.error('Base64 encoding failed:', error);
     // Handle cases where btoa or TextEncoder might fail or not be available
-    return ''
+    return '';
   }
 }
 
@@ -275,38 +261,35 @@ export function toBase64(str: string): string {
  */
 export function generateMergePatchPayloadMap(
   originalMap: Record<string, string | null>,
-  desiredMap: Record<string, string | null>,
+  desiredMap: Record<string, string | null>
 ): Record<string, string | null> {
   // Handle null/undefined inputs
-  const safeOriginalMap = originalMap ?? {}
-  const safeDesiredMap = desiredMap ?? {}
+  const safeOriginalMap = originalMap ?? {};
+  const safeDesiredMap = desiredMap ?? {};
 
   // Early return if both maps are empty
-  if (
-    Object.keys(safeOriginalMap).length === 0 &&
-    Object.keys(safeDesiredMap).length === 0
-  ) {
-    return {}
+  if (Object.keys(safeOriginalMap).length === 0 && Object.keys(safeDesiredMap).length === 0) {
+    return {};
   }
 
-  const patchMap: Record<string, string | null> = {}
+  const patchMap: Record<string, string | null> = {};
 
   // Process additions and updates
   for (const [key, desiredValue] of Object.entries(safeDesiredMap)) {
-    const originalValue = safeOriginalMap[key]
+    const originalValue = safeOriginalMap[key];
     if (!(key in safeOriginalMap) || originalValue !== desiredValue) {
-      patchMap[key] = desiredValue
+      patchMap[key] = desiredValue;
     }
   }
 
   // Process removals
   for (const key of Object.keys(safeOriginalMap)) {
     if (!(key in safeDesiredMap)) {
-      patchMap[key] = null
+      patchMap[key] = null;
     }
   }
 
-  return Object.keys(patchMap).length > 0 ? patchMap : { ...safeOriginalMap }
+  return Object.keys(patchMap).length > 0 ? patchMap : { ...safeOriginalMap };
 }
 
 /**
@@ -315,6 +298,6 @@ export function generateMergePatchPayloadMap(
  * @returns The organization ID
  */
 export function determineOrgId(org: Partial<IOrganization>): string | undefined {
-  if (!org) return undefined
-  return org.organizationId === '' ? org.uid : org.organizationId
+  if (!org) return undefined;
+  return org.organizationId === '' ? org.uid : org.organizationId;
 }

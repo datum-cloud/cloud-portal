@@ -1,28 +1,27 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { CodeEditor } from '@/components/code-editor/code-editor'
-import { DataTable } from '@/components/data-table/data-table'
-import { StatusBadge } from '@/components/status-badge/status-badge'
-import { TextCopy } from '@/components/text-copy/text-copy'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface'
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface'
-import { transformControlPlaneStatus } from '@/utils/misc'
-import { find } from 'es-toolkit/compat'
-import { SettingsIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { CodeEditor } from '@/components/code-editor/code-editor';
+import { DataTable } from '@/components/data-table/data-table';
+import { StatusBadge } from '@/components/status-badge/status-badge';
+import { TextCopy } from '@/components/text-copy/text-copy';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
+import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { transformControlPlaneStatus } from '@/utils/misc';
+import { find } from 'es-toolkit/compat';
+import { SettingsIcon } from 'lucide-react';
+import { useMemo } from 'react';
 
 export const WorkloadSinksTable = ({
   data,
   status,
 }: {
-  data: IExportPolicyControlResponse['sinks']
-  status: IExportPolicyControlResponse['status']
+  data: IExportPolicyControlResponse['sinks'];
+  status: IExportPolicyControlResponse['status'];
 }) => {
   const columns = useMemo(() => {
-    const sinkStatus = status?.sinks
+    const sinkStatus = status?.sinks;
     return [
       {
         header: 'Name',
@@ -34,7 +33,7 @@ export const WorkloadSinksTable = ({
               value={row.original?.name ?? ''}
               className="text-primary leading-none font-semibold"
             />
-          )
+          );
         },
       },
       {
@@ -42,10 +41,8 @@ export const WorkloadSinksTable = ({
         accessorKey: 'type',
         enableSorting: false,
         cell: ({ row }: any) => {
-          const type = row.original?.target?.prometheusRemoteWrite
-            ? 'Prometheus'
-            : 'Unknown'
-          return <Badge variant="outline">{type}</Badge>
+          const type = row.original?.target?.prometheusRemoteWrite ? 'Prometheus' : 'Unknown';
+          return <Badge variant="outline">{type}</Badge>;
         },
       },
       {
@@ -57,15 +54,15 @@ export const WorkloadSinksTable = ({
             <Badge variant="secondary" key={source}>
               <span>{source}</span>
             </Badge>
-          ))
+          ));
         },
       },
       {
         header: 'Status',
         enableSorting: false,
         cell: ({ row }: any) => {
-          const currentStatus = find(sinkStatus, (s) => s.name === row.original?.name)
-          const transformedStatus = transformControlPlaneStatus(currentStatus)
+          const currentStatus = find(sinkStatus, (s) => s.name === row.original?.name);
+          const transformedStatus = transformControlPlaneStatus(currentStatus);
           return (
             <StatusBadge
               status={transformedStatus}
@@ -73,13 +70,11 @@ export const WorkloadSinksTable = ({
               showTooltip
               badgeClassName="px-0"
               tooltipText={
-                transformedStatus?.status === ControlPlaneStatus.Success
-                  ? 'Active'
-                  : undefined
+                transformedStatus?.status === ControlPlaneStatus.Success ? 'Active' : undefined
               }
               readyText="Available"
             />
-          )
+          );
         },
       },
       {
@@ -103,22 +98,18 @@ export const WorkloadSinksTable = ({
               </PopoverTrigger>
               <PopoverContent className="min-w-[500px]">
                 <CodeEditor
-                  value={JSON.stringify(
-                    row.original?.target?.prometheusRemoteWrite,
-                    null,
-                    2,
-                  )}
+                  value={JSON.stringify(row.original?.target?.prometheusRemoteWrite, null, 2)}
                   language="json"
                   readOnly
                   minHeight="300px"
                 />
               </PopoverContent>
             </Popover>
-          )
+          );
         },
       },
-    ]
-  }, [status])
+    ];
+  }, [status]);
 
   return (
     <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
@@ -134,5 +125,5 @@ export const WorkloadSinksTable = ({
         />
       </CardContent>
     </Card>
-  )
-}
+  );
+};

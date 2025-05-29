@@ -1,49 +1,46 @@
-import { BackendRefDefaultValues, BackendRefsForm } from './backend-ref/backend-refs-form'
-import { FilterDefaultValues, FiltersForm } from './filter/filters-form'
-import { MatchDefaultValues, MatchesForm } from './match/matches-form'
-import { FieldLabel } from '@/components/field/field-label'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import {
-  HttpRouteRuleSchema,
-  HttpRouteSchema,
-} from '@/resources/schemas/http-route.schema'
-import { cn } from '@/utils/misc'
-import { useForm, useFormMetadata } from '@conform-to/react'
-import { PlusIcon, TrashIcon } from 'lucide-react'
-import { useEffect } from 'react'
+import { BackendRefDefaultValues, BackendRefsForm } from './backend-ref/backend-refs-form';
+import { FilterDefaultValues, FiltersForm } from './filter/filters-form';
+import { MatchDefaultValues, MatchesForm } from './match/matches-form';
+import { FieldLabel } from '@/components/field/field-label';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { HttpRouteRuleSchema, HttpRouteSchema } from '@/resources/schemas/http-route.schema';
+import { cn } from '@/utils/misc';
+import { useForm, useFormMetadata } from '@conform-to/react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useEffect } from 'react';
 
 const defaultRuleValue: HttpRouteRuleSchema = {
   matches: [MatchDefaultValues],
   backendRefs: [BackendRefDefaultValues],
   filters: [FilterDefaultValues],
-}
+};
 
 export const RulesForm = ({
   fields,
   defaultValue,
   projectId,
 }: {
-  fields: ReturnType<typeof useForm<HttpRouteSchema>>[1]
-  defaultValue?: HttpRouteRuleSchema[]
-  projectId?: string
+  fields: ReturnType<typeof useForm<HttpRouteSchema>>[1];
+  defaultValue?: HttpRouteRuleSchema[];
+  projectId?: string;
 }) => {
-  const form = useFormMetadata('http-route-form')
-  const ruleList = fields.rules.getFieldList()
+  const form = useFormMetadata('http-route-form');
+  const ruleList = fields.rules.getFieldList();
 
   useEffect(() => {
     if (defaultValue && defaultValue.length > 0) {
       form.update({
         name: fields.rules.name,
         value: defaultValue,
-      })
+      });
     } else if (ruleList.length === 0) {
       form.insert({
         name: fields.rules.name,
         defaultValue: defaultRuleValue,
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   // Enable this when you don't want to implement same endpoint slice for all backend refs
   /* const selectedEndpointSlice = useMemo(() => {
@@ -66,18 +63,14 @@ export const RulesForm = ({
 
       <div className="space-y-4">
         {ruleList.map((field, index) => {
-          const ruleFields = field.getFieldset()
+          const ruleFields = field.getFieldset();
           return (
-            <div
-              className="relative flex items-center gap-2 rounded-md border p-4"
-              key={field.key}>
+            <div className="relative flex items-center gap-2 rounded-md border p-4" key={field.key}>
               <div className="w-full space-y-4">
                 <MatchesForm
                   key={ruleFields.matches.id}
                   fields={
-                    ruleFields as unknown as ReturnType<
-                      typeof useForm<HttpRouteRuleSchema>
-                    >[1]
+                    ruleFields as unknown as ReturnType<typeof useForm<HttpRouteRuleSchema>>[1]
                   }
                   defaultValue={defaultValue?.[index]?.matches}
                 />
@@ -88,9 +81,7 @@ export const RulesForm = ({
                   key={ruleFields.backendRefs.id}
                   selectedEndpointSlice={[]}
                   fields={
-                    ruleFields as unknown as ReturnType<
-                      typeof useForm<HttpRouteRuleSchema>
-                    >[1]
+                    ruleFields as unknown as ReturnType<typeof useForm<HttpRouteRuleSchema>>[1]
                   }
                   defaultValue={defaultValue?.[index]?.backendRefs}
                   projectId={projectId}
@@ -101,9 +92,7 @@ export const RulesForm = ({
                 <FiltersForm
                   key={ruleFields.filters.id}
                   fields={
-                    ruleFields as unknown as ReturnType<
-                      typeof useForm<HttpRouteRuleSchema>
-                    >[1]
+                    ruleFields as unknown as ReturnType<typeof useForm<HttpRouteRuleSchema>>[1]
                   }
                   defaultValue={defaultValue?.[index]?.filters}
                 />
@@ -116,14 +105,14 @@ export const RulesForm = ({
                   size="sm"
                   className={cn('text-destructive relative top-2 w-fit')}
                   onClick={() => {
-                    defaultValue?.splice(index, 1)
-                    form.remove({ name: fields.rules.name, index })
+                    defaultValue?.splice(index, 1);
+                    form.remove({ name: fields.rules.name, index });
                   }}>
                   <TrashIcon className="size-4" />
                 </Button>
               )}
             </div>
-          )
+          );
         })}
       </div>
       <Button
@@ -141,5 +130,5 @@ export const RulesForm = ({
         Add
       </Button>
     </div>
-  )
-}
+  );
+};

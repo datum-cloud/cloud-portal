@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -7,61 +7,57 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { routes } from '@/constants/routes'
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api+/projects+/list'
-import { cn } from '@/utils/misc'
-import { getPathWithParams } from '@/utils/path'
-import { CheckIcon, ChevronsUpDownIcon, Loader2, PlusIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Link, useFetcher, useNavigate } from 'react-router'
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { routes } from '@/constants/routes';
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api+/projects+/list';
+import { cn } from '@/utils/misc';
+import { getPathWithParams } from '@/utils/path';
+import { CheckIcon, ChevronsUpDownIcon, Loader2, PlusIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useFetcher, useNavigate } from 'react-router';
 
 const ProjectItem = ({ project }: { project: IProjectControlResponse }) => {
   return (
     <div className="flex items-center gap-2">
       <div className="grid flex-1 text-left text-sm leading-tight">
-        <span className="cursor-pointer truncate font-semibold">
-          {project?.description}
-        </span>
+        <span className="cursor-pointer truncate font-semibold">{project?.description}</span>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export const ProjectSwitcher = ({
   currentProject,
   orgId,
   triggerClassName,
 }: {
-  currentProject: IProjectControlResponse
-  orgId: string
-  triggerClassName?: string
+  currentProject: IProjectControlResponse;
+  orgId: string;
+  triggerClassName?: string;
 }) => {
-  const navigate = useNavigate()
-  const fetcher = useFetcher({ key: 'project-list' })
-  const [open, setOpen] = useState(false)
-  const [loaded, setLoaded] = useState(false)
+  const navigate = useNavigate();
+  const fetcher = useFetcher({ key: 'project-list' });
+  const [open, setOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   const onSelect = (project: IProjectControlResponse) => {
-    navigate(
-      getPathWithParams(routes.projects.dashboard, { orgId, projectId: project.name }),
-    )
-  }
+    navigate(getPathWithParams(routes.projects.dashboard, { orgId, projectId: project.name }));
+  };
 
   useEffect(() => {
     if (open && !loaded) {
-      fetcher.load(PROJECT_LIST_PATH)
-      setLoaded(true)
+      fetcher.load(PROJECT_LIST_PATH);
+      setLoaded(true);
     }
-  }, [open, loaded])
+  }, [open, loaded]);
 
   useEffect(() => {
     return () => {
-      setLoaded(false)
-    }
-  }, [])
+      setLoaded(false);
+    };
+  }, []);
 
   return (
     <div className="flex items-center gap-1 pl-2">
@@ -80,14 +76,12 @@ export const ProjectSwitcher = ({
             size="sm"
             className={cn(
               'data-[state=open]:bg-primary/5 flex h-7 w-fit gap-2 border-none p-0 px-2',
-              triggerClassName,
+              triggerClassName
             )}>
             <ChevronsUpDownIcon className="text-primary/60 size-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent
-          className="popover-content-width-full min-w-[300px] p-0"
-          align="center">
+        <PopoverContent className="popover-content-width-full min-w-[300px] p-0" align="center">
           <Command>
             <CommandInput
               className="h-9 rounded-md border-none focus-visible:ring-0"
@@ -105,25 +99,25 @@ export const ProjectSwitcher = ({
                 <CommandGroup className="max-h-[300px] overflow-y-auto">
                   {(fetcher.data ?? [])
                     .sort((a: IProjectControlResponse, b: IProjectControlResponse) =>
-                      (a?.description ?? '').localeCompare(b?.description ?? ''),
+                      (a?.description ?? '').localeCompare(b?.description ?? '')
                     )
                     .map((project: IProjectControlResponse) => {
-                      const isSelected = project.uid === currentProject.uid
+                      const isSelected = project.uid === currentProject.uid;
                       return (
                         <CommandItem
                           value={`${project.name}-${project.description}`}
                           key={project.uid}
                           onSelect={() => {
-                            setOpen(false)
+                            setOpen(false);
                             if (!isSelected) {
-                              onSelect(project)
+                              onSelect(project);
                             }
                           }}
                           className="cursor-pointer justify-between">
                           <ProjectItem project={project} />
                           {isSelected && <CheckIcon className="text-primary size-4" />}
                         </CommandItem>
-                      )
+                      );
                     })}
                 </CommandGroup>
               )}
@@ -142,5 +136,5 @@ export const ProjectSwitcher = ({
         </PopoverContent>
       </Popover>
     </div>
-  )
-}
+  );
+};

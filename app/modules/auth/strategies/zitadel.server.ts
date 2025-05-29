@@ -1,9 +1,9 @@
-import { routes } from '@/constants/routes'
-import { IAuthSession } from '@/resources/interfaces/auth.interface'
-import { CustomError } from '@/utils/errorHandle'
-import { OAuth2Strategy as OAuth2 } from 'remix-auth-oauth2'
+import { routes } from '@/constants/routes';
+import { IAuthSession } from '@/resources/interfaces/auth.interface';
+import { CustomError } from '@/utils/errorHandle';
+import { OAuth2Strategy as OAuth2 } from 'remix-auth-oauth2';
 
-export const zitadelIssuer = process.env.AUTH_OIDC_ISSUER ?? 'http://localhost:3000'
+export const zitadelIssuer = process.env.AUTH_OIDC_ISSUER ?? 'http://localhost:3000';
 
 /**
  * https://github.com/sergiodxa/remix-auth-oauth2?tab=readme-ov-file#discovering-the-provider
@@ -23,11 +23,11 @@ export const zitadelStrategy = await OAuth2.discover<IAuthSession>(
   async ({ tokens }) => {
     try {
       if (!tokens.idToken()) {
-        throw new CustomError('No id_token in response', 400)
+        throw new CustomError('No id_token in response', 400);
       }
 
       if (!tokens.accessToken()) {
-        throw new CustomError('No access_token in response', 400)
+        throw new CustomError('No access_token in response', 400);
       }
 
       return {
@@ -35,10 +35,9 @@ export const zitadelStrategy = await OAuth2.discover<IAuthSession>(
         accessToken: tokens.accessToken(),
         refreshToken: tokens.hasRefreshToken() ? tokens.refreshToken() : null,
         expiredAt: tokens.accessTokenExpiresAt(),
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      };
     } catch (error: any) {
-      throw new CustomError(error?.message ?? 'Failed to fetch user profile', 500)
+      throw new CustomError(error?.message ?? 'Failed to fetch user profile', 500);
     }
-  },
-)
+  }
+);

@@ -1,5 +1,5 @@
-import { cn } from '@/utils/misc'
-import * as React from 'react'
+import { cn } from '@/utils/misc';
+import * as React from 'react';
 
 const Input = ({ className, type, ...props }: React.ComponentProps<'input'>) => {
   return (
@@ -12,13 +12,13 @@ const Input = ({ className, type, ...props }: React.ComponentProps<'input'>) => 
         'placeholder:text-muted-foreground focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
         'read-only:cursor-not-allowed read-only:opacity-50 disabled:cursor-not-allowed disabled:opacity-50',
         'file:text-foreground file:border-0 file:bg-transparent file:text-sm file:font-medium',
-        className,
+        className
       )}
       data-slot="input"
       {...props}
     />
-  )
-}
-Input.displayName = 'Input'
+  );
+};
+Input.displayName = 'Input';
 
-export { Input }
+export { Input };

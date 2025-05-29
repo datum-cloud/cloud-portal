@@ -1,9 +1,9 @@
-import { SimpleConfigMapDetail } from './simple-detail'
-import { CodeEditorTabs } from '@/components/code-editor/code-editor-tabs'
-import { EditorLanguage } from '@/components/code-editor/code-editor.types'
-import { Field } from '@/components/field/field'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import { SimpleConfigMapDetail } from './simple-detail';
+import { CodeEditorTabs } from '@/components/code-editor/code-editor-tabs';
+import { EditorLanguage } from '@/components/code-editor/code-editor.types';
+import { Field } from '@/components/field/field';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -11,28 +11,21 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { useIsPending } from '@/hooks/useIsPending'
-import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
-import {
-  configMapSchema,
-  updateConfigMapSchema,
-} from '@/resources/schemas/config-map.schema'
-import { jsonToYaml } from '@/utils/editor'
-import { getFormProps, useForm, useInputControl } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { InfoIcon } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
-import { Form, useNavigate } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+} from '@/components/ui/card';
+import { useIsPending } from '@/hooks/useIsPending';
+import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
+import { configMapSchema, updateConfigMapSchema } from '@/resources/schemas/config-map.schema';
+import { jsonToYaml } from '@/utils/editor';
+import { getFormProps, useForm, useInputControl } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { InfoIcon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Form, useNavigate } from 'react-router';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 
-export const ConfigMapForm = ({
-  defaultValue,
-}: {
-  defaultValue?: IConfigMapControlResponse
-}) => {
-  const isPending = useIsPending()
-  const navigate = useNavigate()
+export const ConfigMapForm = ({ defaultValue }: { defaultValue?: IConfigMapControlResponse }) => {
+  const isPending = useIsPending();
+  const navigate = useNavigate();
 
   const [form, fields] = useForm({
     constraint: getZodConstraint(defaultValue ? updateConfigMapSchema : configMapSchema),
@@ -41,38 +34,36 @@ export const ConfigMapForm = ({
     onValidate({ formData }) {
       return parseWithZod(formData, {
         schema: defaultValue ? updateConfigMapSchema : configMapSchema,
-      })
+      });
     },
     defaultValue: {
       content: '',
       format: 'yaml',
     },
-  })
+  });
 
-  const [hasData, setHasData] = useState<boolean>(true)
-  const isEdit = useMemo(() => defaultValue?.uid !== undefined, [defaultValue])
+  const [hasData, setHasData] = useState<boolean>(true);
+  const isEdit = useMemo(() => defaultValue?.uid !== undefined, [defaultValue]);
 
-  const configFormatControl = useInputControl(fields.format)
-  const configValueControl = useInputControl(fields.content)
+  const configFormatControl = useInputControl(fields.format);
+  const configValueControl = useInputControl(fields.content);
 
   useEffect(() => {
     if (defaultValue) {
       const data = Object.fromEntries(
-        Object.entries(defaultValue).filter(([key]) =>
-          ['data', 'binaryData'].includes(key),
-        ),
-      )
+        Object.entries(defaultValue).filter(([key]) => ['data', 'binaryData'].includes(key))
+      );
 
-      setHasData(data?.data !== undefined)
+      setHasData(data?.data !== undefined);
       form.update({
         value: {
           // TODO: currently only supports data. add support for binaryData
           content: data?.data ? jsonToYaml(JSON.stringify(data.data)) : '',
           format: 'yaml',
         },
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <Card>
@@ -92,11 +83,7 @@ export const ConfigMapForm = ({
         <AuthenticityTokenInput />
 
         {isEdit && (
-          <input
-            type="hidden"
-            name="resourceVersion"
-            value={defaultValue?.resourceVersion}
-          />
+          <input type="hidden" name="resourceVersion" value={defaultValue?.resourceVersion} />
         )}
 
         <CardContent className="space-y-4">
@@ -111,12 +98,12 @@ export const ConfigMapForm = ({
                 error={fields.content.errors?.[0]}
                 value={fields.content.value ?? ''}
                 onChange={(newValue, format) => {
-                  configValueControl.change(newValue)
-                  configFormatControl.change(format as string)
+                  configValueControl.change(newValue);
+                  configFormatControl.change(format as string);
                 }}
                 format={fields.format.value as EditorLanguage}
                 onFormatChange={(format: EditorLanguage) => {
-                  configFormatControl.change(format as string)
+                  configFormatControl.change(format as string);
                 }}
                 name="configuration"
                 minHeight="300px"
@@ -136,23 +123,17 @@ export const ConfigMapForm = ({
             variant="link"
             disabled={isPending}
             onClick={() => {
-              navigate(-1)
+              navigate(-1);
             }}>
             Return to List
           </Button>
           {hasData && (
-            <Button
-              variant="default"
-              type="submit"
-              disabled={isPending}
-              isLoading={isPending}>
-              {isPending
-                ? `${isEdit ? 'Saving' : 'Creating'}`
-                : `${isEdit ? 'Save' : 'Create'}`}
+            <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+              {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
             </Button>
           )}
         </CardFooter>
       </Form>
     </Card>
-  )
-}
+  );
+};

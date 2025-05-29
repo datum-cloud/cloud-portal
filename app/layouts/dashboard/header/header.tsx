@@ -1,22 +1,22 @@
-import { OrganizationSwitcher } from './org-switcher'
-import { ProjectSwitcher } from './project-switcher'
-import SearchBar from './search-bar'
-import { Button } from '@/components/ui/button'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown'
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { CircleHelp, SlashIcon } from 'lucide-react'
-import { Link, useParams } from 'react-router'
+import { OrganizationSwitcher } from './org-switcher';
+import { ProjectSwitcher } from './project-switcher';
+import SearchBar from './search-bar';
+import { Button } from '@/components/ui/button';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown';
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { CircleHelp, SlashIcon } from 'lucide-react';
+import { Link, useParams } from 'react-router';
 
 export const Header = ({
   hideSidebar = false,
   currentProject,
 }: {
-  hideSidebar?: boolean
-  currentProject?: IProjectControlResponse
+  hideSidebar?: boolean;
+  currentProject?: IProjectControlResponse;
 }) => {
-  const params = useParams<{ orgId: string; projectId: string }>()
+  const params = useParams<{ orgId: string; projectId: string }>();
 
   return (
     <header className="bg-background sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between gap-2 border-b">
@@ -55,5 +55,5 @@ export const Header = ({
         <UserDropdown />
       </div>
     </header>
-  )
-}
+  );
+};

@@ -1,42 +1,41 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   createGatewayNetworkingV1NamespacedHttpRoute,
   deleteGatewayNetworkingV1NamespacedHttpRoute,
   listGatewayNetworkingV1NamespacedHttpRoute,
   readGatewayNetworkingV1NamespacedHttpRoute,
   replaceGatewayNetworkingV1NamespacedHttpRoute,
-} from '@/modules/control-plane/gateway/sdk.gen'
-import { IoK8sNetworkingGatewayV1HttpRoute } from '@/modules/control-plane/gateway/types.gen'
+} from '@/modules/control-plane/gateway/sdk.gen';
+import { IoK8sNetworkingGatewayV1HttpRoute } from '@/modules/control-plane/gateway/types.gen';
 import {
   HTTPFilterType,
   HTTPPathMatchType,
   HTTPPathRewriteType,
   IHttpRouteControlResponse,
   IHttpRouteControlResponseLite,
-} from '@/resources/interfaces/http-route.interface'
-import { HttpRouteSchema } from '@/resources/schemas/http-route.schema'
-import { CustomError } from '@/utils/errorHandle'
-import { convertLabelsToObject } from '@/utils/misc'
-import { Client } from '@hey-api/client-axios'
+} from '@/resources/interfaces/http-route.interface';
+import { HttpRouteSchema } from '@/resources/schemas/http-route.schema';
+import { CustomError } from '@/utils/errorHandle';
+import { convertLabelsToObject } from '@/utils/misc';
+import { Client } from '@hey-api/client-axios';
 
 export const createHttpRoutesControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL
+  const baseUrl = client.instance.defaults.baseURL;
 
   const transformHttpRouteLite = (
-    httpRoute: IoK8sNetworkingGatewayV1HttpRoute,
+    httpRoute: IoK8sNetworkingGatewayV1HttpRoute
   ): IHttpRouteControlResponseLite => {
-    const { metadata } = httpRoute
+    const { metadata } = httpRoute;
     return {
       uid: metadata?.uid,
       name: metadata?.name,
       createdAt: metadata?.creationTimestamp,
-    }
-  }
+    };
+  };
 
   const transformHttpRoute = (
-    httpRoute: IoK8sNetworkingGatewayV1HttpRoute,
+    httpRoute: IoK8sNetworkingGatewayV1HttpRoute
   ): IHttpRouteControlResponse => {
-    const { metadata, spec } = httpRoute
+    const { metadata, spec } = httpRoute;
     return {
       uid: metadata?.uid,
       name: metadata?.name,
@@ -65,8 +64,7 @@ export const createHttpRoutesControl = (client: Client) => {
                   hostname: filter.urlRewrite?.hostname ?? '',
                   path: {
                     type: filter.urlRewrite?.path?.type as HTTPPathRewriteType,
-                    ...(filter.urlRewrite?.path?.type ===
-                    HTTPPathRewriteType.REPLACE_PREFIX_MATCH
+                    ...(filter.urlRewrite?.path?.type === HTTPPathRewriteType.REPLACE_PREFIX_MATCH
                       ? {
                           value: filter.urlRewrite?.path?.replacePrefixMatch as string,
                         }
@@ -79,20 +77,16 @@ export const createHttpRoutesControl = (client: Client) => {
             : {}),
         })),
       })),
-    }
-  }
+    };
+  };
 
-  const formatHttpRoute = (
-    payload: HttpRouteSchema,
-  ): IoK8sNetworkingGatewayV1HttpRoute => {
+  const formatHttpRoute = (payload: HttpRouteSchema): IoK8sNetworkingGatewayV1HttpRoute => {
     return {
       metadata: {
         name: payload?.name,
         labels: convertLabelsToObject(payload?.labels ?? []),
         annotations: convertLabelsToObject(payload?.annotations ?? []),
-        ...(payload?.resourceVersion
-          ? { resourceVersion: payload?.resourceVersion }
-          : {}),
+        ...(payload?.resourceVersion ? { resourceVersion: payload?.resourceVersion } : {}),
       },
       spec: {
         parentRefs: payload.parentRefs.map((parentRef) => ({
@@ -101,7 +95,7 @@ export const createHttpRoutesControl = (client: Client) => {
           group: 'gateway.networking.k8s.io',
         })),
         rules: payload.rules.map((rule) => {
-          const { matches, backendRefs, filters } = rule
+          const { matches, backendRefs, filters } = rule;
           return {
             matches: matches.map((match) => ({
               path: {
@@ -137,11 +131,11 @@ export const createHttpRoutesControl = (client: Client) => {
                   }
                 : {}),
             })),
-          }
+          };
         }),
       },
-    }
-  }
+    };
+  };
 
   return {
     list: async (projectId: string) => {
@@ -149,16 +143,12 @@ export const createHttpRoutesControl = (client: Client) => {
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default' },
-      })
+      });
 
-      return response.data?.items?.map(transformHttpRouteLite) ?? []
+      return response.data?.items?.map(transformHttpRouteLite) ?? [];
     },
-    create: async (
-      projectId: string,
-      payload: HttpRouteSchema,
-      dryRun: boolean = false,
-    ) => {
-      const formatted = formatHttpRoute(payload)
+    create: async (projectId: string, payload: HttpRouteSchema, dryRun: boolean = false) => {
+      const formatted = formatHttpRoute(payload);
       const response = await createGatewayNetworkingV1NamespacedHttpRoute({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -174,47 +164,47 @@ export const createHttpRoutesControl = (client: Client) => {
           kind: 'HTTPRoute',
           apiVersion: 'gateway.networking.k8s.io/v1',
         },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError('Failed to create HTTP route', 500)
+        throw new CustomError('Failed to create HTTP route', 500);
       }
 
-      return dryRun ? response.data : transformHttpRouteLite(response.data)
+      return dryRun ? response.data : transformHttpRouteLite(response.data);
     },
     detail: async (projectId: string, uid: string) => {
       const response = await readGatewayNetworkingV1NamespacedHttpRoute({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: uid },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError('HTTP route not found', 404)
+        throw new CustomError('HTTP route not found', 404);
       }
 
-      return transformHttpRoute(response.data)
+      return transformHttpRoute(response.data);
     },
     delete: async (projectId: string, uid: string) => {
       const response = await deleteGatewayNetworkingV1NamespacedHttpRoute({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: uid },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError('Failed to delete HTTP route', 500)
+        throw new CustomError('Failed to delete HTTP route', 500);
       }
 
-      return response.data
+      return response.data;
     },
     update: async (
       projectId: string,
       uid: string,
       payload: HttpRouteSchema,
-      dryRun: boolean = false,
+      dryRun: boolean = false
     ) => {
-      const formatted = formatHttpRoute(payload)
+      const formatted = formatHttpRoute(payload);
       const response = await replaceGatewayNetworkingV1NamespacedHttpRoute({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -230,13 +220,13 @@ export const createHttpRoutesControl = (client: Client) => {
           kind: 'HTTPRoute',
           apiVersion: 'gateway.networking.k8s.io/v1',
         },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError('Failed to update HTTP route', 500)
+        throw new CustomError('Failed to update HTTP route', 500);
       }
 
-      return dryRun ? response.data : transformHttpRouteLite(response.data)
+      return dryRun ? response.data : transformHttpRouteLite(response.data);
     },
-  }
-}
+  };
+};

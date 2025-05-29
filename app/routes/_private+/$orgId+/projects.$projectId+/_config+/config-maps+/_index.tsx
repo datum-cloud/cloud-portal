@@ -1,21 +1,21 @@
-import { DataTable } from '@/components/data-table/data-table'
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
-import { DateFormat } from '@/components/date-format/date-format'
-import { Button } from '@/components/ui/button'
-import { routes } from '@/constants/routes'
-import { dataWithToast } from '@/modules/cookie/toast.server'
-import { authMiddleware } from '@/modules/middleware/auth.middleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { useApp } from '@/providers/app.provider'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control'
-import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
-import { CustomError } from '@/utils/errorHandle'
-import { getPathWithParams } from '@/utils/path'
-import { Client } from '@hey-api/client-axios'
-import { ColumnDef } from '@tanstack/react-table'
-import { PlusIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { DataTable } from '@/components/data-table/data-table';
+import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
+import { DateFormat } from '@/components/date-format/date-format';
+import { Button } from '@/components/ui/button';
+import { routes } from '@/constants/routes';
+import { dataWithToast } from '@/modules/cookie/toast.server';
+import { authMiddleware } from '@/modules/middleware/auth.middleware';
+import { withMiddleware } from '@/modules/middleware/middleware';
+import { useApp } from '@/providers/app.provider';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control';
+import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
+import { CustomError } from '@/utils/errorHandle';
+import { getPathWithParams } from '@/utils/path';
+import { Client } from '@hey-api/client-axios';
+import { ColumnDef } from '@tanstack/react-table';
+import { PlusIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import {
   LoaderFunctionArgs,
   AppLoadContext,
@@ -25,50 +25,50 @@ import {
   useNavigate,
   useSubmit,
   ActionFunctionArgs,
-} from 'react-router'
+} from 'react-router';
 
 export const loader = withMiddleware(async ({ context, params }: LoaderFunctionArgs) => {
-  const { projectId } = params
-  const { controlPlaneClient } = context as AppLoadContext
-  const configMapControl = createConfigMapsControl(controlPlaneClient as Client)
+  const { projectId } = params;
+  const { controlPlaneClient } = context as AppLoadContext;
+  const configMapControl = createConfigMapsControl(controlPlaneClient as Client);
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400)
+    throw new CustomError('Project ID is required', 400);
   }
 
-  const configMaps = await configMapControl.list(projectId)
-  return configMaps
-}, authMiddleware)
+  const configMaps = await configMapControl.list(projectId);
+  return configMaps;
+}, authMiddleware);
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { controlPlaneClient } = context as AppLoadContext
-  const configMapControl = createConfigMapsControl(controlPlaneClient as Client)
+  const { controlPlaneClient } = context as AppLoadContext;
+  const configMapControl = createConfigMapsControl(controlPlaneClient as Client);
 
   switch (request.method) {
     case 'DELETE': {
-      const formData = Object.fromEntries(await request.formData())
-      const { configMapId, projectId } = formData
+      const formData = Object.fromEntries(await request.formData());
+      const { configMapId, projectId } = formData;
 
-      await configMapControl.delete(projectId as string, configMapId as string)
+      await configMapControl.delete(projectId as string, configMapId as string);
       return dataWithToast(null, {
         title: 'Config map deleted successfully',
         description: 'The config map has been deleted successfully',
         type: 'success',
-      })
+      });
     }
     default:
-      throw new Error('Method not allowed')
+      throw new Error('Method not allowed');
   }
-}, authMiddleware)
+}, authMiddleware);
 
 export default function ConfigMapsPage() {
-  const data = useLoaderData<typeof loader>()
-  const navigate = useNavigate()
-  const submit = useSubmit()
+  const data = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
+  const submit = useSubmit();
 
-  const { confirm } = useConfirmationDialog()
-  const { projectId } = useParams()
-  const { orgId } = useApp()
+  const { confirm } = useConfirmationDialog();
+  const { projectId } = useParams();
+  const { orgId } = useApp();
 
   const deleteConfigMap = async (configMap: IConfigMapControlResponse) => {
     await confirm({
@@ -96,11 +96,11 @@ export default function ConfigMapsPage() {
             method: 'DELETE',
             fetcherKey: 'config-resources',
             navigate: false,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   const columns: ColumnDef<IConfigMapControlResponse>[] = useMemo(
     () => [
@@ -118,19 +118,19 @@ export default function ConfigMapsPage() {
               className="text-primary font-semibold">
               {row.original.name}
             </Link>
-          )
+          );
         },
       },
       {
         header: 'Created At',
         accessorKey: 'createdAt',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
         },
       },
     ],
-    [orgId, projectId],
-  )
+    [orgId, projectId]
+  );
 
   const rowActions: DataTableRowActionsProps<IConfigMapControlResponse>[] = useMemo(
     () => [
@@ -143,8 +143,8 @@ export default function ConfigMapsPage() {
               orgId,
               projectId,
               configMapId: row.name,
-            }),
-          )
+            })
+          );
         },
       },
       {
@@ -154,8 +154,8 @@ export default function ConfigMapsPage() {
         action: (row) => deleteConfigMap(row),
       },
     ],
-    [orgId, projectId],
-  )
+    [orgId, projectId]
+  );
 
   return (
     <DataTable
@@ -182,5 +182,5 @@ export default function ConfigMapsPage() {
       }}
       rowActions={rowActions}
     />
-  )
+  );
 }

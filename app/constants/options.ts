@@ -2,24 +2,21 @@ import {
   ExportPolicyAuthenticationType,
   ExportPolicySinkType,
   ExportPolicySourceType,
-} from '@/resources/interfaces/export-policy.interface'
-import {
-  LocationClass,
-  LocationProvider,
-} from '@/resources/interfaces/location.interface'
-import { SecretType } from '@/resources/interfaces/secret.interface'
+} from '@/resources/interfaces/export-policy.interface';
+import { LocationClass, LocationProvider } from '@/resources/interfaces/location.interface';
+import { SecretType } from '@/resources/interfaces/secret.interface';
 import {
   ContainerEnvType,
   RuntimeType,
   StorageType,
-} from '@/resources/interfaces/workload.interface'
+} from '@/resources/interfaces/workload.interface';
 
 export const LOCATION_PROVIDERS = {
   [LocationProvider.GCP]: {
     label: 'Google Cloud Platform',
     icon: '/images/providers/gcp.svg',
   },
-}
+};
 
 export const LOCATION_CLASSES = {
   [LocationClass.SELF_MANAGED]: {
@@ -32,7 +29,7 @@ export const LOCATION_CLASSES = {
     description:
       'Managed control plane with reduced operational overhead. Datum handles maintenance and updates automatically.',
   },
-}
+};
 
 export const RUNTIME_TYPES = {
   [RuntimeType.CONTAINER]: {
@@ -43,7 +40,7 @@ export const RUNTIME_TYPES = {
     label: 'Virtual Machine',
     description: 'A virtual machine is a full virtualized operating system.',
   },
-}
+};
 
 export const STORAGE_TYPES = {
   [StorageType.FILESYSTEM]: {
@@ -58,7 +55,7 @@ export const STORAGE_TYPES = {
     label: 'Boot volume',
     description: 'A boot volume is a volume that is used to store the boot image.',
   },
-}
+};
 
 export const ENV_TYPES = {
   [ContainerEnvType.TEXT]: {
@@ -73,14 +70,14 @@ export const ENV_TYPES = {
     label: 'Config Map',
     description: 'A config map is a value that is used to store a config map.',
   },
-}
+};
 
 export const POLICY_SOURCE_TYPES = {
   [ExportPolicySourceType.METRICS]: {
     label: 'Metrics',
     description: 'A metrics source is a source that is used to export metrics.',
   },
-}
+};
 
 export const POLICY_SINK_TYPES = {
   [ExportPolicySinkType.PROMETHEUS]: {
@@ -88,7 +85,7 @@ export const POLICY_SINK_TYPES = {
     description:
       'A sink used for exporting telemetry data to a Prometheus Remote Write endpoint as part of a Kubernetes export policy.',
   },
-}
+};
 
 export const SECRET_TYPES = {
   [SecretType.OPAQUE]: {
@@ -106,8 +103,7 @@ export const SECRET_TYPES = {
   },
   [SecretType.DOCKERCONFIGJSON]: {
     label: 'Docker Config JSON',
-    description:
-      'A docker config JSON is a secret that is used to store a docker config JSON.',
+    description: 'A docker config JSON is a secret that is used to store a docker config JSON.',
   },
   [SecretType.BASIC_AUTH]: {
     label: 'Basic Auth',
@@ -125,11 +121,11 @@ export const SECRET_TYPES = {
     label: 'Bootstrap Token',
     description: 'A bootstrap token is a secret that is used to store a bootstrap token.',
   },
-}
+};
 
 export const SINK_AUTH_TYPES = {
   [ExportPolicyAuthenticationType.BASIC_AUTH]: {
     label: 'Basic Auth',
     description: 'A basic auth is a secret that is used to store a basic auth.',
   },
-}
+};

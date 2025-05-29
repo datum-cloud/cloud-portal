@@ -1,15 +1,15 @@
-import { ILabel } from './label.interface'
+import { ILabel } from './label.interface';
 
 export interface ISecretControlResponse {
-  name?: string
-  namespace?: string
-  createdAt?: Date
-  uid?: string
-  resourceVersion?: string
-  data?: string[]
-  type?: SecretType
-  labels?: ILabel
-  annotations?: ILabel
+  name?: string;
+  namespace?: string;
+  createdAt?: Date;
+  uid?: string;
+  resourceVersion?: string;
+  data?: string[];
+  type?: SecretType;
+  labels?: ILabel;
+  annotations?: ILabel;
 }
 
 export enum SecretType {

@@ -1,12 +1,12 @@
-import { Badge } from '@/components/ui/badge'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   ControlPlaneStatus,
   IControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface'
-import { cn } from '@/utils/misc'
-import { CircleIcon, Loader2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+} from '@/resources/interfaces/control-plane.interface';
+import { cn } from '@/utils/misc';
+import { CircleIcon, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export const StatusBadge = ({
   status,
@@ -18,26 +18,24 @@ export const StatusBadge = ({
   readyText = 'Ready',
   tooltipText,
 }: {
-  status?: IControlPlaneStatus
-  type?: 'dot' | 'badge'
-  showTooltip?: boolean
-  badgeClassName?: string
-  loadingText?: string
-  errorText?: string
-  readyText?: string
-  tooltipText?: string | React.ReactNode
+  status?: IControlPlaneStatus;
+  type?: 'dot' | 'badge';
+  showTooltip?: boolean;
+  badgeClassName?: string;
+  loadingText?: string;
+  errorText?: string;
+  readyText?: string;
+  tooltipText?: string | React.ReactNode;
 }) => {
-  const [planeStatus, setPlaneStatus] = useState<ControlPlaneStatus>(
-    ControlPlaneStatus.Pending,
-  )
-  const [message, setMessage] = useState<string | null>(null)
+  const [planeStatus, setPlaneStatus] = useState<ControlPlaneStatus>(ControlPlaneStatus.Pending);
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (status) {
-      setPlaneStatus(status.status)
-      setMessage(status.message)
+      setPlaneStatus(status.status);
+      setMessage(status.message);
     }
-  }, [status])
+  }, [status]);
 
   const Dot = () => {
     return planeStatus === ControlPlaneStatus.Success ? (
@@ -46,23 +44,18 @@ export const StatusBadge = ({
         aria-hidden="true"
       />
     ) : planeStatus === ControlPlaneStatus.Error ? (
-      <CircleIcon
-        className="size-3 cursor-default fill-red-500 text-red-500"
-        aria-hidden="true"
-      />
+      <CircleIcon className="size-3 cursor-default fill-red-500 text-red-500" aria-hidden="true" />
     ) : planeStatus === ControlPlaneStatus.Pending ? (
       <Loader2 className="size-3 animate-spin cursor-default" />
-    ) : null
-  }
+    ) : null;
+  };
 
   return (
     <Tooltip>
       <TooltipTrigger
         className={cn(
           'w-fit',
-          !showTooltip || planeStatus === ControlPlaneStatus.Success
-            ? 'pointer-events-none'
-            : '',
+          !showTooltip || planeStatus === ControlPlaneStatus.Success ? 'pointer-events-none' : ''
         )}>
         {type === 'dot' ? (
           <Dot />
@@ -71,7 +64,7 @@ export const StatusBadge = ({
             variant="outline"
             className={cn(
               'flex cursor-default items-center gap-1 border-none text-sm font-normal',
-              badgeClassName,
+              badgeClassName
             )}>
             <Dot />
             {planeStatus === ControlPlaneStatus.Success
@@ -84,5 +77,5 @@ export const StatusBadge = ({
       </TooltipTrigger>
       <TooltipContent>{tooltipText ?? message}</TooltipContent>
     </Tooltip>
-  )
-}
+  );
+};

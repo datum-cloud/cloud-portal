@@ -1,5 +1,5 @@
-import { KeysForm } from './keys-form'
-import { Button } from '@/components/ui/button'
+import { KeysForm } from './keys-form';
+import { Button } from '@/components/ui/button';
 import {
   DialogContent,
   Dialog,
@@ -7,29 +7,26 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog'
-import { useIsPending } from '@/hooks/useIsPending'
-import {
-  SecretVariablesSchema,
-  secretVariablesSchema,
-} from '@/resources/schemas/secret.schema'
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions'
-import { isBase64, toBase64 } from '@/utils/misc'
-import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { Form, useFetcher } from 'react-router'
-import { useAuthenticityToken } from 'remix-utils/csrf/react'
+} from '@/components/ui/dialog';
+import { useIsPending } from '@/hooks/useIsPending';
+import { SecretVariablesSchema, secretVariablesSchema } from '@/resources/schemas/secret.schema';
+import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions';
+import { isBase64, toBase64 } from '@/utils/misc';
+import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { Form, useFetcher } from 'react-router';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 interface VariablesFormDialogProps {
-  projectId?: string
-  secretId?: string
-  onSuccess?: () => void
-  onCancel?: () => void
+  projectId?: string;
+  secretId?: string;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
 export interface VariablesFormDialogRef {
-  show: (defaultValue?: SecretVariablesSchema) => Promise<boolean>
+  show: (defaultValue?: SecretVariablesSchema) => Promise<boolean>;
 }
 
 export const KeysFormDialog = ({
@@ -39,17 +36,17 @@ export const KeysFormDialog = ({
   onSuccess,
   onCancel,
 }: VariablesFormDialogProps & {
-  ref: React.RefObject<VariablesFormDialogRef>
+  ref: React.RefObject<VariablesFormDialogRef>;
 }) => {
-  const fetcher = useFetcher({ key: 'add-secret-variables' })
-  const isPending = useIsPending({ fetcherKey: 'add-secret-variables' })
-  const csrf = useAuthenticityToken()
+  const fetcher = useFetcher({ key: 'add-secret-variables' });
+  const isPending = useIsPending({ fetcherKey: 'add-secret-variables' });
+  const csrf = useAuthenticityToken();
 
-  const [isOpen, setIsOpen] = useState(false)
-  const resolveRef = useRef<(value: boolean) => void>(null)
+  const [isOpen, setIsOpen] = useState(false);
+  const resolveRef = useRef<(value: boolean) => void>(null);
   const [defaultValue, setDefaultValue] = useState<SecretVariablesSchema | undefined>({
     variables: [{ key: '', value: '' }],
-  })
+  });
 
   const [form, fields] = useForm({
     id: 'secret-variables-form',
@@ -58,11 +55,11 @@ export const KeysFormDialog = ({
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: secretVariablesSchema })
+      return parseWithZod(formData, { schema: secretVariablesSchema });
     },
     onSubmit(event, { submission }) {
-      event.preventDefault()
-      event.stopPropagation()
+      event.preventDefault();
+      event.stopPropagation();
 
       if (submission?.status === 'success') {
         fetcher.submit(
@@ -71,10 +68,10 @@ export const KeysFormDialog = ({
             secretId: secretId ?? '',
             data: (submission?.value?.variables ?? []).reduce(
               (acc, vars) => {
-                acc[vars.key] = isBase64(vars.value) ? vars.value : toBase64(vars.value)
-                return acc
+                acc[vars.key] = isBase64(vars.value) ? vars.value : toBase64(vars.value);
+                return acc;
               },
-              {} as Record<string, string>,
+              {} as Record<string, string>
             ),
             csrf,
           },
@@ -82,43 +79,43 @@ export const KeysFormDialog = ({
             action: SECRET_ACTIONS_ROUTE_PATH,
             encType: 'application/json',
             method: 'PATCH',
-          },
-        )
+          }
+        );
       }
     },
-  })
+  });
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
-      const { success } = fetcher.data
+      const { success } = fetcher.data;
 
       if (success) {
-        handleOpenChange(false)
-        onSuccess?.()
+        handleOpenChange(false);
+        onSuccess?.();
       }
     }
-  }, [fetcher.data, fetcher.state])
+  }, [fetcher.data, fetcher.state]);
 
   useImperativeHandle(ref, () => ({
     show: (value?: SecretVariablesSchema) => {
-      setIsOpen(true)
-      setDefaultValue(value)
+      setIsOpen(true);
+      setDefaultValue(value);
       return new Promise<boolean>((resolve) => {
-        resolveRef.current = resolve
-      })
+        resolveRef.current = resolve;
+      });
     },
-  }))
+  }));
 
   const handleOpenChange = (open: boolean) => {
     // Reset form
-    form.reset({ name: fields.variables.name })
+    form.reset({ name: fields.variables.name });
 
     if (!open) {
-      resolveRef.current?.(false)
-      onCancel?.()
+      resolveRef.current?.(false);
+      onCancel?.();
     }
-    setIsOpen(open)
-  }
+    setIsOpen(open);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -140,9 +137,7 @@ export const KeysFormDialog = ({
               mode="dialog"
               defaultValue={defaultValue}
               form={form as FormMetadata<SecretVariablesSchema>}
-              fields={
-                fields as unknown as ReturnType<typeof useForm<SecretVariablesSchema>>[1]
-              }
+              fields={fields as unknown as ReturnType<typeof useForm<SecretVariablesSchema>>[1]}
             />
             <DialogFooter className="flex gap-2">
               <Button
@@ -150,15 +145,11 @@ export const KeysFormDialog = ({
                 variant="link"
                 disabled={isPending}
                 onClick={() => {
-                  handleOpenChange(false)
+                  handleOpenChange(false);
                 }}>
                 Cancel
               </Button>
-              <Button
-                variant="default"
-                type="submit"
-                disabled={isPending}
-                isLoading={isPending}>
+              <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
                 {isPending ? 'Creating' : 'Create'}
               </Button>
             </DialogFooter>
@@ -166,7 +157,7 @@ export const KeysFormDialog = ({
         </FormProvider>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-KeysFormDialog.displayName = 'KeysFormDialog'
+KeysFormDialog.displayName = 'KeysFormDialog';

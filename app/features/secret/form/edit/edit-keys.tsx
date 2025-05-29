@@ -1,12 +1,6 @@
-import { EditKeyValueDialog, EditKeyValueDialogRef } from './edit-key-value-dialog'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { EditKeyValueDialog, EditKeyValueDialogRef } from './edit-key-value-dialog';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -14,37 +8,37 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from '@/components/ui/table';
 import {
   KeysFormDialog,
   VariablesFormDialogRef,
-} from '@/features/secret/form/keys/keys-form-dialog'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { ISecretControlResponse } from '@/resources/interfaces/secret.interface'
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions'
-import { PencilIcon, PlusIcon, Trash2 } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { useFetcher } from 'react-router'
-import { useAuthenticityToken } from 'remix-utils/csrf/react'
-import { toast } from 'sonner'
+} from '@/features/secret/form/keys/keys-form-dialog';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
+import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions';
+import { PencilIcon, PlusIcon, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useFetcher } from 'react-router';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { toast } from 'sonner';
 
 export const EditSecretKeys = ({
   projectId,
   defaultValue,
 }: {
-  projectId: string
-  defaultValue?: ISecretControlResponse
+  projectId: string;
+  defaultValue?: ISecretControlResponse;
 }) => {
-  const { confirm } = useConfirmationDialog()
-  const fetcher = useFetcher()
-  const csrf = useAuthenticityToken()
+  const { confirm } = useConfirmationDialog();
+  const fetcher = useFetcher();
+  const csrf = useAuthenticityToken();
 
-  const variablesFormDialogRef = useRef<VariablesFormDialogRef>(null!)
-  const editKeyValueDialogRef = useRef<EditKeyValueDialogRef>(null!)
-  const [currentAction, setCurrentAction] = useState<'delete' | 'edit'>()
+  const variablesFormDialogRef = useRef<VariablesFormDialogRef>(null!);
+  const editKeyValueDialogRef = useRef<EditKeyValueDialogRef>(null!);
+  const [currentAction, setCurrentAction] = useState<'delete' | 'edit'>();
 
   const deleteSecret = async (variable: string) => {
-    setCurrentAction('delete')
+    setCurrentAction('delete');
     await confirm({
       title: 'Delete Key',
       description: (
@@ -74,24 +68,24 @@ export const EditSecretKeys = ({
             action: SECRET_ACTIONS_ROUTE_PATH,
             encType: 'application/json',
             method: 'PATCH',
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
-      const { success } = fetcher.data
+      const { success } = fetcher.data;
 
       if (success) {
-        setCurrentAction(undefined)
+        setCurrentAction(undefined);
         if (currentAction === 'delete') {
-          toast.success('Key deleted successfully')
+          toast.success('Key deleted successfully');
         }
       }
     }
-  }, [fetcher.data, fetcher.state])
+  }, [fetcher.data, fetcher.state]);
 
   return (
     <>
@@ -161,5 +155,5 @@ export const EditSecretKeys = ({
         secretId={defaultValue?.name}
       />
     </>
-  )
-}
+  );
+};

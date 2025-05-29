@@ -6,50 +6,45 @@ import {
   readResourcemanagerDatumapisComV1AlphaProject,
   readResourcemanagerDatumapisComV1AlphaProjectStatus,
   replaceResourcemanagerDatumapisComV1AlphaProject,
-} from '@/modules/control-plane/resource-manager'
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { UpdateProjectSchema, ProjectSchema } from '@/resources/schemas/project.schema'
-import { CustomError } from '@/utils/errorHandle'
-import {
-  convertLabelsToObject,
-  filterLabels,
-  transformControlPlaneStatus,
-} from '@/utils/misc'
-import { Client } from '@hey-api/client-axios'
+} from '@/modules/control-plane/resource-manager';
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { UpdateProjectSchema, ProjectSchema } from '@/resources/schemas/project.schema';
+import { CustomError } from '@/utils/errorHandle';
+import { convertLabelsToObject, filterLabels, transformControlPlaneStatus } from '@/utils/misc';
+import { Client } from '@hey-api/client-axios';
 
 export const createProjectsControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL
+  const baseUrl = client.instance.defaults.baseURL;
 
   const transform = (
-    project: ComDatumapisResourcemanagerV1AlphaProject,
+    project: ComDatumapisResourcemanagerV1AlphaProject
   ): IProjectControlResponse => {
     const metadata = {
       name: project?.metadata?.name ?? '',
       description: project?.metadata?.annotations?.['kubernetes.io/description'] ?? '',
       createdAt: project?.metadata?.creationTimestamp ?? new Date(),
       organizationId:
-        project?.metadata?.labels?.['resourcemanager.datumapis.com/organization-id'] ??
-        '',
+        project?.metadata?.labels?.['resourcemanager.datumapis.com/organization-id'] ?? '',
       resourceVersion: project?.metadata?.resourceVersion ?? '',
       uid: project?.metadata?.uid ?? '',
       status: project.status ?? {},
       labels: filterLabels(project?.metadata?.labels ?? {}),
-    }
+    };
 
-    return metadata
-  }
+    return metadata;
+  };
 
   return {
     list: async (orgEntityId: string) => {
       const response = await listResourcemanagerDatumapisComV1AlphaProject({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
-      })
+      });
       return (
         response?.data?.items?.map((project: ComDatumapisResourcemanagerV1AlphaProject) =>
-          transform(project),
+          transform(project)
         ) ?? []
-      )
+      );
     },
     detail: async (orgEntityId: string, projectName: string) => {
       const response = await readResourcemanagerDatumapisComV1AlphaProject({
@@ -58,13 +53,13 @@ export const createProjectsControl = (client: Client) => {
         path: {
           name: projectName,
         },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError(`Project ${projectName} not found`, 404)
+        throw new CustomError(`Project ${projectName} not found`, 404);
       }
 
-      return transform(response.data)
+      return transform(response.data);
     },
     create: async (payload: ProjectSchema, dryRun: boolean = false) => {
       const response = await createResourcemanagerDatumapisComV1AlphaProject({
@@ -89,19 +84,19 @@ export const createProjectsControl = (client: Client) => {
             },
           },
         },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError('Failed to create project', 500)
+        throw new CustomError('Failed to create project', 500);
       }
 
-      return dryRun ? response.data : transform(response.data)
+      return dryRun ? response.data : transform(response.data);
     },
     update: async (
       orgEntityId: string,
       projectName: string,
       payload: UpdateProjectSchema,
-      dryRun: boolean = false,
+      dryRun: boolean = false
     ) => {
       const response = await replaceResourcemanagerDatumapisComV1AlphaProject({
         client,
@@ -130,40 +125,40 @@ export const createProjectsControl = (client: Client) => {
             },
           },
         },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError(`Project ${projectName} not found`, 404)
+        throw new CustomError(`Project ${projectName} not found`, 404);
       }
 
-      return dryRun ? response.data : transform(response.data)
+      return dryRun ? response.data : transform(response.data);
     },
     delete: async (orgEntityId: string, projectName: string) => {
       const response = await deleteResourcemanagerDatumapisComV1AlphaProject({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
         path: { name: projectName },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError(`Project ${projectName} not found`, 404)
+        throw new CustomError(`Project ${projectName} not found`, 404);
       }
 
-      return response.data
+      return response.data;
     },
     getStatus: async (orgEntityId: string, projectName: string) => {
       const response = await readResourcemanagerDatumapisComV1AlphaProjectStatus({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
         path: { name: projectName },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError(`Project ${projectName} not found`, 404)
+        throw new CustomError(`Project ${projectName} not found`, 404);
       }
 
-      return transformControlPlaneStatus(response.data.status)
+      return transformControlPlaneStatus(response.data.status);
     },
-  }
-}
-export type ProjectsControl = ReturnType<typeof createProjectsControl>
+  };
+};
+export type ProjectsControl = ReturnType<typeof createProjectsControl>;

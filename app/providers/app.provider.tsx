@@ -1,13 +1,13 @@
-import { IOrganization } from '@/resources/interfaces/organization.inteface'
-import { IUser } from '@/resources/interfaces/user.interface'
-import { ReactNode, createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { IUser } from '@/resources/interfaces/user.interface';
+import { ReactNode, createContext, useContext, useEffect, useState, useMemo } from 'react';
 
 interface AppContextType {
-  user: IUser | undefined
-  organization: IOrganization | undefined
-  orgId: string | undefined
-  setUser: (user: IUser) => void
-  setOrganization: (organization: IOrganization) => void
+  user: IUser | undefined;
+  organization: IOrganization | undefined;
+  orgId: string | undefined;
+  setUser: (user: IUser) => void;
+  setOrganization: (organization: IOrganization) => void;
 }
 
 const AppContext = createContext<AppContextType>({
@@ -16,37 +16,33 @@ const AppContext = createContext<AppContextType>({
   orgId: undefined,
   setUser: () => {},
   setOrganization: () => {},
-})
+});
 
 interface AppProviderProps {
-  children: ReactNode
-  initialUser?: IUser
-  initialOrganization?: IOrganization
+  children: ReactNode;
+  initialUser?: IUser;
+  initialOrganization?: IOrganization;
 }
 
-export function AppProvider({
-  children,
-  initialUser,
-  initialOrganization,
-}: AppProviderProps) {
-  const [user, setUser] = useState<IUser>(initialUser!)
-  const [organization, setOrganization] = useState<IOrganization>(initialOrganization!)
+export function AppProvider({ children, initialUser, initialOrganization }: AppProviderProps) {
+  const [user, setUser] = useState<IUser>(initialUser!);
+  const [organization, setOrganization] = useState<IOrganization>(initialOrganization!);
 
   const updateUserData = (userData: IUser) => {
-    setUser(userData)
-  }
+    setUser(userData);
+  };
 
   const updateOrganizationData = (orgData: IOrganization) => {
-    setOrganization(orgData)
-  }
+    setOrganization(orgData);
+  };
 
-  const orgId = useMemo(() => organization?.id, [organization])
+  const orgId = useMemo(() => organization?.id, [organization]);
 
   useEffect(() => {
     if (initialUser) {
-      setUser(initialUser)
+      setUser(initialUser);
     }
-  }, [initialUser])
+  }, [initialUser]);
 
   return (
     <AppContext.Provider
@@ -59,13 +55,13 @@ export function AppProvider({
       }}>
       {children}
     </AppContext.Provider>
-  )
+  );
 }
 
 export function useApp() {
-  const context = useContext(AppContext)
+  const context = useContext(AppContext);
   if (!context) {
-    throw new Error('useApp must be used within an AppProvider')
+    throw new Error('useApp must be used within an AppProvider');
   }
-  return context
+  return context;
 }

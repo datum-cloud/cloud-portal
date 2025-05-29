@@ -1,46 +1,36 @@
-import { Field } from '@/components/field/field'
-import { InputWithCopy } from '@/components/input-with-copy/input-with-copy'
-import { SelectLabels } from '@/components/select-labels/select-labels'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { useIsPending } from '@/hooks/useIsPending'
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { updateProjectSchema } from '@/resources/schemas/project.schema'
-import { convertObjectToLabels } from '@/utils/misc'
-import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect, useRef } from 'react'
-import { Form } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+import { Field } from '@/components/field/field';
+import { InputWithCopy } from '@/components/input-with-copy/input-with-copy';
+import { SelectLabels } from '@/components/select-labels/select-labels';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useIsPending } from '@/hooks/useIsPending';
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { updateProjectSchema } from '@/resources/schemas/project.schema';
+import { convertObjectToLabels } from '@/utils/misc';
+import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { useEffect, useRef } from 'react';
+import { Form } from 'react-router';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
+import { useHydrated } from 'remix-utils/use-hydrated';
 
-export const UpdateProjectForm = ({
-  defaultValue,
-}: {
-  defaultValue: IProjectControlResponse
-}) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
-  const isPending = useIsPending()
+export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectControlResponse }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isHydrated = useHydrated();
+  const isPending = useIsPending();
 
   const [form, fields] = useForm({
     constraint: getZodConstraint(updateProjectSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: updateProjectSchema })
+      return parseWithZod(formData, { schema: updateProjectSchema });
     },
-  })
+  });
 
-  const displayNameControl = useInputControl(fields.description)
-  const labelsControl = useInputControl(fields.labels)
+  const displayNameControl = useInputControl(fields.description);
+  const labelsControl = useInputControl(fields.labels);
 
   useEffect(() => {
     if (defaultValue) {
@@ -49,14 +39,13 @@ export const UpdateProjectForm = ({
           description: defaultValue.description,
           labels: convertObjectToLabels(defaultValue.labels ?? {}),
         },
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
+    isHydrated && inputRef.current?.focus();
+  }, [isHydrated]);
 
   return (
     <Card>
@@ -73,16 +62,8 @@ export const UpdateProjectForm = ({
 
         {defaultValue && (
           <>
-            <input
-              type="hidden"
-              name="resourceVersion"
-              value={defaultValue?.resourceVersion}
-            />
-            <input
-              type="hidden"
-              name="orgEntityId"
-              value={defaultValue?.organizationId}
-            />
+            <input type="hidden" name="resourceVersion" value={defaultValue?.resourceVersion} />
+            <input type="hidden" name="orgEntityId" value={defaultValue?.organizationId} />
           </>
         )}
 
@@ -102,8 +83,8 @@ export const UpdateProjectForm = ({
               placeholder="e.g. My Project"
               ref={inputRef}
               onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                const value = (e.target as HTMLInputElement).value
-                displayNameControl.change(value)
+                const value = (e.target as HTMLInputElement).value;
+                displayNameControl.change(value);
               }}
               {...getInputProps(fields.description, { type: 'text' })}
             />
@@ -116,21 +97,17 @@ export const UpdateProjectForm = ({
             <SelectLabels
               defaultValue={fields.labels.value as string[]}
               onChange={(value) => {
-                labelsControl.change(value)
+                labelsControl.change(value);
               }}
             />
           </Field>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
-          <Button
-            variant="default"
-            type="submit"
-            disabled={isPending}
-            isLoading={isPending}>
+          <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
             {isPending ? 'Updating' : 'Update'}
           </Button>
         </CardFooter>
       </Form>
     </Card>
-  )
-}
+  );
+};

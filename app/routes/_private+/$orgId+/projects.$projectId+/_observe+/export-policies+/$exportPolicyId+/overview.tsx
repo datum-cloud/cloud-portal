@@ -1,53 +1,46 @@
-import { DateFormat } from '@/components/date-format/date-format'
-import { MoreActions } from '@/components/more-actions/more-actions'
-import { PageTitle } from '@/components/page-title/page-title'
-import { Button } from '@/components/ui/button'
-import { routes } from '@/constants/routes'
-import { ExportPolicyGeneralCard } from '@/features/observe/export-policies/general-card'
-import { WorkloadSinksTable } from '@/features/observe/export-policies/sinks-table'
-import { WorkloadSourcesTable } from '@/features/observe/export-policies/sources-table'
-import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface'
-import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions'
-import { mergeMeta, metaObject } from '@/utils/meta'
-import { getPathWithParams } from '@/utils/path'
-import { formatDistanceToNow } from 'date-fns/formatDistanceToNow'
-import { motion } from 'framer-motion'
-import { ClockIcon, PencilIcon } from 'lucide-react'
-import {
-  Link,
-  MetaFunction,
-  useParams,
-  useRouteLoaderData,
-  useSubmit,
-} from 'react-router'
+import { DateFormat } from '@/components/date-format/date-format';
+import { MoreActions } from '@/components/more-actions/more-actions';
+import { PageTitle } from '@/components/page-title/page-title';
+import { Button } from '@/components/ui/button';
+import { routes } from '@/constants/routes';
+import { ExportPolicyGeneralCard } from '@/features/observe/export-policies/general-card';
+import { WorkloadSinksTable } from '@/features/observe/export-policies/sinks-table';
+import { WorkloadSourcesTable } from '@/features/observe/export-policies/sources-table';
+import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions';
+import { mergeMeta, metaObject } from '@/utils/meta';
+import { getPathWithParams } from '@/utils/path';
+import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
+import { motion } from 'framer-motion';
+import { ClockIcon, PencilIcon } from 'lucide-react';
+import { Link, MetaFunction, useParams, useRouteLoaderData, useSubmit } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find(
     (match) =>
       match.id ===
-      'routes/_private+/$orgId+/projects.$projectId+/_observe+/export-policies+/$exportPolicyId+/_layout',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ) as any
+      'routes/_private+/$orgId+/projects.$projectId+/_observe+/export-policies+/$exportPolicyId+/_layout'
+  ) as any;
 
-  const exportPolicy = match.data
+  const exportPolicy = match.data;
   return metaObject(
-    `${(exportPolicy as IExportPolicyControlResponse)?.name || 'Export Policy'} Overview`,
-  )
-})
+    `${(exportPolicy as IExportPolicyControlResponse)?.name || 'Export Policy'} Overview`
+  );
+});
 
 export default function ExportPolicyOverview() {
   const exportPolicy = useRouteLoaderData(
-    'routes/_private+/$orgId+/projects.$projectId+/_observe+/export-policies+/$exportPolicyId+/_layout',
-  )
+    'routes/_private+/$orgId+/projects.$projectId+/_observe+/export-policies+/$exportPolicyId+/_layout'
+  );
 
-  const submit = useSubmit()
-  const { confirm } = useConfirmationDialog()
-  const { orgId, projectId } = useParams()
+  const submit = useSubmit();
+  const { confirm } = useConfirmationDialog();
+  const { orgId, projectId } = useParams();
 
   // revalidate every 10 seconds to keep deployment list fresh
-  const revalidator = useRevalidateOnInterval({ enabled: true, interval: 10000 })
+  const revalidator = useRevalidateOnInterval({ enabled: true, interval: 10000 });
 
   const deleteExportPolicy = async () => {
     await confirm({
@@ -67,7 +60,7 @@ export default function ExportPolicyOverview() {
       confirmValue: exportPolicy?.name ?? 'delete',
       onSubmit: async () => {
         // Clear the interval when deleting a export policy
-        revalidator.clear()
+        revalidator.clear();
 
         await submit(
           {
@@ -80,11 +73,11 @@ export default function ExportPolicyOverview() {
             method: 'DELETE',
             fetcherKey: 'export-policy-resources',
             navigate: false,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   return (
     <motion.div
@@ -109,12 +102,10 @@ export default function ExportPolicyOverview() {
               <span className="text-muted-foreground text-sm">
                 (
                 {formatDistanceToNow(
-                  new Date(
-                    (exportPolicy as IExportPolicyControlResponse)?.createdAt ?? '',
-                  ),
+                  new Date((exportPolicy as IExportPolicyControlResponse)?.createdAt ?? ''),
                   {
                     addSuffix: true,
-                  },
+                  }
                 )}
                 )
               </span>
@@ -129,14 +120,11 @@ export default function ExportPolicyOverview() {
               <Button variant="outline" size="sm">
                 <Link
                   className="flex items-center gap-2"
-                  to={getPathWithParams(
-                    routes.projects.observe.exportPolicies.detail.edit,
-                    {
-                      orgId,
-                      projectId,
-                      exportPolicyId: exportPolicy?.name ?? '',
-                    },
-                  )}>
+                  to={getPathWithParams(routes.projects.observe.exportPolicies.detail.edit, {
+                    orgId,
+                    projectId,
+                    exportPolicyId: exportPolicy?.name ?? '',
+                  })}>
                   <PencilIcon className="size-4" />
                   Edit
                 </Link>
@@ -176,12 +164,9 @@ export default function ExportPolicyOverview() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.4 }}>
-          <WorkloadSinksTable
-            data={exportPolicy.sinks ?? []}
-            status={exportPolicy.status ?? {}}
-          />
+          <WorkloadSinksTable data={exportPolicy.sinks ?? []} status={exportPolicy.status ?? {}} />
         </motion.div>
       </div>
     </motion.div>
-  )
+  );
 }

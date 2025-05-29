@@ -1,25 +1,25 @@
-import { DataTable } from '@/components/data-table/data-table'
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
-import { DateFormat } from '@/components/date-format/date-format'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { routes } from '@/constants/routes'
-import { WorkloadStatus } from '@/features/workload/status'
-import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval'
-import { deletedWorkloadIdsCookie } from '@/modules/cookie/workload.server'
-import { authMiddleware } from '@/modules/middleware/auth.middleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
-import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
-import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
-import { CustomError } from '@/utils/errorHandle'
-import { transformControlPlaneStatus } from '@/utils/misc'
-import { getPathWithParams } from '@/utils/path'
-import { Client } from '@hey-api/client-axios'
-import { ColumnDef } from '@tanstack/react-table'
-import { Loader2, PlusIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { DataTable } from '@/components/data-table/data-table';
+import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
+import { DateFormat } from '@/components/date-format/date-format';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { routes } from '@/constants/routes';
+import { WorkloadStatus } from '@/features/workload/status';
+import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { deletedWorkloadIdsCookie } from '@/modules/cookie/workload.server';
+import { authMiddleware } from '@/modules/middleware/auth.middleware';
+import { withMiddleware } from '@/modules/middleware/middleware';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { createWorkloadsControl } from '@/resources/control-plane/workloads.control';
+import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
+import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions';
+import { CustomError } from '@/utils/errorHandle';
+import { transformControlPlaneStatus } from '@/utils/misc';
+import { getPathWithParams } from '@/utils/path';
+import { Client } from '@hey-api/client-axios';
+import { ColumnDef } from '@tanstack/react-table';
+import { Loader2, PlusIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import {
   LoaderFunctionArgs,
   AppLoadContext,
@@ -29,57 +29,52 @@ import {
   useNavigate,
   useSubmit,
   data,
-} from 'react-router'
+} from 'react-router';
 
-export const loader = withMiddleware(
-  async ({ context, params, request }: LoaderFunctionArgs) => {
-    const { projectId } = params
-    const { controlPlaneClient } = context as AppLoadContext
-    const workloadsControl = createWorkloadsControl(controlPlaneClient as Client)
+export const loader = withMiddleware(async ({ context, params, request }: LoaderFunctionArgs) => {
+  const { projectId } = params;
+  const { controlPlaneClient } = context as AppLoadContext;
+  const workloadsControl = createWorkloadsControl(controlPlaneClient as Client);
 
-    if (!projectId) {
-      throw new CustomError('Project ID is required', 400)
-    }
+  if (!projectId) {
+    throw new CustomError('Project ID is required', 400);
+  }
 
-    const workloads = await workloadsControl.list(projectId)
+  const workloads = await workloadsControl.list(projectId);
 
-    // Get deleted IDs from cookie
-    const cookieValue = await deletedWorkloadIdsCookie.parse(
-      request.headers.get('Cookie'),
-    )
+  // Get deleted IDs from cookie
+  const cookieValue = await deletedWorkloadIdsCookie.parse(request.headers.get('Cookie'));
 
-    // Check if cookie value is an array and has elements
-    let deletedIds: string[] = []
-    if (Array.isArray(cookieValue) && cookieValue.length > 0) {
-      // Create a set of current workload names for efficient lookup
-      const workloadNames = new Set(workloads.map((w) => w.name))
+  // Check if cookie value is an array and has elements
+  let deletedIds: string[] = [];
+  if (Array.isArray(cookieValue) && cookieValue.length > 0) {
+    // Create a set of current workload names for efficient lookup
+    const workloadNames = new Set(workloads.map((w) => w.name));
 
-      // Filter out deleted IDs that don't exist in current workloads
-      deletedIds = cookieValue.filter((id) => workloadNames.has(id))
-    }
+    // Filter out deleted IDs that don't exist in current workloads
+    deletedIds = cookieValue.filter((id) => workloadNames.has(id));
+  }
 
-    return data(
-      { workloads, deletedIds },
-      {
-        headers: {
-          'Set-Cookie': await deletedWorkloadIdsCookie.serialize(deletedIds),
-        },
+  return data(
+    { workloads, deletedIds },
+    {
+      headers: {
+        'Set-Cookie': await deletedWorkloadIdsCookie.serialize(deletedIds),
       },
-    )
-  },
-  authMiddleware,
-)
+    }
+  );
+}, authMiddleware);
 
 export default function WorkloadsPage() {
   // revalidate every 5 seconds to keep workload list fresh
-  useRevalidateOnInterval({ enabled: true, interval: 10000 })
+  useRevalidateOnInterval({ enabled: true, interval: 10000 });
 
-  const { workloads, deletedIds } = useLoaderData<typeof loader>()
-  const navigate = useNavigate()
-  const submit = useSubmit()
-  const { confirm } = useConfirmationDialog()
+  const { workloads, deletedIds } = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
+  const submit = useSubmit();
+  const { confirm } = useConfirmationDialog();
 
-  const { orgId, projectId } = useParams()
+  const { orgId, projectId } = useParams();
 
   const deleteWorkload = async (workload: IWorkloadControlResponse) => {
     await confirm({
@@ -109,11 +104,11 @@ export default function WorkloadsPage() {
             method: 'DELETE',
             fetcherKey: 'workload-resources',
             navigate: false,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   const columns: ColumnDef<IWorkloadControlResponse>[] = useMemo(
     () => [
@@ -122,13 +117,11 @@ export default function WorkloadsPage() {
         accessorKey: 'name',
         cell: ({ row }) => {
           const isDeleted = Boolean(
-            row.original.name && (deletedIds as string[]).includes(row.original.name),
-          )
+            row.original.name && (deletedIds as string[]).includes(row.original.name)
+          );
 
           return isDeleted ? (
-            <span className="text-primary leading-none font-semibold">
-              {row.original.name}
-            </span>
+            <span className="text-primary leading-none font-semibold">{row.original.name}</span>
           ) : (
             <Link
               to={getPathWithParams(routes.projects.deploy.workloads.detail.root, {
@@ -139,7 +132,7 @@ export default function WorkloadsPage() {
               className="text-primary leading-none font-semibold">
               {row.original.name}
             </Link>
-          )
+          );
         },
       },
       {
@@ -147,8 +140,8 @@ export default function WorkloadsPage() {
         accessorKey: 'status',
         cell: ({ row }) => {
           const isDeleted = Boolean(
-            row.original.name && (deletedIds as string[]).includes(row.original.name),
-          )
+            row.original.name && (deletedIds as string[]).includes(row.original.name)
+          );
           return isDeleted ? (
             <Badge
               variant="outline"
@@ -167,19 +160,19 @@ export default function WorkloadsPage() {
                 badgeClassName="px-0"
               />
             )
-          )
+          );
         },
       },
       {
         header: 'Created At',
         accessorKey: 'createdAt',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
         },
       },
     ],
-    [orgId, projectId, deletedIds],
-  )
+    [orgId, projectId, deletedIds]
+  );
 
   const rowActions: DataTableRowActionsProps<IWorkloadControlResponse>[] = useMemo(
     () => [
@@ -192,23 +185,21 @@ export default function WorkloadsPage() {
               orgId,
               projectId,
               workloadId: row.name,
-            }),
-          )
+            })
+          );
         },
-        isDisabled: (row) =>
-          Boolean(row.name && (deletedIds as string[]).includes(row.name)),
+        isDisabled: (row) => Boolean(row.name && (deletedIds as string[]).includes(row.name)),
       },
       {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
         action: (row) => deleteWorkload(row),
-        isDisabled: (row) =>
-          Boolean(row.name && (deletedIds as string[]).includes(row.name)),
+        isDisabled: (row) => Boolean(row.name && (deletedIds as string[]).includes(row.name)),
       },
     ],
-    [orgId, projectId, deletedIds],
-  )
+    [orgId, projectId, deletedIds]
+  );
 
   return (
     <DataTable
@@ -235,5 +226,5 @@ export default function WorkloadsPage() {
       }}
       rowActions={rowActions}
     />
-  )
+  );
 }

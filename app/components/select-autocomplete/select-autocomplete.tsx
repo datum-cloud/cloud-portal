@@ -1,10 +1,10 @@
-import { Option, SelectAutocompleteProps } from './select-autocomplete.types'
-import { VirtualizedList } from './virtualized-list'
-import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { cn } from '@/utils/misc'
-import { ChevronDown, Loader2 } from 'lucide-react'
-import React, { useEffect, useMemo, useState } from 'react'
+import { Option, SelectAutocompleteProps } from './select-autocomplete.types';
+import { VirtualizedList } from './virtualized-list';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/utils/misc';
+import { ChevronDown, Loader2 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 export const SelectAutocomplete = React.forwardRef<
   { showPopover: (open: boolean) => void },
@@ -31,27 +31,27 @@ export const SelectAutocomplete = React.forwardRef<
       name,
       id,
     },
-    ref,
+    ref
   ) => {
-    const [open, setOpen] = useState(false)
-    const [currentValue, setCurrentValue] = useState<string | undefined>(undefined)
+    const [open, setOpen] = useState(false);
+    const [currentValue, setCurrentValue] = useState<string | undefined>(undefined);
 
     const handleSelect = (option: Option) => {
-      setCurrentValue(option[keyValue])
-      setOpen(false)
-      onValueChange?.(option)
-    }
+      setCurrentValue(option[keyValue]);
+      setOpen(false);
+      onValueChange?.(option);
+    };
 
     const triggerContent = useMemo(() => {
-      if (!currentValue) return placeholder
-      return itemPreview?.(selectedValue!) ?? selectedValue?.label
-    }, [currentValue, placeholder, itemPreview, selectedValue])
+      if (!currentValue) return placeholder;
+      return itemPreview?.(selectedValue!) ?? selectedValue?.label;
+    }, [currentValue, placeholder, itemPreview, selectedValue]);
 
     useEffect(() => {
       if (selectedValue) {
-        setCurrentValue(selectedValue[keyValue])
+        setCurrentValue(selectedValue[keyValue]);
       }
-    }, [selectedValue])
+    }, [selectedValue]);
 
     // Expose showPopover method to parent via ref
     React.useImperativeHandle(
@@ -59,8 +59,8 @@ export const SelectAutocomplete = React.forwardRef<
       () => ({
         showPopover: (open: boolean) => setOpen(open),
       }),
-      [setOpen],
-    )
+      [setOpen]
+    );
 
     return (
       <>
@@ -72,7 +72,7 @@ export const SelectAutocomplete = React.forwardRef<
               aria-expanded={open}
               className={cn(
                 'ring-offset-background placeholder:text-muted-foreground focus:ring-ring relative w-full items-center justify-between px-3 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
-                triggerClassName,
+                triggerClassName
               )}
               disabled={disabled || isLoading}>
               {isLoading && (
@@ -85,10 +85,7 @@ export const SelectAutocomplete = React.forwardRef<
             </Button>
           </PopoverTrigger>
           <PopoverContent
-            className={cn(
-              'popover-content-width-full min-w-[300px] p-0',
-              contentClassName,
-            )}
+            className={cn('popover-content-width-full min-w-[300px] p-0', contentClassName)}
             align="center">
             <VirtualizedList
               disableSearch={disableSearch}
@@ -121,8 +118,8 @@ export const SelectAutocomplete = React.forwardRef<
           ))}
         </select>
       </>
-    )
-  },
-)
+    );
+  }
+);
 
-SelectAutocomplete.displayName = 'SelectAutocomplete'
+SelectAutocomplete.displayName = 'SelectAutocomplete';

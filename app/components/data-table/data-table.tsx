@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { DataTableHeader } from './data-table-header'
-import { DataTablePagination } from './data-table-pagination'
-import { DataTableRowActions } from './data-table-row-actions'
-import { DataTableProps } from './data-table.types'
-import { PageTitle } from '@/components/page-title/page-title'
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
-import { DataTableProvider } from '@/providers/dataTable.provider'
-import { cn } from '@/utils/misc'
+import { DataTableHeader } from './data-table-header';
+import { DataTablePagination } from './data-table-pagination';
+import { DataTableRowActions } from './data-table-row-actions';
+import { DataTableProps } from './data-table.types';
+import { PageTitle } from '@/components/page-title/page-title';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import { DataTableProvider } from '@/providers/dataTable.provider';
+import { cn } from '@/utils/misc';
 import {
   ColumnFiltersState,
   PaginationState,
@@ -21,9 +20,9 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from '@tanstack/react-table'
-import { Loader2 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+} from '@tanstack/react-table';
+import { Loader2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 export const DataTable = <TData, TValue>({
   columns,
@@ -39,13 +38,12 @@ export const DataTable = <TData, TValue>({
   emptyText = 'No results.',
   tableContainerClassName,
 }: DataTableProps<TData, TValue>) => {
-  const [columnFilters, setColumnFilters] =
-    useState<ColumnFiltersState>(defaultColumnFilters)
-  const [sorting, setSorting] = useState<SortingState>(defaultSorting)
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultColumnFilters);
+  const [sorting, setSorting] = useState<SortingState>(defaultSorting);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 20,
-  })
+  });
 
   // TODO: enable this functionality when you want to use the column visibility feature and search functionality
   // const [columnVisibility, setColumnVisibility] = useLocalStorage<VisibilityState>(
@@ -69,22 +67,22 @@ export const DataTable = <TData, TValue>({
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     // REMINDER: it doesn't support array of strings (WARNING: might not work for other types)
     getFacetedUniqueValues: (table: TTable<TData>, columnId: string) => () => {
-      const facets = getFacetedUniqueValues<TData>()(table, columnId)()
-      const customFacets = new Map()
+      const facets = getFacetedUniqueValues<TData>()(table, columnId)();
+      const customFacets = new Map();
       for (const [key, value] of facets as any) {
         if (Array.isArray(key)) {
           for (const k of key) {
-            const prevValue = customFacets.get(k) || 0
-            customFacets.set(k, prevValue + value)
+            const prevValue = customFacets.get(k) || 0;
+            customFacets.set(k, prevValue + value);
           }
         } else {
-          const prevValue = customFacets.get(key) || 0
-          customFacets.set(key, prevValue + value)
+          const prevValue = customFacets.get(key) || 0;
+          customFacets.set(key, prevValue + value);
         }
       }
-      return customFacets
+      return customFacets;
     },
-  })
+  });
 
   // TODO: enable this functionality when you want to use search functionality
   // useEffect(() => {
@@ -108,8 +106,8 @@ export const DataTable = <TData, TValue>({
   // }, [columnFilters])
 
   const columnsLength = useMemo(() => {
-    return columns.length + (rowActions.length > 0 ? 1 : 0)
-  }, [columns, rowActions])
+    return columns.length + (rowActions.length > 0 ? 1 : 0);
+  }, [columns, rowActions]);
 
   return (
     <DataTableProvider
@@ -132,7 +130,7 @@ export const DataTable = <TData, TValue>({
         <div
           className={cn(
             'flex max-w-full flex-col overflow-hidden rounded-md border',
-            tableContainerClassName,
+            tableContainerClassName
           )}>
           <Table>
             <DataTableHeader table={table} hasRowActions={rowActions.length > 0} />
@@ -179,5 +177,5 @@ export const DataTable = <TData, TValue>({
         {(data ?? [])?.length > 10 && <DataTablePagination table={table} />}
       </div>
     </DataTableProvider>
-  )
-}
+  );
+};

@@ -1,40 +1,39 @@
-import { Field } from '@/components/field/field'
-import { SelectAnnotations } from '@/components/select-annotations/select-annotations'
-import { SelectLabels } from '@/components/select-labels/select-labels'
-import { Input } from '@/components/ui/input'
-import { MetadataSchema } from '@/resources/schemas/metadata.schema'
-import { getInputProps, useForm, useInputControl } from '@conform-to/react'
-import { useEffect, useRef } from 'react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+import { Field } from '@/components/field/field';
+import { SelectAnnotations } from '@/components/select-annotations/select-annotations';
+import { SelectLabels } from '@/components/select-labels/select-labels';
+import { Input } from '@/components/ui/input';
+import { MetadataSchema } from '@/resources/schemas/metadata.schema';
+import { getInputProps, useForm, useInputControl } from '@conform-to/react';
+import { useEffect, useRef } from 'react';
+import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const MetadataForm = ({
   fields,
   defaultValue,
   isEdit = false,
 }: {
-  fields: ReturnType<typeof useForm<MetadataSchema>>[1]
-  defaultValue?: MetadataSchema
-  isEdit?: boolean
+  fields: ReturnType<typeof useForm<MetadataSchema>>[1];
+  defaultValue?: MetadataSchema;
+  isEdit?: boolean;
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
-  const nameControl = useInputControl(fields.name)
-  const labelsControl = useInputControl(fields.labels)
-  const annotationsControl = useInputControl(fields.annotations)
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isHydrated = useHydrated();
+  const nameControl = useInputControl(fields.name);
+  const labelsControl = useInputControl(fields.labels);
+  const annotationsControl = useInputControl(fields.annotations);
 
   useEffect(() => {
     if (defaultValue) {
-      nameControl.change(defaultValue.name)
-      labelsControl.change(defaultValue.labels)
-      annotationsControl.change(defaultValue.annotations)
+      nameControl.change(defaultValue.name);
+      labelsControl.change(defaultValue.labels);
+      annotationsControl.change(defaultValue.annotations);
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   // Focus the input when the form is hydrated
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
+    isHydrated && inputRef.current?.focus();
+  }, [isHydrated]);
 
   return (
     <div className="space-y-4">
@@ -50,8 +49,8 @@ export const MetadataForm = ({
           ref={isEdit ? undefined : inputRef}
           placeholder="e.g. my-name-3sd122"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = (e.target as HTMLInputElement).value
-            nameControl.change(value)
+            const value = (e.target as HTMLInputElement).value;
+            nameControl.change(value);
           }}
         />
       </Field>
@@ -62,7 +61,7 @@ export const MetadataForm = ({
         <SelectLabels
           defaultValue={fields.labels.value as string[]}
           onChange={(value) => {
-            labelsControl.change(value)
+            labelsControl.change(value);
           }}
         />
       </Field>
@@ -73,10 +72,10 @@ export const MetadataForm = ({
         <SelectAnnotations
           defaultValue={fields.annotations.value as string[]}
           onChange={(value) => {
-            annotationsControl.change(value)
+            annotationsControl.change(value);
           }}
         />
       </Field>
     </div>
-  )
-}
+  );
+};

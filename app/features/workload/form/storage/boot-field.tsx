@@ -1,18 +1,18 @@
-import { Field } from '@/components/field/field'
-import { Input } from '@/components/ui/input'
+import { Field } from '@/components/field/field';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { BOOT_IMAGES } from '@/constants/bootImages'
+} from '@/components/ui/select';
+import { BOOT_IMAGES } from '@/constants/bootImages';
 
 export const BootField = ({
   defaultValue,
 }: {
-  defaultValue?: { name: string; bootImage: string }
+  defaultValue?: { name: string; bootImage: string };
 }) => {
   return (
     <div className="relative flex w-full items-start gap-4">
@@ -39,5 +39,5 @@ export const BootField = ({
         </Select>
       </Field>
     </div>
-  )
-}
+  );
+};

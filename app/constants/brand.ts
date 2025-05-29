@@ -9,4 +9,4 @@ export const SITE_CONFIG = {
   siteImage: '/images/logo.svg',
   favicon: '/favicon.ico',
   address: '',
-}
+};

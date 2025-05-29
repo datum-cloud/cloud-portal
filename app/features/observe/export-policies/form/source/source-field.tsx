@@ -1,24 +1,19 @@
-import { CodeEditor } from '@/components/code-editor/code-editor'
-import { Field } from '@/components/field/field'
-import { Input } from '@/components/ui/input'
+import { CodeEditor } from '@/components/code-editor/code-editor';
+import { Field } from '@/components/field/field';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { POLICY_SOURCE_TYPES } from '@/constants/options'
-import { ExportPolicySourceFieldSchema } from '@/resources/schemas/export-policy.schema'
-import { cn } from '@/utils/misc'
-import {
-  getInputProps,
-  getSelectProps,
-  useForm,
-  useInputControl,
-} from '@conform-to/react'
-import { useEffect, useRef } from 'react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+} from '@/components/ui/select';
+import { POLICY_SOURCE_TYPES } from '@/constants/options';
+import { ExportPolicySourceFieldSchema } from '@/resources/schemas/export-policy.schema';
+import { cn } from '@/utils/misc';
+import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { useEffect, useRef } from 'react';
+import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const SourceField = ({
   fields,
@@ -26,31 +21,31 @@ export const SourceField = ({
   isEdit = false,
   isMultiple = false,
 }: {
-  fields: ReturnType<typeof useForm<ExportPolicySourceFieldSchema>>[1]
-  defaultValue?: ExportPolicySourceFieldSchema
-  isEdit?: boolean
-  isMultiple?: boolean
+  fields: ReturnType<typeof useForm<ExportPolicySourceFieldSchema>>[1];
+  defaultValue?: ExportPolicySourceFieldSchema;
+  isEdit?: boolean;
+  isMultiple?: boolean;
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isHydrated = useHydrated();
 
-  const nameControl = useInputControl(fields.name)
-  const typeControl = useInputControl(fields.type)
-  const metricQueryControl = useInputControl(fields.metricQuery)
+  const nameControl = useInputControl(fields.name);
+  const typeControl = useInputControl(fields.type);
+  const metricQueryControl = useInputControl(fields.metricQuery);
 
   useEffect(() => {
     if (defaultValue) {
       // Only set values if they exist in defaultValue and current fields are empty
       if (defaultValue.name && fields.name.value === '') {
-        nameControl.change(defaultValue?.name)
+        nameControl.change(defaultValue?.name);
       }
 
       if (defaultValue.type && !fields.type.value) {
-        typeControl.change(defaultValue?.type)
+        typeControl.change(defaultValue?.type);
       }
 
       if (defaultValue.metricQuery && fields.metricQuery.value === '') {
-        metricQueryControl.change(defaultValue?.metricQuery)
+        metricQueryControl.change(defaultValue?.metricQuery);
       }
     }
   }, [
@@ -61,13 +56,12 @@ export const SourceField = ({
     fields.type.value,
     metricQueryControl,
     fields.metricQuery.value,
-  ])
+  ]);
 
   // Focus the input when the form is hydrated
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
+    isHydrated && inputRef.current?.focus();
+  }, [isHydrated]);
 
   return (
     <div className="relative flex flex-1 flex-col items-start gap-4">
@@ -79,8 +73,8 @@ export const SourceField = ({
             key={fields.name.id}
             placeholder="e.g. my-source-3sd122"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value
-              nameControl.change(value)
+              const value = (e.target as HTMLInputElement).value;
+              nameControl.change(value);
             }}
           />
         </Field>
@@ -117,7 +111,7 @@ export const SourceField = ({
             language="promql"
             value={fields.metricQuery.value ?? '{}'}
             onChange={(newValue) => {
-              metricQueryControl.change(newValue)
+              metricQueryControl.change(newValue);
             }}
             id={fields.metricQuery.id}
             name={fields.metricQuery.name}
@@ -127,5 +121,5 @@ export const SourceField = ({
         </Field>
       </div>
     </div>
-  )
-}
+  );
+};

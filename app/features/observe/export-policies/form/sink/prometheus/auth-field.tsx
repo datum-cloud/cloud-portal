@@ -1,49 +1,49 @@
-import { Field } from '@/components/field/field'
-import { SelectSecret } from '@/components/select-secret/select-secret'
-import { Label } from '@/components/ui/label'
+import { Field } from '@/components/field/field';
+import { SelectSecret } from '@/components/select-secret/select-secret';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { SINK_AUTH_TYPES } from '@/constants/options'
-import { ExportPolicyAuthenticationType } from '@/resources/interfaces/export-policy.interface'
-import { SecretType } from '@/resources/interfaces/secret.interface'
-import { ExportPolicySinkAuthenticationSchema } from '@/resources/schemas/export-policy.schema'
-import { cn } from '@/utils/misc'
-import { getSelectProps, useForm, useInputControl } from '@conform-to/react'
-import { useEffect, useState } from 'react'
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { SINK_AUTH_TYPES } from '@/constants/options';
+import { ExportPolicyAuthenticationType } from '@/resources/interfaces/export-policy.interface';
+import { SecretType } from '@/resources/interfaces/secret.interface';
+import { ExportPolicySinkAuthenticationSchema } from '@/resources/schemas/export-policy.schema';
+import { cn } from '@/utils/misc';
+import { getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { useEffect, useState } from 'react';
 
 export const AuthField = ({
   fields,
   defaultValue,
   projectId,
 }: {
-  fields: ReturnType<typeof useForm<ExportPolicySinkAuthenticationSchema>>[1]
-  defaultValue?: ExportPolicySinkAuthenticationSchema
-  projectId?: string
+  fields: ReturnType<typeof useForm<ExportPolicySinkAuthenticationSchema>>[1];
+  defaultValue?: ExportPolicySinkAuthenticationSchema;
+  projectId?: string;
 }) => {
-  const authTypeControl = useInputControl(fields.authType)
-  const secretNameControl = useInputControl(fields.secretName)
+  const authTypeControl = useInputControl(fields.authType);
+  const secretNameControl = useInputControl(fields.secretName);
 
-  const [isAuthenticationEnabled, setIsAuthenticationEnabled] = useState<boolean>(false)
+  const [isAuthenticationEnabled, setIsAuthenticationEnabled] = useState<boolean>(false);
 
   useEffect(() => {
     if (defaultValue) {
-      setIsAuthenticationEnabled(!!defaultValue.authType)
+      setIsAuthenticationEnabled(!!defaultValue.authType);
 
       if (defaultValue.authType && !fields.authType.value) {
-        authTypeControl.change(defaultValue.authType)
+        authTypeControl.change(defaultValue.authType);
       }
 
       if (defaultValue.secretName && !fields.secretName.value) {
-        secretNameControl.change(defaultValue.secretName)
+        secretNameControl.change(defaultValue.secretName);
       }
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <div className="flex w-full flex-col gap-2">
@@ -53,16 +53,16 @@ export const AuthField = ({
           defaultChecked={isAuthenticationEnabled}
           checked={isAuthenticationEnabled}
           onCheckedChange={(value) => {
-            setIsAuthenticationEnabled(value)
+            setIsAuthenticationEnabled(value);
 
             if (value) {
               authTypeControl.change(
-                defaultValue?.authType ?? ExportPolicyAuthenticationType.BASIC_AUTH,
-              )
-              secretNameControl.change(defaultValue?.secretName ?? undefined)
+                defaultValue?.authType ?? ExportPolicyAuthenticationType.BASIC_AUTH
+              );
+              secretNameControl.change(defaultValue?.secretName ?? undefined);
             } else {
-              authTypeControl.change(undefined)
-              secretNameControl.change(undefined)
+              authTypeControl.change(undefined);
+              secretNameControl.change(undefined);
             }
           }}
         />
@@ -81,8 +81,8 @@ export const AuthField = ({
             value={authTypeControl.value}
             defaultValue={undefined}
             onValueChange={(value) => {
-              authTypeControl.change(value)
-              secretNameControl.change(undefined)
+              authTypeControl.change(value);
+              secretNameControl.change(undefined);
             }}>
             <SelectTrigger disabled className="h-auto min-h-10 w-full">
               <SelectValue placeholder="Select a type" />
@@ -109,12 +109,12 @@ export const AuthField = ({
             defaultValue={secretNameControl.value}
             projectId={projectId}
             onValueChange={(value) => {
-              secretNameControl.change(value?.value)
+              secretNameControl.change(value?.value);
             }}
             filter={{ type: SecretType.BASIC_AUTH }}
           />
         </Field>
       </div>
     </div>
-  )
-}
+  );
+};

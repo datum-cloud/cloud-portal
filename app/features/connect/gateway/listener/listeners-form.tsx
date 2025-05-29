@@ -1,19 +1,19 @@
-import { ListenerField } from './listener-field'
-import { FieldLabel } from '@/components/field/field-label'
-import { Button } from '@/components/ui/button'
+import { ListenerField } from './listener-field';
+import { FieldLabel } from '@/components/field/field-label';
+import { Button } from '@/components/ui/button';
 import {
   GatewayAllowedRoutes,
   GatewayProtocol,
   GatewayTlsMode,
-} from '@/resources/interfaces/gateway.interface'
+} from '@/resources/interfaces/gateway.interface';
 import {
   GatewayListenerFieldSchema,
   GatewayListenerSchema,
-} from '@/resources/schemas/gateway.schema'
-import { cn } from '@/utils/misc'
-import { useForm, useFormMetadata } from '@conform-to/react'
-import { PlusIcon, TrashIcon } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+} from '@/resources/schemas/gateway.schema';
+import { cn } from '@/utils/misc';
+import { useForm, useFormMetadata } from '@conform-to/react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 
 const defaultListenerValue: GatewayListenerFieldSchema = {
   name: '',
@@ -22,37 +22,37 @@ const defaultListenerValue: GatewayListenerFieldSchema = {
   tlsConfiguration: {
     mode: GatewayTlsMode.TERMINATE,
   },
-}
+};
 
 export const ListenersForm = ({
   fields,
   defaultValue,
 }: {
-  fields: ReturnType<typeof useForm<GatewayListenerSchema>>[1]
-  defaultValue?: GatewayListenerSchema
+  fields: ReturnType<typeof useForm<GatewayListenerSchema>>[1];
+  defaultValue?: GatewayListenerSchema;
 }) => {
-  const form = useFormMetadata('gateway-form')
-  const listenerList = fields.listeners.getFieldList()
+  const form = useFormMetadata('gateway-form');
+  const listenerList = fields.listeners.getFieldList();
 
   const values = useMemo(() => {
     return defaultValue?.listeners
       ? defaultValue.listeners
-      : ((defaultValue ?? []) as GatewayListenerFieldSchema[])
-  }, [defaultValue])
+      : ((defaultValue ?? []) as GatewayListenerFieldSchema[]);
+  }, [defaultValue]);
 
   useEffect(() => {
     if (values && values.length > 0) {
       form.update({
         name: fields.listeners.name,
         value: values as GatewayListenerFieldSchema[],
-      })
+      });
     } else if (listenerList.length === 0) {
       form.insert({
         name: fields.listeners.name,
         defaultValue: defaultListenerValue,
-      })
+      });
     }
-  }, [values])
+  }, [values]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -60,11 +60,9 @@ export const ListenersForm = ({
 
       <div className="space-y-4">
         {listenerList.map((field, index) => {
-          const listenerFields = field.getFieldset()
+          const listenerFields = field.getFieldset();
           return (
-            <div
-              className="relative flex items-center gap-2 rounded-md border p-4"
-              key={field.key}>
+            <div className="relative flex items-center gap-2 rounded-md border p-4" key={field.key}>
               <ListenerField
                 fields={
                   listenerFields as unknown as ReturnType<
@@ -85,7 +83,7 @@ export const ListenersForm = ({
                 </Button>
               )}
             </div>
-          )
+          );
         })}
       </div>
       <Button
@@ -103,5 +101,5 @@ export const ListenersForm = ({
         Add
       </Button>
     </div>
-  )
-}
+  );
+};

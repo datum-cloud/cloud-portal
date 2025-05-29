@@ -1,31 +1,26 @@
-import { ContainerForm } from './container-form'
-import { VirtualMachineForm } from './virtual-machine-form'
-import { Field } from '@/components/field/field'
-import { FieldLabel } from '@/components/field/field-label'
-import { List, ListItem } from '@/components/list/list'
-import { Badge } from '@/components/ui/badge'
+import { ContainerForm } from './container-form';
+import { VirtualMachineForm } from './virtual-machine-form';
+import { Field } from '@/components/field/field';
+import { FieldLabel } from '@/components/field/field-label';
+import { List, ListItem } from '@/components/list/list';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { RUNTIME_TYPES } from '@/constants/options'
-import { RuntimeType } from '@/resources/interfaces/workload.interface'
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { RUNTIME_TYPES } from '@/constants/options';
+import { RuntimeType } from '@/resources/interfaces/workload.interface';
 import {
   RuntimeContainerSchema,
   RuntimeSchema,
   RuntimeVMSchema,
-} from '@/resources/schemas/workload.schema'
-import {
-  getSelectProps,
-  useForm,
-  useFormMetadata,
-  useInputControl,
-} from '@conform-to/react'
-import { useEffect, useMemo } from 'react'
+} from '@/resources/schemas/workload.schema';
+import { getSelectProps, useForm, useFormMetadata, useInputControl } from '@conform-to/react';
+import { useEffect, useMemo } from 'react';
 
 export const RuntimeForm = ({
   fields,
@@ -33,24 +28,24 @@ export const RuntimeForm = ({
   isEdit = false,
   projectId,
 }: {
-  fields: ReturnType<typeof useForm<RuntimeSchema>>[1]
-  defaultValue?: RuntimeSchema
-  isEdit?: boolean
-  projectId?: string
+  fields: ReturnType<typeof useForm<RuntimeSchema>>[1];
+  defaultValue?: RuntimeSchema;
+  isEdit?: boolean;
+  projectId?: string;
 }) => {
-  const form = useFormMetadata('workload-form')
-  const instanceTypeControl = useInputControl(fields.instanceType)
-  const runtimeTypeControl = useInputControl(fields.runtimeType)
+  const form = useFormMetadata('workload-form');
+  const instanceTypeControl = useInputControl(fields.instanceType);
+  const runtimeTypeControl = useInputControl(fields.runtimeType);
 
   useEffect(() => {
-    if (!defaultValue) return
+    if (!defaultValue) return;
 
     if (defaultValue.instanceType && !fields.instanceType.value) {
-      instanceTypeControl.change(defaultValue.instanceType)
+      instanceTypeControl.change(defaultValue.instanceType);
     }
 
     if (defaultValue.runtimeType && !fields.runtimeType.value) {
-      runtimeTypeControl.change(defaultValue.runtimeType)
+      runtimeTypeControl.change(defaultValue.runtimeType);
     }
   }, [
     defaultValue,
@@ -58,21 +53,18 @@ export const RuntimeForm = ({
     runtimeTypeControl,
     fields.instanceType.value,
     fields.runtimeType.value,
-  ])
+  ]);
 
   const handleRuntimeTypeChange = (value: string) => {
-    runtimeTypeControl.change(value as RuntimeType)
+    runtimeTypeControl.change(value as RuntimeType);
 
-    if (
-      value === RuntimeType.CONTAINER &&
-      (defaultValue?.containers ?? []).length === 0
-    ) {
+    if (value === RuntimeType.CONTAINER && (defaultValue?.containers ?? []).length === 0) {
       form.update({
         name: fields.containers.name,
         value: [{ name: '', image: '' }],
-      })
+      });
     }
-  }
+  };
 
   return (
     <div className="flex w-full flex-col items-start gap-4">
@@ -91,9 +83,7 @@ export const RuntimeForm = ({
             <SelectValue placeholder="Select a instance type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="datumcloud/d1-standard-2">
-              datumcloud/d1-standard-2
-            </SelectItem>
+            <SelectItem value="datumcloud/d1-standard-2">datumcloud/d1-standard-2</SelectItem>
           </SelectContent>
         </Select>
       </Field>
@@ -105,12 +95,12 @@ export const RuntimeForm = ({
         tooltipInfo={
           <div className="max-w-2xs space-y-2">
             <p>
-              <strong>Container:</strong> A sandbox is a managed isolated environment
-              capable of running containers.
+              <strong>Container:</strong> A sandbox is a managed isolated environment capable of
+              running containers.
             </p>
             <p>
-              <strong>Virtual Machine:</strong> A virtual machine is a classical VM
-              environment, booting a full OS provided by the user via an image.
+              <strong>Virtual Machine:</strong> A virtual machine is a classical VM environment,
+              booting a full OS provided by the user via an image.
             </p>
           </div>
         }>
@@ -136,9 +126,7 @@ export const RuntimeForm = ({
         <VirtualMachineForm
           isEdit={isEdit}
           fields={
-            fields.virtualMachine.getFieldset() as ReturnType<
-              typeof useForm<RuntimeVMSchema>
-            >[1]
+            fields.virtualMachine.getFieldset() as ReturnType<typeof useForm<RuntimeVMSchema>>[1]
           }
           defaultValue={defaultValue?.virtualMachine as RuntimeVMSchema}
         />
@@ -154,21 +142,19 @@ export const RuntimeForm = ({
         </div>
       ) : null}
     </div>
-  )
-}
+  );
+};
 
 export const RuntimePreview = ({ values }: { values: RuntimeSchema }) => {
   const vmSpecificItems = useMemo(() => {
-    if (values.runtimeType !== RuntimeType.VM) return []
+    if (values.runtimeType !== RuntimeType.VM) return [];
 
     return [
       { label: 'Boot Image', content: values.virtualMachine?.bootImage },
       {
         label: 'SSH Key',
         content: (
-          <span className="max-w-2xs text-left text-ellipsis">
-            {values.virtualMachine?.sshKey}
-          </span>
+          <span className="max-w-2xs text-left text-ellipsis">{values.virtualMachine?.sshKey}</span>
         ),
       },
       {
@@ -189,11 +175,11 @@ export const RuntimePreview = ({ values }: { values: RuntimeSchema }) => {
         ),
         hidden: !((values.virtualMachine?.ports ?? []).length > 0),
       },
-    ]
-  }, [values.runtimeType, values.virtualMachine])
+    ];
+  }, [values.runtimeType, values.virtualMachine]);
 
   const containerSpecificItems = useMemo(() => {
-    if (values.runtimeType !== RuntimeType.CONTAINER) return []
+    if (values.runtimeType !== RuntimeType.CONTAINER) return [];
 
     return [
       {
@@ -222,11 +208,11 @@ export const RuntimePreview = ({ values }: { values: RuntimeSchema }) => {
         ),
         hidden: !((values.containers ?? []).length > 0),
       },
-    ]
-  }, [values.runtimeType, values.containers])
+    ];
+  }, [values.runtimeType, values.containers]);
 
   const listItems: ListItem[] = useMemo(() => {
-    if (!values) return []
+    if (!values) return [];
 
     const commonItems = [
       { label: 'Instance Type', content: values.instanceType },
@@ -234,16 +220,15 @@ export const RuntimePreview = ({ values }: { values: RuntimeSchema }) => {
         label: 'Runtime Type',
         content: values.runtimeType && (
           <span className="capitalize">
-            {RUNTIME_TYPES[values.runtimeType as keyof typeof RUNTIME_TYPES]?.label ||
-              'None'}
+            {RUNTIME_TYPES[values.runtimeType as keyof typeof RUNTIME_TYPES]?.label || 'None'}
           </span>
         ),
         hidden: !values.runtimeType,
       },
-    ]
+    ];
 
-    return [...commonItems, ...vmSpecificItems, ...containerSpecificItems]
-  }, [values])
+    return [...commonItems, ...vmSpecificItems, ...containerSpecificItems];
+  }, [values]);
 
-  return <List items={listItems} itemClassName="!border-b-0 !px-0 py-1.5" />
-}
+  return <List items={listItems} itemClassName="!border-b-0 !px-0 py-1.5" />;
+};

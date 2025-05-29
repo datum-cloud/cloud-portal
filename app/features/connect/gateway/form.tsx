@@ -1,6 +1,6 @@
-import { ListenersForm } from './listener/listeners-form'
-import { MetadataForm } from '@/components/metadata/metadata-form'
-import { Button } from '@/components/ui/button'
+import { ListenersForm } from './listener/listeners-form';
+import { MetadataForm } from '@/components/metadata/metadata-form';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -8,44 +8,44 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { useIsPending } from '@/hooks/useIsPending'
-import { useApp } from '@/providers/app.provider'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
+} from '@/components/ui/card';
+import { useIsPending } from '@/hooks/useIsPending';
+import { useApp } from '@/providers/app.provider';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import {
   GatewayProtocol,
   GatewayAllowedRoutes,
   GatewayTlsMode,
   IGatewayControlResponse,
-} from '@/resources/interfaces/gateway.interface'
+} from '@/resources/interfaces/gateway.interface';
 import {
   GatewayListenerFieldSchema,
   GatewayListenerSchema,
   GatewaySchema,
   gatewaySchema,
-} from '@/resources/schemas/gateway.schema'
-import { MetadataSchema } from '@/resources/schemas/metadata.schema'
-import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api+/connect+/gateways+/actions'
-import { convertObjectToLabels } from '@/utils/misc'
-import { FormProvider, getFormProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { get } from 'es-toolkit/compat'
-import { useEffect, useMemo, useState } from 'react'
-import { Form, useNavigate, useSubmit } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+} from '@/resources/schemas/gateway.schema';
+import { MetadataSchema } from '@/resources/schemas/metadata.schema';
+import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api+/connect+/gateways+/actions';
+import { convertObjectToLabels } from '@/utils/misc';
+import { FormProvider, getFormProps, useForm } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { get } from 'es-toolkit/compat';
+import { useEffect, useMemo, useState } from 'react';
+import { Form, useNavigate, useSubmit } from 'react-router';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 
 export const GatewayForm = ({
   defaultValue,
   projectId,
 }: {
-  defaultValue?: IGatewayControlResponse
-  projectId?: string
+  defaultValue?: IGatewayControlResponse;
+  projectId?: string;
 }) => {
-  const navigate = useNavigate()
-  const isPending = useIsPending()
-  const submit = useSubmit()
-  const { orgId } = useApp()
-  const { confirm } = useConfirmationDialog()
+  const navigate = useNavigate();
+  const isPending = useIsPending();
+  const submit = useSubmit();
+  const { orgId } = useApp();
+  const { confirm } = useConfirmationDialog();
 
   const deleteGateway = async () => {
     await confirm({
@@ -75,26 +75,26 @@ export const GatewayForm = ({
             fetcherKey: 'gateway-resources',
             navigate: false,
             action: GATEWAYS_ACTIONS_PATH,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
-  const [formattedValues, setFormattedValues] = useState<GatewaySchema>()
+  const [formattedValues, setFormattedValues] = useState<GatewaySchema>();
   const [form, fields] = useForm({
     id: 'gateway-form',
     constraint: getZodConstraint(gatewaySchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: gatewaySchema })
+      return parseWithZod(formData, { schema: gatewaySchema });
     },
-  })
+  });
 
   const isEdit = useMemo(() => {
-    return defaultValue?.uid !== undefined
-  }, [defaultValue])
+    return defaultValue?.uid !== undefined;
+  }, [defaultValue]);
 
   useEffect(() => {
     if (defaultValue && defaultValue.name) {
@@ -102,15 +102,11 @@ export const GatewayForm = ({
         name: defaultValue.name,
         labels: convertObjectToLabels(defaultValue.labels ?? {}),
         annotations: convertObjectToLabels(defaultValue.annotations ?? {}),
-      }
+      };
 
       const listeners: GatewayListenerFieldSchema[] = (defaultValue?.listeners ?? []).map(
         (listener) => {
-          const from = get(
-            listener,
-            'allowedRoutes.namespaces.from',
-            GatewayAllowedRoutes.SAME,
-          )
+          const from = get(listener, 'allowedRoutes.namespaces.from', GatewayAllowedRoutes.SAME);
           /* const matchLabels = get(
             listener,
             'allowedRoutes.namespaces.selector.matchLabels',
@@ -122,7 +118,7 @@ export const GatewayForm = ({
               ? {
                   mode: get(listener, 'tlsConfiguration.mode', GatewayTlsMode.TERMINATE),
                 }
-              : undefined
+              : undefined;
 
           return {
             name: listener.name ?? '',
@@ -131,16 +127,16 @@ export const GatewayForm = ({
             allowedRoutes: from,
             // matchLabels: from === 'Selector' ? convertObjectToLabels(matchLabels) : [],
             tlsConfiguration: tls,
-          }
-        },
-      )
+          };
+        }
+      );
 
       setFormattedValues({
         ...metadata,
         listeners,
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <Card className="relative">
@@ -162,11 +158,7 @@ export const GatewayForm = ({
           <AuthenticityTokenInput />
 
           {isEdit && (
-            <input
-              type="hidden"
-              name="resourceVersion"
-              value={defaultValue?.resourceVersion}
-            />
+            <input type="hidden" name="resourceVersion" value={defaultValue?.resourceVersion} />
           )}
 
           <CardContent className="space-y-4">
@@ -176,9 +168,7 @@ export const GatewayForm = ({
               isEdit={isEdit}
             />
             <ListenersForm
-              fields={
-                fields as unknown as ReturnType<typeof useForm<GatewayListenerSchema>>[1]
-              }
+              fields={fields as unknown as ReturnType<typeof useForm<GatewayListenerSchema>>[1]}
               defaultValue={{ listeners: formattedValues?.listeners ?? [] }}
             />
           </CardContent>
@@ -200,23 +190,17 @@ export const GatewayForm = ({
                 variant="link"
                 disabled={isPending}
                 onClick={() => {
-                  navigate(-1)
+                  navigate(-1);
                 }}>
                 Return to List
               </Button>
-              <Button
-                variant="default"
-                type="submit"
-                disabled={isPending}
-                isLoading={isPending}>
-                {isPending
-                  ? `${isEdit ? 'Saving' : 'Creating'}`
-                  : `${isEdit ? 'Save' : 'Create'}`}
+              <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+                {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
               </Button>
             </div>
           </CardFooter>
         </Form>
       </FormProvider>
     </Card>
-  )
-}
+  );
+};

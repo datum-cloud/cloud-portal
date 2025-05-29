@@ -7,20 +7,20 @@ export type IoK8sApiAuthenticationV1BoundObjectReference = {
   /**
    * API version of the referent.
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Kind of the referent. Valid kinds are 'Pod' and 'Secret'.
    */
-  kind?: string
+  kind?: string;
   /**
    * Name of the referent.
    */
-  name?: string
+  name?: string;
   /**
    * UID of the referent.
    */
-  uid?: string
-}
+  uid?: string;
+};
 
 /**
  * TokenRequest requests a token for a given service account.
@@ -29,24 +29,24 @@ export type IoK8sApiAuthenticationV1TokenRequest = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
   /**
    * Spec holds information about the request being evaluated
    */
-  spec: IoK8sApiAuthenticationV1TokenRequestSpec
+  spec: IoK8sApiAuthenticationV1TokenRequestSpec;
   /**
    * Status is filled in by the server and indicates whether the token can be authenticated.
    */
-  status?: IoK8sApiAuthenticationV1TokenRequestStatus
-}
+  status?: IoK8sApiAuthenticationV1TokenRequestStatus;
+};
 
 /**
  * TokenRequestSpec contains client provided parameters of a token request.
@@ -55,16 +55,16 @@ export type IoK8sApiAuthenticationV1TokenRequestSpec = {
   /**
    * Audiences are the intendend audiences of the token. A recipient of a token must identify themself with an identifier in the list of audiences of the token, and otherwise should reject the token. A token issued for multiple audiences may be used to authenticate against any of the audiences listed but implies a high degree of trust between the target audiences.
    */
-  audiences: Array<string>
+  audiences: Array<string>;
   /**
    * BoundObjectRef is a reference to an object that the token will be bound to. The token will only be valid for as long as the bound object exists. NOTE: The API server's TokenReview endpoint will validate the BoundObjectRef, but other audiences may not. Keep ExpirationSeconds small if you want prompt revocation.
    */
-  boundObjectRef?: IoK8sApiAuthenticationV1BoundObjectReference
+  boundObjectRef?: IoK8sApiAuthenticationV1BoundObjectReference;
   /**
    * ExpirationSeconds is the requested duration of validity of the request. The token issuer may return a token with a different validity duration so a client needs to check the 'expiration' field in a response.
    */
-  expirationSeconds?: bigint
-}
+  expirationSeconds?: bigint;
+};
 
 /**
  * TokenRequestStatus is the result of a token request.
@@ -73,12 +73,12 @@ export type IoK8sApiAuthenticationV1TokenRequestStatus = {
   /**
    * ExpirationTimestamp is the time of expiration of the returned token.
    */
-  expirationTimestamp: IoK8sApimachineryPkgApisMetaV1Time
+  expirationTimestamp: IoK8sApimachineryPkgApisMetaV1Time;
   /**
    * Token is the opaque bearer token.
    */
-  token: string
-}
+  token: string;
+};
 
 /**
  * ConfigMap holds configuration data for pods to consume.
@@ -87,32 +87,32 @@ export type IoK8sApiCoreV1ConfigMap = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * BinaryData contains the binary data. Each key must consist of alphanumeric characters, '-', '_' or '.'. BinaryData can contain byte sequences that are not in the UTF-8 range. The keys stored in BinaryData must not overlap with the ones in the Data field, this is enforced during validation process. Using this field will require 1.10+ apiserver and kubelet.
    */
   binaryData?: {
-    [key: string]: string
-  }
+    [key: string]: string;
+  };
   /**
    * Data contains the configuration data. Each key must consist of alphanumeric characters, '-', '_' or '.'. Values with non-UTF-8 byte sequences must use the BinaryData field. The keys stored in Data must not overlap with the keys in the BinaryData field, this is enforced during validation process.
    */
   data?: {
-    [key: string]: string
-  }
+    [key: string]: string;
+  };
   /**
    * Immutable, if set to true, ensures that data stored in the ConfigMap cannot be updated (only object metadata can be modified). If not set to true, the field can be modified at any time. Defaulted to nil.
    */
-  immutable?: boolean
+  immutable?: boolean;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
+};
 
 /**
  * ConfigMapList is a resource containing a list of ConfigMap objects.
@@ -121,20 +121,20 @@ export type IoK8sApiCoreV1ConfigMapList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Items is the list of ConfigMaps.
    */
-  items: Array<IoK8sApiCoreV1ConfigMap>
+  items: Array<IoK8sApiCoreV1ConfigMap>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
 
 /**
  * Event is a report of an event somewhere in the cluster.  Events have a limited retention time and triggers and messages may evolve with time.  Event consumers should not rely on the timing of an event with a given Reason reflecting a consistent underlying trigger, or the continued existence of events with that Reason.  Events should be treated as informative, best-effort, supplemental data.
@@ -143,72 +143,72 @@ export type IoK8sApiCoreV1Event = {
   /**
    * What action was taken/failed regarding to the Regarding object.
    */
-  action?: string
+  action?: string;
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * The number of times this event has occurred.
    */
-  count?: number
+  count?: number;
   /**
    * Time when this Event was first observed.
    */
-  eventTime?: IoK8sApimachineryPkgApisMetaV1MicroTime
+  eventTime?: IoK8sApimachineryPkgApisMetaV1MicroTime;
   /**
    * The time at which the event was first recorded. (Time of server receipt is in TypeMeta.)
    */
-  firstTimestamp?: IoK8sApimachineryPkgApisMetaV1Time
+  firstTimestamp?: IoK8sApimachineryPkgApisMetaV1Time;
   /**
    * The object that this event is about.
    */
-  involvedObject: IoK8sApiCoreV1ObjectReference
+  involvedObject: IoK8sApiCoreV1ObjectReference;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * The time at which the most recent occurrence of this event was recorded.
    */
-  lastTimestamp?: IoK8sApimachineryPkgApisMetaV1Time
+  lastTimestamp?: IoK8sApimachineryPkgApisMetaV1Time;
   /**
    * A human-readable description of the status of this operation.
    */
-  message?: string
+  message?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata: IoK8sApimachineryPkgApisMetaV1ObjectMeta
+  metadata: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
   /**
    * This should be a short, machine understandable string that gives the reason for the transition into the object's current status.
    */
-  reason?: string
+  reason?: string;
   /**
    * Optional secondary object for more complex actions.
    */
-  related?: IoK8sApiCoreV1ObjectReference
+  related?: IoK8sApiCoreV1ObjectReference;
   /**
    * Name of the controller that emitted this Event, e.g. `kubernetes.io/kubelet`.
    */
-  reportingComponent?: string
+  reportingComponent?: string;
   /**
    * ID of the controller instance, e.g. `kubelet-xyzf`.
    */
-  reportingInstance?: string
+  reportingInstance?: string;
   /**
    * Data about the Event series this event represents or nil if it's a singleton Event.
    */
-  series?: IoK8sApiCoreV1EventSeries
+  series?: IoK8sApiCoreV1EventSeries;
   /**
    * The component reporting this event. Should be a short machine understandable string.
    */
-  source?: IoK8sApiCoreV1EventSource
+  source?: IoK8sApiCoreV1EventSource;
   /**
    * Type of this event (Normal, Warning), new types could be added in the future
    */
-  type?: string
-}
+  type?: string;
+};
 
 /**
  * EventList is a list of events.
@@ -217,20 +217,20 @@ export type IoK8sApiCoreV1EventList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * List of events
    */
-  items: Array<IoK8sApiCoreV1Event>
+  items: Array<IoK8sApiCoreV1Event>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
 
 /**
  * EventSeries contain information on series of events, i.e. thing that was/is happening continuously for some time.
@@ -239,12 +239,12 @@ export type IoK8sApiCoreV1EventSeries = {
   /**
    * Number of occurrences in this series up to the last heartbeat time
    */
-  count?: number
+  count?: number;
   /**
    * Time of the last occurrence observed
    */
-  lastObservedTime?: IoK8sApimachineryPkgApisMetaV1MicroTime
-}
+  lastObservedTime?: IoK8sApimachineryPkgApisMetaV1MicroTime;
+};
 
 /**
  * EventSource contains information for an event.
@@ -253,12 +253,12 @@ export type IoK8sApiCoreV1EventSource = {
   /**
    * Component from which the event is generated.
    */
-  component?: string
+  component?: string;
   /**
    * Node name on which the event is generated.
    */
-  host?: string
-}
+  host?: string;
+};
 
 /**
  * LocalObjectReference contains enough information to let you locate the referenced object inside the same namespace.
@@ -267,8 +267,8 @@ export type IoK8sApiCoreV1LocalObjectReference = {
   /**
    * Name of the referent. This field is effectively required, but due to backwards compatibility is allowed to be empty. Instances of this type with an empty value here are almost certainly wrong. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
    */
-  name?: string
-}
+  name?: string;
+};
 
 /**
  * Namespace provides a scope for Names. Use of multiple namespaces is optional.
@@ -277,24 +277,24 @@ export type IoK8sApiCoreV1Namespace = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
   /**
    * Spec defines the behavior of the Namespace. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
    */
-  spec?: IoK8sApiCoreV1NamespaceSpec
+  spec?: IoK8sApiCoreV1NamespaceSpec;
   /**
    * Status describes the current status of a Namespace. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
    */
-  status?: IoK8sApiCoreV1NamespaceStatus
-}
+  status?: IoK8sApiCoreV1NamespaceStatus;
+};
 
 /**
  * NamespaceCondition contains details about state of namespace.
@@ -303,24 +303,24 @@ export type IoK8sApiCoreV1NamespaceCondition = {
   /**
    * Last time the condition transitioned from one status to another.
    */
-  lastTransitionTime?: IoK8sApimachineryPkgApisMetaV1Time
+  lastTransitionTime?: IoK8sApimachineryPkgApisMetaV1Time;
   /**
    * Human-readable message indicating details about last transition.
    */
-  message?: string
+  message?: string;
   /**
    * Unique, one-word, CamelCase reason for the condition's last transition.
    */
-  reason?: string
+  reason?: string;
   /**
    * Status of the condition, one of True, False, Unknown.
    */
-  status: string
+  status: string;
   /**
    * Type of namespace controller condition.
    */
-  type: string
-}
+  type: string;
+};
 
 /**
  * NamespaceList is a list of Namespaces.
@@ -329,20 +329,20 @@ export type IoK8sApiCoreV1NamespaceList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Items is the list of Namespace objects in the list. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
    */
-  items: Array<IoK8sApiCoreV1Namespace>
+  items: Array<IoK8sApiCoreV1Namespace>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
 
 /**
  * NamespaceSpec describes the attributes on a Namespace.
@@ -351,8 +351,8 @@ export type IoK8sApiCoreV1NamespaceSpec = {
   /**
    * Finalizers is an opaque list of values that must be empty to permanently remove object from storage. More info: https://kubernetes.io/docs/tasks/administer-cluster/namespaces/
    */
-  finalizers?: Array<string>
-}
+  finalizers?: Array<string>;
+};
 
 /**
  * NamespaceStatus is information about the current status of a Namespace.
@@ -361,7 +361,7 @@ export type IoK8sApiCoreV1NamespaceStatus = {
   /**
    * Represents the latest available observations of a namespace's current state.
    */
-  conditions?: Array<IoK8sApiCoreV1NamespaceCondition>
+  conditions?: Array<IoK8sApiCoreV1NamespaceCondition>;
   /**
    * Phase is the current lifecycle phase of the namespace. More info: https://kubernetes.io/docs/tasks/administer-cluster/namespaces/
    *
@@ -369,8 +369,8 @@ export type IoK8sApiCoreV1NamespaceStatus = {
    * - `"Active"` means the namespace is available for use in the system
    * - `"Terminating"` means the namespace is undergoing graceful termination
    */
-  phase?: 'Active' | 'Terminating'
-}
+  phase?: 'Active' | 'Terminating';
+};
 
 /**
  * ObjectReference contains enough information to let you inspect or modify the referred object.
@@ -379,32 +379,32 @@ export type IoK8sApiCoreV1ObjectReference = {
   /**
    * API version of the referent.
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * If referring to a piece of an object instead of an entire object, this string should contain a valid JSON/Go field access statement, such as desiredState.manifest.containers[2]. For example, if the object reference is to a container within a pod, this would take on a value like: "spec.containers{name}" (where "name" refers to the name of the container that triggered the event) or if no container name is specified "spec.containers[2]" (container with index 2 in this pod). This syntax is chosen only to have some well-defined way of referencing a part of an object.
    */
-  fieldPath?: string
+  fieldPath?: string;
   /**
    * Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
    */
-  name?: string
+  name?: string;
   /**
    * Namespace of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
    */
-  namespace?: string
+  namespace?: string;
   /**
    * Specific resourceVersion to which this reference is made, if any. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
    */
-  resourceVersion?: string
+  resourceVersion?: string;
   /**
    * UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids
    */
-  uid?: string
-}
+  uid?: string;
+};
 
 /**
  * ResourceQuota sets aggregate quota restrictions enforced per namespace
@@ -413,24 +413,24 @@ export type IoK8sApiCoreV1ResourceQuota = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
   /**
    * Spec defines the desired quota. https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
    */
-  spec?: IoK8sApiCoreV1ResourceQuotaSpec
+  spec?: IoK8sApiCoreV1ResourceQuotaSpec;
   /**
    * Status defines the actual enforced quota and its current usage. https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
    */
-  status?: IoK8sApiCoreV1ResourceQuotaStatus
-}
+  status?: IoK8sApiCoreV1ResourceQuotaStatus;
+};
 
 /**
  * ResourceQuotaList is a list of ResourceQuota items.
@@ -439,20 +439,20 @@ export type IoK8sApiCoreV1ResourceQuotaList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Items is a list of ResourceQuota objects. More info: https://kubernetes.io/docs/concepts/policy/resource-quotas/
    */
-  items: Array<IoK8sApiCoreV1ResourceQuota>
+  items: Array<IoK8sApiCoreV1ResourceQuota>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
 
 /**
  * ResourceQuotaSpec defines the desired hard limits to enforce for Quota.
@@ -462,12 +462,12 @@ export type IoK8sApiCoreV1ResourceQuotaSpec = {
    * hard is the set of desired hard limits for each named resource. More info: https://kubernetes.io/docs/concepts/policy/resource-quotas/
    */
   hard?: {
-    [key: string]: IoK8sApimachineryPkgApiResourceQuantity
-  }
+    [key: string]: IoK8sApimachineryPkgApiResourceQuantity;
+  };
   /**
    * scopeSelector is also a collection of filters like scopes that must match each object tracked by a quota but expressed using ScopeSelectorOperator in combination with possible values. For a resource to match, both scopes AND scopeSelector (if specified in spec), must be matched.
    */
-  scopeSelector?: IoK8sApiCoreV1ScopeSelector
+  scopeSelector?: IoK8sApiCoreV1ScopeSelector;
   /**
    * A collection of filters that must match each object tracked by a quota. If not specified, the quota matches all objects.
    */
@@ -478,8 +478,8 @@ export type IoK8sApiCoreV1ResourceQuotaSpec = {
     | 'NotTerminating'
     | 'PriorityClass'
     | 'Terminating'
-  >
-}
+  >;
+};
 
 /**
  * ResourceQuotaStatus defines the enforced hard limits and observed use.
@@ -489,15 +489,15 @@ export type IoK8sApiCoreV1ResourceQuotaStatus = {
    * Hard is the set of enforced hard limits for each named resource. More info: https://kubernetes.io/docs/concepts/policy/resource-quotas/
    */
   hard?: {
-    [key: string]: IoK8sApimachineryPkgApiResourceQuantity
-  }
+    [key: string]: IoK8sApimachineryPkgApiResourceQuantity;
+  };
   /**
    * Used is the current observed total usage of the resource in the namespace.
    */
   used?: {
-    [key: string]: IoK8sApimachineryPkgApiResourceQuantity
-  }
-}
+    [key: string]: IoK8sApimachineryPkgApiResourceQuantity;
+  };
+};
 
 /**
  * A scope selector represents the AND of the selectors represented by the scoped-resource selector requirements.
@@ -506,8 +506,8 @@ export type IoK8sApiCoreV1ScopeSelector = {
   /**
    * A list of scope selector requirements by scope of the resources.
    */
-  matchExpressions?: Array<IoK8sApiCoreV1ScopedResourceSelectorRequirement>
-}
+  matchExpressions?: Array<IoK8sApiCoreV1ScopedResourceSelectorRequirement>;
+};
 
 /**
  * A scoped-resource selector requirement is a selector that contains values, a scope name, and an operator that relates the scope name and values.
@@ -522,7 +522,7 @@ export type IoK8sApiCoreV1ScopedResourceSelectorRequirement = {
    * - `"In"`
    * - `"NotIn"`
    */
-  operator: 'DoesNotExist' | 'Exists' | 'In' | 'NotIn'
+  operator: 'DoesNotExist' | 'Exists' | 'In' | 'NotIn';
   /**
    * The name of the scope that the selector applies to.
    *
@@ -540,12 +540,12 @@ export type IoK8sApiCoreV1ScopedResourceSelectorRequirement = {
     | 'NotBestEffort'
     | 'NotTerminating'
     | 'PriorityClass'
-    | 'Terminating'
+    | 'Terminating';
   /**
    * An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
    */
-  values?: Array<string>
-}
+  values?: Array<string>;
+};
 
 /**
  * Secret holds secret data of a certain type. The total bytes of the values in the Data field must be less than MaxSecretSize bytes.
@@ -554,36 +554,36 @@ export type IoK8sApiCoreV1Secret = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Data contains the secret data. Each key must consist of alphanumeric characters, '-', '_' or '.'. The serialized form of the secret data is a base64 encoded string, representing the arbitrary (possibly non-string) data value here. Described in https://tools.ietf.org/html/rfc4648#section-4
    */
   data?: {
-    [key: string]: string
-  }
+    [key: string]: string;
+  };
   /**
    * Immutable, if set to true, ensures that data stored in the Secret cannot be updated (only object metadata can be modified). If not set to true, the field can be modified at any time. Defaulted to nil.
    */
-  immutable?: boolean
+  immutable?: boolean;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
   /**
    * stringData allows specifying non-binary secret data in string form. It is provided as a write-only input field for convenience. All keys and values are merged into the data field on write, overwriting any existing values. The stringData field is never output when reading from the API.
    */
   stringData?: {
-    [key: string]: string
-  }
+    [key: string]: string;
+  };
   /**
    * Used to facilitate programmatic handling of secret data. More info: https://kubernetes.io/docs/concepts/configuration/secret/#secret-types
    */
-  type?: string
-}
+  type?: string;
+};
 
 /**
  * SecretList is a list of Secret.
@@ -592,20 +592,20 @@ export type IoK8sApiCoreV1SecretList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Items is a list of secret objects. More info: https://kubernetes.io/docs/concepts/configuration/secret
    */
-  items: Array<IoK8sApiCoreV1Secret>
+  items: Array<IoK8sApiCoreV1Secret>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
 
 /**
  * ServiceAccount binds together: * a name, understood by users, and perhaps by peripheral systems, for an identity * a principal that can be authenticated and authorized * a set of secrets
@@ -614,28 +614,28 @@ export type IoK8sApiCoreV1ServiceAccount = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * AutomountServiceAccountToken indicates whether pods running as this service account should have an API token automatically mounted. Can be overridden at the pod level.
    */
-  automountServiceAccountToken?: boolean
+  automountServiceAccountToken?: boolean;
   /**
    * ImagePullSecrets is a list of references to secrets in the same namespace to use for pulling any images in pods that reference this ServiceAccount. ImagePullSecrets are distinct from Secrets because Secrets can be mounted in the pod, but ImagePullSecrets are only accessed by the kubelet. More info: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
    */
-  imagePullSecrets?: Array<IoK8sApiCoreV1LocalObjectReference>
+  imagePullSecrets?: Array<IoK8sApiCoreV1LocalObjectReference>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
   /**
    * Secrets is a list of the secrets in the same namespace that pods running using this ServiceAccount are allowed to use. Pods are only limited to this list if this service account has a "kubernetes.io/enforce-mountable-secrets" annotation set to "true". The "kubernetes.io/enforce-mountable-secrets" annotation is deprecated since v1.32. Prefer separate namespaces to isolate access to mounted secrets. This field should not be used to find auto-generated service account token secrets for use outside of pods. Instead, tokens can be requested directly using the TokenRequest API, or service account token secrets can be manually created. More info: https://kubernetes.io/docs/concepts/configuration/secret
    */
-  secrets?: Array<IoK8sApiCoreV1ObjectReference>
-}
+  secrets?: Array<IoK8sApiCoreV1ObjectReference>;
+};
 
 /**
  * ServiceAccountList is a list of ServiceAccount objects
@@ -644,20 +644,20 @@ export type IoK8sApiCoreV1ServiceAccountList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * List of ServiceAccounts. More info: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
    */
-  items: Array<IoK8sApiCoreV1ServiceAccount>
+  items: Array<IoK8sApiCoreV1ServiceAccount>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
 
 /**
  * Quantity is a fixed-point representation of a number. It provides convenient marshaling/unmarshaling in JSON and YAML, in addition to String() and AsInt64() accessors.
@@ -698,7 +698,7 @@ export type IoK8sApiCoreV1ServiceAccountList = {
  *
  * This format is intended to make it difficult to use these numbers without writing some sort of special handling code in the hopes that that will cause implementors to also use a fixed point implementation.
  */
-export type IoK8sApimachineryPkgApiResourceQuantity = string | number
+export type IoK8sApimachineryPkgApiResourceQuantity = string | number;
 
 /**
  * APIResource specifies the name of a resource and whether it is namespaced.
@@ -707,44 +707,44 @@ export type IoK8sApimachineryPkgApisMetaV1ApiResource = {
   /**
    * categories is a list of the grouped resources this resource belongs to (e.g. 'all')
    */
-  categories?: Array<string>
+  categories?: Array<string>;
   /**
    * group is the preferred group of the resource.  Empty implies the group of the containing resource list. For subresources, this may have a different value, for example: Scale".
    */
-  group?: string
+  group?: string;
   /**
    * kind is the kind for the resource (e.g. 'Foo' is the kind for a resource 'foo')
    */
-  kind: string
+  kind: string;
   /**
    * name is the plural name of the resource.
    */
-  name: string
+  name: string;
   /**
    * namespaced indicates if a resource is namespaced or not.
    */
-  namespaced: boolean
+  namespaced: boolean;
   /**
    * shortNames is a list of suggested short names of the resource.
    */
-  shortNames?: Array<string>
+  shortNames?: Array<string>;
   /**
    * singularName is the singular name of the resource.  This allows clients to handle plural and singular opaquely. The singularName is more correct for reporting status on a single item and both singular and plural are allowed from the kubectl CLI interface.
    */
-  singularName: string
+  singularName: string;
   /**
    * The hash value of the storage version, the version this resource is converted to when written to the data store. Value must be treated as opaque by clients. Only equality comparison on the value is valid. This is an alpha feature and may change or be removed in the future. The field is populated by the apiserver only if the StorageVersionHash feature gate is enabled. This field will remain optional even if it graduates.
    */
-  storageVersionHash?: string
+  storageVersionHash?: string;
   /**
    * verbs is a list of supported kube verbs (this includes get, list, watch, create, update, patch, delete, deletecollection, and proxy)
    */
-  verbs: Array<string>
+  verbs: Array<string>;
   /**
    * version is the preferred version of the resource.  Empty implies the version of the containing resource list For subresources, this may have a different value, for example: v1 (while inside a v1beta1 version of the core resource's group)".
    */
-  version?: string
-}
+  version?: string;
+};
 
 /**
  * APIResourceList is a list of APIResource, it is used to expose the name of the resources supported in a specific group and version, and if the resource is namespaced.
@@ -753,20 +753,20 @@ export type IoK8sApimachineryPkgApisMetaV1ApiResourceList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * groupVersion is the group and version this APIResourceList is for.
    */
-  groupVersion: string
+  groupVersion: string;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * resources contains the name of the resources and if they are namespaced.
    */
-  resources: Array<IoK8sApimachineryPkgApisMetaV1ApiResource>
-}
+  resources: Array<IoK8sApimachineryPkgApisMetaV1ApiResource>;
+};
 
 /**
  * DeleteOptions may be provided when deleting an API object.
@@ -775,36 +775,36 @@ export type IoK8sApimachineryPkgApisMetaV1DeleteOptions = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
    */
-  dryRun?: Array<string>
+  dryRun?: Array<string>;
   /**
    * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
    */
-  gracePeriodSeconds?: bigint
+  gracePeriodSeconds?: bigint;
   /**
    * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
    */
-  ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+  ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
    */
-  orphanDependents?: boolean
+  orphanDependents?: boolean;
   /**
    * Must be fulfilled before a deletion is carried out. If not possible, a 409 Conflict status will be returned.
    */
-  preconditions?: IoK8sApimachineryPkgApisMetaV1Preconditions
+  preconditions?: IoK8sApimachineryPkgApisMetaV1Preconditions;
   /**
    * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
    */
-  propagationPolicy?: string
-}
+  propagationPolicy?: string;
+};
 
 /**
  * FieldsV1 stores a set of fields in a data structure like a Trie, in JSON format.
@@ -814,8 +814,8 @@ export type IoK8sApimachineryPkgApisMetaV1DeleteOptions = {
  * The exact format is defined in sigs.k8s.io/structured-merge-diff
  */
 export type IoK8sApimachineryPkgApisMetaV1FieldsV1 = {
-  [key: string]: unknown
-}
+  [key: string]: unknown;
+};
 
 /**
  * ListMeta describes metadata that synthetic resources must have, including lists and various status objects. A resource may have only one of {ObjectMeta, ListMeta}.
@@ -824,20 +824,20 @@ export type IoK8sApimachineryPkgApisMetaV1ListMeta = {
   /**
    * continue may be set if the user set a limit on the number of items returned, and indicates that the server has more data available. The value is opaque and may be used to issue another request to the endpoint that served this list to retrieve the next set of available objects. Continuing a consistent list may not be possible if the server configuration has changed or more than a few minutes have passed. The resourceVersion field returned when using this continue value will be identical to the value in the first response, unless you have received this token from an error message.
    */
-  continue?: string
+  continue?: string;
   /**
    * remainingItemCount is the number of subsequent items in the list which are not included in this list response. If the list request contained label or field selectors, then the number of remaining items is unknown and the field will be left unset and omitted during serialization. If the list is complete (either because it is not chunking or because this is the last chunk), then there are no more remaining items and this field will be left unset and omitted during serialization. Servers older than v1.15 do not set this field. The intended use of the remainingItemCount is *estimating* the size of a collection. Clients should not rely on the remainingItemCount to be set or to be exact.
    */
-  remainingItemCount?: bigint
+  remainingItemCount?: bigint;
   /**
    * String that identifies the server's internal version of this object that can be used by clients to determine when objects have changed. Value must be treated as opaque by clients and passed unmodified back to the server. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
    */
-  resourceVersion?: string
+  resourceVersion?: string;
   /**
    * Deprecated: selfLink is a legacy read-only field that is no longer populated by the system.
    */
-  selfLink?: string
-}
+  selfLink?: string;
+};
 
 /**
  * ManagedFieldsEntry is a workflow-id, a FieldSet and the group version of the resource that the fieldset applies to.
@@ -846,37 +846,37 @@ export type IoK8sApimachineryPkgApisMetaV1ManagedFieldsEntry = {
   /**
    * APIVersion defines the version of this resource that this field set applies to. The format is "group/version" just like the top-level APIVersion field. It is necessary to track the version of a field set because it cannot be automatically converted.
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * FieldsType is the discriminator for the different fields format and version. There is currently only one possible value: "FieldsV1"
    */
-  fieldsType?: string
+  fieldsType?: string;
   /**
    * FieldsV1 holds the first JSON version format as described in the "FieldsV1" type.
    */
-  fieldsV1?: IoK8sApimachineryPkgApisMetaV1FieldsV1
+  fieldsV1?: IoK8sApimachineryPkgApisMetaV1FieldsV1;
   /**
    * Manager is an identifier of the workflow managing these fields.
    */
-  manager?: string
+  manager?: string;
   /**
    * Operation is the type of operation which lead to this ManagedFieldsEntry being created. The only valid values for this field are 'Apply' and 'Update'.
    */
-  operation?: string
+  operation?: string;
   /**
    * Subresource is the name of the subresource used to update that object, or empty string if the object was updated through the main resource. The value of this field is used to distinguish between managers, even if they share the same name. For example, a status update will be distinct from a regular update using the same manager name. Note that the APIVersion field is not related to the Subresource field and it always corresponds to the version of the main resource.
    */
-  subresource?: string
+  subresource?: string;
   /**
    * Time is the timestamp of when the ManagedFields entry was added. The timestamp will also be updated if a field is added, the manager changes any of the owned fields value or removes a field. The timestamp does not update when a field is removed from the entry because another manager took it over.
    */
-  time?: IoK8sApimachineryPkgApisMetaV1Time
-}
+  time?: IoK8sApimachineryPkgApisMetaV1Time;
+};
 
 /**
  * MicroTime is version of Time with microsecond level precision.
  */
-export type IoK8sApimachineryPkgApisMetaV1MicroTime = Date
+export type IoK8sApimachineryPkgApisMetaV1MicroTime = Date;
 
 /**
  * ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.
@@ -886,28 +886,28 @@ export type IoK8sApimachineryPkgApisMetaV1ObjectMeta = {
    * Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
    */
   annotations?: {
-    [key: string]: string
-  }
+    [key: string]: string;
+  };
   /**
    * CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
    *
    * Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  creationTimestamp?: IoK8sApimachineryPkgApisMetaV1Time
+  creationTimestamp?: IoK8sApimachineryPkgApisMetaV1Time;
   /**
    * Number of seconds allowed for this object to gracefully terminate before it will be removed from the system. Only set when deletionTimestamp is also set. May only be shortened. Read-only.
    */
-  deletionGracePeriodSeconds?: bigint
+  deletionGracePeriodSeconds?: bigint;
   /**
    * DeletionTimestamp is RFC 3339 date and time at which this resource will be deleted. This field is set by the server when a graceful deletion is requested by the user, and is not directly settable by a client. The resource is expected to be deleted (no longer visible from resource lists, and not reachable by name) after the time in this field, once the finalizers list is empty. As long as the finalizers list contains items, deletion is blocked. Once the deletionTimestamp is set, this value may not be unset or be set further into the future, although it may be shortened or the resource may be deleted prior to this time. For example, a user may request that a pod is deleted in 30 seconds. The Kubelet will react by sending a graceful termination signal to the containers in the pod. After that 30 seconds, the Kubelet will send a hard termination signal (SIGKILL) to the container and after cleanup, remove the pod from the API. In the presence of network partitions, this object may still exist after this timestamp, until an administrator or automated process can determine the resource is fully terminated. If not set, graceful deletion of the object has not been requested.
    *
    * Populated by the system when a graceful deletion is requested. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  deletionTimestamp?: IoK8sApimachineryPkgApisMetaV1Time
+  deletionTimestamp?: IoK8sApimachineryPkgApisMetaV1Time;
   /**
    * Must be empty before the object is deleted from the registry. Each entry is an identifier for the responsible component that will remove the entry from the list. If the deletionTimestamp of the object is non-nil, entries in this list can only be removed. Finalizers may be processed and removed in any order.  Order is NOT enforced because it introduces significant risk of stuck finalizers. finalizers is a shared field, any actor with permission can reorder it. If the finalizer list is processed in order, then this can lead to a situation in which the component responsible for the first finalizer in the list is waiting for a signal (field value, external system, or other) produced by a component responsible for a finalizer later in the list, resulting in a deadlock. Without enforced ordering finalizers are free to order amongst themselves and are not vulnerable to ordering changes in the list.
    */
-  finalizers?: Array<string>
+  finalizers?: Array<string>;
   /**
    * GenerateName is an optional prefix, used by the server, to generate a unique name ONLY IF the Name field has not been provided. If this field is used, the name returned to the client will be different than the name passed. This value will also be combined with a unique suffix. The provided value has the same validation rules as the Name field, and may be truncated by the length of the suffix required to make the value unique on the server.
    *
@@ -915,52 +915,52 @@ export type IoK8sApimachineryPkgApisMetaV1ObjectMeta = {
    *
    * Applied only if Name is not specified. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#idempotency
    */
-  generateName?: string
+  generateName?: string;
   /**
    * A sequence number representing a specific generation of the desired state. Populated by the system. Read-only.
    */
-  generation?: bigint
+  generation?: bigint;
   /**
    * Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels
    */
   labels?: {
-    [key: string]: string
-  }
+    [key: string]: string;
+  };
   /**
    * ManagedFields maps workflow-id and version to the set of fields that are managed by that workflow. This is mostly for internal housekeeping, and users typically shouldn't need to set or understand this field. A workflow can be the user's name, a controller's name, or the name of a specific apply path like "ci-cd". The set of fields is always in the version that the workflow used when modifying the object.
    */
-  managedFields?: Array<IoK8sApimachineryPkgApisMetaV1ManagedFieldsEntry>
+  managedFields?: Array<IoK8sApimachineryPkgApisMetaV1ManagedFieldsEntry>;
   /**
    * Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names
    */
-  name?: string
+  name?: string;
   /**
    * Namespace defines the space within which each name must be unique. An empty namespace is equivalent to the "default" namespace, but "default" is the canonical representation. Not all objects are required to be scoped to a namespace - the value of this field for those objects will be empty.
    *
    * Must be a DNS_LABEL. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces
    */
-  namespace?: string
+  namespace?: string;
   /**
    * List of objects depended by this object. If ALL objects in the list have been deleted, this object will be garbage collected. If this object is managed by a controller, then an entry in this list will point to this controller, with the controller field set to true. There cannot be more than one managing controller.
    */
-  ownerReferences?: Array<IoK8sApimachineryPkgApisMetaV1OwnerReference>
+  ownerReferences?: Array<IoK8sApimachineryPkgApisMetaV1OwnerReference>;
   /**
    * An opaque value that represents the internal version of this object that can be used by clients to determine when objects have changed. May be used for optimistic concurrency, change detection, and the watch operation on a resource or set of resources. Clients must treat these values as opaque and passed unmodified back to the server. They may only be valid for a particular resource or set of resources.
    *
    * Populated by the system. Read-only. Value must be treated as opaque by clients and . More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
    */
-  resourceVersion?: string
+  resourceVersion?: string;
   /**
    * Deprecated: selfLink is a legacy read-only field that is no longer populated by the system.
    */
-  selfLink?: string
+  selfLink?: string;
   /**
    * UID is the unique in time and space value for this object. It is typically generated by the server on successful creation of a resource and is not allowed to change on PUT operations.
    *
    * Populated by the system. Read-only. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
    */
-  uid?: string
-}
+  uid?: string;
+};
 
 /**
  * OwnerReference contains enough information to let you identify an owning object. An owning object must be in the same namespace as the dependent, or be cluster-scoped, so there is no namespace field.
@@ -969,35 +969,35 @@ export type IoK8sApimachineryPkgApisMetaV1OwnerReference = {
   /**
    * API version of the referent.
    */
-  apiVersion: string
+  apiVersion: string;
   /**
    * If true, AND if the owner has the "foregroundDeletion" finalizer, then the owner cannot be deleted from the key-value store until this reference is removed. See https://kubernetes.io/docs/concepts/architecture/garbage-collection/#foreground-deletion for how the garbage collector interacts with this field and enforces the foreground deletion. Defaults to false. To set this field, a user needs "delete" permission of the owner, otherwise 422 (Unprocessable Entity) will be returned.
    */
-  blockOwnerDeletion?: boolean
+  blockOwnerDeletion?: boolean;
   /**
    * If true, this reference points to the managing controller.
    */
-  controller?: boolean
+  controller?: boolean;
   /**
    * Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind: string
+  kind: string;
   /**
    * Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names
    */
-  name: string
+  name: string;
   /**
    * UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
    */
-  uid: string
-}
+  uid: string;
+};
 
 /**
  * Patch is provided to give a concrete name and type to the Kubernetes PATCH request body.
  */
 export type IoK8sApimachineryPkgApisMetaV1Patch = {
-  [key: string]: unknown
-}
+  [key: string]: unknown;
+};
 
 /**
  * Preconditions must be fulfilled before an operation (update, delete, etc.) is carried out.
@@ -1006,12 +1006,12 @@ export type IoK8sApimachineryPkgApisMetaV1Preconditions = {
   /**
    * Specifies the target ResourceVersion
    */
-  resourceVersion?: string
+  resourceVersion?: string;
   /**
    * Specifies the target UID.
    */
-  uid?: string
-}
+  uid?: string;
+};
 
 /**
  * Status is a return value for calls that don't return other objects.
@@ -1020,36 +1020,36 @@ export type IoK8sApimachineryPkgApisMetaV1Status = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Suggested HTTP return code for this status, 0 if not set.
    */
-  code?: number
+  code?: number;
   /**
    * Extended data associated with the reason.  Each reason may define its own extended details. This field is optional and the data returned is not guaranteed to conform to any schema except that defined by the reason type.
    */
-  details?: IoK8sApimachineryPkgApisMetaV1StatusDetails
+  details?: IoK8sApimachineryPkgApisMetaV1StatusDetails;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * A human-readable description of the status of this operation.
    */
-  message?: string
+  message?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
   /**
    * A machine-readable description of why this operation is in the "Failure" status. If this value is empty there is no information available. A Reason clarifies an HTTP status code but does not override it.
    */
-  reason?: string
+  reason?: string;
   /**
    * Status of the operation. One of: "Success" or "Failure". More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
    */
-  status?: string
-}
+  status?: string;
+};
 
 /**
  * StatusCause provides more information about an api.Status failure, including cases when multiple errors are encountered.
@@ -1062,16 +1062,16 @@ export type IoK8sApimachineryPkgApisMetaV1StatusCause = {
    * "name" - the field "name" on the current resource
    * "items[0].name" - the field "name" on the first array entry in "items"
    */
-  field?: string
+  field?: string;
   /**
    * A human-readable description of the cause of the error.  This field may be presented as-is to a reader.
    */
-  message?: string
+  message?: string;
   /**
    * A machine-readable description of the cause of the error. If this value is empty there is no information available.
    */
-  reason?: string
-}
+  reason?: string;
+};
 
 /**
  * StatusDetails is a set of additional properties that MAY be set by the server to provide additional information about a response. The Reason field of a Status object defines what attributes will be set. Clients must ignore fields that do not match the defined type of each attribute, and should assume that any attribute may be empty, invalid, or under defined.
@@ -1080,33 +1080,33 @@ export type IoK8sApimachineryPkgApisMetaV1StatusDetails = {
   /**
    * The Causes array includes more details associated with the StatusReason failure. Not all StatusReasons may provide detailed causes.
    */
-  causes?: Array<IoK8sApimachineryPkgApisMetaV1StatusCause>
+  causes?: Array<IoK8sApimachineryPkgApisMetaV1StatusCause>;
   /**
    * The group attribute of the resource associated with the status StatusReason.
    */
-  group?: string
+  group?: string;
   /**
    * The kind attribute of the resource associated with the status StatusReason. On some operations may differ from the requested resource Kind. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * The name attribute of the resource associated with the status StatusReason (when there is a single name which can be described).
    */
-  name?: string
+  name?: string;
   /**
    * If specified, the time in seconds before the operation should be retried. Some errors may indicate the client must take an alternate action - for those errors this field may indicate how long to wait before taking the alternate action.
    */
-  retryAfterSeconds?: number
+  retryAfterSeconds?: number;
   /**
    * UID of the resource. (when there is a single resource which can be described). More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
    */
-  uid?: string
-}
+  uid?: string;
+};
 
 /**
  * Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.
  */
-export type IoK8sApimachineryPkgApisMetaV1Time = Date
+export type IoK8sApimachineryPkgApisMetaV1Time = Date;
 
 /**
  * Event represents a single event to a watched resource.
@@ -1119,9 +1119,9 @@ export type IoK8sApimachineryPkgApisMetaV1WatchEvent = {
    * * If Type is Error: *Status is recommended; other types may make sense
    * depending on context.
    */
-  object: IoK8sApimachineryPkgRuntimeRawExtension
-  type: string
-}
+  object: IoK8sApimachineryPkgRuntimeRawExtension;
+  type: string;
+};
 
 /**
  * RawExtension is used to hold extensions in external versions.
@@ -1164,77 +1164,77 @@ export type IoK8sApimachineryPkgApisMetaV1WatchEvent = {
  * So what happens? Decode first uses json or yaml to unmarshal the serialized data into your external MyAPIObject. That causes the raw JSON to be stored, but not unpacked. The next step is to copy (using pkg/conversion) into the internal struct. The runtime package's DefaultScheme has conversion functions installed which will unpack the JSON stored in RawExtension, turning it into the correct object type, and storing it in the Object. (TODO: In the case where the object is of an unknown type, a runtime.Unknown object will be created and stored.)
  */
 export type IoK8sApimachineryPkgRuntimeRawExtension = {
-  [key: string]: unknown
-}
+  [key: string]: unknown;
+};
 
 export type GetCoreV1ApiResourcesData = {
-  body?: never
-  path?: never
-  query?: never
-  url: '/api/v1/'
-}
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/';
+};
 
 export type GetCoreV1ApiResourcesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type GetCoreV1ApiResourcesResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1ApiResourceList
-}
+  200: IoK8sApimachineryPkgApisMetaV1ApiResourceList;
+};
 
 export type GetCoreV1ApiResourcesResponse =
-  GetCoreV1ApiResourcesResponses[keyof GetCoreV1ApiResourcesResponses]
+  GetCoreV1ApiResourcesResponses[keyof GetCoreV1ApiResourcesResponses];
 
 export type ListCoreV1ConfigMapForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -1250,80 +1250,80 @@ export type ListCoreV1ConfigMapForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/configmaps'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/configmaps';
+};
 
 export type ListCoreV1ConfigMapForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListCoreV1ConfigMapForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ConfigMapList
-}
+  200: IoK8sApiCoreV1ConfigMapList;
+};
 
 export type ListCoreV1ConfigMapForAllNamespacesResponse =
-  ListCoreV1ConfigMapForAllNamespacesResponses[keyof ListCoreV1ConfigMapForAllNamespacesResponses]
+  ListCoreV1ConfigMapForAllNamespacesResponses[keyof ListCoreV1ConfigMapForAllNamespacesResponses];
 
 export type ListCoreV1EventForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -1339,80 +1339,80 @@ export type ListCoreV1EventForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/events'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/events';
+};
 
 export type ListCoreV1EventForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListCoreV1EventForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1EventList
-}
+  200: IoK8sApiCoreV1EventList;
+};
 
 export type ListCoreV1EventForAllNamespacesResponse =
-  ListCoreV1EventForAllNamespacesResponses[keyof ListCoreV1EventForAllNamespacesResponses]
+  ListCoreV1EventForAllNamespacesResponses[keyof ListCoreV1EventForAllNamespacesResponses];
 
 export type ListCoreV1NamespaceData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -1428,150 +1428,150 @@ export type ListCoreV1NamespaceData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/namespaces'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/namespaces';
+};
 
 export type ListCoreV1NamespaceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListCoreV1NamespaceResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1NamespaceList
-}
+  200: IoK8sApiCoreV1NamespaceList;
+};
 
 export type ListCoreV1NamespaceResponse =
-  ListCoreV1NamespaceResponses[keyof ListCoreV1NamespaceResponses]
+  ListCoreV1NamespaceResponses[keyof ListCoreV1NamespaceResponses];
 
 export type CreateCoreV1NamespaceData = {
-  body: IoK8sApiCoreV1Namespace
-  path?: never
+  body: IoK8sApiCoreV1Namespace;
+  path?: never;
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces';
+};
 
 export type CreateCoreV1NamespaceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateCoreV1NamespaceResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Namespace
+  200: IoK8sApiCoreV1Namespace;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1Namespace
+  201: IoK8sApiCoreV1Namespace;
   /**
    * Accepted
    */
-  202: IoK8sApiCoreV1Namespace
-}
+  202: IoK8sApiCoreV1Namespace;
+};
 
 export type CreateCoreV1NamespaceResponse =
-  CreateCoreV1NamespaceResponses[keyof CreateCoreV1NamespaceResponses]
+  CreateCoreV1NamespaceResponses[keyof CreateCoreV1NamespaceResponses];
 
 export type DeleteCoreV1CollectionNamespacedConfigMapData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
+    propagationPolicy?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -1587,81 +1587,81 @@ export type DeleteCoreV1CollectionNamespacedConfigMapData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
-  }
-  url: '/api/v1/namespaces/{namespace}/configmaps'
-}
+    timeoutSeconds?: number;
+  };
+  url: '/api/v1/namespaces/{namespace}/configmaps';
+};
 
 export type DeleteCoreV1CollectionNamespacedConfigMapErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteCoreV1CollectionNamespacedConfigMapResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
-}
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteCoreV1CollectionNamespacedConfigMapResponse =
-  DeleteCoreV1CollectionNamespacedConfigMapResponses[keyof DeleteCoreV1CollectionNamespacedConfigMapResponses]
+  DeleteCoreV1CollectionNamespacedConfigMapResponses[keyof DeleteCoreV1CollectionNamespacedConfigMapResponses];
 
 export type ListCoreV1NamespacedConfigMapData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -1677,367 +1677,367 @@ export type ListCoreV1NamespacedConfigMapData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/namespaces/{namespace}/configmaps'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/namespaces/{namespace}/configmaps';
+};
 
 export type ListCoreV1NamespacedConfigMapErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListCoreV1NamespacedConfigMapResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ConfigMapList
-}
+  200: IoK8sApiCoreV1ConfigMapList;
+};
 
 export type ListCoreV1NamespacedConfigMapResponse =
-  ListCoreV1NamespacedConfigMapResponses[keyof ListCoreV1NamespacedConfigMapResponses]
+  ListCoreV1NamespacedConfigMapResponses[keyof ListCoreV1NamespacedConfigMapResponses];
 
 export type CreateCoreV1NamespacedConfigMapData = {
-  body: IoK8sApiCoreV1ConfigMap
+  body: IoK8sApiCoreV1ConfigMap;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/configmaps'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/configmaps';
+};
 
 export type CreateCoreV1NamespacedConfigMapErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateCoreV1NamespacedConfigMapResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ConfigMap
+  200: IoK8sApiCoreV1ConfigMap;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1ConfigMap
+  201: IoK8sApiCoreV1ConfigMap;
   /**
    * Accepted
    */
-  202: IoK8sApiCoreV1ConfigMap
-}
+  202: IoK8sApiCoreV1ConfigMap;
+};
 
 export type CreateCoreV1NamespacedConfigMapResponse =
-  CreateCoreV1NamespacedConfigMapResponses[keyof CreateCoreV1NamespacedConfigMapResponses]
+  CreateCoreV1NamespacedConfigMapResponses[keyof CreateCoreV1NamespacedConfigMapResponses];
 
 export type DeleteCoreV1NamespacedConfigMapData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * name of the ConfigMap
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/configmaps/{name}'
-}
+    propagationPolicy?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/configmaps/{name}';
+};
 
 export type DeleteCoreV1NamespacedConfigMapErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteCoreV1NamespacedConfigMapResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
+  200: IoK8sApimachineryPkgApisMetaV1Status;
   /**
    * Accepted
    */
-  202: IoK8sApimachineryPkgApisMetaV1Status
-}
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteCoreV1NamespacedConfigMapResponse =
-  DeleteCoreV1NamespacedConfigMapResponses[keyof DeleteCoreV1NamespacedConfigMapResponses]
+  DeleteCoreV1NamespacedConfigMapResponses[keyof DeleteCoreV1NamespacedConfigMapResponses];
 
 export type ReadCoreV1NamespacedConfigMapData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the ConfigMap
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/configmaps/{name}'
-}
+    pretty?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/configmaps/{name}';
+};
 
 export type ReadCoreV1NamespacedConfigMapErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadCoreV1NamespacedConfigMapResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ConfigMap
-}
+  200: IoK8sApiCoreV1ConfigMap;
+};
 
 export type ReadCoreV1NamespacedConfigMapResponse =
-  ReadCoreV1NamespacedConfigMapResponses[keyof ReadCoreV1NamespacedConfigMapResponses]
+  ReadCoreV1NamespacedConfigMapResponses[keyof ReadCoreV1NamespacedConfigMapResponses];
 
 export type PatchCoreV1NamespacedConfigMapData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the ConfigMap
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/api/v1/namespaces/{namespace}/configmaps/{name}'
-}
+    force?: boolean;
+  };
+  url: '/api/v1/namespaces/{namespace}/configmaps/{name}';
+};
 
 export type PatchCoreV1NamespacedConfigMapErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchCoreV1NamespacedConfigMapResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ConfigMap
+  200: IoK8sApiCoreV1ConfigMap;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1ConfigMap
-}
+  201: IoK8sApiCoreV1ConfigMap;
+};
 
 export type PatchCoreV1NamespacedConfigMapResponse =
-  PatchCoreV1NamespacedConfigMapResponses[keyof PatchCoreV1NamespacedConfigMapResponses]
+  PatchCoreV1NamespacedConfigMapResponses[keyof PatchCoreV1NamespacedConfigMapResponses];
 
 export type ReplaceCoreV1NamespacedConfigMapData = {
-  body: IoK8sApiCoreV1ConfigMap
+  body: IoK8sApiCoreV1ConfigMap;
   path: {
     /**
      * name of the ConfigMap
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/configmaps/{name}'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/configmaps/{name}';
+};
 
 export type ReplaceCoreV1NamespacedConfigMapErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceCoreV1NamespacedConfigMapResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ConfigMap
+  200: IoK8sApiCoreV1ConfigMap;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1ConfigMap
-}
+  201: IoK8sApiCoreV1ConfigMap;
+};
 
 export type ReplaceCoreV1NamespacedConfigMapResponse =
-  ReplaceCoreV1NamespacedConfigMapResponses[keyof ReplaceCoreV1NamespacedConfigMapResponses]
+  ReplaceCoreV1NamespacedConfigMapResponses[keyof ReplaceCoreV1NamespacedConfigMapResponses];
 
 export type DeleteCoreV1CollectionNamespacedEventData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
+    propagationPolicy?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -2053,81 +2053,81 @@ export type DeleteCoreV1CollectionNamespacedEventData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
-  }
-  url: '/api/v1/namespaces/{namespace}/events'
-}
+    timeoutSeconds?: number;
+  };
+  url: '/api/v1/namespaces/{namespace}/events';
+};
 
 export type DeleteCoreV1CollectionNamespacedEventErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteCoreV1CollectionNamespacedEventResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
-}
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteCoreV1CollectionNamespacedEventResponse =
-  DeleteCoreV1CollectionNamespacedEventResponses[keyof DeleteCoreV1CollectionNamespacedEventResponses]
+  DeleteCoreV1CollectionNamespacedEventResponses[keyof DeleteCoreV1CollectionNamespacedEventResponses];
 
 export type ListCoreV1NamespacedEventData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -2143,367 +2143,367 @@ export type ListCoreV1NamespacedEventData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/namespaces/{namespace}/events'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/namespaces/{namespace}/events';
+};
 
 export type ListCoreV1NamespacedEventErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListCoreV1NamespacedEventResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1EventList
-}
+  200: IoK8sApiCoreV1EventList;
+};
 
 export type ListCoreV1NamespacedEventResponse =
-  ListCoreV1NamespacedEventResponses[keyof ListCoreV1NamespacedEventResponses]
+  ListCoreV1NamespacedEventResponses[keyof ListCoreV1NamespacedEventResponses];
 
 export type CreateCoreV1NamespacedEventData = {
-  body: IoK8sApiCoreV1Event
+  body: IoK8sApiCoreV1Event;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/events'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/events';
+};
 
 export type CreateCoreV1NamespacedEventErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateCoreV1NamespacedEventResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Event
+  200: IoK8sApiCoreV1Event;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1Event
+  201: IoK8sApiCoreV1Event;
   /**
    * Accepted
    */
-  202: IoK8sApiCoreV1Event
-}
+  202: IoK8sApiCoreV1Event;
+};
 
 export type CreateCoreV1NamespacedEventResponse =
-  CreateCoreV1NamespacedEventResponses[keyof CreateCoreV1NamespacedEventResponses]
+  CreateCoreV1NamespacedEventResponses[keyof CreateCoreV1NamespacedEventResponses];
 
 export type DeleteCoreV1NamespacedEventData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * name of the Event
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/events/{name}'
-}
+    propagationPolicy?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/events/{name}';
+};
 
 export type DeleteCoreV1NamespacedEventErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteCoreV1NamespacedEventResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
+  200: IoK8sApimachineryPkgApisMetaV1Status;
   /**
    * Accepted
    */
-  202: IoK8sApimachineryPkgApisMetaV1Status
-}
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteCoreV1NamespacedEventResponse =
-  DeleteCoreV1NamespacedEventResponses[keyof DeleteCoreV1NamespacedEventResponses]
+  DeleteCoreV1NamespacedEventResponses[keyof DeleteCoreV1NamespacedEventResponses];
 
 export type ReadCoreV1NamespacedEventData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Event
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/events/{name}'
-}
+    pretty?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/events/{name}';
+};
 
 export type ReadCoreV1NamespacedEventErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadCoreV1NamespacedEventResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Event
-}
+  200: IoK8sApiCoreV1Event;
+};
 
 export type ReadCoreV1NamespacedEventResponse =
-  ReadCoreV1NamespacedEventResponses[keyof ReadCoreV1NamespacedEventResponses]
+  ReadCoreV1NamespacedEventResponses[keyof ReadCoreV1NamespacedEventResponses];
 
 export type PatchCoreV1NamespacedEventData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the Event
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/api/v1/namespaces/{namespace}/events/{name}'
-}
+    force?: boolean;
+  };
+  url: '/api/v1/namespaces/{namespace}/events/{name}';
+};
 
 export type PatchCoreV1NamespacedEventErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchCoreV1NamespacedEventResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Event
+  200: IoK8sApiCoreV1Event;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1Event
-}
+  201: IoK8sApiCoreV1Event;
+};
 
 export type PatchCoreV1NamespacedEventResponse =
-  PatchCoreV1NamespacedEventResponses[keyof PatchCoreV1NamespacedEventResponses]
+  PatchCoreV1NamespacedEventResponses[keyof PatchCoreV1NamespacedEventResponses];
 
 export type ReplaceCoreV1NamespacedEventData = {
-  body: IoK8sApiCoreV1Event
+  body: IoK8sApiCoreV1Event;
   path: {
     /**
      * name of the Event
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/events/{name}'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/events/{name}';
+};
 
 export type ReplaceCoreV1NamespacedEventErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceCoreV1NamespacedEventResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Event
+  200: IoK8sApiCoreV1Event;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1Event
-}
+  201: IoK8sApiCoreV1Event;
+};
 
 export type ReplaceCoreV1NamespacedEventResponse =
-  ReplaceCoreV1NamespacedEventResponses[keyof ReplaceCoreV1NamespacedEventResponses]
+  ReplaceCoreV1NamespacedEventResponses[keyof ReplaceCoreV1NamespacedEventResponses];
 
 export type DeleteCoreV1CollectionNamespacedResourceQuotaData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
+    propagationPolicy?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -2519,81 +2519,81 @@ export type DeleteCoreV1CollectionNamespacedResourceQuotaData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
-  }
-  url: '/api/v1/namespaces/{namespace}/resourcequotas'
-}
+    timeoutSeconds?: number;
+  };
+  url: '/api/v1/namespaces/{namespace}/resourcequotas';
+};
 
 export type DeleteCoreV1CollectionNamespacedResourceQuotaErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteCoreV1CollectionNamespacedResourceQuotaResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
-}
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteCoreV1CollectionNamespacedResourceQuotaResponse =
-  DeleteCoreV1CollectionNamespacedResourceQuotaResponses[keyof DeleteCoreV1CollectionNamespacedResourceQuotaResponses]
+  DeleteCoreV1CollectionNamespacedResourceQuotaResponses[keyof DeleteCoreV1CollectionNamespacedResourceQuotaResponses];
 
 export type ListCoreV1NamespacedResourceQuotaData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -2609,517 +2609,517 @@ export type ListCoreV1NamespacedResourceQuotaData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/namespaces/{namespace}/resourcequotas'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/namespaces/{namespace}/resourcequotas';
+};
 
 export type ListCoreV1NamespacedResourceQuotaErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListCoreV1NamespacedResourceQuotaResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ResourceQuotaList
-}
+  200: IoK8sApiCoreV1ResourceQuotaList;
+};
 
 export type ListCoreV1NamespacedResourceQuotaResponse =
-  ListCoreV1NamespacedResourceQuotaResponses[keyof ListCoreV1NamespacedResourceQuotaResponses]
+  ListCoreV1NamespacedResourceQuotaResponses[keyof ListCoreV1NamespacedResourceQuotaResponses];
 
 export type CreateCoreV1NamespacedResourceQuotaData = {
-  body: IoK8sApiCoreV1ResourceQuota
+  body: IoK8sApiCoreV1ResourceQuota;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/resourcequotas'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/resourcequotas';
+};
 
 export type CreateCoreV1NamespacedResourceQuotaErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateCoreV1NamespacedResourceQuotaResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ResourceQuota
+  200: IoK8sApiCoreV1ResourceQuota;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1ResourceQuota
+  201: IoK8sApiCoreV1ResourceQuota;
   /**
    * Accepted
    */
-  202: IoK8sApiCoreV1ResourceQuota
-}
+  202: IoK8sApiCoreV1ResourceQuota;
+};
 
 export type CreateCoreV1NamespacedResourceQuotaResponse =
-  CreateCoreV1NamespacedResourceQuotaResponses[keyof CreateCoreV1NamespacedResourceQuotaResponses]
+  CreateCoreV1NamespacedResourceQuotaResponses[keyof CreateCoreV1NamespacedResourceQuotaResponses];
 
 export type DeleteCoreV1NamespacedResourceQuotaData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * name of the ResourceQuota
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}'
-}
+    propagationPolicy?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}';
+};
 
 export type DeleteCoreV1NamespacedResourceQuotaErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteCoreV1NamespacedResourceQuotaResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ResourceQuota
+  200: IoK8sApiCoreV1ResourceQuota;
   /**
    * Accepted
    */
-  202: IoK8sApiCoreV1ResourceQuota
-}
+  202: IoK8sApiCoreV1ResourceQuota;
+};
 
 export type DeleteCoreV1NamespacedResourceQuotaResponse =
-  DeleteCoreV1NamespacedResourceQuotaResponses[keyof DeleteCoreV1NamespacedResourceQuotaResponses]
+  DeleteCoreV1NamespacedResourceQuotaResponses[keyof DeleteCoreV1NamespacedResourceQuotaResponses];
 
 export type ReadCoreV1NamespacedResourceQuotaData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the ResourceQuota
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}'
-}
+    pretty?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}';
+};
 
 export type ReadCoreV1NamespacedResourceQuotaErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadCoreV1NamespacedResourceQuotaResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ResourceQuota
-}
+  200: IoK8sApiCoreV1ResourceQuota;
+};
 
 export type ReadCoreV1NamespacedResourceQuotaResponse =
-  ReadCoreV1NamespacedResourceQuotaResponses[keyof ReadCoreV1NamespacedResourceQuotaResponses]
+  ReadCoreV1NamespacedResourceQuotaResponses[keyof ReadCoreV1NamespacedResourceQuotaResponses];
 
 export type PatchCoreV1NamespacedResourceQuotaData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the ResourceQuota
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}'
-}
+    force?: boolean;
+  };
+  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}';
+};
 
 export type PatchCoreV1NamespacedResourceQuotaErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchCoreV1NamespacedResourceQuotaResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ResourceQuota
+  200: IoK8sApiCoreV1ResourceQuota;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1ResourceQuota
-}
+  201: IoK8sApiCoreV1ResourceQuota;
+};
 
 export type PatchCoreV1NamespacedResourceQuotaResponse =
-  PatchCoreV1NamespacedResourceQuotaResponses[keyof PatchCoreV1NamespacedResourceQuotaResponses]
+  PatchCoreV1NamespacedResourceQuotaResponses[keyof PatchCoreV1NamespacedResourceQuotaResponses];
 
 export type ReplaceCoreV1NamespacedResourceQuotaData = {
-  body: IoK8sApiCoreV1ResourceQuota
+  body: IoK8sApiCoreV1ResourceQuota;
   path: {
     /**
      * name of the ResourceQuota
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}';
+};
 
 export type ReplaceCoreV1NamespacedResourceQuotaErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceCoreV1NamespacedResourceQuotaResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ResourceQuota
+  200: IoK8sApiCoreV1ResourceQuota;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1ResourceQuota
-}
+  201: IoK8sApiCoreV1ResourceQuota;
+};
 
 export type ReplaceCoreV1NamespacedResourceQuotaResponse =
-  ReplaceCoreV1NamespacedResourceQuotaResponses[keyof ReplaceCoreV1NamespacedResourceQuotaResponses]
+  ReplaceCoreV1NamespacedResourceQuotaResponses[keyof ReplaceCoreV1NamespacedResourceQuotaResponses];
 
 export type ReadCoreV1NamespacedResourceQuotaStatusData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the ResourceQuota
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}/status'
-}
+    pretty?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}/status';
+};
 
 export type ReadCoreV1NamespacedResourceQuotaStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadCoreV1NamespacedResourceQuotaStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ResourceQuota
-}
+  200: IoK8sApiCoreV1ResourceQuota;
+};
 
 export type ReadCoreV1NamespacedResourceQuotaStatusResponse =
-  ReadCoreV1NamespacedResourceQuotaStatusResponses[keyof ReadCoreV1NamespacedResourceQuotaStatusResponses]
+  ReadCoreV1NamespacedResourceQuotaStatusResponses[keyof ReadCoreV1NamespacedResourceQuotaStatusResponses];
 
 export type PatchCoreV1NamespacedResourceQuotaStatusData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the ResourceQuota
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}/status'
-}
+    force?: boolean;
+  };
+  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}/status';
+};
 
 export type PatchCoreV1NamespacedResourceQuotaStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchCoreV1NamespacedResourceQuotaStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ResourceQuota
+  200: IoK8sApiCoreV1ResourceQuota;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1ResourceQuota
-}
+  201: IoK8sApiCoreV1ResourceQuota;
+};
 
 export type PatchCoreV1NamespacedResourceQuotaStatusResponse =
-  PatchCoreV1NamespacedResourceQuotaStatusResponses[keyof PatchCoreV1NamespacedResourceQuotaStatusResponses]
+  PatchCoreV1NamespacedResourceQuotaStatusResponses[keyof PatchCoreV1NamespacedResourceQuotaStatusResponses];
 
 export type ReplaceCoreV1NamespacedResourceQuotaStatusData = {
-  body: IoK8sApiCoreV1ResourceQuota
+  body: IoK8sApiCoreV1ResourceQuota;
   path: {
     /**
      * name of the ResourceQuota
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}/status'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/resourcequotas/{name}/status';
+};
 
 export type ReplaceCoreV1NamespacedResourceQuotaStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceCoreV1NamespacedResourceQuotaStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ResourceQuota
+  200: IoK8sApiCoreV1ResourceQuota;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1ResourceQuota
-}
+  201: IoK8sApiCoreV1ResourceQuota;
+};
 
 export type ReplaceCoreV1NamespacedResourceQuotaStatusResponse =
-  ReplaceCoreV1NamespacedResourceQuotaStatusResponses[keyof ReplaceCoreV1NamespacedResourceQuotaStatusResponses]
+  ReplaceCoreV1NamespacedResourceQuotaStatusResponses[keyof ReplaceCoreV1NamespacedResourceQuotaStatusResponses];
 
 export type DeleteCoreV1CollectionNamespacedSecretData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
+    propagationPolicy?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -3135,81 +3135,81 @@ export type DeleteCoreV1CollectionNamespacedSecretData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
-  }
-  url: '/api/v1/namespaces/{namespace}/secrets'
-}
+    timeoutSeconds?: number;
+  };
+  url: '/api/v1/namespaces/{namespace}/secrets';
+};
 
 export type DeleteCoreV1CollectionNamespacedSecretErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteCoreV1CollectionNamespacedSecretResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
-}
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteCoreV1CollectionNamespacedSecretResponse =
-  DeleteCoreV1CollectionNamespacedSecretResponses[keyof DeleteCoreV1CollectionNamespacedSecretResponses]
+  DeleteCoreV1CollectionNamespacedSecretResponses[keyof DeleteCoreV1CollectionNamespacedSecretResponses];
 
 export type ListCoreV1NamespacedSecretData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -3225,367 +3225,367 @@ export type ListCoreV1NamespacedSecretData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/namespaces/{namespace}/secrets'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/namespaces/{namespace}/secrets';
+};
 
 export type ListCoreV1NamespacedSecretErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListCoreV1NamespacedSecretResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1SecretList
-}
+  200: IoK8sApiCoreV1SecretList;
+};
 
 export type ListCoreV1NamespacedSecretResponse =
-  ListCoreV1NamespacedSecretResponses[keyof ListCoreV1NamespacedSecretResponses]
+  ListCoreV1NamespacedSecretResponses[keyof ListCoreV1NamespacedSecretResponses];
 
 export type CreateCoreV1NamespacedSecretData = {
-  body: IoK8sApiCoreV1Secret
+  body: IoK8sApiCoreV1Secret;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/secrets'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/secrets';
+};
 
 export type CreateCoreV1NamespacedSecretErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateCoreV1NamespacedSecretResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Secret
+  200: IoK8sApiCoreV1Secret;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1Secret
+  201: IoK8sApiCoreV1Secret;
   /**
    * Accepted
    */
-  202: IoK8sApiCoreV1Secret
-}
+  202: IoK8sApiCoreV1Secret;
+};
 
 export type CreateCoreV1NamespacedSecretResponse =
-  CreateCoreV1NamespacedSecretResponses[keyof CreateCoreV1NamespacedSecretResponses]
+  CreateCoreV1NamespacedSecretResponses[keyof CreateCoreV1NamespacedSecretResponses];
 
 export type DeleteCoreV1NamespacedSecretData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * name of the Secret
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/secrets/{name}'
-}
+    propagationPolicy?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/secrets/{name}';
+};
 
 export type DeleteCoreV1NamespacedSecretErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteCoreV1NamespacedSecretResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
+  200: IoK8sApimachineryPkgApisMetaV1Status;
   /**
    * Accepted
    */
-  202: IoK8sApimachineryPkgApisMetaV1Status
-}
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteCoreV1NamespacedSecretResponse =
-  DeleteCoreV1NamespacedSecretResponses[keyof DeleteCoreV1NamespacedSecretResponses]
+  DeleteCoreV1NamespacedSecretResponses[keyof DeleteCoreV1NamespacedSecretResponses];
 
 export type ReadCoreV1NamespacedSecretData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Secret
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/secrets/{name}'
-}
+    pretty?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/secrets/{name}';
+};
 
 export type ReadCoreV1NamespacedSecretErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadCoreV1NamespacedSecretResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Secret
-}
+  200: IoK8sApiCoreV1Secret;
+};
 
 export type ReadCoreV1NamespacedSecretResponse =
-  ReadCoreV1NamespacedSecretResponses[keyof ReadCoreV1NamespacedSecretResponses]
+  ReadCoreV1NamespacedSecretResponses[keyof ReadCoreV1NamespacedSecretResponses];
 
 export type PatchCoreV1NamespacedSecretData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the Secret
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/api/v1/namespaces/{namespace}/secrets/{name}'
-}
+    force?: boolean;
+  };
+  url: '/api/v1/namespaces/{namespace}/secrets/{name}';
+};
 
 export type PatchCoreV1NamespacedSecretErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchCoreV1NamespacedSecretResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Secret
+  200: IoK8sApiCoreV1Secret;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1Secret
-}
+  201: IoK8sApiCoreV1Secret;
+};
 
 export type PatchCoreV1NamespacedSecretResponse =
-  PatchCoreV1NamespacedSecretResponses[keyof PatchCoreV1NamespacedSecretResponses]
+  PatchCoreV1NamespacedSecretResponses[keyof PatchCoreV1NamespacedSecretResponses];
 
 export type ReplaceCoreV1NamespacedSecretData = {
-  body: IoK8sApiCoreV1Secret
+  body: IoK8sApiCoreV1Secret;
   path: {
     /**
      * name of the Secret
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/secrets/{name}'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/secrets/{name}';
+};
 
 export type ReplaceCoreV1NamespacedSecretErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceCoreV1NamespacedSecretResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Secret
+  200: IoK8sApiCoreV1Secret;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1Secret
-}
+  201: IoK8sApiCoreV1Secret;
+};
 
 export type ReplaceCoreV1NamespacedSecretResponse =
-  ReplaceCoreV1NamespacedSecretResponses[keyof ReplaceCoreV1NamespacedSecretResponses]
+  ReplaceCoreV1NamespacedSecretResponses[keyof ReplaceCoreV1NamespacedSecretResponses];
 
 export type DeleteCoreV1CollectionNamespacedServiceAccountData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
+    propagationPolicy?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -3601,81 +3601,81 @@ export type DeleteCoreV1CollectionNamespacedServiceAccountData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
-  }
-  url: '/api/v1/namespaces/{namespace}/serviceaccounts'
-}
+    timeoutSeconds?: number;
+  };
+  url: '/api/v1/namespaces/{namespace}/serviceaccounts';
+};
 
 export type DeleteCoreV1CollectionNamespacedServiceAccountErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteCoreV1CollectionNamespacedServiceAccountResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
-}
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteCoreV1CollectionNamespacedServiceAccountResponse =
-  DeleteCoreV1CollectionNamespacedServiceAccountResponses[keyof DeleteCoreV1CollectionNamespacedServiceAccountResponses]
+  DeleteCoreV1CollectionNamespacedServiceAccountResponses[keyof DeleteCoreV1CollectionNamespacedServiceAccountResponses];
 
 export type ListCoreV1NamespacedServiceAccountData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -3691,788 +3691,788 @@ export type ListCoreV1NamespacedServiceAccountData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/namespaces/{namespace}/serviceaccounts'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/namespaces/{namespace}/serviceaccounts';
+};
 
 export type ListCoreV1NamespacedServiceAccountErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListCoreV1NamespacedServiceAccountResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ServiceAccountList
-}
+  200: IoK8sApiCoreV1ServiceAccountList;
+};
 
 export type ListCoreV1NamespacedServiceAccountResponse =
-  ListCoreV1NamespacedServiceAccountResponses[keyof ListCoreV1NamespacedServiceAccountResponses]
+  ListCoreV1NamespacedServiceAccountResponses[keyof ListCoreV1NamespacedServiceAccountResponses];
 
 export type CreateCoreV1NamespacedServiceAccountData = {
-  body: IoK8sApiCoreV1ServiceAccount
+  body: IoK8sApiCoreV1ServiceAccount;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/serviceaccounts'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/serviceaccounts';
+};
 
 export type CreateCoreV1NamespacedServiceAccountErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateCoreV1NamespacedServiceAccountResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ServiceAccount
+  200: IoK8sApiCoreV1ServiceAccount;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1ServiceAccount
+  201: IoK8sApiCoreV1ServiceAccount;
   /**
    * Accepted
    */
-  202: IoK8sApiCoreV1ServiceAccount
-}
+  202: IoK8sApiCoreV1ServiceAccount;
+};
 
 export type CreateCoreV1NamespacedServiceAccountResponse =
-  CreateCoreV1NamespacedServiceAccountResponses[keyof CreateCoreV1NamespacedServiceAccountResponses]
+  CreateCoreV1NamespacedServiceAccountResponses[keyof CreateCoreV1NamespacedServiceAccountResponses];
 
 export type DeleteCoreV1NamespacedServiceAccountData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * name of the ServiceAccount
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/serviceaccounts/{name}'
-}
+    propagationPolicy?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/serviceaccounts/{name}';
+};
 
 export type DeleteCoreV1NamespacedServiceAccountErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteCoreV1NamespacedServiceAccountResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ServiceAccount
+  200: IoK8sApiCoreV1ServiceAccount;
   /**
    * Accepted
    */
-  202: IoK8sApiCoreV1ServiceAccount
-}
+  202: IoK8sApiCoreV1ServiceAccount;
+};
 
 export type DeleteCoreV1NamespacedServiceAccountResponse =
-  DeleteCoreV1NamespacedServiceAccountResponses[keyof DeleteCoreV1NamespacedServiceAccountResponses]
+  DeleteCoreV1NamespacedServiceAccountResponses[keyof DeleteCoreV1NamespacedServiceAccountResponses];
 
 export type ReadCoreV1NamespacedServiceAccountData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the ServiceAccount
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/serviceaccounts/{name}'
-}
+    pretty?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/serviceaccounts/{name}';
+};
 
 export type ReadCoreV1NamespacedServiceAccountErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadCoreV1NamespacedServiceAccountResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ServiceAccount
-}
+  200: IoK8sApiCoreV1ServiceAccount;
+};
 
 export type ReadCoreV1NamespacedServiceAccountResponse =
-  ReadCoreV1NamespacedServiceAccountResponses[keyof ReadCoreV1NamespacedServiceAccountResponses]
+  ReadCoreV1NamespacedServiceAccountResponses[keyof ReadCoreV1NamespacedServiceAccountResponses];
 
 export type PatchCoreV1NamespacedServiceAccountData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the ServiceAccount
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/api/v1/namespaces/{namespace}/serviceaccounts/{name}'
-}
+    force?: boolean;
+  };
+  url: '/api/v1/namespaces/{namespace}/serviceaccounts/{name}';
+};
 
 export type PatchCoreV1NamespacedServiceAccountErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchCoreV1NamespacedServiceAccountResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ServiceAccount
+  200: IoK8sApiCoreV1ServiceAccount;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1ServiceAccount
-}
+  201: IoK8sApiCoreV1ServiceAccount;
+};
 
 export type PatchCoreV1NamespacedServiceAccountResponse =
-  PatchCoreV1NamespacedServiceAccountResponses[keyof PatchCoreV1NamespacedServiceAccountResponses]
+  PatchCoreV1NamespacedServiceAccountResponses[keyof PatchCoreV1NamespacedServiceAccountResponses];
 
 export type ReplaceCoreV1NamespacedServiceAccountData = {
-  body: IoK8sApiCoreV1ServiceAccount
+  body: IoK8sApiCoreV1ServiceAccount;
   path: {
     /**
      * name of the ServiceAccount
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/serviceaccounts/{name}'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/serviceaccounts/{name}';
+};
 
 export type ReplaceCoreV1NamespacedServiceAccountErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceCoreV1NamespacedServiceAccountResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ServiceAccount
+  200: IoK8sApiCoreV1ServiceAccount;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1ServiceAccount
-}
+  201: IoK8sApiCoreV1ServiceAccount;
+};
 
 export type ReplaceCoreV1NamespacedServiceAccountResponse =
-  ReplaceCoreV1NamespacedServiceAccountResponses[keyof ReplaceCoreV1NamespacedServiceAccountResponses]
+  ReplaceCoreV1NamespacedServiceAccountResponses[keyof ReplaceCoreV1NamespacedServiceAccountResponses];
 
 export type CreateCoreV1NamespacedServiceAccountTokenData = {
-  body: IoK8sApiAuthenticationV1TokenRequest
+  body: IoK8sApiAuthenticationV1TokenRequest;
   path: {
     /**
      * name of the TokenRequest
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
-  }
-  url: '/api/v1/namespaces/{namespace}/serviceaccounts/{name}/token'
-}
+    pretty?: string;
+  };
+  url: '/api/v1/namespaces/{namespace}/serviceaccounts/{name}/token';
+};
 
 export type CreateCoreV1NamespacedServiceAccountTokenErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateCoreV1NamespacedServiceAccountTokenResponses = {
   /**
    * OK
    */
-  200: IoK8sApiAuthenticationV1TokenRequest
+  200: IoK8sApiAuthenticationV1TokenRequest;
   /**
    * Created
    */
-  201: IoK8sApiAuthenticationV1TokenRequest
+  201: IoK8sApiAuthenticationV1TokenRequest;
   /**
    * Accepted
    */
-  202: IoK8sApiAuthenticationV1TokenRequest
-}
+  202: IoK8sApiAuthenticationV1TokenRequest;
+};
 
 export type CreateCoreV1NamespacedServiceAccountTokenResponse =
-  CreateCoreV1NamespacedServiceAccountTokenResponses[keyof CreateCoreV1NamespacedServiceAccountTokenResponses]
+  CreateCoreV1NamespacedServiceAccountTokenResponses[keyof CreateCoreV1NamespacedServiceAccountTokenResponses];
 
 export type DeleteCoreV1NamespaceData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * name of the Namespace
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
-  }
-  url: '/api/v1/namespaces/{name}'
-}
+    propagationPolicy?: string;
+  };
+  url: '/api/v1/namespaces/{name}';
+};
 
 export type DeleteCoreV1NamespaceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteCoreV1NamespaceResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
+  200: IoK8sApimachineryPkgApisMetaV1Status;
   /**
    * Accepted
    */
-  202: IoK8sApimachineryPkgApisMetaV1Status
-}
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteCoreV1NamespaceResponse =
-  DeleteCoreV1NamespaceResponses[keyof DeleteCoreV1NamespaceResponses]
+  DeleteCoreV1NamespaceResponses[keyof DeleteCoreV1NamespaceResponses];
 
 export type ReadCoreV1NamespaceData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Namespace
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
-  }
-  url: '/api/v1/namespaces/{name}'
-}
+    pretty?: string;
+  };
+  url: '/api/v1/namespaces/{name}';
+};
 
 export type ReadCoreV1NamespaceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadCoreV1NamespaceResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Namespace
-}
+  200: IoK8sApiCoreV1Namespace;
+};
 
 export type ReadCoreV1NamespaceResponse =
-  ReadCoreV1NamespaceResponses[keyof ReadCoreV1NamespaceResponses]
+  ReadCoreV1NamespaceResponses[keyof ReadCoreV1NamespaceResponses];
 
 export type PatchCoreV1NamespaceData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the Namespace
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/api/v1/namespaces/{name}'
-}
+    force?: boolean;
+  };
+  url: '/api/v1/namespaces/{name}';
+};
 
 export type PatchCoreV1NamespaceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchCoreV1NamespaceResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Namespace
+  200: IoK8sApiCoreV1Namespace;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1Namespace
-}
+  201: IoK8sApiCoreV1Namespace;
+};
 
 export type PatchCoreV1NamespaceResponse =
-  PatchCoreV1NamespaceResponses[keyof PatchCoreV1NamespaceResponses]
+  PatchCoreV1NamespaceResponses[keyof PatchCoreV1NamespaceResponses];
 
 export type ReplaceCoreV1NamespaceData = {
-  body: IoK8sApiCoreV1Namespace
+  body: IoK8sApiCoreV1Namespace;
   path: {
     /**
      * name of the Namespace
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{name}'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{name}';
+};
 
 export type ReplaceCoreV1NamespaceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceCoreV1NamespaceResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Namespace
+  200: IoK8sApiCoreV1Namespace;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1Namespace
-}
+  201: IoK8sApiCoreV1Namespace;
+};
 
 export type ReplaceCoreV1NamespaceResponse =
-  ReplaceCoreV1NamespaceResponses[keyof ReplaceCoreV1NamespaceResponses]
+  ReplaceCoreV1NamespaceResponses[keyof ReplaceCoreV1NamespaceResponses];
 
 export type ReplaceCoreV1NamespaceFinalizeData = {
-  body: IoK8sApiCoreV1Namespace
+  body: IoK8sApiCoreV1Namespace;
   path: {
     /**
      * name of the Namespace
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
-  }
-  url: '/api/v1/namespaces/{name}/finalize'
-}
+    pretty?: string;
+  };
+  url: '/api/v1/namespaces/{name}/finalize';
+};
 
 export type ReplaceCoreV1NamespaceFinalizeErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceCoreV1NamespaceFinalizeResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Namespace
+  200: IoK8sApiCoreV1Namespace;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1Namespace
-}
+  201: IoK8sApiCoreV1Namespace;
+};
 
 export type ReplaceCoreV1NamespaceFinalizeResponse =
-  ReplaceCoreV1NamespaceFinalizeResponses[keyof ReplaceCoreV1NamespaceFinalizeResponses]
+  ReplaceCoreV1NamespaceFinalizeResponses[keyof ReplaceCoreV1NamespaceFinalizeResponses];
 
 export type ReadCoreV1NamespaceStatusData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Namespace
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
-  }
-  url: '/api/v1/namespaces/{name}/status'
-}
+    pretty?: string;
+  };
+  url: '/api/v1/namespaces/{name}/status';
+};
 
 export type ReadCoreV1NamespaceStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadCoreV1NamespaceStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Namespace
-}
+  200: IoK8sApiCoreV1Namespace;
+};
 
 export type ReadCoreV1NamespaceStatusResponse =
-  ReadCoreV1NamespaceStatusResponses[keyof ReadCoreV1NamespaceStatusResponses]
+  ReadCoreV1NamespaceStatusResponses[keyof ReadCoreV1NamespaceStatusResponses];
 
 export type PatchCoreV1NamespaceStatusData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the Namespace
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/api/v1/namespaces/{name}/status'
-}
+    force?: boolean;
+  };
+  url: '/api/v1/namespaces/{name}/status';
+};
 
 export type PatchCoreV1NamespaceStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchCoreV1NamespaceStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Namespace
+  200: IoK8sApiCoreV1Namespace;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1Namespace
-}
+  201: IoK8sApiCoreV1Namespace;
+};
 
 export type PatchCoreV1NamespaceStatusResponse =
-  PatchCoreV1NamespaceStatusResponses[keyof PatchCoreV1NamespaceStatusResponses]
+  PatchCoreV1NamespaceStatusResponses[keyof PatchCoreV1NamespaceStatusResponses];
 
 export type ReplaceCoreV1NamespaceStatusData = {
-  body: IoK8sApiCoreV1Namespace
+  body: IoK8sApiCoreV1Namespace;
   path: {
     /**
      * name of the Namespace
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/api/v1/namespaces/{name}/status'
-}
+    fieldValidation?: string;
+  };
+  url: '/api/v1/namespaces/{name}/status';
+};
 
 export type ReplaceCoreV1NamespaceStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceCoreV1NamespaceStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1Namespace
+  200: IoK8sApiCoreV1Namespace;
   /**
    * Created
    */
-  201: IoK8sApiCoreV1Namespace
-}
+  201: IoK8sApiCoreV1Namespace;
+};
 
 export type ReplaceCoreV1NamespaceStatusResponse =
-  ReplaceCoreV1NamespaceStatusResponses[keyof ReplaceCoreV1NamespaceStatusResponses]
+  ReplaceCoreV1NamespaceStatusResponses[keyof ReplaceCoreV1NamespaceStatusResponses];
 
 export type ListCoreV1ResourceQuotaForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4488,80 +4488,80 @@ export type ListCoreV1ResourceQuotaForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/resourcequotas'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/resourcequotas';
+};
 
 export type ListCoreV1ResourceQuotaForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListCoreV1ResourceQuotaForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ResourceQuotaList
-}
+  200: IoK8sApiCoreV1ResourceQuotaList;
+};
 
 export type ListCoreV1ResourceQuotaForAllNamespacesResponse =
-  ListCoreV1ResourceQuotaForAllNamespacesResponses[keyof ListCoreV1ResourceQuotaForAllNamespacesResponses]
+  ListCoreV1ResourceQuotaForAllNamespacesResponses[keyof ListCoreV1ResourceQuotaForAllNamespacesResponses];
 
 export type ListCoreV1SecretForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4577,80 +4577,80 @@ export type ListCoreV1SecretForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/secrets'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/secrets';
+};
 
 export type ListCoreV1SecretForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListCoreV1SecretForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1SecretList
-}
+  200: IoK8sApiCoreV1SecretList;
+};
 
 export type ListCoreV1SecretForAllNamespacesResponse =
-  ListCoreV1SecretForAllNamespacesResponses[keyof ListCoreV1SecretForAllNamespacesResponses]
+  ListCoreV1SecretForAllNamespacesResponses[keyof ListCoreV1SecretForAllNamespacesResponses];
 
 export type ListCoreV1ServiceAccountForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4666,80 +4666,80 @@ export type ListCoreV1ServiceAccountForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/serviceaccounts'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/serviceaccounts';
+};
 
 export type ListCoreV1ServiceAccountForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListCoreV1ServiceAccountForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: IoK8sApiCoreV1ServiceAccountList
-}
+  200: IoK8sApiCoreV1ServiceAccountList;
+};
 
 export type ListCoreV1ServiceAccountForAllNamespacesResponse =
-  ListCoreV1ServiceAccountForAllNamespacesResponses[keyof ListCoreV1ServiceAccountForAllNamespacesResponses]
+  ListCoreV1ServiceAccountForAllNamespacesResponses[keyof ListCoreV1ServiceAccountForAllNamespacesResponses];
 
 export type WatchCoreV1ConfigMapListForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4755,80 +4755,80 @@ export type WatchCoreV1ConfigMapListForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/configmaps'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/configmaps';
+};
 
 export type WatchCoreV1ConfigMapListForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1ConfigMapListForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1ConfigMapListForAllNamespacesResponse =
-  WatchCoreV1ConfigMapListForAllNamespacesResponses[keyof WatchCoreV1ConfigMapListForAllNamespacesResponses]
+  WatchCoreV1ConfigMapListForAllNamespacesResponses[keyof WatchCoreV1ConfigMapListForAllNamespacesResponses];
 
 export type WatchCoreV1EventListForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4844,80 +4844,80 @@ export type WatchCoreV1EventListForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/events'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/events';
+};
 
 export type WatchCoreV1EventListForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1EventListForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1EventListForAllNamespacesResponse =
-  WatchCoreV1EventListForAllNamespacesResponses[keyof WatchCoreV1EventListForAllNamespacesResponses]
+  WatchCoreV1EventListForAllNamespacesResponses[keyof WatchCoreV1EventListForAllNamespacesResponses];
 
 export type WatchCoreV1NamespaceListData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4933,85 +4933,85 @@ export type WatchCoreV1NamespaceListData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/namespaces'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/namespaces';
+};
 
 export type WatchCoreV1NamespaceListErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1NamespaceListResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1NamespaceListResponse =
-  WatchCoreV1NamespaceListResponses[keyof WatchCoreV1NamespaceListResponses]
+  WatchCoreV1NamespaceListResponses[keyof WatchCoreV1NamespaceListResponses];
 
 export type WatchCoreV1NamespacedConfigMapListData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -5027,89 +5027,89 @@ export type WatchCoreV1NamespacedConfigMapListData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/namespaces/{namespace}/configmaps'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/namespaces/{namespace}/configmaps';
+};
 
 export type WatchCoreV1NamespacedConfigMapListErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1NamespacedConfigMapListResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1NamespacedConfigMapListResponse =
-  WatchCoreV1NamespacedConfigMapListResponses[keyof WatchCoreV1NamespacedConfigMapListResponses]
+  WatchCoreV1NamespacedConfigMapListResponses[keyof WatchCoreV1NamespacedConfigMapListResponses];
 
 export type WatchCoreV1NamespacedConfigMapData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the ConfigMap
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -5125,85 +5125,85 @@ export type WatchCoreV1NamespacedConfigMapData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/namespaces/{namespace}/configmaps/{name}'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/namespaces/{namespace}/configmaps/{name}';
+};
 
 export type WatchCoreV1NamespacedConfigMapErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1NamespacedConfigMapResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1NamespacedConfigMapResponse =
-  WatchCoreV1NamespacedConfigMapResponses[keyof WatchCoreV1NamespacedConfigMapResponses]
+  WatchCoreV1NamespacedConfigMapResponses[keyof WatchCoreV1NamespacedConfigMapResponses];
 
 export type WatchCoreV1NamespacedEventListData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -5219,89 +5219,89 @@ export type WatchCoreV1NamespacedEventListData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/namespaces/{namespace}/events'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/namespaces/{namespace}/events';
+};
 
 export type WatchCoreV1NamespacedEventListErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1NamespacedEventListResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1NamespacedEventListResponse =
-  WatchCoreV1NamespacedEventListResponses[keyof WatchCoreV1NamespacedEventListResponses]
+  WatchCoreV1NamespacedEventListResponses[keyof WatchCoreV1NamespacedEventListResponses];
 
 export type WatchCoreV1NamespacedEventData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Event
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -5317,85 +5317,85 @@ export type WatchCoreV1NamespacedEventData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/namespaces/{namespace}/events/{name}'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/namespaces/{namespace}/events/{name}';
+};
 
 export type WatchCoreV1NamespacedEventErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1NamespacedEventResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1NamespacedEventResponse =
-  WatchCoreV1NamespacedEventResponses[keyof WatchCoreV1NamespacedEventResponses]
+  WatchCoreV1NamespacedEventResponses[keyof WatchCoreV1NamespacedEventResponses];
 
 export type WatchCoreV1NamespacedResourceQuotaListData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -5411,89 +5411,89 @@ export type WatchCoreV1NamespacedResourceQuotaListData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/namespaces/{namespace}/resourcequotas'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/namespaces/{namespace}/resourcequotas';
+};
 
 export type WatchCoreV1NamespacedResourceQuotaListErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1NamespacedResourceQuotaListResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1NamespacedResourceQuotaListResponse =
-  WatchCoreV1NamespacedResourceQuotaListResponses[keyof WatchCoreV1NamespacedResourceQuotaListResponses]
+  WatchCoreV1NamespacedResourceQuotaListResponses[keyof WatchCoreV1NamespacedResourceQuotaListResponses];
 
 export type WatchCoreV1NamespacedResourceQuotaData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the ResourceQuota
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -5509,85 +5509,85 @@ export type WatchCoreV1NamespacedResourceQuotaData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/namespaces/{namespace}/resourcequotas/{name}'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/namespaces/{namespace}/resourcequotas/{name}';
+};
 
 export type WatchCoreV1NamespacedResourceQuotaErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1NamespacedResourceQuotaResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1NamespacedResourceQuotaResponse =
-  WatchCoreV1NamespacedResourceQuotaResponses[keyof WatchCoreV1NamespacedResourceQuotaResponses]
+  WatchCoreV1NamespacedResourceQuotaResponses[keyof WatchCoreV1NamespacedResourceQuotaResponses];
 
 export type WatchCoreV1NamespacedSecretListData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -5603,89 +5603,89 @@ export type WatchCoreV1NamespacedSecretListData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/namespaces/{namespace}/secrets'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/namespaces/{namespace}/secrets';
+};
 
 export type WatchCoreV1NamespacedSecretListErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1NamespacedSecretListResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1NamespacedSecretListResponse =
-  WatchCoreV1NamespacedSecretListResponses[keyof WatchCoreV1NamespacedSecretListResponses]
+  WatchCoreV1NamespacedSecretListResponses[keyof WatchCoreV1NamespacedSecretListResponses];
 
 export type WatchCoreV1NamespacedSecretData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Secret
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -5701,85 +5701,85 @@ export type WatchCoreV1NamespacedSecretData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/namespaces/{namespace}/secrets/{name}'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/namespaces/{namespace}/secrets/{name}';
+};
 
 export type WatchCoreV1NamespacedSecretErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1NamespacedSecretResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1NamespacedSecretResponse =
-  WatchCoreV1NamespacedSecretResponses[keyof WatchCoreV1NamespacedSecretResponses]
+  WatchCoreV1NamespacedSecretResponses[keyof WatchCoreV1NamespacedSecretResponses];
 
 export type WatchCoreV1NamespacedServiceAccountListData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -5795,89 +5795,89 @@ export type WatchCoreV1NamespacedServiceAccountListData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/namespaces/{namespace}/serviceaccounts'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/namespaces/{namespace}/serviceaccounts';
+};
 
 export type WatchCoreV1NamespacedServiceAccountListErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1NamespacedServiceAccountListResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1NamespacedServiceAccountListResponse =
-  WatchCoreV1NamespacedServiceAccountListResponses[keyof WatchCoreV1NamespacedServiceAccountListResponses]
+  WatchCoreV1NamespacedServiceAccountListResponses[keyof WatchCoreV1NamespacedServiceAccountListResponses];
 
 export type WatchCoreV1NamespacedServiceAccountData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the ServiceAccount
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -5893,85 +5893,85 @@ export type WatchCoreV1NamespacedServiceAccountData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/namespaces/{namespace}/serviceaccounts/{name}'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/namespaces/{namespace}/serviceaccounts/{name}';
+};
 
 export type WatchCoreV1NamespacedServiceAccountErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1NamespacedServiceAccountResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1NamespacedServiceAccountResponse =
-  WatchCoreV1NamespacedServiceAccountResponses[keyof WatchCoreV1NamespacedServiceAccountResponses]
+  WatchCoreV1NamespacedServiceAccountResponses[keyof WatchCoreV1NamespacedServiceAccountResponses];
 
 export type WatchCoreV1NamespaceData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Namespace
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -5987,80 +5987,80 @@ export type WatchCoreV1NamespaceData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/namespaces/{name}'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/namespaces/{name}';
+};
 
 export type WatchCoreV1NamespaceErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1NamespaceResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1NamespaceResponse =
-  WatchCoreV1NamespaceResponses[keyof WatchCoreV1NamespaceResponses]
+  WatchCoreV1NamespaceResponses[keyof WatchCoreV1NamespaceResponses];
 
 export type WatchCoreV1ResourceQuotaListForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -6076,80 +6076,80 @@ export type WatchCoreV1ResourceQuotaListForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/resourcequotas'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/resourcequotas';
+};
 
 export type WatchCoreV1ResourceQuotaListForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1ResourceQuotaListForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1ResourceQuotaListForAllNamespacesResponse =
-  WatchCoreV1ResourceQuotaListForAllNamespacesResponses[keyof WatchCoreV1ResourceQuotaListForAllNamespacesResponses]
+  WatchCoreV1ResourceQuotaListForAllNamespacesResponses[keyof WatchCoreV1ResourceQuotaListForAllNamespacesResponses];
 
 export type WatchCoreV1SecretListForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -6165,80 +6165,80 @@ export type WatchCoreV1SecretListForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/secrets'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/secrets';
+};
 
 export type WatchCoreV1SecretListForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1SecretListForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1SecretListForAllNamespacesResponse =
-  WatchCoreV1SecretListForAllNamespacesResponses[keyof WatchCoreV1SecretListForAllNamespacesResponses]
+  WatchCoreV1SecretListForAllNamespacesResponses[keyof WatchCoreV1SecretListForAllNamespacesResponses];
 
 export type WatchCoreV1ServiceAccountListForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -6254,36 +6254,36 @@ export type WatchCoreV1ServiceAccountListForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/api/v1/watch/serviceaccounts'
-}
+    watch?: boolean;
+  };
+  url: '/api/v1/watch/serviceaccounts';
+};
 
 export type WatchCoreV1ServiceAccountListForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type WatchCoreV1ServiceAccountListForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1WatchEvent
-}
+  200: IoK8sApimachineryPkgApisMetaV1WatchEvent;
+};
 
 export type WatchCoreV1ServiceAccountListForAllNamespacesResponse =
-  WatchCoreV1ServiceAccountListForAllNamespacesResponses[keyof WatchCoreV1ServiceAccountListForAllNamespacesResponses]
+  WatchCoreV1ServiceAccountListForAllNamespacesResponses[keyof WatchCoreV1ServiceAccountListForAllNamespacesResponses];
 
 export type ClientOptions = {
-  baseURL: `${string}://${string}` | (string & {})
-}
+  baseURL: `${string}://${string}` | (string & {});
+};

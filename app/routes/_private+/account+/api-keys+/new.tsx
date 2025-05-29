@@ -60,8 +60,8 @@
 //     </div>
 //   )
 // }
-import { ComingSoon } from '@/components/coming-soon/coming-soon'
+import { ComingSoon } from '@/components/coming-soon/coming-soon';
 
 export default function ApiKeys() {
-  return <ComingSoon />
+  return <ComingSoon />;
 }

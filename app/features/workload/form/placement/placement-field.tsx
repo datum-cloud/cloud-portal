@@ -1,10 +1,10 @@
-import { Field } from '@/components/field/field'
-import { Input } from '@/components/ui/input'
-import { SelectIATA } from '@/features/location/form/select-iata'
-import { PlacementFieldSchema } from '@/resources/schemas/workload.schema'
-import { useForm, useInputControl, getInputProps } from '@conform-to/react'
-import { useEffect, useRef } from 'react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+import { Field } from '@/components/field/field';
+import { Input } from '@/components/ui/input';
+import { SelectIATA } from '@/features/location/form/select-iata';
+import { PlacementFieldSchema } from '@/resources/schemas/workload.schema';
+import { useForm, useInputControl, getInputProps } from '@conform-to/react';
+import { useEffect, useRef } from 'react';
+import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const PlacementField = ({
   isEdit = false,
@@ -12,31 +12,31 @@ export const PlacementField = ({
   defaultValue,
   availableLocations = [],
 }: {
-  fields: ReturnType<typeof useForm<PlacementFieldSchema>>[1]
-  defaultValue?: PlacementFieldSchema
-  isEdit?: boolean
-  availableLocations?: string[]
+  fields: ReturnType<typeof useForm<PlacementFieldSchema>>[1];
+  defaultValue?: PlacementFieldSchema;
+  isEdit?: boolean;
+  availableLocations?: string[];
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isHydrated = useHydrated();
 
-  const nameControl = useInputControl(fields.name)
-  const cityCodeControl = useInputControl(fields.cityCode)
-  const minimumReplicasControl = useInputControl(fields.minimumReplicas)
+  const nameControl = useInputControl(fields.name);
+  const cityCodeControl = useInputControl(fields.cityCode);
+  const minimumReplicasControl = useInputControl(fields.minimumReplicas);
 
   useEffect(() => {
     if (defaultValue) {
       // Only set values if they exist in defaultValue and current fields are empty
       if (defaultValue.name && fields.name.value === '') {
-        nameControl.change(defaultValue?.name)
+        nameControl.change(defaultValue?.name);
       }
 
       if (defaultValue.cityCode && fields.cityCode.value === '') {
-        cityCodeControl.change(defaultValue?.cityCode)
+        cityCodeControl.change(defaultValue?.cityCode);
       }
 
       if (defaultValue.minimumReplicas && !fields.minimumReplicas.value) {
-        minimumReplicasControl.change(defaultValue?.minimumReplicas.toString() ?? '1')
+        minimumReplicasControl.change(defaultValue?.minimumReplicas.toString() ?? '1');
       }
     }
   }, [
@@ -47,13 +47,12 @@ export const PlacementField = ({
     fields.name.value,
     fields.cityCode.value,
     fields.minimumReplicas.value,
-  ])
+  ]);
 
   // Focus the input when the form is hydrated
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
+    isHydrated && inputRef.current?.focus();
+  }, [isHydrated]);
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
@@ -64,8 +63,8 @@ export const PlacementField = ({
           key={fields.name.id}
           placeholder="e.g. my-placement-us-3sd122"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = (e.target as HTMLInputElement).value
-            nameControl.change(value)
+            const value = (e.target as HTMLInputElement).value;
+            nameControl.change(value);
           }}
         />
       </Field>
@@ -79,7 +78,7 @@ export const PlacementField = ({
             placeholder="Select a city"
             defaultValue={fields.cityCode.value}
             onValueChange={(value) => {
-              cityCodeControl.change(value.value)
+              cityCodeControl.change(value.value);
             }}
           />
         </Field>
@@ -97,12 +96,12 @@ export const PlacementField = ({
             key={fields.minimumReplicas.id}
             placeholder="e.g. 1"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value
-              minimumReplicasControl.change(value)
+              const value = (e.target as HTMLInputElement).value;
+              minimumReplicasControl.change(value);
             }}
           />
         </Field>
       </div>
     </div>
-  )
-}
+  );
+};

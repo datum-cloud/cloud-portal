@@ -128,8 +128,7 @@ This field may not be empty.`,
                 enum: ['True', 'False', 'Unknown'],
               },
               type: {
-                description:
-                  'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
                 type: 'string',
                 maxLength: 316,
                 pattern:
@@ -149,7 +148,7 @@ This field may not be empty.`,
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_LocationListSchema = {
   description: 'LocationList is a list of Location',
@@ -192,7 +191,7 @@ export const com_datumapis_networking_v1alpha_LocationListSchema = {
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_NetworkSchema = {
   description: 'Network is the Schema for the networks API',
@@ -238,8 +237,7 @@ export const com_datumapis_networking_v1alpha_NetworkSchema = {
           required: ['mode'],
           properties: {
             ipv4Range: {
-              description:
-                'IPv4 range to use in auto mode networks. Defaults to 10.128.0.0/9.',
+              description: 'IPv4 range to use in auto mode networks. Defaults to 10.128.0.0/9.',
               type: 'string',
             },
             ipv6Range: {
@@ -314,8 +312,7 @@ This field may not be empty.`,
                 enum: ['True', 'False', 'Unknown'],
               },
               type: {
-                description:
-                  'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
                 type: 'string',
                 maxLength: 316,
                 pattern:
@@ -335,7 +332,7 @@ This field may not be empty.`,
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_NetworkBindingSchema = {
   description: 'NetworkBinding is the Schema for the networkbindings API',
@@ -405,8 +402,7 @@ Defaults to the namespace for the type the reference is embedded in.`,
       type: 'object',
       properties: {
         conditions: {
-          description:
-            "Represents the observations of a network binding's current state.",
+          description: "Represents the observations of a network binding's current state.",
           type: 'array',
           items: {
             description:
@@ -451,8 +447,7 @@ This field may not be empty.`,
                 enum: ['True', 'False', 'Unknown'],
               },
               type: {
-                description:
-                  'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
                 type: 'string',
                 maxLength: 316,
                 pattern:
@@ -486,7 +481,7 @@ This field may not be empty.`,
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_NetworkBindingListSchema = {
   description: 'NetworkBindingList is a list of NetworkBinding',
@@ -529,7 +524,7 @@ export const com_datumapis_networking_v1alpha_NetworkBindingListSchema = {
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_NetworkContextSchema = {
   description: 'NetworkContext is the Schema for the networkcontexts API',
@@ -592,8 +587,7 @@ export const com_datumapis_networking_v1alpha_NetworkContextSchema = {
       type: 'object',
       properties: {
         conditions: {
-          description:
-            "Represents the observations of a network context's current state.",
+          description: "Represents the observations of a network context's current state.",
           type: 'array',
           items: {
             description:
@@ -638,8 +632,7 @@ This field may not be empty.`,
                 enum: ['True', 'False', 'Unknown'],
               },
               type: {
-                description:
-                  'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
                 type: 'string',
                 maxLength: 316,
                 pattern:
@@ -659,7 +652,7 @@ This field may not be empty.`,
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_NetworkContextListSchema = {
   description: 'NetworkContextList is a list of NetworkContext',
@@ -702,7 +695,7 @@ export const com_datumapis_networking_v1alpha_NetworkContextListSchema = {
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_NetworkListSchema = {
   description: 'NetworkList is a list of Network',
@@ -745,7 +738,7 @@ export const com_datumapis_networking_v1alpha_NetworkListSchema = {
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_NetworkPolicySchema = {
   description: 'NetworkPolicy is the Schema for the networkpolicies API',
@@ -787,7 +780,7 @@ export const com_datumapis_networking_v1alpha_NetworkPolicySchema = {
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_NetworkPolicyListSchema = {
   description: 'NetworkPolicyList is a list of NetworkPolicy',
@@ -830,7 +823,7 @@ export const com_datumapis_networking_v1alpha_NetworkPolicyListSchema = {
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_SubnetSchema = {
   description: 'Subnet is the Schema for the subnets API',
@@ -963,8 +956,7 @@ This field may not be empty.`,
                 enum: ['True', 'False', 'Unknown'],
               },
               type: {
-                description:
-                  'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
                 type: 'string',
                 maxLength: 316,
                 pattern:
@@ -993,7 +985,7 @@ This field may not be empty.`,
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_SubnetClaimSchema = {
   description: 'SubnetClaim is the Schema for the subnetclaims API',
@@ -1119,8 +1111,7 @@ This field may not be empty.`,
                 enum: ['True', 'False', 'Unknown'],
               },
               type: {
-                description:
-                  'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
                 type: 'string',
                 maxLength: 316,
                 pattern:
@@ -1159,7 +1150,7 @@ This field may not be empty.`,
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_SubnetClaimListSchema = {
   description: 'SubnetClaimList is a list of SubnetClaim',
@@ -1202,7 +1193,7 @@ export const com_datumapis_networking_v1alpha_SubnetClaimListSchema = {
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const com_datumapis_networking_v1alpha_SubnetListSchema = {
   description: 'SubnetList is a list of Subnet',
@@ -1245,7 +1236,7 @@ export const com_datumapis_networking_v1alpha_SubnetListSchema = {
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
   description: 'DeleteOptions may be provided when deleting an API object.',
@@ -1573,7 +1564,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       version: 'v1alpha1',
     },
   ],
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_FieldsV1Schema = {
   description: `FieldsV1 stores a set of fields in a data structure like a Trie, in JSON format.
@@ -1582,7 +1573,7 @@ Each key is either a '.' representing the field itself, and will always map to a
 
 The exact format is defined in sigs.k8s.io/structured-merge-diff`,
   type: 'object',
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_ListMetaSchema = {
   description:
@@ -1611,7 +1602,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ListMetaSchema = {
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_ManagedFieldsEntrySchema = {
   description:
@@ -1661,7 +1652,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ManagedFieldsEntrySchema = {
       ],
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMetaSchema = {
   description:
@@ -1796,7 +1787,7 @@ Populated by the system. Read-only. More info: https://kubernetes.io/docs/concep
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_OwnerReferenceSchema = {
   description:
@@ -1838,13 +1829,13 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_OwnerReferenceSchema = {
     },
   },
   'x-kubernetes-map-type': 'atomic',
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_PatchSchema = {
   description:
     'Patch is provided to give a concrete name and type to the Kubernetes PATCH request body.',
   type: 'object',
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_PreconditionsSchema = {
   description:
@@ -1860,7 +1851,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_PreconditionsSchema = {
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
   description: "Status is a return value for calls that don't return other objects.",
@@ -1923,7 +1914,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
       version: 'v1',
     },
   ],
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusCauseSchema = {
   description:
@@ -1949,7 +1940,7 @@ Examples:
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusDetailsSchema = {
   description:
@@ -1971,8 +1962,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusDetailsSchema = {
       'x-kubernetes-list-type': 'atomic',
     },
     group: {
-      description:
-        'The group attribute of the resource associated with the status StatusReason.',
+      description: 'The group attribute of the resource associated with the status StatusReason.',
       type: 'string',
     },
     kind: {
@@ -1997,11 +1987,11 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusDetailsSchema = {
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_TimeSchema = {
   description:
     'Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.',
   type: 'string',
   format: 'date-time',
-} as const
+} as const;

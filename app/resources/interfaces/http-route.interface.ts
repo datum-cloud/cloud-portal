@@ -1,30 +1,30 @@
-import { HttpRouteRuleSchema, HttpRouteSchema } from '../schemas/http-route.schema'
-import { ILabel } from './label.interface'
+import { HttpRouteRuleSchema, HttpRouteSchema } from '../schemas/http-route.schema';
+import { ILabel } from './label.interface';
 
 export interface IHttpRouteControlResponseLite {
-  uid?: string
-  name?: string
-  createdAt?: Date
+  uid?: string;
+  name?: string;
+  createdAt?: Date;
 }
 
 export interface IHttpRouteRuleControlResponse {
-  matches?: HttpRouteRuleSchema['matches']
-  backendRefs?: HttpRouteRuleSchema['backendRefs']
-  filters?: HttpRouteRuleSchema['filters']
+  matches?: HttpRouteRuleSchema['matches'];
+  backendRefs?: HttpRouteRuleSchema['backendRefs'];
+  filters?: HttpRouteRuleSchema['filters'];
 }
 
 export interface IHttpRouteControlResponse {
-  uid?: string
-  resourceVersion?: string
-  namespace?: string
-  name?: string
-  labels?: ILabel
-  annotations?: ILabel
-  createdAt?: Date
+  uid?: string;
+  resourceVersion?: string;
+  namespace?: string;
+  name?: string;
+  labels?: ILabel;
+  annotations?: ILabel;
+  createdAt?: Date;
 
   // Spec Section
-  parentRefs?: HttpRouteSchema['parentRefs']
-  rules?: IHttpRouteRuleControlResponse[]
+  parentRefs?: HttpRouteSchema['parentRefs'];
+  rules?: IHttpRouteRuleControlResponse[];
 }
 
 export enum HTTPPathMatchType {

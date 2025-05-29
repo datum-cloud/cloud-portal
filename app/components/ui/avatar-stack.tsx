@@ -1,13 +1,8 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import { cn } from '@/utils/misc'
-import { type VariantProps, cva } from 'class-variance-authority'
-import * as React from 'react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/utils/misc';
+import { type VariantProps, cva } from 'class-variance-authority';
+import * as React from 'react';
 
 const avatarStackVariants = cva('flex', {
   variants: {
@@ -26,14 +21,14 @@ const avatarStackVariants = cva('flex', {
     orientation: 'vertical',
     spacing: 'md',
   },
-})
+});
 
 export interface AvatarStackProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof avatarStackVariants> {
-  avatars: { name: string; image: string }[]
-  maxAvatarsAmount?: number
-  avatarClassName?: string
+  avatars: { name: string; image: string }[];
+  maxAvatarsAmount?: number;
+  avatarClassName?: string;
 }
 
 const AvatarStack = ({
@@ -45,23 +40,22 @@ const AvatarStack = ({
   avatarClassName,
   ...props
 }: AvatarStackProps) => {
-  const shownAvatars = avatars.slice(0, maxAvatarsAmount)
-  const hiddenAvatars = avatars.slice(maxAvatarsAmount)
+  const shownAvatars = avatars.slice(0, maxAvatarsAmount);
+  const hiddenAvatars = avatars.slice(maxAvatarsAmount);
 
   return (
     <div
       className={cn(
         avatarStackVariants({ orientation, spacing }),
         className,
-        orientation === 'horizontal' ? '-space-x-0' : '-space-y-0',
+        orientation === 'horizontal' ? '-space-x-0' : '-space-y-0'
       )}
       {...props}>
       {shownAvatars.map(({ name, image }, index) => (
         <TooltipProvider delayDuration={300} key={`${image}-${index + 1}`}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Avatar
-                className={cn(avatarStackVariants(), 'hover:z-10', avatarClassName)}>
+              <Avatar className={cn(avatarStackVariants(), 'hover:z-10', avatarClassName)}>
                 <AvatarImage src={image} />
                 <AvatarFallback>
                   {name
@@ -96,7 +90,7 @@ const AvatarStack = ({
         </TooltipProvider>
       ) : null}
     </div>
-  )
-}
+  );
+};
 
-export { AvatarStack, avatarStackVariants }
+export { AvatarStack, avatarStackVariants };

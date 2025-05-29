@@ -1,5 +1,5 @@
-import { OrganizationItem } from './organization-item'
-import { Button } from '@/components/ui/button'
+import { OrganizationItem } from './organization-item';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -8,22 +8,16 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { routes } from '@/constants/routes'
-import { IOrganization } from '@/resources/interfaces/organization.inteface'
-import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index'
-import { cn } from '@/utils/misc'
-import {
-  CheckIcon,
-  ChevronsUpDownIcon,
-  Loader2,
-  PlusCircleIcon,
-  SettingsIcon,
-} from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Link, useFetcher } from 'react-router'
-import { toast } from 'sonner'
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { routes } from '@/constants/routes';
+import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
+import { cn } from '@/utils/misc';
+import { CheckIcon, ChevronsUpDownIcon, Loader2, PlusCircleIcon, SettingsIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useFetcher } from 'react-router';
+import { toast } from 'sonner';
 
 export const SelectOrganization = ({
   currentOrg,
@@ -33,35 +27,35 @@ export const SelectOrganization = ({
   hideContent = false,
   hideNewOrganization = false,
 }: {
-  currentOrg: Partial<IOrganization>
-  onSelect?: (org: IOrganization) => void
-  selectedContent?: React.ReactNode
-  triggerClassName?: string
-  hideContent?: boolean
-  hideNewOrganization?: boolean
+  currentOrg: Partial<IOrganization>;
+  onSelect?: (org: IOrganization) => void;
+  selectedContent?: React.ReactNode;
+  triggerClassName?: string;
+  hideContent?: boolean;
+  hideNewOrganization?: boolean;
 }) => {
-  const [open, setOpen] = useState(false)
-  const fetcher = useFetcher({ key: 'org-list' })
+  const [open, setOpen] = useState(false);
+  const fetcher = useFetcher({ key: 'org-list' });
 
-  const [organizations, setOrganizations] = useState<IOrganization[]>([])
+  const [organizations, setOrganizations] = useState<IOrganization[]>([]);
 
   useEffect(() => {
     if (open) {
-      fetcher.load(ORG_LIST_PATH)
+      fetcher.load(ORG_LIST_PATH);
     }
-  }, [open])
+  }, [open]);
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
-      const { success, error, data } = fetcher.data
+      const { success, error, data } = fetcher.data;
       if (!success) {
-        toast.error(error)
-        return
+        toast.error(error);
+        return;
       }
 
-      setOrganizations(data)
+      setOrganizations(data);
     }
-  }, [fetcher.data, fetcher.state])
+  }, [fetcher.data, fetcher.state]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -71,16 +65,14 @@ export const SelectOrganization = ({
           size="sm"
           className={cn(
             'data-[state=open]:bg-primary/5 flex h-full w-full cursor-pointer gap-2 border-none p-0 px-2',
-            triggerClassName,
+            triggerClassName
           )}>
           {!hideContent &&
             (selectedContent ?? <OrganizationItem org={currentOrg} className="flex-1" />)}
           <ChevronsUpDownIcon className="text-primary/60 size-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        className="popover-content-width-full min-w-[300px] p-0"
-        align="center">
+      <PopoverContent className="popover-content-width-full min-w-[300px] p-0" align="center">
         <Command>
           <CommandInput
             className="h-9 rounded-md border-none focus-visible:ring-0"
@@ -99,22 +91,22 @@ export const SelectOrganization = ({
               <CommandGroup className="max-h-[300px] overflow-y-auto">
                 {organizations.length > 0 &&
                   organizations.map((org: IOrganization) => {
-                    const isSelected = org.name === currentOrg?.name
+                    const isSelected = org.name === currentOrg?.name;
                     return (
                       <CommandItem
                         value={`${org.name}-${org.id}`}
                         key={org.id}
                         onSelect={() => {
-                          setOpen(false)
+                          setOpen(false);
                           if (!isSelected) {
-                            onSelect?.(org)
+                            onSelect?.(org);
                           }
                         }}
                         className="cursor-pointer justify-between">
                         <OrganizationItem org={org} />
                         {isSelected && <CheckIcon className="text-primary size-4" />}
                       </CommandItem>
-                    )
+                    );
                   })}
               </CommandGroup>
             )}
@@ -148,5 +140,5 @@ export const SelectOrganization = ({
         </Command>
       </PopoverContent>
     </Popover>
-  )
-}
+  );
+};

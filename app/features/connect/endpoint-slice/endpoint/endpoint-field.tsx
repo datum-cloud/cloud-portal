@@ -1,31 +1,26 @@
-import { Field } from '@/components/field/field'
-import { TagsInput } from '@/components/ui/tag-input'
-import { EndpointSliceEndpointSchema } from '@/resources/schemas/endpoint-slice.schema'
-import {
-  getCollectionProps,
-  getSelectProps,
-  useForm,
-  useInputControl,
-} from '@conform-to/react'
-import { useEffect } from 'react'
+import { Field } from '@/components/field/field';
+import { TagsInput } from '@/components/ui/tag-input';
+import { EndpointSliceEndpointSchema } from '@/resources/schemas/endpoint-slice.schema';
+import { getCollectionProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { useEffect } from 'react';
 
 export const EndpointField = ({
   fields,
   defaultValue,
 }: {
-  fields: ReturnType<typeof useForm<EndpointSliceEndpointSchema>>[1]
-  defaultValue?: EndpointSliceEndpointSchema
+  fields: ReturnType<typeof useForm<EndpointSliceEndpointSchema>>[1];
+  defaultValue?: EndpointSliceEndpointSchema;
 }) => {
-  const addressesControl = useInputControl(fields.addresses)
-  const conditionsControl = useInputControl(fields.conditions)
+  const addressesControl = useInputControl(fields.addresses);
+  const conditionsControl = useInputControl(fields.conditions);
 
   useEffect(() => {
     if (defaultValue) {
       if (defaultValue.conditions && !fields.conditions.value) {
-        conditionsControl.change(defaultValue?.conditions)
+        conditionsControl.change(defaultValue?.conditions);
       }
     }
-  }, [defaultValue, conditionsControl, fields.conditions.value])
+  }, [defaultValue, conditionsControl, fields.conditions.value]);
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
@@ -50,9 +45,8 @@ export const EndpointField = ({
             {getCollectionProps(fields.conditions, {
               type: 'checkbox',
               options: ['ready', 'reachable', 'terminating'],
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
             }).map((props: any) => {
-              const { key, ...rest } = props
+              const { key, ...rest } = props;
               return (
                 <div key={rest.id} className="flex items-center space-x-2">
                   <input
@@ -66,11 +60,11 @@ export const EndpointField = ({
                     {rest.value}
                   </label>
                 </div>
-              )
+              );
             })}
           </div>
         </Field>
       </div>
     </div>
-  )
-}
+  );
+};

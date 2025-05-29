@@ -1,58 +1,56 @@
-import { StatusBadge } from '@/components/status-badge/status-badge'
-import { Button } from '@/components/ui/button'
-import { routes } from '@/constants/routes'
+import { StatusBadge } from '@/components/status-badge/status-badge';
+import { Button } from '@/components/ui/button';
+import { routes } from '@/constants/routes';
 import {
   ArrowListItem,
   ExplorerCard,
   ExplorerList,
   SectionDescription,
   SectionTitle,
-} from '@/features/project/dashboard'
-import { useApp } from '@/providers/app.provider'
-import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface'
-import { transformControlPlaneStatus } from '@/utils/misc'
-import { getPathWithParams } from '@/utils/path'
-import { motion } from 'framer-motion'
-import { ArrowRight, Mail } from 'lucide-react'
-import { useEffect, useMemo, useRef } from 'react'
-import { Link, useRevalidator, useRouteLoaderData } from 'react-router'
+} from '@/features/project/dashboard';
+import { useApp } from '@/providers/app.provider';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
+import { transformControlPlaneStatus } from '@/utils/misc';
+import { getPathWithParams } from '@/utils/path';
+import { motion } from 'framer-motion';
+import { ArrowRight, Mail } from 'lucide-react';
+import { useEffect, useMemo, useRef } from 'react';
+import { Link, useRevalidator, useRouteLoaderData } from 'react-router';
 
 export default function ProjectDashboardPage() {
-  const project = useRouteLoaderData(
-    'routes/_private+/$orgId+/projects.$projectId+/_layout',
-  )
-  const { orgId } = useApp()
-  const intervalId = useRef<NodeJS.Timeout | null>(null)
+  const project = useRouteLoaderData('routes/_private+/$orgId+/projects.$projectId+/_layout');
+  const { orgId } = useApp();
+  const intervalId = useRef<NodeJS.Timeout | null>(null);
 
-  const { revalidate } = useRevalidator()
-  const REVALIDATE_INTERVAL = 5000
+  const { revalidate } = useRevalidator();
+  const REVALIDATE_INTERVAL = 5000;
 
   const status = useMemo(() => {
     if (project) {
-      return transformControlPlaneStatus(project.status)
+      return transformControlPlaneStatus(project.status);
     }
-  }, [project])
+  }, [project]);
 
   useEffect(() => {
     // Clear any existing interval first
     if (intervalId.current) {
-      clearInterval(intervalId.current)
-      intervalId.current = null
+      clearInterval(intervalId.current);
+      intervalId.current = null;
     }
 
     // Only start new interval if status is Pending
     if (status?.status === ControlPlaneStatus.Pending) {
-      intervalId.current = setInterval(revalidate, REVALIDATE_INTERVAL)
+      intervalId.current = setInterval(revalidate, REVALIDATE_INTERVAL);
     }
 
     // Cleanup on unmount or status change
     return () => {
       if (intervalId.current) {
-        clearInterval(intervalId.current)
-        intervalId.current = null
+        clearInterval(intervalId.current);
+        intervalId.current = null;
       }
-    }
-  }, [revalidate, status])
+    };
+  }, [revalidate, status]);
 
   return (
     <div className="mx-auto my-4 w-full max-w-7xl md:my-6">
@@ -95,8 +93,7 @@ export default function ProjectDashboardPage() {
                   transition={{ delay: 0.2 }}>
                   <SectionTitle>Welcome to your project</SectionTitle>
                   <SectionDescription>
-                    Your project is now ready! Start configuring and managing resources
-                    now.
+                    Your project is now ready! Start configuring and managing resources now.
                   </SectionDescription>
                 </motion.div>
 
@@ -105,9 +102,7 @@ export default function ProjectDashboardPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 }}>
-                  <SectionTitle>
-                    Get started by configuring your first location
-                  </SectionTitle>
+                  <SectionTitle>Get started by configuring your first location</SectionTitle>
                   <SectionDescription>
                     Setup a Datum managed Location backed by{' '}
                     <strong className="font-bold">Google Cloud Platform</strong>.
@@ -211,9 +206,7 @@ export default function ProjectDashboardPage() {
                         If the problem persists, please contact support.
                       </SectionDescription>
                       <Button variant="outline" size="sm" className="h-7 w-fit">
-                        <Link
-                          to="mailto:support@datum.net"
-                          className="flex items-center gap-2">
+                        <Link to="mailto:support@datum.net" className="flex items-center gap-2">
                           <Mail className="size-4" />
                           Contact Support
                         </Link>
@@ -227,5 +220,5 @@ export default function ProjectDashboardPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

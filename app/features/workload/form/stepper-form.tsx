@@ -1,26 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { NetworksForm, NetworkPreview } from './network/networks-form'
-import { PlacementsForm, PlacementsPreview } from './placement/placements-form'
-import { RuntimeForm, RuntimePreview } from './runtime/runtime-form'
-import { StoragesForm, StoragesPreview } from './storage/storages-form'
-import { MetadataForm } from '@/components/metadata/metadata-form'
-import { MetadataPreview } from '@/components/metadata/metadata-preview'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { BOOT_IMAGES } from '@/constants/bootImages'
-import { WorkloadHelper } from '@/features/workload/helper'
-import { useIsPending } from '@/hooks/useIsPending'
-import {
-  IWorkloadControlResponse,
-  RuntimeType,
-} from '@/resources/interfaces/workload.interface'
-import { MetadataSchema, metadataSchema } from '@/resources/schemas/metadata.schema'
+import { NetworksForm, NetworkPreview } from './network/networks-form';
+import { PlacementsForm, PlacementsPreview } from './placement/placements-form';
+import { RuntimeForm, RuntimePreview } from './runtime/runtime-form';
+import { StoragesForm, StoragesPreview } from './storage/storages-form';
+import { MetadataForm } from '@/components/metadata/metadata-form';
+import { MetadataPreview } from '@/components/metadata/metadata-preview';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BOOT_IMAGES } from '@/constants/bootImages';
+import { WorkloadHelper } from '@/features/workload/helper';
+import { useIsPending } from '@/hooks/useIsPending';
+import { IWorkloadControlResponse, RuntimeType } from '@/resources/interfaces/workload.interface';
+import { MetadataSchema, metadataSchema } from '@/resources/schemas/metadata.schema';
 import {
   NetworksSchema,
   networksSchema,
@@ -32,15 +22,15 @@ import {
   StoragesSchema,
   storagesSchema,
   UpdateWorkloadSchema,
-} from '@/resources/schemas/workload.schema'
-import { cn } from '@/utils/misc'
-import { getFormProps, useForm, FormProvider } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { defineStepper } from '@stepperize/react'
-import { Cpu, HardDrive, Layers, Loader2, Network, Server } from 'lucide-react'
-import React, { useEffect, useMemo } from 'react'
-import { Form, useNavigate, useSubmit } from 'react-router'
-import { useAuthenticityToken } from 'remix-utils/csrf/react'
+} from '@/resources/schemas/workload.schema';
+import { cn } from '@/utils/misc';
+import { getFormProps, useForm, FormProvider } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { defineStepper } from '@stepperize/react';
+import { Cpu, HardDrive, Layers, Loader2, Network, Server } from 'lucide-react';
+import React, { useEffect, useMemo } from 'react';
+import { Form, useNavigate, useSubmit } from 'react-router';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 const { useStepper } = defineStepper(
   {
@@ -49,20 +39,15 @@ const { useStepper } = defineStepper(
     description: 'Define essential information and labels for your workload resource.',
     icon: () => <Layers />,
     schema: metadataSchema,
-    preview: (values?: any) => (
-      <MetadataPreview values={values?.metadata as MetadataSchema} />
-    ),
+    preview: (values?: any) => <MetadataPreview values={values?.metadata as MetadataSchema} />,
   },
   {
     id: 'runtime',
     label: 'Runtime',
-    description:
-      'Configure instance type and choose between Container or VM runtime environments.',
+    description: 'Configure instance type and choose between Container or VM runtime environments.',
     icon: () => <Cpu />,
     schema: runtimeSchema,
-    preview: (values?: any) => (
-      <RuntimePreview values={values?.runtime as RuntimeSchema} />
-    ),
+    preview: (values?: any) => <RuntimePreview values={values?.runtime as RuntimeSchema} />,
   },
   {
     id: 'networks',
@@ -71,9 +56,7 @@ const { useStepper } = defineStepper(
       'Configure network interfaces for your workload instances, including network selection and IP family options.',
     icon: () => <Network />,
     schema: networksSchema,
-    preview: (values?: any) => (
-      <NetworkPreview values={values?.networks as NetworksSchema} />
-    ),
+    preview: (values?: any) => <NetworkPreview values={values?.networks as NetworksSchema} />,
   },
   {
     id: 'storages',
@@ -101,20 +84,20 @@ const { useStepper } = defineStepper(
     preview: (values?: any) => (
       <PlacementsPreview values={values?.placements as PlacementsSchema} />
     ),
-  },
-)
+  }
+);
 
 export const WorkloadStepper = ({
   projectId,
   defaultValue,
 }: {
-  projectId?: string
-  defaultValue?: IWorkloadControlResponse
+  projectId?: string;
+  defaultValue?: IWorkloadControlResponse;
 }) => {
-  const submit = useSubmit()
-  const navigate = useNavigate()
-  const isPending = useIsPending()
-  const csrf = useAuthenticityToken()
+  const submit = useSubmit();
+  const navigate = useNavigate();
+  const isPending = useIsPending();
+  const csrf = useAuthenticityToken();
 
   const initialValues = {
     runtime: {
@@ -127,9 +110,9 @@ export const WorkloadStepper = ({
     networks: [{ name: undefined, ipFamilies: [] }],
     storages: [],
     placements: [{ name: undefined, cityCode: undefined, minimumReplicas: 1 }],
-  }
+  };
 
-  const stepper = useStepper({ initialMetadata: initialValues })
+  const stepper = useStepper({ initialMetadata: initialValues });
 
   const [form, fields] = useForm({
     id: 'workload-form',
@@ -138,24 +121,24 @@ export const WorkloadStepper = ({
     shouldRevalidate: 'onBlur',
     defaultValue: initialValues,
     onValidate({ formData }) {
-      const parsed = parseWithZod(formData, { schema: stepper.current.schema })
+      const parsed = parseWithZod(formData, { schema: stepper.current.schema });
       if (parsed.status === 'success') {
-        stepper.setMetadata(stepper.current.id, parsed.value ?? {})
+        stepper.setMetadata(stepper.current.id, parsed.value ?? {});
       }
 
-      return parsed
+      return parsed;
     },
     onSubmit(event, { submission }) {
-      event.preventDefault()
-      event.stopPropagation()
-      const data = submission?.status === 'success' ? submission.value : {}
+      event.preventDefault();
+      event.stopPropagation();
+      const data = submission?.status === 'success' ? submission.value : {};
 
       if (stepper.isLast) {
         // Collect all metadata from all steps
         const allMetadata: any = stepper.all.reduce((acc, step) => {
-          const stepMetadata = stepper.getMetadata(step.id)
-          return { ...acc, ...(stepMetadata || {}) }
-        }, {})
+          const stepMetadata = stepper.getMetadata(step.id);
+          return { ...acc, ...(stepMetadata || {}) };
+        }, {});
 
         const formatted: NewWorkloadSchema = {
           metadata: {
@@ -173,24 +156,24 @@ export const WorkloadStepper = ({
           storages: allMetadata.storages,
           placements: allMetadata.placements,
           ...data,
-        }
+        };
 
         // When we reach the last step, submit the complete form data to the server
         // using the Remix form submission mechanism with FormData
 
         // Since we've already called preventDefault() at the top of the handler,
         // we need to manually trigger the form submission to Remix
-        const formElement = event.currentTarget as HTMLFormElement
+        const formElement = event.currentTarget as HTMLFormElement;
 
         const payload = {
           ...formatted,
           csrf: csrf as string,
-        }
+        };
 
         if (isEdit) {
           Object.assign(payload, {
             resourceVersion: defaultValue?.resourceVersion,
-          })
+          });
         }
 
         // Submit the form using the Remix submit function
@@ -200,43 +183,43 @@ export const WorkloadStepper = ({
           action: formElement.getAttribute('action') || undefined,
           encType: 'application/json',
           replace: true,
-        })
+        });
       } else {
-        stepper.next()
+        stepper.next();
       }
     },
-  })
+  });
 
   const isEdit = useMemo(() => {
-    return defaultValue?.uid !== undefined
-  }, [defaultValue])
+    return defaultValue?.uid !== undefined;
+  }, [defaultValue]);
 
   const handleBack = () => {
     if (stepper.isFirst) {
-      navigate(-1)
+      navigate(-1);
     } else {
-      stepper.prev()
+      stepper.prev();
     }
-  }
+  };
 
   useEffect(() => {
     // Process default values when they exist to populate the form
     if (defaultValue) {
-      const formValue = WorkloadHelper.mappingSpecToForm(defaultValue)
-      const { metadata, runtime, networks, storages, placements } = formValue
+      const formValue = WorkloadHelper.mappingSpecToForm(defaultValue);
+      const { metadata, runtime, networks, storages, placements } = formValue;
 
       // Update form with the mapped values
-      form.update({ value: formValue })
+      form.update({ value: formValue });
 
       // Update stepper metadata for each section
       // This allows each step to access its relevant data
-      stepper.setMetadata('metadata', metadata)
-      stepper.setMetadata('runtime', runtime)
-      stepper.setMetadata('networks', { networks })
-      stepper.setMetadata('storages', { storages })
-      stepper.setMetadata('placements', { placements })
+      stepper.setMetadata('metadata', metadata);
+      stepper.setMetadata('runtime', runtime);
+      stepper.setMetadata('networks', { networks });
+      stepper.setMetadata('storages', { storages });
+      stepper.setMetadata('placements', { placements });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   // Enable this code if you want to automatically add a empty storage volume when creating a container workload
   /*   useEffect(() => {
@@ -282,9 +265,7 @@ export const WorkloadStepper = ({
                     <li
                       className={cn(
                         'ms-7',
-                        index < array.length - 1 && stepper.current.id !== step.id
-                          ? 'mb-4'
-                          : '',
+                        index < array.length - 1 && stepper.current.id !== step.id ? 'mb-4' : ''
                       )}>
                       <span className="absolute -start-4 flex size-8 items-center justify-center rounded-full bg-gray-100 ring-4 ring-white dark:bg-gray-700 dark:ring-gray-900">
                         {React.cloneElement(step.icon(), {
@@ -292,12 +273,8 @@ export const WorkloadStepper = ({
                         })}
                       </span>
                       <div className="flex flex-col gap-1 pt-1.5">
-                        <p className="text-base leading-tight font-medium">
-                          {step.label}
-                        </p>
-                        <p className="text-muted-foreground text-sm">
-                          {step.description}
-                        </p>
+                        <p className="text-base leading-tight font-medium">{step.label}</p>
+                        <p className="text-muted-foreground text-sm">{step.description}</p>
                       </div>
                     </li>
                     {stepper.current.id === step.id && !isPending ? (
@@ -306,35 +283,25 @@ export const WorkloadStepper = ({
                           metadata: () => (
                             <MetadataForm
                               isEdit={isEdit}
-                              defaultValue={
-                                stepper.getMetadata('metadata') as MetadataSchema
-                              }
+                              defaultValue={stepper.getMetadata('metadata') as MetadataSchema}
                               fields={
-                                fields as unknown as ReturnType<
-                                  typeof useForm<MetadataSchema>
-                                >[1]
+                                fields as unknown as ReturnType<typeof useForm<MetadataSchema>>[1]
                               }
                             />
                           ),
                           runtime: () => (
                             <RuntimeForm
                               projectId={projectId}
-                              defaultValue={
-                                stepper.getMetadata('runtime') as RuntimeSchema
-                              }
+                              defaultValue={stepper.getMetadata('runtime') as RuntimeSchema}
                               fields={
-                                fields as unknown as ReturnType<
-                                  typeof useForm<RuntimeSchema>
-                                >[1]
+                                fields as unknown as ReturnType<typeof useForm<RuntimeSchema>>[1]
                               }
                             />
                           ),
                           networks: () => (
                             <NetworksForm
                               projectId={projectId}
-                              defaultValue={
-                                stepper.getMetadata('networks') as NetworksSchema
-                              }
+                              defaultValue={stepper.getMetadata('networks') as NetworksSchema}
                               fields={
                                 fields as unknown as ReturnType<
                                   typeof useForm<UpdateWorkloadSchema>
@@ -344,9 +311,7 @@ export const WorkloadStepper = ({
                           ),
                           storages: () => (
                             <StoragesForm
-                              defaultValue={
-                                stepper.getMetadata('storages') as StoragesSchema
-                              }
+                              defaultValue={stepper.getMetadata('storages') as StoragesSchema}
                               fields={
                                 fields as unknown as ReturnType<
                                   typeof useForm<UpdateWorkloadSchema>
@@ -362,12 +327,8 @@ export const WorkloadStepper = ({
                           placements: () => (
                             <PlacementsForm
                               projectId={projectId}
-                              fields={
-                                fields as ReturnType<typeof useForm<PlacementsSchema>>[1]
-                              }
-                              defaultValue={
-                                stepper.getMetadata('placements') as PlacementsSchema
-                              }
+                              fields={fields as ReturnType<typeof useForm<PlacementsSchema>>[1]}
+                              defaultValue={stepper.getMetadata('placements') as PlacementsSchema}
                             />
                           ),
                         })}
@@ -388,9 +349,7 @@ export const WorkloadStepper = ({
                         </div>
                       </div>
                     ) : (
-                      <div className="flex-1 px-7 pb-6">
-                        {step.preview(stepper.metadata)}
-                      </div>
+                      <div className="flex-1 px-7 pb-6">{step.preview(stepper.metadata)}</div>
                     )}
                   </React.Fragment>
                 ))}
@@ -400,5 +359,5 @@ export const WorkloadStepper = ({
         </Form>
       </FormProvider>
     </Card>
-  )
-}
+  );
+};

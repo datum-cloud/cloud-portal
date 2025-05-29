@@ -1,6 +1,6 @@
-import { KeysForm } from './keys/keys-form'
-import { SecretMetadataForm } from './metadata-form'
-import { Button } from '@/components/ui/button'
+import { KeysForm } from './keys/keys-form';
+import { SecretMetadataForm } from './metadata-form';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -8,27 +8,23 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { useIsPending } from '@/hooks/useIsPending'
-import { ISecretControlResponse } from '@/resources/interfaces/secret.interface'
+} from '@/components/ui/card';
+import { useIsPending } from '@/hooks/useIsPending';
+import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import {
   SecretBaseSchema,
   SecretVariablesSchema,
   secretNewSchema,
-} from '@/resources/schemas/secret.schema'
-import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useMemo } from 'react'
-import { useNavigate, Form } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+} from '@/resources/schemas/secret.schema';
+import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { useMemo } from 'react';
+import { useNavigate, Form } from 'react-router';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 
-export const SecretForm = ({
-  defaultValue,
-}: {
-  defaultValue?: ISecretControlResponse
-}) => {
-  const navigate = useNavigate()
-  const isPending = useIsPending()
+export const SecretForm = ({ defaultValue }: { defaultValue?: ISecretControlResponse }) => {
+  const navigate = useNavigate();
+  const isPending = useIsPending();
 
   const [form, fields] = useForm({
     id: 'secret-form',
@@ -36,13 +32,13 @@ export const SecretForm = ({
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: secretNewSchema })
+      return parseWithZod(formData, { schema: secretNewSchema });
     },
-  })
+  });
 
   const isEdit = useMemo(() => {
-    return defaultValue?.uid !== undefined
-  }, [defaultValue])
+    return defaultValue?.uid !== undefined;
+  }, [defaultValue]);
 
   return (
     <Card className="relative">
@@ -64,17 +60,13 @@ export const SecretForm = ({
           <AuthenticityTokenInput />
           <CardContent className="space-y-4">
             <SecretMetadataForm
-              fields={
-                fields as unknown as ReturnType<typeof useForm<SecretBaseSchema>>[1]
-              }
+              fields={fields as unknown as ReturnType<typeof useForm<SecretBaseSchema>>[1]}
               defaultValue={defaultValue as SecretBaseSchema}
               isEdit={isEdit}
             />
             <KeysForm
               form={form as FormMetadata<SecretVariablesSchema>}
-              fields={
-                fields as unknown as ReturnType<typeof useForm<SecretVariablesSchema>>[1]
-              }
+              fields={fields as unknown as ReturnType<typeof useForm<SecretVariablesSchema>>[1]}
             />
           </CardContent>
 
@@ -84,22 +76,16 @@ export const SecretForm = ({
               variant="link"
               disabled={isPending}
               onClick={() => {
-                navigate(-1)
+                navigate(-1);
               }}>
               Return to List
             </Button>
-            <Button
-              variant="default"
-              type="submit"
-              disabled={isPending}
-              isLoading={isPending}>
-              {isPending
-                ? `${isEdit ? 'Saving' : 'Creating'}`
-                : `${isEdit ? 'Save' : 'Create'}`}
+            <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+              {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
             </Button>
           </CardFooter>
         </Form>
       </FormProvider>
     </Card>
-  )
-}
+  );
+};

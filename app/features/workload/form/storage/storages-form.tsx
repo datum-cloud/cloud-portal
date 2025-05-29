@@ -1,20 +1,20 @@
-import { BootField } from './boot-field'
-import { StorageField } from './storage-field'
-import { List, ListItem } from '@/components/list/list'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { STORAGE_TYPES } from '@/constants/options'
-import { StorageType } from '@/resources/interfaces/workload.interface'
+import { BootField } from './boot-field';
+import { StorageField } from './storage-field';
+import { List, ListItem } from '@/components/list/list';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { STORAGE_TYPES } from '@/constants/options';
+import { StorageType } from '@/resources/interfaces/workload.interface';
 import {
   StorageFieldSchema,
   StoragesSchema,
   UpdateWorkloadSchema,
-} from '@/resources/schemas/workload.schema'
-import { cn } from '@/utils/misc'
-import { useForm, useFormMetadata } from '@conform-to/react'
-import { PlusIcon, TrashIcon } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+} from '@/resources/schemas/workload.schema';
+import { cn } from '@/utils/misc';
+import { useForm, useFormMetadata } from '@conform-to/react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 
 export const StoragesForm = ({
   fields,
@@ -22,34 +22,34 @@ export const StoragesForm = ({
   isEdit = false,
   vmBootImage,
 }: {
-  fields: ReturnType<typeof useForm<UpdateWorkloadSchema>>[1]
-  defaultValue?: StoragesSchema
-  isEdit?: boolean
-  vmBootImage?: string
+  fields: ReturnType<typeof useForm<UpdateWorkloadSchema>>[1];
+  defaultValue?: StoragesSchema;
+  isEdit?: boolean;
+  vmBootImage?: string;
 }) => {
-  const form = useFormMetadata('workload-form')
-  const storages = fields.storages.getFieldList()
-  const virtualMachineFieldSet = fields.virtualMachine.getFieldset()
+  const form = useFormMetadata('workload-form');
+  const storages = fields.storages.getFieldList();
+  const virtualMachineFieldSet = fields.virtualMachine.getFieldset();
 
   const values = useMemo(() => {
     return defaultValue?.storages
       ? defaultValue.storages
-      : ((defaultValue ?? []) as StorageFieldSchema[])
-  }, [defaultValue])
+      : ((defaultValue ?? []) as StorageFieldSchema[]);
+  }, [defaultValue]);
 
   const bootImage = useMemo(() => {
     if (vmBootImage) {
-      return vmBootImage
+      return vmBootImage;
     }
-    return virtualMachineFieldSet.bootImage?.value
-  }, [virtualMachineFieldSet.bootImage?.value, vmBootImage])
+    return virtualMachineFieldSet.bootImage?.value;
+  }, [virtualMachineFieldSet.bootImage?.value, vmBootImage]);
 
   useEffect(() => {
     form.update({
       name: fields.storages.name,
       value: values as StorageFieldSchema[],
-    })
-  }, [values])
+    });
+  }, [values]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -60,7 +60,7 @@ export const StoragesForm = ({
           </div>
         )}
         {storages.map((storage, index) => {
-          const storageFields = storage.getFieldset()
+          const storageFields = storage.getFieldset();
           return (
             <div
               className="relative flex items-center gap-2 rounded-md border p-4"
@@ -68,9 +68,7 @@ export const StoragesForm = ({
               <StorageField
                 isEdit={isEdit}
                 fields={
-                  storageFields as unknown as ReturnType<
-                    typeof useForm<StorageFieldSchema>
-                  >[1]
+                  storageFields as unknown as ReturnType<typeof useForm<StorageFieldSchema>>[1]
                 }
                 defaultValue={values?.[index] as StorageFieldSchema}
               />
@@ -85,14 +83,14 @@ export const StoragesForm = ({
                     (storageFields.name.errors ?? []).length > 0 ||
                       (storageFields.type.errors ?? []).length > 0
                       ? 'top-2'
-                      : 'top-2',
+                      : 'top-2'
                   )}
                   onClick={() => form.remove({ name: fields.storages.name, index })}>
                   <TrashIcon className="size-4" />
                 </Button>
               )}
             </div>
-          )
+          );
         })}
       </div>
       <Button
@@ -110,29 +108,29 @@ export const StoragesForm = ({
         Add Storage
       </Button>
     </div>
-  )
-}
+  );
+};
 
 export const StoragesPreview = ({
   values,
   vmBootImage,
 }: {
-  values: StoragesSchema
-  vmBootImage?: string
+  values: StoragesSchema;
+  vmBootImage?: string;
 }) => {
   const bootValues = useMemo(() => {
     if (vmBootImage) {
       return {
         name: 'boot',
         bootImage: vmBootImage,
-      }
+      };
     }
 
-    return undefined
-  }, [vmBootImage])
+    return undefined;
+  }, [vmBootImage]);
 
   const listItems: ListItem[] = useMemo(() => {
-    let bootDetail = {}
+    let bootDetail = {};
     if (bootValues) {
       bootDetail = {
         label: bootValues.name,
@@ -141,7 +139,7 @@ export const StoragesPreview = ({
             <span>{bootValues.bootImage}</span>
           </div>
         ),
-      }
+      };
     }
 
     const storages = (values.storages ?? [])
@@ -157,10 +155,10 @@ export const StoragesPreview = ({
             </Badge>
           </div>
         ),
-      }))
+      }));
 
-    return [bootDetail, ...storages]
-  }, [values, bootValues])
+    return [bootDetail, ...storages];
+  }, [values, bootValues]);
 
-  return <List items={listItems} itemClassName="!border-b-0 !px-0 py-1.5" />
-}
+  return <List items={listItems} itemClassName="!border-b-0 !px-0 py-1.5" />;
+};

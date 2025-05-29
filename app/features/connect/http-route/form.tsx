@@ -1,7 +1,7 @@
-import { RulesForm } from './rule/rules-form'
-import { Field } from '@/components/field/field'
-import { MetadataForm } from '@/components/metadata/metadata-form'
-import { Button } from '@/components/ui/button'
+import { RulesForm } from './rule/rules-form';
+import { Field } from '@/components/field/field';
+import { MetadataForm } from '@/components/metadata/metadata-form';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -9,20 +9,20 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { SelectGateways } from '@/features/connect/http-route/select-gateways'
-import { useIsPending } from '@/hooks/useIsPending'
-import { useApp } from '@/providers/app.provider'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { IHttpRouteControlResponse } from '@/resources/interfaces/http-route.interface'
+} from '@/components/ui/card';
+import { SelectGateways } from '@/features/connect/http-route/select-gateways';
+import { useIsPending } from '@/hooks/useIsPending';
+import { useApp } from '@/providers/app.provider';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { IHttpRouteControlResponse } from '@/resources/interfaces/http-route.interface';
 import {
   HttpRouteRuleSchema,
   HttpRouteSchema,
   httpRouteSchema,
-} from '@/resources/schemas/http-route.schema'
-import { MetadataSchema } from '@/resources/schemas/metadata.schema'
-import { ROUTE_PATH as HTTP_ROUTES_ACTIONS_PATH } from '@/routes/api+/connect+/http-routes+/actions'
-import { convertObjectToLabels } from '@/utils/misc'
+} from '@/resources/schemas/http-route.schema';
+import { MetadataSchema } from '@/resources/schemas/metadata.schema';
+import { ROUTE_PATH as HTTP_ROUTES_ACTIONS_PATH } from '@/routes/api+/connect+/http-routes+/actions';
+import { convertObjectToLabels } from '@/utils/misc';
 import {
   FieldMetadata,
   FormProvider,
@@ -30,43 +30,43 @@ import {
   getSelectProps,
   useForm,
   useInputControl,
-} from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect, useMemo, useState } from 'react'
-import { Form, useNavigate, useSubmit } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+} from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { useEffect, useMemo, useState } from 'react';
+import { Form, useNavigate, useSubmit } from 'react-router';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 
 export const HttpRouteForm = ({
   projectId,
   defaultValue,
 }: {
-  projectId?: string
-  defaultValue?: IHttpRouteControlResponse
+  projectId?: string;
+  defaultValue?: IHttpRouteControlResponse;
 }) => {
-  const navigate = useNavigate()
-  const isPending = useIsPending()
-  const submit = useSubmit()
-  const { orgId } = useApp()
-  const { confirm } = useConfirmationDialog()
+  const navigate = useNavigate();
+  const isPending = useIsPending();
+  const submit = useSubmit();
+  const { orgId } = useApp();
+  const { confirm } = useConfirmationDialog();
 
-  const [formattedValues, setFormattedValues] = useState<HttpRouteSchema>()
+  const [formattedValues, setFormattedValues] = useState<HttpRouteSchema>();
   const [form, fields] = useForm({
     id: 'http-route-form',
     constraint: getZodConstraint(httpRouteSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: httpRouteSchema })
+      return parseWithZod(formData, { schema: httpRouteSchema });
     },
-  })
+  });
 
   const parentRefsControl = useInputControl(
-    fields.parentRefs as unknown as FieldMetadata<string[]>,
-  )
+    fields.parentRefs as unknown as FieldMetadata<string[]>
+  );
 
   const isEdit = useMemo(() => {
-    return defaultValue?.uid !== undefined
-  }, [defaultValue])
+    return defaultValue?.uid !== undefined;
+  }, [defaultValue]);
 
   const deleteHttpRoute = async () => {
     await confirm({
@@ -96,29 +96,29 @@ export const HttpRouteForm = ({
             fetcherKey: 'http-routes-resources',
             navigate: false,
             action: HTTP_ROUTES_ACTIONS_PATH,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   useEffect(() => {
     if (defaultValue && defaultValue.name) {
-      const { name, labels, annotations, parentRefs, ...rest } = defaultValue
+      const { name, labels, annotations, parentRefs, ...rest } = defaultValue;
       const metadata = {
         name,
         labels: convertObjectToLabels(labels ?? {}),
         annotations: convertObjectToLabels(annotations ?? {}),
-      }
+      };
 
       setFormattedValues({
         ...metadata,
         parentRefs: parentRefs ?? [],
         rules: (rest.rules ?? []) as HttpRouteRuleSchema[],
         resourceVersion: defaultValue.resourceVersion,
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <Card className="relative">
@@ -140,11 +140,7 @@ export const HttpRouteForm = ({
           <AuthenticityTokenInput />
 
           {isEdit && (
-            <input
-              type="hidden"
-              name="resourceVersion"
-              value={defaultValue?.resourceVersion}
-            />
+            <input type="hidden" name="resourceVersion" value={defaultValue?.resourceVersion} />
           )}
 
           <CardContent className="space-y-4">
@@ -187,23 +183,17 @@ export const HttpRouteForm = ({
                 variant="link"
                 disabled={isPending}
                 onClick={() => {
-                  navigate(-1)
+                  navigate(-1);
                 }}>
                 Return to List
               </Button>
-              <Button
-                variant="default"
-                type="submit"
-                disabled={isPending}
-                isLoading={isPending}>
-                {isPending
-                  ? `${isEdit ? 'Saving' : 'Creating'}`
-                  : `${isEdit ? 'Save' : 'Create'}`}
+              <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+                {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
               </Button>
             </div>
           </CardFooter>
         </Form>
       </FormProvider>
     </Card>
-  )
-}
+  );
+};

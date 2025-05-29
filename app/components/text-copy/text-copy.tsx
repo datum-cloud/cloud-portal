@@ -1,10 +1,10 @@
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
-import { cn } from '@/utils/misc'
-import { CopyIcon } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { cn } from '@/utils/misc';
+import { CopyIcon } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export const TextCopy = ({
   value,
@@ -12,26 +12,25 @@ export const TextCopy = ({
   className,
   buttonClassName,
 }: {
-  value: string
-  text?: string
-  className?: string
-  buttonClassName?: string
+  value: string;
+  text?: string;
+  className?: string;
+  buttonClassName?: string;
 }) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, copy] = useCopyToClipboard()
-  const [copied, setCopied] = useState(false)
+  const [_, copy] = useCopyToClipboard();
+  const [copied, setCopied] = useState(false);
 
   const copyToClipboard = () => {
-    if (!value) return
+    if (!value) return;
 
     copy(value).then(() => {
-      toast.success('Copied to clipboard')
-      setCopied(true)
+      toast.success('Copied to clipboard');
+      setCopied(true);
       setTimeout(() => {
-        setCopied(false)
-      }, 2000)
-    })
-  }
+        setCopied(false);
+      }, 2000);
+    });
+  };
 
   return (
     <div className="flex items-center gap-1.5">
@@ -44,12 +43,12 @@ export const TextCopy = ({
             size="icon"
             className={cn(
               'size-3 focus-visible:ring-0 focus-visible:ring-offset-0',
-              buttonClassName,
+              buttonClassName
             )}
             onClick={(event) => {
-              event.preventDefault()
-              event.stopPropagation()
-              copyToClipboard()
+              event.preventDefault();
+              event.stopPropagation();
+              copyToClipboard();
             }}>
             <CopyIcon className="size-3" />
           </Button>
@@ -57,5 +56,5 @@ export const TextCopy = ({
         <TooltipContent>{copied ? 'Copied!' : 'Copy'}</TooltipContent>
       </Tooltip>
     </div>
-  )
-}
+  );
+};

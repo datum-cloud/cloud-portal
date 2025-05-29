@@ -5,19 +5,19 @@ import {
   listNetworkingDatumapisComV1AlphaNamespacedNetwork,
   readNetworkingDatumapisComV1AlphaNamespacedNetwork,
   replaceNetworkingDatumapisComV1AlphaNamespacedNetwork,
-} from '@/modules/control-plane/networking'
-import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
-import { NewNetworkSchema, UpdateNetworkSchema } from '@/resources/schemas/network.schema'
-import { CustomError } from '@/utils/errorHandle'
-import { Client } from '@hey-api/client-axios'
+} from '@/modules/control-plane/networking';
+import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
+import { NewNetworkSchema, UpdateNetworkSchema } from '@/resources/schemas/network.schema';
+import { CustomError } from '@/utils/errorHandle';
+import { Client } from '@hey-api/client-axios';
 
 export const createNetworksControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL
+  const baseUrl = client.instance.defaults.baseURL;
 
   const transformNetwork = (
-    network: ComDatumapisNetworkingV1AlphaNetwork,
+    network: ComDatumapisNetworkingV1AlphaNetwork
   ): INetworkControlResponse => {
-    const { metadata, spec } = network
+    const { metadata, spec } = network;
 
     return {
       name: metadata?.name,
@@ -29,8 +29,8 @@ export const createNetworksControl = (client: Client) => {
       mtu: spec?.mtu ?? 1460, // TODO: this is a default value, we should get it from the network
       namespace: metadata?.namespace ?? 'default',
       ipam: spec?.ipam ?? {},
-    }
-  }
+    };
+  };
 
   return {
     list: async (projectId: string) => {
@@ -40,22 +40,22 @@ export const createNetworksControl = (client: Client) => {
         path: {
           namespace: 'default',
         },
-      })
+      });
 
-      return response.data?.items?.map(transformNetwork) ?? []
+      return response.data?.items?.map(transformNetwork) ?? [];
     },
     detail: async (projectId: string, networkId: string) => {
       const response = await readNetworkingDatumapisComV1AlphaNamespacedNetwork({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: networkId },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError(`Network ${networkId} not found`, 404)
+        throw new CustomError(`Network ${networkId} not found`, 404);
       }
 
-      return transformNetwork(response.data)
+      return transformNetwork(response.data);
     },
     create: async (projectId: string, payload: NewNetworkSchema, dryRun: boolean) => {
       const response = await createNetworkingDatumapisComV1AlphaNamespacedNetwork({
@@ -82,19 +82,19 @@ export const createNetworksControl = (client: Client) => {
             mtu: payload.mtu,
           },
         },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError('Failed to create location', 500)
+        throw new CustomError('Failed to create location', 500);
       }
 
-      return dryRun ? response.data : transformNetwork(response.data)
+      return dryRun ? response.data : transformNetwork(response.data);
     },
     update: async (
       projectId: string,
       networkId: string,
       payload: UpdateNetworkSchema,
-      dryRun: boolean,
+      dryRun: boolean
     ) => {
       const response = await replaceNetworkingDatumapisComV1AlphaNamespacedNetwork({
         client,
@@ -121,28 +121,28 @@ export const createNetworksControl = (client: Client) => {
             mtu: payload.mtu,
           },
         },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError('Failed to update network', 500)
+        throw new CustomError('Failed to update network', 500);
       }
 
-      return dryRun ? response.data : transformNetwork(response.data)
+      return dryRun ? response.data : transformNetwork(response.data);
     },
     delete: async (projectId: string, networkId: string) => {
       const response = await deleteNetworkingDatumapisComV1AlphaNamespacedNetwork({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: networkId },
-      })
+      });
 
       if (!response.data) {
-        throw new CustomError('Failed to delete network', 500)
+        throw new CustomError('Failed to delete network', 500);
       }
 
-      return response.data
+      return response.data;
     },
-  }
-}
+  };
+};
 
-export type NetworksControl = ReturnType<typeof createNetworksControl>
+export type NetworksControl = ReturnType<typeof createNetworksControl>;

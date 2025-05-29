@@ -1,19 +1,16 @@
-import { PlacementField } from './placement-field'
-import { List, ListItem } from '@/components/list/list'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
-import { ILocationControlResponse } from '@/resources/interfaces/location.interface'
-import {
-  PlacementFieldSchema,
-  PlacementsSchema,
-} from '@/resources/schemas/workload.schema'
-import { ROUTE_PATH as LOCATION_LIST_ROUTE_PATH } from '@/routes/api+/locations/_index'
-import { cn } from '@/utils/misc'
-import { useForm, useFormMetadata } from '@conform-to/react'
-import { PlusIcon, TrashIcon } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
-import { useFetcher } from 'react-router'
+import { PlacementField } from './placement-field';
+import { List, ListItem } from '@/components/list/list';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { ILocationControlResponse } from '@/resources/interfaces/location.interface';
+import { PlacementFieldSchema, PlacementsSchema } from '@/resources/schemas/workload.schema';
+import { ROUTE_PATH as LOCATION_LIST_ROUTE_PATH } from '@/routes/api+/locations/_index';
+import { cn } from '@/utils/misc';
+import { useForm, useFormMetadata } from '@conform-to/react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useFetcher } from 'react-router';
 
 export const PlacementsForm = ({
   fields,
@@ -21,51 +18,51 @@ export const PlacementsForm = ({
   isEdit = false,
   projectId,
 }: {
-  fields: ReturnType<typeof useForm<PlacementsSchema>>[1]
-  defaultValue?: PlacementsSchema
-  isEdit?: boolean
-  projectId?: string
+  fields: ReturnType<typeof useForm<PlacementsSchema>>[1];
+  defaultValue?: PlacementsSchema;
+  isEdit?: boolean;
+  projectId?: string;
 }) => {
-  const fetcher = useFetcher({ key: 'location-resources' })
-  const form = useFormMetadata('workload-form')
-  const placements = fields.placements.getFieldList()
-  const [availableLocations, setAvailableLocations] = useState<string[]>([])
+  const fetcher = useFetcher({ key: 'location-resources' });
+  const form = useFormMetadata('workload-form');
+  const placements = fields.placements.getFieldList();
+  const [availableLocations, setAvailableLocations] = useState<string[]>([]);
 
   const values = useMemo(() => {
     return defaultValue?.placements
       ? defaultValue.placements
-      : ((defaultValue ?? []) as PlacementFieldSchema[])
-  }, [defaultValue])
+      : ((defaultValue ?? []) as PlacementFieldSchema[]);
+  }, [defaultValue]);
 
   useEffect(() => {
     if (values) {
       form.update({
         name: fields.placements.name,
         value: values as PlacementFieldSchema[],
-      })
+      });
     }
-  }, [values])
+  }, [values]);
 
   useEffect(() => {
     if (projectId) {
-      fetcher.load(`${LOCATION_LIST_ROUTE_PATH}?projectId=${projectId}`)
+      fetcher.load(`${LOCATION_LIST_ROUTE_PATH}?projectId=${projectId}`);
     }
-  }, [projectId])
+  }, [projectId]);
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
       const cities = ((fetcher.data ?? []) as ILocationControlResponse[]).map(
-        (location) => location.cityCode,
-      )
-      setAvailableLocations(cities as string[])
+        (location) => location.cityCode
+      );
+      setAvailableLocations(cities as string[]);
     }
-  }, [fetcher.data, fetcher.state])
+  }, [fetcher.data, fetcher.state]);
 
   return (
     <div className="flex flex-col gap-2">
       <div className="space-y-4">
         {placements.map((placement, index) => {
-          const placementFields = placement.getFieldset()
+          const placementFields = placement.getFieldset();
           return (
             <div
               className="relative flex items-center gap-2 rounded-md border p-4"
@@ -74,9 +71,7 @@ export const PlacementsForm = ({
                 availableLocations={availableLocations}
                 isEdit={isEdit}
                 fields={
-                  placementFields as unknown as ReturnType<
-                    typeof useForm<PlacementFieldSchema>
-                  >[1]
+                  placementFields as unknown as ReturnType<typeof useForm<PlacementFieldSchema>>[1]
                 }
                 defaultValue={values?.[index] as PlacementFieldSchema}
               />
@@ -88,14 +83,14 @@ export const PlacementsForm = ({
                   size="sm"
                   className={cn(
                     'text-destructive relative w-fit',
-                    (placementFields.name.errors ?? []).length > 0 ? 'top-2' : 'top-5.5',
+                    (placementFields.name.errors ?? []).length > 0 ? 'top-2' : 'top-5.5'
                   )}
                   onClick={() => form.remove({ name: fields.placements.name, index })}>
                   <TrashIcon className="size-4" />
                 </Button>
               )}
             </div>
-          )
+          );
         })}
       </div>
       <Button
@@ -113,8 +108,8 @@ export const PlacementsForm = ({
         Add Placement
       </Button>
     </div>
-  )
-}
+  );
+};
 
 export const PlacementsPreview = ({ values }: { values: PlacementsSchema }) => {
   const listItems: ListItem[] = useMemo(() => {
@@ -128,11 +123,11 @@ export const PlacementsPreview = ({ values }: { values: PlacementsSchema }) => {
             <Badge variant="outline">Min Replicas: {placement.minimumReplicas}</Badge>
           </div>
         ),
-      }))
+      }));
     }
 
-    return []
-  }, [values])
+    return [];
+  }, [values]);
 
-  return <List items={listItems} itemClassName="!border-b-0 !px-0 py-1.5" />
-}
+  return <List items={listItems} itemClassName="!border-b-0 !px-0 py-1.5" />;
+};

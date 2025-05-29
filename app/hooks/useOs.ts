@@ -1,54 +1,52 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
-export type OS = 'undetermined' | 'macos' | 'ios' | 'windows' | 'android' | 'linux'
+export type OS = 'undetermined' | 'macos' | 'ios' | 'windows' | 'android' | 'linux';
 
 function getOS(): OS {
   if (typeof window === 'undefined') {
-    return 'undetermined'
+    return 'undetermined';
   }
 
-  const { userAgent } = window.navigator
-  const macosPlatforms = /(Macintosh)|(MacIntel)|(MacPPC)|(Mac68K)/i
-  const windowsPlatforms = /(Win32)|(Win64)|(Windows)|(WinCE)/i
-  const iosPlatforms = /(iPhone)|(iPad)|(iPod)/i
+  const { userAgent } = window.navigator;
+  const macosPlatforms = /(Macintosh)|(MacIntel)|(MacPPC)|(Mac68K)/i;
+  const windowsPlatforms = /(Win32)|(Win64)|(Windows)|(WinCE)/i;
+  const iosPlatforms = /(iPhone)|(iPad)|(iPod)/i;
 
   if (macosPlatforms.test(userAgent)) {
-    return 'macos'
+    return 'macos';
   }
 
   if (iosPlatforms.test(userAgent)) {
-    return 'ios'
+    return 'ios';
   }
 
   if (windowsPlatforms.test(userAgent)) {
-    return 'windows'
+    return 'windows';
   }
 
   if (/Android/i.test(userAgent)) {
-    return 'android'
+    return 'android';
   }
 
   if (/Linux/i.test(userAgent)) {
-    return 'linux'
+    return 'linux';
   }
 
-  return 'undetermined'
+  return 'undetermined';
 }
 
 interface UseOsOptions {
-  getValueInEffect: boolean
+  getValueInEffect: boolean;
 }
 
 export function useOs(options: UseOsOptions = { getValueInEffect: true }): OS {
-  const [value, setValue] = useState<OS>(
-    options.getValueInEffect ? 'undetermined' : getOS(),
-  )
+  const [value, setValue] = useState<OS>(options.getValueInEffect ? 'undetermined' : getOS());
 
   useEffect(() => {
     if (options.getValueInEffect) {
-      setValue(getOS)
+      setValue(getOS);
     }
-  }, [])
+  }, []);
 
-  return value
+  return value;
 }

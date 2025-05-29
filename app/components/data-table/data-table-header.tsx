@@ -1,14 +1,14 @@
-import { TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { cn } from '@/utils/misc'
-import { Table as TTable, flexRender } from '@tanstack/react-table'
-import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react'
+import { TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from '@/utils/misc';
+import { Table as TTable, flexRender } from '@tanstack/react-table';
+import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
 
 export const DataTableHeader = <TData,>({
   table,
   hasRowActions = false,
 }: {
-  table: TTable<TData>
-  hasRowActions?: boolean
+  table: TTable<TData>;
+  hasRowActions?: boolean;
 }) => {
   return (
     <TableHeader>
@@ -23,17 +23,14 @@ export const DataTableHeader = <TData,>({
                   <div
                     className={cn(
                       header.column.getCanSort() &&
-                        'flex h-full cursor-pointer items-center gap-2 select-none',
+                        'flex h-full cursor-pointer items-center gap-2 select-none'
                     )}
                     onClick={header.column.getToggleSortingHandler()}
                     onKeyDown={(e) => {
                       // Enhanced keyboard handling for sorting
-                      if (
-                        header.column.getCanSort() &&
-                        (e.key === 'Enter' || e.key === ' ')
-                      ) {
-                        e.preventDefault()
-                        header.column.getToggleSortingHandler()?.(e)
+                      if (header.column.getCanSort() && (e.key === 'Enter' || e.key === ' ')) {
+                        e.preventDefault();
+                        header.column.getToggleSortingHandler()?.(e);
                       }
                     }}
                     tabIndex={header.column.getCanSort() ? 0 : undefined}>
@@ -70,11 +67,11 @@ export const DataTableHeader = <TData,>({
                   flexRender(header.column.columnDef.header, header.getContext())
                 )}
               </TableHead>
-            )
+            );
           })}
           {hasRowActions && <TableHead className="h-10 w-[50px]" />}
         </TableRow>
       ))}
     </TableHeader>
-  )
-}
+  );
+};

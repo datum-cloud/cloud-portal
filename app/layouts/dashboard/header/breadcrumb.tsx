@@ -5,17 +5,17 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   Breadcrumb as BreadcrumbUI,
-} from '@/components/ui/breadcrumb'
-import { UIMatch, useLocation } from 'react-router'
-import { Fragment } from 'react/jsx-runtime'
+} from '@/components/ui/breadcrumb';
+import { UIMatch, useLocation } from 'react-router';
+import { Fragment } from 'react/jsx-runtime';
 
 export type BreadcrumbMatch = UIMatch<
   Record<string, unknown>,
   { breadcrumb: (data?: unknown) => React.ReactNode }
->
+>;
 
 export const Breadcrumb = ({ items }: { items: BreadcrumbMatch[] }) => {
-  const location = useLocation()
+  const location = useLocation();
 
   return (
     <BreadcrumbUI>
@@ -38,5 +38,5 @@ export const Breadcrumb = ({ items }: { items: BreadcrumbMatch[] }) => {
         ))}
       </BreadcrumbList>
     </BreadcrumbUI>
-  )
-}
+  );
+};

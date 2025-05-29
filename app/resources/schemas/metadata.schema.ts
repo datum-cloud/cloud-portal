@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const nameSchema = z.object({
   name: z
@@ -9,7 +9,7 @@ export const nameSchema = z.object({
       message:
         'Name must use lowercase letters, numbers, and hyphens only. Must start and end with a letter or number.',
     }),
-})
+});
 
 export const labelFormSchema = z.object({
   key: z
@@ -17,12 +17,10 @@ export const labelFormSchema = z.object({
     .min(1, { message: 'Key is required' })
     .regex(
       /^[a-zA-Z0-9_.-]+$/,
-      'Key must contain only letters, numbers, underscores, dots, or hyphens',
+      'Key must contain only letters, numbers, underscores, dots, or hyphens'
     ),
-  value: z
-    .string({ required_error: 'Value is required' })
-    .min(1, { message: 'Value is required' }),
-})
+  value: z.string({ required_error: 'Value is required' }).min(1, { message: 'Value is required' }),
+});
 
 export const annotationFormSchema = z.object({
   key: z
@@ -30,24 +28,22 @@ export const annotationFormSchema = z.object({
     .min(1, { message: 'Key is required' })
     .regex(
       /^([a-z0-9A-Z][-a-z0-9A-Z_.]*)?[a-z0-9A-Z]\/([a-z0-9A-Z][-a-z0-9A-Z_.]*)?[a-z0-9A-Z]$|^([a-z0-9A-Z][-a-z0-9A-Z_.]*)?[a-z0-9A-Z]$/,
-      'Key must be a valid Kubernetes annotation key (e.g., example.com/key or simple-key)',
+      'Key must be a valid Kubernetes annotation key (e.g., example.com/key or simple-key)'
     ),
-  value: z
-    .string({ required_error: 'Value is required' })
-    .min(1, { message: 'Value is required' }),
-})
+  value: z.string({ required_error: 'Value is required' }).min(1, { message: 'Value is required' }),
+});
 
 export const metadataSchema = z
   .object({
     labels: z.array(z.string()).optional(),
     annotations: z.array(z.string()).optional(),
   })
-  .and(nameSchema)
+  .and(nameSchema);
 
 // Generic Schemas
-export type NameSchema = z.infer<typeof nameSchema>
-export type MetadataSchema = z.infer<typeof metadataSchema>
+export type NameSchema = z.infer<typeof nameSchema>;
+export type MetadataSchema = z.infer<typeof metadataSchema>;
 
 // Form Schemas
-export type AnnotationFormSchema = z.infer<typeof annotationFormSchema>
-export type LabelFormSchema = z.infer<typeof labelFormSchema>
+export type AnnotationFormSchema = z.infer<typeof annotationFormSchema>;
+export type LabelFormSchema = z.infer<typeof labelFormSchema>;

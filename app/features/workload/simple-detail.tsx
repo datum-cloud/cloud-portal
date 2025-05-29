@@ -1,17 +1,17 @@
-import { WorkloadStatus } from './status'
-import { DateFormat } from '@/components/date-format/date-format'
-import { Field } from '@/components/field/field'
-import { TextCopy } from '@/components/text-copy/text-copy'
-import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
-import { getShortId, transformControlPlaneStatus } from '@/utils/misc'
-import { formatDistanceToNow } from 'date-fns'
+import { WorkloadStatus } from './status';
+import { DateFormat } from '@/components/date-format/date-format';
+import { Field } from '@/components/field/field';
+import { TextCopy } from '@/components/text-copy/text-copy';
+import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
+import { getShortId, transformControlPlaneStatus } from '@/utils/misc';
+import { formatDistanceToNow } from 'date-fns';
 
 export const SimpleWorkloadDetail = ({
   projectId,
   workload,
 }: {
-  projectId?: string
-  workload: IWorkloadControlResponse
+  projectId?: string;
+  workload: IWorkloadControlResponse;
 }) => {
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -47,10 +47,7 @@ export const SimpleWorkloadDetail = ({
       {workload?.createdAt && (
         <Field label="Created At">
           <div className="flex items-center gap-1">
-            <DateFormat
-              className="text-muted-foreground text-sm"
-              date={workload?.createdAt}
-            />
+            <DateFormat className="text-muted-foreground text-sm" date={workload?.createdAt} />
             <span className="text-muted-foreground text-sm">
               (
               {formatDistanceToNow(new Date(workload?.createdAt), {
@@ -62,5 +59,5 @@ export const SimpleWorkloadDetail = ({
         </Field>
       )}
     </div>
-  )
-}
+  );
+};

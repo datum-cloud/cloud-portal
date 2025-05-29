@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const newApiKeySchema = z.object({
   name: z
@@ -8,6 +8,6 @@ export const newApiKeySchema = z.object({
   expiresAt: z.union([z.coerce.number(), z.coerce.date(), z.string()]).optional(),
   ownerId: z.string().optional(),
   orgIds: z.array(z.string()).optional(),
-})
+});
 
-export type NewApiKeySchema = z.infer<typeof newApiKeySchema>
+export type NewApiKeySchema = z.infer<typeof newApiKeySchema>;

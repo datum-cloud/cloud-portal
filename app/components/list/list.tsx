@@ -1,27 +1,27 @@
-import { cn } from '@/utils/misc'
+import { cn } from '@/utils/misc';
 
 export interface ListItem {
-  label?: React.ReactNode | string
-  content?: React.ReactNode | string
-  className?: string
-  hidden?: boolean
+  label?: React.ReactNode | string;
+  content?: React.ReactNode | string;
+  className?: string;
+  hidden?: boolean;
 }
 
 interface ListProps {
   /**
    * Array of list items to display
    */
-  items: ListItem[]
+  items: ListItem[];
   /**
    * Optional className for the list container
    */
-  className?: string
+  className?: string;
   /**
    * Optional className applied to all list items
    */
-  itemClassName?: string
+  itemClassName?: string;
 
-  labelClassName?: string
+  labelClassName?: string;
 }
 
 export const List = ({ items, className, itemClassName, labelClassName }: ListProps) => {
@@ -35,12 +35,12 @@ export const List = ({ items, className, itemClassName, labelClassName }: ListPr
             className={cn(
               'text-primary flex w-full items-center gap-2 px-4 py-2 [&:not(:last-child)]:border-b',
               itemClassName,
-              item.className,
+              item.className
             )}>
             <div
               className={cn(
                 'flex min-w-[100px] justify-start text-left text-sm font-medium',
-                labelClassName,
+                labelClassName
               )}>
               {item.label}
             </div>
@@ -50,5 +50,5 @@ export const List = ({ items, className, itemClassName, labelClassName }: ListPr
           </div>
         ))}
     </div>
-  )
-}
+  );
+};

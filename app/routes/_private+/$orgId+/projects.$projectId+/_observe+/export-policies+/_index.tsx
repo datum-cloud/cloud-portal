@@ -1,22 +1,22 @@
-import { DataTable } from '@/components/data-table/data-table'
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
-import { DateFormat } from '@/components/date-format/date-format'
-import { Button } from '@/components/ui/button'
-import { routes } from '@/constants/routes'
-import { ExportPolicyStatus } from '@/features/observe/export-policies/status'
-import { authMiddleware } from '@/modules/middleware/auth.middleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control'
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface'
-import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions'
-import { CustomError } from '@/utils/errorHandle'
-import { transformControlPlaneStatus } from '@/utils/misc'
-import { getPathWithParams } from '@/utils/path'
-import { Client } from '@hey-api/client-axios'
-import { ColumnDef } from '@tanstack/react-table'
-import { PlusIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { DataTable } from '@/components/data-table/data-table';
+import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
+import { DateFormat } from '@/components/date-format/date-format';
+import { Button } from '@/components/ui/button';
+import { routes } from '@/constants/routes';
+import { ExportPolicyStatus } from '@/features/observe/export-policies/status';
+import { authMiddleware } from '@/modules/middleware/auth.middleware';
+import { withMiddleware } from '@/modules/middleware/middleware';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
+import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions';
+import { CustomError } from '@/utils/errorHandle';
+import { transformControlPlaneStatus } from '@/utils/misc';
+import { getPathWithParams } from '@/utils/path';
+import { Client } from '@hey-api/client-axios';
+import { ColumnDef } from '@tanstack/react-table';
+import { PlusIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import {
   AppLoadContext,
   Link,
@@ -24,28 +24,28 @@ import {
   useNavigate,
   useParams,
   useSubmit,
-} from 'react-router'
+} from 'react-router';
 
 export const loader = withMiddleware(async ({ context, params }) => {
-  const { projectId } = params
-  const { controlPlaneClient } = context as AppLoadContext
-  const exportPoliciesControl = createExportPoliciesControl(controlPlaneClient as Client)
+  const { projectId } = params;
+  const { controlPlaneClient } = context as AppLoadContext;
+  const exportPoliciesControl = createExportPoliciesControl(controlPlaneClient as Client);
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400)
+    throw new CustomError('Project ID is required', 400);
   }
 
-  const policies = await exportPoliciesControl.list(projectId)
-  return policies
-}, authMiddleware)
+  const policies = await exportPoliciesControl.list(projectId);
+  return policies;
+}, authMiddleware);
 
 export default function ObserveExportPoliciesPage() {
-  const { orgId, projectId } = useParams()
-  const data = useLoaderData<typeof loader>()
+  const { orgId, projectId } = useParams();
+  const data = useLoaderData<typeof loader>();
 
-  const submit = useSubmit()
-  const navigate = useNavigate()
-  const { confirm } = useConfirmationDialog()
+  const submit = useSubmit();
+  const navigate = useNavigate();
+  const { confirm } = useConfirmationDialog();
 
   const deleteExportPolicy = async (exportPolicy: IExportPolicyControlResponse) => {
     await confirm({
@@ -75,11 +75,11 @@ export default function ObserveExportPoliciesPage() {
             method: 'DELETE',
             fetcherKey: 'export-policy-resources',
             navigate: false,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   const columns: ColumnDef<IExportPolicyControlResponse>[] = useMemo(
     () => [
@@ -89,32 +89,29 @@ export default function ObserveExportPoliciesPage() {
         cell: ({ row }) => {
           return (
             <Link
-              to={getPathWithParams(
-                routes.projects.observe.exportPolicies.detail.overview,
-                {
-                  orgId,
-                  projectId,
-                  exportPolicyId: row.original.name,
-                },
-              )}
+              to={getPathWithParams(routes.projects.observe.exportPolicies.detail.overview, {
+                orgId,
+                projectId,
+                exportPolicyId: row.original.name,
+              })}
               className="text-primary font-semibold">
               {row.original.name}
             </Link>
-          )
+          );
         },
       },
       {
         header: '# of Sources',
         accessorKey: 'sources',
         cell: ({ row }) => {
-          return row.original.sources?.length ?? 0
+          return row.original.sources?.length ?? 0;
         },
       },
       {
         header: '# of Sinks',
         accessorKey: 'sinks',
         cell: ({ row }) => {
-          return row.original.sinks?.length ?? 0
+          return row.original.sinks?.length ?? 0;
         },
       },
       {
@@ -131,19 +128,19 @@ export default function ObserveExportPoliciesPage() {
                 badgeClassName="px-0"
               />
             )
-          )
+          );
         },
       },
       {
         header: 'Created At',
         accessorKey: 'createdAt',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
         },
       },
     ],
-    [orgId, projectId],
-  )
+    [orgId, projectId]
+  );
 
   const rowActions: DataTableRowActionsProps<IExportPolicyControlResponse>[] = useMemo(
     () => [
@@ -156,8 +153,8 @@ export default function ObserveExportPoliciesPage() {
               orgId,
               projectId,
               exportPolicyId: row.name,
-            }),
-          )
+            })
+          );
         },
       },
       {
@@ -167,8 +164,8 @@ export default function ObserveExportPoliciesPage() {
         action: (row) => deleteExportPolicy(row),
       },
     ],
-    [orgId, projectId],
-  )
+    [orgId, projectId]
+  );
 
   return (
     <DataTable
@@ -195,5 +192,5 @@ export default function ObserveExportPoliciesPage() {
       }}
       rowActions={rowActions}
     />
-  )
+  );
 }

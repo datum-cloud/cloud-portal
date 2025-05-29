@@ -1,26 +1,23 @@
-import { Field } from '@/components/field/field'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  annotationFormSchema,
-  AnnotationFormSchema,
-} from '@/resources/schemas/metadata.schema'
-import { getFormProps, getInputProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect, useRef } from 'react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+import { Field } from '@/components/field/field';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { annotationFormSchema, AnnotationFormSchema } from '@/resources/schemas/metadata.schema';
+import { getFormProps, getInputProps, useForm } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { useEffect, useRef } from 'react';
+import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const AnnotationForm = ({
   defaultValue,
   onSubmit,
   onCancel,
 }: {
-  defaultValue?: AnnotationFormSchema
-  onSubmit: (annotation: AnnotationFormSchema) => void
-  onCancel: () => void
+  defaultValue?: AnnotationFormSchema;
+  onSubmit: (annotation: AnnotationFormSchema) => void;
+  onCancel: () => void;
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isHydrated = useHydrated();
 
   const [form, fields] = useForm({
     id: 'annotation-form',
@@ -28,35 +25,34 @@ export const AnnotationForm = ({
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: annotationFormSchema })
+      return parseWithZod(formData, { schema: annotationFormSchema });
     },
     onSubmit(event, { formData }) {
-      event.preventDefault()
-      event.stopPropagation()
-      const parsed = parseWithZod(formData, { schema: annotationFormSchema })
+      event.preventDefault();
+      event.stopPropagation();
+      const parsed = parseWithZod(formData, { schema: annotationFormSchema });
       if (parsed.status === 'success') {
-        onSubmit?.(parsed.value)
+        onSubmit?.(parsed.value);
       }
     },
-  })
+  });
 
   // Focus the input when the form is hydrated
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
+    isHydrated && inputRef.current?.focus();
+  }, [isHydrated]);
 
   useEffect(() => {
     if (defaultValue) {
-      form.update({ value: defaultValue })
+      form.update({ value: defaultValue });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    event.stopPropagation()
-    form.onSubmit(event)
-  }
+    event.preventDefault();
+    event.stopPropagation();
+    form.onSubmit(event);
+  };
 
   return (
     <form method="post" {...getFormProps(form)} onSubmit={handleSubmit}>
@@ -82,12 +78,12 @@ export const AnnotationForm = ({
           type="button"
           variant="link"
           onClick={() => {
-            onCancel?.()
+            onCancel?.();
           }}>
           Cancel
         </Button>
         <Button type="submit">Save</Button>
       </div>
     </form>
-  )
-}
+  );
+};

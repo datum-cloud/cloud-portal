@@ -1,5 +1,5 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,26 +8,25 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown'
-import { routes } from '@/constants/routes'
-import { useApp } from '@/providers/app.provider'
-import { cn, getInitials } from '@/utils/misc'
-import { KeyIcon, LogOut, UserIcon } from 'lucide-react'
-import { useState } from 'react'
-import { useNavigate, useSubmit } from 'react-router'
+} from '@/components/ui/dropdown';
+import { routes } from '@/constants/routes';
+import { useApp } from '@/providers/app.provider';
+import { cn, getInitials } from '@/utils/misc';
+import { KeyIcon, LogOut, UserIcon } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate, useSubmit } from 'react-router';
 
 const UserItem = ({
   fullName,
   description,
   className,
 }: {
-  fullName: string
-  description?: string
-  className?: string
+  fullName: string;
+  description?: string;
+  className?: string;
 }) => {
   return (
-    <div
-      className={cn('flex items-center gap-2 px-1 py-1.5 text-left text-sm', className)}>
+    <div className={cn('flex items-center gap-2 px-1 py-1.5 text-left text-sm', className)}>
       <Avatar className="size-8 rounded-lg">
         {/* <AvatarImage src={user?.avatarRemoteURL} alt={fullName} /> */}
         <AvatarFallback>{getInitials(fullName)}</AvatarFallback>
@@ -40,15 +39,15 @@ const UserItem = ({
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 export const UserDropdown = () => {
-  const navigate = useNavigate()
-  const submit = useSubmit()
-  const { user } = useApp()
-  const [open, setOpen] = useState(false)
+  const navigate = useNavigate();
+  const submit = useSubmit();
+  const { user } = useApp();
+  const [open, setOpen] = useState(false);
 
-  const fullName = `${user?.given_name} ${user?.family_name}`
+  const fullName = `${user?.given_name} ${user?.family_name}`;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -93,7 +92,7 @@ export const UserDropdown = () => {
           asChild
           className="text-destructive"
           onClick={() => {
-            submit(null, { method: 'POST', action: routes.auth.logOut })
+            submit(null, { method: 'POST', action: routes.auth.logOut });
           }}>
           <Button
             type="submit"
@@ -105,5 +104,5 @@ export const UserDropdown = () => {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
+  );
+};

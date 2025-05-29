@@ -1,50 +1,45 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { CustomError } from '@/utils/errorHandle'
-import { isDevelopment } from '@/utils/misc'
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
-import curlirize from 'axios-curlirize'
+import { CustomError } from '@/utils/errorHandle';
+import { isDevelopment } from '@/utils/misc';
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
+import curlirize from 'axios-curlirize';
 
 const errorHandler = (error: AxiosError) => {
   const errorMessage =
-    (error.response?.data as any)?.message || error.message || 'Unknown error occurred'
+    (error.response?.data as any)?.message || error.message || 'Unknown error occurred';
 
-  const errorResponse = new CustomError(
-    errorMessage,
-    error.response?.status || 500,
-    error,
-  )
+  const errorResponse = new CustomError(errorMessage, error.response?.status || 500, error);
 
-  return Promise.reject(errorResponse)
-}
+  return Promise.reject(errorResponse);
+};
 
 export const createAxiosClient = (options: AxiosRequestConfig): AxiosInstance => {
   const instance = axios.create({
     withCredentials: false,
     ...options,
-  })
+  });
 
   // Curlirize the client for debugging purposes
   if (isDevelopment()) {
-    curlirize(instance)
+    curlirize(instance);
   }
 
   instance.interceptors.request.use(
     (config: any) => {
-      return config
+      return config;
     },
     (error) => {
-      return errorHandler(error)
-    },
-  )
+      return errorHandler(error);
+    }
+  );
 
   instance.interceptors.response.use(
     (response) => {
-      return response
+      return response;
     },
     (error) => {
-      return errorHandler(error)
-    },
-  )
+      return errorHandler(error);
+    }
+  );
 
-  return instance
-}
+  return instance;
+};

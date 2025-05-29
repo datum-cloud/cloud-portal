@@ -1,7 +1,7 @@
-import { Field } from '@/components/field/field'
-import { SelectLabels } from '@/components/select-labels/select-labels'
-import { SelectOrganization } from '@/components/select-organization/select-organization'
-import { Button } from '@/components/ui/button'
+import { Field } from '@/components/field/field';
+import { SelectLabels } from '@/components/select-labels/select-labels';
+import { SelectOrganization } from '@/components/select-organization/select-organization';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -9,38 +9,38 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { routes } from '@/constants/routes'
-import { useIsPending } from '@/hooks/useIsPending'
-import { useApp } from '@/providers/app.provider'
-import { IOrganization } from '@/resources/interfaces/organization.inteface'
-import { projectSchema } from '@/resources/schemas/project.schema'
-import { generateId, generateRandomString } from '@/utils/idGenerator'
-import { getPathWithParams } from '@/utils/path'
-import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { RocketIcon } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Form, useNavigate } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { routes } from '@/constants/routes';
+import { useIsPending } from '@/hooks/useIsPending';
+import { useApp } from '@/providers/app.provider';
+import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { projectSchema } from '@/resources/schemas/project.schema';
+import { generateId, generateRandomString } from '@/utils/idGenerator';
+import { getPathWithParams } from '@/utils/path';
+import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { RocketIcon } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Form, useNavigate } from 'react-router';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
+import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const CreateProjectForm = () => {
-  const { organization } = useApp()
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
-  const isPending = useIsPending()
-  const navigate = useNavigate()
+  const { organization } = useApp();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isHydrated = useHydrated();
+  const isPending = useIsPending();
+  const navigate = useNavigate();
 
-  const [currentOrg, setCurrentOrg] = useState<IOrganization | undefined>(organization)
+  const [currentOrg, setCurrentOrg] = useState<IOrganization | undefined>(organization);
 
   const [form, { name, description, orgEntityId, labels }] = useForm({
     constraint: getZodConstraint(projectSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: projectSchema })
+      return parseWithZod(formData, { schema: projectSchema });
     },
     defaultValue: {
       orgEntityId: organization?.id,
@@ -48,34 +48,31 @@ export const CreateProjectForm = () => {
       description: '',
       labels: [] as string[],
     },
-  })
+  });
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
+    isHydrated && inputRef.current?.focus();
+  }, [isHydrated]);
 
   useEffect(() => {
-    setCurrentOrg(organization)
-  }, [organization])
+    setCurrentOrg(organization);
+  }, [organization]);
 
-  const randomSuffix = useMemo(() => generateRandomString(6), [])
+  const randomSuffix = useMemo(() => generateRandomString(6), []);
 
-  const nameControl = useInputControl(name)
-  const orgEntityIdControl = useInputControl(orgEntityId)
-  const labelsControl = useInputControl(labels)
+  const nameControl = useInputControl(name);
+  const orgEntityIdControl = useInputControl(orgEntityId);
+  const labelsControl = useInputControl(labels);
 
   useEffect(() => {
-    orgEntityIdControl.change(organization?.id)
-  }, [organization])
+    orgEntityIdControl.change(organization?.id);
+  }, [organization]);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Create a new project</CardTitle>
-        <CardDescription>
-          Create a new project to get started with Datum Cloud.
-        </CardDescription>
+        <CardDescription>Create a new project to get started with Datum Cloud.</CardDescription>
       </CardHeader>
       <Form
         method="POST"
@@ -91,9 +88,9 @@ export const CreateProjectForm = () => {
               currentOrg={currentOrg!}
               triggerClassName="py-2"
               onSelect={(org) => {
-                setCurrentOrg(org)
-                orgEntityIdControl.change(org.id)
-                navigate(getPathWithParams(routes.org.projects.new, { orgId: org.id }))
+                setCurrentOrg(org);
+                orgEntityIdControl.change(org.id);
+                navigate(getPathWithParams(routes.org.projects.new, { orgId: org.id }));
               }}
             />
           </Field>
@@ -106,10 +103,10 @@ export const CreateProjectForm = () => {
               placeholder="e.g. My Project"
               ref={inputRef}
               onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                const value = (e.target as HTMLInputElement).value
+                const value = (e.target as HTMLInputElement).value;
 
                 if (value) {
-                  nameControl.change(generateId(value, { randomText: randomSuffix }))
+                  nameControl.change(generateId(value, { randomText: randomSuffix }));
                 }
               }}
               {...getInputProps(description, { type: 'text' })}
@@ -123,15 +120,15 @@ export const CreateProjectForm = () => {
             <Input
               placeholder="e.g. my-project-343j33"
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const value = (e.target as HTMLInputElement).value
-                nameControl.change(value)
+                const value = (e.target as HTMLInputElement).value;
+                nameControl.change(value);
               }}
               onBlur={(e: React.FormEvent<HTMLInputElement>) => {
-                const value = (e.target as HTMLInputElement).value
+                const value = (e.target as HTMLInputElement).value;
                 if (value.length === 0) {
                   nameControl.change(
-                    generateId(description.value ?? '', { randomText: randomSuffix }),
-                  )
+                    generateId(description.value ?? '', { randomText: randomSuffix })
+                  );
                 }
               }}
               {...getInputProps(name, { type: 'text' })}
@@ -144,7 +141,7 @@ export const CreateProjectForm = () => {
             <SelectLabels
               defaultValue={labels.value as string[]}
               onChange={(value) => {
-                labelsControl.change(value)
+                labelsControl.change(value);
               }}
             />
           </Field>
@@ -158,21 +155,17 @@ export const CreateProjectForm = () => {
               navigate(
                 getPathWithParams(routes.org.projects.root, {
                   orgId: organization?.id,
-                }),
-              )
+                })
+              );
             }}>
             Return to List
           </Button>
-          <Button
-            variant="default"
-            type="submit"
-            disabled={isPending}
-            isLoading={isPending}>
+          <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
             {isPending ? 'Creating' : 'Create'} Project
             <RocketIcon className="size-4" />
           </Button>
         </CardFooter>
       </Form>
     </Card>
-  )
-}
+  );
+};

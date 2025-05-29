@@ -1,31 +1,27 @@
-import { ExportPolicyStatus } from './status'
-import { DateFormat } from '@/components/date-format/date-format'
-import { List, ListItem } from '@/components/list/list'
-import { TextCopy } from '@/components/text-copy/text-copy'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface'
-import { getShortId, transformControlPlaneStatus } from '@/utils/misc'
-import { formatDistanceToNow } from 'date-fns'
-import { useMemo } from 'react'
+import { ExportPolicyStatus } from './status';
+import { DateFormat } from '@/components/date-format/date-format';
+import { List, ListItem } from '@/components/list/list';
+import { TextCopy } from '@/components/text-copy/text-copy';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { getShortId, transformControlPlaneStatus } from '@/utils/misc';
+import { formatDistanceToNow } from 'date-fns';
+import { useMemo } from 'react';
 
 export const ExportPolicyGeneralCard = ({
   exportPolicy,
 }: {
-  exportPolicy: IExportPolicyControlResponse
+  exportPolicy: IExportPolicyControlResponse;
 }) => {
   const listItems: ListItem[] = useMemo(() => {
-    if (!exportPolicy) return []
+    if (!exportPolicy) return [];
 
     return [
       {
         label: 'Name',
         className: 'px-2',
         content: (
-          <TextCopy
-            className="text-sm"
-            value={exportPolicy.name ?? ''}
-            text={exportPolicy.name}
-          />
+          <TextCopy className="text-sm" value={exportPolicy.name ?? ''} text={exportPolicy.name} />
         ),
       },
       {
@@ -72,8 +68,8 @@ export const ExportPolicyGeneralCard = ({
           </div>
         ),
       },
-    ]
-  }, [exportPolicy])
+    ];
+  }, [exportPolicy]);
 
   return (
     <Card className="w-full">
@@ -84,5 +80,5 @@ export const ExportPolicyGeneralCard = ({
         <List items={listItems} />
       </CardContent>
     </Card>
-  )
-}
+  );
+};

@@ -1,6 +1,6 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { IOrganization } from '@/resources/interfaces/organization.inteface'
-import { cn, getInitials } from '@/utils/misc'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { cn, getInitials } from '@/utils/misc';
 
 export const OrganizationItem = ({
   org,
@@ -9,11 +9,11 @@ export const OrganizationItem = ({
   avatarClassName,
   labelClassName,
 }: {
-  org: Partial<IOrganization>
-  className?: string
-  hideAvatar?: boolean
-  avatarClassName?: string
-  labelClassName?: string
+  org: Partial<IOrganization>;
+  className?: string;
+  hideAvatar?: boolean;
+  avatarClassName?: string;
+  labelClassName?: string;
 }) => {
   return (
     <div className={cn('flex w-full items-center gap-2', className)}>
@@ -32,5 +32,5 @@ export const OrganizationItem = ({
         )}
       </div>
     </div>
-  )
-}
+  );
+};

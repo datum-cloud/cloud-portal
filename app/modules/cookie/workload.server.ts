@@ -1,5 +1,5 @@
-import { isProduction } from '@/utils/misc'
-import { createCookie } from 'react-router'
+import { isProduction } from '@/utils/misc';
+import { createCookie } from 'react-router';
 
 export const deletedWorkloadIdsCookie = createCookie('_deleted-workload-ids', {
   path: '/',
@@ -9,4 +9,4 @@ export const deletedWorkloadIdsCookie = createCookie('_deleted-workload-ids', {
   maxAge: 60 * 60 * 1, // 1 hour
   secrets: [process.env?.SESSION_SECRET ?? 'NOT_A_STRONG_SECRET'],
   secure: isProduction(),
-})
+});

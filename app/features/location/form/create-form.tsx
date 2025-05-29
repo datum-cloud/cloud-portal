@@ -1,10 +1,10 @@
-import { GCPProvider } from './provider/gcp-provider'
-import { SelectLocationClass } from './select-class'
-import { SelectIATA } from './select-iata'
-import { SelectLocationProvider } from './select-provider'
-import { Field } from '@/components/field/field'
-import { SelectLabels } from '@/components/select-labels/select-labels'
-import { Button } from '@/components/ui/button'
+import { GCPProvider } from './provider/gcp-provider';
+import { SelectLocationClass } from './select-class';
+import { SelectIATA } from './select-iata';
+import { SelectLocationProvider } from './select-provider';
+import { Field } from '@/components/field/field';
+import { SelectLabels } from '@/components/select-labels/select-labels';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -12,40 +12,40 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { useIsPending } from '@/hooks/useIsPending'
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useIsPending } from '@/hooks/useIsPending';
 import {
   ILocationControlResponse,
   LocationClass,
   LocationProvider,
-} from '@/resources/interfaces/location.interface'
-import { newLocationSchema } from '@/resources/schemas/location.schema'
+} from '@/resources/interfaces/location.interface';
+import { newLocationSchema } from '@/resources/schemas/location.schema';
 // import { generateId, generateRandomString } from '@/utils/idGenerator'
-import { convertObjectToLabels } from '@/utils/misc'
-import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect, useMemo, useRef } from 'react'
-import { Form, useNavigate } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+import { convertObjectToLabels } from '@/utils/misc';
+import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { useEffect, useMemo, useRef } from 'react';
+import { Form, useNavigate } from 'react-router';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
+import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const CreateLocationForm = ({
   defaultValue,
 }: {
-  defaultValue?: ILocationControlResponse
+  defaultValue?: ILocationControlResponse;
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
-  const isPending = useIsPending()
-  const navigate = useNavigate()
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isHydrated = useHydrated();
+  const isPending = useIsPending();
+  const navigate = useNavigate();
 
   const [form, fields] = useForm({
     constraint: getZodConstraint(newLocationSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: newLocationSchema })
+      return parseWithZod(formData, { schema: newLocationSchema });
     },
     defaultValue: {
       name: '',
@@ -60,38 +60,35 @@ export const CreateLocationForm = ({
         zone: '',
       },
     },
-  })
+  });
 
   // Field Controls
-  const nameControl = useInputControl(fields.name)
-  const cityCodeControl = useInputControl(fields.cityCode)
-  const classControl = useInputControl(fields.class)
-  const labelsControl = useInputControl(fields.labels)
+  const nameControl = useInputControl(fields.name);
+  const cityCodeControl = useInputControl(fields.cityCode);
+  const classControl = useInputControl(fields.class);
+  const labelsControl = useInputControl(fields.labels);
 
-  const providerConfigControl = useInputControl(
-    fields.providerConfig.getFieldset().provider,
-  )
+  const providerConfigControl = useInputControl(fields.providerConfig.getFieldset().provider);
 
   // Generate a random suffix for the location name
   // const randomSuffix = useMemo(() => generateRandomString(6), [])
 
-  const isEdit = useMemo(() => defaultValue?.uid !== undefined, [defaultValue])
+  const isEdit = useMemo(() => defaultValue?.uid !== undefined, [defaultValue]);
 
   // Focus the input when the form is hydrated
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
+    isHydrated && inputRef.current?.focus();
+  }, [isHydrated]);
 
   useEffect(() => {
     if (defaultValue) {
       // Transform provider config
-      const provider = Object.keys(defaultValue.provider ?? {})[0] as LocationProvider
+      const provider = Object.keys(defaultValue.provider ?? {})[0] as LocationProvider;
       const providerConfig = {
         projectId: defaultValue.provider?.[provider]?.projectId,
         region: defaultValue.provider?.[provider]?.region,
         zone: defaultValue.provider?.[provider]?.zone,
-      }
+      };
 
       form.update({
         value: {
@@ -107,9 +104,9 @@ export const CreateLocationForm = ({
             ...providerConfig,
           },
         },
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <Card>
@@ -129,11 +126,7 @@ export const CreateLocationForm = ({
         <AuthenticityTokenInput />
 
         {isEdit && (
-          <input
-            type="hidden"
-            name="resourceVersion"
-            value={defaultValue?.resourceVersion}
-          />
+          <input type="hidden" name="resourceVersion" value={defaultValue?.resourceVersion} />
         )}
 
         <CardContent className="space-y-4">
@@ -168,13 +161,12 @@ export const CreateLocationForm = ({
               placeholder="e.g. my-location-us-3sd122"
               readOnly={isEdit}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const value = (e.target as HTMLInputElement).value
-                nameControl.change(value)
+                const value = (e.target as HTMLInputElement).value;
+                nameControl.change(value);
               }}
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               onBlur={(e: React.FormEvent<HTMLInputElement>) => {
                 if (isEdit) {
-                  nameControl.change(defaultValue?.name ?? '')
+                  nameControl.change(defaultValue?.name ?? '');
                 }
                 /* else {
                   const value = (e.target as HTMLInputElement).value
@@ -194,7 +186,7 @@ export const CreateLocationForm = ({
             <SelectLocationClass
               defaultValue={fields.class.value}
               onValueChange={(value) => {
-                classControl.change(value.value)
+                classControl.change(value.value);
               }}
             />
           </Field>
@@ -206,35 +198,27 @@ export const CreateLocationForm = ({
             <SelectLabels
               defaultValue={fields.labels.value as string[]}
               onChange={(value) => {
-                labelsControl.change(value)
+                labelsControl.change(value);
               }}
             />
           </Field>
 
           <div className="flex w-full gap-4">
-            <Field
-              isRequired
-              label="City"
-              errors={fields.cityCode.errors}
-              className="w-1/2">
+            <Field isRequired label="City" errors={fields.cityCode.errors} className="w-1/2">
               <SelectIATA
                 placeholder="Select a city"
                 defaultValue={fields.cityCode.value}
                 onValueChange={(value) => {
-                  cityCodeControl.change(value.value)
+                  cityCodeControl.change(value.value);
                 }}
               />
             </Field>
 
-            <Field
-              isRequired
-              label="Provider"
-              errors={fields.provider.errors}
-              className="w-1/2">
+            <Field isRequired label="Provider" errors={fields.provider.errors} className="w-1/2">
               <SelectLocationProvider
                 meta={fields.provider}
                 onChange={(value) => {
-                  providerConfigControl.change(value)
+                  providerConfigControl.change(value);
                 }}
               />
             </Field>
@@ -252,21 +236,15 @@ export const CreateLocationForm = ({
             variant="link"
             disabled={isPending}
             onClick={() => {
-              navigate(-1)
+              navigate(-1);
             }}>
             Return to List
           </Button>
-          <Button
-            variant="default"
-            type="submit"
-            disabled={isPending}
-            isLoading={isPending}>
-            {isPending
-              ? `${isEdit ? 'Saving' : 'Creating'}`
-              : `${isEdit ? 'Save' : 'Create'}`}
+          <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+            {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
           </Button>
         </CardFooter>
       </Form>
     </Card>
-  )
-}
+  );
+};

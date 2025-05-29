@@ -1,35 +1,34 @@
-import { Button } from '@/components/ui/button'
-import { InputWithAddons } from '@/components/ui/input-with-addons'
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard'
-import { cn } from '@/utils/misc'
-import { CopyIcon } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
+import { Button } from '@/components/ui/button';
+import { InputWithAddons } from '@/components/ui/input-with-addons';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { cn } from '@/utils/misc';
+import { CopyIcon } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export const InputWithCopy = ({
   value,
   className,
   buttonClassName,
 }: {
-  value: string
-  className?: string
-  buttonClassName?: string
+  value: string;
+  className?: string;
+  buttonClassName?: string;
 }) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, copy] = useCopyToClipboard()
-  const [copied, setCopied] = useState(false)
+  const [_, copy] = useCopyToClipboard();
+  const [copied, setCopied] = useState(false);
 
   const copyToClipboard = () => {
-    if (!value) return
+    if (!value) return;
 
     copy(value).then(() => {
-      toast.success('Copied to clipboard')
-      setCopied(true)
+      toast.success('Copied to clipboard');
+      setCopied(true);
       setTimeout(() => {
-        setCopied(false)
-      }, 2000)
-    })
-  }
+        setCopied(false);
+      }, 2000);
+    });
+  };
   return (
     <InputWithAddons
       value={value}
@@ -48,5 +47,5 @@ export const InputWithCopy = ({
         </Button>
       }
     />
-  )
-}
+  );
+};
