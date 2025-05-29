@@ -1,31 +1,23 @@
 import { routes } from '@/constants/routes'
-import { GraphqlClient } from '@/modules/graphql/graphql'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
+import { authMiddleware } from '@/modules/middleware/auth.middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { createOrganizationGql } from '@/resources/gql/organization.gql'
-import {
-  NewOrganizationSchema,
-  newOrganizationSchema,
-} from '@/resources/schemas/organization.schema'
-import { validateCSRF } from '@/utils/csrf'
+import { iamOrganizationsAPI } from '@/resources/api/iam/organizations.api'
+import { IOrganization } from '@/resources/interfaces/organization.inteface'
 import { CustomError } from '@/utils/errorHandle'
-import { dataWithToast, redirectWithToast } from '@/utils/toast'
-import { parseWithZod } from '@conform-to/zod'
-import { find } from 'es-toolkit/compat'
+import { AxiosInstance } from 'axios'
 import { AppLoadContext, data } from 'react-router'
 
 export const ROUTE_PATH = '/api/organizations/:orgId' as const
 
 export const loader = withMiddleware(async ({ context, params }) => {
+  const { apiClient, cache } = context as AppLoadContext
   const { orgId } = params
 
   if (!orgId) {
     throw new CustomError('Organization ID is required', 400)
   }
 
-  const { gqlClient, cache } = context as AppLoadContext
-  const organizationGql = createOrganizationGql(gqlClient as GraphqlClient)
   const key = `organizations:${orgId}`
 
   const isCached = await cache.hasItem(key)
@@ -34,7 +26,8 @@ export const loader = withMiddleware(async ({ context, params }) => {
     return data(org)
   }
 
-  const org = await organizationGql.getOrganizationDetail(orgId)
+  const orgAPI = iamOrganizationsAPI(apiClient as AxiosInstance)
+  const org = await orgAPI.detail(orgId)
 
   await cache.setItem(key, org)
 
@@ -42,60 +35,26 @@ export const loader = withMiddleware(async ({ context, params }) => {
 }, authMiddleware)
 
 export const action = withMiddleware(async ({ request, context, params }) => {
-  const { gqlClient, cache } = context as AppLoadContext
+  const { apiClient, cache } = context as AppLoadContext
   const { orgId } = params
 
   if (!orgId) {
     throw new CustomError('Organization ID is required', 400)
   }
 
-  const organizationGql = createOrganizationGql(gqlClient as GraphqlClient)
+  const orgAPI = iamOrganizationsAPI(apiClient as AxiosInstance)
 
   try {
     switch (request.method) {
-      case 'PUT': {
-        const clonedRequest = request.clone()
-        const formData = await clonedRequest.formData()
-        await validateCSRF(formData, clonedRequest.headers)
-
-        // Validate form data with Zod
-        const parsed = parseWithZod(formData, { schema: newOrganizationSchema })
-        const payload = parsed.payload as NewOrganizationSchema
-
-        await organizationGql.updateOrganization(orgId, payload.name)
-
-        // Change the cache value
-        await cache.removeItem(`organizations:${orgId}`)
-        const organizations = await cache.getItem('organizations')
-        if (organizations) {
-          const updatedOrg = find(
-            organizations as OrganizationModel[],
-            (org: OrganizationModel) => org.id === orgId,
-          )
-          if (updatedOrg) {
-            updatedOrg.name = payload.name
-          }
-          await cache.setItem('organizations', organizations)
-        }
-
-        return dataWithToast(
-          { success: true, name: payload.name },
-          {
-            title: 'Organization updated successfully',
-            description: 'You have successfully updated an organization.',
-            type: 'success',
-          },
-        )
-      }
       case 'DELETE': {
-        await organizationGql.deleteOrganization(orgId)
+        await orgAPI.delete(orgId)
         await cache.removeItem(`organizations:${orgId}`)
 
         const organizations = await cache.getItem('organizations')
 
         if (organizations) {
-          const filtered = (organizations as OrganizationModel[]).filter(
-            (org: OrganizationModel) => org.id !== orgId,
+          const filtered = (organizations as IOrganization[]).filter(
+            (org: IOrganization) => org.id !== orgId,
           )
           await cache.setItem('organizations', filtered)
         }

@@ -7,6 +7,8 @@ export default defineConfig({
   env: {
     CYPRESS: true,
     APP_URL: 'http://localhost:3000',
+    AUTH_OIDC_ISSUER: process.env.AUTH_OIDC_ISSUER || 'http://localhost:3000',
+    AUTH_OIDC_CLIENT_ID: process.env.AUTH_OIDC_CLIENT_ID,
   },
   e2e: {
     baseUrl: process.env.CYPRESS_BASE_URL || 'http://localhost:3000',
@@ -28,6 +30,7 @@ export default defineConfig({
     video: true,
     screenshotOnRunFailure: true,
     experimentalStudio: true,
+    specPattern: 'cypress/e2e/**/*.{cy,spec}.{js,jsx,ts,tsx}',
   },
   component: {
     devServer: {

@@ -1,63 +1,111 @@
-import { Field } from '@/components/field/field'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { useIsPending } from '@/hooks/useIsPending'
+import { routes } from '@/constants/routes'
+import { OrganizationForm } from '@/features/organization/form'
+import { validateCSRF } from '@/modules/cookie/csrf.server'
+import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { useApp } from '@/providers/app.provider'
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { newOrganizationSchema } from '@/resources/schemas/organization.schema'
+import { iamOrganizationsAPI } from '@/resources/api/iam/organizations.api'
+import { IOrganization } from '@/resources/interfaces/organization.inteface'
+import {
+  OrganizationSchema,
+  organizationSchema,
+} from '@/resources/schemas/organization.schema'
 import { ROUTE_PATH as ORG_ACTION_PATH } from '@/routes/api+/organizations+/$orgId'
+import { CustomError } from '@/utils/errorHandle'
 import { mergeMeta, metaObject } from '@/utils/meta'
 import { getPathWithParams } from '@/utils/path'
-import { getFormProps, getInputProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { parseWithZod } from '@conform-to/zod'
+import { AxiosInstance } from 'axios'
 import { CircleAlertIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Form, MetaFunction, useFetcher } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+import {
+  ActionFunctionArgs,
+  AppLoadContext,
+  MetaFunction,
+  useFetcher,
+} from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Organization Settings')
 })
 
+export const action = async ({ request, params, context }: ActionFunctionArgs) => {
+  const { orgId } = params
+  const { apiClient, cache } = context as AppLoadContext
+
+  const orgAPI = iamOrganizationsAPI(apiClient as AxiosInstance)
+
+  if (!orgId) {
+    throw new CustomError('Organization ID is required', 400)
+  }
+
+  const clonedRequest = request.clone()
+  const formData = await clonedRequest.formData()
+
+  try {
+    await validateCSRF(formData, clonedRequest.headers)
+
+    // Validate form data with Zod
+    const parsed = parseWithZod(formData, { schema: organizationSchema })
+    if (parsed.status !== 'success') {
+      throw new Error('Invalid form data')
+    }
+    const payload = parsed.value as OrganizationSchema
+
+    // Dry run to validate
+    const validateRes = await orgAPI.update(orgId, payload, true)
+
+    // If dry run succeeds, create for real
+    let res: IOrganization | null = null
+    if (validateRes) {
+      res = await orgAPI.update(orgId, payload)
+    }
+
+    await cache.removeItem(`organizations:${orgId}`)
+    const organizations = await cache.getItem('organizations')
+    if (organizations) {
+      const newOrganizations = (organizations as IOrganization[]).map(
+        (org: IOrganization) => {
+          if (org.id === orgId) {
+            return res
+          }
+          return org
+        },
+      )
+
+      await cache.setItem('organizations', newOrganizations)
+    }
+
+    return redirectWithToast(routes.account.organizations.root, {
+      title: 'Organization updated successfully',
+      description: 'You have successfully updated an organization.',
+      type: 'success',
+    })
+  } catch (error) {
+    return dataWithToast(
+      {},
+      {
+        title: 'Error',
+        description:
+          error instanceof Error ? error.message : (error as Response).statusText,
+        type: 'error',
+      },
+    )
+  }
+}
+
 export default function OrgSettingsPage() {
   const fetcher = useFetcher({ key: 'org-settings' })
-  const isPending = useIsPending({ fetcherKey: 'org-settings' })
-  const { organization, setOrganization } = useApp()
+  const { organization } = useApp()
   const { confirm } = useConfirmationDialog()
-
-  const [currentAction, setCurrentAction] = useState<'update' | 'delete'>()
-
-  const [form, fields] = useForm({
-    id: 'org-settings-form',
-    constraint: getZodConstraint(newOrganizationSchema),
-    shouldValidate: 'onInput',
-    shouldRevalidate: 'onInput',
-    onValidate({ formData }) {
-      return parseWithZod(formData, { schema: newOrganizationSchema })
-    },
-    onSubmit(event, { formData }) {
-      event.preventDefault()
-      event.stopPropagation()
-      const parsed = parseWithZod(formData, { schema: newOrganizationSchema })
-      if (parsed.status === 'success') {
-        setCurrentAction('update')
-        fetcher.submit(formData, {
-          method: 'PUT',
-          action: getPathWithParams(ORG_ACTION_PATH, { orgId: organization?.id }),
-        })
-      }
-    },
-  })
 
   const deleteOrganization = async () => {
     await confirm({
@@ -65,16 +113,16 @@ export default function OrgSettingsPage() {
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{organization?.name}</strong>?
+          <strong>{organization?.displayName}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${organization?.name}" to confirm.`,
+      confirmInputLabel: `Type "${organization?.displayName}" to confirm.`,
       confirmInputPlaceholder: 'Type the organization name to confirm deletion',
-      confirmValue: organization?.name ?? 'delete',
+      confirmValue: organization?.displayName ?? 'delete',
       onSubmit: async () => {
         await fetcher.submit(
           {},
@@ -87,60 +135,14 @@ export default function OrgSettingsPage() {
     })
   }
 
-  useEffect(() => {
-    if (organization) {
-      form.update({ value: { name: organization.name } })
-    }
-  }, [organization])
-
-  useEffect(() => {
-    if (fetcher.data?.success) {
-      if (currentAction === 'update') {
-        form.update({ value: { name: fetcher.data.name } })
-        setOrganization({ ...organization, name: fetcher.data.name } as OrganizationModel)
-      }
-    }
-  }, [fetcher.data])
-
   return (
     <div className="mx-auto my-4 w-full max-w-3xl md:my-6">
       <div className="grid grid-cols-1 gap-6">
         {/* Organization Name Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Organization Name</CardTitle>
-            <CardDescription>
-              Used to identify your Organization on the Dashboard, Datum CLI, and in the
-              URL of your Deployments.
-            </CardDescription>
-          </CardHeader>
-          <Form
-            method="POST"
-            autoComplete="off"
-            {...getFormProps(form)}
-            className="flex flex-col gap-6">
-            <AuthenticityTokenInput />
-            <CardContent>
-              <Field
-                errors={fields.name.errors}
-                description="Enter a short, human-friendly name. Can be changed later.">
-                <Input
-                  {...getInputProps(fields.name, { type: 'text' })}
-                  key={fields.name.id}
-                />
-              </Field>
-            </CardContent>
-            <CardFooter className="flex justify-end gap-2">
-              <Button type="submit" disabled={isPending} isLoading={isPending}>
-                {isPending ? 'Saving' : 'Save'}
-              </Button>
-            </CardFooter>
-          </Form>
-        </Card>
+        <OrganizationForm defaultValue={organization} />
 
         {/* Danger Zone */}
-
-        {!organization?.personalOrg && (
+        {organization && !organization?.status?.personal && (
           <Card className="border-destructive/50 hover:border-destructive border pb-0 transition-colors">
             <CardHeader>
               <CardTitle className="text-destructive">Danger Zone</CardTitle>

@@ -16,6 +16,8 @@ env:
   NODE_ENV: production
   CYPRESS_BASE_URL: http://localhost:3000
   CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
+  AUTH_OIDC_ISSUER: https://auth.staging.env.datum.net
+  AUTH_OIDC_CLIENT_ID: '320166351412988730'
   BUN_CACHE: ~/.bun/install/cache
 
 jobs:
@@ -80,6 +82,8 @@ jobs:
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: Restore Cache
         uses: actions/cache@v4
@@ -103,6 +107,8 @@ jobs:
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: Restore Cache
         uses: actions/cache@v4
@@ -133,6 +139,8 @@ jobs:
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: Restore Dependencies Cache
         uses: actions/cache@v4
@@ -157,13 +165,16 @@ jobs:
 
       - name: Setup Environment
         run: |
-          echo "CYPRESS_BASE_URL=${CYPRESS_BASE_URL}" > .env
-          echo "NODE_ENV=${NODE_ENV}" >> .env
+          cat > .env << EOF
+          CYPRESS_BASE_URL=${CYPRESS_BASE_URL}
+          NODE_ENV=${NODE_ENV}
+          AUTH_OIDC_ISSUER=${AUTH_OIDC_ISSUER}
+          AUTH_OIDC_CLIENT_ID=${AUTH_OIDC_CLIENT_ID}
+          EOF
 
       - name: Run Unit Tests
         id: unit
-        run: bun run test:component
-
+        run: bun run test:unit:prod
       - name: Run E2E Tests
         id: e2e
         run: bun run test:e2e:prod

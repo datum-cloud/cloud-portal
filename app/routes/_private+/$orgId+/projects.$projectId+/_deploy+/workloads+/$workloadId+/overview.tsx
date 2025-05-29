@@ -26,8 +26,13 @@ import { formatDistanceToNow } from 'date-fns/formatDistanceToNow'
 import { motion } from 'framer-motion'
 import { ClockIcon, PencilIcon } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
-import { MetaFunction, useParams, useRouteLoaderData, useSubmit } from 'react-router'
-import { Link } from 'react-router-dom'
+import {
+  MetaFunction,
+  useParams,
+  useRouteLoaderData,
+  useSubmit,
+  Link,
+} from 'react-router'
 
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find(

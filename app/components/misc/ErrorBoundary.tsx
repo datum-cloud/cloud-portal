@@ -5,7 +5,8 @@ import { routes } from '@/constants/routes'
 import PublicLayout from '@/layouts/public/public'
 import { isDevelopment } from '@/utils/misc'
 import { HomeIcon, Loader2, RefreshCcwIcon } from 'lucide-react'
-import { JSX, useEffect, useState } from 'react'
+import NProgress from 'nprogress'
+import { JSX, useEffect, useMemo, useState } from 'react'
 import type { ErrorResponse } from 'react-router'
 import {
   Link,
@@ -45,6 +46,7 @@ export function GenericErrorBoundary({
   }
 
   useEffect(() => {
+    NProgress.done()
     // Check for 401 Unauthorized error
     if (isRouteErrorResponse(error) && error.status === 401) {
       // Perform sign out
@@ -70,6 +72,10 @@ export function GenericErrorBoundary({
       setIsLoading(false)
     }
   }, [error])
+
+  const isOrganizationNotFound = useMemo(() => {
+    return error && typeof params?.orgId !== 'undefined'
+  }, [error, params])
 
   return (
     <PublicLayout>
@@ -112,10 +118,15 @@ export function GenericErrorBoundary({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Link to={routes.home}>
+                <Link
+                  to={
+                    isOrganizationNotFound
+                      ? routes.account.organizations.root
+                      : routes.home
+                  }>
                   <Button size="sm">
                     <HomeIcon className="size-4" />
-                    Back to Home
+                    Back to {isOrganizationNotFound ? 'Organizations' : 'Home'}
                   </Button>
                 </Link>
                 <Button

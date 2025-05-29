@@ -4,13 +4,10 @@ import { DateFormat } from '@/components/date-format/date-format'
 import { Button } from '@/components/ui/button'
 import { routes } from '@/constants/routes'
 import { ProjectStatus } from '@/features/project/status'
-import { GraphqlClient } from '@/modules/graphql/graphql'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { authMiddleware } from '@/modules/middleware/auth.middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useApp } from '@/providers/app.provider'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { createOrganizationGql } from '@/resources/gql/organization.gql'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
@@ -23,17 +20,14 @@ import { AppLoadContext, data, Link, useLoaderData, useNavigate } from 'react-ro
 
 export const loader = withMiddleware(async ({ params, context }) => {
   const { orgId } = params
-  const { controlPlaneClient, gqlClient } = context as AppLoadContext
+  const { controlPlaneClient } = context as AppLoadContext
   const projectsControl = createProjectsControl(controlPlaneClient as Client)
-  const orgGql = createOrganizationGql(gqlClient as GraphqlClient)
 
   if (!orgId) {
     throw new CustomError('Organization ID is required', 400)
   }
 
-  const org: OrganizationModel = await orgGql.getOrganizationDetail(orgId)
-
-  const projects = await projectsControl.list(org.userEntityID)
+  const projects = await projectsControl.list(orgId)
 
   return data(projects)
 }, authMiddleware)

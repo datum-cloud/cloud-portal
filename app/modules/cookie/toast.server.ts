@@ -6,12 +6,12 @@ import { isProduction, combineHeaders } from '@/utils/misc'
 import { createCookieSessionStorage, data as dataFn, redirect } from 'react-router'
 import { z } from 'zod'
 
-export const TOAST_SESSION_KEY = '_toast'
 export const TOAST_SESSION_FLASH_KEY = '_toast_flash'
 
 export const toastSessionStorage = createCookieSessionStorage({
   cookie: {
-    name: TOAST_SESSION_KEY,
+    name: TOAST_SESSION_FLASH_KEY,
+    domain: process.env?.APP_URL ? new URL(process.env.APP_URL).hostname : 'localhost',
     path: '/',
     sameSite: 'lax',
     httpOnly: true,

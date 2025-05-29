@@ -1,13 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CustomError } from '@/utils/errorHandle'
 import { isDevelopment } from '@/utils/misc'
-import axios, { AxiosError, AxiosInstance } from 'axios'
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
 import curlirize from 'axios-curlirize'
-
-type ApiClientOptions = {
-  baseURL: string
-  authToken?: string
-}
 
 const errorHandler = (error: AxiosError) => {
   const errorMessage =
@@ -22,12 +17,10 @@ const errorHandler = (error: AxiosError) => {
   return Promise.reject(errorResponse)
 }
 
-export const createAxiosClient = (options: ApiClientOptions): AxiosInstance => {
-  const { baseURL, authToken } = options
-
+export const createAxiosClient = (options: AxiosRequestConfig): AxiosInstance => {
   const instance = axios.create({
-    baseURL,
     withCredentials: false,
+    ...options,
   })
 
   // Curlirize the client for debugging purposes
@@ -37,11 +30,6 @@ export const createAxiosClient = (options: ApiClientOptions): AxiosInstance => {
 
   instance.interceptors.request.use(
     (config: any) => {
-      if (authToken) {
-        config.headers = {
-          Authorization: `Bearer ${authToken}`,
-        }
-      }
       return config
     },
     (error) => {

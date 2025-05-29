@@ -1,10 +1,10 @@
 import { routes } from '@/constants/routes'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { redirectWithToast } from '@/modules/cookie/toast.server'
+import { deletedWorkloadIdsCookie } from '@/modules/cookie/workload.server'
+import { authMiddleware } from '@/modules/middleware/auth.middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control'
 import { getPathWithParams } from '@/utils/path'
-import { redirectWithToast } from '@/utils/toast'
-import { deletedWorkloadIdsCookie } from '@/utils/workload'
 import { Client } from '@hey-api/client-axios'
 import { ActionFunctionArgs, AppLoadContext } from 'react-router'
 

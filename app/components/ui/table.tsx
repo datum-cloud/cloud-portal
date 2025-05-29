@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '@/utils/misc'
 import * as React from 'react'
 

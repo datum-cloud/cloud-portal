@@ -1,19 +1,16 @@
 import { routes } from '@/constants/routes'
 import { DashboardLayout } from '@/layouts/dashboard/dashboard'
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main'
-import { GraphqlClient } from '@/modules/graphql/graphql'
-import { authMiddleware } from '@/modules/middleware/authMiddleware'
+import { redirectWithToast } from '@/modules/cookie/toast.server'
+import { authMiddleware } from '@/modules/middleware/auth.middleware'
 import { withMiddleware } from '@/modules/middleware/middleware'
 import { useApp } from '@/providers/app.provider'
 import { createProjectsControl } from '@/resources/control-plane/projects.control'
-import { OrganizationModel } from '@/resources/gql/models/organization.model'
-import { createOrganizationGql } from '@/resources/gql/organization.gql'
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface'
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
 import { CustomError } from '@/utils/errorHandle'
 import { transformControlPlaneStatus } from '@/utils/misc'
 import { getPathWithParams } from '@/utils/path'
-import { redirectWithToast } from '@/utils/toast'
 import { Client } from '@hey-api/client-axios'
 import {
   AreaChartIcon,
@@ -29,10 +26,9 @@ import { useMemo } from 'react'
 import { AppLoadContext, Outlet, redirect, useLoaderData } from 'react-router'
 
 export const loader = withMiddleware(async ({ params, context }) => {
-  const { controlPlaneClient, gqlClient } = context as AppLoadContext
+  const { controlPlaneClient } = context as AppLoadContext
   const { projectId, orgId } = params
 
-  const organizationGql = createOrganizationGql(gqlClient as GraphqlClient)
   const projectsControl = createProjectsControl(controlPlaneClient as Client)
 
   try {
@@ -40,10 +36,8 @@ export const loader = withMiddleware(async ({ params, context }) => {
       throw new CustomError('Project ID and Organization ID are required', 400)
     }
 
-    const org: OrganizationModel = await organizationGql.getOrganizationDetail(orgId)
-
     const project: IProjectControlResponse = await projectsControl.detail(
-      org.userEntityID,
+      orgId,
       projectId,
     )
 
