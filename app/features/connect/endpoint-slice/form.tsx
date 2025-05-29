@@ -1,9 +1,9 @@
-import { EndpointsForm } from './endpoint/endpoints-form'
-import { PortsForm } from './port/ports-form'
-import { SelectAddressType } from './select-address-type'
-import { Field } from '@/components/field/field'
-import { MetadataForm } from '@/components/metadata/metadata-form'
-import { Button } from '@/components/ui/button'
+import { EndpointsForm } from './endpoint/endpoints-form';
+import { PortsForm } from './port/ports-form';
+import { SelectAddressType } from './select-address-type';
+import { Field } from '@/components/field/field';
+import { MetadataForm } from '@/components/metadata/metadata-form';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -11,41 +11,41 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { useIsPending } from '@/hooks/useIsPending'
-import { useApp } from '@/providers/app.provider'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
+} from '@/components/ui/card';
+import { useIsPending } from '@/hooks/useIsPending';
+import { useApp } from '@/providers/app.provider';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import {
   EndpointSliceAddressType,
   IEndpointSliceControlResponse,
-} from '@/resources/interfaces/endpoint-slice.interface'
+} from '@/resources/interfaces/endpoint-slice.interface';
 import {
   EndpointSliceSchema,
   endpointSliceSchema,
-} from '@/resources/schemas/endpoint-slice.schema'
-import { MetadataSchema } from '@/resources/schemas/metadata.schema'
-import { ROUTE_PATH as ENDPOINT_SLICES_ACTIONS_PATH } from '@/routes/api+/connect+/endpoint-slices+/actions'
-import { convertObjectToLabels } from '@/utils/misc'
-import { FormProvider, getFormProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect, useMemo, useState } from 'react'
-import { Form, useNavigate, useSubmit } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+} from '@/resources/schemas/endpoint-slice.schema';
+import { MetadataSchema } from '@/resources/schemas/metadata.schema';
+import { ROUTE_PATH as ENDPOINT_SLICES_ACTIONS_PATH } from '@/routes/api+/connect+/endpoint-slices+/actions';
+import { convertObjectToLabels } from '@/utils/misc';
+import { FormProvider, getFormProps, useForm } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { useEffect, useMemo, useState } from 'react';
+import { Form, useNavigate, useSubmit } from 'react-router';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 
 export const EndpointSliceForm = ({
   projectId,
   defaultValue,
 }: {
-  projectId?: string
-  defaultValue?: IEndpointSliceControlResponse
+  projectId?: string;
+  defaultValue?: IEndpointSliceControlResponse;
 }) => {
-  const navigate = useNavigate()
-  const isPending = useIsPending()
-  const submit = useSubmit()
-  const { orgId } = useApp()
-  const { confirm } = useConfirmationDialog()
+  const navigate = useNavigate();
+  const isPending = useIsPending();
+  const submit = useSubmit();
+  const { orgId } = useApp();
+  const { confirm } = useConfirmationDialog();
 
-  const [formattedValues, setFormattedValues] = useState<EndpointSliceSchema>()
+  const [formattedValues, setFormattedValues] = useState<EndpointSliceSchema>();
   const [form, fields] = useForm({
     id: 'endpoint-slice-form',
     constraint: getZodConstraint(endpointSliceSchema),
@@ -55,13 +55,13 @@ export const EndpointSliceForm = ({
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: endpointSliceSchema })
+      return parseWithZod(formData, { schema: endpointSliceSchema });
     },
-  })
+  });
 
   const isEdit = useMemo(() => {
-    return defaultValue?.uid !== undefined
-  }, [defaultValue])
+    return defaultValue?.uid !== undefined;
+  }, [defaultValue]);
 
   const deleteEndpointSlice = async () => {
     await confirm({
@@ -91,11 +91,11 @@ export const EndpointSliceForm = ({
             fetcherKey: 'endpoint-slices-resources',
             navigate: false,
             action: ENDPOINT_SLICES_ACTIONS_PATH,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   useEffect(() => {
     if (defaultValue && defaultValue.name) {
@@ -103,16 +103,16 @@ export const EndpointSliceForm = ({
         name: defaultValue.name,
         labels: convertObjectToLabels(defaultValue.labels ?? {}),
         annotations: convertObjectToLabels(defaultValue.annotations ?? {}),
-      }
+      };
 
       setFormattedValues({
         ...metadata,
         addressType: defaultValue?.addressType ?? EndpointSliceAddressType.FQDN,
         endpoints: defaultValue?.endpoints ?? [],
         ports: defaultValue?.ports ?? [],
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <Card className="relative">
@@ -145,15 +145,11 @@ export const EndpointSliceForm = ({
               <SelectAddressType meta={fields.addressType} />
             </Field>
             <EndpointsForm
-              fields={
-                fields as unknown as ReturnType<typeof useForm<EndpointSliceSchema>>[1]
-              }
+              fields={fields as unknown as ReturnType<typeof useForm<EndpointSliceSchema>>[1]}
               defaultValue={formattedValues?.endpoints}
             />
             <PortsForm
-              fields={
-                fields as unknown as ReturnType<typeof useForm<EndpointSliceSchema>>[1]
-              }
+              fields={fields as unknown as ReturnType<typeof useForm<EndpointSliceSchema>>[1]}
               defaultValue={formattedValues?.ports}
             />
           </CardContent>
@@ -175,23 +171,17 @@ export const EndpointSliceForm = ({
                 variant="link"
                 disabled={isPending}
                 onClick={() => {
-                  navigate(-1)
+                  navigate(-1);
                 }}>
                 Return to List
               </Button>
-              <Button
-                variant="default"
-                type="submit"
-                disabled={isPending}
-                isLoading={isPending}>
-                {isPending
-                  ? `${isEdit ? 'Saving' : 'Creating'}`
-                  : `${isEdit ? 'Save' : 'Create'}`}
+              <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+                {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
               </Button>
             </div>
           </CardFooter>
         </Form>
       </FormProvider>
     </Card>
-  )
-}
+  );
+};

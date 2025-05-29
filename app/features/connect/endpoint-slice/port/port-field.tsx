@@ -1,52 +1,41 @@
-import { Field } from '@/components/field/field'
-import { Input } from '@/components/ui/input'
+import { Field } from '@/components/field/field';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 import {
   EndpointSlicePortPort,
   EndpointSlicePortProtocol,
-} from '@/resources/interfaces/endpoint-slice.interface'
-import { EndpointSlicePortSchema } from '@/resources/schemas/endpoint-slice.schema'
-import {
-  getInputProps,
-  getSelectProps,
-  useForm,
-  useInputControl,
-} from '@conform-to/react'
-import { useEffect } from 'react'
+} from '@/resources/interfaces/endpoint-slice.interface';
+import { EndpointSlicePortSchema } from '@/resources/schemas/endpoint-slice.schema';
+import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { useEffect } from 'react';
 
 export const PortField = ({
   fields,
   defaultValue,
 }: {
-  fields: ReturnType<typeof useForm<EndpointSlicePortSchema>>[1]
-  defaultValue?: EndpointSlicePortSchema
+  fields: ReturnType<typeof useForm<EndpointSlicePortSchema>>[1];
+  defaultValue?: EndpointSlicePortSchema;
 }) => {
-  const nameControl = useInputControl(fields.name)
-  const appProtocolControl = useInputControl(fields.appProtocol)
+  const nameControl = useInputControl(fields.name);
+  const appProtocolControl = useInputControl(fields.appProtocol);
 
   useEffect(() => {
     if (defaultValue) {
       if (defaultValue.name && fields.name.value === '') {
-        nameControl.change(defaultValue?.name)
+        nameControl.change(defaultValue?.name);
       }
 
       if (defaultValue.appProtocol && !fields.appProtocol.value) {
-        appProtocolControl.change(defaultValue?.appProtocol)
+        appProtocolControl.change(defaultValue?.appProtocol);
       }
     }
-  }, [
-    defaultValue,
-    nameControl,
-    fields.name.value,
-    appProtocolControl,
-    fields.appProtocol.value,
-  ])
+  }, [defaultValue, nameControl, fields.name.value, appProtocolControl, fields.appProtocol.value]);
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
@@ -57,8 +46,8 @@ export const PortField = ({
             key={fields.name.id}
             placeholder="e.g. port-80"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value
-              nameControl.change(value)
+              const value = (e.target as HTMLInputElement).value;
+              nameControl.change(value);
             }}
           />
         </Field>
@@ -74,7 +63,7 @@ export const PortField = ({
             value={appProtocolControl.value}
             defaultValue={defaultValue?.appProtocol}
             onValueChange={(value) => {
-              appProtocolControl.change(value)
+              appProtocolControl.change(value);
             }}>
             <SelectTrigger>
               <SelectValue placeholder="Select a storage type" />
@@ -90,5 +79,5 @@ export const PortField = ({
         </Field>
       </div>
     </div>
-  )
-}
+  );
+};

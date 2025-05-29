@@ -1,30 +1,29 @@
-import { IGroupNode } from '../types'
-import { List } from '@/components/list/list'
-import { Button } from '@/components/ui/button'
-import { Handle, Position } from '@xyflow/react'
-import { SquareMinusIcon, SquarePlusIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { IGroupNode } from '../types';
+import { List } from '@/components/list/list';
+import { Button } from '@/components/ui/button';
+import { Handle, Position } from '@xyflow/react';
+import { SquareMinusIcon, SquarePlusIcon } from 'lucide-react';
+import { useMemo } from 'react';
 
 export interface IPortNode {
-  label: string
-  name: string
-  port: number
-  protocol: string
-  isCompact?: boolean
-  [key: string]: unknown
+  label: string;
+  name: string;
+  port: number;
+  protocol: string;
+  isCompact?: boolean;
+  [key: string]: unknown;
 }
 
 export const PortNode = ({ data }: { data: IPortNode }) => {
-  const baseClass =
-    'relative rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 shadow-md'
-  const sizeClass = data.isCompact ? 'w-[230px]' : 'w-[280px]'
+  const baseClass = 'relative rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 shadow-md';
+  const sizeClass = data.isCompact ? 'w-[230px]' : 'w-[280px]';
 
   const listItems = useMemo(() => {
     return [
       { label: 'Port', content: data.port },
       { label: 'Protocol', content: data.protocol },
-    ]
-  }, [data])
+    ];
+  }, [data]);
   return (
     <div className={`${baseClass} ${sizeClass}`}>
       <Handle
@@ -43,28 +42,22 @@ export const PortNode = ({ data }: { data: IPortNode }) => {
         />
       </div>
     </div>
-  )
-}
+  );
+};
 
 export const PortGroupNode = ({ data }: { data: IGroupNode }) => {
-  const baseClass =
-    'relative rounded-lg border border-indigo-500 bg-indigo-50 px-4 py-2 shadow-md'
-  const sizeClass = data.isCompact ? 'w-[220px]' : 'w-[280px]'
-  const fontClass = data.isCompact ? 'text-sm' : 'text-lg'
+  const baseClass = 'relative rounded-lg border border-indigo-500 bg-indigo-50 px-4 py-2 shadow-md';
+  const sizeClass = data.isCompact ? 'w-[220px]' : 'w-[280px]';
+  const fontClass = data.isCompact ? 'text-sm' : 'text-lg';
 
   const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent node selection
-    if (data.onToggle) data.onToggle()
-  }
+    e.stopPropagation(); // Prevent node selection
+    if (data.onToggle) data.onToggle();
+  };
 
   return (
     <div className={`${baseClass} ${sizeClass}`}>
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="target"
-        className="h-4 w-4 bg-indigo-500"
-      />
+      <Handle type="target" position={Position.Top} id="target" className="h-4 w-4 bg-indigo-500" />
       <Handle
         type="source"
         position={Position.Bottom}
@@ -72,9 +65,7 @@ export const PortGroupNode = ({ data }: { data: IGroupNode }) => {
         className="h-4 w-4 bg-indigo-500"
       />
       <div className="flex items-center justify-between">
-        <div className={`font-bold ${fontClass} text-center text-indigo-700`}>
-          {data.label}
-        </div>
+        <div className={`font-bold ${fontClass} text-center text-indigo-700`}>{data.label}</div>
         <Button
           variant="ghost"
           size="icon"
@@ -88,5 +79,5 @@ export const PortGroupNode = ({ data }: { data: IGroupNode }) => {
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

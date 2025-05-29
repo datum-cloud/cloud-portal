@@ -47,20 +47,12 @@
   {
     "name": "australia-southeast1",
     "location": "Sydney, Australia",
-    "zones": [
-      "australia-southeast1-a",
-      "australia-southeast1-b",
-      "australia-southeast1-c"
-    ]
+    "zones": ["australia-southeast1-a", "australia-southeast1-b", "australia-southeast1-c"]
   },
   {
     "name": "australia-southeast2",
     "location": "Melbourne, Australia",
-    "zones": [
-      "australia-southeast2-a",
-      "australia-southeast2-b",
-      "australia-southeast2-c"
-    ]
+    "zones": ["australia-southeast2-a", "australia-southeast2-b", "australia-southeast2-c"]
   },
   {
     "name": "europe-central2",
@@ -100,20 +92,12 @@
   {
     "name": "northamerica-northeast1",
     "location": "Montreal, Canada",
-    "zones": [
-      "northamerica-northeast1-a",
-      "northamerica-northeast1-b",
-      "northamerica-northeast1-c"
-    ]
+    "zones": ["northamerica-northeast1-a", "northamerica-northeast1-b", "northamerica-northeast1-c"]
   },
   {
     "name": "northamerica-northeast2",
     "location": "Toronto, Canada",
-    "zones": [
-      "northamerica-northeast2-a",
-      "northamerica-northeast2-b",
-      "northamerica-northeast2-c"
-    ]
+    "zones": ["northamerica-northeast2-a", "northamerica-northeast2-b", "northamerica-northeast2-c"]
   },
   {
     "name": "southamerica-east1",

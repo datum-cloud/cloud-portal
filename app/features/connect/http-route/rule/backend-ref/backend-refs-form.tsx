@@ -1,19 +1,19 @@
-import { BackendRefField } from './backend-ref-field'
-import { FieldLabel } from '@/components/field/field-label'
-import { Button } from '@/components/ui/button'
+import { BackendRefField } from './backend-ref-field';
+import { FieldLabel } from '@/components/field/field-label';
+import { Button } from '@/components/ui/button';
 import {
   HttpRouteBackendRefSchema,
   HttpRouteRuleSchema,
-} from '@/resources/schemas/http-route.schema'
-import { cn } from '@/utils/misc'
-import { useForm, useFormMetadata } from '@conform-to/react'
-import { PlusIcon, TrashIcon } from 'lucide-react'
-import { useEffect } from 'react'
+} from '@/resources/schemas/http-route.schema';
+import { cn } from '@/utils/misc';
+import { useForm, useFormMetadata } from '@conform-to/react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useEffect } from 'react';
 
 export const BackendRefDefaultValues: HttpRouteBackendRefSchema = {
   name: '',
   port: 80,
-}
+};
 
 export const BackendRefsForm = ({
   fields,
@@ -21,22 +21,22 @@ export const BackendRefsForm = ({
   projectId,
   selectedEndpointSlice,
 }: {
-  fields: ReturnType<typeof useForm<HttpRouteRuleSchema>>[1]
-  defaultValue?: HttpRouteBackendRefSchema[]
-  projectId?: string
-  selectedEndpointSlice?: string[]
+  fields: ReturnType<typeof useForm<HttpRouteRuleSchema>>[1];
+  defaultValue?: HttpRouteBackendRefSchema[];
+  projectId?: string;
+  selectedEndpointSlice?: string[];
 }) => {
-  const form = useFormMetadata('http-route-form')
-  const backendRefList = fields.backendRefs.getFieldList()
+  const form = useFormMetadata('http-route-form');
+  const backendRefList = fields.backendRefs.getFieldList();
 
   useEffect(() => {
     if (defaultValue) {
       form.update({
         name: fields.backendRefs.name,
         value: defaultValue,
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -44,7 +44,7 @@ export const BackendRefsForm = ({
 
       <div className="space-y-4">
         {backendRefList.map((backendRef, index) => {
-          const backendRefFields = backendRef.getFieldset()
+          const backendRefFields = backendRef.getFieldset();
           return (
             <div
               className="relative flex items-center gap-2 rounded-md border p-4"
@@ -69,14 +69,14 @@ export const BackendRefsForm = ({
                     (backendRefFields.name.errors ?? []).length > 0 ||
                       (backendRefFields.port.errors ?? []).length > 0
                       ? '-top-1'
-                      : 'top-2.5',
+                      : 'top-2.5'
                   )}
                   onClick={() => form.remove({ name: fields.backendRefs.name, index })}>
                   <TrashIcon className="size-4" />
                 </Button>
               )}
             </div>
-          )
+          );
         })}
       </div>
 
@@ -95,5 +95,5 @@ export const BackendRefsForm = ({
         Add
       </Button>
     </div>
-  )
-}
+  );
+};

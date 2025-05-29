@@ -1,26 +1,21 @@
-import { Field } from '@/components/field/field'
-import { SelectConfigMap } from '@/components/select-configmap/select-configmap'
-import { SelectSecret } from '@/components/select-secret/select-secret'
-import { Input } from '@/components/ui/input'
+import { Field } from '@/components/field/field';
+import { SelectConfigMap } from '@/components/select-configmap/select-configmap';
+import { SelectSecret } from '@/components/select-secret/select-secret';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { ENV_TYPES } from '@/constants/options'
-import { ContainerEnvType } from '@/resources/interfaces/workload.interface'
-import { RuntimeEnvSchema } from '@/resources/schemas/workload.schema'
-import { cn } from '@/utils/misc'
-import {
-  getInputProps,
-  getSelectProps,
-  useForm,
-  useInputControl,
-} from '@conform-to/react'
-import { useEffect, useRef, useState } from 'react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+} from '@/components/ui/select';
+import { ENV_TYPES } from '@/constants/options';
+import { ContainerEnvType } from '@/resources/interfaces/workload.interface';
+import { RuntimeEnvSchema } from '@/resources/schemas/workload.schema';
+import { cn } from '@/utils/misc';
+import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { useEffect, useRef, useState } from 'react';
+import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const EnvField = ({
   isEdit,
@@ -28,41 +23,41 @@ export const EnvField = ({
   projectId,
   fields,
 }: {
-  isEdit?: boolean
-  defaultValue?: RuntimeEnvSchema
-  projectId?: string
-  fields: ReturnType<typeof useForm<RuntimeEnvSchema>>[1]
+  isEdit?: boolean;
+  defaultValue?: RuntimeEnvSchema;
+  projectId?: string;
+  fields: ReturnType<typeof useForm<RuntimeEnvSchema>>[1];
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isHydrated = useHydrated();
 
-  const nameControl = useInputControl(fields.name)
-  const typeControl = useInputControl(fields.type)
+  const nameControl = useInputControl(fields.name);
+  const typeControl = useInputControl(fields.type);
 
   // For text
-  const valueControl = useInputControl(fields.value)
+  const valueControl = useInputControl(fields.value);
 
   // For secret and config map
-  const [keyOptions, setKeyOptions] = useState<string[]>([])
-  const refNameControl = useInputControl(fields.refName)
-  const keyControl = useInputControl(fields.key)
+  const [keyOptions, setKeyOptions] = useState<string[]>([]);
+  const refNameControl = useInputControl(fields.refName);
+  const keyControl = useInputControl(fields.key);
 
   useEffect(() => {
     if (defaultValue) {
       // Only set values if they exist in defaultValue and current fields are empty
       if (defaultValue.name && fields.name.value === '') {
-        nameControl.change(defaultValue?.name)
+        nameControl.change(defaultValue?.name);
       }
 
       if (defaultValue.type && !fields.type.value) {
-        typeControl.change(defaultValue?.type)
+        typeControl.change(defaultValue?.type);
 
         if (
           defaultValue.type === ContainerEnvType.TEXT &&
           defaultValue.value &&
           fields.value.value === ''
         ) {
-          valueControl.change(defaultValue?.value)
+          valueControl.change(defaultValue?.value);
         }
       }
     }
@@ -74,13 +69,13 @@ export const EnvField = ({
     fields.name.value,
     fields.type.value,
     fields.value.value,
-  ])
+  ]);
 
   useEffect(() => {
     // Focus the input when the form is hydrated
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
+
+    isHydrated && inputRef.current?.focus();
+  }, [isHydrated]);
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
@@ -92,27 +87,23 @@ export const EnvField = ({
             key={fields.name.id}
             placeholder="e.g. ENV_VAR_NAME"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value
-              nameControl.change(value)
+              const value = (e.target as HTMLInputElement).value;
+              nameControl.change(value);
             }}
           />
         </Field>
-        <Field
-          isRequired
-          label="Value Source"
-          errors={fields.type.errors}
-          className="w-1/3">
+        <Field isRequired label="Value Source" errors={fields.type.errors} className="w-1/3">
           <Select
             {...getSelectProps(fields.type, { value: false })}
             key={fields.type.id}
             value={typeControl.value}
             defaultValue={undefined}
             onValueChange={(value) => {
-              typeControl.change(value)
+              typeControl.change(value);
 
-              valueControl.change(undefined)
-              refNameControl.change(undefined)
-              keyControl.change(undefined)
+              valueControl.change(undefined);
+              refNameControl.change(undefined);
+              keyControl.change(undefined);
             }}>
             <SelectTrigger>
               <SelectValue placeholder="Select a Source" />
@@ -141,8 +132,8 @@ export const EnvField = ({
             key={fields.value.id}
             placeholder="e.g. my-value"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value
-              valueControl.change(value)
+              const value = (e.target as HTMLInputElement).value;
+              valueControl.change(value);
             }}
           />
         </Field>
@@ -164,11 +155,11 @@ export const EnvField = ({
               projectId={projectId}
               onValueChange={(value) => {
                 if (value?.value !== refNameControl.value) {
-                  keyControl.change(undefined)
+                  keyControl.change(undefined);
                 }
 
-                refNameControl.change(value?.value)
-                setKeyOptions(value?.data ?? [])
+                refNameControl.change(value?.value);
+                setKeyOptions(value?.data ?? []);
               }}
             />
           ) : (
@@ -181,11 +172,11 @@ export const EnvField = ({
               projectId={projectId}
               onValueChange={(value) => {
                 if (value?.value !== refNameControl.value) {
-                  keyControl.change(undefined)
+                  keyControl.change(undefined);
                 }
 
-                refNameControl.change(value?.value)
-                setKeyOptions(Object.keys(value?.data ?? {}))
+                refNameControl.change(value?.value);
+                setKeyOptions(Object.keys(value?.data ?? {}));
               }}
             />
           )}
@@ -204,7 +195,7 @@ export const EnvField = ({
             value={keyControl.value}
             defaultValue={defaultValue?.key}
             onValueChange={(value) => {
-              keyControl.change(value)
+              keyControl.change(value);
             }}>
             <SelectTrigger disabled={!keyOptions.length}>
               <SelectValue placeholder="Select a Key" />
@@ -220,5 +211,5 @@ export const EnvField = ({
         </Field>
       </div>
     </div>
-  )
-}
+  );
+};

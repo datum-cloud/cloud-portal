@@ -1,11 +1,11 @@
-import { nameSchema, metadataSchema } from './metadata.schema'
+import { nameSchema, metadataSchema } from './metadata.schema';
 import {
   ContainerEnvType,
   PortProtocol,
   RuntimeType,
   StorageType,
-} from '@/resources/interfaces/workload.interface'
-import { z } from 'zod'
+} from '@/resources/interfaces/workload.interface';
+import { z } from 'zod';
 
 // Runtime Section
 export const runtimePortSchema = z.object({
@@ -36,7 +36,7 @@ export const runtimePortSchema = z.object({
   protocol: z.enum(Object.values(PortProtocol) as [string, ...string[]], {
     required_error: 'Protocol is required.',
   }),
-})
+});
 
 export const runtimeVMSchema = z
   .object({
@@ -48,16 +48,16 @@ export const runtimeVMSchema = z
         {
           message:
             'Invalid SSH key format. Must be in the format "username:ssh-key" with a valid SSH public key (RSA, ED25519, DSA, or ECDSA).',
-        },
+        }
       ),
     ports: z.array(runtimePortSchema).optional(),
   })
   .superRefine((data, ctx) => {
     // Check for duplicate storage names
-    const usedNames = new Set<string>()
+    const usedNames = new Set<string>();
 
     data.ports?.forEach((port, index) => {
-      const name = port.name?.trim()
+      const name = port.name?.trim();
 
       if (name) {
         if (usedNames.has(name)) {
@@ -66,14 +66,14 @@ export const runtimeVMSchema = z
             code: z.ZodIssueCode.custom,
             message: `Name "${name}" is already used`,
             path: ['ports', index, 'name'],
-          })
+          });
         } else {
           // Track this name as used
-          usedNames.add(name)
+          usedNames.add(name);
         }
       }
-    })
-  })
+    });
+  });
 
 export const runtimeEnvSchema = z
   .object({
@@ -94,48 +94,40 @@ export const runtimeEnvSchema = z
   .refine(
     (data) => {
       if (data?.type === ContainerEnvType.TEXT) {
-        return !!data?.value
+        return !!data?.value;
       }
-      return true
+      return true;
     },
     {
       message: 'Value is required',
       path: ['value'],
-    },
+    }
   )
   .refine(
     (data) => {
-      if (
-        data?.type === ContainerEnvType.SECRET ||
-        data?.type === ContainerEnvType.CONFIG_MAP
-      ) {
-        return !!data?.key
+      if (data?.type === ContainerEnvType.SECRET || data?.type === ContainerEnvType.CONFIG_MAP) {
+        return !!data?.key;
       }
-      return true
+      return true;
     },
     {
       message: 'Key is required',
       path: ['key'],
-    },
+    }
   )
   .refine(
     (data) => {
-      if (
-        data?.type === ContainerEnvType.SECRET ||
-        data?.type === ContainerEnvType.CONFIG_MAP
-      ) {
-        return !!data?.refName
+      if (data?.type === ContainerEnvType.SECRET || data?.type === ContainerEnvType.CONFIG_MAP) {
+        return !!data?.refName;
       }
-      return true
+      return true;
     },
     (data) => ({
       message:
-        data?.type === ContainerEnvType.SECRET
-          ? 'Secret is required'
-          : 'Config Map is required',
+        data?.type === ContainerEnvType.SECRET ? 'Secret is required' : 'Config Map is required',
       path: ['refName'],
-    }),
-  )
+    })
+  );
 
 export const runtimeContainerSchema = z
   .object({
@@ -146,10 +138,10 @@ export const runtimeContainerSchema = z
   .and(nameSchema)
   .superRefine((data, ctx) => {
     // Check for duplicate ports names
-    const usedNames = new Set<string>()
+    const usedNames = new Set<string>();
 
     data.ports?.forEach((port, index) => {
-      const name = port.name?.trim()
+      const name = port.name?.trim();
 
       if (name) {
         if (usedNames.has(name)) {
@@ -158,20 +150,20 @@ export const runtimeContainerSchema = z
             code: z.ZodIssueCode.custom,
             message: `Name "${name}" is already used`,
             path: ['ports', index, 'name'],
-          })
+          });
         } else {
           // Track this name as used
-          usedNames.add(name)
+          usedNames.add(name);
         }
       }
-    })
+    });
   })
   .superRefine((data, ctx) => {
     // Check for duplicate envs names
-    const usedNames = new Set<string>()
+    const usedNames = new Set<string>();
 
     data.envs?.forEach((env, index) => {
-      const name = env.name?.trim()
+      const name = env.name?.trim();
 
       if (name) {
         if (usedNames.has(name)) {
@@ -180,14 +172,14 @@ export const runtimeContainerSchema = z
             code: z.ZodIssueCode.custom,
             message: `Name "${name}" is already used`,
             path: ['envs', index, 'name'],
-          })
+          });
         } else {
           // Track this name as used
-          usedNames.add(name)
+          usedNames.add(name);
         }
       }
-    })
-  })
+    });
+  });
 
 export const runtimeSchema = z.object({
   instanceType: z.string({ required_error: 'Instance type is required.' }),
@@ -196,7 +188,7 @@ export const runtimeSchema = z.object({
   }),
   virtualMachine: runtimeVMSchema.optional(),
   containers: z.array(runtimeContainerSchema).optional(),
-})
+});
 
 // End Runtime Section
 
@@ -206,13 +198,13 @@ export const networkFieldSchema = z.object({
   ipFamilies: z
     .array(z.string({ required_error: 'IP family selection is required.' }))
     .min(1, { message: 'At least one IP family must be selected.' }),
-})
+});
 
 export const networksSchema = z.object({
   networks: z.array(networkFieldSchema).min(1, {
     message: 'At least one network must be configured.',
   }),
-})
+});
 
 // End Network Section
 
@@ -224,8 +216,7 @@ export const storageFieldSchema = z
       .min(1, { message: 'Name is required.' })
       .max(63, { message: 'Name must be at most 63 characters long.' })
       .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
-        message:
-          'Name must be kebab-case, start with a letter, and end with a letter or number',
+        message: 'Name must be kebab-case, start with a letter, and end with a letter or number',
       }),
     type: z.enum(Object.values(StorageType) as [string, ...string[]], {
       required_error: 'Storage type is required.',
@@ -245,15 +236,15 @@ export const storageFieldSchema = z
   .refine(
     (data) => {
       if (data?.type === StorageType.FILESYSTEM) {
-        return !!data?.size
+        return !!data?.size;
       }
-      return true
+      return true;
     },
     {
       message: 'Size is required for filesystem storage type',
       path: ['size'],
-    },
-  )
+    }
+  );
 
 export const storagesSchema = z
   .object({
@@ -261,10 +252,10 @@ export const storagesSchema = z
   })
   .superRefine((data, ctx) => {
     // Check for duplicate storage names
-    const usedNames = new Set<string>()
+    const usedNames = new Set<string>();
 
     data.storages.forEach((storage, index) => {
-      const name = storage.name?.trim()
+      const name = storage.name?.trim();
 
       if (name) {
         if (usedNames.has(name)) {
@@ -273,14 +264,14 @@ export const storagesSchema = z
             code: z.ZodIssueCode.custom,
             message: `Name "${name}" is already used`,
             path: ['storages', index, 'name'],
-          })
+          });
         } else {
           // Track this name as used
-          usedNames.add(name)
+          usedNames.add(name);
         }
       }
-    })
-  })
+    });
+  });
 
 // End Storage Section
 
@@ -295,7 +286,7 @@ export const placementFieldSchema = z
       })
       .transform((val) => Number(val)),
   })
-  .and(nameSchema)
+  .and(nameSchema);
 
 export const placementsSchema = z
   .object({
@@ -305,10 +296,10 @@ export const placementsSchema = z
   })
   .superRefine((data, ctx) => {
     // Check for duplicate storage names
-    const usedNames = new Set<string>()
+    const usedNames = new Set<string>();
 
     data.placements.forEach((placement, index) => {
-      const name = placement.name?.trim()
+      const name = placement.name?.trim();
 
       if (name) {
         if (usedNames.has(name)) {
@@ -317,14 +308,14 @@ export const placementsSchema = z
             code: z.ZodIssueCode.custom,
             message: `Name "${name}" is already used`,
             path: ['placements', index, 'name'],
-          })
+          });
         } else {
           // Track this name as used
-          usedNames.add(name)
+          usedNames.add(name);
         }
       }
-    })
-  })
+    });
+  });
 
 // End Placements
 
@@ -336,7 +327,7 @@ export const newWorkloadSchema = z
   })
   .and(networksSchema)
   .and(storagesSchema)
-  .and(placementsSchema)
+  .and(placementsSchema);
 
 export const updateWorkloadSchema = z
   .object({
@@ -346,23 +337,23 @@ export const updateWorkloadSchema = z
   .and(runtimeSchema)
   .and(networksSchema)
   .and(storagesSchema)
-  .and(placementsSchema)
+  .and(placementsSchema);
 
 // End Workload
-export type RuntimeSchema = z.infer<typeof runtimeSchema>
-export type RuntimePortSchema = z.infer<typeof runtimePortSchema>
-export type RuntimeVMSchema = z.infer<typeof runtimeVMSchema>
-export type RuntimeEnvSchema = z.infer<typeof runtimeEnvSchema>
-export type RuntimeContainerSchema = z.infer<typeof runtimeContainerSchema>
+export type RuntimeSchema = z.infer<typeof runtimeSchema>;
+export type RuntimePortSchema = z.infer<typeof runtimePortSchema>;
+export type RuntimeVMSchema = z.infer<typeof runtimeVMSchema>;
+export type RuntimeEnvSchema = z.infer<typeof runtimeEnvSchema>;
+export type RuntimeContainerSchema = z.infer<typeof runtimeContainerSchema>;
 
-export type NetworksSchema = z.infer<typeof networksSchema>
-export type NetworkFieldSchema = z.infer<typeof networkFieldSchema>
+export type NetworksSchema = z.infer<typeof networksSchema>;
+export type NetworkFieldSchema = z.infer<typeof networkFieldSchema>;
 
-export type StoragesSchema = z.infer<typeof storagesSchema>
-export type StorageFieldSchema = z.infer<typeof storageFieldSchema>
+export type StoragesSchema = z.infer<typeof storagesSchema>;
+export type StorageFieldSchema = z.infer<typeof storageFieldSchema>;
 
-export type PlacementsSchema = z.infer<typeof placementsSchema>
-export type PlacementFieldSchema = z.infer<typeof placementFieldSchema>
+export type PlacementsSchema = z.infer<typeof placementsSchema>;
+export type PlacementFieldSchema = z.infer<typeof placementFieldSchema>;
 
-export type NewWorkloadSchema = z.infer<typeof newWorkloadSchema>
-export type UpdateWorkloadSchema = z.infer<typeof updateWorkloadSchema>
+export type NewWorkloadSchema = z.infer<typeof newWorkloadSchema>;
+export type UpdateWorkloadSchema = z.infer<typeof updateWorkloadSchema>;

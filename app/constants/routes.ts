@@ -107,8 +107,7 @@ export const routes = {
         new: '/[orgId]/projects/[projectId]/export-policies/new',
         detail: {
           root: '/[orgId]/projects/[projectId]/export-policies/[exportPolicyId]',
-          overview:
-            '/[orgId]/projects/[projectId]/export-policies/[exportPolicyId]/overview',
+          overview: '/[orgId]/projects/[projectId]/export-policies/[exportPolicyId]/overview',
           edit: '/[orgId]/projects/[projectId]/export-policies/[exportPolicyId]/edit',
         },
       },
@@ -122,4 +121,4 @@ export const routes = {
     serviceAccounts: '/[orgId]/projects/[projectId]/service-accounts',
     settings: '/[orgId]/projects/[projectId]/settings',
   },
-}
+};

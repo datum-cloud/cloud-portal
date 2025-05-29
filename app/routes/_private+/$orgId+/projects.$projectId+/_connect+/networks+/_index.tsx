@@ -1,21 +1,21 @@
-import { DataTable } from '@/components/data-table/data-table'
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
-import { DateFormat } from '@/components/date-format/date-format'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { routes } from '@/constants/routes'
-import { dataWithToast } from '@/modules/cookie/toast.server'
-import { authMiddleware } from '@/modules/middleware/auth.middleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createNetworksControl } from '@/resources/control-plane/networks.control'
-import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
-import { CustomError } from '@/utils/errorHandle'
-import { getPathWithParams } from '@/utils/path'
-import { Client } from '@hey-api/client-axios'
-import { ColumnDef } from '@tanstack/react-table'
-import { PlusIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { DataTable } from '@/components/data-table/data-table';
+import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
+import { DateFormat } from '@/components/date-format/date-format';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { routes } from '@/constants/routes';
+import { dataWithToast } from '@/modules/cookie/toast.server';
+import { authMiddleware } from '@/modules/middleware/auth.middleware';
+import { withMiddleware } from '@/modules/middleware/middleware';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { createNetworksControl } from '@/resources/control-plane/networks.control';
+import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
+import { CustomError } from '@/utils/errorHandle';
+import { getPathWithParams } from '@/utils/path';
+import { Client } from '@hey-api/client-axios';
+import { ColumnDef } from '@tanstack/react-table';
+import { PlusIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import {
   ActionFunctionArgs,
   AppLoadContext,
@@ -24,50 +24,50 @@ import {
   useNavigate,
   useParams,
   useSubmit,
-} from 'react-router'
+} from 'react-router';
 
 export const loader = withMiddleware(async ({ params, context }) => {
-  const { projectId } = params
-  const { controlPlaneClient } = context as AppLoadContext
-  const networksControl = createNetworksControl(controlPlaneClient as Client)
+  const { projectId } = params;
+  const { controlPlaneClient } = context as AppLoadContext;
+  const networksControl = createNetworksControl(controlPlaneClient as Client);
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400)
+    throw new CustomError('Project ID is required', 400);
   }
 
-  const networks = await networksControl.list(projectId)
+  const networks = await networksControl.list(projectId);
 
-  return networks
-}, authMiddleware)
+  return networks;
+}, authMiddleware);
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { controlPlaneClient } = context as AppLoadContext
-  const networksControl = createNetworksControl(controlPlaneClient as Client)
+  const { controlPlaneClient } = context as AppLoadContext;
+  const networksControl = createNetworksControl(controlPlaneClient as Client);
 
   switch (request.method) {
     case 'DELETE': {
-      const formData = Object.fromEntries(await request.formData())
-      const { networkId, projectId } = formData
+      const formData = Object.fromEntries(await request.formData());
+      const { networkId, projectId } = formData;
 
-      await networksControl.delete(projectId as string, networkId as string)
+      await networksControl.delete(projectId as string, networkId as string);
       return dataWithToast(null, {
         title: 'Network deleted successfully',
         description: 'The network has been deleted successfully',
         type: 'success',
-      })
+      });
     }
     default:
-      throw new Error('Method not allowed')
+      throw new Error('Method not allowed');
   }
-}, authMiddleware)
+}, authMiddleware);
 
 export default function ConnectNetworksPage() {
-  const data = useLoaderData<typeof loader>()
-  const navigate = useNavigate()
-  const submit = useSubmit()
+  const data = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
+  const submit = useSubmit();
 
-  const { confirm } = useConfirmationDialog()
-  const { orgId, projectId } = useParams()
+  const { confirm } = useConfirmationDialog();
+  const { orgId, projectId } = useParams();
 
   const deleteNetwork = async (network: INetworkControlResponse) => {
     await confirm({
@@ -95,11 +95,11 @@ export default function ConnectNetworksPage() {
             method: 'DELETE',
             fetcherKey: 'network-resources',
             navigate: false,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   const columns: ColumnDef<INetworkControlResponse>[] = useMemo(
     () => [
@@ -134,7 +134,7 @@ export default function ConnectNetworksPage() {
               className="text-primary font-semibold">
               {row.original.name}
             </Link>
-          )
+          );
         },
       },
       {
@@ -144,21 +144,19 @@ export default function ConnectNetworksPage() {
           return (
             <div className="flex flex-wrap gap-1">
               {row.original.ipFamilies?.map((ipFamily) => (
-                <Badge
-                  key={ipFamily}
-                  variant={ipFamily === 'IPv4' ? 'outline' : 'default'}>
+                <Badge key={ipFamily} variant={ipFamily === 'IPv4' ? 'outline' : 'default'}>
                   {ipFamily}
                 </Badge>
               ))}
             </div>
-          )
+          );
         },
       },
       {
         header: 'IPAM Mode',
         accessorKey: 'ipam',
         cell: ({ row }) => {
-          return <div>{row.original.ipam?.mode}</div>
+          return <div>{row.original.ipam?.mode}</div>;
         },
       },
       {
@@ -169,12 +167,12 @@ export default function ConnectNetworksPage() {
         header: 'Created At',
         accessorKey: 'createdAt',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
         },
       },
     ],
-    [orgId, projectId],
-  )
+    [orgId, projectId]
+  );
 
   const rowActions: DataTableRowActionsProps<INetworkControlResponse>[] = useMemo(
     () => [
@@ -187,8 +185,8 @@ export default function ConnectNetworksPage() {
               orgId,
               projectId,
               networkId: row.name,
-            }),
-          )
+            })
+          );
         },
       },
       {
@@ -198,8 +196,8 @@ export default function ConnectNetworksPage() {
         action: (row) => deleteNetwork(row),
       },
     ],
-    [orgId, projectId],
-  )
+    [orgId, projectId]
+  );
 
   return (
     <DataTable
@@ -226,5 +224,5 @@ export default function ConnectNetworksPage() {
       }}
       rowActions={rowActions}
     />
-  )
+  );
 }

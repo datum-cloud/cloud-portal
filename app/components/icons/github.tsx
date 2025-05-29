@@ -1,16 +1,11 @@
-import React from 'react'
+import React from 'react';
 
 interface GitHubIconProps extends React.SVGProps<SVGSVGElement> {
-  size?: number | string
+  size?: number | string;
 }
 
 export const GitHubIcon = ({ size = 24, ...props }: GitHubIconProps) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 98 96"
-    width={size}
-    height={size}
-    {...props}>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 98 96" width={size} height={size} {...props}>
     <path
       fillRule="evenodd"
       clipRule="evenodd"
@@ -18,4 +13,4 @@ export const GitHubIcon = ({ size = 24, ...props }: GitHubIconProps) => (
       fill="currentColor"
     />
   </svg>
-)
+);

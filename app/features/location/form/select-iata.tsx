@@ -1,6 +1,6 @@
-import { Option } from '@/components/select-autocomplete/select-autocomplete.types'
-import { SelectBox } from '@/components/select-box/select-box'
-import { useMemo } from 'react'
+import { Option } from '@/components/select-autocomplete/select-autocomplete.types';
+import { SelectBox } from '@/components/select-box/select-box';
+import { useMemo } from 'react';
 
 const iataOptions = [
   {
@@ -15,7 +15,7 @@ const iataOptions = [
     value: 'DLS',
     label: 'Columbia Gorge Regional (DLS)',
   },
-]
+];
 
 export const SelectIATA = ({
   defaultValue,
@@ -26,19 +26,19 @@ export const SelectIATA = ({
   id,
   availableItems = [],
 }: {
-  defaultValue?: string
-  className?: string
-  onValueChange: (value: Option) => void
-  placeholder?: string
-  name?: string
-  id?: string
-  availableItems?: string[]
+  defaultValue?: string;
+  className?: string;
+  onValueChange: (value: Option) => void;
+  placeholder?: string;
+  name?: string;
+  id?: string;
+  availableItems?: string[];
 }) => {
   const filteredOptions = useMemo(() => {
     return availableItems.length > 0
       ? iataOptions.filter((option) => availableItems.includes(option.value))
-      : iataOptions
-  }, [availableItems])
+      : iataOptions;
+  }, [availableItems]);
 
   return (
     <SelectBox
@@ -50,5 +50,5 @@ export const SelectIATA = ({
       id={id}
       className={className}
     />
-  )
-}
+  );
+};

@@ -1,15 +1,9 @@
-import { LogoIcon } from '@/components/logo/logo-icon'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { cn } from '@/utils/misc'
-import { Loader2 } from 'lucide-react'
+import { LogoIcon } from '@/components/logo/logo-icon';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { cn } from '@/utils/misc';
+import { Loader2 } from 'lucide-react';
 
-export const WaitingPage = ({
-  title,
-  className,
-}: {
-  title: string
-  className?: string
-}) => {
+export const WaitingPage = ({ title, className }: { title: string; className?: string }) => {
   return (
     <Card className={cn('overflow-hidden', className)}>
       <CardContent className="grid min-h-[500px]">
@@ -32,5 +26,5 @@ export const WaitingPage = ({
         </div>
       </CardFooter>
     </Card>
-  )
-}
+  );
+};

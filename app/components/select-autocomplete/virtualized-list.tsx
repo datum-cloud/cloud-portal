@@ -1,4 +1,4 @@
-import { Option } from './select-autocomplete.types'
+import { Option } from './select-autocomplete.types';
 import {
   Command,
   CommandEmpty,
@@ -6,11 +6,11 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command'
-import { cn } from '@/utils/misc'
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { CheckIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+} from '@/components/ui/command';
+import { cn } from '@/utils/misc';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { CheckIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
 export const VirtualizedList = ({
   options,
@@ -23,109 +23,103 @@ export const VirtualizedList = ({
   disableSearch = false,
   itemSize = 35,
 }: {
-  options: Option[]
-  keyValue?: string
-  selectedValue?: Option
-  onValueChange?: (option: Option) => void
-  itemContent?: (option: Option) => React.ReactNode
-  emptyContent?: string
-  boxClassName?: string
-  disableSearch?: boolean
-  itemSize?: number
+  options: Option[];
+  keyValue?: string;
+  selectedValue?: Option;
+  onValueChange?: (option: Option) => void;
+  itemContent?: (option: Option) => React.ReactNode;
+  emptyContent?: string;
+  boxClassName?: string;
+  disableSearch?: boolean;
+  itemSize?: number;
 }) => {
-  const [filteredOptions, setFilteredOptions] = useState<Option[]>(options)
-  const [focusedIndex, setFocusedIndex] = useState(0)
-  const [isKeyboardNavActive, setIsKeyboardNavActive] = useState(false)
+  const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
+  const [focusedIndex, setFocusedIndex] = useState(0);
+  const [isKeyboardNavActive, setIsKeyboardNavActive] = useState(false);
 
-  const parentRef = useRef(null)
+  const parentRef = useRef(null);
 
   const virtualizer = useVirtualizer({
     count: filteredOptions.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => itemSize ?? 35,
-  })
+  });
 
-  const virtualOptions = virtualizer.getVirtualItems()
+  const virtualOptions = virtualizer.getVirtualItems();
 
   const scrollToIndex = (index: number) => {
     virtualizer.scrollToIndex(index, {
       align: 'center',
-    })
-  }
+    });
+  };
 
   const handleSearch = (search: string) => {
-    setIsKeyboardNavActive(false)
+    setIsKeyboardNavActive(false);
     setFilteredOptions(
       options.filter((option) => {
-        const searchLower = search.toLowerCase()
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const searchLower = search.toLowerCase();
+
         return Object.entries(option).some(([_, value]) => {
           // Only filter string values
           if (typeof value === 'string') {
-            return value.toLowerCase().includes(searchLower)
+            return value.toLowerCase().includes(searchLower);
           }
-          return false
-        })
-      }),
-    )
-  }
+          return false;
+        });
+      })
+    );
+  };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     switch (event.key) {
       case 'ArrowDown': {
-        event.preventDefault()
-        setIsKeyboardNavActive(true)
+        event.preventDefault();
+        setIsKeyboardNavActive(true);
         setFocusedIndex((prev) => {
-          const newIndex =
-            prev === -1 ? 0 : Math.min(prev + 1, filteredOptions.length - 1)
-          scrollToIndex(newIndex)
-          return newIndex
-        })
-        break
+          const newIndex = prev === -1 ? 0 : Math.min(prev + 1, filteredOptions.length - 1);
+          scrollToIndex(newIndex);
+          return newIndex;
+        });
+        break;
       }
       case 'ArrowUp': {
-        event.preventDefault()
-        setIsKeyboardNavActive(true)
+        event.preventDefault();
+        setIsKeyboardNavActive(true);
         setFocusedIndex((prev) => {
-          const newIndex =
-            prev === -1 ? filteredOptions.length - 1 : Math.max(prev - 1, 0)
-          scrollToIndex(newIndex)
-          return newIndex
-        })
-        break
+          const newIndex = prev === -1 ? filteredOptions.length - 1 : Math.max(prev - 1, 0);
+          scrollToIndex(newIndex);
+          return newIndex;
+        });
+        break;
       }
       case 'Enter': {
-        event.preventDefault()
+        event.preventDefault();
         if (filteredOptions[focusedIndex]) {
-          onValueChange?.(filteredOptions[focusedIndex])
+          onValueChange?.(filteredOptions[focusedIndex]);
         }
-        break
+        break;
       }
       default:
-        break
+        break;
     }
-  }
+  };
 
   useEffect(() => {
     if (selectedValue) {
-      const option = filteredOptions.find(
-        (option) => option[keyValue] === selectedValue[keyValue],
-      )
+      const option = filteredOptions.find((option) => option[keyValue] === selectedValue[keyValue]);
       if (option) {
-        const index = filteredOptions.indexOf(option)
-        setFocusedIndex(index)
+        const index = filteredOptions.indexOf(option);
+        setFocusedIndex(index);
         virtualizer.scrollToIndex(index, {
           align: 'center',
-        })
+        });
       }
     }
-  }, [selectedValue, filteredOptions, virtualizer])
+  }, [selectedValue, filteredOptions, virtualizer]);
 
   return (
     <Command shouldFilter={false} onKeyDown={handleKeyDown}>
-      {!disableSearch && (
-        <CommandInput onValueChange={handleSearch} placeholder="Search..." />
-      )}
+      {!disableSearch && <CommandInput onValueChange={handleSearch} placeholder="Search..." />}
       <CommandList
         ref={parentRef}
         className={cn('h-[200px] w-full min-w-[300px] overflow-auto', boxClassName)}
@@ -140,24 +134,22 @@ export const VirtualizedList = ({
             }}
             className="relative w-full">
             {virtualOptions.map((virtualOption) => {
-              const option = filteredOptions[virtualOption.index]
-              const isSelected = option[keyValue] === selectedValue?.[keyValue]
+              const option = filteredOptions[virtualOption.index];
+              const isSelected = option[keyValue] === selectedValue?.[keyValue];
               return (
                 <CommandItem
                   key={option[keyValue]}
                   disabled={isKeyboardNavActive || option.disabled}
-                  onMouseEnter={() =>
-                    !isKeyboardNavActive && setFocusedIndex(virtualOption.index)
-                  }
+                  onMouseEnter={() => !isKeyboardNavActive && setFocusedIndex(virtualOption.index)}
                   onMouseLeave={() => !isKeyboardNavActive && setFocusedIndex(-1)}
                   onSelect={() => {
-                    onValueChange?.(option)
+                    onValueChange?.(option);
                   }}
                   className={cn(
                     'absolute top-0 left-0 w-full bg-transparent',
                     isKeyboardNavActive &&
                       focusedIndex !== virtualOption.index &&
-                      'aria-selected:text-primary aria-selected:bg-transparent',
+                      'aria-selected:text-primary aria-selected:bg-transparent'
                   )}
                   style={{
                     minHeight: `${virtualOption.size}px`,
@@ -170,11 +162,11 @@ export const VirtualizedList = ({
                     </div>
                   </div>
                 </CommandItem>
-              )
+              );
             })}
           </div>
         </CommandGroup>
       </CommandList>
     </Command>
-  )
-}
+  );
+};

@@ -1,18 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { CodeEditor } from '@/components/code-editor/code-editor'
-import { DataTable } from '@/components/data-table/data-table'
-import { TextCopy } from '@/components/text-copy/text-copy'
-import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface'
-import { CodeIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { CodeEditor } from '@/components/code-editor/code-editor';
+import { DataTable } from '@/components/data-table/data-table';
+import { TextCopy } from '@/components/text-copy/text-copy';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { CodeIcon } from 'lucide-react';
+import { useMemo } from 'react';
 
 export const WorkloadSourcesTable = ({
   data,
 }: {
-  data: IExportPolicyControlResponse['sources']
+  data: IExportPolicyControlResponse['sources'];
 }) => {
   const columns = useMemo(
     () => [
@@ -26,7 +25,7 @@ export const WorkloadSourcesTable = ({
               value={row.original?.name ?? ''}
               className="text-primary leading-none font-semibold"
             />
-          )
+          );
         },
       },
       {
@@ -54,12 +53,12 @@ export const WorkloadSourcesTable = ({
                 />
               </PopoverContent>
             </Popover>
-          )
+          );
         },
       },
     ],
-    [],
-  )
+    []
+  );
 
   return (
     <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
@@ -75,5 +74,5 @@ export const WorkloadSourcesTable = ({
         />
       </CardContent>
     </Card>
-  )
-}
+  );
+};

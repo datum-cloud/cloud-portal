@@ -1,13 +1,10 @@
-import { ContainerField } from './container-field'
-import { Button } from '@/components/ui/button'
-import {
-  RuntimeContainerSchema,
-  RuntimeSchema,
-} from '@/resources/schemas/workload.schema'
-import { cn } from '@/utils/misc'
-import { useForm, useFormMetadata } from '@conform-to/react'
-import { PlusIcon, TrashIcon } from 'lucide-react'
-import { useEffect } from 'react'
+import { ContainerField } from './container-field';
+import { Button } from '@/components/ui/button';
+import { RuntimeContainerSchema, RuntimeSchema } from '@/resources/schemas/workload.schema';
+import { cn } from '@/utils/misc';
+import { useForm, useFormMetadata } from '@conform-to/react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useEffect } from 'react';
 
 export const ContainerForm = ({
   isEdit,
@@ -15,28 +12,28 @@ export const ContainerForm = ({
   defaultValue,
   projectId,
 }: {
-  isEdit: boolean
-  fields: ReturnType<typeof useForm<RuntimeSchema>>[1]
-  defaultValue?: RuntimeContainerSchema[]
-  projectId?: string
+  isEdit: boolean;
+  fields: ReturnType<typeof useForm<RuntimeSchema>>[1];
+  defaultValue?: RuntimeContainerSchema[];
+  projectId?: string;
 }) => {
-  const form = useFormMetadata('workload-form')
-  const containers = fields.containers.getFieldList()
+  const form = useFormMetadata('workload-form');
+  const containers = fields.containers.getFieldList();
 
   useEffect(() => {
     if (defaultValue) {
       form.update({
         name: fields.containers.name,
         value: defaultValue as RuntimeContainerSchema[],
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <div className="flex w-full flex-col gap-2">
       <div className="space-y-4">
         {containers.map((container, index) => {
-          const containerFields = container.getFieldset()
+          const containerFields = container.getFieldset();
           return (
             <div
               className="relative flex items-center gap-2 rounded-md border p-4"
@@ -62,14 +59,14 @@ export const ContainerForm = ({
                     (containerFields.name.errors ?? []).length > 0 ||
                       (containerFields.image.errors ?? []).length > 0
                       ? '-top-1'
-                      : 'top-2.5',
+                      : 'top-2.5'
                   )}
                   onClick={() => form.remove({ name: fields.containers.name, index })}>
                   <TrashIcon className="size-4" />
                 </Button>
               )}
             </div>
-          )
+          );
         })}
       </div>
       <Button
@@ -87,5 +84,5 @@ export const ContainerForm = ({
         Add Container
       </Button>
     </div>
-  )
-}
+  );
+};

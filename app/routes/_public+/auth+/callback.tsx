@@ -1,18 +1,18 @@
-import { LogoIcon } from '@/components/logo/logo-icon'
-import { Button } from '@/components/ui/button'
-import { routes } from '@/constants/routes'
-import { useIsPending } from '@/hooks/useIsPending'
-import { authenticator } from '@/modules/auth/auth.server'
-import { setIdTokenSession } from '@/modules/cookie/id-token.server'
-import { getSession, setSession } from '@/modules/cookie/session.server'
-import { IAuthSession } from '@/resources/interfaces/auth.interface'
-import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index'
-import { CustomError } from '@/utils/errorHandle'
-import { combineHeaders } from '@/utils/misc'
-import { getPathWithParams } from '@/utils/path'
-import { jwtDecode } from 'jwt-decode'
-import { Loader2 } from 'lucide-react'
-import { useEffect } from 'react'
+import { LogoIcon } from '@/components/logo/logo-icon';
+import { Button } from '@/components/ui/button';
+import { routes } from '@/constants/routes';
+import { useIsPending } from '@/hooks/useIsPending';
+import { authenticator } from '@/modules/auth/auth.server';
+import { setIdTokenSession } from '@/modules/cookie/id-token.server';
+import { getSession, setSession } from '@/modules/cookie/session.server';
+import { IAuthSession } from '@/resources/interfaces/auth.interface';
+import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
+import { CustomError } from '@/utils/errorHandle';
+import { combineHeaders } from '@/utils/misc';
+import { getPathWithParams } from '@/utils/path';
+import { jwtDecode } from 'jwt-decode';
+import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 import {
   LoaderFunctionArgs,
   redirect,
@@ -20,30 +20,30 @@ import {
   data,
   useFetcher,
   useNavigate,
-} from 'react-router'
+} from 'react-router';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
-    const session = await getSession(request)
+    const session = await getSession(request);
 
     // Redirect if already authenticated
     if (session.session) {
-      return redirect(routes.home, { headers: session.headers })
+      return redirect(routes.home, { headers: session.headers });
     }
 
     // Authenticate user
     const credentials: IAuthSession | undefined = await authenticator.authenticate(
       'zitadel',
-      request,
-    )
+      request
+    );
     if (!credentials) {
-      throw new CustomError('Authentication failed', 401)
+      throw new CustomError('Authentication failed', 401);
     }
 
-    const { idToken, ...rest } = credentials
+    const { idToken, ...rest } = credentials;
 
     // Decode Access token
-    const decoded = jwtDecode<{ sub: string; email: string }>(rest.accessToken)
+    const decoded = jwtDecode<{ sub: string; email: string }>(rest.accessToken);
 
     // Handle auth session
     const { headers: sessionHeaders } = await setSession(request, {
@@ -51,56 +51,56 @@ export async function loader({ request }: LoaderFunctionArgs) {
       refreshToken: rest.refreshToken,
       expiredAt: rest.expiredAt,
       sub: decoded.sub,
-    })
+    });
 
     // Handle id token session
-    let idTokenHeaders: Headers | undefined
+    let idTokenHeaders: Headers | undefined;
     if (idToken) {
-      const idTokenResponse = await setIdTokenSession(request, idToken)
-      idTokenHeaders = idTokenResponse.headers
+      const idTokenResponse = await setIdTokenSession(request, idToken);
+      idTokenHeaders = idTokenResponse.headers;
     }
 
     // Combine headers
-    const headers = combineHeaders(sessionHeaders, idTokenHeaders)
+    const headers = combineHeaders(sessionHeaders, idTokenHeaders);
 
     // Return auth data for client loader to handle organization fetching
-    return data({ success: true }, { headers: headers })
+    return data({ success: true }, { headers: headers });
   } catch (error) {
     const errMessage =
       error instanceof CustomError
         ? error.message
-        : 'Something went wrong with callback from provider'
+        : 'Something went wrong with callback from provider';
 
-    return data({ success: false, error: errMessage })
+    return data({ success: false, error: errMessage });
   }
 }
 
 export default function AuthCallbackPage() {
-  const data = useLoaderData()
-  const navigate = useNavigate()
-  const isPending = useIsPending({ fetcherKey: 'org-list' })
+  const data = useLoaderData();
+  const navigate = useNavigate();
+  const isPending = useIsPending({ fetcherKey: 'org-list' });
 
-  const fetcher = useFetcher({ key: 'org-list' })
+  const fetcher = useFetcher({ key: 'org-list' });
 
   useEffect(() => {
     if (data?.success) {
-      fetcher.load(ORG_LIST_PATH)
+      fetcher.load(ORG_LIST_PATH);
     }
-  }, [data])
+  }, [data]);
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
-      const { success, data: org } = fetcher.data
+      const { success, data: org } = fetcher.data;
 
       if (!success) {
-        navigate(routes.account.organizations.root)
-        return
+        navigate(routes.account.organizations.root);
+        return;
       }
 
-      navigate(getPathWithParams(routes.org.projects.root, { orgId: org[0].id }))
-      return
+      navigate(getPathWithParams(routes.org.projects.root, { orgId: org[0].id }));
+      return;
     }
-  }, [fetcher.data, fetcher.state])
+  }, [fetcher.data, fetcher.state]);
 
   return (
     <div className="flex min-h-[300px] flex-col items-center justify-center gap-4">
@@ -124,5 +124,5 @@ export default function AuthCallbackPage() {
         </>
       )}
     </div>
-  )
+  );
 }

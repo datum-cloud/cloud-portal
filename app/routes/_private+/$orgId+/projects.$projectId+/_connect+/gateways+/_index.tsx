@@ -1,23 +1,23 @@
-import { DataTable } from '@/components/data-table/data-table'
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
-import { DateFormat } from '@/components/date-format/date-format'
-import { TextCopy } from '@/components/text-copy/text-copy'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { routes } from '@/constants/routes'
-import { GatewayStatus } from '@/features/connect/gateway/status'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createGatewaysControl } from '@/resources/control-plane/gateways.control'
-import { IGatewayControlResponseLite } from '@/resources/interfaces/gateway.interface'
-import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api+/connect+/gateways+/actions'
-import { CustomError } from '@/utils/errorHandle'
-import { transformControlPlaneStatus } from '@/utils/misc'
-import { getPathWithParams } from '@/utils/path'
-import { Client } from '@hey-api/client-axios'
-import { ColumnDef } from '@tanstack/react-table'
-import { InfoIcon, PlusIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { DataTable } from '@/components/data-table/data-table';
+import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
+import { DateFormat } from '@/components/date-format/date-format';
+import { TextCopy } from '@/components/text-copy/text-copy';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { routes } from '@/constants/routes';
+import { GatewayStatus } from '@/features/connect/gateway/status';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { createGatewaysControl } from '@/resources/control-plane/gateways.control';
+import { IGatewayControlResponseLite } from '@/resources/interfaces/gateway.interface';
+import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api+/connect+/gateways+/actions';
+import { CustomError } from '@/utils/errorHandle';
+import { transformControlPlaneStatus } from '@/utils/misc';
+import { getPathWithParams } from '@/utils/path';
+import { Client } from '@hey-api/client-axios';
+import { ColumnDef } from '@tanstack/react-table';
+import { InfoIcon, PlusIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import {
   AppLoadContext,
   Link,
@@ -26,28 +26,28 @@ import {
   useNavigate,
   useParams,
   useSubmit,
-} from 'react-router'
+} from 'react-router';
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
-  const { projectId } = params
-  const { controlPlaneClient } = context as AppLoadContext
-  const gatewaysControl = createGatewaysControl(controlPlaneClient as Client)
+  const { projectId } = params;
+  const { controlPlaneClient } = context as AppLoadContext;
+  const gatewaysControl = createGatewaysControl(controlPlaneClient as Client);
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400)
+    throw new CustomError('Project ID is required', 400);
   }
 
-  const gateways = await gatewaysControl.list(projectId)
-  return gateways
-}
+  const gateways = await gatewaysControl.list(projectId);
+  return gateways;
+};
 
 export default function ConnectGatewaysPage() {
-  const { orgId, projectId } = useParams()
-  const data = useLoaderData<typeof loader>()
-  const submit = useSubmit()
-  const navigate = useNavigate()
+  const { orgId, projectId } = useParams();
+  const data = useLoaderData<typeof loader>();
+  const submit = useSubmit();
+  const navigate = useNavigate();
 
-  const { confirm } = useConfirmationDialog()
+  const { confirm } = useConfirmationDialog();
 
   const deleteGateway = async (gateway: IGatewayControlResponseLite) => {
     await confirm({
@@ -77,11 +77,11 @@ export default function ConnectGatewaysPage() {
             fetcherKey: 'gateway-resources',
             navigate: false,
             action: GATEWAYS_ACTIONS_PATH,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   const columns: ColumnDef<IGatewayControlResponseLite>[] = useMemo(
     () => [
@@ -99,7 +99,7 @@ export default function ConnectGatewaysPage() {
               className="text-primary font-semibold">
               {row.original.name}
             </Link>
-          )
+          );
         },
       },
       {
@@ -110,7 +110,7 @@ export default function ConnectGatewaysPage() {
         header: '# of Listeners',
         accessorKey: 'listeners',
         cell: ({ row }) => {
-          return row.original.numberOfListeners ?? 0
+          return row.original.numberOfListeners ?? 0;
         },
       },
       {
@@ -129,7 +129,7 @@ export default function ConnectGatewaysPage() {
                 className="min-w-[500px] p-3"
                 align="center"
                 onOpenAutoFocus={(event) => {
-                  event.preventDefault()
+                  event.preventDefault();
                 }}>
                 <div className="space-y-3">
                   {row.original.addresses?.map((address, idx) => (
@@ -140,17 +140,14 @@ export default function ConnectGatewaysPage() {
                         <Badge variant="outline" className="px-2 py-0.5 text-xs">
                           {address.type}
                         </Badge>
-                        <TextCopy
-                          value={address.value}
-                          className="font-mono text-xs break-all"
-                        />
+                        <TextCopy value={address.value} className="font-mono text-xs break-all" />
                       </div>
                     </div>
                   ))}
                 </div>
               </PopoverContent>
             </Popover>
-          )
+          );
         },
       },
       {
@@ -167,19 +164,19 @@ export default function ConnectGatewaysPage() {
                 badgeClassName="px-0"
               />
             )
-          )
+          );
         },
       },
       {
         header: 'Created At',
         accessorKey: 'createdAt',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
         },
       },
     ],
-    [orgId, projectId],
-  )
+    [orgId, projectId]
+  );
 
   const rowActions: DataTableRowActionsProps<IGatewayControlResponseLite>[] = useMemo(
     () => [
@@ -192,8 +189,8 @@ export default function ConnectGatewaysPage() {
               orgId,
               projectId,
               gatewayId: row.name,
-            }),
-          )
+            })
+          );
         },
       },
       {
@@ -203,8 +200,8 @@ export default function ConnectGatewaysPage() {
         action: (row) => deleteGateway(row),
       },
     ],
-    [orgId, projectId],
-  )
+    [orgId, projectId]
+  );
 
   return (
     <DataTable
@@ -231,5 +228,5 @@ export default function ConnectGatewaysPage() {
       }}
       rowActions={rowActions}
     />
-  )
+  );
 }

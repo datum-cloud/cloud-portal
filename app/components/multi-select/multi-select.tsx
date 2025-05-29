@@ -1,6 +1,6 @@
 // src/components/multi-select.tsx
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -8,14 +8,14 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Separator } from '@/components/ui/separator'
-import { cn } from '@/utils/misc'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { CheckIcon, XCircle, ChevronDown, XIcon, WandSparkles } from 'lucide-react'
-import * as React from 'react'
-import { useEffect } from 'react'
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/utils/misc';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { CheckIcon, XCircle, ChevronDown, XIcon, WandSparkles } from 'lucide-react';
+import * as React from 'react';
+import { useEffect } from 'react';
 
 /**
  * Variants for the multi-select component to handle different styles.
@@ -37,17 +37,17 @@ const multiSelectVariants = cva(
     defaultVariants: {
       variant: 'default',
     },
-  },
-)
+  }
+);
 
 /**
  * Props for MultiSelect component
  */
 
 export interface MultiSelectOption {
-  label: string
-  value: string
-  icon?: React.ComponentType<{ className?: string }>
+  label: string;
+  value: string;
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
 interface MultiSelectProps
@@ -57,60 +57,60 @@ interface MultiSelectProps
    * An array of option objects to be displayed in the multi-select component.
    * Each option object has a label, value, and an optional icon.
    */
-  options: MultiSelectOption[]
+  options: MultiSelectOption[];
 
   /**
    * Callback function triggered when the selected values change.
    * Receives an array of the new selected values.
    */
-  onValueChange: (value: string[]) => void
+  onValueChange: (value: string[]) => void;
 
   /** The default selected values when the component mounts. */
-  defaultValue?: string[]
+  defaultValue?: string[];
 
   /**
    * Placeholder text to be displayed when no values are selected.
    * Optional, defaults to "Select options".
    */
-  placeholder?: string
+  placeholder?: string;
 
   /**
    * Animation duration in seconds for the visual effects (e.g., bouncing badges).
    * Optional, defaults to 0 (no animation).
    */
-  animation?: number
+  animation?: number;
 
   /**
    * Maximum number of items to display. Extra selected items will be summarized.
    * Set to -1 for unlimited items.
    * Optional, defaults to 3.
    */
-  maxCount?: number | -1
+  maxCount?: number | -1;
 
   /**
    * The modality of the popover. When set to true, interaction with outside elements
    * will be disabled and only popover content will be visible to screen readers.
    * Optional, defaults to false.
    */
-  modalPopover?: boolean
+  modalPopover?: boolean;
 
   /**
    * If true, renders the multi-select component as a child of another component.
    * Optional, defaults to false.
    */
-  asChild?: boolean
+  asChild?: boolean;
 
   /**
    * Additional class names to apply custom styles to the multi-select component.
    * Optional, can be used to add custom styles.
    */
-  className?: string
+  className?: string;
 
   /**
    * Additional class names to apply custom styles to the box container.
    * Optional, can be used to add custom styles to the box wrapper.
    */
-  boxClassName?: string
+  boxClassName?: string;
 
   /**
    * Custom actions to be displayed in the multi-select popover.
@@ -119,51 +119,51 @@ interface MultiSelectProps
    */
   actions?: Array<{
     /** The label text to display for the action */
-    label: string
+    label: string;
     /** Click handler for the action */
-    onClick: () => void
+    onClick: () => void;
     /** Optional icon component to display alongside the action */
-    icon?: React.ComponentType<{ className?: string }>
+    icon?: React.ComponentType<{ className?: string }>;
     /** Optional class name for custom styling */
-    className?: string
-  }>
+    className?: string;
+  }>;
 
   /**
    * Callback function triggered when a selected badge is clicked.
    * Receives the value of the clicked badge as a parameter.
    * Optional, can be used to handle badge click interactions.
    */
-  onBadgeClick?: (option: MultiSelectOption) => void
+  onBadgeClick?: (option: MultiSelectOption) => void;
 
-  badgeClassName?: string
+  badgeClassName?: string;
 
   /**
    * Determines if badges should be clickable.
    * When true, badges will have hover and click interactions.
    * Optional, defaults to false.
    */
-  clickableBadges?: boolean
+  clickableBadges?: boolean;
 
   /**
    * Controls the visibility of the close (X) button in the popover.
    * When false, the close button will be hidden.
    * Optional, defaults to true.
    */
-  showCloseButton?: boolean
+  showCloseButton?: boolean;
 
   /**
    * Determines if the clear button should be shown in the popover.
    * When false, the clear button will be hidden.
    * Optional, defaults to true.
    */
-  showClearButton?: boolean
+  showClearButton?: boolean;
 
   /**
    * Controls whether to show the "Select All" option in the popover.
    * When true, a "Select All" option will be displayed at the top of the options list.
    * Optional, defaults to false.
    */
-  showSelectAll?: boolean
+  showSelectAll?: boolean;
 }
 
 export const MultiSelect = ({
@@ -175,7 +175,7 @@ export const MultiSelect = ({
   animation = 0,
   maxCount = 3,
   modalPopover = false,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   asChild = false,
   className,
   boxClassName,
@@ -190,48 +190,48 @@ export const MultiSelect = ({
   id,
   name,
 }: MultiSelectProps) => {
-  const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue)
-  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false)
-  const [isAnimating, setIsAnimating] = React.useState(false)
+  const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
+  const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+  const [isAnimating, setIsAnimating] = React.useState(false);
 
   const toggleOption = (option: string) => {
     const newSelectedValues = selectedValues.includes(option)
       ? selectedValues.filter((value) => value !== option)
-      : [...selectedValues, option]
-    setSelectedValues(newSelectedValues)
-    onValueChange(newSelectedValues)
-  }
+      : [...selectedValues, option];
+    setSelectedValues(newSelectedValues);
+    onValueChange(newSelectedValues);
+  };
 
   const handleClear = () => {
-    setSelectedValues([])
-    onValueChange([])
-  }
+    setSelectedValues([]);
+    onValueChange([]);
+  };
 
   const handleTogglePopover = () => {
-    setIsPopoverOpen((prev) => !prev)
-  }
+    setIsPopoverOpen((prev) => !prev);
+  };
 
   const clearExtraOptions = () => {
-    const newSelectedValues = selectedValues.slice(0, maxCount)
-    setSelectedValues(newSelectedValues)
-    onValueChange(newSelectedValues)
-  }
+    const newSelectedValues = selectedValues.slice(0, maxCount);
+    setSelectedValues(newSelectedValues);
+    onValueChange(newSelectedValues);
+  };
 
   const toggleAll = () => {
     if (selectedValues.length === options.length) {
-      handleClear()
+      handleClear();
     } else {
-      const allValues = options.map((option) => option.value)
-      setSelectedValues(allValues)
-      onValueChange(allValues)
+      const allValues = options.map((option) => option.value);
+      setSelectedValues(allValues);
+      onValueChange(allValues);
     }
-  }
+  };
 
   useEffect(() => {
     if (defaultValue) {
-      setSelectedValues(defaultValue)
+      setSelectedValues(defaultValue);
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <>
@@ -243,60 +243,58 @@ export const MultiSelect = ({
             onClick={handleTogglePopover}
             className={cn(
               'flex h-auto min-h-10 w-full items-center justify-between rounded-md border bg-inherit p-1 hover:bg-inherit [&_svg]:pointer-events-auto',
-              className,
+              className
             )}>
             {selectedValues.length > 0 ? (
               <div className="flex w-full items-center justify-between">
                 <div className="flex flex-wrap items-center">
-                  {selectedValues
-                    .slice(0, maxCount === -1 ? undefined : maxCount)
-                    .map((value) => {
-                      const option = options.find((o) => o.value === value)
-                      const IconComponent = option?.icon
-                      return (
-                        <Badge
-                          key={value}
-                          className={cn(
-                            isAnimating ? 'animate-bounce' : '',
-                            multiSelectVariants({ variant }),
-                            clickableBadges && 'cursor-pointer',
-                            badgeClassName ?? '',
-                          )}
-                          style={{ animationDuration: `${animation}s` }}
+                  {selectedValues.slice(0, maxCount === -1 ? undefined : maxCount).map((value) => {
+                    const option = options.find((o) => o.value === value);
+                    const IconComponent = option?.icon;
+                    return (
+                      <Badge
+                        key={value}
+                        className={cn(
+                          isAnimating ? 'animate-bounce' : '',
+                          multiSelectVariants({ variant }),
+                          clickableBadges && 'cursor-pointer',
+                          badgeClassName ?? ''
+                        )}
+                        style={{ animationDuration: `${animation}s` }}
+                        onClick={(event) => {
+                          if (clickableBadges) {
+                            event.stopPropagation();
+                            event.preventDefault();
+                            onBadgeClick?.(option ?? { label: '', value: '' });
+                          }
+                        }}>
+                        {IconComponent && <IconComponent className="mr-2 size-4" />}
+                        {option?.label}
+                        <XCircle
+                          className="ml-2 size-4 cursor-pointer"
                           onClick={(event) => {
-                            if (clickableBadges) {
-                              event.stopPropagation()
-                              event.preventDefault()
-                              onBadgeClick?.(option ?? { label: '', value: '' })
-                            }
-                          }}>
-                          {IconComponent && <IconComponent className="mr-2 size-4" />}
-                          {option?.label}
-                          <XCircle
-                            className="ml-2 size-4 cursor-pointer"
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              event.preventDefault()
-                              toggleOption(value)
-                            }}
-                          />
-                        </Badge>
-                      )
-                    })}
+                            event.stopPropagation();
+                            event.preventDefault();
+                            toggleOption(value);
+                          }}
+                        />
+                      </Badge>
+                    );
+                  })}
                   {selectedValues.length > maxCount && maxCount !== -1 && (
                     <Badge
                       className={cn(
                         'border-foreground/1 text-foreground bg-transparent hover:bg-transparent',
                         isAnimating ? 'animate-bounce' : '',
-                        multiSelectVariants({ variant }),
+                        multiSelectVariants({ variant })
                       )}
                       style={{ animationDuration: `${animation}s` }}>
                       {`+ ${selectedValues.length - maxCount} more`}
                       <XCircle
                         className="ml-2 size-4 cursor-pointer"
                         onClick={(event) => {
-                          event.stopPropagation()
-                          clearExtraOptions()
+                          event.stopPropagation();
+                          clearExtraOptions();
                         }}
                       />
                     </Badge>
@@ -306,8 +304,8 @@ export const MultiSelect = ({
                   <XIcon
                     className="text-muted-foreground mx-2 h-4 cursor-pointer"
                     onClick={(event) => {
-                      event.stopPropagation()
-                      handleClear()
+                      event.stopPropagation();
+                      handleClear();
                     }}
                   />
                   <Separator orientation="vertical" className="flex h-full min-h-6" />
@@ -332,16 +330,13 @@ export const MultiSelect = ({
               {options.length > 0 && (
                 <CommandGroup className="max-h-[250px] overflow-y-auto">
                   {showSelectAll && (
-                    <CommandItem
-                      key="all"
-                      onSelect={toggleAll}
-                      className="cursor-pointer">
+                    <CommandItem key="all" onSelect={toggleAll} className="cursor-pointer">
                       <div
                         className={cn(
                           'border-primary mr-2 flex size-4 items-center justify-center rounded-sm border',
                           selectedValues.length === options.length
                             ? 'bg-primary text-primary-foreground'
-                            : 'opacity-50 [&_svg]:invisible',
+                            : 'opacity-50 [&_svg]:invisible'
                         )}>
                         <CheckIcon className="size-4" />
                       </div>
@@ -349,7 +344,7 @@ export const MultiSelect = ({
                     </CommandItem>
                   )}
                   {options.map((option) => {
-                    const isSelected = selectedValues.includes(option.value)
+                    const isSelected = selectedValues.includes(option.value);
                     return (
                       <CommandItem
                         key={option.value}
@@ -360,7 +355,7 @@ export const MultiSelect = ({
                             'border-primary mr-2 flex size-4 items-center justify-center rounded-sm border',
                             isSelected
                               ? 'bg-primary text-primary-foreground'
-                              : 'opacity-50 [&_svg]:invisible',
+                              : 'opacity-50 [&_svg]:invisible'
                           )}>
                           <CheckIcon className="text-background size-4" />
                         </div>
@@ -369,7 +364,7 @@ export const MultiSelect = ({
                         )}
                         <span>{option.label}</span>
                       </CommandItem>
-                    )
+                    );
                   })}
                 </CommandGroup>
               )}
@@ -404,10 +399,7 @@ export const MultiSelect = ({
                             Clear
                           </CommandItem>
                           {showCloseButton && (
-                            <Separator
-                              orientation="vertical"
-                              className="flex h-full min-h-6"
-                            />
+                            <Separator orientation="vertical" className="flex h-full min-h-6" />
                           )}
                         </>
                       )}
@@ -431,7 +423,7 @@ export const MultiSelect = ({
           <WandSparkles
             className={cn(
               'bg-background text-foreground my-2 h-3 w-3 cursor-pointer',
-              isAnimating ? '' : 'text-muted-foreground',
+              isAnimating ? '' : 'text-muted-foreground'
             )}
             onClick={() => setIsAnimating(!isAnimating)}
           />
@@ -452,7 +444,7 @@ export const MultiSelect = ({
         ))}
       </select>
     </>
-  )
-}
+  );
+};
 
-MultiSelect.displayName = 'MultiSelect'
+MultiSelect.displayName = 'MultiSelect';

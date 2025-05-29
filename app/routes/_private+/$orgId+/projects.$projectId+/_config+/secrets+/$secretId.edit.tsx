@@ -1,22 +1,22 @@
-import { DateFormat } from '@/components/date-format/date-format'
-import { MoreActions } from '@/components/more-actions/more-actions'
-import { PageTitle } from '@/components/page-title/page-title'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { routes } from '@/constants/routes'
-import { EditSecretKeys } from '@/features/secret/form/edit/edit-keys'
-import { EditSecretMetadata } from '@/features/secret/form/edit/edit-metadata'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createSecretsControl } from '@/resources/control-plane/secrets.control'
-import { ISecretControlResponse } from '@/resources/interfaces/secret.interface'
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions'
-import { CustomError } from '@/utils/errorHandle'
-import { mergeMeta, metaObject } from '@/utils/meta'
-import { getPathWithParams } from '@/utils/path'
-import { Client } from '@hey-api/client-axios'
-import { formatDistanceToNow } from 'date-fns/formatDistanceToNow'
-import { motion } from 'framer-motion'
-import { ArrowLeft, ClockIcon } from 'lucide-react'
+import { DateFormat } from '@/components/date-format/date-format';
+import { MoreActions } from '@/components/more-actions/more-actions';
+import { PageTitle } from '@/components/page-title/page-title';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { routes } from '@/constants/routes';
+import { EditSecretKeys } from '@/features/secret/form/edit/edit-keys';
+import { EditSecretMetadata } from '@/features/secret/form/edit/edit-metadata';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { createSecretsControl } from '@/resources/control-plane/secrets.control';
+import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
+import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions';
+import { CustomError } from '@/utils/errorHandle';
+import { mergeMeta, metaObject } from '@/utils/meta';
+import { getPathWithParams } from '@/utils/path';
+import { Client } from '@hey-api/client-axios';
+import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
+import { motion } from 'framer-motion';
+import { ArrowLeft, ClockIcon } from 'lucide-react';
 import {
   AppLoadContext,
   Link,
@@ -25,32 +25,32 @@ import {
   useLoaderData,
   useParams,
   useSubmit,
-} from 'react-router'
+} from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(({ data }) => {
-  return metaObject(`Edit ${(data as ISecretControlResponse)?.name}`)
-})
+  return metaObject(`Edit ${(data as ISecretControlResponse)?.name}`);
+});
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
-  const { projectId, secretId } = params
-  const { controlPlaneClient } = context as AppLoadContext
-  const secretControl = createSecretsControl(controlPlaneClient as Client)
+  const { projectId, secretId } = params;
+  const { controlPlaneClient } = context as AppLoadContext;
+  const secretControl = createSecretsControl(controlPlaneClient as Client);
 
   if (!projectId || !secretId) {
-    throw new CustomError('Project ID and secret ID are required', 400)
+    throw new CustomError('Project ID and secret ID are required', 400);
   }
 
-  const secret = await secretControl.detail(projectId, secretId)
+  const secret = await secretControl.detail(projectId, secretId);
 
-  return secret
-}
+  return secret;
+};
 
 export default function EditSecret() {
-  const secret = useLoaderData<typeof loader>()
-  const { orgId, projectId, secretId } = useParams()
+  const secret = useLoaderData<typeof loader>();
+  const { orgId, projectId, secretId } = useParams();
 
-  const submit = useSubmit()
-  const { confirm } = useConfirmationDialog()
+  const submit = useSubmit();
+  const { confirm } = useConfirmationDialog();
 
   const deleteSecret = async () => {
     await confirm({
@@ -80,11 +80,11 @@ export default function EditSecret() {
             method: 'DELETE',
             fetcherKey: 'secret-resources',
             navigate: false,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   return (
     <motion.div
@@ -112,7 +112,7 @@ export default function EditSecret() {
                   new Date((secret as ISecretControlResponse)?.createdAt ?? ''),
                   {
                     addSuffix: true,
-                  },
+                  }
                 )}
                 )
               </span>
@@ -170,5 +170,5 @@ export default function EditSecret() {
         </div>
       </Tabs>
     </motion.div>
-  )
+  );
 }

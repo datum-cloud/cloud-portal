@@ -1,7 +1,7 @@
-import { SelectIPFamily } from './select-ip-family'
-import { SelectIPAM } from './select-ipam'
-import { Field } from '@/components/field/field'
-import { Button } from '@/components/ui/button'
+import { SelectIPFamily } from './select-ip-family';
+import { SelectIPAM } from './select-ipam';
+import { Field } from '@/components/field/field';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -9,12 +9,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { useIsPending } from '@/hooks/useIsPending'
-import { INetworkControlResponse } from '@/resources/interfaces/network.interface'
-import { newNetworkSchema, updateNetworkSchema } from '@/resources/schemas/network.schema'
-import { ROUTE_PATH as NETWORK_ACTIONS_ROUTE_PATH } from '@/routes/api+/connect+/networks+/actions'
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useIsPending } from '@/hooks/useIsPending';
+import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
+import { newNetworkSchema, updateNetworkSchema } from '@/resources/schemas/network.schema';
+import { ROUTE_PATH as NETWORK_ACTIONS_ROUTE_PATH } from '@/routes/api+/connect+/networks+/actions';
 // import { generateId, generateRandomString } from '@/utils/idGenerator'
 import {
   FormProvider,
@@ -22,13 +22,13 @@ import {
   getInputProps,
   useForm,
   useInputControl,
-} from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Form, useFetcher, useNavigate } from 'react-router'
-import { useAuthenticityToken } from 'remix-utils/csrf/react'
-import { useHydrated } from 'remix-utils/use-hydrated'
-import { toast } from 'sonner'
+} from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Form, useFetcher, useNavigate } from 'react-router';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { useHydrated } from 'remix-utils/use-hydrated';
+import { toast } from 'sonner';
 
 // TODO: This form needs refactoring to fix validation errors that occur when used inside a dialog component.
 // Current implementation causes state management issues in nested contexts.
@@ -40,21 +40,21 @@ export const NetworkForm = ({
   onCancel,
   onSuccess,
 }: {
-  projectId?: string
-  defaultValue?: INetworkControlResponse
-  className?: string
-  isClientSide?: boolean
-  onCancel?: () => void
-  onSuccess?: (data: INetworkControlResponse) => void
+  projectId?: string;
+  defaultValue?: INetworkControlResponse;
+  className?: string;
+  isClientSide?: boolean;
+  onCancel?: () => void;
+  onSuccess?: (data: INetworkControlResponse) => void;
 }) => {
-  const csrf = useAuthenticityToken()
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
-  const navigate = useNavigate()
-  const fetcher = useFetcher({ key: 'network-form' })
-  const isPending = useIsPending({ fetcherKey: 'network-form' })
+  const csrf = useAuthenticityToken();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isHydrated = useHydrated();
+  const navigate = useNavigate();
+  const fetcher = useFetcher({ key: 'network-form' });
+  const isPending = useIsPending({ fetcherKey: 'network-form' });
 
-  const [isLoading, setIsLoading] = useState<boolean>()
+  const [isLoading, setIsLoading] = useState<boolean>();
 
   const [form, fields] = useForm({
     id: 'network-form',
@@ -70,28 +70,28 @@ export const NetworkForm = ({
     onValidate({ formData }) {
       return parseWithZod(formData, {
         schema: defaultValue ? updateNetworkSchema : newNetworkSchema,
-      })
+      });
     },
     onSubmit(event, { submission }) {
-      event.preventDefault()
-      event.stopPropagation()
+      event.preventDefault();
+      event.stopPropagation();
 
       if (submission?.status !== 'success') {
-        return
+        return;
       }
 
-      setIsLoading(true)
+      setIsLoading(true);
 
       const payload = {
         ...(submission?.value ?? {}),
         csrf: csrf as string,
-      }
+      };
 
       if (isEdit) {
         Object.assign(payload, {
           resourceVersion: defaultValue?.resourceVersion,
           networkId: defaultValue?.name,
-        })
+        });
       }
 
       if (isClientSide) {
@@ -105,22 +105,19 @@ export const NetworkForm = ({
         })
           .then((response) => response.json())
           .then((result) => {
-            setIsLoading(false)
+            setIsLoading(false);
             if (result.success) {
-              onSuccess?.(result.data)
+              onSuccess?.(result.data);
             } else {
-              toast.error(
-                isEdit ? 'Failed to update network' : 'Failed to create network',
-                {
-                  description: result?.message,
-                },
-              )
+              toast.error(isEdit ? 'Failed to update network' : 'Failed to create network', {
+                description: result?.message,
+              });
             }
           })
           .catch((error) => {
-            setIsLoading(false)
-            console.error('Error submitting network form:', error)
-          })
+            setIsLoading(false);
+            console.error('Error submitting network form:', error);
+          });
       } else {
         // Submit the form using the Remix submit function
         // This will trigger the action defined in the route
@@ -130,24 +127,23 @@ export const NetworkForm = ({
             method: isEdit ? 'PUT' : 'POST',
             action: NETWORK_ACTIONS_ROUTE_PATH,
             encType: 'application/json',
-          },
-        )
+          }
+        );
       }
     },
-  })
+  });
 
   // Generate a random suffix for the network name
   // const randomSuffix = useMemo(() => generateRandomString(6), [])
-  const isEdit = useMemo(() => defaultValue?.uid !== undefined, [defaultValue])
+  const isEdit = useMemo(() => defaultValue?.uid !== undefined, [defaultValue]);
 
   // Field Controls
-  const nameControl = useInputControl(fields.name)
+  const nameControl = useInputControl(fields.name);
 
   // Focus the input when the form is hydrated
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
+    isHydrated && inputRef.current?.focus();
+  }, [isHydrated]);
 
   useEffect(() => {
     if (defaultValue) {
@@ -159,19 +155,19 @@ export const NetworkForm = ({
           ipam: defaultValue.ipam?.mode ?? 'Auto',
           mtu: defaultValue.mtu ?? 1460,
         },
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
-      const { success, data } = fetcher.data
+      const { success, data } = fetcher.data;
 
       if (success) {
-        onSuccess?.(data)
+        onSuccess?.(data);
       }
     }
-  }, [fetcher.data, fetcher.state])
+  }, [fetcher.data, fetcher.state]);
 
   return (
     <Card className={className}>
@@ -191,11 +187,7 @@ export const NetworkForm = ({
           autoComplete="off"
           className="flex flex-col gap-6">
           {isEdit && (
-            <input
-              type="hidden"
-              name="resourceVersion"
-              value={defaultValue?.resourceVersion}
-            />
+            <input type="hidden" name="resourceVersion" value={defaultValue?.resourceVersion} />
           )}
 
           <CardContent className="space-y-4">
@@ -230,15 +222,14 @@ export const NetworkForm = ({
                 placeholder="e.g. my-network-us-22sdss"
                 readOnly={isEdit}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  e.preventDefault()
-                  const value = (e.target as HTMLInputElement).value
-                  nameControl.change(value)
+                  e.preventDefault();
+                  const value = (e.target as HTMLInputElement).value;
+                  nameControl.change(value);
                 }}
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 onBlur={(e: React.FormEvent<HTMLInputElement>) => {
-                  e.preventDefault()
+                  e.preventDefault();
                   if (isEdit) {
-                    nameControl.change(defaultValue?.name ?? '')
+                    nameControl.change(defaultValue?.name ?? '');
                   }
                   /* else {
                   const value = (e.target as HTMLInputElement).value
@@ -254,18 +245,10 @@ export const NetworkForm = ({
               />
             </Field>
             <div className="flex items-start gap-2">
-              <Field
-                isRequired
-                label="IP Family"
-                errors={fields.ipFamily.errors}
-                className="w-1/3">
+              <Field isRequired label="IP Family" errors={fields.ipFamily.errors} className="w-1/3">
                 <SelectIPFamily meta={fields.ipFamily} />
               </Field>
-              <Field
-                isRequired
-                label="IPAM Mode"
-                errors={fields.ipam.errors}
-                className="w-1/3">
+              <Field isRequired label="IPAM Mode" errors={fields.ipam.errors} className="w-1/3">
                 <SelectIPAM meta={fields.ipam} />
               </Field>
               <Field isRequired label="MTU" errors={fields.mtu.errors} className="w-1/3">
@@ -285,9 +268,9 @@ export const NetworkForm = ({
               disabled={isPending}
               onClick={() => {
                 if (onCancel) {
-                  onCancel()
+                  onCancel();
                 } else {
-                  navigate(-1)
+                  navigate(-1);
                 }
               }}>
               {onCancel ? 'Cancel' : 'Return to List'}
@@ -306,5 +289,5 @@ export const NetworkForm = ({
         </Form>
       </FormProvider>
     </Card>
-  )
-}
+  );
+};

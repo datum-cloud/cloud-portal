@@ -1,11 +1,11 @@
-import { IOrganization } from '@/resources/interfaces/organization.inteface'
-import { isProduction } from '@/utils/misc'
-import { createCookie, createCookieSessionStorage } from 'react-router'
+import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { isProduction } from '@/utils/misc';
+import { createCookie, createCookieSessionStorage } from 'react-router';
 
 /**
  * Session key for the organization cookie
  */
-export const ORG_SESSION_KEY = '_org'
+export const ORG_SESSION_KEY = '_org';
 
 /**
  * Organization cookie configuration
@@ -18,17 +18,17 @@ export const orgCookie = createCookie(ORG_SESSION_KEY, {
   maxAge: 60 * 60 * 24 * 1, // 1 days
   secrets: [process.env?.SESSION_SECRET ?? 'NOT_A_STRONG_SECRET'],
   secure: isProduction(),
-})
+});
 
-export const orgSessionStorage = createCookieSessionStorage({ cookie: orgCookie })
+export const orgSessionStorage = createCookieSessionStorage({ cookie: orgCookie });
 
 /**
  * Type for the response object from auth session operations
  */
 type OrgSessionResponse = {
-  org?: IOrganization
-  headers: Headers
-}
+  org?: IOrganization;
+  headers: Headers;
+};
 
 /**
  * Creates a session response with the provided data and cookie header
@@ -38,13 +38,13 @@ type OrgSessionResponse = {
  */
 const createOrgResponse = (
   org: IOrganization | undefined,
-  cookieHeader: string,
+  cookieHeader: string
 ): OrgSessionResponse => ({
   ...(org ? { org: org } : {}),
   headers: new Headers({
     'Set-Cookie': cookieHeader,
   }),
-})
+});
 
 /**
  * Gets the organization session from the request
@@ -52,11 +52,11 @@ const createOrgResponse = (
  * @returns Organization data and session headers
  */
 export async function getOrgSession(request: Request): Promise<OrgSessionResponse> {
-  const session = await orgSessionStorage.getSession(request.headers.get('Cookie'))
-  const data = session.get(ORG_SESSION_KEY)
-  const cookieHeader = await orgSessionStorage.commitSession(session)
+  const session = await orgSessionStorage.getSession(request.headers.get('Cookie'));
+  const data = session.get(ORG_SESSION_KEY);
+  const cookieHeader = await orgSessionStorage.commitSession(session);
 
-  return createOrgResponse(data, cookieHeader)
+  return createOrgResponse(data, cookieHeader);
 }
 
 /**
@@ -67,14 +67,14 @@ export async function getOrgSession(request: Request): Promise<OrgSessionRespons
  */
 export async function setOrgSession(
   request: Request,
-  org: IOrganization,
+  org: IOrganization
 ): Promise<OrgSessionResponse> {
-  const session = await orgSessionStorage.getSession(request.headers.get('Cookie'))
-  session.set(ORG_SESSION_KEY, org)
+  const session = await orgSessionStorage.getSession(request.headers.get('Cookie'));
+  session.set(ORG_SESSION_KEY, org);
 
-  const cookieHeader = await orgSessionStorage.commitSession(session)
+  const cookieHeader = await orgSessionStorage.commitSession(session);
 
-  return createOrgResponse(org, cookieHeader)
+  return createOrgResponse(org, cookieHeader);
 }
 
 /**
@@ -83,8 +83,8 @@ export async function setOrgSession(
  * @returns Response with headers for destroying the session
  */
 export async function destroyOrgSession(request: Request): Promise<OrgSessionResponse> {
-  const session = await orgSessionStorage.getSession(request.headers.get('Cookie'))
-  const cookieHeader = await orgSessionStorage.destroySession(session)
+  const session = await orgSessionStorage.getSession(request.headers.get('Cookie'));
+  const cookieHeader = await orgSessionStorage.destroySession(session);
 
-  return createOrgResponse(undefined, cookieHeader)
+  return createOrgResponse(undefined, cookieHeader);
 }

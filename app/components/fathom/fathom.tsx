@@ -1,22 +1,22 @@
-import { isProduction } from '@/utils/misc'
-import { load, trackPageview } from 'fathom-client'
-import { useEffect } from 'react'
-import { useLocation } from 'react-router'
+import { isProduction } from '@/utils/misc';
+import { load, trackPageview } from 'fathom-client';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router';
 
 export const FathomAnalytics = ({ privateKey }: { privateKey: string }) => {
-  const location = useLocation()
+  const location = useLocation();
 
   useEffect(() => {
     if (isProduction() && privateKey) {
-      load(privateKey)
+      load(privateKey);
     }
-  }, [privateKey])
+  }, [privateKey]);
 
   useEffect(() => {
     if (isProduction() && privateKey) {
-      trackPageview()
+      trackPageview();
     }
-  }, [location.pathname, location.search, privateKey])
+  }, [location.pathname, location.search, privateKey]);
 
-  return null
-}
+  return null;
+};

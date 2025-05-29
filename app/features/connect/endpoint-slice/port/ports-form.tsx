@@ -1,44 +1,44 @@
-import { PortField } from './port-field'
-import { FieldLabel } from '@/components/field/field-label'
-import { Button } from '@/components/ui/button'
-import { EndpointSlicePortProtocol } from '@/resources/interfaces/endpoint-slice.interface'
+import { PortField } from './port-field';
+import { FieldLabel } from '@/components/field/field-label';
+import { Button } from '@/components/ui/button';
+import { EndpointSlicePortProtocol } from '@/resources/interfaces/endpoint-slice.interface';
 import {
   EndpointSlicePortSchema,
   EndpointSliceSchema,
-} from '@/resources/schemas/endpoint-slice.schema'
-import { cn } from '@/utils/misc'
-import { useForm, useFormMetadata } from '@conform-to/react'
-import { PlusIcon, TrashIcon } from 'lucide-react'
-import { useEffect } from 'react'
+} from '@/resources/schemas/endpoint-slice.schema';
+import { cn } from '@/utils/misc';
+import { useForm, useFormMetadata } from '@conform-to/react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useEffect } from 'react';
 
 const defaultPortValue: EndpointSlicePortSchema = {
   name: '',
   appProtocol: EndpointSlicePortProtocol.HTTPS,
-}
+};
 
 export const PortsForm = ({
   fields,
   defaultValue,
 }: {
-  fields: ReturnType<typeof useForm<EndpointSliceSchema>>[1]
-  defaultValue?: EndpointSlicePortSchema[]
+  fields: ReturnType<typeof useForm<EndpointSliceSchema>>[1];
+  defaultValue?: EndpointSlicePortSchema[];
 }) => {
-  const form = useFormMetadata('endpoint-slice-form')
-  const portList = fields.ports.getFieldList()
+  const form = useFormMetadata('endpoint-slice-form');
+  const portList = fields.ports.getFieldList();
 
   useEffect(() => {
     if (defaultValue && defaultValue.length > 0) {
       form.update({
         name: fields.ports.name,
         value: defaultValue,
-      })
+      });
     } else if (portList.length === 0) {
       form.insert({
         name: fields.ports.name,
         defaultValue: defaultPortValue,
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -46,16 +46,12 @@ export const PortsForm = ({
 
       <div className="space-y-4">
         {portList.map((port, index) => {
-          const portFields = port.getFieldset()
+          const portFields = port.getFieldset();
           return (
-            <div
-              className="relative flex items-center gap-2 rounded-md border p-4"
-              key={port.key}>
+            <div className="relative flex items-center gap-2 rounded-md border p-4" key={port.key}>
               <PortField
                 fields={
-                  portFields as unknown as ReturnType<
-                    typeof useForm<EndpointSlicePortSchema>
-                  >[1]
+                  portFields as unknown as ReturnType<typeof useForm<EndpointSlicePortSchema>>[1]
                 }
                 defaultValue={defaultValue?.[index]}
               />
@@ -70,7 +66,7 @@ export const PortsForm = ({
                 </Button>
               )}
             </div>
-          )
+          );
         })}
       </div>
 
@@ -89,5 +85,5 @@ export const PortsForm = ({
         Add
       </Button>
     </div>
-  )
-}
+  );
+};

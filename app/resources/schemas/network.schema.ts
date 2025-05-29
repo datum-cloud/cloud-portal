@@ -1,5 +1,5 @@
-import { nameSchema } from './metadata.schema'
-import { z } from 'zod'
+import { nameSchema } from './metadata.schema';
+import { z } from 'zod';
 
 export const newNetworkSchema = z
   .object({
@@ -17,11 +17,11 @@ export const newNetworkSchema = z
       .max(8856, { message: 'MTU must be less than 8856.' })
       .transform((val) => Number(val)),
   })
-  .merge(nameSchema)
+  .merge(nameSchema);
 
 export const updateNetworkSchema = newNetworkSchema.extend({
   resourceVersion: z.string({ required_error: 'Resource version is required.' }),
-})
+});
 
-export type NewNetworkSchema = z.infer<typeof newNetworkSchema>
-export type UpdateNetworkSchema = z.infer<typeof updateNetworkSchema>
+export type NewNetworkSchema = z.infer<typeof newNetworkSchema>;
+export type UpdateNetworkSchema = z.infer<typeof updateNetworkSchema>;

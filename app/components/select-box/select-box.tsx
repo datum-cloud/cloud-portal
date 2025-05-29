@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -6,18 +6,18 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { cn } from '@/utils/misc'
-import { CheckIcon, ChevronDown, Loader2 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/utils/misc';
+import { CheckIcon, ChevronDown, Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 export interface SelectBoxOption {
-  value: string
-  label: string
-  disabled?: boolean
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any
+  value: string;
+  label: string;
+  disabled?: boolean;
+
+  [key: string]: any;
 }
 
 export const SelectBox = ({
@@ -33,41 +33,41 @@ export const SelectBox = ({
   searchable = false,
   itemPreview,
 }: {
-  value?: string
-  className?: string
-  onChange: (value: SelectBoxOption) => void
-  options: SelectBoxOption[]
-  name?: string
-  id?: string
-  placeholder?: string
-  disabled?: boolean
-  isLoading?: boolean
-  searchable?: boolean
-  itemPreview?: (option: SelectBoxOption) => React.ReactNode
+  value?: string;
+  className?: string;
+  onChange: (value: SelectBoxOption) => void;
+  options: SelectBoxOption[];
+  name?: string;
+  id?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  isLoading?: boolean;
+  searchable?: boolean;
+  itemPreview?: (option: SelectBoxOption) => React.ReactNode;
 }) => {
-  const [open, setOpen] = useState(false)
-  const [initValue, setInitValue] = useState(value)
+  const [open, setOpen] = useState(false);
+  const [initValue, setInitValue] = useState(value);
 
   const selectedValue = useMemo(() => {
-    if (!initValue) return undefined
-    return options.find((option) => option.value === initValue)
-  }, [initValue, options])
+    if (!initValue) return undefined;
+    return options.find((option) => option.value === initValue);
+  }, [initValue, options]);
 
   useEffect(() => {
     if (value) {
-      setInitValue(value)
+      setInitValue(value);
     }
-  }, [value])
+  }, [value]);
 
   useEffect(() => {
     if (selectedValue) {
-      onChange(selectedValue)
+      onChange(selectedValue);
     }
-  }, [selectedValue])
+  }, [selectedValue]);
 
   const previewHandler = (option: SelectBoxOption): React.ReactNode => {
-    return itemPreview ? itemPreview(option) : <span>{option.label}</span>
-  }
+    return itemPreview ? itemPreview(option) : <span>{option.label}</span>;
+  };
 
   return (
     <>
@@ -97,21 +97,21 @@ export const SelectBox = ({
               {options.length > 0 && (
                 <CommandGroup className="max-h-[250px] overflow-y-auto">
                   {options.map((option: SelectBoxOption) => {
-                    const isSelected = selectedValue?.value === option.value
+                    const isSelected = selectedValue?.value === option.value;
                     return (
                       <CommandItem
                         value={option.value}
                         key={option.value}
                         onSelect={() => {
-                          setInitValue(option.value)
-                          setOpen(false)
+                          setInitValue(option.value);
+                          setOpen(false);
                         }}
                         disabled={option.disabled}
                         className="flex cursor-pointer items-center justify-between">
                         {previewHandler(option)}
                         {isSelected && <CheckIcon className="text-primary size-4" />}
                       </CommandItem>
-                    )
+                    );
                   })}
                 </CommandGroup>
               )}
@@ -138,5 +138,5 @@ export const SelectBox = ({
         ))}
       </select>
     </>
-  )
-}
+  );
+};

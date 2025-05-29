@@ -4,11 +4,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react'
+} from '@/components/ui/select';
+import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react';
 
 export const SelectAddressType = ({ meta }: { meta: FieldMetadata<string> }) => {
-  const control = useInputControl(meta)
+  const control = useInputControl(meta);
 
   const options = [
     {
@@ -23,7 +23,7 @@ export const SelectAddressType = ({ meta }: { meta: FieldMetadata<string> }) => 
       value: 'IPv6',
       label: 'IPv6',
     },
-  ]
+  ];
 
   return (
     <Select
@@ -42,5 +42,5 @@ export const SelectAddressType = ({ meta }: { meta: FieldMetadata<string> }) => 
         ))}
       </SelectContent>
     </Select>
-  )
-}
+  );
+};

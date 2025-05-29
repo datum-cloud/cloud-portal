@@ -1,13 +1,13 @@
-import { LogoIcon } from '@/components/logo/logo-icon'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { routes } from '@/constants/routes'
-import PublicLayout from '@/layouts/public/public'
-import { isDevelopment } from '@/utils/misc'
-import { HomeIcon, Loader2, RefreshCcwIcon } from 'lucide-react'
-import NProgress from 'nprogress'
-import { JSX, useEffect, useMemo, useState } from 'react'
-import type { ErrorResponse } from 'react-router'
+import { LogoIcon } from '@/components/logo/logo-icon';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { routes } from '@/constants/routes';
+import PublicLayout from '@/layouts/public/public';
+import { isDevelopment } from '@/utils/misc';
+import { HomeIcon, Loader2, RefreshCcwIcon } from 'lucide-react';
+import NProgress from 'nprogress';
+import { JSX, useEffect, useMemo, useState } from 'react';
+import type { ErrorResponse } from 'react-router';
 import {
   Link,
   isRouteErrorResponse,
@@ -15,38 +15,36 @@ import {
   useNavigate,
   useParams,
   useRouteError,
-} from 'react-router'
+} from 'react-router';
 
 type StatusHandler = (info: {
-  error: ErrorResponse
-  params: Record<string, string | undefined>
-}) => JSX.Element | null
+  error: ErrorResponse;
+  params: Record<string, string | undefined>;
+}) => JSX.Element | null;
 
 type GenericErrorBoundaryProps = {
-  defaultStatusHandler?: StatusHandler
-  statusHandlers?: Record<number, StatusHandler>
-  unexpectedErrorHandler?: (error: unknown) => JSX.Element | null
-}
+  defaultStatusHandler?: StatusHandler;
+  statusHandlers?: Record<number, StatusHandler>;
+  unexpectedErrorHandler?: (error: unknown) => JSX.Element | null;
+};
 
 export function GenericErrorBoundary({
   statusHandlers,
-  defaultStatusHandler = ({ error }) => (
-    <p>{error.statusText ? error.statusText : error.data}</p>
-  ),
+  defaultStatusHandler = ({ error }) => <p>{error.statusText ? error.statusText : error.data}</p>,
   unexpectedErrorHandler = (error) => <p>{getErrorMessage(error)}</p>,
 }: GenericErrorBoundaryProps) {
-  const params = useParams()
-  const error = useRouteError()
-  const navigate = useNavigate()
-  const fetcher = useFetcher()
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const params = useParams();
+  const error = useRouteError();
+  const navigate = useNavigate();
+  const fetcher = useFetcher();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   if (typeof document !== 'undefined') {
-    console.error(error)
+    console.error(error);
   }
 
   useEffect(() => {
-    NProgress.done()
+    NProgress.done();
     // Check for 401 Unauthorized error
     if (isRouteErrorResponse(error) && error.status === 401) {
       // Perform sign out
@@ -56,26 +54,25 @@ export function GenericErrorBoundary({
           await fetcher.submit(null, {
             method: 'POST',
             action: routes.auth.logOut,
-          })
+          });
 
           // Redirect to login page
-          navigate(routes.auth.logIn)
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          navigate(routes.auth.logIn);
         } catch (e) {
           // Fallback: just redirect to login if the logout request fails
-          navigate(routes.auth.logIn)
+          navigate(routes.auth.logIn);
         }
-      }
+      };
 
-      signOut()
+      signOut();
     } else {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }, [error])
+  }, [error]);
 
   const isOrganizationNotFound = useMemo(() => {
-    return error && typeof params?.orgId !== 'undefined'
-  }, [error, params])
+    return error && typeof params?.orgId !== 'undefined';
+  }, [error, params]);
 
   return (
     <PublicLayout>
@@ -105,12 +102,9 @@ export function GenericErrorBoundary({
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center text-sm">
-                    Something went wrong on our end. Our team has been notified, and
-                    we&apos;re working to fix it. Please try again later. If the issue
-                    persists, reach out to{' '}
-                    <Link
-                      to={`mailto:support@datum.net`}
-                      className="text-primary underline">
+                    Something went wrong on our end. Our team has been notified, and we&apos;re
+                    working to fix it. Please try again later. If the issue persists, reach out to{' '}
+                    <Link to={`mailto:support@datum.net`} className="text-primary underline">
                       support@datum.net
                     </Link>
                     .
@@ -118,12 +112,7 @@ export function GenericErrorBoundary({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Link
-                  to={
-                    isOrganizationNotFound
-                      ? routes.account.organizations.root
-                      : routes.home
-                  }>
+                <Link to={isOrganizationNotFound ? routes.account.organizations.root : routes.home}>
                   <Button size="sm">
                     <HomeIcon className="size-4" />
                     Back to {isOrganizationNotFound ? 'Organizations' : 'Home'}
@@ -133,7 +122,7 @@ export function GenericErrorBoundary({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    navigate(0)
+                    navigate(0);
                   }}>
                   <RefreshCcwIcon className="size-4" />
                   Refresh Page
@@ -144,19 +133,14 @@ export function GenericErrorBoundary({
         </CardContent>
       </Card>
     </PublicLayout>
-  )
+  );
 }
 
 export function getErrorMessage(err: unknown) {
-  if (typeof err === 'string') return err
-  if (
-    err &&
-    typeof err === 'object' &&
-    'message' in err &&
-    typeof err.message === 'string'
-  ) {
-    return err.message
+  if (typeof err === 'string') return err;
+  if (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string') {
+    return err.message;
   }
-  console.error('Unable to get error message for error:', err)
-  return 'Unknown error'
+  console.error('Unable to get error message for error:', err);
+  return 'Unknown error';
 }

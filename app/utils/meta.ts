@@ -1,24 +1,23 @@
-import { SITE_CONFIG } from '@/constants/brand'
+import { SITE_CONFIG } from '@/constants/brand';
 import type {
   ClientLoaderFunction,
   LoaderFunction,
   MetaDescriptor,
   MetaFunction,
-} from 'react-router'
+} from 'react-router';
 
 // Define the types that were previously imported from 'react-router/route-module'
-type MetaDescriptors = Array<MetaDescriptor>
+type MetaDescriptors = Array<MetaDescriptor>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CreateMetaArgs<RouteData = any> = {
-  data: RouteData
-  params: Record<string, string>
-  location: Location
+  data: RouteData;
+  params: Record<string, string>;
+  location: Location;
   matches: Array<{
-    meta: MetaDescriptor[]
-    [key: string]: unknown
-  }>
-}
+    meta: MetaDescriptor[];
+    [key: string]: unknown;
+  }>;
+};
 
 /**
  * Merging helper
@@ -54,24 +53,22 @@ type CreateMetaArgs<RouteData = any> = {
  */
 export function mergeMeta<
   Loader extends LoaderFunction | ClientLoaderFunction | unknown = unknown,
-  ParentsLoaders extends Record<
+  ParentsLoaders extends Record<string, LoaderFunction | ClientLoaderFunction | unknown> = Record<
     string,
-    LoaderFunction | ClientLoaderFunction | unknown
-  > = Record<string, unknown>,
->(
-  leafMetaFn: MetaFunction<Loader, ParentsLoaders>,
-): MetaFunction<Loader, ParentsLoaders> {
+    unknown
+  >,
+>(leafMetaFn: MetaFunction<Loader, ParentsLoaders>): MetaFunction<Loader, ParentsLoaders> {
   return (args) => {
-    const leafMeta = leafMetaFn(args)
+    const leafMeta = leafMetaFn(args);
 
     return args.matches.reduceRight((acc, match) => {
       for (const parentMeta of match.meta) {
-        addUniqueMeta(acc, parentMeta)
+        addUniqueMeta(acc, parentMeta);
       }
 
-      return acc
-    }, leafMeta)
-  }
+      return acc;
+    }, leafMeta);
+  };
 }
 
 /**
@@ -104,27 +101,26 @@ export function mergeMeta<
  * ```
  * The resulting meta will contain both `title: 'My Leaf Route'` and `description: 'This is the parent route'`.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 export function mergeRouteModuleMeta<TMetaArgs extends CreateMetaArgs<any>>(
-  leafMetaFn: (args: TMetaArgs) => MetaDescriptors,
+  leafMetaFn: (args: TMetaArgs) => MetaDescriptors
 ): (args: TMetaArgs) => MetaDescriptors {
   return (args) => {
-    const leafMeta = leafMetaFn(args)
+    const leafMeta = leafMetaFn(args);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return args.matches.reduceRight((acc: MetaDescriptor[], match: any) => {
       for (const parentMeta of match?.meta ?? []) {
-        addUniqueMeta(acc, parentMeta)
+        addUniqueMeta(acc, parentMeta);
       }
 
-      return acc
-    }, leafMeta)
-  }
+      return acc;
+    }, leafMeta);
+  };
 }
 
 function addUniqueMeta(acc: MetaDescriptor[] | undefined, parentMeta: MetaDescriptor) {
   if (acc?.findIndex((meta) => isMetaEqual(meta, parentMeta)) === -1) {
-    acc.push(parentMeta)
+    acc.push(parentMeta);
   }
 }
 
@@ -140,15 +136,13 @@ function isMetaEqual(meta1: MetaDescriptor, meta2: MetaDescriptor): boolean {
      * we wouldn't want two of the same link to exist.
      */
     JSON.stringify(meta1) === JSON.stringify(meta2)
-  )
+  );
 }
 
 export function metaObject(title?: string, description?: string) {
-  const formattedTitle = title
-    ? `${title} | ${SITE_CONFIG.siteTitle}`
-    : SITE_CONFIG.siteTitle
-  const formattedDescription = description ?? SITE_CONFIG.siteDescription
-  const ogImage = `${SITE_CONFIG.siteUrl}/og-image.jpg`
+  const formattedTitle = title ? `${title} | ${SITE_CONFIG.siteTitle}` : SITE_CONFIG.siteTitle;
+  const formattedDescription = description ?? SITE_CONFIG.siteDescription;
+  const ogImage = `${SITE_CONFIG.siteUrl}/og-image.jpg`;
 
   return [
     { title: formattedTitle },
@@ -162,5 +156,5 @@ export function metaObject(title?: string, description?: string) {
     { name: 'twitter:title', content: formattedTitle },
     { name: 'twitter:description', content: formattedDescription },
     { name: 'twitter:image', content: ogImage },
-  ]
+  ];
 }

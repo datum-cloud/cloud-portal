@@ -1,11 +1,11 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { routes } from '@/constants/routes'
-import { Link, useNavigation, useSubmit } from 'react-router'
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { routes } from '@/constants/routes';
+import { Link, useNavigation, useSubmit } from 'react-router';
 
 export default function AuthCard({ mode }: { mode: 'login' | 'signup' }) {
-  const navigation = useNavigation()
-  const submit = useSubmit()
+  const navigation = useNavigation();
+  const submit = useSubmit();
 
   return (
     <Card className="overflow-hidden py-0">
@@ -26,12 +26,11 @@ export default function AuthCard({ mode }: { mode: 'login' | 'signup' }) {
               variant="outline"
               className="w-full cursor-pointer"
               isLoading={
-                navigation.state === 'submitting' &&
-                navigation.formAction === routes.auth.root
+                navigation.state === 'submitting' && navigation.formAction === routes.auth.root
               }
               disabled={navigation.state === 'submitting'}
               onClick={() => {
-                submit(null, { method: 'POST', action: routes.auth.root })
+                submit(null, { method: 'POST', action: routes.auth.root });
               }}>
               <span>{mode === 'login' ? 'Sign in' : 'Sign up'}</span>
             </Button>
@@ -59,5 +58,5 @@ export default function AuthCard({ mode }: { mode: 'login' | 'signup' }) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

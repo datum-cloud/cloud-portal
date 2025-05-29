@@ -4,34 +4,34 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { LOCATION_PROVIDERS } from '@/constants/options'
-import { LocationProvider } from '@/resources/interfaces/location.interface'
-import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react'
-import { useMemo } from 'react'
+} from '@/components/ui/select';
+import { LOCATION_PROVIDERS } from '@/constants/options';
+import { LocationProvider } from '@/resources/interfaces/location.interface';
+import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react';
+import { useMemo } from 'react';
 
 export const SelectLocationProvider = ({
   meta,
   onChange,
 }: {
-  meta: FieldMetadata<string>
-  onChange?: (value: string) => void
+  meta: FieldMetadata<string>;
+  onChange?: (value: string) => void;
 }) => {
-  const control = useInputControl(meta)
+  const control = useInputControl(meta);
 
   const options = useMemo(() => {
     return Object.keys(LOCATION_PROVIDERS).map((value: string) => ({
       value,
       label: LOCATION_PROVIDERS[value as LocationProvider].label,
-    }))
-  }, [])
+    }));
+  }, []);
 
   return (
     <Select
       {...getSelectProps(meta)}
       onValueChange={(value) => {
-        control.change(value)
-        onChange?.(value)
+        control.change(value);
+        onChange?.(value);
       }}
       key={meta.id}
       defaultValue={meta.value?.toString()}>
@@ -49,5 +49,5 @@ export const SelectLocationProvider = ({
         ))}
       </SelectContent>
     </Select>
-  )
-}
+  );
+};

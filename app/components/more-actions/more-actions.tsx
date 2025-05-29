@@ -1,21 +1,21 @@
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown'
-import { cn } from '@/utils/misc'
-import { Ellipsis } from 'lucide-react'
+} from '@/components/ui/dropdown';
+import { cn } from '@/utils/misc';
+import { Ellipsis } from 'lucide-react';
 
 export interface MoreActionsProps<TData> {
-  key: string
-  label: string
-  variant?: 'default' | 'destructive'
-  icon?: React.ReactNode
-  className?: string
-  action: (row?: TData) => void | Promise<void>
-  isDisabled?: (row?: TData) => boolean
+  key: string;
+  label: string;
+  variant?: 'default' | 'destructive';
+  icon?: React.ReactNode;
+  className?: string;
+  action: (row?: TData) => void | Promise<void>;
+  isDisabled?: (row?: TData) => boolean;
 }
 
 export const MoreActions = <TData,>({
@@ -23,9 +23,9 @@ export const MoreActions = <TData,>({
   actions,
   className,
 }: {
-  row?: TData
-  actions: MoreActionsProps<TData>[]
-  className?: string
+  row?: TData;
+  actions: MoreActionsProps<TData>[];
+  className?: string;
 }) => {
   return (
     <DropdownMenu>
@@ -35,7 +35,7 @@ export const MoreActions = <TData,>({
           size="icon"
           className={cn(
             'data-[state=open]:bg-accent size-7 p-0 focus-visible:ring-0 focus-visible:ring-offset-0',
-            className,
+            className
           )}>
           <Ellipsis className="size-5" />
         </Button>
@@ -48,7 +48,7 @@ export const MoreActions = <TData,>({
             className={cn(
               'cursor-pointer',
               action.variant === 'destructive' && 'text-destructive',
-              action.className,
+              action.className
             )}
             disabled={action.isDisabled?.(row) ?? false}>
             {action.icon}
@@ -57,5 +57,5 @@ export const MoreActions = <TData,>({
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
+  );
+};

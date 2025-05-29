@@ -1,4 +1,4 @@
-import { defineConfig, defaultPlugins } from '@hey-api/openapi-ts'
+import { defineConfig, defaultPlugins } from '@hey-api/openapi-ts';
 
 export default defineConfig({
   input: './gateway.json',
@@ -16,4 +16,4 @@ export default defineConfig({
       name: '@hey-api/typescript',
     },
   ],
-})
+});

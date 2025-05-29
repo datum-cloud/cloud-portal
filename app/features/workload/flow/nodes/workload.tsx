@@ -1,23 +1,22 @@
-import { List } from '@/components/list/list'
-import { TextCopy } from '@/components/text-copy/text-copy'
-import { MetadataSchema } from '@/resources/schemas/metadata.schema'
-import { getShortId } from '@/utils/misc'
-import { Handle, Position } from '@xyflow/react'
-import { useMemo } from 'react'
+import { List } from '@/components/list/list';
+import { TextCopy } from '@/components/text-copy/text-copy';
+import { MetadataSchema } from '@/resources/schemas/metadata.schema';
+import { getShortId } from '@/utils/misc';
+import { Handle, Position } from '@xyflow/react';
+import { useMemo } from 'react';
 
 export interface IWorkloadNode extends MetadataSchema {
-  label: string
-  name: string
-  isCompact?: boolean
-  [key: string]: unknown
+  label: string;
+  name: string;
+  isCompact?: boolean;
+  [key: string]: unknown;
 }
 
 export const WorkloadNode = ({ data }: { data: IWorkloadNode }) => {
-  const { isCompact } = data
+  const { isCompact } = data;
 
-  const baseClass =
-    'relative rounded-lg border border-gray-200 bg-white px-4 py-2 shadow-md'
-  const sizeClass = isCompact ? 'w-[300px]' : 'w-[350px]'
+  const baseClass = 'relative rounded-lg border border-gray-200 bg-white px-4 py-2 shadow-md';
+  const sizeClass = isCompact ? 'w-[300px]' : 'w-[350px]';
 
   const listItems = useMemo(() => {
     return [
@@ -59,8 +58,8 @@ export const WorkloadNode = ({ data }: { data: IWorkloadNode }) => {
         ),
         hidden: (data.labels ?? []).length === 0,
       }, */
-    ]
-  }, [data])
+    ];
+  }, [data]);
 
   return (
     <div className={`${baseClass} ${sizeClass}`}>
@@ -92,5 +91,5 @@ export const WorkloadNode = ({ data }: { data: IWorkloadNode }) => {
         />
       </div>
     </div>
-  )
-}
+  );
+};

@@ -1,11 +1,11 @@
-import { KeyField } from './key-field'
-import { FieldLabel } from '@/components/field/field-label'
-import { Button } from '@/components/ui/button'
-import { SecretEnvSchema, SecretVariablesSchema } from '@/resources/schemas/secret.schema'
-import { cn } from '@/utils/misc'
-import { FormMetadata, useForm } from '@conform-to/react'
-import { PlusIcon, TrashIcon } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { KeyField } from './key-field';
+import { FieldLabel } from '@/components/field/field-label';
+import { Button } from '@/components/ui/button';
+import { SecretEnvSchema, SecretVariablesSchema } from '@/resources/schemas/secret.schema';
+import { cn } from '@/utils/misc';
+import { FormMetadata, useForm } from '@conform-to/react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 
 export const KeysForm = ({
   form,
@@ -13,25 +13,25 @@ export const KeysForm = ({
   defaultValue,
   mode = 'inline',
 }: {
-  form: FormMetadata<SecretVariablesSchema>
-  fields: ReturnType<typeof useForm<SecretVariablesSchema>>[1]
-  defaultValue?: SecretVariablesSchema
-  mode?: 'inline' | 'dialog'
+  form: FormMetadata<SecretVariablesSchema>;
+  fields: ReturnType<typeof useForm<SecretVariablesSchema>>[1];
+  defaultValue?: SecretVariablesSchema;
+  mode?: 'inline' | 'dialog';
 }) => {
-  const variableList = fields.variables.getFieldList()
+  const variableList = fields.variables.getFieldList();
 
   const variableValue = useMemo(() => {
     return defaultValue?.variables
       ? defaultValue.variables
-      : ((defaultValue ?? []) as SecretEnvSchema[])
-  }, [defaultValue])
+      : ((defaultValue ?? []) as SecretEnvSchema[]);
+  }, [defaultValue]);
 
   useEffect(() => {
     if (variableValue && variableValue.length > 0) {
       form.update({
         name: fields.variables.name,
         value: variableValue as SecretEnvSchema[],
-      })
+      });
     } else if (variableList.length === 0) {
       form.insert({
         name: fields.variables.name,
@@ -39,9 +39,9 @@ export const KeysForm = ({
           key: '',
           value: '',
         },
-      })
+      });
     }
-  }, [variableValue])
+  }, [variableValue]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -53,21 +53,14 @@ export const KeysForm = ({
       )}
       <div className="space-y-4">
         {variableList.map((field, index) => {
-          const variableFields = field.getFieldset()
+          const variableFields = field.getFieldset();
 
           return (
             <div
-              className={cn(
-                'relative flex items-center gap-2',
-                mode === 'inline' && 'px-1',
-              )}
+              className={cn('relative flex items-center gap-2', mode === 'inline' && 'px-1')}
               key={field.key}>
               <KeyField
-                fields={
-                  variableFields as unknown as ReturnType<
-                    typeof useForm<SecretEnvSchema>
-                  >[1]
-                }
+                fields={variableFields as unknown as ReturnType<typeof useForm<SecretEnvSchema>>[1]}
                 defaultValue={variableValue?.[index]}
               />
 
@@ -82,7 +75,7 @@ export const KeysForm = ({
                 </Button>
               )}
             </div>
-          )
+          );
         })}
       </div>
 
@@ -104,5 +97,5 @@ export const KeysForm = ({
         Add
       </Button>
     </div>
-  )
-}
+  );
+};

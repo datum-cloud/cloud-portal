@@ -1,20 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { dump, load } from 'js-yaml'
+import { dump, load } from 'js-yaml';
 
 /**
  * Converts JSON string to YAML string
  */
 export function jsonToYaml(jsonStr: string): string {
   try {
-    const parsed = JSON.parse(jsonStr)
+    const parsed = JSON.parse(jsonStr);
     return dump(parsed, {
       indent: 2,
       lineWidth: -1, // Don't wrap lines
       noRefs: true, // Don't output YAML references
-    })
+    });
   } catch (error) {
-    console.error('JSON to YAML conversion error:', error)
-    throw new Error('Invalid JSON format')
+    console.error('JSON to YAML conversion error:', error);
+    throw new Error('Invalid JSON format');
   }
 }
 
@@ -23,11 +22,11 @@ export function jsonToYaml(jsonStr: string): string {
  */
 export function yamlToJson(yamlStr: string): string {
   try {
-    const parsed = load(yamlStr)
-    return JSON.stringify(parsed, null, 2)
+    const parsed = load(yamlStr);
+    return JSON.stringify(parsed, null, 2);
   } catch (error) {
-    console.error('YAML to JSON conversion error:', error)
-    throw new Error('Invalid YAML format')
+    console.error('YAML to JSON conversion error:', error);
+    throw new Error('Invalid YAML format');
   }
 }
 
@@ -36,10 +35,10 @@ export function yamlToJson(yamlStr: string): string {
  */
 export function formatJson(jsonStr: string): string {
   try {
-    const parsed = JSON.parse(jsonStr)
-    return JSON.stringify(parsed, null, 2)
+    const parsed = JSON.parse(jsonStr);
+    return JSON.stringify(parsed, null, 2);
   } catch (error) {
-    throw new Error('Invalid JSON format')
+    throw new Error('Invalid JSON format');
   }
 }
 
@@ -48,10 +47,10 @@ export function formatJson(jsonStr: string): string {
  */
 export function formatYaml(yamlStr: string): string {
   try {
-    const parsed = load(yamlStr)
-    return dump(parsed, { indent: 2 })
+    const parsed = load(yamlStr);
+    return dump(parsed, { indent: 2 });
   } catch (error) {
-    throw new Error('Invalid YAML format')
+    throw new Error('Invalid YAML format');
   }
 }
 
@@ -60,10 +59,10 @@ export function formatYaml(yamlStr: string): string {
  */
 export function isValidJson(jsonStr: string): boolean {
   try {
-    JSON.parse(jsonStr)
-    return true
+    JSON.parse(jsonStr);
+    return true;
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -72,9 +71,9 @@ export function isValidJson(jsonStr: string): boolean {
  */
 export function isValidYaml(yamlStr: string): boolean {
   try {
-    load(yamlStr)
-    return true
+    load(yamlStr);
+    return true;
   } catch {
-    return false
+    return false;
   }
 }

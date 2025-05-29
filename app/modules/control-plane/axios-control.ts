@@ -1,40 +1,35 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { CustomError } from '@/utils/errorHandle'
-import { isDevelopment } from '@/utils/misc'
-import { Client, ClientOptions, createClient, createConfig } from '@hey-api/client-axios'
-import { AxiosError } from 'axios'
-import curlirize from 'axios-curlirize'
+import { CustomError } from '@/utils/errorHandle';
+import { isDevelopment } from '@/utils/misc';
+import { Client, ClientOptions, createClient, createConfig } from '@hey-api/client-axios';
+import { AxiosError } from 'axios';
+import curlirize from 'axios-curlirize';
 
 // Customize the client to add an auth token to the request headers
 const errorHandler = (error: AxiosError) => {
   const errorMessage =
-    (error.response?.data as any)?.message || error.message || 'Unknown error occurred'
+    (error.response?.data as any)?.message || error.message || 'Unknown error occurred';
 
-  const errorResponse = new CustomError(
-    errorMessage,
-    error.response?.status || 500,
-    error,
-  )
+  const errorResponse = new CustomError(errorMessage, error.response?.status || 500, error);
 
-  return Promise.reject(errorResponse)
-}
+  return Promise.reject(errorResponse);
+};
 
 export const createControlPlaneClient = (
-  options: ClientOptions & { authToken: string },
+  options: ClientOptions & { authToken: string }
 ): Client => {
-  const { authToken, baseURL } = options
+  const { authToken, baseURL } = options;
 
   const client = createClient(
     createConfig<ClientOptions>({
       baseURL,
       withCredentials: false,
       throwOnError: true,
-    }),
-  )
+    })
+  );
 
   // Curlirize the client for debugging purposes
   if (isDevelopment()) {
-    curlirize(client.instance)
+    curlirize(client.instance);
   }
 
   client.instance.interceptors.request.use(
@@ -43,23 +38,23 @@ export const createControlPlaneClient = (
         config.headers = {
           ...config.headers,
           Authorization: `Bearer ${authToken}`,
-        }
+        };
       }
-      return config
+      return config;
     },
     (error) => {
-      return errorHandler(error)
-    },
-  )
+      return errorHandler(error);
+    }
+  );
 
   client.instance.interceptors.response.use(
     (response) => {
-      return response
+      return response;
     },
     (error) => {
-      return errorHandler(error)
-    },
-  )
+      return errorHandler(error);
+    }
+  );
 
-  return client
-}
+  return client;
+};

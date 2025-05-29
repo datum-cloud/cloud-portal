@@ -1,26 +1,23 @@
-import { DataTable } from '@/components/data-table/data-table'
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
-import { DateFormat } from '@/components/date-format/date-format'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { LOCATION_CLASSES, LOCATION_PROVIDERS } from '@/constants/options'
-import { routes } from '@/constants/routes'
-import { dataWithToast } from '@/modules/cookie/toast.server'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createLocationsControl } from '@/resources/control-plane/locations.control'
-import {
-  ILocationControlResponse,
-  LocationClass,
-} from '@/resources/interfaces/location.interface'
-import { loader as apiLocationsLoader } from '@/routes/api+/locations/_index'
+import { DataTable } from '@/components/data-table/data-table';
+import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
+import { DateFormat } from '@/components/date-format/date-format';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { LOCATION_CLASSES, LOCATION_PROVIDERS } from '@/constants/options';
+import { routes } from '@/constants/routes';
+import { dataWithToast } from '@/modules/cookie/toast.server';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { createLocationsControl } from '@/resources/control-plane/locations.control';
+import { ILocationControlResponse, LocationClass } from '@/resources/interfaces/location.interface';
+import { loader as apiLocationsLoader } from '@/routes/api+/locations/_index';
 // CustomError import removed as it's no longer used
-import { toTitleCase } from '@/utils/misc'
-import { getPathWithParams } from '@/utils/path'
-import { Client } from '@hey-api/client-axios'
-import { ColumnDef } from '@tanstack/react-table'
-import { PlusIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { toTitleCase } from '@/utils/misc';
+import { getPathWithParams } from '@/utils/path';
+import { Client } from '@hey-api/client-axios';
+import { ColumnDef } from '@tanstack/react-table';
+import { PlusIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import {
   ActionFunctionArgs,
   AppLoadContext,
@@ -30,50 +27,50 @@ import {
   useNavigate,
   useParams,
   useSubmit,
-} from 'react-router'
+} from 'react-router';
 
 export const loader = async ({ context, params, request }: LoaderFunctionArgs) => {
   // Create a new request with the projectId as a query parameter
-  const url = new URL(request.url)
-  url.searchParams.set('projectId', params.projectId as string)
-  const modifiedRequest = new Request(url.toString(), request)
+  const url = new URL(request.url);
+  url.searchParams.set('projectId', params.projectId as string);
+  const modifiedRequest = new Request(url.toString(), request);
 
   // Call the API locations loader
-  const response = await apiLocationsLoader({ request: modifiedRequest, context, params })
+  const response = await apiLocationsLoader({ request: modifiedRequest, context, params });
   // The API loader returns data wrapped with the data() function
   // We can directly return the response as it contains the locations data
-  return response
-}
+  return response;
+};
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
-  const { controlPlaneClient } = context as AppLoadContext
-  const locationsControl = createLocationsControl(controlPlaneClient as Client)
+  const { controlPlaneClient } = context as AppLoadContext;
+  const locationsControl = createLocationsControl(controlPlaneClient as Client);
 
   switch (request.method) {
     case 'DELETE': {
-      const formData = Object.fromEntries(await request.formData())
-      const { locationName, projectId } = formData
+      const formData = Object.fromEntries(await request.formData());
+      const { locationName, projectId } = formData;
 
-      await locationsControl.delete(projectId as string, locationName as string)
+      await locationsControl.delete(projectId as string, locationName as string);
       return dataWithToast(null, {
         title: 'Location deleted successfully',
         description: 'The location has been deleted successfully',
         type: 'success',
-      })
+      });
     }
     default:
-      throw new Error('Method not allowed')
+      throw new Error('Method not allowed');
   }
-}
+};
 
 export default function LocationsPage() {
-  const data = useLoaderData<typeof loader>()
-  const navigate = useNavigate()
-  const submit = useSubmit()
+  const data = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
+  const submit = useSubmit();
 
-  const { confirm } = useConfirmationDialog()
+  const { confirm } = useConfirmationDialog();
 
-  const { orgId, projectId } = useParams()
+  const { orgId, projectId } = useParams();
 
   const deleteLocation = async (location: ILocationControlResponse) => {
     await confirm({
@@ -104,11 +101,11 @@ export default function LocationsPage() {
             method: 'DELETE',
             fetcherKey: 'location-resources',
             navigate: false,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   const columns: ColumnDef<ILocationControlResponse>[] = useMemo(
     () => [
@@ -143,7 +140,7 @@ export default function LocationsPage() {
               className="text-primary font-semibold">
               {row.original.name}
             </Link>
-          )
+          );
         },
       },
       {
@@ -152,15 +149,10 @@ export default function LocationsPage() {
         cell: ({ row }) => {
           return (
             <Badge
-              variant={
-                row.original.class === LocationClass.SELF_MANAGED ? 'outline' : 'sunglow'
-              }>
-              {
-                LOCATION_CLASSES[row.original.class as keyof typeof LOCATION_CLASSES]
-                  ?.label
-              }
+              variant={row.original.class === LocationClass.SELF_MANAGED ? 'outline' : 'sunglow'}>
+              {LOCATION_CLASSES[row.original.class as keyof typeof LOCATION_CLASSES]?.label}
             </Badge>
-          )
+          );
         },
       },
       {
@@ -172,10 +164,8 @@ export default function LocationsPage() {
         cell: ({ row }) => {
           const provider =
             LOCATION_PROVIDERS[
-              Object.keys(
-                row.original.provider ?? {},
-              )[0] as keyof typeof LOCATION_PROVIDERS
-            ]
+              Object.keys(row.original.provider ?? {})[0] as keyof typeof LOCATION_PROVIDERS
+            ];
 
           return Object.keys(row.original.provider ?? {}).length > 0 ? (
             <Tooltip>
@@ -193,14 +183,12 @@ export default function LocationsPage() {
                   {Object.entries(row.original.provider ?? {}).map(([key, value]) => (
                     <div key={key} className="flex flex-col gap-0.5">
                       <span className="mb-1 text-sm font-medium">{provider.label}</span>
-                      {Object.entries(value as unknown as Record<string, string>).map(
-                        ([k, v]) => (
-                          <div key={k} className="flex items-center gap-1 text-xs">
-                            <span className="capitalize">{toTitleCase(k)}:</span>
-                            <span className="text-muted-foreground">{v}</span>
-                          </div>
-                        ),
-                      )}
+                      {Object.entries(value as unknown as Record<string, string>).map(([k, v]) => (
+                        <div key={k} className="flex items-center gap-1 text-xs">
+                          <span className="capitalize">{toTitleCase(k)}:</span>
+                          <span className="text-muted-foreground">{v}</span>
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
@@ -208,7 +196,7 @@ export default function LocationsPage() {
             </Tooltip>
           ) : (
             <span className="w- flex items-center justify-center">-</span>
-          )
+          );
         },
       },
       {
@@ -220,23 +208,21 @@ export default function LocationsPage() {
         cell: ({ row }) => {
           return (
             row.original.cityCode && (
-              <span className="block max-w-[65px] text-center">
-                {row.original.cityCode}
-              </span>
+              <span className="block max-w-[65px] text-center">{row.original.cityCode}</span>
             )
-          )
+          );
         },
       },
       {
         header: 'Created At',
         accessorKey: 'createdAt',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
         },
       },
     ],
-    [orgId, projectId],
-  )
+    [orgId, projectId]
+  );
 
   const rowActions: DataTableRowActionsProps<ILocationControlResponse>[] = useMemo(
     () => [
@@ -249,8 +235,8 @@ export default function LocationsPage() {
               orgId,
               projectId,
               locationId: row.name,
-            }),
-          )
+            })
+          );
         },
       },
       {
@@ -260,8 +246,8 @@ export default function LocationsPage() {
         action: (row) => deleteLocation(row),
       },
     ],
-    [orgId, projectId],
-  )
+    [orgId, projectId]
+  );
 
   return (
     <DataTable
@@ -274,8 +260,7 @@ export default function LocationsPage() {
         title: 'Locations',
         description: 'Manage deployment locations for your project resources',
         actions: (
-          <Link
-            to={getPathWithParams(routes.projects.locations.new, { orgId, projectId })}>
+          <Link to={getPathWithParams(routes.projects.locations.new, { orgId, projectId })}>
             <Button>
               <PlusIcon className="size-4" />
               New Location
@@ -285,5 +270,5 @@ export default function LocationsPage() {
       }}
       rowActions={rowActions}
     />
-  )
+  );
 }

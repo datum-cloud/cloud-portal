@@ -1,4 +1,4 @@
-import { type VariantProps, tv } from 'tailwind-variants'
+import { type VariantProps, tv } from 'tailwind-variants';
 
 export const logoStyles = tv({
   slots: {
@@ -18,6 +18,6 @@ export const logoStyles = tv({
       },
     },
   },
-})
+});
 
-export type LogoVariants = VariantProps<typeof logoStyles>
+export type LogoVariants = VariantProps<typeof logoStyles>;

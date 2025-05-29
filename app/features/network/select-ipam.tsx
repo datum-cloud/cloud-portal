@@ -4,31 +4,31 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react'
+} from '@/components/ui/select';
+import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react';
 
 export const SelectIPAM = ({
   meta,
   onChange,
 }: {
-  meta: FieldMetadata<string>
-  onChange?: (value: string) => void
+  meta: FieldMetadata<string>;
+  onChange?: (value: string) => void;
 }) => {
-  const control = useInputControl(meta)
+  const control = useInputControl(meta);
 
   const options = [
     {
       value: 'Auto',
       label: 'Auto',
     },
-  ]
+  ];
 
   return (
     <Select
       {...getSelectProps(meta)}
       onValueChange={(value) => {
-        control.change(value)
-        onChange?.(value)
+        control.change(value);
+        onChange?.(value);
       }}
       key={meta.id}
       defaultValue={meta.value?.toString()}>
@@ -43,5 +43,5 @@ export const SelectIPAM = ({
         ))}
       </SelectContent>
     </Select>
-  )
-}
+  );
+};

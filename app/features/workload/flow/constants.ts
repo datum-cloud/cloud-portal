@@ -14,7 +14,7 @@ export const NODE_COLORS = {
   placementGroup: '#2563eb', // blue (same as placement)
   containerGroup: '#9333ea', // purple (same as container)
   portGroup: '#4f46e5', // indigo (same as port)
-}
+};
 
 // Highlight colors (brighter versions of the regular colors)
 export const HIGHLIGHT_COLORS = {
@@ -32,4 +32,4 @@ export const HIGHLIGHT_COLORS = {
   placementGroup: '#3b82f6', // bright blue
   containerGroup: '#a855f7', // bright purple
   portGroup: '#6366f1', // bright indigo
-}
+};

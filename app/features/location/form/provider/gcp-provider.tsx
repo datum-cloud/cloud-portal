@@ -1,42 +1,37 @@
-import { Field } from '@/components/field/field'
-import { FieldLabel } from '@/components/field/field-label'
-import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box'
-import { Input } from '@/components/ui/input'
-import GCP_REGIONS from '@/constants/json/gcp-region.json'
-import { LocationProvider } from '@/resources/interfaces/location.interface'
-import {
-  FieldMetadata,
-  getInputProps,
-  getSelectProps,
-  useInputControl,
-} from '@conform-to/react'
-import { Slash } from 'lucide-react'
-import { useMemo } from 'react'
+import { Field } from '@/components/field/field';
+import { FieldLabel } from '@/components/field/field-label';
+import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
+import { Input } from '@/components/ui/input';
+import GCP_REGIONS from '@/constants/json/gcp-region.json';
+import { LocationProvider } from '@/resources/interfaces/location.interface';
+import { FieldMetadata, getInputProps, getSelectProps, useInputControl } from '@conform-to/react';
+import { Slash } from 'lucide-react';
+import { useMemo } from 'react';
 
 export const GCPProvider = ({
   isEdit = false,
   meta,
 }: {
-  isEdit?: boolean
+  isEdit?: boolean;
   meta: {
-    provider: FieldMetadata<LocationProvider>
-    projectId: FieldMetadata<string>
-    region: FieldMetadata<string>
-    zone: FieldMetadata<string>
-  }
+    provider: FieldMetadata<LocationProvider>;
+    projectId: FieldMetadata<string>;
+    region: FieldMetadata<string>;
+    zone: FieldMetadata<string>;
+  };
 }) => {
-  const regionControl = useInputControl(meta.region)
-  const zoneControl = useInputControl(meta.zone)
+  const regionControl = useInputControl(meta.region);
+  const zoneControl = useInputControl(meta.zone);
 
   const zoneOptions = useMemo(() => {
-    if (!meta.region.value) return []
+    if (!meta.region.value) return [];
 
-    const list = GCP_REGIONS.find((option) => option.name === meta.region.value)?.zones
+    const list = GCP_REGIONS.find((option) => option.name === meta.region.value)?.zones;
     return list?.map((zone) => ({
       value: zone,
       label: zone,
-    }))
-  }, [meta.region.value])
+    }));
+  }, [meta.region.value]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -74,8 +69,8 @@ export const GCPProvider = ({
                 </div>
               )}
               onChange={(value: SelectBoxOption) => {
-                regionControl.change(value.value)
-                zoneControl.change(undefined)
+                regionControl.change(value.value);
+                zoneControl.change(undefined);
               }}
               value={meta.region.value}
               placeholder="Select a region"
@@ -88,7 +83,7 @@ export const GCPProvider = ({
               {...getSelectProps(meta.zone, { value: false })}
               options={zoneOptions ?? []}
               onChange={(value: SelectBoxOption) => {
-                zoneControl.change(value.value)
+                zoneControl.change(value.value);
               }}
               value={meta.zone.value}
               placeholder="Select a zone"
@@ -98,5 +93,5 @@ export const GCPProvider = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

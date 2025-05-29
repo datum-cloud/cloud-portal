@@ -1,18 +1,14 @@
-import { WorkloadStatus } from './status'
-import { DataTable } from '@/components/data-table/data-table'
-import { DateFormat } from '@/components/date-format/date-format'
-import { TextCopy } from '@/components/text-copy/text-copy'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { IWorkloadDeploymentControlResponse } from '@/resources/interfaces/workload.interface'
-import { transformControlPlaneStatus } from '@/utils/misc'
-import { ColumnDef } from '@tanstack/react-table'
-import { useMemo } from 'react'
+import { WorkloadStatus } from './status';
+import { DataTable } from '@/components/data-table/data-table';
+import { DateFormat } from '@/components/date-format/date-format';
+import { TextCopy } from '@/components/text-copy/text-copy';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { IWorkloadDeploymentControlResponse } from '@/resources/interfaces/workload.interface';
+import { transformControlPlaneStatus } from '@/utils/misc';
+import { ColumnDef } from '@tanstack/react-table';
+import { useMemo } from 'react';
 
-export const DeploymentsTable = ({
-  data,
-}: {
-  data: IWorkloadDeploymentControlResponse[]
-}) => {
+export const DeploymentsTable = ({ data }: { data: IWorkloadDeploymentControlResponse[] }) => {
   const columns: ColumnDef<IWorkloadDeploymentControlResponse>[] = useMemo(
     () => [
       {
@@ -25,7 +21,7 @@ export const DeploymentsTable = ({
               value={row.original.name ?? ''}
               className="text-primary leading-none font-semibold"
             />
-          )
+          );
         },
       },
       {
@@ -33,9 +29,7 @@ export const DeploymentsTable = ({
         accessorKey: 'cityCode',
         enableSorting: false,
         cell: ({ row }) => {
-          return (
-            <span className="block w-[65px] text-center">{row.original.cityCode}</span>
-          )
+          return <span className="block w-[65px] text-center">{row.original.cityCode}</span>;
         },
       },
       {
@@ -43,7 +37,7 @@ export const DeploymentsTable = ({
         accessorKey: 'location',
         enableSorting: false,
         cell: ({ row }) => {
-          return row.original.location?.name
+          return row.original.location?.name;
         },
       },
       {
@@ -51,7 +45,7 @@ export const DeploymentsTable = ({
         accessorKey: 'replicas',
         enableSorting: false,
         cell: ({ row }) => {
-          return `${row.original.currentReplicas} / ${row.original.desiredReplicas}`
+          return `${row.original.currentReplicas} / ${row.original.desiredReplicas}`;
         },
       },
       {
@@ -68,7 +62,7 @@ export const DeploymentsTable = ({
                 badgeClassName="px-0"
               />
             )
-          )
+          );
         },
       },
       {
@@ -76,12 +70,12 @@ export const DeploymentsTable = ({
         accessorKey: 'createdAt',
         enableSorting: false,
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
         },
       },
     ],
-    [],
-  )
+    []
+  );
 
   return (
     <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
@@ -97,5 +91,5 @@ export const DeploymentsTable = ({
         />
       </CardContent>
     </Card>
-  )
-}
+  );
+};

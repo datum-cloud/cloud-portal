@@ -1,22 +1,21 @@
-import { IGroupNode } from '../types'
-import { List } from '@/components/list/list'
-import { Button } from '@/components/ui/button'
-import { Handle, Position } from '@xyflow/react'
-import { SquareMinusIcon, SquarePlusIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { IGroupNode } from '../types';
+import { List } from '@/components/list/list';
+import { Button } from '@/components/ui/button';
+import { Handle, Position } from '@xyflow/react';
+import { SquareMinusIcon, SquarePlusIcon } from 'lucide-react';
+import { useMemo } from 'react';
 
 export interface INetworkNode {
-  label: string
-  name: string
-  ipFamilies: string[]
-  isCompact?: boolean
-  [key: string]: unknown
+  label: string;
+  name: string;
+  ipFamilies: string[];
+  isCompact?: boolean;
+  [key: string]: unknown;
 }
 
 export const NetworkNode = ({ data }: { data: INetworkNode }) => {
-  const baseClass =
-    'relative rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-2 shadow-md'
-  const sizeClass = data.isCompact ? 'w-[230px]' : 'w-[280px]'
+  const baseClass = 'relative rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-2 shadow-md';
+  const sizeClass = data.isCompact ? 'w-[230px]' : 'w-[280px]';
 
   const listItems = useMemo(() => {
     return [
@@ -24,16 +23,11 @@ export const NetworkNode = ({ data }: { data: INetworkNode }) => {
         label: 'IP Families',
         content: data.ipFamilies.join(', '),
       },
-    ]
-  }, [data])
+    ];
+  }, [data]);
   return (
     <div className={`${baseClass} ${sizeClass}`}>
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="target"
-        className="h-4 w-4 bg-blue-500"
-      />
+      <Handle type="target" position={Position.Top} id="target" className="h-4 w-4 bg-blue-500" />
       <div className="flex flex-col gap-2">
         <div className="text-primary dark:text-primary-foreground text-lg font-semibold">
           {data.name}
@@ -44,28 +38,22 @@ export const NetworkNode = ({ data }: { data: INetworkNode }) => {
         />
       </div>
     </div>
-  )
-}
+  );
+};
 
 export const NetworkGroupNode = ({ data }: { data: IGroupNode }) => {
-  const baseClass =
-    'relative rounded-lg border border-cyan-500 bg-cyan-50 px-4 py-2 shadow-md'
-  const sizeClass = data.isCompact ? 'w-[220px]' : 'w-[280px]'
-  const fontClass = data.isCompact ? 'text-sm' : 'text-lg'
+  const baseClass = 'relative rounded-lg border border-cyan-500 bg-cyan-50 px-4 py-2 shadow-md';
+  const sizeClass = data.isCompact ? 'w-[220px]' : 'w-[280px]';
+  const fontClass = data.isCompact ? 'text-sm' : 'text-lg';
 
   const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent node selection
-    if (data.onToggle) data.onToggle()
-  }
+    e.stopPropagation(); // Prevent node selection
+    if (data.onToggle) data.onToggle();
+  };
 
   return (
     <div className={`${baseClass} ${sizeClass}`}>
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="target"
-        className="h-4 w-4 bg-cyan-500"
-      />
+      <Handle type="target" position={Position.Top} id="target" className="h-4 w-4 bg-cyan-500" />
       <Handle
         type="source"
         position={Position.Bottom}
@@ -87,5 +75,5 @@ export const NetworkGroupNode = ({ data }: { data: IGroupNode }) => {
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

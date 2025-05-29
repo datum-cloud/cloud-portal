@@ -1,16 +1,16 @@
-import { EnvsForm } from './envs-form'
-import { PortsForm } from './ports-form'
-import { Field } from '@/components/field/field'
-import { FieldLabel } from '@/components/field/field-label'
-import { Input } from '@/components/ui/input'
+import { EnvsForm } from './envs-form';
+import { PortsForm } from './ports-form';
+import { Field } from '@/components/field/field';
+import { FieldLabel } from '@/components/field/field-label';
+import { Input } from '@/components/ui/input';
 import {
   RuntimeContainerSchema,
   RuntimeEnvSchema,
   RuntimePortSchema,
-} from '@/resources/schemas/workload.schema'
-import { getInputProps, useForm, useInputControl } from '@conform-to/react'
-import { useEffect, useRef } from 'react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+} from '@/resources/schemas/workload.schema';
+import { getInputProps, useForm, useInputControl } from '@conform-to/react';
+import { useEffect, useRef } from 'react';
+import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const ContainerField = ({
   isEdit,
@@ -18,35 +18,34 @@ export const ContainerField = ({
   projectId,
   fields,
 }: {
-  isEdit: boolean
-  defaultValue?: RuntimeContainerSchema
-  projectId?: string
-  fields: ReturnType<typeof useForm<RuntimeContainerSchema>>[1]
+  isEdit: boolean;
+  defaultValue?: RuntimeContainerSchema;
+  projectId?: string;
+  fields: ReturnType<typeof useForm<RuntimeContainerSchema>>[1];
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isHydrated = useHydrated();
 
-  const imageControl = useInputControl(fields.image)
-  const nameControl = useInputControl(fields.name)
+  const imageControl = useInputControl(fields.image);
+  const nameControl = useInputControl(fields.name);
 
   useEffect(() => {
     if (defaultValue) {
       // Only set values if they exist in defaultValue and current fields are empty
       if (defaultValue.name && fields.name.value === '') {
-        nameControl.change(defaultValue?.name)
+        nameControl.change(defaultValue?.name);
       }
 
       if (defaultValue.image && fields.image.value === '') {
-        imageControl.change(defaultValue?.image)
+        imageControl.change(defaultValue?.image);
       }
     }
-  }, [defaultValue, imageControl, nameControl, fields.name.value, fields.image.value])
+  }, [defaultValue, imageControl, nameControl, fields.name.value, fields.image.value]);
 
   // Focus the input when the form is hydrated
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
+    isHydrated && inputRef.current?.focus();
+  }, [isHydrated]);
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -58,8 +57,8 @@ export const ContainerField = ({
             key={fields.name.id}
             placeholder="e.g. netdata"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value
-              nameControl.change(value)
+              const value = (e.target as HTMLInputElement).value;
+              nameControl.change(value);
             }}
           />
         </Field>
@@ -70,8 +69,8 @@ export const ContainerField = ({
             key={fields.image.id}
             placeholder="e.g. http://docker.io/netdata/netdata:latest"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value
-              imageControl.change(value)
+              const value = (e.target as HTMLInputElement).value;
+              imageControl.change(value);
             }}
           />
         </Field>
@@ -81,9 +80,7 @@ export const ContainerField = ({
         <FieldLabel label="Ports" />
         <PortsForm
           fields={
-            fields as unknown as ReturnType<
-              typeof useForm<{ ports: RuntimePortSchema[] }>
-            >[1]
+            fields as unknown as ReturnType<typeof useForm<{ ports: RuntimePortSchema[] }>>[1]
           }
           defaultValue={defaultValue?.ports}
           isEdit={isEdit}
@@ -93,16 +90,12 @@ export const ContainerField = ({
       <div className="flex w-full flex-col gap-2">
         <FieldLabel label="Environment Variables" />
         <EnvsForm
-          fields={
-            fields as unknown as ReturnType<
-              typeof useForm<{ envs: RuntimeEnvSchema[] }>
-            >[1]
-          }
+          fields={fields as unknown as ReturnType<typeof useForm<{ envs: RuntimeEnvSchema[] }>>[1]}
           defaultValue={defaultValue?.envs}
           isEdit={isEdit}
           projectId={projectId}
         />
       </div>
     </div>
-  )
-}
+  );
+};

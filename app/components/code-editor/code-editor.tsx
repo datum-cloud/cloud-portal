@@ -1,10 +1,9 @@
-import { CodeEditorProps } from './code-editor.types'
-import { cn } from '@/utils/misc'
-// eslint-disable-next-line import/no-named-as-default
-import Editor, { Monaco } from '@monaco-editor/react'
-import { editor } from 'monaco-editor'
-import { useRef } from 'react'
-import { useTheme, Theme } from 'remix-themes'
+import { CodeEditorProps } from './code-editor.types';
+import { cn } from '@/utils/misc';
+import Editor, { Monaco } from '@monaco-editor/react';
+import { editor } from 'monaco-editor';
+import { useRef } from 'react';
+import { useTheme, Theme } from 'remix-themes';
 
 export const CodeEditor = ({
   value = '',
@@ -17,12 +16,12 @@ export const CodeEditor = ({
   readOnly = false,
   minHeight = '200px',
 }: CodeEditorProps) => {
-  const [theme] = useTheme()
-  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
+  const [theme] = useTheme();
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   // Handle editor mounting
   const handleEditorDidMount = (editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
-    editorRef.current = editor
+    editorRef.current = editor;
 
     // Set up customizations
     editor.updateOptions({
@@ -38,7 +37,7 @@ export const CodeEditor = ({
       },
       readOnly,
       automaticLayout: true, // Important for responsive resizing
-    })
+    });
 
     // Configure JSON schemas if needed
     if (language === 'json') {
@@ -46,14 +45,14 @@ export const CodeEditor = ({
         validate: true,
         allowComments: false,
         schemas: [],
-      })
+      });
     }
 
     // Format the content on first load
     setTimeout(() => {
-      editor.getAction('editor.action.formatDocument')?.run()
-    }, 300)
-  }
+      editor.getAction('editor.action.formatDocument')?.run();
+    }, 300);
+  };
 
   return (
     <>
@@ -62,7 +61,7 @@ export const CodeEditor = ({
           'overflow-hidden rounded-md border',
           error ? 'border-destructive' : 'border-input',
           readOnly ? 'opacity-80' : '',
-          className,
+          className
         )}
         style={{ height: minHeight }}>
         <Editor
@@ -97,5 +96,5 @@ export const CodeEditor = ({
         onChange={() => undefined}
       />
     </>
-  )
-}
+  );
+};

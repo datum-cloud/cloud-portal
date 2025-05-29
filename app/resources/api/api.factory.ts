@@ -1,5 +1,5 @@
-import { createAxiosClient } from '@/modules/axios/axios'
-import { AxiosInstance } from 'axios'
+import { createAxiosClient } from '@/modules/axios/axios';
+import { AxiosInstance } from 'axios';
 
 export const createAPIFactory = (authToken: string): AxiosInstance => {
   const apiClient = createAxiosClient({
@@ -7,9 +7,9 @@ export const createAPIFactory = (authToken: string): AxiosInstance => {
     headers: {
       Authorization: `Bearer ${authToken}`,
     },
-  })
+  });
 
-  return apiClient
-}
+  return apiClient;
+};
 
-export type APIFactory = ReturnType<typeof createAPIFactory>
+export type APIFactory = ReturnType<typeof createAPIFactory>;

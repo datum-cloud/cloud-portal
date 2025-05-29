@@ -1,15 +1,15 @@
-import { FieldLabel } from './field-label'
-import { cn } from '@/utils/misc'
+import { FieldLabel } from './field-label';
+import { cn } from '@/utils/misc';
 
 interface FieldProps {
-  label?: string | React.ReactNode
-  children: React.ReactNode
-  description?: string | React.ReactNode
-  errors?: string[]
-  className?: string
-  labelClassName?: string
-  tooltipInfo?: string | React.ReactNode
-  isRequired?: boolean
+  label?: string | React.ReactNode;
+  children: React.ReactNode;
+  description?: string | React.ReactNode;
+  errors?: string[];
+  className?: string;
+  labelClassName?: string;
+  tooltipInfo?: string | React.ReactNode;
+  isRequired?: boolean;
 }
 
 export const Field = ({
@@ -39,7 +39,7 @@ export const Field = ({
         <ul
           className={cn(
             'text-destructive space-y-1 text-sm font-medium',
-            errors.length > 1 && 'list-disc pl-4',
+            errors.length > 1 && 'list-disc pl-4'
           )}>
           {errors.map((error) => (
             <li key={error}>{error}</li>
@@ -47,5 +47,5 @@ export const Field = ({
         </ul>
       )}
     </div>
-  )
-}
+  );
+};

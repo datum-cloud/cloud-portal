@@ -1,9 +1,9 @@
-import { TabsProps } from './tabs.types'
-import { PageTitle } from '@/components/page-title/page-title'
-import { Tabs, TabsLinkTrigger, TabsList } from '@/components/ui/tabs'
-import { cn } from '@/utils/misc'
-import { useMemo } from 'react'
-import { useLocation } from 'react-router'
+import { TabsProps } from './tabs.types';
+import { PageTitle } from '@/components/page-title/page-title';
+import { Tabs, TabsLinkTrigger, TabsList } from '@/components/ui/tabs';
+import { cn } from '@/utils/misc';
+import { useMemo } from 'react';
+import { useLocation } from 'react-router';
 
 export default function TabsLayout({
   children,
@@ -12,17 +12,17 @@ export default function TabsLayout({
   tabsTitle,
   navs,
 }: TabsProps) {
-  const pathname = useLocation().pathname
+  const pathname = useLocation().pathname;
 
   const activeTab = useMemo(() => {
-    return pathname.split('/').pop()
-  }, [pathname])
+    return pathname.split('/').pop();
+  }, [pathname]);
 
   return (
     <div
       className={cn(
         '-mx-5 flex h-full w-[calc(100%+2.5rem)] flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto',
-        className,
+        className
       )}>
       {tabsTitle && (
         <div className={cn('mx-auto px-5', widthClassName)}>
@@ -49,7 +49,7 @@ export default function TabsLayout({
                     'flex h-full w-fit items-center gap-2 rounded-none border-b-2 border-transparent',
                     'bg-background focus-visible:ring-0 focus-visible:outline-hidden',
                     'data-[state=active]:border-primary data-[state=active]:shadow-none',
-                    'hover:text-foreground !flex-none transition-all',
+                    'hover:text-foreground !flex-none transition-all'
                   )}>
                   {nav.icon && <nav.icon className="size-4" />}
                   {nav.label}
@@ -64,5 +64,5 @@ export default function TabsLayout({
         <div className="flex flex-1 flex-col">{children}</div>
       </div>
     </div>
-  )
+  );
 }

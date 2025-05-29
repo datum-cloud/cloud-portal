@@ -7,36 +7,36 @@ export type IoK8sApimachineryPkgApisMetaV1DeleteOptions = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
    */
-  dryRun?: Array<string>
+  dryRun?: Array<string>;
   /**
    * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
    */
-  gracePeriodSeconds?: bigint
+  gracePeriodSeconds?: bigint;
   /**
    * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
    */
-  ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+  ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
    */
-  orphanDependents?: boolean
+  orphanDependents?: boolean;
   /**
    * Must be fulfilled before a deletion is carried out. If not possible, a 409 Conflict status will be returned.
    */
-  preconditions?: IoK8sApimachineryPkgApisMetaV1Preconditions
+  preconditions?: IoK8sApimachineryPkgApisMetaV1Preconditions;
   /**
    * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
    */
-  propagationPolicy?: string
-}
+  propagationPolicy?: string;
+};
 
 /**
  * FieldsV1 stores a set of fields in a data structure like a Trie, in JSON format.
@@ -46,8 +46,8 @@ export type IoK8sApimachineryPkgApisMetaV1DeleteOptions = {
  * The exact format is defined in sigs.k8s.io/structured-merge-diff
  */
 export type IoK8sApimachineryPkgApisMetaV1FieldsV1 = {
-  [key: string]: unknown
-}
+  [key: string]: unknown;
+};
 
 /**
  * ListMeta describes metadata that synthetic resources must have, including lists and various status objects. A resource may have only one of {ObjectMeta, ListMeta}.
@@ -56,20 +56,20 @@ export type IoK8sApimachineryPkgApisMetaV1ListMeta = {
   /**
    * continue may be set if the user set a limit on the number of items returned, and indicates that the server has more data available. The value is opaque and may be used to issue another request to the endpoint that served this list to retrieve the next set of available objects. Continuing a consistent list may not be possible if the server configuration has changed or more than a few minutes have passed. The resourceVersion field returned when using this continue value will be identical to the value in the first response, unless you have received this token from an error message.
    */
-  continue?: string
+  continue?: string;
   /**
    * remainingItemCount is the number of subsequent items in the list which are not included in this list response. If the list request contained label or field selectors, then the number of remaining items is unknown and the field will be left unset and omitted during serialization. If the list is complete (either because it is not chunking or because this is the last chunk), then there are no more remaining items and this field will be left unset and omitted during serialization. Servers older than v1.15 do not set this field. The intended use of the remainingItemCount is *estimating* the size of a collection. Clients should not rely on the remainingItemCount to be set or to be exact.
    */
-  remainingItemCount?: bigint
+  remainingItemCount?: bigint;
   /**
    * String that identifies the server's internal version of this object that can be used by clients to determine when objects have changed. Value must be treated as opaque by clients and passed unmodified back to the server. Populated by the system. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
    */
-  resourceVersion?: string
+  resourceVersion?: string;
   /**
    * Deprecated: selfLink is a legacy read-only field that is no longer populated by the system.
    */
-  selfLink?: string
-}
+  selfLink?: string;
+};
 
 /**
  * ManagedFieldsEntry is a workflow-id, a FieldSet and the group version of the resource that the fieldset applies to.
@@ -78,32 +78,32 @@ export type IoK8sApimachineryPkgApisMetaV1ManagedFieldsEntry = {
   /**
    * APIVersion defines the version of this resource that this field set applies to. The format is "group/version" just like the top-level APIVersion field. It is necessary to track the version of a field set because it cannot be automatically converted.
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * FieldsType is the discriminator for the different fields format and version. There is currently only one possible value: "FieldsV1"
    */
-  fieldsType?: string
+  fieldsType?: string;
   /**
    * FieldsV1 holds the first JSON version format as described in the "FieldsV1" type.
    */
-  fieldsV1?: IoK8sApimachineryPkgApisMetaV1FieldsV1
+  fieldsV1?: IoK8sApimachineryPkgApisMetaV1FieldsV1;
   /**
    * Manager is an identifier of the workflow managing these fields.
    */
-  manager?: string
+  manager?: string;
   /**
    * Operation is the type of operation which lead to this ManagedFieldsEntry being created. The only valid values for this field are 'Apply' and 'Update'.
    */
-  operation?: string
+  operation?: string;
   /**
    * Subresource is the name of the subresource used to update that object, or empty string if the object was updated through the main resource. The value of this field is used to distinguish between managers, even if they share the same name. For example, a status update will be distinct from a regular update using the same manager name. Note that the APIVersion field is not related to the Subresource field and it always corresponds to the version of the main resource.
    */
-  subresource?: string
+  subresource?: string;
   /**
    * Time is the timestamp of when the ManagedFields entry was added. The timestamp will also be updated if a field is added, the manager changes any of the owned fields value or removes a field. The timestamp does not update when a field is removed from the entry because another manager took it over.
    */
-  time?: IoK8sApimachineryPkgApisMetaV1Time
-}
+  time?: IoK8sApimachineryPkgApisMetaV1Time;
+};
 
 /**
  * ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.
@@ -113,28 +113,28 @@ export type IoK8sApimachineryPkgApisMetaV1ObjectMeta = {
    * Annotations is an unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations
    */
   annotations?: {
-    [key: string]: string
-  }
+    [key: string]: string;
+  };
   /**
    * CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
    *
    * Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  creationTimestamp?: IoK8sApimachineryPkgApisMetaV1Time
+  creationTimestamp?: IoK8sApimachineryPkgApisMetaV1Time;
   /**
    * Number of seconds allowed for this object to gracefully terminate before it will be removed from the system. Only set when deletionTimestamp is also set. May only be shortened. Read-only.
    */
-  deletionGracePeriodSeconds?: bigint
+  deletionGracePeriodSeconds?: bigint;
   /**
    * DeletionTimestamp is RFC 3339 date and time at which this resource will be deleted. This field is set by the server when a graceful deletion is requested by the user, and is not directly settable by a client. The resource is expected to be deleted (no longer visible from resource lists, and not reachable by name) after the time in this field, once the finalizers list is empty. As long as the finalizers list contains items, deletion is blocked. Once the deletionTimestamp is set, this value may not be unset or be set further into the future, although it may be shortened or the resource may be deleted prior to this time. For example, a user may request that a pod is deleted in 30 seconds. The Kubelet will react by sending a graceful termination signal to the containers in the pod. After that 30 seconds, the Kubelet will send a hard termination signal (SIGKILL) to the container and after cleanup, remove the pod from the API. In the presence of network partitions, this object may still exist after this timestamp, until an administrator or automated process can determine the resource is fully terminated. If not set, graceful deletion of the object has not been requested.
    *
    * Populated by the system when a graceful deletion is requested. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  deletionTimestamp?: IoK8sApimachineryPkgApisMetaV1Time
+  deletionTimestamp?: IoK8sApimachineryPkgApisMetaV1Time;
   /**
    * Must be empty before the object is deleted from the registry. Each entry is an identifier for the responsible component that will remove the entry from the list. If the deletionTimestamp of the object is non-nil, entries in this list can only be removed. Finalizers may be processed and removed in any order.  Order is NOT enforced because it introduces significant risk of stuck finalizers. finalizers is a shared field, any actor with permission can reorder it. If the finalizer list is processed in order, then this can lead to a situation in which the component responsible for the first finalizer in the list is waiting for a signal (field value, external system, or other) produced by a component responsible for a finalizer later in the list, resulting in a deadlock. Without enforced ordering finalizers are free to order amongst themselves and are not vulnerable to ordering changes in the list.
    */
-  finalizers?: Array<string>
+  finalizers?: Array<string>;
   /**
    * GenerateName is an optional prefix, used by the server, to generate a unique name ONLY IF the Name field has not been provided. If this field is used, the name returned to the client will be different than the name passed. This value will also be combined with a unique suffix. The provided value has the same validation rules as the Name field, and may be truncated by the length of the suffix required to make the value unique on the server.
    *
@@ -142,52 +142,52 @@ export type IoK8sApimachineryPkgApisMetaV1ObjectMeta = {
    *
    * Applied only if Name is not specified. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#idempotency
    */
-  generateName?: string
+  generateName?: string;
   /**
    * A sequence number representing a specific generation of the desired state. Populated by the system. Read-only.
    */
-  generation?: bigint
+  generation?: bigint;
   /**
    * Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels
    */
   labels?: {
-    [key: string]: string
-  }
+    [key: string]: string;
+  };
   /**
    * ManagedFields maps workflow-id and version to the set of fields that are managed by that workflow. This is mostly for internal housekeeping, and users typically shouldn't need to set or understand this field. A workflow can be the user's name, a controller's name, or the name of a specific apply path like "ci-cd". The set of fields is always in the version that the workflow used when modifying the object.
    */
-  managedFields?: Array<IoK8sApimachineryPkgApisMetaV1ManagedFieldsEntry>
+  managedFields?: Array<IoK8sApimachineryPkgApisMetaV1ManagedFieldsEntry>;
   /**
    * Name must be unique within a namespace. Is required when creating resources, although some resources may allow a client to request the generation of an appropriate name automatically. Name is primarily intended for creation idempotence and configuration definition. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names
    */
-  name?: string
+  name?: string;
   /**
    * Namespace defines the space within which each name must be unique. An empty namespace is equivalent to the "default" namespace, but "default" is the canonical representation. Not all objects are required to be scoped to a namespace - the value of this field for those objects will be empty.
    *
    * Must be a DNS_LABEL. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces
    */
-  namespace?: string
+  namespace?: string;
   /**
    * List of objects depended by this object. If ALL objects in the list have been deleted, this object will be garbage collected. If this object is managed by a controller, then an entry in this list will point to this controller, with the controller field set to true. There cannot be more than one managing controller.
    */
-  ownerReferences?: Array<IoK8sApimachineryPkgApisMetaV1OwnerReference>
+  ownerReferences?: Array<IoK8sApimachineryPkgApisMetaV1OwnerReference>;
   /**
    * An opaque value that represents the internal version of this object that can be used by clients to determine when objects have changed. May be used for optimistic concurrency, change detection, and the watch operation on a resource or set of resources. Clients must treat these values as opaque and passed unmodified back to the server. They may only be valid for a particular resource or set of resources.
    *
    * Populated by the system. Read-only. Value must be treated as opaque by clients and . More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
    */
-  resourceVersion?: string
+  resourceVersion?: string;
   /**
    * Deprecated: selfLink is a legacy read-only field that is no longer populated by the system.
    */
-  selfLink?: string
+  selfLink?: string;
   /**
    * UID is the unique in time and space value for this object. It is typically generated by the server on successful creation of a resource and is not allowed to change on PUT operations.
    *
    * Populated by the system. Read-only. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
    */
-  uid?: string
-}
+  uid?: string;
+};
 
 /**
  * OwnerReference contains enough information to let you identify an owning object. An owning object must be in the same namespace as the dependent, or be cluster-scoped, so there is no namespace field.
@@ -196,35 +196,35 @@ export type IoK8sApimachineryPkgApisMetaV1OwnerReference = {
   /**
    * API version of the referent.
    */
-  apiVersion: string
+  apiVersion: string;
   /**
    * If true, AND if the owner has the "foregroundDeletion" finalizer, then the owner cannot be deleted from the key-value store until this reference is removed. See https://kubernetes.io/docs/concepts/architecture/garbage-collection/#foreground-deletion for how the garbage collector interacts with this field and enforces the foreground deletion. Defaults to false. To set this field, a user needs "delete" permission of the owner, otherwise 422 (Unprocessable Entity) will be returned.
    */
-  blockOwnerDeletion?: boolean
+  blockOwnerDeletion?: boolean;
   /**
    * If true, this reference points to the managing controller.
    */
-  controller?: boolean
+  controller?: boolean;
   /**
    * Kind of the referent. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind: string
+  kind: string;
   /**
    * Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#names
    */
-  name: string
+  name: string;
   /**
    * UID of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
    */
-  uid: string
-}
+  uid: string;
+};
 
 /**
  * Patch is provided to give a concrete name and type to the Kubernetes PATCH request body.
  */
 export type IoK8sApimachineryPkgApisMetaV1Patch = {
-  [key: string]: unknown
-}
+  [key: string]: unknown;
+};
 
 /**
  * Preconditions must be fulfilled before an operation (update, delete, etc.) is carried out.
@@ -233,12 +233,12 @@ export type IoK8sApimachineryPkgApisMetaV1Preconditions = {
   /**
    * Specifies the target ResourceVersion
    */
-  resourceVersion?: string
+  resourceVersion?: string;
   /**
    * Specifies the target UID.
    */
-  uid?: string
-}
+  uid?: string;
+};
 
 /**
  * Status is a return value for calls that don't return other objects.
@@ -247,36 +247,36 @@ export type IoK8sApimachineryPkgApisMetaV1Status = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Suggested HTTP return code for this status, 0 if not set.
    */
-  code?: number
+  code?: number;
   /**
    * Extended data associated with the reason.  Each reason may define its own extended details. This field is optional and the data returned is not guaranteed to conform to any schema except that defined by the reason type.
    */
-  details?: IoK8sApimachineryPkgApisMetaV1StatusDetails
+  details?: IoK8sApimachineryPkgApisMetaV1StatusDetails;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * A human-readable description of the status of this operation.
    */
-  message?: string
+  message?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
   /**
    * A machine-readable description of why this operation is in the "Failure" status. If this value is empty there is no information available. A Reason clarifies an HTTP status code but does not override it.
    */
-  reason?: string
+  reason?: string;
   /**
    * Status of the operation. One of: "Success" or "Failure". More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#spec-and-status
    */
-  status?: string
-}
+  status?: string;
+};
 
 /**
  * StatusCause provides more information about an api.Status failure, including cases when multiple errors are encountered.
@@ -289,16 +289,16 @@ export type IoK8sApimachineryPkgApisMetaV1StatusCause = {
    * "name" - the field "name" on the current resource
    * "items[0].name" - the field "name" on the first array entry in "items"
    */
-  field?: string
+  field?: string;
   /**
    * A human-readable description of the cause of the error.  This field may be presented as-is to a reader.
    */
-  message?: string
+  message?: string;
   /**
    * A machine-readable description of the cause of the error. If this value is empty there is no information available.
    */
-  reason?: string
-}
+  reason?: string;
+};
 
 /**
  * StatusDetails is a set of additional properties that MAY be set by the server to provide additional information about a response. The Reason field of a Status object defines what attributes will be set. Clients must ignore fields that do not match the defined type of each attribute, and should assume that any attribute may be empty, invalid, or under defined.
@@ -307,33 +307,33 @@ export type IoK8sApimachineryPkgApisMetaV1StatusDetails = {
   /**
    * The Causes array includes more details associated with the StatusReason failure. Not all StatusReasons may provide detailed causes.
    */
-  causes?: Array<IoK8sApimachineryPkgApisMetaV1StatusCause>
+  causes?: Array<IoK8sApimachineryPkgApisMetaV1StatusCause>;
   /**
    * The group attribute of the resource associated with the status StatusReason.
    */
-  group?: string
+  group?: string;
   /**
    * The kind attribute of the resource associated with the status StatusReason. On some operations may differ from the requested resource Kind. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * The name attribute of the resource associated with the status StatusReason (when there is a single name which can be described).
    */
-  name?: string
+  name?: string;
   /**
    * If specified, the time in seconds before the operation should be retried. Some errors may indicate the client must take an alternate action - for those errors this field may indicate how long to wait before taking the alternate action.
    */
-  retryAfterSeconds?: number
+  retryAfterSeconds?: number;
   /**
    * UID of the resource. (when there is a single resource which can be described). More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids
    */
-  uid?: string
-}
+  uid?: string;
+};
 
 /**
  * Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.
  */
-export type IoK8sApimachineryPkgApisMetaV1Time = Date
+export type IoK8sApimachineryPkgApisMetaV1Time = Date;
 
 /**
  * Gateway represents an instance of a service-traffic handling infrastructure
@@ -343,15 +343,15 @@ export type IoK8sNetworkingGatewayV1Gateway = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
   /**
    * Spec defines the desired state of Gateway.
    */
@@ -383,31 +383,31 @@ export type IoK8sNetworkingGatewayV1Gateway = {
     addresses?: Array<
       (
         | {
-            type?: 'IPAddress'
-            value?: unknown
+            type?: 'IPAddress';
+            value?: unknown;
           }
         | {
-            type?: unknown
+            type?: unknown;
           }
       ) & {
         /**
          * Type of the address.
          */
-        type?: string
+        type?: string;
         /**
          * Value of the address. The validity of the values will depend
          * on the type and support by the controller.
          *
          * Examples: `1.2.3.4`, `128::1`, `my-ip-address`.
          */
-        value: string
+        value: string;
       }
-    >
+    >;
     /**
      * GatewayClassName used for this Gateway. This is the name of a
      * GatewayClass resource.
      */
-    gatewayClassName: string
+    gatewayClassName: string;
     /**
      * Infrastructure defines infrastructure level attributes about this Gateway instance.
      *
@@ -425,8 +425,8 @@ export type IoK8sNetworkingGatewayV1Gateway = {
        * Support: Extended
        */
       annotations?: {
-        [key: string]: string
-      }
+        [key: string]: string;
+      };
       /**
        * Labels that SHOULD be applied to any resources created in response to this Gateway.
        *
@@ -441,8 +441,8 @@ export type IoK8sNetworkingGatewayV1Gateway = {
        * Support: Extended
        */
       labels?: {
-        [key: string]: string
-      }
+        [key: string]: string;
+      };
       /**
        * ParametersRef is a reference to a resource that contains the configuration
        * parameters corresponding to the Gateway. This is optional if the
@@ -460,17 +460,17 @@ export type IoK8sNetworkingGatewayV1Gateway = {
         /**
          * Group is the group of the referent.
          */
-        group: string
+        group: string;
         /**
          * Kind is kind of the referent.
          */
-        kind: string
+        kind: string;
         /**
          * Name is the name of the referent.
          */
-        name: string
-      }
-    }
+        name: string;
+      };
+    };
     /**
      * Listeners associated with this Gateway. Listeners define
      * logical endpoints that are bound on this Gateway's addresses.
@@ -635,12 +635,12 @@ export type IoK8sNetworkingGatewayV1Gateway = {
           /**
            * Group is the group of the Route.
            */
-          group?: string
+          group?: string;
           /**
            * Kind is the kind of the Route.
            */
-          kind: string
-        }>
+          kind: string;
+        }>;
         /**
          * Namespaces indicates namespaces from which Routes may be attached to this
          * Listener. This is restricted to the namespace of this Gateway by default.
@@ -659,7 +659,7 @@ export type IoK8sNetworkingGatewayV1Gateway = {
            *
            * Support: Core
            */
-          from?: 'All' | 'Selector' | 'Same'
+          from?: 'All' | 'Selector' | 'Same';
           /**
            * Selector must be specified when From is set to "Selector". In that case,
            * only Routes in Namespaces matching this Selector will be selected by this
@@ -675,31 +675,31 @@ export type IoK8sNetworkingGatewayV1Gateway = {
               /**
                * key is the label key that the selector applies to.
                */
-              key: string
+              key: string;
               /**
                * operator represents a key's relationship to a set of values.
                * Valid operators are In, NotIn, Exists and DoesNotExist.
                */
-              operator: string
+              operator: string;
               /**
                * values is an array of string values. If the operator is In or NotIn,
                * the values array must be non-empty. If the operator is Exists or DoesNotExist,
                * the values array must be empty. This array is replaced during a strategic
                * merge patch.
                */
-              values?: Array<string>
-            }>
+              values?: Array<string>;
+            }>;
             /**
              * matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
              * map is equivalent to an element of matchExpressions, whose key field is "key", the
              * operator is "In", and the values array contains only "value". The requirements are ANDed.
              */
             matchLabels?: {
-              [key: string]: string
-            }
-          }
-        }
-      }
+              [key: string]: string;
+            };
+          };
+        };
+      };
       /**
        * Hostname specifies the virtual hostname to match for protocol types that
        * define this concept. When unspecified, all hostnames are matched. This
@@ -728,27 +728,27 @@ export type IoK8sNetworkingGatewayV1Gateway = {
        *
        * Support: Core
        */
-      hostname?: string
+      hostname?: string;
       /**
        * Name is the name of the Listener. This name MUST be unique within a
        * Gateway.
        *
        * Support: Core
        */
-      name: string
+      name: string;
       /**
        * Port is the network port. Multiple listeners may use the
        * same port, subject to the Listener compatibility rules.
        *
        * Support: Core
        */
-      port: number
+      port: number;
       /**
        * Protocol specifies the network protocol this listener expects to receive.
        *
        * Support: Core
        */
-      protocol: string
+      protocol: string;
       /**
        * TLS is the TLS configuration for the Listener. This field is required if
        * the Protocol field is "HTTPS" or "TLS". It is invalid to set this field
@@ -794,15 +794,15 @@ export type IoK8sNetworkingGatewayV1Gateway = {
            * Group is the group of the referent. For example, "gateway.networking.k8s.io".
            * When unspecified or empty string, core API group is inferred.
            */
-          group?: string
+          group?: string;
           /**
            * Kind is kind of the referent. For example "Secret".
            */
-          kind?: string
+          kind?: string;
           /**
            * Name is the name of the referent.
            */
-          name: string
+          name: string;
           /**
            * Namespace is the namespace of the referenced object. When unspecified, the local
            * namespace is inferred.
@@ -814,8 +814,8 @@ export type IoK8sNetworkingGatewayV1Gateway = {
            *
            * Support: Core
            */
-          namespace?: string
-        }>
+          namespace?: string;
+        }>;
         /**
          * Mode defines the TLS behavior for the TLS session initiated by the client.
          * There are two possible modes:
@@ -831,7 +831,7 @@ export type IoK8sNetworkingGatewayV1Gateway = {
          *
          * Support: Core
          */
-        mode?: 'Terminate' | 'Passthrough'
+        mode?: 'Terminate' | 'Passthrough';
         /**
          * Options are a list of key/value pairs to enable extended TLS
          * configuration for each implementation. For example, configuring the
@@ -845,11 +845,11 @@ export type IoK8sNetworkingGatewayV1Gateway = {
          * Support: Implementation-specific
          */
         options?: {
-          [key: string]: string
-        }
-      }
-    }>
-  }
+          [key: string]: string;
+        };
+      };
+    }>;
+  };
   /**
    * Status defines the current state of Gateway.
    */
@@ -870,26 +870,26 @@ export type IoK8sNetworkingGatewayV1Gateway = {
     addresses?: Array<
       (
         | {
-            type?: 'IPAddress'
-            value?: unknown
+            type?: 'IPAddress';
+            value?: unknown;
           }
         | {
-            type?: unknown
+            type?: unknown;
           }
       ) & {
         /**
          * Type of the address.
          */
-        type?: string
+        type?: string;
         /**
          * Value of the address. The validity of the values will depend
          * on the type and support by the controller.
          *
          * Examples: `1.2.3.4`, `128::1`, `my-ip-address`.
          */
-        value: string
+        value: string;
       }
-    >
+    >;
     /**
      * Conditions describe the current conditions of the Gateway.
      *
@@ -909,18 +909,18 @@ export type IoK8sNetworkingGatewayV1Gateway = {
        * lastTransitionTime is the last time the condition transitioned from one status to another.
        * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
        */
-      lastTransitionTime: Date
+      lastTransitionTime: Date;
       /**
        * message is a human readable message indicating details about the transition.
        * This may be an empty string.
        */
-      message: string
+      message: string;
       /**
        * observedGeneration represents the .metadata.generation that the condition was set based upon.
        * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
        * with respect to the current state of the instance.
        */
-      observedGeneration?: bigint
+      observedGeneration?: bigint;
       /**
        * reason contains a programmatic identifier indicating the reason for the condition's last transition.
        * Producers of specific condition types may define expected values and meanings for this field,
@@ -928,16 +928,16 @@ export type IoK8sNetworkingGatewayV1Gateway = {
        * The value should be a CamelCase string.
        * This field may not be empty.
        */
-      reason: string
+      reason: string;
       /**
        * status of the condition, one of True, False, Unknown.
        */
-      status: 'True' | 'False' | 'Unknown'
+      status: 'True' | 'False' | 'Unknown';
       /**
        * type of condition in CamelCase or in foo.example.com/CamelCase.
        */
-      type: string
-    }>
+      type: string;
+    }>;
     /**
      * Listeners provide status for each unique listener port defined in the Spec.
      */
@@ -961,7 +961,7 @@ export type IoK8sNetworkingGatewayV1Gateway = {
        * Uses for this field include troubleshooting Route attachment and
        * measuring blast radius/impact of changes to a Listener.
        */
-      attachedRoutes: number
+      attachedRoutes: number;
       /**
        * Conditions describe the current condition of this listener.
        */
@@ -970,18 +970,18 @@ export type IoK8sNetworkingGatewayV1Gateway = {
          * lastTransitionTime is the last time the condition transitioned from one status to another.
          * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
          */
-        lastTransitionTime: Date
+        lastTransitionTime: Date;
         /**
          * message is a human readable message indicating details about the transition.
          * This may be an empty string.
          */
-        message: string
+        message: string;
         /**
          * observedGeneration represents the .metadata.generation that the condition was set based upon.
          * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
          * with respect to the current state of the instance.
          */
-        observedGeneration?: bigint
+        observedGeneration?: bigint;
         /**
          * reason contains a programmatic identifier indicating the reason for the condition's last transition.
          * Producers of specific condition types may define expected values and meanings for this field,
@@ -989,20 +989,20 @@ export type IoK8sNetworkingGatewayV1Gateway = {
          * The value should be a CamelCase string.
          * This field may not be empty.
          */
-        reason: string
+        reason: string;
         /**
          * status of the condition, one of True, False, Unknown.
          */
-        status: 'True' | 'False' | 'Unknown'
+        status: 'True' | 'False' | 'Unknown';
         /**
          * type of condition in CamelCase or in foo.example.com/CamelCase.
          */
-        type: string
-      }>
+        type: string;
+      }>;
       /**
        * Name is the name of the Listener that this status corresponds to.
        */
-      name: string
+      name: string;
       /**
        * SupportedKinds is the list indicating the Kinds supported by this
        * listener. This MUST represent the kinds an implementation supports for
@@ -1018,15 +1018,15 @@ export type IoK8sNetworkingGatewayV1Gateway = {
         /**
          * Group is the group of the Route.
          */
-        group?: string
+        group?: string;
         /**
          * Kind is the kind of the Route.
          */
-        kind: string
-      }>
-    }>
-  }
-}
+        kind: string;
+      }>;
+    }>;
+  };
+};
 
 /**
  * GatewayClass describes a class of Gateways available to the user for creating
@@ -1051,15 +1051,15 @@ export type IoK8sNetworkingGatewayV1GatewayClass = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
   /**
    * Spec defines the desired state of GatewayClass.
    */
@@ -1074,11 +1074,11 @@ export type IoK8sNetworkingGatewayV1GatewayClass = {
      *
      * Support: Core
      */
-    controllerName: string
+    controllerName: string;
     /**
      * Description helps describe a GatewayClass with more details.
      */
-    description?: string
+    description?: string;
     /**
      * ParametersRef is a reference to a resource that contains the configuration
      * parameters corresponding to the GatewayClass. This is optional if the
@@ -1103,23 +1103,23 @@ export type IoK8sNetworkingGatewayV1GatewayClass = {
       /**
        * Group is the group of the referent.
        */
-      group: string
+      group: string;
       /**
        * Kind is kind of the referent.
        */
-      kind: string
+      kind: string;
       /**
        * Name is the name of the referent.
        */
-      name: string
+      name: string;
       /**
        * Namespace is the namespace of the referent.
        * This field is required when referring to a Namespace-scoped resource and
        * MUST be unset when referring to a Cluster-scoped resource.
        */
-      namespace?: string
-    }
-  }
+      namespace?: string;
+    };
+  };
   /**
    * Status defines the current state of GatewayClass.
    *
@@ -1139,18 +1139,18 @@ export type IoK8sNetworkingGatewayV1GatewayClass = {
        * lastTransitionTime is the last time the condition transitioned from one status to another.
        * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
        */
-      lastTransitionTime: Date
+      lastTransitionTime: Date;
       /**
        * message is a human readable message indicating details about the transition.
        * This may be an empty string.
        */
-      message: string
+      message: string;
       /**
        * observedGeneration represents the .metadata.generation that the condition was set based upon.
        * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
        * with respect to the current state of the instance.
        */
-      observedGeneration?: bigint
+      observedGeneration?: bigint;
       /**
        * reason contains a programmatic identifier indicating the reason for the condition's last transition.
        * Producers of specific condition types may define expected values and meanings for this field,
@@ -1158,18 +1158,18 @@ export type IoK8sNetworkingGatewayV1GatewayClass = {
        * The value should be a CamelCase string.
        * This field may not be empty.
        */
-      reason: string
+      reason: string;
       /**
        * status of the condition, one of True, False, Unknown.
        */
-      status: 'True' | 'False' | 'Unknown'
+      status: 'True' | 'False' | 'Unknown';
       /**
        * type of condition in CamelCase or in foo.example.com/CamelCase.
        */
-      type: string
-    }>
-  }
-}
+      type: string;
+    }>;
+  };
+};
 
 /**
  * GatewayClassList is a list of GatewayClass
@@ -1178,20 +1178,20 @@ export type IoK8sNetworkingGatewayV1GatewayClassList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * List of gatewayclasses. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
    */
-  items: Array<IoK8sNetworkingGatewayV1GatewayClass>
+  items: Array<IoK8sNetworkingGatewayV1GatewayClass>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
 
 /**
  * GatewayList is a list of Gateway
@@ -1200,20 +1200,20 @@ export type IoK8sNetworkingGatewayV1GatewayList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * List of gateways. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
    */
-  items: Array<IoK8sNetworkingGatewayV1Gateway>
+  items: Array<IoK8sNetworkingGatewayV1Gateway>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
 
 /**
  * HTTPRoute provides a way to route HTTP requests. This includes the capability
@@ -1225,15 +1225,15 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
   /**
    * Spec defines the desired state of HTTPRoute.
    */
@@ -1293,7 +1293,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
      *
      * Support: Core
      */
-    hostnames?: Array<string>
+    hostnames?: Array<string>;
     /**
      * ParentRefs references the resources (usually Gateways) that a Route wants
      * to be attached to. Note that the referenced parent resource needs to
@@ -1362,7 +1362,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
        *
        * Support: Core
        */
-      group?: string
+      group?: string;
       /**
        * Kind is kind of the referent.
        *
@@ -1373,13 +1373,13 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
        *
        * Support for other resources is Implementation-Specific.
        */
-      kind?: string
+      kind?: string;
       /**
        * Name is the name of the referent.
        *
        * Support: Core
        */
-      name: string
+      name: string;
       /**
        * Namespace is the namespace of the referent. When unspecified, this refers
        * to the local namespace of the Route.
@@ -1394,7 +1394,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
        *
        * Support: Core
        */
-      namespace?: string
+      namespace?: string;
       /**
        * Port is the network port this Route targets. It can be interpreted
        * differently based on the type of parent resource.
@@ -1423,7 +1423,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
        *
        * Support: Extended
        */
-      port?: number
+      port?: number;
       /**
        * SectionName is the name of a section within the target resource. In the
        * following resources, SectionName is interpreted as the following:
@@ -1450,8 +1450,8 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
        *
        * Support: Core
        */
-      sectionName?: string
-    }>
+      sectionName?: string;
+    }>;
     /**
      * Rules are a list of HTTP matchers, filters and actions.
      *
@@ -1519,16 +1519,16 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * Group is the group of the referent. For example, "gateway.networking.k8s.io".
              * When unspecified or empty string, core API group is inferred.
              */
-            group: string
+            group: string;
             /**
              * Kind is kind of the referent. For example "HTTPRoute" or "Service".
              */
-            kind: string
+            kind: string;
             /**
              * Name is the name of the referent.
              */
-            name: string
-          }
+            name: string;
+          };
           /**
            * RequestHeaderModifier defines a schema for a filter that modifies request
            * headers.
@@ -1565,12 +1565,12 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                * case-insensitivity of header names, "foo" and "Foo" are considered
                * equivalent.
                */
-              name: string
+              name: string;
               /**
                * Value is the value of HTTP Header to be matched.
                */
-              value: string
-            }>
+              value: string;
+            }>;
             /**
              * Remove the given header(s) from the HTTP request before the action. The
              * value of Remove is a list of HTTP header names. Note that the header
@@ -1590,7 +1590,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * GET /foo HTTP/1.1
              * my-header2: bar
              */
-            remove?: Array<string>
+            remove?: Array<string>;
             /**
              * Set overwrites the request with the given header (name, value)
              * before the action.
@@ -1619,13 +1619,13 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                * case-insensitivity of header names, "foo" and "Foo" are considered
                * equivalent.
                */
-              name: string
+              name: string;
               /**
                * Value is the value of HTTP Header to be matched.
                */
-              value: string
-            }>
-          }
+              value: string;
+            }>;
+          };
           /**
            * RequestMirror defines a schema for a filter that mirrors requests.
            * Requests are sent to the specified destination, but responses from
@@ -1670,7 +1670,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                * Group is the group of the referent. For example, "gateway.networking.k8s.io".
                * When unspecified or empty string, core API group is inferred.
                */
-              group?: string
+              group?: string;
               /**
                * Kind is the Kubernetes resource kind of the referent. For example
                * "Service".
@@ -1687,11 +1687,11 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                *
                * Support: Implementation-specific (Services with type ExternalName)
                */
-              kind?: string
+              kind?: string;
               /**
                * Name is the name of the referent.
                */
-              name: string
+              name: string;
               /**
                * Namespace is the namespace of the backend. When unspecified, the local
                * namespace is inferred.
@@ -1703,7 +1703,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                *
                * Support: Core
                */
-              namespace?: string
+              namespace?: string;
               /**
                * Port specifies the destination port number to use for this resource.
                * Port is required when the referent is a Kubernetes Service. In this
@@ -1711,9 +1711,9 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                * For other resources, destination port might be derived from the referent
                * resource or this field.
                */
-              port?: number
-            }
-          }
+              port?: number;
+            };
+          };
           /**
            * RequestRedirect defines a schema for a filter that responds to the
            * request with an HTTP redirection.
@@ -1728,7 +1728,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              *
              * Support: Core
              */
-            hostname?: string
+            hostname?: string;
             /**
              * Path defines parameters used to modify the path of the incoming request.
              * The modified path is then used to construct the `Location` header. When
@@ -1741,7 +1741,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                * ReplaceFullPath specifies the value with which to replace the full path
                * of a request during a rewrite or redirect.
                */
-              replaceFullPath?: string
+              replaceFullPath?: string;
               /**
                * ReplacePrefixMatch specifies the value with which to replace the prefix
                * match of a request during a rewrite or redirect. For example, a request
@@ -1760,7 +1760,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                *
                * Request Path | Prefix Match | Replace Prefix | Modified Path
                */
-              replacePrefixMatch?: string
+              replacePrefixMatch?: string;
               /**
                * Type defines the type of path modifier. Additional types may be
                * added in a future release of the API.
@@ -1772,8 +1772,8 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                * Accepted Condition for the Route to `status: False`, with a
                * Reason of `UnsupportedValue`.
                */
-              type: 'ReplaceFullPath' | 'ReplacePrefixMatch'
-            }
+              type: 'ReplaceFullPath' | 'ReplacePrefixMatch';
+            };
             /**
              * Port is the port to be used in the value of the `Location`
              * header in the response.
@@ -1798,7 +1798,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              *
              * Support: Extended
              */
-            port?: number
+            port?: number;
             /**
              * Scheme is the scheme to be used in the value of the `Location` header in
              * the response. When empty, the scheme of the request is used.
@@ -1815,7 +1815,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              *
              * Support: Extended
              */
-            scheme?: 'http' | 'https'
+            scheme?: 'http' | 'https';
             /**
              * StatusCode is the HTTP status code to be used in response.
              *
@@ -1828,8 +1828,8 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              *
              * Support: Core
              */
-            statusCode?: 301 | 302
-          }
+            statusCode?: 301 | 302;
+          };
           /**
            * ResponseHeaderModifier defines a schema for a filter that modifies response
            * headers.
@@ -1866,12 +1866,12 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                * case-insensitivity of header names, "foo" and "Foo" are considered
                * equivalent.
                */
-              name: string
+              name: string;
               /**
                * Value is the value of HTTP Header to be matched.
                */
-              value: string
-            }>
+              value: string;
+            }>;
             /**
              * Remove the given header(s) from the HTTP request before the action. The
              * value of Remove is a list of HTTP header names. Note that the header
@@ -1891,7 +1891,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * GET /foo HTTP/1.1
              * my-header2: bar
              */
-            remove?: Array<string>
+            remove?: Array<string>;
             /**
              * Set overwrites the request with the given header (name, value)
              * before the action.
@@ -1920,13 +1920,13 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                * case-insensitivity of header names, "foo" and "Foo" are considered
                * equivalent.
                */
-              name: string
+              name: string;
               /**
                * Value is the value of HTTP Header to be matched.
                */
-              value: string
-            }>
-          }
+              value: string;
+            }>;
+          };
           /**
            * Type identifies the type of filter to apply. As with other API fields,
            * types are classified into three conformance levels:
@@ -1967,7 +1967,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
             | 'RequestMirror'
             | 'RequestRedirect'
             | 'URLRewrite'
-            | 'ExtensionRef'
+            | 'ExtensionRef';
           /**
            * URLRewrite defines a schema for a filter that modifies a request during forwarding.
            *
@@ -1980,7 +1980,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              *
              * Support: Extended
              */
-            hostname?: string
+            hostname?: string;
             /**
              * Path defines a path rewrite.
              *
@@ -1991,7 +1991,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                * ReplaceFullPath specifies the value with which to replace the full path
                * of a request during a rewrite or redirect.
                */
-              replaceFullPath?: string
+              replaceFullPath?: string;
               /**
                * ReplacePrefixMatch specifies the value with which to replace the prefix
                * match of a request during a rewrite or redirect. For example, a request
@@ -2010,7 +2010,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                *
                * Request Path | Prefix Match | Replace Prefix | Modified Path
                */
-              replacePrefixMatch?: string
+              replacePrefixMatch?: string;
               /**
                * Type defines the type of path modifier. Additional types may be
                * added in a future release of the API.
@@ -2022,15 +2022,15 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
                * Accepted Condition for the Route to `status: False`, with a
                * Reason of `UnsupportedValue`.
                */
-              type: 'ReplaceFullPath' | 'ReplacePrefixMatch'
-            }
-          }
-        }>
+              type: 'ReplaceFullPath' | 'ReplacePrefixMatch';
+            };
+          };
+        }>;
         /**
          * Group is the group of the referent. For example, "gateway.networking.k8s.io".
          * When unspecified or empty string, core API group is inferred.
          */
-        group?: string
+        group?: string;
         /**
          * Kind is the Kubernetes resource kind of the referent. For example
          * "Service".
@@ -2047,11 +2047,11 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          *
          * Support: Implementation-specific (Services with type ExternalName)
          */
-        kind?: string
+        kind?: string;
         /**
          * Name is the name of the referent.
          */
-        name: string
+        name: string;
         /**
          * Namespace is the namespace of the backend. When unspecified, the local
          * namespace is inferred.
@@ -2063,7 +2063,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          *
          * Support: Core
          */
-        namespace?: string
+        namespace?: string;
         /**
          * Port specifies the destination port number to use for this resource.
          * Port is required when the referent is a Kubernetes Service. In this
@@ -2071,7 +2071,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          * For other resources, destination port might be derived from the referent
          * resource or this field.
          */
-        port?: number
+        port?: number;
         /**
          * Weight specifies the proportion of requests forwarded to the referenced
          * backend. This is computed as weight/(sum of all weights in this
@@ -2087,8 +2087,8 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          *
          * Support for this field varies based on the context where used.
          */
-        weight?: number
-      }>
+        weight?: number;
+      }>;
       /**
        * Filters define the filters that are applied to requests that match
        * this rule.
@@ -2143,16 +2143,16 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            * Group is the group of the referent. For example, "gateway.networking.k8s.io".
            * When unspecified or empty string, core API group is inferred.
            */
-          group: string
+          group: string;
           /**
            * Kind is kind of the referent. For example "HTTPRoute" or "Service".
            */
-          kind: string
+          kind: string;
           /**
            * Name is the name of the referent.
            */
-          name: string
-        }
+          name: string;
+        };
         /**
          * RequestHeaderModifier defines a schema for a filter that modifies request
          * headers.
@@ -2189,12 +2189,12 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * case-insensitivity of header names, "foo" and "Foo" are considered
              * equivalent.
              */
-            name: string
+            name: string;
             /**
              * Value is the value of HTTP Header to be matched.
              */
-            value: string
-          }>
+            value: string;
+          }>;
           /**
            * Remove the given header(s) from the HTTP request before the action. The
            * value of Remove is a list of HTTP header names. Note that the header
@@ -2214,7 +2214,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            * GET /foo HTTP/1.1
            * my-header2: bar
            */
-          remove?: Array<string>
+          remove?: Array<string>;
           /**
            * Set overwrites the request with the given header (name, value)
            * before the action.
@@ -2243,13 +2243,13 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * case-insensitivity of header names, "foo" and "Foo" are considered
              * equivalent.
              */
-            name: string
+            name: string;
             /**
              * Value is the value of HTTP Header to be matched.
              */
-            value: string
-          }>
-        }
+            value: string;
+          }>;
+        };
         /**
          * RequestMirror defines a schema for a filter that mirrors requests.
          * Requests are sent to the specified destination, but responses from
@@ -2294,7 +2294,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * Group is the group of the referent. For example, "gateway.networking.k8s.io".
              * When unspecified or empty string, core API group is inferred.
              */
-            group?: string
+            group?: string;
             /**
              * Kind is the Kubernetes resource kind of the referent. For example
              * "Service".
@@ -2311,11 +2311,11 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              *
              * Support: Implementation-specific (Services with type ExternalName)
              */
-            kind?: string
+            kind?: string;
             /**
              * Name is the name of the referent.
              */
-            name: string
+            name: string;
             /**
              * Namespace is the namespace of the backend. When unspecified, the local
              * namespace is inferred.
@@ -2327,7 +2327,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              *
              * Support: Core
              */
-            namespace?: string
+            namespace?: string;
             /**
              * Port specifies the destination port number to use for this resource.
              * Port is required when the referent is a Kubernetes Service. In this
@@ -2335,9 +2335,9 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * For other resources, destination port might be derived from the referent
              * resource or this field.
              */
-            port?: number
-          }
-        }
+            port?: number;
+          };
+        };
         /**
          * RequestRedirect defines a schema for a filter that responds to the
          * request with an HTTP redirection.
@@ -2352,7 +2352,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            *
            * Support: Core
            */
-          hostname?: string
+          hostname?: string;
           /**
            * Path defines parameters used to modify the path of the incoming request.
            * The modified path is then used to construct the `Location` header. When
@@ -2365,7 +2365,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * ReplaceFullPath specifies the value with which to replace the full path
              * of a request during a rewrite or redirect.
              */
-            replaceFullPath?: string
+            replaceFullPath?: string;
             /**
              * ReplacePrefixMatch specifies the value with which to replace the prefix
              * match of a request during a rewrite or redirect. For example, a request
@@ -2384,7 +2384,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              *
              * Request Path | Prefix Match | Replace Prefix | Modified Path
              */
-            replacePrefixMatch?: string
+            replacePrefixMatch?: string;
             /**
              * Type defines the type of path modifier. Additional types may be
              * added in a future release of the API.
@@ -2396,8 +2396,8 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * Accepted Condition for the Route to `status: False`, with a
              * Reason of `UnsupportedValue`.
              */
-            type: 'ReplaceFullPath' | 'ReplacePrefixMatch'
-          }
+            type: 'ReplaceFullPath' | 'ReplacePrefixMatch';
+          };
           /**
            * Port is the port to be used in the value of the `Location`
            * header in the response.
@@ -2422,7 +2422,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            *
            * Support: Extended
            */
-          port?: number
+          port?: number;
           /**
            * Scheme is the scheme to be used in the value of the `Location` header in
            * the response. When empty, the scheme of the request is used.
@@ -2439,7 +2439,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            *
            * Support: Extended
            */
-          scheme?: 'http' | 'https'
+          scheme?: 'http' | 'https';
           /**
            * StatusCode is the HTTP status code to be used in response.
            *
@@ -2452,8 +2452,8 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            *
            * Support: Core
            */
-          statusCode?: 301 | 302
-        }
+          statusCode?: 301 | 302;
+        };
         /**
          * ResponseHeaderModifier defines a schema for a filter that modifies response
          * headers.
@@ -2490,12 +2490,12 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * case-insensitivity of header names, "foo" and "Foo" are considered
              * equivalent.
              */
-            name: string
+            name: string;
             /**
              * Value is the value of HTTP Header to be matched.
              */
-            value: string
-          }>
+            value: string;
+          }>;
           /**
            * Remove the given header(s) from the HTTP request before the action. The
            * value of Remove is a list of HTTP header names. Note that the header
@@ -2515,7 +2515,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            * GET /foo HTTP/1.1
            * my-header2: bar
            */
-          remove?: Array<string>
+          remove?: Array<string>;
           /**
            * Set overwrites the request with the given header (name, value)
            * before the action.
@@ -2544,13 +2544,13 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * case-insensitivity of header names, "foo" and "Foo" are considered
              * equivalent.
              */
-            name: string
+            name: string;
             /**
              * Value is the value of HTTP Header to be matched.
              */
-            value: string
-          }>
-        }
+            value: string;
+          }>;
+        };
         /**
          * Type identifies the type of filter to apply. As with other API fields,
          * types are classified into three conformance levels:
@@ -2591,7 +2591,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
           | 'RequestMirror'
           | 'RequestRedirect'
           | 'URLRewrite'
-          | 'ExtensionRef'
+          | 'ExtensionRef';
         /**
          * URLRewrite defines a schema for a filter that modifies a request during forwarding.
          *
@@ -2604,7 +2604,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            *
            * Support: Extended
            */
-          hostname?: string
+          hostname?: string;
           /**
            * Path defines a path rewrite.
            *
@@ -2615,7 +2615,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * ReplaceFullPath specifies the value with which to replace the full path
              * of a request during a rewrite or redirect.
              */
-            replaceFullPath?: string
+            replaceFullPath?: string;
             /**
              * ReplacePrefixMatch specifies the value with which to replace the prefix
              * match of a request during a rewrite or redirect. For example, a request
@@ -2634,7 +2634,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              *
              * Request Path | Prefix Match | Replace Prefix | Modified Path
              */
-            replacePrefixMatch?: string
+            replacePrefixMatch?: string;
             /**
              * Type defines the type of path modifier. Additional types may be
              * added in a future release of the API.
@@ -2646,10 +2646,10 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
              * Accepted Condition for the Route to `status: False`, with a
              * Reason of `UnsupportedValue`.
              */
-            type: 'ReplaceFullPath' | 'ReplacePrefixMatch'
-          }
-        }
-      }>
+            type: 'ReplaceFullPath' | 'ReplacePrefixMatch';
+          };
+        };
+      }>;
       /**
        * Matches define conditions used for matching the rule against incoming
        * HTTP requests. Each match is independent, i.e. this rule will be matched
@@ -2731,7 +2731,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            * https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2.2 regarding
            * processing a repeated header, with special handling for "Set-Cookie".
            */
-          name: string
+          name: string;
           /**
            * Type specifies how to match against the value of the header.
            *
@@ -2744,12 +2744,12 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            * of regular expressions. Please read the implementation's documentation to
            * determine the supported dialect.
            */
-          type?: 'Exact' | 'RegularExpression'
+          type?: 'Exact' | 'RegularExpression';
           /**
            * Value is the value of HTTP Header to be matched.
            */
-          value: string
-        }>
+          value: string;
+        }>;
         /**
          * Method specifies HTTP method matcher.
          * When specified, this route will be matched only if the request has the
@@ -2766,7 +2766,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
           | 'CONNECT'
           | 'OPTIONS'
           | 'TRACE'
-          | 'PATCH'
+          | 'PATCH';
         /**
          * Path specifies a HTTP request path matcher. If this field is not
          * specified, a default prefix match on the "/" path is provided.
@@ -2779,12 +2779,12 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            *
            * Support: Implementation-specific (RegularExpression)
            */
-          type?: 'Exact' | 'PathPrefix' | 'RegularExpression'
+          type?: 'Exact' | 'PathPrefix' | 'RegularExpression';
           /**
            * Value of the HTTP path to match against.
            */
-          value?: string
-        }
+          value?: string;
+        };
         /**
          * QueryParams specifies HTTP query parameter matchers. Multiple match
          * values are ANDed together, meaning, a request must match all the
@@ -2812,7 +2812,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            * Users SHOULD NOT route traffic based on repeated query params to guard
            * themselves against potential differences in the implementations.
            */
-          name: string
+          name: string;
           /**
            * Type specifies how to match against the value of the query parameter.
            *
@@ -2825,13 +2825,13 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
            * dialects of regular expressions. Please read the implementation's
            * documentation to determine the supported dialect.
            */
-          type?: 'Exact' | 'RegularExpression'
+          type?: 'Exact' | 'RegularExpression';
           /**
            * Value is the value of HTTP query param to be matched.
            */
-          value: string
-        }>
-      }>
+          value: string;
+        }>;
+      }>;
       /**
        * Timeouts defines the timeouts that can be configured for an HTTP request.
        *
@@ -2859,7 +2859,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          *
          * Support: Extended
          */
-        backendRequest?: string
+        backendRequest?: string;
         /**
          * Request specifies the maximum duration for a gateway to respond to an HTTP request.
          * If the gateway has not been able to respond before this deadline is met, the gateway
@@ -2884,10 +2884,10 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          *
          * Support: Extended
          */
-        request?: string
-      }
-    }>
-  }
+        request?: string;
+      };
+    }>;
+  };
   /**
    * Status defines the current state of HTTPRoute.
    */
@@ -2935,18 +2935,18 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          * lastTransitionTime is the last time the condition transitioned from one status to another.
          * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
          */
-        lastTransitionTime: Date
+        lastTransitionTime: Date;
         /**
          * message is a human readable message indicating details about the transition.
          * This may be an empty string.
          */
-        message: string
+        message: string;
         /**
          * observedGeneration represents the .metadata.generation that the condition was set based upon.
          * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
          * with respect to the current state of the instance.
          */
-        observedGeneration?: bigint
+        observedGeneration?: bigint;
         /**
          * reason contains a programmatic identifier indicating the reason for the condition's last transition.
          * Producers of specific condition types may define expected values and meanings for this field,
@@ -2954,16 +2954,16 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          * The value should be a CamelCase string.
          * This field may not be empty.
          */
-        reason: string
+        reason: string;
         /**
          * status of the condition, one of True, False, Unknown.
          */
-        status: 'True' | 'False' | 'Unknown'
+        status: 'True' | 'False' | 'Unknown';
         /**
          * type of condition in CamelCase or in foo.example.com/CamelCase.
          */
-        type: string
-      }>
+        type: string;
+      }>;
       /**
        * ControllerName is a domain/path string that indicates the name of the
        * controller that wrote this status. This corresponds with the
@@ -2979,7 +2979,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
        * entries to status populated with their ControllerName are cleaned up when they are no
        * longer necessary.
        */
-      controllerName: string
+      controllerName: string;
       /**
        * ParentRef corresponds with a ParentRef in the spec that this
        * RouteParentStatus struct describes the status of.
@@ -2993,7 +2993,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          *
          * Support: Core
          */
-        group?: string
+        group?: string;
         /**
          * Kind is kind of the referent.
          *
@@ -3004,13 +3004,13 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          *
          * Support for other resources is Implementation-Specific.
          */
-        kind?: string
+        kind?: string;
         /**
          * Name is the name of the referent.
          *
          * Support: Core
          */
-        name: string
+        name: string;
         /**
          * Namespace is the namespace of the referent. When unspecified, this refers
          * to the local namespace of the Route.
@@ -3025,7 +3025,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          *
          * Support: Core
          */
-        namespace?: string
+        namespace?: string;
         /**
          * Port is the network port this Route targets. It can be interpreted
          * differently based on the type of parent resource.
@@ -3054,7 +3054,7 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          *
          * Support: Extended
          */
-        port?: number
+        port?: number;
         /**
          * SectionName is the name of a section within the target resource. In the
          * following resources, SectionName is interpreted as the following:
@@ -3081,11 +3081,11 @@ export type IoK8sNetworkingGatewayV1HttpRoute = {
          *
          * Support: Core
          */
-        sectionName?: string
-      }
-    }>
-  }
-}
+        sectionName?: string;
+      };
+    }>;
+  };
+};
 
 /**
  * HTTPRouteList is a list of HTTPRoute
@@ -3094,65 +3094,65 @@ export type IoK8sNetworkingGatewayV1HttpRouteList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
-  apiVersion?: string
+  apiVersion?: string;
   /**
    * List of httproutes. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
    */
-  items: Array<IoK8sNetworkingGatewayV1HttpRoute>
+  items: Array<IoK8sNetworkingGatewayV1HttpRoute>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  kind?: string
+  kind?: string;
   /**
    * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
-  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta
-}
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
 
 export type DeleteGatewayNetworkingV1CollectionGatewayClassData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -3168,80 +3168,80 @@ export type DeleteGatewayNetworkingV1CollectionGatewayClassData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses'
-}
+    watch?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses';
+};
 
 export type DeleteGatewayNetworkingV1CollectionGatewayClassErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteGatewayNetworkingV1CollectionGatewayClassResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
-}
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteGatewayNetworkingV1CollectionGatewayClassResponse =
-  DeleteGatewayNetworkingV1CollectionGatewayClassResponses[keyof DeleteGatewayNetworkingV1CollectionGatewayClassResponses]
+  DeleteGatewayNetworkingV1CollectionGatewayClassResponses[keyof DeleteGatewayNetworkingV1CollectionGatewayClassResponses];
 
 export type ListGatewayNetworkingV1GatewayClassData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -3257,467 +3257,467 @@ export type ListGatewayNetworkingV1GatewayClassData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses'
-}
+    watch?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses';
+};
 
 export type ListGatewayNetworkingV1GatewayClassErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListGatewayNetworkingV1GatewayClassResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1GatewayClassList
-}
+  200: IoK8sNetworkingGatewayV1GatewayClassList;
+};
 
 export type ListGatewayNetworkingV1GatewayClassResponse =
-  ListGatewayNetworkingV1GatewayClassResponses[keyof ListGatewayNetworkingV1GatewayClassResponses]
+  ListGatewayNetworkingV1GatewayClassResponses[keyof ListGatewayNetworkingV1GatewayClassResponses];
 
 export type CreateGatewayNetworkingV1GatewayClassData = {
-  body: IoK8sNetworkingGatewayV1GatewayClass
-  path?: never
+  body: IoK8sNetworkingGatewayV1GatewayClass;
+  path?: never;
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses';
+};
 
 export type CreateGatewayNetworkingV1GatewayClassErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateGatewayNetworkingV1GatewayClassResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1GatewayClass
+  200: IoK8sNetworkingGatewayV1GatewayClass;
   /**
    * Created
    */
-  201: IoK8sNetworkingGatewayV1GatewayClass
+  201: IoK8sNetworkingGatewayV1GatewayClass;
   /**
    * Accepted
    */
-  202: IoK8sNetworkingGatewayV1GatewayClass
-}
+  202: IoK8sNetworkingGatewayV1GatewayClass;
+};
 
 export type CreateGatewayNetworkingV1GatewayClassResponse =
-  CreateGatewayNetworkingV1GatewayClassResponses[keyof CreateGatewayNetworkingV1GatewayClassResponses]
+  CreateGatewayNetworkingV1GatewayClassResponses[keyof CreateGatewayNetworkingV1GatewayClassResponses];
 
 export type DeleteGatewayNetworkingV1GatewayClassData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * name of the GatewayClass
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}'
-}
+    propagationPolicy?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}';
+};
 
 export type DeleteGatewayNetworkingV1GatewayClassErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteGatewayNetworkingV1GatewayClassResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
+  200: IoK8sApimachineryPkgApisMetaV1Status;
   /**
    * Accepted
    */
-  202: IoK8sApimachineryPkgApisMetaV1Status
-}
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteGatewayNetworkingV1GatewayClassResponse =
-  DeleteGatewayNetworkingV1GatewayClassResponses[keyof DeleteGatewayNetworkingV1GatewayClassResponses]
+  DeleteGatewayNetworkingV1GatewayClassResponses[keyof DeleteGatewayNetworkingV1GatewayClassResponses];
 
 export type ReadGatewayNetworkingV1GatewayClassData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the GatewayClass
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}'
-}
+    resourceVersion?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}';
+};
 
 export type ReadGatewayNetworkingV1GatewayClassErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadGatewayNetworkingV1GatewayClassResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1GatewayClass
-}
+  200: IoK8sNetworkingGatewayV1GatewayClass;
+};
 
 export type ReadGatewayNetworkingV1GatewayClassResponse =
-  ReadGatewayNetworkingV1GatewayClassResponses[keyof ReadGatewayNetworkingV1GatewayClassResponses]
+  ReadGatewayNetworkingV1GatewayClassResponses[keyof ReadGatewayNetworkingV1GatewayClassResponses];
 
 export type PatchGatewayNetworkingV1GatewayClassData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the GatewayClass
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}'
-}
+    force?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}';
+};
 
 export type PatchGatewayNetworkingV1GatewayClassErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchGatewayNetworkingV1GatewayClassResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1GatewayClass
-}
+  200: IoK8sNetworkingGatewayV1GatewayClass;
+};
 
 export type PatchGatewayNetworkingV1GatewayClassResponse =
-  PatchGatewayNetworkingV1GatewayClassResponses[keyof PatchGatewayNetworkingV1GatewayClassResponses]
+  PatchGatewayNetworkingV1GatewayClassResponses[keyof PatchGatewayNetworkingV1GatewayClassResponses];
 
 export type ReplaceGatewayNetworkingV1GatewayClassData = {
-  body: IoK8sNetworkingGatewayV1GatewayClass
+  body: IoK8sNetworkingGatewayV1GatewayClass;
   path: {
     /**
      * name of the GatewayClass
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}';
+};
 
 export type ReplaceGatewayNetworkingV1GatewayClassErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceGatewayNetworkingV1GatewayClassResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1GatewayClass
+  200: IoK8sNetworkingGatewayV1GatewayClass;
   /**
    * Created
    */
-  201: IoK8sNetworkingGatewayV1GatewayClass
-}
+  201: IoK8sNetworkingGatewayV1GatewayClass;
+};
 
 export type ReplaceGatewayNetworkingV1GatewayClassResponse =
-  ReplaceGatewayNetworkingV1GatewayClassResponses[keyof ReplaceGatewayNetworkingV1GatewayClassResponses]
+  ReplaceGatewayNetworkingV1GatewayClassResponses[keyof ReplaceGatewayNetworkingV1GatewayClassResponses];
 
 export type ReadGatewayNetworkingV1GatewayClassStatusData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the GatewayClass
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}/status'
-}
+    resourceVersion?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}/status';
+};
 
 export type ReadGatewayNetworkingV1GatewayClassStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadGatewayNetworkingV1GatewayClassStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1GatewayClass
-}
+  200: IoK8sNetworkingGatewayV1GatewayClass;
+};
 
 export type ReadGatewayNetworkingV1GatewayClassStatusResponse =
-  ReadGatewayNetworkingV1GatewayClassStatusResponses[keyof ReadGatewayNetworkingV1GatewayClassStatusResponses]
+  ReadGatewayNetworkingV1GatewayClassStatusResponses[keyof ReadGatewayNetworkingV1GatewayClassStatusResponses];
 
 export type PatchGatewayNetworkingV1GatewayClassStatusData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the GatewayClass
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}/status'
-}
+    force?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}/status';
+};
 
 export type PatchGatewayNetworkingV1GatewayClassStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchGatewayNetworkingV1GatewayClassStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1GatewayClass
-}
+  200: IoK8sNetworkingGatewayV1GatewayClass;
+};
 
 export type PatchGatewayNetworkingV1GatewayClassStatusResponse =
-  PatchGatewayNetworkingV1GatewayClassStatusResponses[keyof PatchGatewayNetworkingV1GatewayClassStatusResponses]
+  PatchGatewayNetworkingV1GatewayClassStatusResponses[keyof PatchGatewayNetworkingV1GatewayClassStatusResponses];
 
 export type ReplaceGatewayNetworkingV1GatewayClassStatusData = {
-  body: IoK8sNetworkingGatewayV1GatewayClass
+  body: IoK8sNetworkingGatewayV1GatewayClass;
   path: {
     /**
      * name of the GatewayClass
      */
-    name: string
-  }
+    name: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}/status'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/gatewayclasses/{name}/status';
+};
 
 export type ReplaceGatewayNetworkingV1GatewayClassStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceGatewayNetworkingV1GatewayClassStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1GatewayClass
+  200: IoK8sNetworkingGatewayV1GatewayClass;
   /**
    * Created
    */
-  201: IoK8sNetworkingGatewayV1GatewayClass
-}
+  201: IoK8sNetworkingGatewayV1GatewayClass;
+};
 
 export type ReplaceGatewayNetworkingV1GatewayClassStatusResponse =
-  ReplaceGatewayNetworkingV1GatewayClassStatusResponses[keyof ReplaceGatewayNetworkingV1GatewayClassStatusResponses]
+  ReplaceGatewayNetworkingV1GatewayClassStatusResponses[keyof ReplaceGatewayNetworkingV1GatewayClassStatusResponses];
 
 export type ListGatewayNetworkingV1GatewayForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -3733,80 +3733,80 @@ export type ListGatewayNetworkingV1GatewayForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/gateways'
-}
+    watch?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/gateways';
+};
 
 export type ListGatewayNetworkingV1GatewayForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListGatewayNetworkingV1GatewayForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1GatewayList
-}
+  200: IoK8sNetworkingGatewayV1GatewayList;
+};
 
 export type ListGatewayNetworkingV1GatewayForAllNamespacesResponse =
-  ListGatewayNetworkingV1GatewayForAllNamespacesResponses[keyof ListGatewayNetworkingV1GatewayForAllNamespacesResponses]
+  ListGatewayNetworkingV1GatewayForAllNamespacesResponses[keyof ListGatewayNetworkingV1GatewayForAllNamespacesResponses];
 
 export type ListGatewayNetworkingV1HttpRouteForAllNamespacesData = {
-  body?: never
-  path?: never
+  body?: never;
+  path?: never;
   query?: {
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -3822,85 +3822,85 @@ export type ListGatewayNetworkingV1HttpRouteForAllNamespacesData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/httproutes'
-}
+    watch?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/httproutes';
+};
 
 export type ListGatewayNetworkingV1HttpRouteForAllNamespacesErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListGatewayNetworkingV1HttpRouteForAllNamespacesResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1HttpRouteList
-}
+  200: IoK8sNetworkingGatewayV1HttpRouteList;
+};
 
 export type ListGatewayNetworkingV1HttpRouteForAllNamespacesResponse =
-  ListGatewayNetworkingV1HttpRouteForAllNamespacesResponses[keyof ListGatewayNetworkingV1HttpRouteForAllNamespacesResponses]
+  ListGatewayNetworkingV1HttpRouteForAllNamespacesResponses[keyof ListGatewayNetworkingV1HttpRouteForAllNamespacesResponses];
 
 export type DeleteGatewayNetworkingV1CollectionNamespacedGatewayData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -3916,85 +3916,85 @@ export type DeleteGatewayNetworkingV1CollectionNamespacedGatewayData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways'
-}
+    watch?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways';
+};
 
 export type DeleteGatewayNetworkingV1CollectionNamespacedGatewayErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteGatewayNetworkingV1CollectionNamespacedGatewayResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
-}
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteGatewayNetworkingV1CollectionNamespacedGatewayResponse =
-  DeleteGatewayNetworkingV1CollectionNamespacedGatewayResponses[keyof DeleteGatewayNetworkingV1CollectionNamespacedGatewayResponses]
+  DeleteGatewayNetworkingV1CollectionNamespacedGatewayResponses[keyof DeleteGatewayNetworkingV1CollectionNamespacedGatewayResponses];
 
 export type ListGatewayNetworkingV1NamespacedGatewayData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4010,505 +4010,505 @@ export type ListGatewayNetworkingV1NamespacedGatewayData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways'
-}
+    watch?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways';
+};
 
 export type ListGatewayNetworkingV1NamespacedGatewayErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListGatewayNetworkingV1NamespacedGatewayResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1GatewayList
-}
+  200: IoK8sNetworkingGatewayV1GatewayList;
+};
 
 export type ListGatewayNetworkingV1NamespacedGatewayResponse =
-  ListGatewayNetworkingV1NamespacedGatewayResponses[keyof ListGatewayNetworkingV1NamespacedGatewayResponses]
+  ListGatewayNetworkingV1NamespacedGatewayResponses[keyof ListGatewayNetworkingV1NamespacedGatewayResponses];
 
 export type CreateGatewayNetworkingV1NamespacedGatewayData = {
-  body: IoK8sNetworkingGatewayV1Gateway
+  body: IoK8sNetworkingGatewayV1Gateway;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways';
+};
 
 export type CreateGatewayNetworkingV1NamespacedGatewayErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateGatewayNetworkingV1NamespacedGatewayResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1Gateway
+  200: IoK8sNetworkingGatewayV1Gateway;
   /**
    * Created
    */
-  201: IoK8sNetworkingGatewayV1Gateway
+  201: IoK8sNetworkingGatewayV1Gateway;
   /**
    * Accepted
    */
-  202: IoK8sNetworkingGatewayV1Gateway
-}
+  202: IoK8sNetworkingGatewayV1Gateway;
+};
 
 export type CreateGatewayNetworkingV1NamespacedGatewayResponse =
-  CreateGatewayNetworkingV1NamespacedGatewayResponses[keyof CreateGatewayNetworkingV1NamespacedGatewayResponses]
+  CreateGatewayNetworkingV1NamespacedGatewayResponses[keyof CreateGatewayNetworkingV1NamespacedGatewayResponses];
 
 export type DeleteGatewayNetworkingV1NamespacedGatewayData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * name of the Gateway
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}'
-}
+    propagationPolicy?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}';
+};
 
 export type DeleteGatewayNetworkingV1NamespacedGatewayErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteGatewayNetworkingV1NamespacedGatewayResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
+  200: IoK8sApimachineryPkgApisMetaV1Status;
   /**
    * Accepted
    */
-  202: IoK8sApimachineryPkgApisMetaV1Status
-}
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteGatewayNetworkingV1NamespacedGatewayResponse =
-  DeleteGatewayNetworkingV1NamespacedGatewayResponses[keyof DeleteGatewayNetworkingV1NamespacedGatewayResponses]
+  DeleteGatewayNetworkingV1NamespacedGatewayResponses[keyof DeleteGatewayNetworkingV1NamespacedGatewayResponses];
 
 export type ReadGatewayNetworkingV1NamespacedGatewayData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Gateway
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}'
-}
+    resourceVersion?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}';
+};
 
 export type ReadGatewayNetworkingV1NamespacedGatewayErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadGatewayNetworkingV1NamespacedGatewayResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1Gateway
-}
+  200: IoK8sNetworkingGatewayV1Gateway;
+};
 
 export type ReadGatewayNetworkingV1NamespacedGatewayResponse =
-  ReadGatewayNetworkingV1NamespacedGatewayResponses[keyof ReadGatewayNetworkingV1NamespacedGatewayResponses]
+  ReadGatewayNetworkingV1NamespacedGatewayResponses[keyof ReadGatewayNetworkingV1NamespacedGatewayResponses];
 
 export type PatchGatewayNetworkingV1NamespacedGatewayData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the Gateway
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}'
-}
+    force?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}';
+};
 
 export type PatchGatewayNetworkingV1NamespacedGatewayErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchGatewayNetworkingV1NamespacedGatewayResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1Gateway
-}
+  200: IoK8sNetworkingGatewayV1Gateway;
+};
 
 export type PatchGatewayNetworkingV1NamespacedGatewayResponse =
-  PatchGatewayNetworkingV1NamespacedGatewayResponses[keyof PatchGatewayNetworkingV1NamespacedGatewayResponses]
+  PatchGatewayNetworkingV1NamespacedGatewayResponses[keyof PatchGatewayNetworkingV1NamespacedGatewayResponses];
 
 export type ReplaceGatewayNetworkingV1NamespacedGatewayData = {
-  body: IoK8sNetworkingGatewayV1Gateway
+  body: IoK8sNetworkingGatewayV1Gateway;
   path: {
     /**
      * name of the Gateway
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}';
+};
 
 export type ReplaceGatewayNetworkingV1NamespacedGatewayErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceGatewayNetworkingV1NamespacedGatewayResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1Gateway
+  200: IoK8sNetworkingGatewayV1Gateway;
   /**
    * Created
    */
-  201: IoK8sNetworkingGatewayV1Gateway
-}
+  201: IoK8sNetworkingGatewayV1Gateway;
+};
 
 export type ReplaceGatewayNetworkingV1NamespacedGatewayResponse =
-  ReplaceGatewayNetworkingV1NamespacedGatewayResponses[keyof ReplaceGatewayNetworkingV1NamespacedGatewayResponses]
+  ReplaceGatewayNetworkingV1NamespacedGatewayResponses[keyof ReplaceGatewayNetworkingV1NamespacedGatewayResponses];
 
 export type ReadGatewayNetworkingV1NamespacedGatewayStatusData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the Gateway
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}/status'
-}
+    resourceVersion?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}/status';
+};
 
 export type ReadGatewayNetworkingV1NamespacedGatewayStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadGatewayNetworkingV1NamespacedGatewayStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1Gateway
-}
+  200: IoK8sNetworkingGatewayV1Gateway;
+};
 
 export type ReadGatewayNetworkingV1NamespacedGatewayStatusResponse =
-  ReadGatewayNetworkingV1NamespacedGatewayStatusResponses[keyof ReadGatewayNetworkingV1NamespacedGatewayStatusResponses]
+  ReadGatewayNetworkingV1NamespacedGatewayStatusResponses[keyof ReadGatewayNetworkingV1NamespacedGatewayStatusResponses];
 
 export type PatchGatewayNetworkingV1NamespacedGatewayStatusData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the Gateway
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}/status'
-}
+    force?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}/status';
+};
 
 export type PatchGatewayNetworkingV1NamespacedGatewayStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchGatewayNetworkingV1NamespacedGatewayStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1Gateway
-}
+  200: IoK8sNetworkingGatewayV1Gateway;
+};
 
 export type PatchGatewayNetworkingV1NamespacedGatewayStatusResponse =
-  PatchGatewayNetworkingV1NamespacedGatewayStatusResponses[keyof PatchGatewayNetworkingV1NamespacedGatewayStatusResponses]
+  PatchGatewayNetworkingV1NamespacedGatewayStatusResponses[keyof PatchGatewayNetworkingV1NamespacedGatewayStatusResponses];
 
 export type ReplaceGatewayNetworkingV1NamespacedGatewayStatusData = {
-  body: IoK8sNetworkingGatewayV1Gateway
+  body: IoK8sNetworkingGatewayV1Gateway;
   path: {
     /**
      * name of the Gateway
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}/status'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/gateways/{name}/status';
+};
 
 export type ReplaceGatewayNetworkingV1NamespacedGatewayStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceGatewayNetworkingV1NamespacedGatewayStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1Gateway
+  200: IoK8sNetworkingGatewayV1Gateway;
   /**
    * Created
    */
-  201: IoK8sNetworkingGatewayV1Gateway
-}
+  201: IoK8sNetworkingGatewayV1Gateway;
+};
 
 export type ReplaceGatewayNetworkingV1NamespacedGatewayStatusResponse =
-  ReplaceGatewayNetworkingV1NamespacedGatewayStatusResponses[keyof ReplaceGatewayNetworkingV1NamespacedGatewayStatusResponses]
+  ReplaceGatewayNetworkingV1NamespacedGatewayStatusResponses[keyof ReplaceGatewayNetworkingV1NamespacedGatewayStatusResponses];
 
 export type DeleteGatewayNetworkingV1CollectionNamespacedHttpRouteData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4524,85 +4524,85 @@ export type DeleteGatewayNetworkingV1CollectionNamespacedHttpRouteData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes'
-}
+    watch?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes';
+};
 
 export type DeleteGatewayNetworkingV1CollectionNamespacedHttpRouteErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteGatewayNetworkingV1CollectionNamespacedHttpRouteResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
-}
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteGatewayNetworkingV1CollectionNamespacedHttpRouteResponse =
-  DeleteGatewayNetworkingV1CollectionNamespacedHttpRouteResponses[keyof DeleteGatewayNetworkingV1CollectionNamespacedHttpRouteResponses]
+  DeleteGatewayNetworkingV1CollectionNamespacedHttpRouteResponses[keyof DeleteGatewayNetworkingV1CollectionNamespacedHttpRouteResponses];
 
 export type ListGatewayNetworkingV1NamespacedHttpRouteData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
-    allowWatchBookmarks?: boolean
+    allowWatchBookmarks?: boolean;
     /**
      * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
      *
      * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
      */
-    continue?: string
+    continue?: string;
     /**
      * A selector to restrict the list of returned objects by their fields. Defaults to everything.
      */
-    fieldSelector?: string
+    fieldSelector?: string;
     /**
      * A selector to restrict the list of returned objects by their labels. Defaults to everything.
      */
-    labelSelector?: string
+    labelSelector?: string;
     /**
      * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
      *
      * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
      */
-    limit?: number
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
+    resourceVersion?: string;
     /**
      * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersionMatch?: string
+    resourceVersionMatch?: string;
     /**
      * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
      *
@@ -4618,456 +4618,456 @@ export type ListGatewayNetworkingV1NamespacedHttpRouteData = {
      *
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
-    sendInitialEvents?: boolean
+    sendInitialEvents?: boolean;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
-    timeoutSeconds?: number
+    timeoutSeconds?: number;
     /**
      * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
      */
-    watch?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes'
-}
+    watch?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes';
+};
 
 export type ListGatewayNetworkingV1NamespacedHttpRouteErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ListGatewayNetworkingV1NamespacedHttpRouteResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1HttpRouteList
-}
+  200: IoK8sNetworkingGatewayV1HttpRouteList;
+};
 
 export type ListGatewayNetworkingV1NamespacedHttpRouteResponse =
-  ListGatewayNetworkingV1NamespacedHttpRouteResponses[keyof ListGatewayNetworkingV1NamespacedHttpRouteResponses]
+  ListGatewayNetworkingV1NamespacedHttpRouteResponses[keyof ListGatewayNetworkingV1NamespacedHttpRouteResponses];
 
 export type CreateGatewayNetworkingV1NamespacedHttpRouteData = {
-  body: IoK8sNetworkingGatewayV1HttpRoute
+  body: IoK8sNetworkingGatewayV1HttpRoute;
   path: {
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes';
+};
 
 export type CreateGatewayNetworkingV1NamespacedHttpRouteErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type CreateGatewayNetworkingV1NamespacedHttpRouteResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1HttpRoute
+  200: IoK8sNetworkingGatewayV1HttpRoute;
   /**
    * Created
    */
-  201: IoK8sNetworkingGatewayV1HttpRoute
+  201: IoK8sNetworkingGatewayV1HttpRoute;
   /**
    * Accepted
    */
-  202: IoK8sNetworkingGatewayV1HttpRoute
-}
+  202: IoK8sNetworkingGatewayV1HttpRoute;
+};
 
 export type CreateGatewayNetworkingV1NamespacedHttpRouteResponse =
-  CreateGatewayNetworkingV1NamespacedHttpRouteResponses[keyof CreateGatewayNetworkingV1NamespacedHttpRouteResponses]
+  CreateGatewayNetworkingV1NamespacedHttpRouteResponses[keyof CreateGatewayNetworkingV1NamespacedHttpRouteResponses];
 
 export type DeleteGatewayNetworkingV1NamespacedHttpRouteData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
   path: {
     /**
      * name of the HTTPRoute
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
-    gracePeriodSeconds?: number
+    gracePeriodSeconds?: number;
     /**
      * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
      */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
-    orphanDependents?: boolean
+    orphanDependents?: boolean;
     /**
      * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
      */
-    propagationPolicy?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}'
-}
+    propagationPolicy?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}';
+};
 
 export type DeleteGatewayNetworkingV1NamespacedHttpRouteErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type DeleteGatewayNetworkingV1NamespacedHttpRouteResponses = {
   /**
    * OK
    */
-  200: IoK8sApimachineryPkgApisMetaV1Status
+  200: IoK8sApimachineryPkgApisMetaV1Status;
   /**
    * Accepted
    */
-  202: IoK8sApimachineryPkgApisMetaV1Status
-}
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
 
 export type DeleteGatewayNetworkingV1NamespacedHttpRouteResponse =
-  DeleteGatewayNetworkingV1NamespacedHttpRouteResponses[keyof DeleteGatewayNetworkingV1NamespacedHttpRouteResponses]
+  DeleteGatewayNetworkingV1NamespacedHttpRouteResponses[keyof DeleteGatewayNetworkingV1NamespacedHttpRouteResponses];
 
 export type ReadGatewayNetworkingV1NamespacedHttpRouteData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the HTTPRoute
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}'
-}
+    resourceVersion?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}';
+};
 
 export type ReadGatewayNetworkingV1NamespacedHttpRouteErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadGatewayNetworkingV1NamespacedHttpRouteResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1HttpRoute
-}
+  200: IoK8sNetworkingGatewayV1HttpRoute;
+};
 
 export type ReadGatewayNetworkingV1NamespacedHttpRouteResponse =
-  ReadGatewayNetworkingV1NamespacedHttpRouteResponses[keyof ReadGatewayNetworkingV1NamespacedHttpRouteResponses]
+  ReadGatewayNetworkingV1NamespacedHttpRouteResponses[keyof ReadGatewayNetworkingV1NamespacedHttpRouteResponses];
 
 export type PatchGatewayNetworkingV1NamespacedHttpRouteData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the HTTPRoute
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}'
-}
+    force?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}';
+};
 
 export type PatchGatewayNetworkingV1NamespacedHttpRouteErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchGatewayNetworkingV1NamespacedHttpRouteResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1HttpRoute
-}
+  200: IoK8sNetworkingGatewayV1HttpRoute;
+};
 
 export type PatchGatewayNetworkingV1NamespacedHttpRouteResponse =
-  PatchGatewayNetworkingV1NamespacedHttpRouteResponses[keyof PatchGatewayNetworkingV1NamespacedHttpRouteResponses]
+  PatchGatewayNetworkingV1NamespacedHttpRouteResponses[keyof PatchGatewayNetworkingV1NamespacedHttpRouteResponses];
 
 export type ReplaceGatewayNetworkingV1NamespacedHttpRouteData = {
-  body: IoK8sNetworkingGatewayV1HttpRoute
+  body: IoK8sNetworkingGatewayV1HttpRoute;
   path: {
     /**
      * name of the HTTPRoute
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}';
+};
 
 export type ReplaceGatewayNetworkingV1NamespacedHttpRouteErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceGatewayNetworkingV1NamespacedHttpRouteResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1HttpRoute
+  200: IoK8sNetworkingGatewayV1HttpRoute;
   /**
    * Created
    */
-  201: IoK8sNetworkingGatewayV1HttpRoute
-}
+  201: IoK8sNetworkingGatewayV1HttpRoute;
+};
 
 export type ReplaceGatewayNetworkingV1NamespacedHttpRouteResponse =
-  ReplaceGatewayNetworkingV1NamespacedHttpRouteResponses[keyof ReplaceGatewayNetworkingV1NamespacedHttpRouteResponses]
+  ReplaceGatewayNetworkingV1NamespacedHttpRouteResponses[keyof ReplaceGatewayNetworkingV1NamespacedHttpRouteResponses];
 
 export type ReadGatewayNetworkingV1NamespacedHttpRouteStatusData = {
-  body?: never
+  body?: never;
   path: {
     /**
      * name of the HTTPRoute
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
      * Defaults to unset
      */
-    resourceVersion?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}/status'
-}
+    resourceVersion?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}/status';
+};
 
 export type ReadGatewayNetworkingV1NamespacedHttpRouteStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReadGatewayNetworkingV1NamespacedHttpRouteStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1HttpRoute
-}
+  200: IoK8sNetworkingGatewayV1HttpRoute;
+};
 
 export type ReadGatewayNetworkingV1NamespacedHttpRouteStatusResponse =
-  ReadGatewayNetworkingV1NamespacedHttpRouteStatusResponses[keyof ReadGatewayNetworkingV1NamespacedHttpRouteStatusResponses]
+  ReadGatewayNetworkingV1NamespacedHttpRouteStatusResponses[keyof ReadGatewayNetworkingV1NamespacedHttpRouteStatusResponses];
 
 export type PatchGatewayNetworkingV1NamespacedHttpRouteStatusData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
   path: {
     /**
      * name of the HTTPRoute
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
+    fieldValidation?: string;
     /**
      * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
      */
-    force?: boolean
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}/status'
-}
+    force?: boolean;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}/status';
+};
 
 export type PatchGatewayNetworkingV1NamespacedHttpRouteStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type PatchGatewayNetworkingV1NamespacedHttpRouteStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1HttpRoute
-}
+  200: IoK8sNetworkingGatewayV1HttpRoute;
+};
 
 export type PatchGatewayNetworkingV1NamespacedHttpRouteStatusResponse =
-  PatchGatewayNetworkingV1NamespacedHttpRouteStatusResponses[keyof PatchGatewayNetworkingV1NamespacedHttpRouteStatusResponses]
+  PatchGatewayNetworkingV1NamespacedHttpRouteStatusResponses[keyof PatchGatewayNetworkingV1NamespacedHttpRouteStatusResponses];
 
 export type ReplaceGatewayNetworkingV1NamespacedHttpRouteStatusData = {
-  body: IoK8sNetworkingGatewayV1HttpRoute
+  body: IoK8sNetworkingGatewayV1HttpRoute;
   path: {
     /**
      * name of the HTTPRoute
      */
-    name: string
+    name: string;
     /**
      * object name and auth scope, such as for teams and projects
      */
-    namespace: string
-  }
+    namespace: string;
+  };
   query?: {
     /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
-    pretty?: string
+    pretty?: string;
     /**
      * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
      */
-    dryRun?: string
+    dryRun?: string;
     /**
      * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
      */
-    fieldManager?: string
+    fieldManager?: string;
     /**
      * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
      */
-    fieldValidation?: string
-  }
-  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}/status'
-}
+    fieldValidation?: string;
+  };
+  url: '/apis/gateway.networking.k8s.io/v1/namespaces/{namespace}/httproutes/{name}/status';
+};
 
 export type ReplaceGatewayNetworkingV1NamespacedHttpRouteStatusErrors = {
   /**
    * Unauthorized
    */
-  401: unknown
-}
+  401: unknown;
+};
 
 export type ReplaceGatewayNetworkingV1NamespacedHttpRouteStatusResponses = {
   /**
    * OK
    */
-  200: IoK8sNetworkingGatewayV1HttpRoute
+  200: IoK8sNetworkingGatewayV1HttpRoute;
   /**
    * Created
    */
-  201: IoK8sNetworkingGatewayV1HttpRoute
-}
+  201: IoK8sNetworkingGatewayV1HttpRoute;
+};
 
 export type ReplaceGatewayNetworkingV1NamespacedHttpRouteStatusResponse =
-  ReplaceGatewayNetworkingV1NamespacedHttpRouteStatusResponses[keyof ReplaceGatewayNetworkingV1NamespacedHttpRouteStatusResponses]
+  ReplaceGatewayNetworkingV1NamespacedHttpRouteStatusResponses[keyof ReplaceGatewayNetworkingV1NamespacedHttpRouteStatusResponses];
 
 export type ClientOptions = {
-  baseURL: `${string}://${string}` | (string & {})
-}
+  baseURL: `${string}://${string}` | (string & {});
+};

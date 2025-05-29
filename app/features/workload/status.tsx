@@ -1,11 +1,11 @@
-import { StatusBadge } from '@/components/status-badge/status-badge'
+import { StatusBadge } from '@/components/status-badge/status-badge';
 import {
   ControlPlaneStatus,
   IControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface'
-import { ROUTE_PATH as WORKLOAD_STATUS_ROUTE_PATH } from '@/routes/api+/workloads+/status'
-import { useEffect, useRef, useState } from 'react'
-import { useFetcher } from 'react-router'
+} from '@/resources/interfaces/control-plane.interface';
+import { ROUTE_PATH as WORKLOAD_STATUS_ROUTE_PATH } from '@/routes/api+/workloads+/status';
+import { useEffect, useRef, useState } from 'react';
+import { useFetcher } from 'react-router';
 
 export const WorkloadStatus = ({
   currentStatus,
@@ -17,71 +17,68 @@ export const WorkloadStatus = ({
   badgeClassName,
   readyText,
 }: {
-  currentStatus?: IControlPlaneStatus
-  projectId?: string
-  id?: string
-  workloadType?: 'workload' | 'deployment' | 'instance'
-  type?: 'dot' | 'badge'
-  showTooltip?: boolean
-  badgeClassName?: string
-  readyText?: string
+  currentStatus?: IControlPlaneStatus;
+  projectId?: string;
+  id?: string;
+  workloadType?: 'workload' | 'deployment' | 'instance';
+  type?: 'dot' | 'badge';
+  showTooltip?: boolean;
+  badgeClassName?: string;
+  readyText?: string;
 }) => {
-  const fetcher = useFetcher({ key: `workload-status-${id}` })
-  const intervalRef = useRef<NodeJS.Timeout>(null)
-  const [status, setStatus] = useState<IControlPlaneStatus>()
+  const fetcher = useFetcher({ key: `workload-status-${id}` });
+  const intervalRef = useRef<NodeJS.Timeout>(null);
+  const [status, setStatus] = useState<IControlPlaneStatus>();
 
-  const loadStatus = (
-    workloadId: string,
-    workloadType: 'workload' | 'deployment' | 'instance',
-  ) => {
+  const loadStatus = (workloadId: string, workloadType: 'workload' | 'deployment' | 'instance') => {
     if (projectId && workloadId) {
       fetcher.load(
-        `${WORKLOAD_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${workloadId}&type=${workloadType}`,
-      )
+        `${WORKLOAD_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${workloadId}&type=${workloadType}`
+      );
     }
-  }
+  };
 
   useEffect(() => {
     if (currentStatus) {
-      setStatus(currentStatus)
+      setStatus(currentStatus);
     }
-  }, [currentStatus])
+  }, [currentStatus]);
 
   useEffect(() => {
     // Only set up polling if we have the required IDs
     if (!projectId || !id) {
-      return
+      return;
     }
 
     // Initial load if:
     // 1. No current status exists, or
     // 2. Current status is pending
     if (!currentStatus || currentStatus?.status === ControlPlaneStatus.Pending) {
-      loadStatus(id, workloadType)
+      loadStatus(id, workloadType);
 
       // Set up polling interval
-      intervalRef.current = setInterval(() => loadStatus(id, workloadType), 10000)
+      intervalRef.current = setInterval(() => loadStatus(id, workloadType), 10000);
     }
 
     // Clean up interval on unmount
     return () => {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current)
+        clearInterval(intervalRef.current);
       }
-    }
-  }, [projectId, id, workloadType])
+    };
+  }, [projectId, id, workloadType]);
 
   useEffect(() => {
     if (fetcher.data) {
-      const { status } = fetcher.data as IControlPlaneStatus
+      const { status } = fetcher.data as IControlPlaneStatus;
       if (
         (status === ControlPlaneStatus.Success || status === ControlPlaneStatus.Error) &&
         intervalRef.current
       ) {
-        clearInterval(intervalRef.current)
+        clearInterval(intervalRef.current);
       }
     }
-  }, [fetcher.data])
+  }, [fetcher.data]);
 
   return status ? (
     <StatusBadge
@@ -89,12 +86,10 @@ export const WorkloadStatus = ({
       type={type}
       showTooltip={showTooltip}
       badgeClassName={badgeClassName}
-      tooltipText={
-        fetcher.data?.status === ControlPlaneStatus.Success ? 'Active' : undefined
-      }
+      tooltipText={fetcher.data?.status === ControlPlaneStatus.Success ? 'Active' : undefined}
       readyText={readyText}
     />
   ) : (
     <></>
-  )
-}
+  );
+};

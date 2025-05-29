@@ -1,6 +1,6 @@
-import { SelectExpires } from './select-expires'
-import { Field } from '@/components/field/field'
-import { Button } from '@/components/ui/button'
+import { SelectExpires } from './select-expires';
+import { Field } from '@/components/field/field';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -8,50 +8,47 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { useIsPending } from '@/hooks/useIsPending'
-import { newApiKeySchema } from '@/resources/schemas/api-key.schema'
-import { FieldMetadata, getFormProps, getInputProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect, useRef } from 'react'
-import { Form, useNavigate } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useIsPending } from '@/hooks/useIsPending';
+import { newApiKeySchema } from '@/resources/schemas/api-key.schema';
+import { FieldMetadata, getFormProps, getInputProps, useForm } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { useEffect, useRef } from 'react';
+import { Form, useNavigate } from 'react-router';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
+import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const ApiKeyForm = () => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
-  const isPending = useIsPending()
-  const navigate = useNavigate()
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isHydrated = useHydrated();
+  const isPending = useIsPending();
+  const navigate = useNavigate();
 
   const [form, fields] = useForm({
     constraint: getZodConstraint(newApiKeySchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: newApiKeySchema })
+      return parseWithZod(formData, { schema: newApiKeySchema });
     },
     defaultValue: {
       name: '',
       description: '',
       expiresAt: '90',
     },
-  })
+  });
 
   // Focus the input when the form is hydrated
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
+    isHydrated && inputRef.current?.focus();
+  }, [isHydrated]);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Create a new API key</CardTitle>
-        <CardDescription>
-          Create a new API key to get started with Datum Cloud.
-        </CardDescription>
+        <CardDescription>Create a new API key to get started with Datum Cloud.</CardDescription>
       </CardHeader>
       <Form
         method="POST"
@@ -90,19 +87,15 @@ export const ApiKeyForm = () => {
             variant="link"
             disabled={isPending}
             onClick={() => {
-              navigate(-1)
+              navigate(-1);
             }}>
             Return to List
           </Button>
-          <Button
-            variant="default"
-            type="submit"
-            disabled={isPending}
-            isLoading={isPending}>
+          <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
             {isPending ? 'Creating' : 'Create'}
           </Button>
         </CardFooter>
       </Form>
     </Card>
-  )
-}
+  );
+};

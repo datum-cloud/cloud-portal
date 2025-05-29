@@ -326,7 +326,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       version: 'v1alpha1',
     },
   ],
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_FieldsV1Schema = {
   description: `FieldsV1 stores a set of fields in a data structure like a Trie, in JSON format.
@@ -335,7 +335,7 @@ Each key is either a '.' representing the field itself, and will always map to a
 
 The exact format is defined in sigs.k8s.io/structured-merge-diff`,
   type: 'object',
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_ListMetaSchema = {
   description:
@@ -364,7 +364,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ListMetaSchema = {
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_ManagedFieldsEntrySchema = {
   description:
@@ -414,7 +414,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ManagedFieldsEntrySchema = {
       ],
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMetaSchema = {
   description:
@@ -549,7 +549,7 @@ Populated by the system. Read-only. More info: https://kubernetes.io/docs/concep
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_OwnerReferenceSchema = {
   description:
@@ -591,13 +591,13 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_OwnerReferenceSchema = {
     },
   },
   'x-kubernetes-map-type': 'atomic',
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_PatchSchema = {
   description:
     'Patch is provided to give a concrete name and type to the Kubernetes PATCH request body.',
   type: 'object',
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_PreconditionsSchema = {
   description:
@@ -613,7 +613,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_PreconditionsSchema = {
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
   description: "Status is a return value for calls that don't return other objects.",
@@ -676,7 +676,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
       version: 'v1',
     },
   ],
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusCauseSchema = {
   description:
@@ -702,7 +702,7 @@ Examples:
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusDetailsSchema = {
   description:
@@ -724,8 +724,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusDetailsSchema = {
       'x-kubernetes-list-type': 'atomic',
     },
     group: {
-      description:
-        'The group attribute of the resource associated with the status StatusReason.',
+      description: 'The group attribute of the resource associated with the status StatusReason.',
       type: 'string',
     },
     kind: {
@@ -750,14 +749,14 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusDetailsSchema = {
       type: 'string',
     },
   },
-} as const
+} as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_TimeSchema = {
   description:
     'Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.',
   type: 'string',
   format: 'date-time',
-} as const
+} as const;
 
 export const io_k8s_networking_gateway_v1_GatewaySchema = {
   description: `Gateway represents an instance of a service-traffic handling infrastructure
@@ -815,8 +814,7 @@ Support: Extended
           type: 'array',
           maxItems: 16,
           items: {
-            description:
-              'GatewayAddress describes an address that can be bound to a Gateway.',
+            description: 'GatewayAddress describes an address that can be bound to a Gateway.',
             type: 'object',
             required: ['value'],
             oneOf: [
@@ -995,8 +993,7 @@ Support: Implementation-specific`,
                   description: 'Group is the group of the referent.',
                   type: 'string',
                   maxLength: 253,
-                  pattern:
-                    '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+                  pattern: '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
                 },
                 kind: {
                   description: 'Kind is kind of the referent.',
@@ -1255,8 +1252,7 @@ relates the key and values.`,
                               required: ['key', 'operator'],
                               properties: {
                                 key: {
-                                  description:
-                                    'key is the label key that the selector applies to.',
+                                  description: 'key is the label key that the selector applies to.',
                                   type: 'string',
                                 },
                                 operator: {
@@ -1336,8 +1332,7 @@ Support: Core`,
                 type: 'string',
                 maxLength: 253,
                 minLength: 1,
-                pattern:
-                  '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+                pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
               },
               port: {
                 description: `Port is the network port. Multiple listeners may use the
@@ -1423,8 +1418,7 @@ When unspecified or empty string, core API group is inferred.`,
                             '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
                         },
                         kind: {
-                          description:
-                            'Kind is kind of the referent. For example "Secret".',
+                          description: 'Kind is kind of the referent. For example "Secret".',
                           type: 'string',
                           default: 'Secret',
                           maxLength: 63,
@@ -1500,8 +1494,7 @@ on the entire size of the annotations struct.`,
                 'x-kubernetes-validations': [
                   {
                     rule: "self.mode == 'Terminate' ? size(self.certificateRefs) > 0 || size(self.options) > 0 : true",
-                    message:
-                      'certificateRefs or options must be specified when mode is Terminate',
+                    message: 'certificateRefs or options must be specified when mode is Terminate',
                   },
                 ],
               },
@@ -1706,8 +1699,7 @@ This field may not be empty.`,
                 enum: ['True', 'False', 'Unknown'],
               },
               type: {
-                description:
-                  'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
                 type: 'string',
                 maxLength: 316,
                 pattern:
@@ -1750,8 +1742,7 @@ measuring blast radius/impact of changes to a Listener.`,
                 format: 'int32',
               },
               conditions: {
-                description:
-                  'Conditions describe the current condition of this listener.',
+                description: 'Conditions describe the current condition of this listener.',
                 type: 'array',
                 maxItems: 8,
                 items: {
@@ -1792,8 +1783,7 @@ This field may not be empty.`,
                       pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
                     },
                     status: {
-                      description:
-                        'status of the condition, one of True, False, Unknown.',
+                      description: 'status of the condition, one of True, False, Unknown.',
                       type: 'string',
                       enum: ['True', 'False', 'Unknown'],
                     },
@@ -1811,13 +1801,11 @@ This field may not be empty.`,
                 'x-kubernetes-list-type': 'map',
               },
               name: {
-                description:
-                  'Name is the name of the Listener that this status corresponds to.',
+                description: 'Name is the name of the Listener that this status corresponds to.',
                 type: 'string',
                 maxLength: 253,
                 minLength: 1,
-                pattern:
-                  '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+                pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
               },
               supportedKinds: {
                 description: `SupportedKinds is the list indicating the Kinds supported by this
@@ -1832,8 +1820,7 @@ reference the valid Route kinds that have been specified.`,
                 type: 'array',
                 maxItems: 8,
                 items: {
-                  description:
-                    'RouteGroupKind indicates the group and kind of a Route resource.',
+                  description: 'RouteGroupKind indicates the group and kind of a Route resource.',
                   type: 'object',
                   required: ['kind'],
                   properties: {
@@ -1871,7 +1858,7 @@ reference the valid Route kinds that have been specified.`,
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const io_k8s_networking_gateway_v1_GatewayClassSchema = {
   description: `GatewayClass describes a class of Gateways available to the user for creating
@@ -1970,8 +1957,7 @@ Support: Implementation-specific`,
               description: 'Group is the group of the referent.',
               type: 'string',
               maxLength: 253,
-              pattern:
-                '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+              pattern: '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
             },
             kind: {
               description: 'Kind is kind of the referent.',
@@ -2077,8 +2063,7 @@ This field may not be empty.`,
                 enum: ['True', 'False', 'Unknown'],
               },
               type: {
-                description:
-                  'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
                 type: 'string',
                 maxLength: 316,
                 pattern:
@@ -2100,7 +2085,7 @@ This field may not be empty.`,
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const io_k8s_networking_gateway_v1_GatewayClassListSchema = {
   description: 'GatewayClassList is a list of GatewayClass',
@@ -2143,7 +2128,7 @@ export const io_k8s_networking_gateway_v1_GatewayClassListSchema = {
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const io_k8s_networking_gateway_v1_GatewayListSchema = {
   description: 'GatewayList is a list of Gateway',
@@ -2186,7 +2171,7 @@ export const io_k8s_networking_gateway_v1_GatewayListSchema = {
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const io_k8s_networking_gateway_v1_HTTPRouteSchema = {
   description: `HTTPRoute provides a way to route HTTP requests. This includes the capability
@@ -2293,8 +2278,7 @@ character. No other punctuation is allowed.`,
             type: 'string',
             maxLength: 253,
             minLength: 1,
-            pattern:
-              '^(\\*\\.)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+            pattern: '^(\\*\\.)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
           },
         },
         parentRefs: {
@@ -2383,8 +2367,7 @@ Support: Core`,
                 type: 'string',
                 default: 'gateway.networking.k8s.io',
                 maxLength: 253,
-                pattern:
-                  '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+                pattern: '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
               },
               kind: {
                 description: `Kind is kind of the referent.
@@ -2487,8 +2470,7 @@ Support: Core`,
                 type: 'string',
                 maxLength: 253,
                 minLength: 1,
-                pattern:
-                  '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+                pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
               },
             },
           },
@@ -3635,8 +3617,7 @@ equivalent.`,
                                 pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
                               },
                               value: {
-                                description:
-                                  'Value is the value of HTTP Header to be matched.',
+                                description: 'Value is the value of HTTP Header to be matched.',
                                 type: 'string',
                                 maxLength: 4096,
                                 minLength: 1,
@@ -3710,8 +3691,7 @@ equivalent.`,
                                 pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
                               },
                               value: {
-                                description:
-                                  'Value is the value of HTTP Header to be matched.',
+                                description: 'Value is the value of HTTP Header to be matched.',
                                 type: 'string',
                                 maxLength: 4096,
                                 minLength: 1,
@@ -3913,8 +3893,7 @@ Reason of \`UnsupportedValue\`.`,
                             },
                             {
                               rule: "has(self.replaceFullPath) ? self.type == 'ReplaceFullPath' : true",
-                              message:
-                                "type must be 'ReplaceFullPath' when replaceFullPath is set",
+                              message: "type must be 'ReplaceFullPath' when replaceFullPath is set",
                             },
                             {
                               rule: "self.type == 'ReplacePrefixMatch' ? has(self.replacePrefixMatch) : true",
@@ -4038,8 +4017,7 @@ equivalent.`,
                                 pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
                               },
                               value: {
-                                description:
-                                  'Value is the value of HTTP Header to be matched.',
+                                description: 'Value is the value of HTTP Header to be matched.',
                                 type: 'string',
                                 maxLength: 4096,
                                 minLength: 1,
@@ -4113,8 +4091,7 @@ equivalent.`,
                                 pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
                               },
                               value: {
-                                description:
-                                  'Value is the value of HTTP Header to be matched.',
+                                description: 'Value is the value of HTTP Header to be matched.',
                                 type: 'string',
                                 maxLength: 4096,
                                 minLength: 1,
@@ -4241,8 +4218,7 @@ Reason of \`UnsupportedValue\`.`,
                             },
                             {
                               rule: "has(self.replaceFullPath) ? self.type == 'ReplaceFullPath' : true",
-                              message:
-                                "type must be 'ReplaceFullPath' when replaceFullPath is set",
+                              message: "type must be 'ReplaceFullPath' when replaceFullPath is set",
                             },
                             {
                               rule: "self.type == 'ReplacePrefixMatch' ? has(self.replacePrefixMatch) : true",
@@ -4302,13 +4278,11 @@ Reason of \`UnsupportedValue\`.`,
                     },
                     {
                       rule: "!(has(self.urlRewrite) && self.type != 'URLRewrite')",
-                      message:
-                        'filter.urlRewrite must be nil if the filter.type is not URLRewrite',
+                      message: 'filter.urlRewrite must be nil if the filter.type is not URLRewrite',
                     },
                     {
                       rule: "!(!has(self.urlRewrite) && self.type == 'URLRewrite')",
-                      message:
-                        'filter.urlRewrite must be specified for URLRewrite filter.type',
+                      message: 'filter.urlRewrite must be specified for URLRewrite filter.type',
                     },
                     {
                       rule: "!(has(self.extensionRef) && self.type != 'ExtensionRef')",
@@ -4317,8 +4291,7 @@ Reason of \`UnsupportedValue\`.`,
                     },
                     {
                       rule: "!(!has(self.extensionRef) && self.type == 'ExtensionRef')",
-                      message:
-                        'filter.extensionRef must be specified for ExtensionRef filter.type',
+                      message: 'filter.extensionRef must be specified for ExtensionRef filter.type',
                     },
                   ],
                 },
@@ -4481,8 +4454,7 @@ determine the supported dialect.`,
                             enum: ['Exact', 'RegularExpression'],
                           },
                           value: {
-                            description:
-                              'Value is the value of HTTP Header to be matched.',
+                            description: 'Value is the value of HTTP Header to be matched.',
                             type: 'string',
                             maxLength: 4096,
                             minLength: 1,
@@ -4545,8 +4517,7 @@ Support: Implementation-specific (RegularExpression)`,
                         },
                         {
                           rule: "(self.type in ['Exact','PathPrefix']) ? !self.value.contains('//') : true",
-                          message:
-                            "must not contain '//' when type one of ['Exact', 'PathPrefix']",
+                          message: "must not contain '//' when type one of ['Exact', 'PathPrefix']",
                         },
                         {
                           rule: "(self.type in ['Exact','PathPrefix']) ? !self.value.contains('/./') : true",
@@ -4570,8 +4541,7 @@ Support: Implementation-specific (RegularExpression)`,
                         },
                         {
                           rule: "(self.type in ['Exact','PathPrefix']) ? !self.value.contains('#') : true",
-                          message:
-                            "must not contain '#' when type one of ['Exact', 'PathPrefix']",
+                          message: "must not contain '#' when type one of ['Exact', 'PathPrefix']",
                         },
                         {
                           rule: "(self.type in ['Exact','PathPrefix']) ? !self.value.endsWith('/..') : true",
@@ -4648,8 +4618,7 @@ documentation to determine the supported dialect.`,
                             enum: ['Exact', 'RegularExpression'],
                           },
                           value: {
-                            description:
-                              'Value is the value of HTTP query param to be matched.',
+                            description: 'Value is the value of HTTP query param to be matched.',
                             type: 'string',
                             maxLength: 1024,
                             minLength: 1,
@@ -4721,8 +4690,7 @@ Support: Extended`,
                 'x-kubernetes-validations': [
                   {
                     rule: "!(has(self.request) && has(self.backendRequest) && duration(self.request) != duration('0s') && duration(self.backendRequest) > duration(self.request))",
-                    message:
-                      'backendRequest timeout cannot be longer than request timeout',
+                    message: 'backendRequest timeout cannot be longer than request timeout',
                   },
                 ],
               },
@@ -4730,8 +4698,7 @@ Support: Extended`,
             'x-kubernetes-validations': [
               {
                 rule: '(has(self.backendRefs) && size(self.backendRefs) > 0) ? (!has(self.filters) || self.filters.all(f, !has(f.requestRedirect))): true',
-                message:
-                  'RequestRedirect filter must not be used together with backendRefs',
+                message: 'RequestRedirect filter must not be used together with backendRefs',
               },
               {
                 rule: "(has(self.filters) && self.filters.exists_one(f, has(f.requestRedirect) && has(f.requestRedirect.path) && f.requestRedirect.path.type == 'ReplacePrefixMatch' && has(f.requestRedirect.path.replacePrefixMatch))) ? ((size(self.matches) != 1 || !has(self.matches[0].path) || self.matches[0].path.type != 'PathPrefix') ? false : true) : true",
@@ -4854,8 +4821,7 @@ This field may not be empty.`,
                       pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
                     },
                     status: {
-                      description:
-                        'status of the condition, one of True, False, Unknown.',
+                      description: 'status of the condition, one of True, False, Unknown.',
                       type: 'string',
                       enum: ['True', 'False', 'Unknown'],
                     },
@@ -5012,8 +4978,7 @@ Support: Core`,
                     type: 'string',
                     maxLength: 253,
                     minLength: 1,
-                    pattern:
-                      '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+                    pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
                   },
                 },
               },
@@ -5031,7 +4996,7 @@ Support: Core`,
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;
 
 export const io_k8s_networking_gateway_v1_HTTPRouteListSchema = {
   description: 'HTTPRouteList is a list of HTTPRoute',
@@ -5074,4 +5039,4 @@ export const io_k8s_networking_gateway_v1_HTTPRouteListSchema = {
     },
   ],
   'x-kubernetes-selectable-fields': [],
-} as const
+} as const;

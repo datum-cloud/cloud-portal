@@ -1,21 +1,21 @@
-import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary'
-import { CustomError } from '@/utils/errorHandle'
-import { mergeMeta, metaObject } from '@/utils/meta'
-import { HelpCircle } from 'lucide-react'
-import type { MetaFunction } from 'react-router'
+import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary';
+import { CustomError } from '@/utils/errorHandle';
+import { mergeMeta, metaObject } from '@/utils/meta';
+import { HelpCircle } from 'lucide-react';
+import type { MetaFunction } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('404 Not Found')
-})
+  return metaObject('404 Not Found');
+});
 
 export async function loader() {
-  throw new CustomError('Not found', 404)
+  throw new CustomError('Not found', 404);
 }
 
 export default function NotFound() {
   // Due to the loader, this component will never be rendered,
   // but as a good practice, ErrorBoundary will be returned.
-  return <ErrorBoundary />
+  return <ErrorBoundary />;
 }
 
 export function ErrorBoundary() {
@@ -29,13 +29,11 @@ export function ErrorBoundary() {
             </div>
             <div className="flex flex-col items-center gap-2">
               <p className="text-primary text-2xl font-medium">Whoops!</p>
-              <p className="text-primary/60 text-center text-lg font-normal">
-                Nothing here yet!
-              </p>
+              <p className="text-primary/60 text-center text-lg font-normal">Nothing here yet!</p>
             </div>
           </div>
         ),
       }}
     />
-  )
+  );
 }

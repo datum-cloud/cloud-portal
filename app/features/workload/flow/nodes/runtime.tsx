@@ -1,27 +1,26 @@
-import { List } from '@/components/list/list'
-import { RUNTIME_TYPES } from '@/constants/options'
-import { RuntimeType } from '@/resources/interfaces/workload.interface'
-import { Handle, Position } from '@xyflow/react'
-import { useMemo } from 'react'
+import { List } from '@/components/list/list';
+import { RUNTIME_TYPES } from '@/constants/options';
+import { RuntimeType } from '@/resources/interfaces/workload.interface';
+import { Handle, Position } from '@xyflow/react';
+import { useMemo } from 'react';
 
 export interface IRuntimeNode {
-  label: string
-  instanceType: string
-  runtimeType: string
+  label: string;
+  instanceType: string;
+  runtimeType: string;
   // VM-specific fields
-  sshKey?: string
-  vmPorts?: string
-  isCompact?: boolean
-  [key: string]: unknown
+  sshKey?: string;
+  vmPorts?: string;
+  isCompact?: boolean;
+  [key: string]: unknown;
 }
 
 export const RuntimeNode = ({ data }: { data: IRuntimeNode }) => {
-  const baseClass =
-    'relative rounded-lg border border-pink-200 bg-pink-50 px-4 py-2 shadow-md'
-  const sizeClass = data.isCompact ? 'w-[280px]' : 'w-[300px]'
+  const baseClass = 'relative rounded-lg border border-pink-200 bg-pink-50 px-4 py-2 shadow-md';
+  const sizeClass = data.isCompact ? 'w-[280px]' : 'w-[300px]';
 
   // Determine if this is a VM runtime
-  const isVM = data.runtimeType === RuntimeType.VM
+  const isVM = data.runtimeType === RuntimeType.VM;
 
   const listItems = useMemo(() => {
     return [
@@ -30,17 +29,12 @@ export const RuntimeNode = ({ data }: { data: IRuntimeNode }) => {
         label: 'Runtime Type',
         content: RUNTIME_TYPES[data.runtimeType as keyof typeof RUNTIME_TYPES].label,
       },
-    ]
-  }, [data])
+    ];
+  }, [data]);
 
   return (
     <div className={`${baseClass} ${sizeClass}`}>
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="target"
-        className="h-4 w-4 bg-blue-500"
-      />
+      <Handle type="target" position={Position.Top} id="target" className="h-4 w-4 bg-blue-500" />
       <Handle
         type="source"
         position={Position.Bottom}
@@ -66,5 +60,5 @@ export const RuntimeNode = ({ data }: { data: IRuntimeNode }) => {
         />
       </div>
     </div>
-  )
-}
+  );
+};

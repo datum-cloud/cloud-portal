@@ -1,56 +1,48 @@
-import { TlsConfiguration } from './tls-configuration'
-import { Field } from '@/components/field/field'
-import { Input } from '@/components/ui/input'
+import { TlsConfiguration } from './tls-configuration';
+import { Field } from '@/components/field/field';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 import {
   GatewayAllowedRoutes,
   GatewayPort,
   GatewayProtocol,
-} from '@/resources/interfaces/gateway.interface'
-import {
-  GatewayListenerFieldSchema,
-  GatewayTlsSchema,
-} from '@/resources/schemas/gateway.schema'
-import {
-  getInputProps,
-  getSelectProps,
-  useForm,
-  useInputControl,
-} from '@conform-to/react'
-import { useEffect } from 'react'
+} from '@/resources/interfaces/gateway.interface';
+import { GatewayListenerFieldSchema, GatewayTlsSchema } from '@/resources/schemas/gateway.schema';
+import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { useEffect } from 'react';
 
 export const ListenerField = ({
   fields,
   defaultValue,
 }: {
-  fields: ReturnType<typeof useForm<GatewayListenerFieldSchema>>[1]
-  defaultValue?: GatewayListenerFieldSchema
+  fields: ReturnType<typeof useForm<GatewayListenerFieldSchema>>[1];
+  defaultValue?: GatewayListenerFieldSchema;
 }) => {
-  const nameControl = useInputControl(fields.name)
-  const protocolControl = useInputControl(fields.protocol)
-  const allowedRoutesControl = useInputControl(fields.allowedRoutes)
+  const nameControl = useInputControl(fields.name);
+  const protocolControl = useInputControl(fields.protocol);
+  const allowedRoutesControl = useInputControl(fields.allowedRoutes);
   // const matchLabelsControl = useInputControl(fields.matchLabels)
 
-  const tlsFieldset = fields.tlsConfiguration.getFieldset()
+  const tlsFieldset = fields.tlsConfiguration.getFieldset();
 
   useEffect(() => {
     if (defaultValue) {
       if (defaultValue.name && fields.name.value === '') {
-        nameControl.change(defaultValue?.name)
+        nameControl.change(defaultValue?.name);
       }
 
       if (defaultValue.protocol && !fields.protocol.value) {
-        protocolControl.change(defaultValue?.protocol)
+        protocolControl.change(defaultValue?.protocol);
       }
 
       if (defaultValue.allowedRoutes && !fields.allowedRoutes.value) {
-        allowedRoutesControl.change(defaultValue?.allowedRoutes)
+        allowedRoutesControl.change(defaultValue?.allowedRoutes);
       }
 
       /* if (defaultValue.matchLabels && !fields.matchLabels.value) {
@@ -67,7 +59,7 @@ export const ListenerField = ({
     fields.allowedRoutes.value,
     /* matchLabelsControl,
     fields.matchLabels.value, */
-  ])
+  ]);
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
@@ -78,8 +70,8 @@ export const ListenerField = ({
             key={fields.name.id}
             placeholder="e.g. listener-3sd122"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value
-              nameControl.change(value)
+              const value = (e.target as HTMLInputElement).value;
+              nameControl.change(value);
             }}
           />
         </Field>
@@ -97,7 +89,7 @@ export const ListenerField = ({
             value={fields.allowedRoutes.value}
             defaultValue={defaultValue?.allowedRoutes}
             onValueChange={(value) => {
-              allowedRoutesControl.change(value)
+              allowedRoutesControl.change(value);
 
               // Clear match labels when allowed routes is changed
               // matchLabelsControl.change([])
@@ -126,7 +118,7 @@ export const ListenerField = ({
             value={protocolControl.value}
             defaultValue={defaultValue?.protocol}
             onValueChange={(value) => {
-              protocolControl.change(value)
+              protocolControl.change(value);
             }}>
             <SelectTrigger>
               <SelectValue placeholder="Select a storage type" />
@@ -159,14 +151,12 @@ export const ListenerField = ({
         {fields.protocol.value === GatewayProtocol.HTTPS && (
           <div className="w-1/3">
             <TlsConfiguration
-              fields={
-                tlsFieldset as unknown as ReturnType<typeof useForm<GatewayTlsSchema>>[1]
-              }
+              fields={tlsFieldset as unknown as ReturnType<typeof useForm<GatewayTlsSchema>>[1]}
               defaultValue={defaultValue?.tlsConfiguration}
             />
           </div>
         )}
       </div>
     </div>
-  )
-}
+  );
+};

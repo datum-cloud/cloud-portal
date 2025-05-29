@@ -1,43 +1,43 @@
-import { EndpointField } from './endpoint-field'
-import { FieldLabel } from '@/components/field/field-label'
-import { Button } from '@/components/ui/button'
+import { EndpointField } from './endpoint-field';
+import { FieldLabel } from '@/components/field/field-label';
+import { Button } from '@/components/ui/button';
 import {
   EndpointSliceEndpointSchema,
   EndpointSliceSchema,
-} from '@/resources/schemas/endpoint-slice.schema'
-import { cn } from '@/utils/misc'
-import { useForm, useFormMetadata } from '@conform-to/react'
-import { PlusIcon, TrashIcon } from 'lucide-react'
-import { useEffect } from 'react'
+} from '@/resources/schemas/endpoint-slice.schema';
+import { cn } from '@/utils/misc';
+import { useForm, useFormMetadata } from '@conform-to/react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useEffect } from 'react';
 
 const defaultEndpointValue: EndpointSliceEndpointSchema = {
   addresses: [],
   conditions: ['ready', 'reachable', 'terminating'],
-}
+};
 
 export const EndpointsForm = ({
   fields,
   defaultValue,
 }: {
-  fields: ReturnType<typeof useForm<EndpointSliceSchema>>[1]
-  defaultValue?: EndpointSliceEndpointSchema[]
+  fields: ReturnType<typeof useForm<EndpointSliceSchema>>[1];
+  defaultValue?: EndpointSliceEndpointSchema[];
 }) => {
-  const form = useFormMetadata('endpoint-slice-form')
-  const endpointList = fields.endpoints.getFieldList()
+  const form = useFormMetadata('endpoint-slice-form');
+  const endpointList = fields.endpoints.getFieldList();
 
   useEffect(() => {
     if (defaultValue && defaultValue.length > 0) {
       form.update({
         name: fields.endpoints.name,
         value: defaultValue,
-      })
+      });
     } else if (endpointList.length === 0) {
       form.insert({
         name: fields.endpoints.name,
         defaultValue: defaultEndpointValue,
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -45,7 +45,7 @@ export const EndpointsForm = ({
 
       <div className="space-y-4">
         {endpointList.map((endpoint, index) => {
-          const endpointFields = endpoint.getFieldset()
+          const endpointFields = endpoint.getFieldset();
           return (
             <div
               className="relative flex items-center gap-2 rounded-md border p-4"
@@ -70,7 +70,7 @@ export const EndpointsForm = ({
                 </Button>
               )}
             </div>
-          )
+          );
         })}
       </div>
       <Button
@@ -88,5 +88,5 @@ export const EndpointsForm = ({
         Add
       </Button>
     </div>
-  )
-}
+  );
+};

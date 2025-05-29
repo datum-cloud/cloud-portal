@@ -1,43 +1,38 @@
-import { Field } from '@/components/field/field'
-import { Input } from '@/components/ui/input'
+import { Field } from '@/components/field/field';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { HTTPPathMatchType } from '@/resources/interfaces/http-route.interface'
-import { HttpPathMatchSchema } from '@/resources/schemas/http-route.schema'
-import {
-  getInputProps,
-  getSelectProps,
-  useForm,
-  useInputControl,
-} from '@conform-to/react'
-import { useEffect } from 'react'
+} from '@/components/ui/select';
+import { HTTPPathMatchType } from '@/resources/interfaces/http-route.interface';
+import { HttpPathMatchSchema } from '@/resources/schemas/http-route.schema';
+import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { useEffect } from 'react';
 
 export const PathField = ({
   fields,
   defaultValue,
 }: {
-  fields: ReturnType<typeof useForm<HttpPathMatchSchema>>[1]
-  defaultValue?: HttpPathMatchSchema
+  fields: ReturnType<typeof useForm<HttpPathMatchSchema>>[1];
+  defaultValue?: HttpPathMatchSchema;
 }) => {
-  const typeControl = useInputControl(fields.type)
-  const valueControl = useInputControl(fields.value)
+  const typeControl = useInputControl(fields.type);
+  const valueControl = useInputControl(fields.value);
 
   useEffect(() => {
     if (defaultValue) {
       if (defaultValue.type && !fields.type.value) {
-        typeControl.change(defaultValue?.type)
+        typeControl.change(defaultValue?.type);
       }
 
       if (defaultValue.value && fields.value.value === '') {
-        valueControl.change(defaultValue?.value)
+        valueControl.change(defaultValue?.value);
       }
     }
-  }, [defaultValue, typeControl, fields.type.value, valueControl, fields.value.value])
+  }, [defaultValue, typeControl, fields.type.value, valueControl, fields.value.value]);
 
   return (
     <div className="relative flex w-full flex-col items-start gap-4">
@@ -49,7 +44,7 @@ export const PathField = ({
             value={typeControl.value}
             defaultValue={defaultValue?.type}
             onValueChange={(value) => {
-              typeControl.change(value)
+              typeControl.change(value);
             }}>
             <SelectTrigger>
               <SelectValue placeholder="Select a type" />
@@ -69,12 +64,12 @@ export const PathField = ({
             key={fields.value.id}
             placeholder="e.g. /path"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value
-              valueControl.change(value)
+              const value = (e.target as HTMLInputElement).value;
+              valueControl.change(value);
             }}
           />
         </Field>
       </div>
     </div>
-  )
-}
+  );
+};

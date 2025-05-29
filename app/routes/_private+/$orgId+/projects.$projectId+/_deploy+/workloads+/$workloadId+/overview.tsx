@@ -1,67 +1,58 @@
-import { DateFormat } from '@/components/date-format/date-format'
-import { MoreActions } from '@/components/more-actions/more-actions'
-import { PageTitle } from '@/components/page-title/page-title'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { routes } from '@/constants/routes'
-import { WorkloadFlow } from '@/features/workload/flow/flow'
-import { WorkloadHelper } from '@/features/workload/helper'
-import { WorkloadOverview } from '@/features/workload/overview'
-import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
+import { DateFormat } from '@/components/date-format/date-format';
+import { MoreActions } from '@/components/more-actions/more-actions';
+import { PageTitle } from '@/components/page-title/page-title';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { routes } from '@/constants/routes';
+import { WorkloadFlow } from '@/features/workload/flow/flow';
+import { WorkloadHelper } from '@/features/workload/helper';
+import { WorkloadOverview } from '@/features/workload/overview';
+import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import {
   ControlPlaneStatus,
   IControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface'
+} from '@/resources/interfaces/control-plane.interface';
 import {
   IInstanceControlResponse,
   IWorkloadControlResponse,
   IWorkloadDeploymentControlResponse,
-} from '@/resources/interfaces/workload.interface'
-import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
-import { mergeMeta, metaObject } from '@/utils/meta'
-import { transformControlPlaneStatus } from '@/utils/misc'
-import { getPathWithParams } from '@/utils/path'
-import { formatDistanceToNow } from 'date-fns/formatDistanceToNow'
-import { motion } from 'framer-motion'
-import { ClockIcon, PencilIcon } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
-import {
-  MetaFunction,
-  useParams,
-  useRouteLoaderData,
-  useSubmit,
-  Link,
-} from 'react-router'
+} from '@/resources/interfaces/workload.interface';
+import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions';
+import { mergeMeta, metaObject } from '@/utils/meta';
+import { transformControlPlaneStatus } from '@/utils/misc';
+import { getPathWithParams } from '@/utils/path';
+import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
+import { motion } from 'framer-motion';
+import { ClockIcon, PencilIcon } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
+import { MetaFunction, useParams, useRouteLoaderData, useSubmit, Link } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find(
     (match) =>
       match.id ===
-      'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ) as any
+      'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout'
+  ) as any;
 
-  const { workload } = match.data
-  return metaObject(
-    `${(workload as IWorkloadControlResponse)?.name || 'Workload'} Overview`,
-  )
-})
+  const { workload } = match.data;
+  return metaObject(`${(workload as IWorkloadControlResponse)?.name || 'Workload'} Overview`);
+});
 
 export default function WorkloadOverviewPage() {
-  const submit = useSubmit()
-  const { confirm } = useConfirmationDialog()
-  const { orgId, projectId, workloadId } = useParams()
+  const submit = useSubmit();
+  const { confirm } = useConfirmationDialog();
+  const { orgId, projectId, workloadId } = useParams();
 
   // revalidate every 10 seconds to keep deployment list fresh
-  const revalidator = useRevalidateOnInterval({ enabled: true, interval: 10000 })
+  const revalidator = useRevalidateOnInterval({ enabled: true, interval: 10000 });
 
   const { deployments, instances, workload } = useRouteLoaderData(
-    'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout',
-  )
+    'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout'
+  );
 
   const deleteWorkload = async () => {
-    const data = workload as IWorkloadControlResponse
+    const data = workload as IWorkloadControlResponse;
     await confirm({
       title: 'Delete Workload',
       description: (
@@ -79,7 +70,7 @@ export default function WorkloadOverviewPage() {
       confirmValue: data?.name ?? 'delete',
       onSubmit: async () => {
         // Clear the interval when deleting a workload
-        revalidator.clear()
+        revalidator.clear();
 
         await submit(
           {
@@ -92,61 +83,60 @@ export default function WorkloadOverviewPage() {
             method: 'DELETE',
             fetcherKey: 'workload-resources',
             navigate: false,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   const workloadMappingData = useMemo(() => {
     if (workload) {
-      return WorkloadHelper.mappingSpecToForm(workload)
+      return WorkloadHelper.mappingSpecToForm(workload);
     }
 
-    return {}
-  }, [workload])
+    return {};
+  }, [workload]);
 
   // Status of the workload
   const isWorkloadReady: boolean = useMemo(() => {
     if (workload) {
-      const status: IControlPlaneStatus = transformControlPlaneStatus(workload.status)
-      return status.status === ControlPlaneStatus.Success
+      const status: IControlPlaneStatus = transformControlPlaneStatus(workload.status);
+      return status.status === ControlPlaneStatus.Success;
     }
-    return false
-  }, [workload])
+    return false;
+  }, [workload]);
 
   // Status of all instances
   const isAllInstancesReady: boolean = useMemo(() => {
     if (instances && instances.length > 0) {
-      const statuses: IControlPlaneStatus[] = instances.map(
-        (instance: IInstanceControlResponse) =>
-          transformControlPlaneStatus(instance.status),
-      )
-      return statuses.every((status) => status.status === ControlPlaneStatus.Success)
+      const statuses: IControlPlaneStatus[] = instances.map((instance: IInstanceControlResponse) =>
+        transformControlPlaneStatus(instance.status)
+      );
+      return statuses.every((status) => status.status === ControlPlaneStatus.Success);
     }
-    return false
-  }, [instances])
+    return false;
+  }, [instances]);
 
   // Status of all deployments
   const isAllDeploymentsReady: boolean = useMemo(() => {
     if (deployments && deployments.length > 0) {
       const statuses: IControlPlaneStatus[] = deployments.map(
         (deployment: IWorkloadDeploymentControlResponse) =>
-          transformControlPlaneStatus(deployment.status),
-      )
+          transformControlPlaneStatus(deployment.status)
+      );
 
       // Check if all deployments are ready
-      return statuses?.every((status) => status.status === ControlPlaneStatus.Success)
+      return statuses?.every((status) => status.status === ControlPlaneStatus.Success);
     }
-    return false
-  }, [deployments])
+    return false;
+  }, [deployments]);
 
   // Clear the interval when all resources are ready
   useEffect(() => {
     if (isWorkloadReady && isAllInstancesReady && isAllDeploymentsReady) {
-      revalidator.clear()
+      revalidator.clear();
     }
-  }, [isWorkloadReady, isAllInstancesReady, isAllDeploymentsReady])
+  }, [isWorkloadReady, isAllInstancesReady, isAllDeploymentsReady]);
 
   return (
     <motion.div
@@ -174,7 +164,7 @@ export default function WorkloadOverviewPage() {
                   new Date((workload as IWorkloadControlResponse)?.createdAt ?? ''),
                   {
                     addSuffix: true,
-                  },
+                  }
                 )}
                 )
               </span>
@@ -229,10 +219,10 @@ export default function WorkloadOverviewPage() {
           />
         </TabsContent>
         <TabsContent value="graph" className="max-h-screen min-h-[700px]">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {}
           <WorkloadFlow workloadData={workloadMappingData as any} />
         </TabsContent>
       </Tabs>
     </motion.div>
-  )
+  );
 }

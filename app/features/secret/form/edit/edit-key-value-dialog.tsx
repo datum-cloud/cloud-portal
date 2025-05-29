@@ -1,5 +1,5 @@
-import { Field } from '@/components/field/field'
-import { Button } from '@/components/ui/button'
+import { Field } from '@/components/field/field';
+import { Button } from '@/components/ui/button';
 import {
   DialogContent,
   Dialog,
@@ -7,41 +7,34 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
-import useAutosizeTextArea from '@/hooks/useAutosizeTextArea'
-import { useIsPending } from '@/hooks/useIsPending'
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions'
-import { isBase64, toBase64 } from '@/utils/misc'
-import {
-  getFormProps,
-  getTextareaProps,
-  useForm,
-  useInputControl,
-} from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { Form, useFetcher } from 'react-router'
-import { useAuthenticityToken } from 'remix-utils/csrf/react'
-import { toast } from 'sonner'
-import { z } from 'zod'
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import useAutosizeTextArea from '@/hooks/useAutosizeTextArea';
+import { useIsPending } from '@/hooks/useIsPending';
+import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions';
+import { isBase64, toBase64 } from '@/utils/misc';
+import { getFormProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { Form, useFetcher } from 'react-router';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 interface EditKeyValueDialogProps {
-  projectId?: string
-  secretId?: string
-  onSuccess?: () => void
-  onCancel?: () => void
+  projectId?: string;
+  secretId?: string;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
 export interface EditKeyValueDialogRef {
-  show: (id?: string) => Promise<boolean>
+  show: (id?: string) => Promise<boolean>;
 }
 
 const keyValueSchema = z.object({
-  value: z
-    .string({ required_error: 'Value is required' })
-    .min(1, { message: 'Value is required' }),
-})
+  value: z.string({ required_error: 'Value is required' }).min(1, { message: 'Value is required' }),
+});
 
 export const EditKeyValueDialog = ({
   projectId,
@@ -50,17 +43,17 @@ export const EditKeyValueDialog = ({
   onSuccess,
   onCancel,
 }: EditKeyValueDialogProps & {
-  ref: React.RefObject<EditKeyValueDialogRef>
+  ref: React.RefObject<EditKeyValueDialogRef>;
 }) => {
-  const fetcher = useFetcher({ key: 'edit-key-value' })
-  const isPending = useIsPending({ fetcherKey: 'edit-key-value' })
-  const csrf = useAuthenticityToken()
+  const fetcher = useFetcher({ key: 'edit-key-value' });
+  const isPending = useIsPending({ fetcherKey: 'edit-key-value' });
+  const csrf = useAuthenticityToken();
 
-  const textAreaRef = useRef<HTMLTextAreaElement>(null)
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  const [isOpen, setIsOpen] = useState(false)
-  const resolveRef = useRef<(value: boolean) => void>(null)
-  const [keyId, setKeyId] = useState<string | undefined>()
+  const [isOpen, setIsOpen] = useState(false);
+  const resolveRef = useRef<(value: boolean) => void>(null);
+  const [keyId, setKeyId] = useState<string | undefined>();
 
   const [form, fields] = useForm({
     id: 'secret-variables-form',
@@ -69,11 +62,11 @@ export const EditKeyValueDialog = ({
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: keyValueSchema })
+      return parseWithZod(formData, { schema: keyValueSchema });
     },
     onSubmit(event, { submission }) {
-      event.preventDefault()
-      event.stopPropagation()
+      event.preventDefault();
+      event.stopPropagation();
 
       if (submission?.status === 'success') {
         fetcher.submit(
@@ -91,47 +84,47 @@ export const EditKeyValueDialog = ({
             action: SECRET_ACTIONS_ROUTE_PATH,
             encType: 'application/json',
             method: 'PATCH',
-          },
-        )
+          }
+        );
       }
     },
-  })
+  });
 
-  const valueControl = useInputControl(fields.value)
+  const valueControl = useInputControl(fields.value);
 
   useAutosizeTextArea(textAreaRef.current, fields.value.value ?? '', {
     maxHeight: '200px',
-  })
+  });
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
-      const { success } = fetcher.data
+      const { success } = fetcher.data;
 
       if (success) {
-        handleOpenChange(false)
-        toast.success(`Key "${keyId}" updated successfully`)
-        onSuccess?.()
+        handleOpenChange(false);
+        toast.success(`Key "${keyId}" updated successfully`);
+        onSuccess?.();
       }
     }
-  }, [fetcher.data, fetcher.state])
+  }, [fetcher.data, fetcher.state]);
 
   useImperativeHandle(ref, () => ({
     show: (id?: string) => {
-      setKeyId(id)
-      setIsOpen(true)
+      setKeyId(id);
+      setIsOpen(true);
       return new Promise<boolean>((resolve) => {
-        resolveRef.current = resolve
-      })
+        resolveRef.current = resolve;
+      });
     },
-  }))
+  }));
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      resolveRef.current?.(false)
-      onCancel?.()
+      resolveRef.current?.(false);
+      onCancel?.();
     }
-    setIsOpen(open)
-  }
+    setIsOpen(open);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -164,8 +157,8 @@ export const EditKeyValueDialog = ({
                 key={fields.value.id}
                 ref={textAreaRef}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                  const value = (e.target as HTMLTextAreaElement).value
-                  valueControl.change(value)
+                  const value = (e.target as HTMLTextAreaElement).value;
+                  valueControl.change(value);
                 }}
               />
             </Field>
@@ -177,22 +170,18 @@ export const EditKeyValueDialog = ({
               variant="link"
               disabled={isPending}
               onClick={() => {
-                handleOpenChange(false)
+                handleOpenChange(false);
               }}>
               Cancel
             </Button>
-            <Button
-              variant="default"
-              type="submit"
-              disabled={isPending}
-              isLoading={isPending}>
+            <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
               {isPending ? 'Saving' : 'Save'}
             </Button>
           </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-EditKeyValueDialog.displayName = 'EditKeyValueDialog'
+EditKeyValueDialog.displayName = 'EditKeyValueDialog';

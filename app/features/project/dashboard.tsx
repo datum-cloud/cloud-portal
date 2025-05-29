@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowRight, Binoculars, Cloud, GlobeLock, Network } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowRight, Binoculars, Cloud, GlobeLock, Network } from 'lucide-react';
 
 const ExplorerList = [
   {
@@ -26,22 +26,22 @@ const ExplorerList = [
       'Monitor, analyze, and troubleshoot network activity in real time to enhance security and optimize performance.',
     icon: <Binoculars />,
   },
-] as const
+] as const;
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <p className="text-xl font-semibold">{children}</p>
-)
+);
 
 const SectionDescription = ({ children }: { children: React.ReactNode }) => (
   <p className="text-muted-foreground text-base font-thin">{children}</p>
-)
+);
 
 const ArrowListItem = ({ children }: { children: React.ReactNode }) => (
   <div className="flex items-center">
     <ArrowRight className="mr-2 size-4" />
     {children}
   </div>
-)
+);
 
 const ExplorerCard = ({ title, description, icon }: (typeof ExplorerList)[number]) => (
   <Card className="flex h-full flex-col gap-3">
@@ -55,6 +55,6 @@ const ExplorerCard = ({ title, description, icon }: (typeof ExplorerList)[number
       <SectionDescription>{description}</SectionDescription>
     </CardContent>
   </Card>
-)
+);
 
-export { SectionTitle, SectionDescription, ArrowListItem, ExplorerCard, ExplorerList }
+export { SectionTitle, SectionDescription, ArrowListItem, ExplorerCard, ExplorerList };

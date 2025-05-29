@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
   CommandDialog,
   CommandEmpty,
@@ -6,31 +6,31 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command'
-import { routes } from '@/constants/routes'
-import { useOs } from '@/hooks/useOs'
-import { cn } from '@/utils/misc'
-import { getPathWithParams } from '@/utils/path'
-import { Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+} from '@/components/ui/command';
+import { routes } from '@/constants/routes';
+import { useOs } from '@/hooks/useOs';
+import { cn } from '@/utils/misc';
+import { getPathWithParams } from '@/utils/path';
+import { Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router';
 
 export default function SearchBar({ className }: { className?: string }) {
-  const { orgId } = useParams()
-  const os = useOs()
+  const { orgId } = useParams();
+  const os = useOs();
 
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === '/' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setOpen((open) => !open)
+        e.preventDefault();
+        setOpen((open) => !open);
       }
-    }
-    document.addEventListener('keydown', down)
-    return () => document.removeEventListener('keydown', down)
-  }, [])
+    };
+    document.addEventListener('keydown', down);
+    return () => document.removeEventListener('keydown', down);
+  }, []);
 
   return (
     <>
@@ -60,9 +60,7 @@ export default function SearchBar({ className }: { className?: string }) {
             {orgId && (
               <>
                 <CommandItem asChild>
-                  <Link to={getPathWithParams(routes.org.projects.root, { orgId })}>
-                    Projects
-                  </Link>
+                  <Link to={getPathWithParams(routes.org.projects.root, { orgId })}>Projects</Link>
                 </CommandItem>
                 <CommandItem asChild>
                   <Link to={getPathWithParams(routes.org.settings.root, { orgId })}>
@@ -80,5 +78,5 @@ export default function SearchBar({ className }: { className?: string }) {
         </CommandList>
       </CommandDialog>
     </>
-  )
+  );
 }

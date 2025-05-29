@@ -1,16 +1,16 @@
-import { SinkField } from './sink-field'
-import { Button } from '@/components/ui/button'
-import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.interface'
+import { SinkField } from './sink-field';
+import { Button } from '@/components/ui/button';
+import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.interface';
 import {
   ExportPolicySinkFieldSchema,
   ExportPolicySinksSchema,
   ExportPolicySourceFieldSchema,
   UpdateExportPolicySchema,
-} from '@/resources/schemas/export-policy.schema'
-import { cn } from '@/utils/misc'
-import { useForm, useFormMetadata } from '@conform-to/react'
-import { PlusIcon, TrashIcon } from 'lucide-react'
-import { useMemo, useEffect } from 'react'
+} from '@/resources/schemas/export-policy.schema';
+import { cn } from '@/utils/misc';
+import { useForm, useFormMetadata } from '@conform-to/react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
+import { useMemo, useEffect } from 'react';
 
 export const SinksForm = ({
   fields,
@@ -19,50 +19,48 @@ export const SinksForm = ({
   sourceList,
   projectId,
 }: {
-  fields: ReturnType<typeof useForm<UpdateExportPolicySchema>>[1]
-  defaultValue?: ExportPolicySinksSchema
-  isEdit?: boolean
-  sourceList?: ExportPolicySourceFieldSchema[]
-  projectId?: string
+  fields: ReturnType<typeof useForm<UpdateExportPolicySchema>>[1];
+  defaultValue?: ExportPolicySinksSchema;
+  isEdit?: boolean;
+  sourceList?: ExportPolicySourceFieldSchema[];
+  projectId?: string;
 }) => {
-  const form = useFormMetadata('export-policy-form')
-  const fieldList = fields.sinks.getFieldList()
-  const sourceFieldList = fields.sources.getFieldList()
+  const form = useFormMetadata('export-policy-form');
+  const fieldList = fields.sinks.getFieldList();
+  const sourceFieldList = fields.sources.getFieldList();
 
   const values = useMemo(() => {
     return defaultValue?.sinks
       ? defaultValue.sinks
-      : ((defaultValue ?? []) as ExportPolicySinkFieldSchema[])
-  }, [defaultValue])
+      : ((defaultValue ?? []) as ExportPolicySinkFieldSchema[]);
+  }, [defaultValue]);
 
   useEffect(() => {
     form.update({
       name: fields.sinks.name,
       value: values as ExportPolicySinkFieldSchema[],
-    })
-  }, [values])
+    });
+  }, [values]);
 
   const sourceNames = useMemo(() => {
     if (sourceFieldList.length > 0) {
       return sourceFieldList
         .map((source) => {
-          const sourceField = source.getFieldset()
-          return sourceField.name.value
+          const sourceField = source.getFieldset();
+          return sourceField.name.value;
         })
-        .filter(Boolean) as string[]
+        .filter(Boolean) as string[];
     }
-    return []
-  }, [sourceFieldList])
+    return [];
+  }, [sourceFieldList]);
 
   return (
     <div className="flex flex-col gap-2">
       <div className="space-y-4">
         {fieldList.map((field, index) => {
-          const sinkFields = field.getFieldset()
+          const sinkFields = field.getFieldset();
           return (
-            <div
-              className="relative flex items-center gap-2 rounded-md border p-4"
-              key={field.key}>
+            <div className="relative flex items-center gap-2 rounded-md border p-4" key={field.key}>
               <SinkField
                 projectId={projectId}
                 isEdit={isEdit}
@@ -89,7 +87,7 @@ export const SinksForm = ({
                 </Button>
               )}
             </div>
-          )
+          );
         })}
       </div>
       <Button
@@ -111,5 +109,5 @@ export const SinksForm = ({
         Add Sink
       </Button>
     </div>
-  )
-}
+  );
+};

@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { NetworksForm } from './network/networks-form'
-import { PlacementsForm } from './placement/placements-form'
-import { RuntimeForm } from './runtime/runtime-form'
-import { StoragesForm } from './storage/storages-form'
-import { MetadataForm } from '@/components/metadata/metadata-form'
-import { Button } from '@/components/ui/button'
+import { NetworksForm } from './network/networks-form';
+import { PlacementsForm } from './placement/placements-form';
+import { RuntimeForm } from './runtime/runtime-form';
+import { StoragesForm } from './storage/storages-form';
+import { MetadataForm } from '@/components/metadata/metadata-form';
+import { Button } from '@/components/ui/button';
 import {
   CardDescription,
   CardHeader,
@@ -12,30 +11,30 @@ import {
   Card,
   CardContent,
   CardFooter,
-} from '@/components/ui/card'
-import { BOOT_IMAGES } from '@/constants/bootImages'
-import { routes } from '@/constants/routes'
-import { WorkloadHelper } from '@/features/workload/helper'
-import { useIsPending } from '@/hooks/useIsPending'
-import { useApp } from '@/providers/app.provider'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface'
-import { MetadataSchema } from '@/resources/schemas/metadata.schema'
+} from '@/components/ui/card';
+import { BOOT_IMAGES } from '@/constants/bootImages';
+import { routes } from '@/constants/routes';
+import { WorkloadHelper } from '@/features/workload/helper';
+import { useIsPending } from '@/hooks/useIsPending';
+import { useApp } from '@/providers/app.provider';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
+import { MetadataSchema } from '@/resources/schemas/metadata.schema';
 import {
   updateWorkloadSchema,
   NewWorkloadSchema,
   PlacementsSchema,
   RuntimeSchema,
   UpdateWorkloadSchema,
-} from '@/resources/schemas/workload.schema'
-import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions'
-import { getPathWithParams } from '@/utils/path'
-import { FormProvider, getFormProps, useForm } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { Cpu, HardDrive, Layers, Network, Server } from 'lucide-react'
-import { Fragment, cloneElement, useEffect, useState } from 'react'
-import { Form, useNavigate, useSubmit } from 'react-router'
-import { useAuthenticityToken } from 'remix-utils/csrf/react'
+} from '@/resources/schemas/workload.schema';
+import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions';
+import { getPathWithParams } from '@/utils/path';
+import { FormProvider, getFormProps, useForm } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { Cpu, HardDrive, Layers, Network, Server } from 'lucide-react';
+import { Fragment, cloneElement, useEffect, useState } from 'react';
+import { Form, useNavigate, useSubmit } from 'react-router';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 const sections = [
   {
@@ -47,8 +46,7 @@ const sections = [
   {
     id: 'runtime',
     label: 'Runtime',
-    description:
-      'Configure instance type and choose between Container or VM runtime environments.',
+    description: 'Configure instance type and choose between Container or VM runtime environments.',
     icon: () => <Cpu />,
   },
   {
@@ -70,23 +68,23 @@ const sections = [
     description: 'Choose where to deploy your workload and set up scaling options.',
     icon: () => <Server />,
   },
-]
+];
 
 export const WorkloadUpdateForm = ({
   projectId,
   defaultValue,
 }: {
-  projectId?: string
-  defaultValue?: IWorkloadControlResponse
+  projectId?: string;
+  defaultValue?: IWorkloadControlResponse;
 }) => {
-  const { orgId } = useApp()
-  const csrf = useAuthenticityToken()
-  const submit = useSubmit()
-  const navigate = useNavigate()
-  const isPending = useIsPending()
-  const { confirm } = useConfirmationDialog()
+  const { orgId } = useApp();
+  const csrf = useAuthenticityToken();
+  const submit = useSubmit();
+  const navigate = useNavigate();
+  const isPending = useIsPending();
+  const { confirm } = useConfirmationDialog();
 
-  const [formattedValues, setFormattedValues] = useState<NewWorkloadSchema>()
+  const [formattedValues, setFormattedValues] = useState<NewWorkloadSchema>();
 
   const initialValues = {
     runtime: {
@@ -99,7 +97,7 @@ export const WorkloadUpdateForm = ({
     networks: [],
     storages: [],
     placements: [{ name: undefined, cityCode: undefined, minimumReplicas: 1 }],
-  }
+  };
 
   const [form, fields] = useForm({
     id: 'workload-form',
@@ -108,15 +106,15 @@ export const WorkloadUpdateForm = ({
     shouldRevalidate: 'onInput',
     defaultValue: initialValues,
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: updateWorkloadSchema })
+      return parseWithZod(formData, { schema: updateWorkloadSchema });
     },
     onSubmit(event, { submission }) {
-      event.preventDefault()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const data: any = submission?.status === 'success' ? submission.value : {}
+      event.preventDefault();
+
+      const data: any = submission?.status === 'success' ? submission.value : {};
 
       // Get the form element
-      const formElement = event.currentTarget as HTMLFormElement
+      const formElement = event.currentTarget as HTMLFormElement;
 
       const payload: NewWorkloadSchema = {
         metadata: {
@@ -133,7 +131,7 @@ export const WorkloadUpdateForm = ({
         networks: data?.networks,
         storages: data?.storages,
         placements: data?.placements,
-      }
+      };
 
       // Submit the form using the Remix submit function
       // This will trigger the action defined in the route
@@ -144,10 +142,10 @@ export const WorkloadUpdateForm = ({
           action: formElement.getAttribute('action') || undefined,
           encType: 'application/json',
           replace: true,
-        },
-      )
+        }
+      );
     },
-  })
+  });
 
   const deleteWorkload = async () => {
     await confirm({
@@ -177,32 +175,31 @@ export const WorkloadUpdateForm = ({
             method: 'DELETE',
             fetcherKey: 'workload-resources',
             navigate: false,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   useEffect(() => {
     // Process default values when they exist to populate the form
     if (defaultValue) {
-      const { metadata, runtime, ...rest } =
-        WorkloadHelper.mappingSpecToForm(defaultValue)
+      const { metadata, runtime, ...rest } = WorkloadHelper.mappingSpecToForm(defaultValue);
 
       form.update({
         ...metadata,
         ...runtime,
         ...rest,
-      })
+      });
 
       // Update form with the mapped values
       setFormattedValues({
         metadata,
         runtime,
         ...rest,
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <Card>
@@ -217,11 +214,7 @@ export const WorkloadUpdateForm = ({
           method="POST"
           autoComplete="off"
           className="flex flex-col gap-6">
-          <input
-            type="hidden"
-            name="resourceVersion"
-            value={defaultValue?.resourceVersion}
-          />
+          <input type="hidden" name="resourceVersion" value={defaultValue?.resourceVersion} />
 
           <CardContent>
             <nav aria-label="Workload Steps" className="group">
@@ -235,12 +228,8 @@ export const WorkloadUpdateForm = ({
                         })}
                       </span>
                       <div className="flex flex-col gap-1 pt-1.5">
-                        <p className="text-base leading-tight font-medium">
-                          {section.label}
-                        </p>
-                        <p className="text-muted-foreground text-sm">
-                          {section.description}
-                        </p>
+                        <p className="text-base leading-tight font-medium">{section.label}</p>
+                        <p className="text-muted-foreground text-sm">{section.description}</p>
                       </div>
                     </li>
                     <div className="flex-1 py-6 pl-7">
@@ -249,9 +238,7 @@ export const WorkloadUpdateForm = ({
                           isEdit
                           defaultValue={formattedValues?.metadata}
                           fields={
-                            fields as unknown as ReturnType<
-                              typeof useForm<MetadataSchema>
-                            >[1]
+                            fields as unknown as ReturnType<typeof useForm<MetadataSchema>>[1]
                           }
                         />
                       )}
@@ -261,11 +248,7 @@ export const WorkloadUpdateForm = ({
                           isEdit
                           projectId={projectId}
                           defaultValue={formattedValues?.runtime}
-                          fields={
-                            fields as unknown as ReturnType<
-                              typeof useForm<RuntimeSchema>
-                            >[1]
-                          }
+                          fields={fields as unknown as ReturnType<typeof useForm<RuntimeSchema>>[1]}
                         />
                       )}
 
@@ -274,9 +257,7 @@ export const WorkloadUpdateForm = ({
                           projectId={projectId}
                           defaultValue={{ networks: formattedValues?.networks ?? [] }}
                           fields={
-                            fields as unknown as ReturnType<
-                              typeof useForm<UpdateWorkloadSchema>
-                            >[1]
+                            fields as unknown as ReturnType<typeof useForm<UpdateWorkloadSchema>>[1]
                           }
                         />
                       )}
@@ -286,9 +267,7 @@ export const WorkloadUpdateForm = ({
                           isEdit
                           defaultValue={{ storages: formattedValues?.storages ?? [] }}
                           fields={
-                            fields as unknown as ReturnType<
-                              typeof useForm<UpdateWorkloadSchema>
-                            >[1]
+                            fields as unknown as ReturnType<typeof useForm<UpdateWorkloadSchema>>[1]
                           }
                         />
                       )}
@@ -297,9 +276,7 @@ export const WorkloadUpdateForm = ({
                         <PlacementsForm
                           isEdit
                           projectId={projectId}
-                          fields={
-                            fields as ReturnType<typeof useForm<PlacementsSchema>>[1]
-                          }
+                          fields={fields as ReturnType<typeof useForm<PlacementsSchema>>[1]}
                           defaultValue={{
                             placements: formattedValues?.placements ?? [],
                           }}
@@ -329,16 +306,12 @@ export const WorkloadUpdateForm = ({
                     getPathWithParams(routes.projects.deploy.workloads.root, {
                       projectId,
                       orgId,
-                    }),
-                  )
+                    })
+                  );
                 }}>
                 Return to List
               </Button>
-              <Button
-                variant="default"
-                type="submit"
-                disabled={isPending}
-                isLoading={isPending}>
+              <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
                 {isPending ? `Saving` : `Save`}
               </Button>
             </div>
@@ -346,5 +319,5 @@ export const WorkloadUpdateForm = ({
         </Form>
       </FormProvider>
     </Card>
-  )
-}
+  );
+};

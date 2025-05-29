@@ -1,25 +1,23 @@
-import { metadataSchema, nameSchema } from './metadata.schema'
+import { metadataSchema, nameSchema } from './metadata.schema';
 import {
   EndpointSliceAddressType,
   EndpointSliceCondition,
   EndpointSlicePortProtocol,
-} from '@/resources/interfaces/endpoint-slice.interface'
-import { z } from 'zod'
+} from '@/resources/interfaces/endpoint-slice.interface';
+import { z } from 'zod';
 
 export const endpointSliceEndpointSchema = z.object({
   addresses: z.array(z.string()).min(1, { message: 'At least one address is required' }),
   conditions: z
     .array(z.enum(Object.values(EndpointSliceCondition) as [string, ...string[]]))
     .optional(),
-})
+});
 
 export const endpointSlicePortSchema = z
   .object({
-    appProtocol: z.enum(
-      Object.values(EndpointSlicePortProtocol) as [string, ...string[]],
-    ),
+    appProtocol: z.enum(Object.values(EndpointSlicePortProtocol) as [string, ...string[]]),
   })
-  .and(nameSchema)
+  .and(nameSchema);
 
 export const endpointSliceSchema = z
   .object({
@@ -28,12 +26,10 @@ export const endpointSliceSchema = z
     endpoints: z
       .array(endpointSliceEndpointSchema)
       .min(1, { message: 'At least one endpoint is required' }),
-    ports: z
-      .array(endpointSlicePortSchema)
-      .min(1, { message: 'At least one port is required' }),
+    ports: z.array(endpointSlicePortSchema).min(1, { message: 'At least one port is required' }),
   })
-  .and(metadataSchema)
+  .and(metadataSchema);
 
-export type EndpointSliceSchema = z.infer<typeof endpointSliceSchema>
-export type EndpointSlicePortSchema = z.infer<typeof endpointSlicePortSchema>
-export type EndpointSliceEndpointSchema = z.infer<typeof endpointSliceEndpointSchema>
+export type EndpointSliceSchema = z.infer<typeof endpointSliceSchema>;
+export type EndpointSlicePortSchema = z.infer<typeof endpointSlicePortSchema>;
+export type EndpointSliceEndpointSchema = z.infer<typeof endpointSliceEndpointSchema>;

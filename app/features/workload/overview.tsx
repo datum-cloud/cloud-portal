@@ -1,21 +1,21 @@
-import { DeploymentsTable } from './deployments-table'
-import { WorkloadGeneralCard } from './general-card'
-import { InstancesTable } from './instances-table'
+import { DeploymentsTable } from './deployments-table';
+import { WorkloadGeneralCard } from './general-card';
+import { InstancesTable } from './instances-table';
 import {
   IInstanceControlResponse,
   IWorkloadControlResponse,
   IWorkloadDeploymentControlResponse,
-} from '@/resources/interfaces/workload.interface'
-import { motion } from 'framer-motion'
+} from '@/resources/interfaces/workload.interface';
+import { motion } from 'framer-motion';
 
 export function WorkloadOverview({
   workload,
   deployments,
   instances,
 }: {
-  workload: IWorkloadControlResponse
-  deployments: IWorkloadDeploymentControlResponse[]
-  instances: IInstanceControlResponse[]
+  workload: IWorkloadControlResponse;
+  deployments: IWorkloadDeploymentControlResponse[];
+  instances: IInstanceControlResponse[];
 }) {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
@@ -41,5 +41,5 @@ export function WorkloadOverview({
         <InstancesTable data={instances} />
       </motion.div>
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { useFetchers, useFormAction, useNavigation } from 'react-router'
+import { useFetchers, useFormAction, useNavigation } from 'react-router';
 
 /**
  * Custom hook to determine if a form is currently pending submission
@@ -15,16 +15,16 @@ export function useIsPending({
   state = 'non-idle',
   fetcherKey,
 }: {
-  formAction?: string
-  formMethod?: 'POST' | 'GET' | 'PUT' | 'PATCH' | 'DELETE'
-  state?: 'submitting' | 'loading' | 'non-idle' | 'idle'
-  fetcherKey?: string
+  formAction?: string;
+  formMethod?: 'POST' | 'GET' | 'PUT' | 'PATCH' | 'DELETE';
+  state?: 'submitting' | 'loading' | 'non-idle' | 'idle';
+  fetcherKey?: string;
 } = {}) {
-  const contextualFormAction = useFormAction()
-  const navigation = useNavigation()
+  const contextualFormAction = useFormAction();
+  const navigation = useNavigation();
 
   // Get all active fetchers
-  const fetchers = useFetchers()
+  const fetchers = useFetchers();
 
   // Check if any fetcher matches the criteria
   const isFetcherPending = fetchers.some((fetcher) =>
@@ -36,12 +36,12 @@ export function useIsPending({
           ? (fetcher.state as string) !== 'idle'
           : state === 'submitting'
             ? fetcher.state === 'submitting'
-            : fetcher.state === 'loading'),
-  )
+            : fetcher.state === 'loading')
+  );
 
   // Check navigation state
   const isPendingState =
-    state === 'non-idle' ? navigation.state !== 'idle' : navigation.state === state
+    state === 'non-idle' ? navigation.state !== 'idle' : navigation.state === state;
 
   // Return true if either navigation or fetcher is pending
   return (
@@ -49,5 +49,5 @@ export function useIsPending({
     (isPendingState &&
       navigation.formAction === (formAction ?? contextualFormAction) &&
       navigation.formMethod === formMethod)
-  )
+  );
 }

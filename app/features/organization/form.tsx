@@ -1,6 +1,6 @@
-import { Field } from '@/components/field/field'
-import { SelectLabels } from '@/components/select-labels/select-labels'
-import { Button } from '@/components/ui/button'
+import { Field } from '@/components/field/field';
+import { SelectLabels } from '@/components/select-labels/select-labels';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -8,58 +8,57 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { routes } from '@/constants/routes'
-import { useIsPending } from '@/hooks/useIsPending'
-import { IOrganization } from '@/resources/interfaces/organization.inteface'
-import { organizationSchema } from '@/resources/schemas/organization.schema'
-import { generateId, generateRandomString } from '@/utils/idGenerator'
-import { convertObjectToLabels } from '@/utils/misc'
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { routes } from '@/constants/routes';
+import { useIsPending } from '@/hooks/useIsPending';
+import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { organizationSchema } from '@/resources/schemas/organization.schema';
+import { generateId, generateRandomString } from '@/utils/idGenerator';
+import { convertObjectToLabels } from '@/utils/misc';
 import {
   FormProvider,
   getFormProps,
   getInputProps,
   useForm,
   useInputControl,
-} from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { useEffect, useMemo, useRef } from 'react'
-import { Form, useNavigate } from 'react-router'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
-import { useHydrated } from 'remix-utils/use-hydrated'
+} from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { useEffect, useMemo, useRef } from 'react';
+import { Form, useNavigate } from 'react-router';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
+import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganization }) => {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const isHydrated = useHydrated()
-  const isPending = useIsPending()
-  const navigate = useNavigate()
+  const inputRef = useRef<HTMLInputElement>(null);
+  const isHydrated = useHydrated();
+  const isPending = useIsPending();
+  const navigate = useNavigate();
 
   const [form, { name, description, labels }] = useForm({
     constraint: getZodConstraint(organizationSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: organizationSchema })
+      return parseWithZod(formData, { schema: organizationSchema });
     },
     defaultValue: {
       name: '',
       description: '',
       labels: [] as string[],
     },
-  })
+  });
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    isHydrated && inputRef.current?.focus()
-  }, [isHydrated])
+    isHydrated && inputRef.current?.focus();
+  }, [isHydrated]);
 
-  const randomSuffix = useMemo(() => generateRandomString(6), [])
+  const randomSuffix = useMemo(() => generateRandomString(6), []);
 
-  const nameControl = useInputControl(name)
-  const labelsControl = useInputControl(labels)
+  const nameControl = useInputControl(name);
+  const labelsControl = useInputControl(labels);
 
-  const isEdit = useMemo(() => defaultValue?.id !== undefined, [defaultValue])
+  const isEdit = useMemo(() => defaultValue?.id !== undefined, [defaultValue]);
 
   useEffect(() => {
     if (defaultValue) {
@@ -69,16 +68,14 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
           description: defaultValue.displayName,
           labels: convertObjectToLabels(defaultValue.labels ?? {}),
         },
-      })
+      });
     }
-  }, [defaultValue])
+  }, [defaultValue]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          {isEdit ? 'Edit Organization' : 'Create a new organization'}
-        </CardTitle>
+        <CardTitle>{isEdit ? 'Edit Organization' : 'Create a new organization'}</CardTitle>
         <CardDescription>
           {isEdit
             ? 'Update the organization details to manage projects in Datum Cloud.'
@@ -103,10 +100,10 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
                 placeholder="e.g. My Organization"
                 ref={inputRef}
                 onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                  const value = (e.target as HTMLInputElement).value
+                  const value = (e.target as HTMLInputElement).value;
 
                   if (value && !isEdit) {
-                    nameControl.change(generateId(value, { randomText: randomSuffix }))
+                    nameControl.change(generateId(value, { randomText: randomSuffix }));
                   }
                 }}
                 {...getInputProps(description, { type: 'text' })}
@@ -121,15 +118,15 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
                 readOnly={isEdit}
                 placeholder="e.g. my-organization-343j33"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = (e.target as HTMLInputElement).value
-                  nameControl.change(value)
+                  const value = (e.target as HTMLInputElement).value;
+                  nameControl.change(value);
                 }}
                 onBlur={(e: React.FormEvent<HTMLInputElement>) => {
-                  const value = (e.target as HTMLInputElement).value
+                  const value = (e.target as HTMLInputElement).value;
                   if (value.length === 0) {
                     nameControl.change(
-                      generateId(description.value ?? '', { randomText: randomSuffix }),
-                    )
+                      generateId(description.value ?? '', { randomText: randomSuffix })
+                    );
                   }
                 }}
                 {...getInputProps(name, { type: 'text' })}
@@ -142,7 +139,7 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
               <SelectLabels
                 defaultValue={labels.value as string[]}
                 onChange={(value) => {
-                  labelsControl.change(value)
+                  labelsControl.change(value);
                 }}
               />
             </Field>
@@ -153,22 +150,16 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
               variant="link"
               disabled={isPending}
               onClick={() => {
-                navigate(routes.account.organizations.root)
+                navigate(routes.account.organizations.root);
               }}>
               Return to List
             </Button>
-            <Button
-              variant="default"
-              type="submit"
-              disabled={isPending}
-              isLoading={isPending}>
-              {isPending
-                ? `${isEdit ? 'Saving' : 'Creating'}`
-                : `${isEdit ? 'Save' : 'Create'}`}
+            <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+              {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
             </Button>
           </CardFooter>
         </Form>
       </FormProvider>
     </Card>
-  )
-}
+  );
+};

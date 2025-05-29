@@ -1,7 +1,7 @@
-import { List, ListItem } from '@/components/list/list'
-import { Badge } from '@/components/ui/badge'
-import { MetadataSchema } from '@/resources/schemas/metadata.schema'
-import { useMemo } from 'react'
+import { List, ListItem } from '@/components/list/list';
+import { Badge } from '@/components/ui/badge';
+import { MetadataSchema } from '@/resources/schemas/metadata.schema';
+import { useMemo } from 'react';
 
 export const MetadataPreview = ({ values }: { values: MetadataSchema }) => {
   const listItems: ListItem[] = useMemo(() => {
@@ -34,11 +34,11 @@ export const MetadataPreview = ({ values }: { values: MetadataSchema }) => {
             </div>
           ),
         },
-      ]
+      ];
     }
 
-    return []
-  }, [values])
+    return [];
+  }, [values]);
 
-  return <List items={listItems} itemClassName="!border-b-0 !px-0 py-1.5" />
-}
+  return <List items={listItems} itemClassName="!border-b-0 !px-0 py-1.5" />;
+};

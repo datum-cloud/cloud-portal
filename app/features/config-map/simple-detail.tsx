@@ -1,15 +1,11 @@
-import { DateFormat } from '@/components/date-format/date-format'
-import { Field } from '@/components/field/field'
-import { TextCopy } from '@/components/text-copy/text-copy'
-import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface'
-import { getShortId } from '@/utils/misc'
-import { formatDistanceToNow } from 'date-fns/formatDistanceToNow'
+import { DateFormat } from '@/components/date-format/date-format';
+import { Field } from '@/components/field/field';
+import { TextCopy } from '@/components/text-copy/text-copy';
+import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
+import { getShortId } from '@/utils/misc';
+import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 
-export const SimpleConfigMapDetail = ({
-  configMap,
-}: {
-  configMap: IConfigMapControlResponse
-}) => {
+export const SimpleConfigMapDetail = ({ configMap }: { configMap: IConfigMapControlResponse }) => {
   return (
     <div className="grid grid-cols-2 gap-4">
       <Field label="Name">
@@ -30,10 +26,7 @@ export const SimpleConfigMapDetail = ({
       {configMap?.createdAt && (
         <Field label="Created At">
           <div className="flex items-center gap-1">
-            <DateFormat
-              className="text-muted-foreground text-sm"
-              date={configMap?.createdAt}
-            />
+            <DateFormat className="text-muted-foreground text-sm" date={configMap?.createdAt} />
             <span className="text-muted-foreground text-sm">
               (
               {formatDistanceToNow(new Date(configMap?.createdAt), {
@@ -45,5 +38,5 @@ export const SimpleConfigMapDetail = ({
         </Field>
       )}
     </div>
-  )
-}
+  );
+};

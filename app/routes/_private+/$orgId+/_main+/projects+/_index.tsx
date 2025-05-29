@@ -1,42 +1,42 @@
-import { DataTable } from '@/components/data-table/data-table'
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
-import { DateFormat } from '@/components/date-format/date-format'
-import { Button } from '@/components/ui/button'
-import { routes } from '@/constants/routes'
-import { ProjectStatus } from '@/features/project/status'
-import { authMiddleware } from '@/modules/middleware/auth.middleware'
-import { withMiddleware } from '@/modules/middleware/middleware'
-import { useApp } from '@/providers/app.provider'
-import { createProjectsControl } from '@/resources/control-plane/projects.control'
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface'
-import { CustomError } from '@/utils/errorHandle'
-import { transformControlPlaneStatus } from '@/utils/misc'
-import { getPathWithParams } from '@/utils/path'
-import { Client } from '@hey-api/client-axios'
-import { ColumnDef } from '@tanstack/react-table'
-import { PlusIcon } from 'lucide-react'
-import { useMemo } from 'react'
-import { AppLoadContext, data, Link, useLoaderData, useNavigate } from 'react-router'
+import { DataTable } from '@/components/data-table/data-table';
+import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
+import { DateFormat } from '@/components/date-format/date-format';
+import { Button } from '@/components/ui/button';
+import { routes } from '@/constants/routes';
+import { ProjectStatus } from '@/features/project/status';
+import { authMiddleware } from '@/modules/middleware/auth.middleware';
+import { withMiddleware } from '@/modules/middleware/middleware';
+import { useApp } from '@/providers/app.provider';
+import { createProjectsControl } from '@/resources/control-plane/projects.control';
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { CustomError } from '@/utils/errorHandle';
+import { transformControlPlaneStatus } from '@/utils/misc';
+import { getPathWithParams } from '@/utils/path';
+import { Client } from '@hey-api/client-axios';
+import { ColumnDef } from '@tanstack/react-table';
+import { PlusIcon } from 'lucide-react';
+import { useMemo } from 'react';
+import { AppLoadContext, data, Link, useLoaderData, useNavigate } from 'react-router';
 
 export const loader = withMiddleware(async ({ params, context }) => {
-  const { orgId } = params
-  const { controlPlaneClient } = context as AppLoadContext
-  const projectsControl = createProjectsControl(controlPlaneClient as Client)
+  const { orgId } = params;
+  const { controlPlaneClient } = context as AppLoadContext;
+  const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
   if (!orgId) {
-    throw new CustomError('Organization ID is required', 400)
+    throw new CustomError('Organization ID is required', 400);
   }
 
-  const projects = await projectsControl.list(orgId)
+  const projects = await projectsControl.list(orgId);
 
-  return data(projects)
-}, authMiddleware)
+  return data(projects);
+}, authMiddleware);
 
 export default function ProjectsPage() {
-  const { orgId } = useApp()
-  const projects = useLoaderData<typeof loader>()
+  const { orgId } = useApp();
+  const projects = useLoaderData<typeof loader>();
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const columns: ColumnDef<IProjectControlResponse>[] = useMemo(
     () => [
@@ -53,7 +53,7 @@ export default function ProjectsPage() {
               })}>
               {row.original.description}
             </Link>
-          )
+          );
         },
       },
       {
@@ -73,19 +73,19 @@ export default function ProjectsPage() {
                 badgeClassName="px-0"
               />
             )
-          )
+          );
         },
       },
       {
         header: 'Creation Date',
         accessorKey: 'createdAt',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
         },
       },
     ],
-    [orgId],
-  )
+    [orgId]
+  );
 
   const rowActions: DataTableRowActionsProps<IProjectControlResponse>[] = useMemo(
     () => [
@@ -97,22 +97,20 @@ export default function ProjectsPage() {
             getPathWithParams(routes.projects.locations.root, {
               orgId,
               projectId: row.name,
-            }),
-          )
+            })
+          );
         },
       },
       {
         key: 'settings',
         label: 'Settings',
         action: (row) => {
-          navigate(
-            getPathWithParams(routes.projects.settings, { orgId, projectId: row.name }),
-          )
+          navigate(getPathWithParams(routes.projects.settings, { orgId, projectId: row.name }));
         },
       },
     ],
-    [orgId],
-  )
+    [orgId]
+  );
 
   return (
     <DataTable
@@ -136,5 +134,5 @@ export default function ProjectsPage() {
       }}
       defaultSorting={[{ id: 'createdAt', desc: true }]}
     />
-  )
+  );
 }

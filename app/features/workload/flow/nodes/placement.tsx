@@ -1,41 +1,35 @@
-import { IGroupNode } from '../types'
-import { List } from '@/components/list/list'
-import { Button } from '@/components/ui/button'
-import { Handle, Position } from '@xyflow/react'
-import { SquarePlusIcon, SquareMinusIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { IGroupNode } from '../types';
+import { List } from '@/components/list/list';
+import { Button } from '@/components/ui/button';
+import { Handle, Position } from '@xyflow/react';
+import { SquarePlusIcon, SquareMinusIcon } from 'lucide-react';
+import { useMemo } from 'react';
 
 export interface IPlacementNode {
-  label: string
-  name: string
-  cityCode: string
-  minimumReplicas: number
-  isCompact?: boolean
-  [key: string]: unknown
+  label: string;
+  name: string;
+  cityCode: string;
+  minimumReplicas: number;
+  isCompact?: boolean;
+  [key: string]: unknown;
 }
 
 export const PlacementNode = ({ data }: { data: IPlacementNode }) => {
-  const { isCompact, cityCode, minimumReplicas } = data
+  const { isCompact, cityCode, minimumReplicas } = data;
 
-  const baseClass =
-    'relative rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 shadow-md'
-  const sizeClass = isCompact ? 'w-[230px]' : 'w-[280px]'
+  const baseClass = 'relative rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 shadow-md';
+  const sizeClass = isCompact ? 'w-[230px]' : 'w-[280px]';
 
   const listItems = useMemo(() => {
     return [
       { label: 'Location', content: cityCode },
       { label: 'Min Replicas', content: minimumReplicas },
-    ]
-  }, [data])
+    ];
+  }, [data]);
 
   return (
     <div className={`${baseClass} ${sizeClass}`}>
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="target"
-        className="h-4 w-4 bg-blue-500"
-      />
+      <Handle type="target" position={Position.Top} id="target" className="h-4 w-4 bg-blue-500" />
       <Handle
         type="source"
         position={Position.Bottom}
@@ -53,28 +47,22 @@ export const PlacementNode = ({ data }: { data: IPlacementNode }) => {
         />
       </div>
     </div>
-  )
-}
+  );
+};
 
 export const PlacementGroupNode = ({ data }: { data: IGroupNode }) => {
-  const baseClass =
-    'relative rounded-lg border border-blue-500 bg-blue-50 px-4 py-2 shadow-md'
-  const sizeClass = data.isCompact ? 'w-[220px]' : 'w-[280px]'
-  const fontClass = data.isCompact ? 'text-sm' : 'text-lg'
+  const baseClass = 'relative rounded-lg border border-blue-500 bg-blue-50 px-4 py-2 shadow-md';
+  const sizeClass = data.isCompact ? 'w-[220px]' : 'w-[280px]';
+  const fontClass = data.isCompact ? 'text-sm' : 'text-lg';
 
   const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent node selection
-    if (data.onToggle) data.onToggle()
-  }
+    e.stopPropagation(); // Prevent node selection
+    if (data.onToggle) data.onToggle();
+  };
 
   return (
     <div className={`${baseClass} ${sizeClass}`}>
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="target"
-        className="h-4 w-4 bg-blue-500"
-      />
+      <Handle type="target" position={Position.Top} id="target" className="h-4 w-4 bg-blue-500" />
       <Handle
         type="source"
         position={Position.Bottom}
@@ -82,9 +70,7 @@ export const PlacementGroupNode = ({ data }: { data: IGroupNode }) => {
         className="h-4 w-4 bg-blue-500"
       />
       <div className="flex items-center justify-between">
-        <div className={`font-bold ${fontClass} text-center text-blue-700`}>
-          {data.label}
-        </div>
+        <div className={`font-bold ${fontClass} text-center text-blue-700`}>{data.label}</div>
         <Button
           variant="ghost"
           size="icon"
@@ -98,5 +84,5 @@ export const PlacementGroupNode = ({ data }: { data: IGroupNode }) => {
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

@@ -2,12 +2,12 @@
  * Learn more about CSRF protection:
  * @see https://github.com/sergiodxa/remix-utils?tab=readme-ov-file#csrf
  */
-import { CustomError } from '@/utils/errorHandle'
-import { isProduction } from '@/utils/misc'
-import { createCookie } from 'react-router'
-import { CSRF, CSRFError } from 'remix-utils/csrf/server'
+import { CustomError } from '@/utils/errorHandle';
+import { isProduction } from '@/utils/misc';
+import { createCookie } from 'react-router';
+import { CSRF, CSRFError } from 'remix-utils/csrf/server';
 
-export const CSRF_COOKIE_KEY = '_csrf'
+export const CSRF_COOKIE_KEY = '_csrf';
 
 const cookie = createCookie(CSRF_COOKIE_KEY, {
   path: '/',
@@ -16,20 +16,17 @@ const cookie = createCookie(CSRF_COOKIE_KEY, {
   httpOnly: true,
   secrets: [process.env.SESSION_SECRET || 'NOT_A_STRONG_SECRET'],
   secure: isProduction(),
-})
+});
 
-export const csrf = new CSRF({ cookie })
+export const csrf = new CSRF({ cookie });
 
 export async function validateCSRF(formData: FormData, headers: Headers) {
   try {
-    await csrf.validate(formData, headers)
+    await csrf.validate(formData, headers);
   } catch (err: unknown) {
     if (err instanceof CSRFError) {
-      throw new CustomError(
-        'Invalid CSRF token - please refresh the page and try again',
-        403,
-      )
+      throw new CustomError('Invalid CSRF token - please refresh the page and try again', 403);
     }
-    throw err
+    throw err;
   }
 }

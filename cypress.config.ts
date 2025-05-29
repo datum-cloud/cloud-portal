@@ -1,7 +1,7 @@
-import { defineConfig } from 'cypress'
-import dotenv from 'dotenv'
+import { defineConfig } from 'cypress';
+import dotenv from 'dotenv';
 
-dotenv.config()
+dotenv.config();
 
 export default defineConfig({
   env: {
@@ -17,13 +17,13 @@ export default defineConfig({
       on('task', {
         log(message) {
           // eslint-disable-next-line no-console
-          console.log(message)
+          console.log(message);
 
-          return null
+          return null;
         },
-      })
+      });
 
-      return config
+      return config;
     },
     viewportWidth: 1280,
     viewportHeight: 720,
@@ -42,4 +42,4 @@ export default defineConfig({
     supportFile: 'cypress/support/component.tsx',
     specPattern: 'cypress/component/**/*.{cy,spec}.{js,jsx,ts,tsx}',
   },
-})
+});

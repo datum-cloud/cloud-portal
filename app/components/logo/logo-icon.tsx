@@ -1,11 +1,11 @@
-import { LogoProps } from './logo'
-import { logoStyles } from './logo.styles'
-import { cn } from '@/utils/misc'
-import { useTheme, Theme } from 'remix-themes'
+import { LogoProps } from './logo';
+import { logoStyles } from './logo.styles';
+import { cn } from '@/utils/misc';
+import { useTheme, Theme } from 'remix-themes';
 
 export const LogoIcon = ({ width = 385, className }: LogoProps) => {
-  const [theme] = useTheme()
-  const { base, icon } = logoStyles({ theme: theme ?? Theme.LIGHT })
+  const [theme] = useTheme();
+  const { base, icon } = logoStyles({ theme: theme ?? Theme.LIGHT });
 
   return (
     <svg
@@ -20,5 +20,5 @@ export const LogoIcon = ({ width = 385, className }: LogoProps) => {
         fill="#F27A67"
       />
     </svg>
-  )
-}
+  );
+};

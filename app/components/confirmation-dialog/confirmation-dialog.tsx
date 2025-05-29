@@ -1,5 +1,5 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -7,48 +7,48 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { AlertCircle } from 'lucide-react'
-import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { AlertCircle } from 'lucide-react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
 export interface ConfirmationDialogProps {
-  title?: string
-  description?: string | React.ReactNode
-  submitText?: string
-  cancelText?: string
-  variant?: 'default' | 'destructive'
-  onSubmit?: () => Promise<void>
+  title?: string;
+  description?: string | React.ReactNode;
+  submitText?: string;
+  cancelText?: string;
+  variant?: 'default' | 'destructive';
+  onSubmit?: () => Promise<void>;
 
   // Alert
-  showAlert?: boolean
-  alertVariant?: 'default' | 'destructive'
-  alertTitle?: string
-  alertDescription?: string | React.ReactNode
-  alertIcon?: React.ReactNode
-  alertClassName?: string
+  showAlert?: boolean;
+  alertVariant?: 'default' | 'destructive';
+  alertTitle?: string;
+  alertDescription?: string | React.ReactNode;
+  alertIcon?: React.ReactNode;
+  alertClassName?: string;
 
   // Confirmation
-  showConfirmInput?: boolean
-  confirmInputLabel?: string
-  confirmInputPlaceholder?: string
-  confirmValue?: string
+  showConfirmInput?: boolean;
+  confirmInputLabel?: string;
+  confirmInputPlaceholder?: string;
+  confirmValue?: string;
 }
 
 export interface ConfirmationDialogRef {
-  show: (options: ConfirmationDialogProps) => Promise<boolean>
+  show: (options: ConfirmationDialogProps) => Promise<boolean>;
 }
 
 export const ConfirmationDialog = ({
   ref,
 }: ConfirmationDialogProps & {
-  ref: React.RefObject<ConfirmationDialogRef>
+  ref: React.RefObject<ConfirmationDialogRef>;
 }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [isPending, setIsPending] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
 
-  const [confirmValidationValue, setConfirmValidationValue] = useState('')
+  const [confirmValidationValue, setConfirmValidationValue] = useState('');
   const [dialogProps, setDialogProps] = useState<ConfirmationDialogProps>({
     title: '',
     description: '',
@@ -68,63 +68,63 @@ export const ConfirmationDialog = ({
     confirmInputLabel: 'Type "delete" to confirm.',
     confirmInputPlaceholder: 'Type in here...',
     confirmValue: 'delete',
-  })
+  });
 
-  const resolveRef = useRef<(value: boolean) => void>(null)
+  const resolveRef = useRef<(value: boolean) => void>(null);
 
   useImperativeHandle(ref, () => ({
     show: (options) => {
-      setDialogProps({ ...dialogProps, ...options })
-      setIsOpen(true)
+      setDialogProps({ ...dialogProps, ...options });
+      setIsOpen(true);
       return new Promise<boolean>((resolve) => {
-        resolveRef.current = resolve
-      })
+        resolveRef.current = resolve;
+      });
     },
-  }))
+  }));
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      resolveRef.current?.(false)
+      resolveRef.current?.(false);
     }
-    setIsOpen(open)
-  }
+    setIsOpen(open);
+  };
 
   const handleConfirm = async () => {
-    if (isDisabled) return
+    if (isDisabled) return;
 
-    setIsPending(true)
+    setIsPending(true);
     try {
       if (dialogProps.onSubmit) {
-        await dialogProps.onSubmit()
+        await dialogProps.onSubmit();
       }
-      resolveRef.current?.(true)
+      resolveRef.current?.(true);
     } finally {
-      setIsPending(false)
-      setIsOpen(false)
+      setIsPending(false);
+      setIsOpen(false);
     }
-  }
+  };
 
   const handleCancel = () => {
-    resolveRef.current?.(false)
-    setIsOpen(false)
-  }
+    resolveRef.current?.(false);
+    setIsOpen(false);
+  };
 
   const isDisabled = useMemo(() => {
     if (dialogProps.showConfirmInput) {
       return (
         confirmValidationValue.toLowerCase() !==
         (dialogProps.confirmValue ?? 'delete').toLowerCase()
-      )
+      );
     }
 
-    return isPending
-  }, [dialogProps, confirmValidationValue, isPending])
+    return isPending;
+  }, [dialogProps, confirmValidationValue, isPending]);
 
   useEffect(() => {
     if (isOpen) {
-      setConfirmValidationValue('')
+      setConfirmValidationValue('');
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -134,9 +134,7 @@ export const ConfirmationDialog = ({
           <DialogDescription>{dialogProps.description}</DialogDescription>
         </DialogHeader>
         {dialogProps.showAlert && (
-          <Alert
-            variant={dialogProps.alertVariant}
-            className={dialogProps.alertClassName}>
+          <Alert variant={dialogProps.alertVariant} className={dialogProps.alertClassName}>
             {dialogProps.alertIcon}
             <AlertTitle>{dialogProps.alertTitle}</AlertTitle>
             <AlertDescription>{dialogProps.alertDescription}</AlertDescription>
@@ -167,7 +165,7 @@ export const ConfirmationDialog = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-ConfirmationDialog.displayName = 'ConfirmationDialog'
+ConfirmationDialog.displayName = 'ConfirmationDialog';

@@ -1,19 +1,19 @@
-import { DataTable } from '@/components/data-table/data-table'
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types'
-import { DateFormat } from '@/components/date-format/date-format'
-import { Button } from '@/components/ui/button'
-import { routes } from '@/constants/routes'
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider'
-import { createHttpRoutesControl } from '@/resources/control-plane/http-routes.control'
-import { IHttpRouteControlResponseLite } from '@/resources/interfaces/http-route.interface'
-import { ROUTE_PATH as HTTP_ROUTES_ACTIONS_PATH } from '@/routes/api+/connect+/http-routes+/actions'
-import { CustomError } from '@/utils/errorHandle'
-import { mergeMeta, metaObject } from '@/utils/meta'
-import { getPathWithParams } from '@/utils/path'
-import { Client } from '@hey-api/client-axios'
-import { ColumnDef } from '@tanstack/react-table'
-import { PlusIcon } from 'lucide-react'
-import { useMemo } from 'react'
+import { DataTable } from '@/components/data-table/data-table';
+import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
+import { DateFormat } from '@/components/date-format/date-format';
+import { Button } from '@/components/ui/button';
+import { routes } from '@/constants/routes';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { createHttpRoutesControl } from '@/resources/control-plane/http-routes.control';
+import { IHttpRouteControlResponseLite } from '@/resources/interfaces/http-route.interface';
+import { ROUTE_PATH as HTTP_ROUTES_ACTIONS_PATH } from '@/routes/api+/connect+/http-routes+/actions';
+import { CustomError } from '@/utils/errorHandle';
+import { mergeMeta, metaObject } from '@/utils/meta';
+import { getPathWithParams } from '@/utils/path';
+import { Client } from '@hey-api/client-axios';
+import { ColumnDef } from '@tanstack/react-table';
+import { PlusIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import {
   AppLoadContext,
   Link,
@@ -23,32 +23,32 @@ import {
   useNavigate,
   useParams,
   useSubmit,
-} from 'react-router'
+} from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('HTTP Routes')
-})
+  return metaObject('HTTP Routes');
+});
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
-  const { projectId } = params
-  const { controlPlaneClient } = context as AppLoadContext
-  const httpRoutesControl = createHttpRoutesControl(controlPlaneClient as Client)
+  const { projectId } = params;
+  const { controlPlaneClient } = context as AppLoadContext;
+  const httpRoutesControl = createHttpRoutesControl(controlPlaneClient as Client);
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400)
+    throw new CustomError('Project ID is required', 400);
   }
 
-  const httpRoutes = await httpRoutesControl.list(projectId)
-  return httpRoutes
-}
+  const httpRoutes = await httpRoutesControl.list(projectId);
+  return httpRoutes;
+};
 
 export default function ConnectHttpRoutesPage() {
-  const { orgId, projectId } = useParams()
-  const data = useLoaderData<typeof loader>()
-  const submit = useSubmit()
-  const navigate = useNavigate()
+  const { orgId, projectId } = useParams();
+  const data = useLoaderData<typeof loader>();
+  const submit = useSubmit();
+  const navigate = useNavigate();
 
-  const { confirm } = useConfirmationDialog()
+  const { confirm } = useConfirmationDialog();
 
   const deleteHttpRoute = async (httpRoute: IHttpRouteControlResponseLite) => {
     await confirm({
@@ -78,11 +78,11 @@ export default function ConnectHttpRoutesPage() {
             fetcherKey: 'http-route-resources',
             navigate: false,
             action: HTTP_ROUTES_ACTIONS_PATH,
-          },
-        )
+          }
+        );
       },
-    })
-  }
+    });
+  };
 
   const columns: ColumnDef<IHttpRouteControlResponseLite>[] = useMemo(
     () => [
@@ -99,21 +99,20 @@ export default function ConnectHttpRoutesPage() {
               })}>
               <span className="text-primary font-semibold">{row.original.name}</span>
             </Link>
-          )
+          );
         },
       },
       {
         header: 'Created At',
         accessorKey: 'createdAt',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />
+          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
         },
       },
     ],
-    [orgId, projectId],
-  )
+    [orgId, projectId]
+  );
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const rowActions: DataTableRowActionsProps<IHttpRouteControlResponseLite>[] = useMemo(
     () => [
       {
@@ -125,8 +124,8 @@ export default function ConnectHttpRoutesPage() {
               orgId,
               projectId,
               httpId: row.name,
-            }),
-          )
+            })
+          );
         },
       },
       {
@@ -136,8 +135,8 @@ export default function ConnectHttpRoutesPage() {
         action: (row) => deleteHttpRoute(row),
       },
     ],
-    [orgId, projectId],
-  )
+    [orgId, projectId]
+  );
 
   return (
     <DataTable
@@ -164,5 +163,5 @@ export default function ConnectHttpRoutesPage() {
       }}
       rowActions={rowActions}
     />
-  )
+  );
 }

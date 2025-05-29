@@ -1,10 +1,10 @@
-import { nameSchema, metadataSchema } from './metadata.schema'
+import { nameSchema, metadataSchema } from './metadata.schema';
 import {
   ExportPolicyAuthenticationType,
   ExportPolicySinkType,
   ExportPolicySourceType,
-} from '@/resources/interfaces/export-policy.interface'
-import { z } from 'zod'
+} from '@/resources/interfaces/export-policy.interface';
+import { z } from 'zod';
 
 // Source Field Schema
 export const sourceFieldSchema = z
@@ -18,15 +18,15 @@ export const sourceFieldSchema = z
   .refine(
     (data) => {
       if (data?.type === ExportPolicySourceType.METRICS) {
-        return !!data?.metricQuery
+        return !!data?.metricQuery;
       }
-      return true
+      return true;
     },
     {
       message: 'MetricsQL query is required for metrics source',
       path: ['metricQuery'],
-    },
-  )
+    }
+  );
 
 export const exportPolicySourcesSchema = z
   .object({
@@ -36,10 +36,10 @@ export const exportPolicySourcesSchema = z
   })
   .superRefine((data, ctx) => {
     // Check for duplicate storage names
-    const usedNames = new Set<string>()
+    const usedNames = new Set<string>();
 
     data.sources.forEach((source, index) => {
-      const name = source.name?.trim()
+      const name = source.name?.trim();
 
       if (name) {
         if (usedNames.has(name)) {
@@ -48,14 +48,14 @@ export const exportPolicySourcesSchema = z
             code: z.ZodIssueCode.custom,
             message: `Name "${name}" is already used`,
             path: ['sources', index, 'name'],
-          })
+          });
         } else {
           // Track this name as used
-          usedNames.add(name)
+          usedNames.add(name);
         }
       }
-    })
-  })
+    });
+  });
 
 // Sinks Field Schema
 
@@ -69,15 +69,15 @@ export const sinkAuthenticationSchema = z
   .refine(
     (data) => {
       if (data?.authType === ExportPolicyAuthenticationType.BASIC_AUTH) {
-        return !!data?.secretName
+        return !!data?.secretName;
       }
-      return true
+      return true;
     },
     {
       message: 'Secret is required for basic auth',
       path: ['secretName'],
-    },
-  )
+    }
+  );
 
 export const sinkPrometheusSchema = z.object({
   endpoint: z.string({ required_error: 'Endpoint URL is required.' }).url({
@@ -112,7 +112,7 @@ export const sinkPrometheusSchema = z.object({
       })
       .transform((val) => Number(val)),
   }),
-})
+});
 export const sinkFieldSchema = z
   .object({
     type: z.enum(Object.values(ExportPolicySinkType) as [string, ...string[]], {
@@ -123,7 +123,7 @@ export const sinkFieldSchema = z
     }),
     prometheusRemoteWrite: sinkPrometheusSchema.optional(),
   })
-  .and(nameSchema)
+  .and(nameSchema);
 
 export const exportPolicySinksSchema = z
   .object({
@@ -133,10 +133,10 @@ export const exportPolicySinksSchema = z
   })
   .superRefine((data, ctx) => {
     // Check for duplicate storage names
-    const usedNames = new Set<string>()
+    const usedNames = new Set<string>();
 
     data.sinks.forEach((sink, index) => {
-      const name = sink.name?.trim()
+      const name = sink.name?.trim();
 
       if (name) {
         if (usedNames.has(name)) {
@@ -145,21 +145,21 @@ export const exportPolicySinksSchema = z
             code: z.ZodIssueCode.custom,
             message: `Name "${name}" is already used`,
             path: ['sinks', index, 'name'],
-          })
+          });
         } else {
           // Track this name as used
-          usedNames.add(name)
+          usedNames.add(name);
         }
       }
-    })
-  })
+    });
+  });
 
 export const newExportPolicySchema = z
   .object({
     metadata: metadataSchema,
   })
   .and(exportPolicySourcesSchema)
-  .and(exportPolicySinksSchema)
+  .and(exportPolicySinksSchema);
 
 export const updateExportPolicySchema = z
   .object({
@@ -167,17 +167,15 @@ export const updateExportPolicySchema = z
   })
   .and(metadataSchema)
   .and(exportPolicySourcesSchema)
-  .and(exportPolicySinksSchema)
+  .and(exportPolicySinksSchema);
 
-export type ExportPolicyMetadataSchema = z.infer<typeof metadataSchema>
-export type ExportPolicySourcesSchema = z.infer<typeof exportPolicySourcesSchema>
-export type ExportPolicySourceFieldSchema = z.infer<typeof sourceFieldSchema>
-export type ExportPolicySinksSchema = z.infer<typeof exportPolicySinksSchema>
-export type ExportPolicySinkFieldSchema = z.infer<typeof sinkFieldSchema>
-export type ExportPolicySinkPrometheusFieldSchema = z.infer<typeof sinkPrometheusSchema>
-export type ExportPolicySinkAuthenticationSchema = z.infer<
-  typeof sinkAuthenticationSchema
->
+export type ExportPolicyMetadataSchema = z.infer<typeof metadataSchema>;
+export type ExportPolicySourcesSchema = z.infer<typeof exportPolicySourcesSchema>;
+export type ExportPolicySourceFieldSchema = z.infer<typeof sourceFieldSchema>;
+export type ExportPolicySinksSchema = z.infer<typeof exportPolicySinksSchema>;
+export type ExportPolicySinkFieldSchema = z.infer<typeof sinkFieldSchema>;
+export type ExportPolicySinkPrometheusFieldSchema = z.infer<typeof sinkPrometheusSchema>;
+export type ExportPolicySinkAuthenticationSchema = z.infer<typeof sinkAuthenticationSchema>;
 
-export type NewExportPolicySchema = z.infer<typeof newExportPolicySchema>
-export type UpdateExportPolicySchema = z.infer<typeof updateExportPolicySchema>
+export type NewExportPolicySchema = z.infer<typeof newExportPolicySchema>;
+export type UpdateExportPolicySchema = z.infer<typeof updateExportPolicySchema>;

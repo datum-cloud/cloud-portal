@@ -1,14 +1,12 @@
-import { createCodeEditorSchema } from '@/components/code-editor/code-editor.types'
-import { z } from 'zod'
+import { createCodeEditorSchema } from '@/components/code-editor/code-editor.types';
+import { z } from 'zod';
 
-export const configMapSchema = createCodeEditorSchema('Configuration').transform(
-  (data) => {
-    return {
-      configuration: data.content,
-      format: data.format,
-    }
-  },
-)
+export const configMapSchema = createCodeEditorSchema('Configuration').transform((data) => {
+  return {
+    configuration: data.content,
+    format: data.format,
+  };
+});
 
 export const updateConfigMapSchema = z
   .object({
@@ -20,8 +18,8 @@ export const updateConfigMapSchema = z
       resourceVersion: data.resourceVersion,
       configuration: data.configuration,
       format: data.format,
-    }
-  })
+    };
+  });
 
-export type ConfigMapSchema = z.infer<typeof configMapSchema>
-export type UpdateConfigMapSchema = z.infer<typeof updateConfigMapSchema>
+export type ConfigMapSchema = z.infer<typeof configMapSchema>;
+export type UpdateConfigMapSchema = z.infer<typeof updateConfigMapSchema>;
