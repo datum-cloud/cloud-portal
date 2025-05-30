@@ -4,7 +4,6 @@ import { routes } from '@/constants/routes';
 import {
   ArrowListItem,
   ExplorerCard,
-  ExplorerList,
   SectionDescription,
   SectionTitle,
 } from '@/features/project/dashboard';
@@ -13,7 +12,7 @@ import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interfa
 import { transformControlPlaneStatus } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';
 import { motion } from 'framer-motion';
-import { ArrowRight, Mail } from 'lucide-react';
+import { ArrowRight, Binoculars, Cloud, GlobeLock, Mail, Network } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { Link, useRevalidator, useRouteLoaderData } from 'react-router';
 
@@ -30,6 +29,43 @@ export default function ProjectDashboardPage() {
       return transformControlPlaneStatus(project.status);
     }
   }, [project]);
+
+  const explorerList = useMemo(() => {
+    const routeParams = {
+      orgId,
+      projectId: project?.name,
+    };
+
+    return [
+      {
+        title: 'Deploy a global workload',
+        description:
+          'Easily deploy and scale your applications across regions, ensuring high availability and performance worldwide.',
+        icon: <Cloud />,
+        link: getPathWithParams(routes.projects.deploy.workloads.root, routeParams),
+      },
+      {
+        title: 'Connect multiple networks',
+        description:
+          'Establish secure and reliable connectivity between multiple networks, enabling seamless communication across your infrastructure.',
+        icon: <Network />,
+        link: getPathWithParams(routes.projects.connect.networks.root, routeParams),
+      },
+      {
+        title: 'Secure project access',
+        description:
+          'Protect your cloud resources with robust access controls, ensuring only authorized users and services can interact with your project.',
+        icon: <GlobeLock />,
+      },
+      {
+        title: 'Observe network traffic',
+        description:
+          'Monitor, analyze, and troubleshoot network activity in real time to enhance security and optimize performance.',
+        icon: <Binoculars />,
+        link: getPathWithParams(routes.projects.observe.exportPolicies.root, routeParams),
+      },
+    ];
+  }, [orgId, project]);
 
   useEffect(() => {
     // Clear any existing interval first
@@ -148,14 +184,14 @@ export default function ProjectDashboardPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}>
               <SectionTitle>Explore</SectionTitle>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                {ExplorerList.map((card, index) => (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {explorerList.map((exp, index) => (
                   <motion.div
-                    key={card.title}
+                    key={exp.title}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1 + index * 0.1 }}>
-                    <ExplorerCard {...card} />
+                    <ExplorerCard {...exp} />
                   </motion.div>
                 ))}
               </div>
@@ -166,7 +202,7 @@ export default function ProjectDashboardPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <motion.div
                 className="flex flex-col gap-3"
                 initial={{ opacity: 0, x: -20 }}

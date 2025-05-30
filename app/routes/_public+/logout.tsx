@@ -25,7 +25,6 @@ const signOut = async (request: Request, context: AppLoadContext) => {
       );
       endSessionUrl.searchParams.append('client_id', process.env.AUTH_OIDC_CLIENT_ID ?? ''); // Some providers might require client_id
 
-      console.log(`Redirecting to OIDC end_session_endpoint: ${endSessionUrl.toString()}`);
       return redirect(endSessionUrl.toString());
     }
 
