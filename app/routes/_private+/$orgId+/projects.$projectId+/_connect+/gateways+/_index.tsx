@@ -207,9 +207,19 @@ export default function ConnectGatewaysPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-xl)"
-      loadingText="Loading..."
-      emptyText="No gateways found."
+      emptyContent={{
+        title: 'No gateways found.',
+        subtitle: 'Create your first gateway to get started.',
+        actions: [
+          {
+            type: 'link',
+            label: 'New Gateway',
+            to: getPathWithParams(routes.projects.connect.gateways.new, { orgId, projectId }),
+            variant: 'default',
+            icon: <PlusIcon className="size-4" />,
+          },
+        ],
+      }}
       tableTitle={{
         title: 'Gateways',
         description: 'Manage gateways for your project resources',

@@ -205,9 +205,19 @@ export default function WorkloadsPage() {
     <DataTable
       columns={columns}
       data={workloads ?? []}
-      className="mx-auto max-w-(--breakpoint-xl)"
-      loadingText="Loading..."
-      emptyText="No workloads found."
+      emptyContent={{
+        title: 'No workloads found.',
+        subtitle: 'Create your first workload to get started.',
+        actions: [
+          {
+            type: 'link',
+            label: 'New Workload',
+            to: getPathWithParams(routes.projects.deploy.workloads.new, { orgId, projectId }),
+            variant: 'default',
+            icon: <PlusIcon className="size-4" />,
+          },
+        ],
+      }}
       tableTitle={{
         title: 'Workloads',
         description: 'Manage workloads for your project resources',

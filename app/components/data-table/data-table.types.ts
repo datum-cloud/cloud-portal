@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { ColumnDef, ColumnFiltersState, SortingState } from '@tanstack/react-table';
 import { JSX } from 'react';
 
@@ -69,19 +70,29 @@ export type DataTableFilterField<TData> =
 
 // Interface Section
 export interface DataTableProps<TData, TValue> {
+  // Core data props
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+
+  // Filter and sorting props
   defaultColumnFilters?: ColumnFiltersState;
   defaultSorting?: SortingState;
-  // TODO: add sortingColumnFilters
   filterFields?: DataTableFilterField<TData>[];
+
+  // Styling props
   className?: string;
+  tableContainerClassName?: string;
+
+  // Actions and behavior props
   rowActions?: DataTableRowActionsProps<TData>[];
   tableTitle?: DataTableTitleProps;
+
+  // Loading state props
   isLoading?: boolean;
   loadingText?: string;
-  emptyText?: string;
-  tableContainerClassName?: string;
+
+  // Empty state props
+  emptyContent?: DataTableEmptyContentProps;
 }
 
 export interface DataTableRowActionsProps<TData> {
@@ -98,4 +109,18 @@ export interface DataTableTitleProps {
   title?: string;
   description?: string;
   actions?: React.ReactNode;
+}
+
+export interface DataTableEmptyContentProps {
+  title?: string;
+  subtitle?: string;
+  image?: string;
+  actions?: Array<{
+    type: 'button' | 'link' | 'external-link';
+    label: string;
+    onClick?: () => void;
+    to?: string;
+    variant?: React.ComponentProps<typeof Button>['variant'];
+    icon?: React.ReactNode;
+  }>;
 }

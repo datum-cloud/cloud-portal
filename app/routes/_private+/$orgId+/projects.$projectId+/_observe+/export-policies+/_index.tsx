@@ -171,9 +171,19 @@ export default function ObserveExportPoliciesPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-xl)"
-      loadingText="Loading..."
-      emptyText="No export policies found."
+      emptyContent={{
+        title: 'No export policies found.',
+        subtitle: 'Create your first export policy to get started.',
+        actions: [
+          {
+            type: 'link',
+            label: 'New Export Policy',
+            to: getPathWithParams(routes.projects.observe.exportPolicies.new, { orgId, projectId }),
+            variant: 'default',
+            icon: <PlusIcon className="size-4" />,
+          },
+        ],
+      }}
       tableTitle={{
         title: 'Export Policies',
         description: 'Manage export policies for your project resources',

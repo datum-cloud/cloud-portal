@@ -14,7 +14,7 @@ import { transformControlPlaneStatus } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
+import { BookOpenIcon, PlusIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { AppLoadContext, data, Link, useLoaderData, useNavigate } from 'react-router';
 
@@ -34,7 +34,7 @@ export const loader = withMiddleware(async ({ params, context }) => {
 
 export default function ProjectsPage() {
   const { orgId } = useApp();
-  const projects = useLoaderData<typeof loader>();
+  const projects = useLoaderData<typeof loader>() as IProjectControlResponse[];
 
   const navigate = useNavigate();
 
@@ -117,20 +117,38 @@ export default function ProjectsPage() {
       columns={columns}
       data={projects ?? []}
       rowActions={rowActions}
-      className="mx-auto max-w-(--breakpoint-xl)"
-      loadingText="Loading projects..."
-      emptyText="No projects found. Create your first project to get started."
+      emptyContent={{
+        title: 'No projects found.',
+        subtitle: 'Create your first project to get started.',
+        actions: [
+          {
+            type: 'external-link',
+            label: 'Documentation',
+            to: 'https://docs.datum.net/docs/tasks/create-project/',
+            variant: 'ghost',
+            icon: <BookOpenIcon className="size-4" />,
+          },
+          {
+            type: 'link',
+            label: 'New Project',
+            to: getPathWithParams(routes.org.projects.new, { orgId }),
+            variant: 'default',
+            icon: <PlusIcon className="size-4" />,
+          },
+        ],
+      }}
       tableTitle={{
         title: 'Projects',
         description: 'Use projects to organize resources deployed to Datum Cloud',
-        actions: (
-          <Link to={getPathWithParams(routes.org.projects.new, { orgId })}>
-            <Button>
-              <PlusIcon className="size-4" />
-              New Project
-            </Button>
-          </Link>
-        ),
+        actions:
+          (projects ?? ([] as IProjectControlResponse[])).length > 0 ? (
+            <Link to={getPathWithParams(routes.org.projects.new, { orgId })}>
+              <Button>
+                <PlusIcon className="size-4" />
+                New Project
+              </Button>
+            </Link>
+          ) : null,
       }}
       defaultSorting={[{ id: 'createdAt', desc: true }]}
     />

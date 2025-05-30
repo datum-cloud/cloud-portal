@@ -198,8 +198,7 @@ export default function AccountApiKeys() {
         data={apiKeys ?? []}
         rowActions={rowActions}
         className=""
-        loadingText="Loading API keys..."
-        emptyText="No API keys found."
+        emptyContent={{ title: "No API keys found." }}
         defaultSorting={[{ id: 'createdAt', desc: true }]}
       />
     </div>

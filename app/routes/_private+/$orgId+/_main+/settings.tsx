@@ -128,7 +128,7 @@ export default function OrgSettingsPage() {
         {organization && !organization?.status?.personal && (
           <Card className="border-destructive/50 hover:border-destructive border pb-0 transition-colors">
             <CardHeader>
-              <CardTitle className="text-destructive">Danger Zone</CardTitle>
+              <CardTitle className="text-destructive">Danger zone</CardTitle>
             </CardHeader>
             <CardContent>
               <Alert variant="destructive">

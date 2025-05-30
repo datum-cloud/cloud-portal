@@ -144,9 +144,19 @@ export default function ConnectEndpointSlicesPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-xl)"
-      loadingText="Loading..."
-      emptyText="No endpoint slices found."
+      emptyContent={{
+        title: 'No endpoint slices found.',
+        subtitle: 'Create your first endpoint slice to get started.',
+        actions: [
+          {
+            type: 'link',
+            label: 'New Endpoint Slice',
+            to: getPathWithParams(routes.projects.connect.endpointSlices.new, { orgId, projectId }),
+            variant: 'default',
+            icon: <PlusIcon className="size-4" />,
+          },
+        ],
+      }}
       tableTitle={{
         title: 'Endpoint Slices',
         description: 'Manage endpoint slices for your project resources',

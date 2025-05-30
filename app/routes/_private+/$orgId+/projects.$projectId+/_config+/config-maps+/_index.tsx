@@ -161,9 +161,19 @@ export default function ConfigMapsPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-xl)"
-      loadingText="Loading..."
-      emptyText="No config maps found."
+      emptyContent={{
+        title: 'No config maps found.',
+        subtitle: 'Create your first config map to get started.',
+        actions: [
+          {
+            type: 'link',
+            label: 'New Config Map',
+            to: getPathWithParams(routes.projects.config.configMaps.new, { orgId, projectId }),
+            variant: 'default',
+            icon: <PlusIcon className="size-4" />,
+          },
+        ],
+      }}
       tableTitle={{
         title: 'Config Maps',
         description: 'Manage config maps for your project resources',

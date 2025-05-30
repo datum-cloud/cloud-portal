@@ -69,8 +69,7 @@ export const WorkloadSourcesTable = ({
         <DataTable
           columns={columns}
           data={data ?? []}
-          loadingText="Loading..."
-          emptyText="No sources found."
+          emptyContent={{ title: 'No sources found.' }}
         />
       </CardContent>
     </Card>
