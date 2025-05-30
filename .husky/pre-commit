@@ -26,12 +26,6 @@ fi
 
 echo '🏗️👷 Styling, testing and building your project before committing'
 
-if [ "$PACKAGE_MANAGER" = "bun" ]; then
-  bunx lint-staged
-else
-  npx lint-staged
-fi
-
 # Check ESLint Standards
 if [ "$PACKAGE_MANAGER" = "bun" ]; then
   bun run format && bun run lint && bun run typecheck && (
