@@ -4,10 +4,8 @@ import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentation
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
 import { NodeSDK } from '@opentelemetry/sdk-node';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import { RemixInstrumentation } from 'opentelemetry-instrumentation-remix';
-
-dotenv.config();
 
 const isOtelEnabled =
   process.env.OTEL_ENABLED === 'true' && process.env.OTEL_EXPORTER_OTLP_ENDPOINT;

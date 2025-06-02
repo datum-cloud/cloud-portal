@@ -56,6 +56,7 @@ export default function ProjectDashboardPage() {
         description:
           'Protect your cloud resources with robust access controls, ensuring only authorized users and services can interact with your project.',
         icon: <GlobeLock />,
+        link: getPathWithParams(routes.projects.iam, routeParams),
       },
       {
         title: 'Observe network traffic',

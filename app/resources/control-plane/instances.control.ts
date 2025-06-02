@@ -1,5 +1,6 @@
 import {
   ComDatumapisComputeV1AlphaInstance,
+  ComDatumapisComputeV1AlphaInstanceList,
   listComputeDatumapisComV1AlphaNamespacedInstance,
   readComputeDatumapisComV1AlphaNamespacedInstanceStatus,
 } from '@/modules/control-plane/compute';
@@ -41,7 +42,9 @@ export const createInstancesControl = (client: Client) => {
         },
       });
 
-      return response.data?.items?.map(transform) ?? [];
+      const instances = response.data as ComDatumapisComputeV1AlphaInstanceList;
+
+      return instances.items.map(transform);
     },
     getStatus: async (projectId: string, instanceId: string) => {
       const response = await readComputeDatumapisComV1AlphaNamespacedInstanceStatus({
@@ -54,7 +57,9 @@ export const createInstancesControl = (client: Client) => {
         throw new CustomError(`Instance ${instanceId} not found`, 404);
       }
 
-      return transformControlPlaneStatus(response.data.status);
+      const instance = response.data as ComDatumapisComputeV1AlphaInstance;
+
+      return transformControlPlaneStatus(instance.status);
     },
   };
 };

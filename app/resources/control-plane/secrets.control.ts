@@ -1,5 +1,6 @@
 import {
   IoK8sApiCoreV1Secret,
+  IoK8sApiCoreV1SecretList,
   createCoreV1NamespacedSecret,
   deleteCoreV1NamespacedSecret,
   listCoreV1NamespacedSecret,
@@ -40,7 +41,9 @@ export const createSecretsControl = (client: Client) => {
         },
       });
 
-      return response.data?.items?.map(transformSecret) ?? [];
+      const secrets = response.data as IoK8sApiCoreV1SecretList;
+
+      return secrets.items.map(transformSecret);
     },
     create: async (projectId: string, payload: SecretNewSchema, dryRun: boolean = false) => {
       const formatted = {
@@ -79,7 +82,9 @@ export const createSecretsControl = (client: Client) => {
         throw new CustomError('Failed to create secret', 500);
       }
 
-      return dryRun ? response.data : transformSecret(response.data);
+      const secret = response.data as IoK8sApiCoreV1Secret;
+
+      return dryRun ? secret : transformSecret(secret);
     },
     detail: async (projectId: string, secretId: string) => {
       const response = await readCoreV1NamespacedSecret({
@@ -97,7 +102,9 @@ export const createSecretsControl = (client: Client) => {
         throw new CustomError('Failed to get secret', 500);
       }
 
-      return transformSecret(response.data);
+      const secret = response.data as IoK8sApiCoreV1Secret;
+
+      return transformSecret(secret);
     },
     update: async (
       projectId: string,
@@ -127,7 +134,9 @@ export const createSecretsControl = (client: Client) => {
         throw new CustomError('Failed to update secret', 500);
       }
 
-      return dryRun ? response.data : transformSecret(response.data);
+      const secret = response.data as IoK8sApiCoreV1Secret;
+
+      return dryRun ? secret : transformSecret(secret);
     },
     delete: async (projectId: string, secretId: string) => {
       const response = await deleteCoreV1NamespacedSecret({

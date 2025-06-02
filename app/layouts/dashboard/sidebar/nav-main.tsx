@@ -111,7 +111,10 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
                   tooltip={item.title}
                   isActive={isActive || hasActiveChild}
                   disabled={item.disabled}
-                  className={cn(item.disabled && 'pointer-events-none opacity-50')}>
+                  className={cn(
+                    item.disabled && 'pointer-events-none opacity-50',
+                    'data-[active=true]:text-primary h-9 font-medium transition-all data-[active=true]:font-semibold'
+                  )}>
                   {item.icon && <item.icon />}
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -200,7 +203,10 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
                     tooltip={item.title}
                     isActive={isActive || hasActiveChild}
                     disabled={item.disabled}
-                    className={cn(item.disabled && 'pointer-events-none opacity-50')}>
+                    className={cn(
+                      item.disabled && 'pointer-events-none opacity-50',
+                      'data-[active=true]:text-primary h-9 font-medium transition-all data-[active=true]:font-semibold'
+                    )}>
                     {item?.icon && <item.icon />}
                     <span>{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -233,7 +239,10 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
               <SidebarMenuButton
                 tooltip={currentItem.title}
                 disabled={currentItem.disabled}
-                className={cn(currentItem.disabled && 'pointer-events-none opacity-50')}>
+                className={cn(
+                  currentItem.disabled && 'pointer-events-none opacity-50',
+                  'data-[active=true]:text-primary h-9 font-medium transition-all data-[active=true]:font-semibold'
+                )}>
                 {currentItem?.icon && <currentItem.icon />}
                 <span>{currentItem.title}</span>
                 <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -262,7 +271,7 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
               disabled={item.disabled}
               onClick={() => hasChildren && toggleItem(item.href as string)}
               className={cn(
-                'data-[active=true]:text-primary',
+                'data-[active=true]:text-primary h-9 font-medium transition-all data-[active=true]:font-semibold',
                 item.disabled && 'pointer-events-none opacity-50'
               )}>
               {item.type === 'externalLink' ? (

@@ -1,5 +1,6 @@
 import {
   ComDatumapisNetworkingV1AlphaNetwork,
+  ComDatumapisNetworkingV1AlphaNetworkList,
   createNetworkingDatumapisComV1AlphaNamespacedNetwork,
   deleteNetworkingDatumapisComV1AlphaNamespacedNetwork,
   listNetworkingDatumapisComV1AlphaNamespacedNetwork,
@@ -42,7 +43,9 @@ export const createNetworksControl = (client: Client) => {
         },
       });
 
-      return response.data?.items?.map(transformNetwork) ?? [];
+      const networks = response.data as ComDatumapisNetworkingV1AlphaNetworkList;
+
+      return networks.items.map(transformNetwork);
     },
     detail: async (projectId: string, networkId: string) => {
       const response = await readNetworkingDatumapisComV1AlphaNamespacedNetwork({
@@ -55,7 +58,9 @@ export const createNetworksControl = (client: Client) => {
         throw new CustomError(`Network ${networkId} not found`, 404);
       }
 
-      return transformNetwork(response.data);
+      const network = response.data as ComDatumapisNetworkingV1AlphaNetwork;
+
+      return transformNetwork(network);
     },
     create: async (projectId: string, payload: NewNetworkSchema, dryRun: boolean) => {
       const response = await createNetworkingDatumapisComV1AlphaNamespacedNetwork({
@@ -88,7 +93,9 @@ export const createNetworksControl = (client: Client) => {
         throw new CustomError('Failed to create location', 500);
       }
 
-      return dryRun ? response.data : transformNetwork(response.data);
+      const network = response.data as ComDatumapisNetworkingV1AlphaNetwork;
+
+      return dryRun ? network : transformNetwork(network);
     },
     update: async (
       projectId: string,
@@ -127,7 +134,9 @@ export const createNetworksControl = (client: Client) => {
         throw new CustomError('Failed to update network', 500);
       }
 
-      return dryRun ? response.data : transformNetwork(response.data);
+      const network = response.data as ComDatumapisNetworkingV1AlphaNetwork;
+
+      return dryRun ? network : transformNetwork(network);
     },
     delete: async (projectId: string, networkId: string) => {
       const response = await deleteNetworkingDatumapisComV1AlphaNamespacedNetwork({

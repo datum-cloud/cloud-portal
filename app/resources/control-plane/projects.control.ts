@@ -1,5 +1,6 @@
 import {
   ComDatumapisResourcemanagerV1AlphaProject,
+  ComDatumapisResourcemanagerV1AlphaProjectList,
   createResourcemanagerDatumapisComV1AlphaProject,
   deleteResourcemanagerDatumapisComV1AlphaProject,
   listResourcemanagerDatumapisComV1AlphaProject,
@@ -40,8 +41,12 @@ export const createProjectsControl = (client: Client) => {
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
       });
+
+      // Type guard to check if data is a valid project list
+      const projectList = response?.data as ComDatumapisResourcemanagerV1AlphaProjectList;
+
       return (
-        response?.data?.items?.map((project: ComDatumapisResourcemanagerV1AlphaProject) =>
+        projectList?.items?.map((project: ComDatumapisResourcemanagerV1AlphaProject) =>
           transform(project)
         ) ?? []
       );
@@ -59,7 +64,9 @@ export const createProjectsControl = (client: Client) => {
         throw new CustomError(`Project ${projectName} not found`, 404);
       }
 
-      return transform(response.data);
+      const project = response.data as ComDatumapisResourcemanagerV1AlphaProject;
+
+      return transform(project);
     },
     create: async (payload: ProjectSchema, dryRun: boolean = false) => {
       const response = await createResourcemanagerDatumapisComV1AlphaProject({
@@ -90,7 +97,9 @@ export const createProjectsControl = (client: Client) => {
         throw new CustomError('Failed to create project', 500);
       }
 
-      return dryRun ? response.data : transform(response.data);
+      const project = response.data as ComDatumapisResourcemanagerV1AlphaProject;
+
+      return dryRun ? response.data : transform(project);
     },
     update: async (
       orgEntityId: string,
@@ -131,7 +140,9 @@ export const createProjectsControl = (client: Client) => {
         throw new CustomError(`Project ${projectName} not found`, 404);
       }
 
-      return dryRun ? response.data : transform(response.data);
+      const project = response.data as ComDatumapisResourcemanagerV1AlphaProject;
+
+      return dryRun ? response.data : transform(project);
     },
     delete: async (orgEntityId: string, projectName: string) => {
       const response = await deleteResourcemanagerDatumapisComV1AlphaProject({
@@ -144,7 +155,9 @@ export const createProjectsControl = (client: Client) => {
         throw new CustomError(`Project ${projectName} not found`, 404);
       }
 
-      return response.data;
+      const project = response.data as ComDatumapisResourcemanagerV1AlphaProject;
+
+      return project;
     },
     getStatus: async (orgEntityId: string, projectName: string) => {
       const response = await readResourcemanagerDatumapisComV1AlphaProjectStatus({
@@ -157,7 +170,9 @@ export const createProjectsControl = (client: Client) => {
         throw new CustomError(`Project ${projectName} not found`, 404);
       }
 
-      return transformControlPlaneStatus(response.data.status);
+      const project = response.data as ComDatumapisResourcemanagerV1AlphaProject;
+
+      return transformControlPlaneStatus(project.status);
     },
   };
 };

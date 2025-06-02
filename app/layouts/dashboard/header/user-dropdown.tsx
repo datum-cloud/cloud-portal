@@ -17,10 +17,12 @@ import { useState } from 'react';
 import { useNavigate, useSubmit } from 'react-router';
 
 const UserItem = ({
+  type = 'avatar',
   fullName,
   description,
   className,
 }: {
+  type?: 'avatar' | 'full';
   fullName: string;
   description?: string;
   className?: string;
@@ -29,15 +31,19 @@ const UserItem = ({
     <div className={cn('flex items-center gap-2 px-1 py-1.5 text-left text-sm', className)}>
       <Avatar className="size-8 rounded-lg">
         {/* <AvatarImage src={user?.avatarRemoteURL} alt={fullName} /> */}
-        <AvatarFallback>{getInitials(fullName)}</AvatarFallback>
+        <AvatarFallback className="bg-secondary font-semibold">
+          {getInitials(fullName)}
+        </AvatarFallback>
       </Avatar>
 
-      <div className="grid flex-1 text-left text-sm leading-tight">
-        <span className="truncate font-semibold">{fullName}</span>
-        {description && (
-          <span className="text-muted-foreground truncate text-xs">{description}</span>
-        )}
-      </div>
+      {type === 'full' && (
+        <div className="grid flex-1 text-left text-sm leading-tight">
+          <span className="truncate font-semibold">{fullName}</span>
+          {description && (
+            <span className="text-muted-foreground truncate text-xs">{description}</span>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -57,10 +63,7 @@ export const UserDropdown = () => {
           variant="ghost"
           size="sm"
           className="h-8 cursor-pointer p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden data-[state=open]:bg-transparent">
-          <Avatar className="size-8 rounded-full">
-            {/* <AvatarImage src={user?.avatarRemoteURL} alt={user?.displayName} /> */}
-            <AvatarFallback>{getInitials(fullName)}</AvatarFallback>
-          </Avatar>
+          <UserItem type="avatar" fullName={fullName} className="px-0" />
           {/* <ChevronDownIcon className="size-4 text-primary/60" /> */}
         </Button>
       </DropdownMenuTrigger>
@@ -69,7 +72,7 @@ export const UserDropdown = () => {
         align="end"
         sideOffset={4}>
         <DropdownMenuLabel className="p-0 font-normal">
-          <UserItem fullName={fullName} description={user?.email} />
+          <UserItem type="full" fullName={fullName} description={user?.email} />
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

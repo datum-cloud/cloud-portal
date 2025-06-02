@@ -1,5 +1,6 @@
 import {
   ComDatumapisComputeV1AlphaWorkloadDeployment,
+  ComDatumapisComputeV1AlphaWorkloadDeploymentList,
   listComputeDatumapisComV1AlphaNamespacedWorkloadDeployment,
   readComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatus,
 } from '@/modules/control-plane/compute';
@@ -44,7 +45,9 @@ export const createWorkloadDeploymentsControl = (client: Client) => {
         },
       });
 
-      return response.data?.items?.map(transform) ?? [];
+      const deployments = response.data as ComDatumapisComputeV1AlphaWorkloadDeploymentList;
+
+      return deployments.items.map(transform);
     },
     getStatus: async (projectId: string, deploymentId: string) => {
       const response = await readComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatus({
@@ -57,7 +60,9 @@ export const createWorkloadDeploymentsControl = (client: Client) => {
         throw new CustomError(`Workload deployment ${deploymentId} not found`, 404);
       }
 
-      return transformControlPlaneStatus(response.data.status);
+      const deployment = response.data as ComDatumapisComputeV1AlphaWorkloadDeployment;
+
+      return transformControlPlaneStatus(deployment.status);
     },
   };
 };
