@@ -120,8 +120,7 @@ export const WorkloadSinksTable = ({
         <DataTable
           columns={columns}
           data={data ?? []}
-          loadingText="Loading..."
-          emptyText="No sinks found."
+          emptyContent={{ title: 'No sinks found.' }}
         />
       </CardContent>
     </Card>

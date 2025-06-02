@@ -142,9 +142,19 @@ export default function ConnectHttpRoutesPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-xl)"
-      loadingText="Loading..."
-      emptyText="No http routes found."
+      emptyContent={{
+        title: 'No http routes found.',
+        subtitle: 'Create your first http route to get started.',
+        actions: [
+          {
+            type: 'link',
+            label: 'New HTTP Route',
+            to: getPathWithParams(routes.projects.connect.httpRoutes.new, { orgId, projectId }),
+            variant: 'default',
+            icon: <PlusIcon className="size-4" />,
+          },
+        ],
+      }}
       tableTitle={{
         title: 'HTTP Routes',
         description: 'Manage http routes for your project resources',

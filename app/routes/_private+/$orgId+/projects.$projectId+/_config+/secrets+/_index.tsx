@@ -149,9 +149,19 @@ export default function SecretsPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-xl)"
-      loadingText="Loading..."
-      emptyText="No secrets found."
+      emptyContent={{
+        title: 'No secrets found.',
+        subtitle: 'Create your first secret to get started.',
+        actions: [
+          {
+            type: 'link',
+            label: 'New Secret',
+            to: getPathWithParams(routes.projects.config.secrets.new, { orgId, projectId }),
+            variant: 'default',
+            icon: <PlusIcon className="size-4" />,
+          },
+        ],
+      }}
       tableTitle={{
         title: 'Secrets',
         description: 'Manage secrets for your project resources',

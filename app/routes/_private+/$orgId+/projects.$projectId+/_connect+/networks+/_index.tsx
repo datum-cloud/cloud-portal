@@ -203,9 +203,19 @@ export default function ConnectNetworksPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-xl)"
-      loadingText="Loading networks..."
-      emptyText="No networks found."
+      emptyContent={{
+        title: 'No networks found.',
+        subtitle: 'Create your first network to get started.',
+        actions: [
+          {
+            type: 'link',
+            label: 'New Network',
+            to: getPathWithParams(routes.projects.connect.networks.new, { orgId, projectId }),
+            variant: 'default',
+            icon: <PlusIcon className="size-4" />,
+          },
+        ],
+      }}
       tableTitle={{
         title: 'Networks',
         description: 'Manage deployment networks for your project resources',

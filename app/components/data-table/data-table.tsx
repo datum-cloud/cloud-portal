@@ -1,3 +1,4 @@
+import { DataTableEmptyContent } from './data-table-empty-content';
 import { DataTableHeader } from './data-table-header';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableRowActions } from './data-table-row-actions';
@@ -21,7 +22,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 export const DataTable = <TData, TValue>({
@@ -33,9 +33,9 @@ export const DataTable = <TData, TValue>({
   className,
   rowActions = [],
   tableTitle,
-  isLoading = false,
-  loadingText = 'Loading...',
-  emptyText = 'No results.',
+  emptyContent = {
+    title: 'No results.',
+  },
   tableContainerClassName,
 }: DataTableProps<TData, TValue>) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultColumnFilters);
@@ -122,59 +122,52 @@ export const DataTable = <TData, TValue>({
       columnVisibility={{}}
       enableColumnOrdering={false}
       isLoading={undefined}>
-      <div className={cn('flex h-full w-full flex-col gap-4', className)}>
-        {/* Header Section */}
-        {tableTitle && <PageTitle {...tableTitle} />}
+      <div
+        className={cn(
+          'mx-auto flex h-full w-full max-w-(--breakpoint-xl) flex-col gap-4',
+          className
+        )}>
+        {data?.length > 0 ? (
+          <>
+            {/* Header Section */}
+            {tableTitle && <PageTitle {...tableTitle} />}
 
-        {/* Table Section */}
-        <div
-          className={cn(
-            'flex max-w-full flex-col overflow-hidden rounded-md border',
-            tableContainerClassName
-          )}>
-          <Table>
-            <DataTableHeader table={table} hasRowActions={rowActions.length > 0} />
+            {/* Table Section */}
+            <div
+              className={cn(
+                'flex max-w-full flex-col overflow-hidden rounded-md border',
+                tableContainerClassName
+              )}>
+              <Table>
+                <DataTableHeader table={table} hasRowActions={rowActions.length > 0} />
 
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={columnsLength} className="h-24 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 className="size-4 animate-spin" />
-                      <p className="text-muted-foreground">{loadingText}</p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className={cn(cell.column.columnDef.meta?.className)}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                    {rowActions && rowActions.length > 0 && (
-                      <TableCell className="p-2">
-                        <DataTableRowActions row={row.original} actions={rowActions} />
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columnsLength} className="h-24 text-center">
-                    {emptyText}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                <TableBody>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          className={cn(cell.column.columnDef.meta?.className)}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                      {rowActions && rowActions.length > 0 && (
+                        <TableCell className="p-2">
+                          <DataTableRowActions row={row.original} actions={rowActions} />
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
 
-        {/* Pagination Section */}
-        {(data ?? [])?.length > 10 && <DataTablePagination table={table} />}
+            {/* Pagination Section */}
+            {(data ?? [])?.length > 10 && <DataTablePagination table={table} />}
+          </>
+        ) : (
+          <DataTableEmptyContent {...emptyContent} />
+        )}
       </div>
     </DataTableProvider>
   );

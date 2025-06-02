@@ -86,8 +86,7 @@ export const DeploymentsTable = ({ data }: { data: IWorkloadDeploymentControlRes
         <DataTable
           columns={columns}
           data={data ?? []}
-          loadingText="Loading..."
-          emptyText="No deployments found."
+          emptyContent={{ title: 'No deployments found.' }}
         />
       </CardContent>
     </Card>

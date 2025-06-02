@@ -83,8 +83,7 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
         <DataTable
           columns={columns}
           data={data ?? []}
-          loadingText="Loading..."
-          emptyText="No instances found."
+          emptyContent={{ title: 'No instances found.' }}
         />
       </CardContent>
     </Card>

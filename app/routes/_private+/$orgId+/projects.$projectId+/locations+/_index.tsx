@@ -253,9 +253,19 @@ export default function LocationsPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
-      className="mx-auto max-w-(--breakpoint-xl)"
-      loadingText="Loading locations..."
-      emptyText="No locations found."
+      emptyContent={{
+        title: 'No locations found.',
+        subtitle: 'Create your first location to get started.',
+        actions: [
+          {
+            type: 'link',
+            label: 'New Location',
+            to: getPathWithParams(routes.projects.locations.new, { orgId, projectId }),
+            variant: 'default',
+            icon: <PlusIcon className="size-4" />,
+          },
+        ],
+      }}
       tableTitle={{
         title: 'Locations',
         description: 'Manage deployment locations for your project resources',
