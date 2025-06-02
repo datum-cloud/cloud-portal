@@ -1,16 +1,18 @@
 import { DataTableEmptyContentProps } from './data-table.types';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router';
+import { Theme, useTheme } from 'remix-themes';
 
 export const DataTableEmptyContent = ({
   title = 'No data found',
   subtitle = 'There is no data to display.',
-  image = '/images/empty-data.svg',
+  image,
   actions = [],
 }: DataTableEmptyContentProps) => {
+  const [theme] = useTheme();
   return (
     <div className="flex flex-col items-center justify-center py-8">
-      {image && <img src={image} alt="Datum" className="size-50" />}
+      <img src={`/images/empty-data-${theme}.svg`} alt="Datum" className="size-50" />
       <div className="my-5 flex flex-col items-center gap-4">
         <h2 className="text-2xl leading-2 font-semibold">{title}</h2>
         <p className="text-muted-foreground">{subtitle}</p>

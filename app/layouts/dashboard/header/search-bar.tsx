@@ -43,7 +43,7 @@ export default function SearchBar({ className }: { className?: string }) {
         onClick={() => setOpen(true)}>
         <div className="flex items-center gap-2 [&>svg]:opacity-50">
           <Search size={18} />
-          <span className="placeholder:text-text inline-flex text-sm text-gray-600 group-hover:text-gray-900">
+          <span className="placeholder:text-text inline-flex text-sm text-gray-600 group-hover:text-gray-900 dark:text-white">
             Search...
           </span>
         </div>
