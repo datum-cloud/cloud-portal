@@ -8,7 +8,13 @@ import { useIsPending } from '@/hooks/useIsPending';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
 import { convertObjectToLabels } from '@/utils/misc';
-import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
+import {
+  FieldMetadata,
+  getFormProps,
+  getInputProps,
+  useForm,
+  useInputControl,
+} from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect, useRef } from 'react';
 import { Form } from 'react-router';
@@ -29,8 +35,8 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
     },
   });
 
-  const displayNameControl = useInputControl(fields.description);
-  const labelsControl = useInputControl(fields.labels);
+  const displayNameControl = useInputControl(fields.description as FieldMetadata<string>);
+  const labelsControl = useInputControl(fields.labels as FieldMetadata<string[]>);
 
   useEffect(() => {
     if (defaultValue) {
