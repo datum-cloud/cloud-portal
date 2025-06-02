@@ -5,6 +5,7 @@ import {
   readCoreV1NamespacedConfigMap,
   replaceCoreV1NamespacedConfigMap,
   deleteCoreV1NamespacedConfigMap,
+  IoK8sApiCoreV1ConfigMapList,
 } from '@/modules/control-plane/api-v1';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
 import { ConfigMapSchema } from '@/resources/schemas/config-map.schema';
@@ -35,7 +36,9 @@ export const createConfigMapsControl = (client: Client) => {
         },
       });
 
-      return response.data?.items?.map(transformConfigMap) ?? [];
+      const configMaps = response.data as IoK8sApiCoreV1ConfigMapList;
+
+      return configMaps.items.map(transformConfigMap);
     },
     detail: async (projectId: string, configId: string) => {
       const response = await readCoreV1NamespacedConfigMap({
@@ -48,9 +51,11 @@ export const createConfigMapsControl = (client: Client) => {
         throw new CustomError(`ConfigMap ${configId} not found`, 404);
       }
 
-      return transformConfigMap(response.data);
+      const configMap = response.data as IoK8sApiCoreV1ConfigMap;
+
+      return transformConfigMap(configMap);
     },
-    create: async (projectId: string, configMap: ConfigMapSchema, dryRun: boolean = false) => {
+    create: async (projectId: string, payload: ConfigMapSchema, dryRun: boolean = false) => {
       const response = await createCoreV1NamespacedConfigMap({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -59,16 +64,18 @@ export const createConfigMapsControl = (client: Client) => {
           dryRun: dryRun ? 'All' : undefined,
         },
         headers: {
-          'Content-Type': configMap.format === 'yaml' ? 'application/yaml' : 'application/json',
+          'Content-Type': payload.format === 'yaml' ? 'application/yaml' : 'application/json',
         },
-        body: configMap.configuration as IoK8sApiCoreV1ConfigMap,
+        body: payload.configuration as IoK8sApiCoreV1ConfigMap,
       });
 
       if (!response.data) {
         throw new CustomError('Failed to create config map', 500);
       }
 
-      return dryRun ? response.data : transformConfigMap(response.data);
+      const configMap = response.data as IoK8sApiCoreV1ConfigMap;
+
+      return dryRun ? configMap : transformConfigMap(configMap);
     },
     update: async (
       projectId: string,
@@ -98,10 +105,12 @@ export const createConfigMapsControl = (client: Client) => {
       });
 
       if (!response.data) {
-        throw new CustomError('Failed to create config map', 500);
+        throw new CustomError('Failed to update config map', 500);
       }
 
-      return dryRun ? response.data : transformConfigMap(response.data);
+      const configMap = response.data as IoK8sApiCoreV1ConfigMap;
+
+      return dryRun ? configMap : transformConfigMap(configMap);
     },
     delete: async (projectId: string, configId: string) => {
       const response = await deleteCoreV1NamespacedConfigMap({

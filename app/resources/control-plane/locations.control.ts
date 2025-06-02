@@ -1,5 +1,6 @@
 import {
   ComDatumapisNetworkingV1AlphaLocation,
+  ComDatumapisNetworkingV1AlphaLocationList,
   createNetworkingDatumapisComV1AlphaNamespacedLocation,
   deleteNetworkingDatumapisComV1AlphaNamespacedLocation,
   listNetworkingDatumapisComV1AlphaNamespacedLocation,
@@ -46,7 +47,9 @@ export const createLocationsControl = (client: Client) => {
         },
       });
 
-      return response.data?.items?.map(transformLocation) ?? [];
+      const locations = response.data as ComDatumapisNetworkingV1AlphaLocationList;
+
+      return locations.items.map(transformLocation);
     },
     detail: async (projectId: string, locationName: string) => {
       const response = await readNetworkingDatumapisComV1AlphaNamespacedLocation({
@@ -62,7 +65,9 @@ export const createLocationsControl = (client: Client) => {
         throw new CustomError(`Location ${locationName} not found`, 404);
       }
 
-      return transformLocation(response.data);
+      const location = response.data as ComDatumapisNetworkingV1AlphaLocation;
+
+      return transformLocation(location);
     },
     create: async (projectId: string, payload: NewLocationSchema, dryRun: boolean = false) => {
       const response = await createNetworkingDatumapisComV1AlphaNamespacedLocation({
@@ -98,7 +103,9 @@ export const createLocationsControl = (client: Client) => {
         throw new CustomError('Failed to create location', 500);
       }
 
-      return dryRun ? response.data : transformLocation(response.data);
+      const location = response.data as ComDatumapisNetworkingV1AlphaLocation;
+
+      return dryRun ? location : transformLocation(location);
     },
     update: async (
       projectId: string,
@@ -143,7 +150,9 @@ export const createLocationsControl = (client: Client) => {
         throw new CustomError('Failed to update location', 500);
       }
 
-      return dryRun ? response.data : transformLocation(response.data);
+      const location = response.data as ComDatumapisNetworkingV1AlphaLocation;
+
+      return dryRun ? location : transformLocation(location);
     },
     delete: async (projectId: string, locationName: string) => {
       const response = await deleteNetworkingDatumapisComV1AlphaNamespacedLocation({

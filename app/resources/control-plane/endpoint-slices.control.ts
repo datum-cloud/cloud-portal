@@ -8,6 +8,7 @@ import {
 import {
   IoK8sApiDiscoveryV1EndpointConditions,
   IoK8sApiDiscoveryV1EndpointSlice,
+  IoK8sApiDiscoveryV1EndpointSliceList,
 } from '@/modules/control-plane/discovery/types.gen';
 import {
   EndpointSliceCondition,
@@ -98,7 +99,13 @@ export const createEndpointSlicesControl = (client: Client) => {
         path: { namespace: 'default' },
       });
 
-      return response.data?.items?.map(transformEndpointSliceLite) ?? [];
+      if (!response.data) {
+        throw new CustomError('Endpoint slices not found', 404);
+      }
+
+      const endpointSlices = response.data as IoK8sApiDiscoveryV1EndpointSliceList;
+
+      return endpointSlices.items.map(transformEndpointSliceLite);
     },
     detail: async (projectId: string, id: string) => {
       const response = await readDiscoveryV1NamespacedEndpointSlice({
@@ -111,7 +118,9 @@ export const createEndpointSlicesControl = (client: Client) => {
         throw new CustomError('Endpoint slice not found', 404);
       }
 
-      return transformEndpointSlice(response.data);
+      const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
+
+      return transformEndpointSlice(endpointSlice);
     },
     create: async (projectId: string, payload: EndpointSliceSchema, dryRun: boolean = false) => {
       const formatted = formatEndpointSlice(payload);
@@ -136,7 +145,9 @@ export const createEndpointSlicesControl = (client: Client) => {
         throw new CustomError('Failed to create endpoint slice', 500);
       }
 
-      return dryRun ? response.data : transformEndpointSliceLite(response.data);
+      const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
+
+      return dryRun ? endpointSlice : transformEndpointSliceLite(endpointSlice);
     },
     delete: async (projectId: string, id: string) => {
       const response = await deleteDiscoveryV1NamespacedEndpointSlice({
@@ -179,7 +190,9 @@ export const createEndpointSlicesControl = (client: Client) => {
         throw new CustomError('Failed to update endpoint slice', 500);
       }
 
-      return dryRun ? response.data : transformEndpointSliceLite(response.data);
+      const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
+
+      return dryRun ? endpointSlice : transformEndpointSliceLite(endpointSlice);
     },
   };
 };

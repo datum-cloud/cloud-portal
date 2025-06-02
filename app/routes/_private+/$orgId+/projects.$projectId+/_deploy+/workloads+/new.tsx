@@ -55,7 +55,7 @@ export const action = withMiddleware(async ({ request, context, params }: Action
       getPathWithParams(routes.projects.deploy.workloads.detail.root, {
         orgId,
         projectId,
-        workloadId: 'metadata' in dryRunRes ? dryRunRes?.metadata?.name : '',
+        workloadId: parsed.data.metadata?.name ?? '',
       }),
       {
         title: 'Workload created successfully',

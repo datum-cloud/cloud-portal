@@ -1,4 +1,7 @@
-import { ComDatumapisTelemetryV1Alpha1ExportPolicy } from '@/modules/control-plane/telemetry';
+import {
+  ComDatumapisTelemetryV1Alpha1ExportPolicy,
+  ComDatumapisTelemetryV1Alpha1ExportPolicyList,
+} from '@/modules/control-plane/telemetry';
 import {
   createTelemetryDatumapisComV1Alpha1NamespacedExportPolicy,
   deleteTelemetryDatumapisComV1Alpha1NamespacedExportPolicy,
@@ -99,7 +102,9 @@ export const createExportPoliciesControl = (client: Client) => {
         path: { namespace: 'default' },
       });
 
-      return response.data?.items?.map(transformPolicy) ?? [];
+      const exportPolicies = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicyList;
+
+      return exportPolicies.items.map(transformPolicy);
     },
     create: async (projectId: string, policy: NewExportPolicySchema, dryRun: boolean = false) => {
       const formatted = formatPolicy(policy);
@@ -121,7 +126,9 @@ export const createExportPoliciesControl = (client: Client) => {
         throw new CustomError('Failed to create export policy', 500);
       }
 
-      return dryRun ? response.data : transformPolicy(response.data);
+      const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
+
+      return dryRun ? exportPolicy : transformPolicy(exportPolicy);
     },
     detail: async (projectId: string, exportPolicyId: string) => {
       const response = await readTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
@@ -134,7 +141,9 @@ export const createExportPoliciesControl = (client: Client) => {
         throw new CustomError(`Export policy ${exportPolicyId} not found`, 404);
       }
 
-      return transformPolicy(response.data);
+      const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
+
+      return transformPolicy(exportPolicy);
     },
     update: async (
       projectId: string,
@@ -162,7 +171,9 @@ export const createExportPoliciesControl = (client: Client) => {
         throw new CustomError('Failed to update export policy', 500);
       }
 
-      return dryRun ? response.data : transformPolicy(response.data);
+      const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
+
+      return dryRun ? exportPolicy : transformPolicy(exportPolicy);
     },
     delete: async (projectId: string, exportPolicyId: string) => {
       const response = await deleteTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
@@ -188,7 +199,9 @@ export const createExportPoliciesControl = (client: Client) => {
         throw new CustomError(`Export policy ${exportPolicyId} not found`, 404);
       }
 
-      return transformControlPlaneStatus(response.data.status);
+      const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
+
+      return transformControlPlaneStatus(exportPolicy.status);
     },
   };
 };

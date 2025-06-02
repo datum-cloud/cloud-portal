@@ -5,7 +5,10 @@ import {
   readGatewayNetworkingV1NamespacedHttpRoute,
   replaceGatewayNetworkingV1NamespacedHttpRoute,
 } from '@/modules/control-plane/gateway/sdk.gen';
-import { IoK8sNetworkingGatewayV1HttpRoute } from '@/modules/control-plane/gateway/types.gen';
+import {
+  IoK8sNetworkingGatewayV1HttpRoute,
+  IoK8sNetworkingGatewayV1HttpRouteList,
+} from '@/modules/control-plane/gateway/types.gen';
 import {
   HTTPFilterType,
   HTTPPathMatchType,
@@ -145,7 +148,9 @@ export const createHttpRoutesControl = (client: Client) => {
         path: { namespace: 'default' },
       });
 
-      return response.data?.items?.map(transformHttpRouteLite) ?? [];
+      const httpRoutes = response.data as IoK8sNetworkingGatewayV1HttpRouteList;
+
+      return httpRoutes.items.map(transformHttpRouteLite);
     },
     create: async (projectId: string, payload: HttpRouteSchema, dryRun: boolean = false) => {
       const formatted = formatHttpRoute(payload);
@@ -170,7 +175,9 @@ export const createHttpRoutesControl = (client: Client) => {
         throw new CustomError('Failed to create HTTP route', 500);
       }
 
-      return dryRun ? response.data : transformHttpRouteLite(response.data);
+      const httpRoute = response.data as IoK8sNetworkingGatewayV1HttpRoute;
+
+      return dryRun ? httpRoute : transformHttpRouteLite(httpRoute);
     },
     detail: async (projectId: string, uid: string) => {
       const response = await readGatewayNetworkingV1NamespacedHttpRoute({
@@ -183,7 +190,9 @@ export const createHttpRoutesControl = (client: Client) => {
         throw new CustomError('HTTP route not found', 404);
       }
 
-      return transformHttpRoute(response.data);
+      const httpRoute = response.data as IoK8sNetworkingGatewayV1HttpRoute;
+
+      return transformHttpRoute(httpRoute);
     },
     delete: async (projectId: string, uid: string) => {
       const response = await deleteGatewayNetworkingV1NamespacedHttpRoute({
@@ -226,7 +235,9 @@ export const createHttpRoutesControl = (client: Client) => {
         throw new CustomError('Failed to update HTTP route', 500);
       }
 
-      return dryRun ? response.data : transformHttpRouteLite(response.data);
+      const httpRoute = response.data as IoK8sNetworkingGatewayV1HttpRoute;
+
+      return dryRun ? httpRoute : transformHttpRouteLite(httpRoute);
     },
   };
 };

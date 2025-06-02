@@ -5,6 +5,27 @@
 @import './custom.css' layer(base);
 
 :root {
+  /* Datum Colors */
+  /* Sunglow colors */
+  --sunglow: hsl(18 89% 68%); /* #F27A67 */
+  --sunglow-50: hsl(0 14% 98%); /* #FAF7F7 */
+  --sunglow-100: hsl(8 22% 96%); /* #F4EDEC */
+  --sunglow-200: hsl(8 22% 94%); /* #F3E7E4 */
+  --sunglow-300: hsl(10 67% 94%); /* #F8E0DB */
+  --sunglow-400: hsl(11 70% 91%); /* #F8D4CD */
+  --sunglow-500: hsl(8 89% 87%); /* #FBC8BF */
+  --sunglow-600: hsl(10 89% 84%); /* #FABCB1 */
+  --sunglow-700: hsl(10 78% 78%); /* #F4A89B */
+  --sunglow-800: hsl(10 84% 72%); /* #F39282 */
+  --sunglow-900: hsl(18 89% 68%); /* #F27A67 */
+  --sunglow-foreground: hsl(240 10% 3.9%); /* #0A0A0A */
+
+  /* Winter Sky colors */
+  --winter-sky-900: hsl(184 18% 89%); /* #E1EBEA */
+  --winter-sky-800: hsl(180 16% 94%); /* #EFF3F3 */
+  --winter-sky-700: hsl(180 12% 96%); /* #F5F7F7 */
+  --winter-sky-600: hsl(180 10% 97%); /* #F7FAFA */
+
   /* Base colors */
   --background: hsl(0 0% 100%); /* #FFFFFF */
   --foreground: hsl(240 10% 3.9%); /* #0A0A0A */
@@ -22,7 +43,7 @@
   --primary-foreground: hsl(0 0% 98%); /* #FAFAFA */
 
   /* Secondary colors */
-  --secondary: hsl(240 4.8% 95.9%); /* #F4F4F5 */
+  --secondary: var(--winter-sky-700);
   --secondary-foreground: hsl(240 5.9% 10%); /* #191919 */
 
   /* Muted colors */
@@ -30,16 +51,14 @@
   --muted-foreground: hsl(240 3.8% 46.1%); /* #737373 */
 
   /* Accent colors */
-  --accent: hsl(240 4.8% 95.9%); /* #F4F4F5 */
+  /* #F4F4F5 */
+  /* --accent: hsl(240 4.8% 95.9%);  */
+  --accent: var(--winter-sky-700);
   --accent-foreground: hsl(240 5.9% 10%); /* #191919 */
 
   /* Destructive colors */
   --destructive: hsl(0 84.2% 60.2%); /* #E11D48 */
   --destructive-foreground: hsl(0 0% 98%); /* #FAFAFA */
-
-  /* Sunglow colors */
-  --sunglow: hsl(35 95% 68%); /* #F27A67 */
-  --sunglow-foreground: hsl(240 10% 3.9%); /* #0A0A0A */
 
   /* UI elements */
   --border: hsl(240 5.9% 90%); /* #E5E5E5 */
@@ -55,17 +74,22 @@
   --chart-5: hsl(27 87% 67%); /* #E67E22 */
 
   /* Sidebar colors */
-  --sidebar-background: hsl(0 0% 98%); /* #FAFAFA */
+  --sidebar-background: var(--winter-sky-600);
   --sidebar-foreground: hsl(240 5.3% 26.1%); /* #424242 */
   --sidebar-primary: hsl(240 5.9% 10%); /* #191919 */
-  --sidebar-primary-foreground: hsl(0 0% 98%); /* #FAFAFA */
-  --sidebar-accent: hsl(240 4.8% 95.9%); /* #F4F4F5 */
+  --sidebar-primary-foreground: var(--winter-sky-900);
+  --sidebar-accent: var(--winter-sky-800);
   --sidebar-accent-foreground: hsl(240 5.9% 10%); /* #191919 */
   --sidebar-border: hsl(220 13% 91%); /* #E8E8E8 */
   --sidebar-ring: hsl(217.2 91.2% 59.8%); /* #3B82F6 */
 }
 
 .dark {
+  /* Datum Colors */
+  /* Sunglow colors */
+  --sunglow: hsl(8 89% 87%); /* #FBC8BF */
+  --sunglow-foreground: hsl(240 5.9% 10%); /* #191919 */
+
   /* Base colors */
   --background: hsl(240 10% 3.9%); /* #0A0A0A */
   --foreground: hsl(0 0% 98%); /* #FAFAFA */
@@ -97,10 +121,6 @@
   /* Destructive colors */
   --destructive: hsl(0 72.2% 50.6%); /* #DC2626 */
   --destructive-foreground: hsl(0 0% 98%); /* #FAFAFA */
-
-  /* Sunglow colors */
-  --sunglow: hsl(8 89% 87%); /* #FBC8BF */
-  --sunglow-foreground: hsl(240 5.9% 10%); /* #191919 */
 
   /* UI elements */
   --border: hsl(240 3.7% 15.9%); /* #262626 */
@@ -163,17 +183,17 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  --color-sunglow-50: #faf7f7;
-  --color-sunglow-100: #f4edec;
-  --color-sunglow-200: #f3e7e4;
-  --color-sunglow-300: #f8e0db;
-  --color-sunglow-400: #f8d4cd;
-  --color-sunglow-500: #fbc8bf;
-  --color-sunglow-600: #fabcb1;
-  --color-sunglow-700: #f4a89b;
-  --color-sunglow-800: #f39282;
-  --color-sunglow-900: #f27a67;
   --color-sunglow: var(--sunglow);
+  --color-sunglow-50: var(--sunglow-50);
+  --color-sunglow-100: var(--sunglow-100);
+  --color-sunglow-200: var(--sunglow-200);
+  --color-sunglow-300: var(--sunglow-300);
+  --color-sunglow-400: var(--sunglow-400);
+  --color-sunglow-500: var(--sunglow-500);
+  --color-sunglow-600: var(--sunglow-600);
+  --color-sunglow-700: var(--sunglow-700);
+  --color-sunglow-800: var(--sunglow-800);
+  --color-sunglow-900: var(--sunglow-900);
   --color-sunglow-foreground: var(--sunglow-foreground);
 
   --color-sidebar: var(--sidebar-background);
