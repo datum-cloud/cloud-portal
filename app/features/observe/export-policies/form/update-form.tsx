@@ -29,8 +29,8 @@ import {
 } from '@/resources/schemas/export-policy.schema';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions';
-import { convertObjectToLabels } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
+import { convertObjectToLabels } from '@/utils/helpers/misc.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useForm, FormProvider, getFormProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { has } from 'es-toolkit/compat';

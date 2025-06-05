@@ -4,7 +4,6 @@ import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary';
 import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { getHints } from '@/hooks/useHints';
 import { useNonce } from '@/hooks/useNonce';
 import { useToast } from '@/hooks/useToast';
 import { csrf } from '@/modules/cookie/csrf.server';
@@ -15,9 +14,9 @@ import { ROUTE_PATH as SET_THEME_ROUTE_PATH } from '@/routes/api+/set-theme';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
 import RootCSS from '@/styles/root.css?url';
-import { getSharedEnvs } from '@/utils/env';
-import { metaObject } from '@/utils/meta';
-import { isProduction, combineHeaders, getDomainUrl } from '@/utils/misc';
+import { env } from '@/utils/config/env.server';
+import { metaObject } from '@/utils/helpers/meta.helper';
+import { isProduction, combineHeaders, cn } from '@/utils/helpers/misc.helper';
 import NProgress from 'nprogress';
 import { useEffect, useMemo } from 'react';
 import {
@@ -32,7 +31,6 @@ import {
   useFetchers,
   useLoaderData,
   useNavigation,
-  useRouteLoaderData,
 } from 'react-router';
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router';
 import { ThemeProvider, useTheme, PreventFlashOnWrongTheme, Theme } from 'remix-themes';
@@ -41,6 +39,10 @@ import { AuthenticityTokenProvider } from 'remix-utils/csrf/react';
 // NProgress configuration
 NProgress.configure({ showSpinner: false });
 
+// Links
+export const links: LinksFunction = () => [{ rel: 'stylesheet', href: RootCSS }];
+
+// Meta
 export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
   // Get the current page title from the pathname
   const getPageTitle = () => {
@@ -60,27 +62,18 @@ export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
   return metaObject(data ? pageTitle : 'Error');
 };
 
-export const links: LinksFunction = () => {
-  return [{ rel: 'stylesheet', href: RootCSS }];
-};
-
+// Loader
 export async function loader({ request }: LoaderFunctionArgs) {
   const { toast, headers: toastHeaders } = await getToastSession(request);
   const [csrfToken, csrfCookieHeader] = await csrf.commitToken(request);
-  const sharedEnv = getSharedEnvs();
   const { getTheme } = await themeSessionResolver(request);
 
   return data(
     {
       toast,
       csrfToken,
-      sharedEnv,
+      env: env,
       theme: getTheme(),
-      requestInfo: {
-        hints: getHints(request),
-        origin: getDomainUrl(request),
-        path: new URL(request.url).pathname,
-      },
     } as const,
     {
       headers: combineHeaders(
@@ -91,65 +84,30 @@ export async function loader({ request }: LoaderFunctionArgs) {
   );
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
-  const data = useRouteLoaderData<typeof loader>('root');
-
+export default function AppWithProviders() {
+  const data = useLoaderData<typeof loader>();
   return (
-    <ThemeProvider specifiedTheme={data?.theme ?? Theme.LIGHT} themeAction={SET_THEME_ROUTE_PATH}>
-      {children}
+    <ThemeProvider specifiedTheme={data.theme} themeAction={SET_THEME_ROUTE_PATH}>
+      <AuthenticityTokenProvider token={data.csrfToken}>
+        {data.env.FATHOM_ID && isProduction() && (
+          <FathomAnalytics privateKey={data.env.FATHOM_ID} />
+        )}
+        <App />
+      </AuthenticityTokenProvider>
     </ThemeProvider>
   );
 }
 
-function Document({
-  children,
-  nonce,
-  lang = 'en',
-  dir = 'ltr',
-}: {
-  children: React.ReactNode;
-  nonce: string;
-  lang?: string;
-  dir?: 'ltr' | 'rtl';
-}) {
+export function App() {
   const data = useLoaderData<typeof loader>();
+
   const [theme] = useTheme();
-
-  return (
-    <html
-      lang={lang}
-      dir={dir}
-      className={`${theme} overflow-x-hidden`}
-      data-theme={theme ?? ''}
-      suppressHydrationWarning>
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <ClientHintCheck nonce={nonce} />
-        <Meta />
-        <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} />
-        <Links />
-      </head>
-      <body className="h-auto w-full" suppressHydrationWarning>
-        <TooltipProvider>{children}</TooltipProvider>
-        <ScrollRestoration nonce={nonce} />
-        <Scripts nonce={nonce} />
-        <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />
-        <ThemeSwitcher />
-      </body>
-    </html>
-  );
-}
-
-export default function AppWithProviders() {
-  const { toast, csrfToken, sharedEnv } = useLoaderData<typeof loader>();
-
   const nonce = useNonce();
   const navigation = useNavigation();
   const fetchers = useFetchers();
 
   // Renders toast (if any).
-  useToast(toast);
+  useToast(data.toast);
 
   /**
    * This gets the state of every fetcher active on the app and combine it with
@@ -186,23 +144,33 @@ export default function AppWithProviders() {
   });
 
   return (
-    <Document nonce={nonce} lang="en">
-      <AuthenticityTokenProvider token={csrfToken}>
-        {sharedEnv.FATHOM_ID && isProduction() && (
-          <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />
-        )}
-        <Outlet />
-      </AuthenticityTokenProvider>
-    </Document>
+    <html
+      lang="en"
+      dir="ltr"
+      className={cn(theme, 'overflow-x-hidden')}
+      data-theme={theme ?? ''}
+      suppressHydrationWarning>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <ClientHintCheck nonce={nonce} />
+        <Meta />
+        <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} />
+        <Links />
+      </head>
+      <body className="h-auto w-full" suppressHydrationWarning>
+        <TooltipProvider>
+          <Outlet />
+        </TooltipProvider>
+        <ScrollRestoration nonce={nonce} />
+        <Scripts nonce={nonce} />
+        <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />
+        <ThemeSwitcher />
+      </body>
+    </html>
   );
 }
 
 export function ErrorBoundary() {
-  const nonce = useNonce();
-
-  return (
-    <Document nonce={nonce}>
-      <GenericErrorBoundary />
-    </Document>
-  );
+  return <GenericErrorBoundary />;
 }

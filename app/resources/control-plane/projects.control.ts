@@ -11,7 +11,11 @@ import {
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { UpdateProjectSchema, ProjectSchema } from '@/resources/schemas/project.schema';
 import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject, filterLabels, transformControlPlaneStatus } from '@/utils/misc';
+import {
+  convertLabelsToObject,
+  filterLabels,
+  transformControlPlaneStatus,
+} from '@/utils/helpers/misc.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createProjectsControl = (client: Client) => {

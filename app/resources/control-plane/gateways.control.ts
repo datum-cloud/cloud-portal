@@ -20,7 +20,7 @@ import {
 } from '@/resources/interfaces/gateway.interface';
 import { GatewaySchema } from '@/resources/schemas/gateway.schema';
 import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/misc';
+import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
 import { Client } from '@hey-api/client-axios';
 import { omit } from 'es-toolkit/compat';
 

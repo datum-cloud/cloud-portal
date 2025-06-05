@@ -3,7 +3,7 @@ import { createWorkloadDeploymentsControl } from '@/resources/control-plane/work
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
 import { CustomError } from '@/utils/errorHandle';
-import { metaObject, mergeMeta } from '@/utils/meta';
+import { metaObject, mergeMeta } from '@/utils/helpers/meta.helper';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, data, LoaderFunctionArgs, MetaFunction, Outlet } from 'react-router';
 

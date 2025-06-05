@@ -6,8 +6,8 @@ import { createWorkloadsControl } from '@/resources/control-plane/workloads.cont
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
 import { newWorkloadSchema } from '@/resources/schemas/workload.schema';
 import { CustomError } from '@/utils/errorHandle';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import {
   ActionFunctionArgs,

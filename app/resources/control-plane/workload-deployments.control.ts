@@ -6,7 +6,7 @@ import {
 } from '@/modules/control-plane/compute';
 import { IWorkloadDeploymentControlResponse } from '@/resources/interfaces/workload.interface';
 import { CustomError } from '@/utils/errorHandle';
-import { transformControlPlaneStatus } from '@/utils/misc';
+import { transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createWorkloadDeploymentsControl = (client: Client) => {

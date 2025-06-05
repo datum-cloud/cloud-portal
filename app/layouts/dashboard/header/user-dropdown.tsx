@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown';
 import { routes } from '@/constants/routes';
 import { useApp } from '@/providers/app.provider';
-import { cn, getInitials } from '@/utils/misc';
+import { cn, getInitials } from '@/utils/helpers/misc.helper';
 import { KeyIcon, LogOut, UserIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSubmit } from 'react-router';

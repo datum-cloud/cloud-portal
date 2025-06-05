@@ -22,7 +22,7 @@ import {
   UpdateExportPolicySchema,
 } from '@/resources/schemas/export-policy.schema';
 import { MetadataSchema, metadataSchema } from '@/resources/schemas/metadata.schema';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { defineStepper } from '@stepperize/react';

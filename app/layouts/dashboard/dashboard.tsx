@@ -3,7 +3,7 @@ import { NavItem } from './sidebar/nav-main';
 import { DashboardSidebar } from './sidebar/sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import React from 'react';
 
 export function DashboardLayout({

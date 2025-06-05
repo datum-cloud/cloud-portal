@@ -1,7 +1,7 @@
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { CustomError } from '@/utils/errorHandle';
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Client } from '@hey-api/client-axios';
 import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction } from 'react-router';
 

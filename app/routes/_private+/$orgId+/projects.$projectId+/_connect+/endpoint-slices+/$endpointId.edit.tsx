@@ -5,8 +5,8 @@ import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { createEndpointSlicesControl } from '@/resources/control-plane/endpoint-slices.control';
 import { IEndpointSliceControlResponse } from '@/resources/interfaces/endpoint-slice.interface';
 import { endpointSliceSchema } from '@/resources/schemas/endpoint-slice.schema';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import {
