@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import useAutosizeTextArea from '@/hooks/useAutosizeTextArea';
 import { useIsPending } from '@/hooks/useIsPending';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions';
-import { isBase64, toBase64 } from '@/utils/misc';
+import { isBase64, toBase64 } from '@/utils/helpers/misc.helper';
 import { getFormProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect, useImperativeHandle, useRef, useState } from 'react';

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { routes } from '@/constants/routes';
 import PublicLayout from '@/layouts/public/public';
-import { isDevelopment } from '@/utils/misc';
+import { isDevelopment } from '@/utils/helpers/misc.helper';
 import { HomeIcon, Loader2, RefreshCcwIcon } from 'lucide-react';
 import NProgress from 'nprogress';
 import { JSX, useEffect, useMemo, useState } from 'react';

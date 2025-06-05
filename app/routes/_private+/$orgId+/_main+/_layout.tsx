@@ -2,7 +2,7 @@ import { routes } from '@/constants/routes';
 import { DashboardLayout } from '@/layouts/dashboard/dashboard';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { useApp } from '@/providers/app.provider';
-import { getPathWithParams } from '@/utils/path';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { FileIcon, HomeIcon, SettingsIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { Outlet } from 'react-router';

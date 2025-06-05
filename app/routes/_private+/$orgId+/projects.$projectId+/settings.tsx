@@ -12,7 +12,7 @@ import { createProjectsControl } from '@/resources/control-plane/projects.contro
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
 import { CustomError } from '@/utils/errorHandle';
-import { getPathWithParams } from '@/utils/path';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { CircleAlertIcon } from 'lucide-react';

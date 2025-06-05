@@ -4,7 +4,7 @@ import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { iamOrganizationsAPI } from '@/resources/api/iam/organizations.api';
 import { OrganizationSchema, organizationSchema } from '@/resources/schemas/organization.schema';
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { AxiosInstance } from 'axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router';

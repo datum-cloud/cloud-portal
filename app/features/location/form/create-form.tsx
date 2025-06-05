@@ -22,7 +22,7 @@ import {
 } from '@/resources/interfaces/location.interface';
 import { newLocationSchema } from '@/resources/schemas/location.schema';
 // import { generateId, generateRandomString } from '@/utils/idGenerator'
-import { convertObjectToLabels } from '@/utils/misc';
+import { convertObjectToLabels } from '@/utils/helpers/misc.helper';
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect, useMemo, useRef } from 'react';

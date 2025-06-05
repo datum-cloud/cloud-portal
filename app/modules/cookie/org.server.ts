@@ -1,5 +1,5 @@
 import { IOrganization } from '@/resources/interfaces/organization.inteface';
-import { isProduction } from '@/utils/misc';
+import { isProduction } from '@/utils/helpers/misc.helper';
 import { createCookie, createCookieSessionStorage } from 'react-router';
 
 /**

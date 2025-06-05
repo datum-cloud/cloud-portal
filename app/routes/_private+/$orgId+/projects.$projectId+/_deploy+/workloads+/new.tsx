@@ -6,8 +6,8 @@ import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control';
 import { newWorkloadSchema } from '@/resources/schemas/workload.schema';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, useParams } from 'react-router';
 

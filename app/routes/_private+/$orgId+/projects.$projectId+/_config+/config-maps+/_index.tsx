@@ -11,7 +11,7 @@ import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
 import { CustomError } from '@/utils/errorHandle';
-import { getPathWithParams } from '@/utils/path';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';

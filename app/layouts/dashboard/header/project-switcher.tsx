@@ -12,8 +12,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { routes } from '@/constants/routes';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api+/projects+/list';
-import { cn } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
+import { cn } from '@/utils/helpers/misc.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { CheckIcon, ChevronsUpDownIcon, Loader2, PlusIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useFetcher, useNavigate } from 'react-router';

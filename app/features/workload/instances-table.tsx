@@ -4,7 +4,7 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { CardContent, CardHeader, CardTitle, Card } from '@/components/ui/card';
 import { IInstanceControlResponse } from '@/resources/interfaces/workload.interface';
-import { transformControlPlaneStatus } from '@/utils/misc';
+import { transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 

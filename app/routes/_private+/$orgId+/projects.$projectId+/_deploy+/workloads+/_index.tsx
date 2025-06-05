@@ -14,8 +14,8 @@ import { createWorkloadsControl } from '@/resources/control-plane/workloads.cont
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
 import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions';
 import { CustomError } from '@/utils/errorHandle';
-import { transformControlPlaneStatus } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
+import { transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { Loader2, PlusIcon } from 'lucide-react';

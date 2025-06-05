@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { Ellipsis } from 'lucide-react';
 
 export interface MoreActionsProps<TData> {

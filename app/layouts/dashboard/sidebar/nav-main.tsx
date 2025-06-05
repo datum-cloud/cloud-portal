@@ -19,7 +19,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { ChevronRight, ExternalLinkIcon, LucideIcon } from 'lucide-react';
 import { ComponentProps, Fragment, forwardRef, useCallback, useState } from 'react';
 import { Link, useLocation } from 'react-router';

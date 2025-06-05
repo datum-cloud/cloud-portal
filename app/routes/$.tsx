@@ -1,6 +1,6 @@
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary';
 import { CustomError } from '@/utils/errorHandle';
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { HelpCircle } from 'lucide-react';
 import type { MetaFunction } from 'react-router';
 

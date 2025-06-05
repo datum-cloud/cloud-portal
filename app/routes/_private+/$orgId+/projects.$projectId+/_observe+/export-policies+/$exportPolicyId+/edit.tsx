@@ -6,8 +6,8 @@ import { createExportPoliciesControl } from '@/resources/control-plane/export-po
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { newExportPolicySchema } from '@/resources/schemas/export-policy.schema';
 import { CustomError } from '@/utils/errorHandle';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import {
   ActionFunctionArgs,

@@ -9,7 +9,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { routes } from '@/constants/routes';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';
 

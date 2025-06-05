@@ -11,7 +11,7 @@ import {
   StoragesSchema,
   UpdateWorkloadSchema,
 } from '@/resources/schemas/workload.schema';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';

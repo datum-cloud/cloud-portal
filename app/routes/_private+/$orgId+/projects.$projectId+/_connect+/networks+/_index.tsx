@@ -11,7 +11,7 @@ import { createNetworksControl } from '@/resources/control-plane/networks.contro
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { ROUTE_PATH as NETWORKS_ACTIONS_ROUTE_PATH } from '@/routes/api+/connect+/networks+/actions';
 import { CustomError } from '@/utils/errorHandle';
-import { getPathWithParams } from '@/utils/path';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';

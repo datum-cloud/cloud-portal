@@ -1,5 +1,5 @@
 import { logoStyles } from './logo.styles';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { useTheme, Theme } from 'remix-themes';
 
 export interface LogoProps {

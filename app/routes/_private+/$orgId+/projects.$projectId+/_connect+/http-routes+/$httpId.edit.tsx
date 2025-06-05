@@ -5,8 +5,8 @@ import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { createHttpRoutesControl } from '@/resources/control-plane/http-routes.control';
 import { IHttpRouteControlResponse } from '@/resources/interfaces/http-route.interface';
 import { httpRouteSchema } from '@/resources/schemas/http-route.schema';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import {

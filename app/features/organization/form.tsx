@@ -15,8 +15,8 @@ import { routes } from '@/constants/routes';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IOrganization } from '@/resources/interfaces/organization.inteface';
 import { organizationSchema } from '@/resources/schemas/organization.schema';
+import { cn, convertObjectToLabels } from '@/utils/helpers/misc.helper';
 import { generateId, generateRandomString } from '@/utils/idGenerator';
-import { cn, convertObjectToLabels } from '@/utils/misc';
 import {
   FormProvider,
   getFormProps,

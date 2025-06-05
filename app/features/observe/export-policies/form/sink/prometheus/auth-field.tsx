@@ -13,7 +13,7 @@ import { SINK_AUTH_TYPES } from '@/constants/options';
 import { ExportPolicyAuthenticationType } from '@/resources/interfaces/export-policy.interface';
 import { SecretType } from '@/resources/interfaces/secret.interface';
 import { ExportPolicySinkAuthenticationSchema } from '@/resources/schemas/export-policy.schema';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { getSelectProps, useForm, useInputControl } from '@conform-to/react';
 import { useEffect, useState } from 'react';
 

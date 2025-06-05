@@ -3,7 +3,7 @@
  * @see https://github.com/sergiodxa/remix-utils?tab=readme-ov-file#csrf
  */
 import { CustomError } from '@/utils/errorHandle';
-import { isProduction } from '@/utils/misc';
+import { isProduction } from '@/utils/helpers/misc.helper';
 import { createCookie } from 'react-router';
 import { CSRF, CSRFError } from 'remix-utils/csrf/server';
 
