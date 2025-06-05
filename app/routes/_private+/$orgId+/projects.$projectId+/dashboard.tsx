@@ -173,7 +173,7 @@ export default function ProjectDashboardPage() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.6 }}
-                src="/images/google-cloud-platform.webp"
+                src="/images/providers/gcp.webp"
                 alt="Google Cloud Platform"
                 className="mx-auto h-auto max-w-[300px]"
               />
