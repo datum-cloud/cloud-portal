@@ -11,8 +11,8 @@ import { createExportPoliciesControl } from '@/resources/control-plane/export-po
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions';
 import { CustomError } from '@/utils/errorHandle';
-import { transformControlPlaneStatus } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
+import { transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';

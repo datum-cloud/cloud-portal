@@ -12,8 +12,8 @@ import { createLocationsControl } from '@/resources/control-plane/locations.cont
 import { ILocationControlResponse, LocationClass } from '@/resources/interfaces/location.interface';
 import { loader as apiLocationsLoader } from '@/routes/api+/locations/_index';
 // CustomError import removed as it's no longer used
-import { toTitleCase } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
+import { toTitleCase } from '@/utils/helpers/misc.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';

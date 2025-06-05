@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { ILocationControlResponse } from '@/resources/interfaces/location.interface';
 import { PlacementFieldSchema, PlacementsSchema } from '@/resources/schemas/workload.schema';
 import { ROUTE_PATH as LOCATION_LIST_ROUTE_PATH } from '@/routes/api+/locations/_index';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';

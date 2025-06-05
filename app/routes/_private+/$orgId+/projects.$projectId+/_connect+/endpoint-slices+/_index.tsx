@@ -8,7 +8,7 @@ import { createEndpointSlicesControl } from '@/resources/control-plane/endpoint-
 import { IEndpointSliceControlResponseLite } from '@/resources/interfaces/endpoint-slice.interface';
 import { ROUTE_PATH as ENDPOINT_SLICES_ACTIONS_PATH } from '@/routes/api+/connect+/endpoint-slices+/actions';
 import { CustomError } from '@/utils/errorHandle';
-import { getPathWithParams } from '@/utils/path';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';

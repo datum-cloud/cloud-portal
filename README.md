@@ -8,45 +8,143 @@
   </p>
 </p>
 
-<p align="center">
-    <a href="#">
-        <img alt="React" src="https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB" />
-    </a>
-    <a href="#">
-        <img alt="Tailwind" src="https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white" />
-    </a>
-    <a href="#">
-        <img alt="Typescript" src="https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white" />
-    </a>
-    <a href="#">
-        <img alt="Code Quality" src="https://github.com/datum-cloud/cloud-portal/actions/workflows/code-quality.yml/badge.svg" />
-    </a>
-    <a href="#">
-        <img alt="Build" src="https://github.com/datum-cloud/cloud-portal/actions/workflows/publish.yaml/badge.svg" />
-    </a>
-    <a href="#">
-        <img alt="Type check" src="https://github.com/datum-cloud/cloud-portal/actions/workflows/typecheck.yml/badge.svg" />
-    </a>
-</p>
+## Overview
 
-# Project Overview
+Datum Cloud Portal is a modern web application built with React and TypeScript, designed to streamline cloud operations management. The application uses the latest React Router v7 and is powered by Bun runtime.
 
-This project is a Remix-based web application designed for scalability, maintainability, and performance. It follows best practices in project structure, state management, API communication, and UI development to ensure an efficient developer experience and a high-quality user interface.
+## Tech Stack
 
-Key Features
+- **Runtime**: Bun
+- **Frontend Framework**: React 19
+- **Routing**: React Router 7
+- **Styling**: TailwindCSS
+- **Type Safety**: TypeScript
+- **Build Tool**: Vite
+- **Server**: Hono
 
-- Modular Structure: Feature-based organization with clear separation of concerns.
-- Modern UI Components: Built with React, TypeScript, shadcn/ui, and Tailwind CSS for a consistent and efficient design.
-- State Management: Uses Jotai for lightweight state or Zustand/TanStack Query for scalable state handling.
-- Optimized API Communication: Centralized API service layer with efficient data fetching using TanStack Query.
-- Performance Enhancements: Server components, lazy loading, memoization, and Remix-specific optimizations.
-- [WIP] Robust Testing: Includes unit, integration, and end-to-end (E2E) tests using Jest, React Testing Library, and Cypress/Playwright.
-- Accessibility (A11y): Follows WCAG guidelines, ensuring keyboard navigation and screen reader support.
-- Code Quality: Enforces linting, formatting, and Git hooks with Prettier, ESLint, and Husky.
-- CI/CD & Deployment: Uses GitHub Actions, environment configuration, feature flags, and monitoring tools like Sentry.
+## Project Structure
 
-# Getting Started
+```bash
+cloud-portal/
+├── app/ # Main application code
+│ ├── components/ # Reusable UI components
+│ ├── constants/ # Application constants
+│ ├── features/ # Feature-specific code
+│ ├── hooks/ # Custom React hooks
+│ ├── layouts/ # Page layouts
+│ ├── modules/ # Third-party library integrations and configurations
+│ │ └── i18n/ # Internationalization files
+│ ├── providers/ # React context providers
+│ ├── routes/ # Application routes
+│ ├── server/ # Server-side code
+│ ├── styles/ # Global styles
+│ └── utils/ # Utility functions
+│ └── resources/ # Data layer: interfaces, schemas, and API clients
+├── cypress/ # Cypress test files
+│ ├── e2e/ # End-to-end test files
+│ ├── support/ # Support files and custom commands
+│ └── component/ # Component test files
+├── docs/ # Documentation
+├── public/ # Static assets
+└── .github/ # GitHub configuration
+```
+
+## Getting Started
+
+### Prerequisites
+
+- [Bun](https://bun.sh/) (Latest version)
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/datum-cloud/cloud-portal.git
+   cd cloud-portal
+   ```
+
+2. Install dependencies:
+   ```bash
+   bun install
+   ```
+
+### Development
+
+Start the development server:
+
+```bash
+bun run dev
+```
+
+### Building
+
+Build the application:
+
+```bash
+bun run build
+```
+
+### Running Production Build
+
+Start the production server:
+
+```bash
+bun run start
+```
+
+## Available Scripts
+
+- `bun run dev` - Start development server
+- `bun run build` - Build the application
+- `bun run start` - Start production server
+- `bun run lint` - Run ESLint
+- `bun run format` - Format code with Prettier
+- `bun run typecheck` - Run TypeScript type checking
+- `bun run extract` - Extract messages for translation
+- `bun run compile` - Compile translation messages
+- `bun run test:e2e` - Run end-to-end tests in CI mode
+- `bun run test:e2e:prod` - Run end-to-end tests against production build
+- `bun run test:e2e:debug` - Open Cypress Test Runner for E2E tests
+- `bun run test:unit:prod` - Run component tests in CI mode
+- `bun run test:unit:debug` - Open Cypress Test Runner for component tests
+
+## Testing
+
+The project uses Cypress for both end-to-end (e2e) and component testing:
+
+### Component Testing
+
+- Component tests are written using Cypress Component Testing
+- Tests are located in the `cypress/component` directory
+- Run component tests in CI mode with `bun run test:unit:prod`
+- Open Cypress Test Runner for component tests with `bun run test:unit:debug`
+
+### End-to-End Testing
+
+- E2E tests are written using Cypress
+- Tests are located in the `cypress/e2e` directory
+- Run E2E tests in CI mode with `bun run test:e2e`
+- Run E2E tests against production build with `bun run test:e2e:prod`
+- Open Cypress Test Runner for E2E tests with `bun run test:e2e:debug`
+
+## Code Quality
+
+The project uses several tools to maintain code quality:
+
+- ESLint for code linting
+- Prettier for code formatting
+- TypeScript for type safety
+- Lefthook for git hooks
+
+## Documentations
 
 - [Development guide](docs/development.md)
 - [Design guide](docs/design.md)
-- [Deployment guide](docs//deployment.md)
+- [Deployment guide](docs/deployment.md)
+
+## Contributing
+
+1. Create a new branch for your feature
+2. Make your changes
+3. Submit a pull request

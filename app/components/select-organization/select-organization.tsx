@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { routes } from '@/constants/routes';
 import { IOrganization } from '@/resources/interfaces/organization.inteface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { CheckIcon, ChevronsUpDownIcon, Loader2, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useFetcher } from 'react-router';

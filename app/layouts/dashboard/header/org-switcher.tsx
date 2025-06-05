@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { routes } from '@/constants/routes';
 import { useApp } from '@/providers/app.provider';
 import { IOrganization } from '@/resources/interfaces/organization.inteface';
-import { getPathWithParams } from '@/utils/path';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Link, useNavigate } from 'react-router';
 
 export const OrganizationSwitcher = () => {

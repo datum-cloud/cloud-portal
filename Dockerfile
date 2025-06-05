@@ -1,50 +1,58 @@
-# syntax = docker/dockerfile:1
-
-# Use the latest Bun version
+# ==========================================
+# BASE STAGE - Common dependencies and setup
+# ==========================================
 FROM oven/bun:1.2 AS base
 
-# Install unzip using apt (Debian/Ubuntu package manager)
-RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/*
+# Install system dependencies and clean up in the same layer
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends unzip && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
 
-# Remix app lives here
+# Set working directory and environment variables
 WORKDIR /app
+ENV NODE_ENV=production \
+    PORT=3000
 
-# Set production environment
-ENV NODE_ENV="production"
-
-# Throw-away build stage to reduce size of final image
+# ==========================================
+# BUILD STAGE - Compile and prepare the app
+# ==========================================
 FROM base AS build
 
-# Install dependencies
+# Install dependencies first (better layer caching)
 COPY --link package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 # Copy application code
 COPY --link . .
 
-# Build application
-RUN bun run build
+# Build application and clean up
+RUN bun run build && \
+    bun install --production --frozen-lockfile && \
+    touch .env
 
-# Remove development dependencies
-RUN bun install --production --frozen-lockfile
-
-# Add empty .env file so it can be parsed correctly.
-RUN touch .env
-
-# Final stage for app image
+# ==========================================
+# PRODUCTION STAGE - Final lightweight image
+# ==========================================
 FROM base
 
-# Copy built application
-COPY --from=build /app /app
+# Copy only necessary files from build stage
+COPY --from=build /app/build /app/build
+COPY --from=build /app/public /app/public
+COPY --from=build /app/package.json /app/package.json
+COPY --from=build /app/bun.lock /app/bun.lock
+COPY --from=build /app/node_modules /app/node_modules
+COPY --from=build /app/.env /app/.env
 
-# Copy start script
-COPY docker-start.js /app/docker-start.js
+# Expose port
+EXPOSE ${PORT}
 
-# Start the server by default, this can be overwritten at runtime
-EXPOSE 3000
+# Use non-root user for better security
+RUN addgroup --system --gid 1001 datum && \
+    adduser --system --uid 1001 datum && \
+    chown -R datum:datum /app
 
-# # Set environment variables
-# ENV OTEL_ENABLED=true
+USER datum
 
-# Use the start script from package.json
-CMD [ "bun", "run", "start" ]
+# Start the application
+CMD ["bun", "run", "start"]

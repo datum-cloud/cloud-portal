@@ -9,9 +9,9 @@ import {
 } from '@/features/project/dashboard';
 import { useApp } from '@/providers/app.provider';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
-import { transformControlPlaneStatus } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
 import { differenceInMinutes } from 'date-fns';
+import { transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { motion } from 'framer-motion';
 import { ArrowRight, Binoculars, Cloud, GlobeLock, Mail, Network } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';

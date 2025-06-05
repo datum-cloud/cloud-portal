@@ -28,7 +28,7 @@ import {
   UpdateWorkloadSchema,
 } from '@/resources/schemas/workload.schema';
 import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions';
-import { getPathWithParams } from '@/utils/path';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { Cpu, HardDrive, Layers, Network, Server } from 'lucide-react';

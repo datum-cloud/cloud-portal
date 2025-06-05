@@ -5,8 +5,8 @@ import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { createGatewaysControl } from '@/resources/control-plane/gateways.control';
 import { IGatewayControlResponse } from '@/resources/interfaces/gateway.interface';
 import { gatewaySchema } from '@/resources/schemas/gateway.schema';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import {

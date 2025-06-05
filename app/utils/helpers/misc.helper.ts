@@ -26,6 +26,16 @@ export function isDevelopment() {
 }
 
 /**
+ * Converts a string, boolean, undefined, or null to a boolean
+ * @param value - The value to convert
+ * @returns Boolean value
+ */
+export function toBoolean(value: string | boolean | undefined | null): boolean {
+  if (typeof value === 'boolean') return value;
+  if (!value) return false;
+  return value.toLowerCase() === 'true';
+}
+
 /**
  * HTTP.
  */

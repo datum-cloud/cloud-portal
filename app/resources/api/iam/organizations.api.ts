@@ -1,6 +1,6 @@
 import { IOrganization } from '@/resources/interfaces/organization.inteface';
 import { OrganizationSchema } from '@/resources/schemas/organization.schema';
-import { convertLabelsToObject, determineOrgId } from '@/utils/misc';
+import { convertLabelsToObject, determineOrgId } from '@/utils/helpers/misc.helper';
 import { AxiosInstance } from 'axios';
 
 export const iamOrganizationsAPI = (client: AxiosInstance) => {

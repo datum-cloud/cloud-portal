@@ -1,4 +1,4 @@
-import { isProduction } from '@/utils/misc';
+import { isProduction } from '@/utils/helpers/misc.helper';
 import { load, trackPageview } from 'fathom-client';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router';

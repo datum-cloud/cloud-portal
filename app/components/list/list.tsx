@@ -1,4 +1,4 @@
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 
 export interface ListItem {
   label?: React.ReactNode | string;

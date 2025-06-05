@@ -15,7 +15,7 @@ import {
 } from '@/resources/interfaces/workload.interface';
 import { NewWorkloadSchema, RuntimeEnvSchema } from '@/resources/schemas/workload.schema';
 import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/misc';
+import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createWorkloadsControl = (client: Client) => {

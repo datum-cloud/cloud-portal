@@ -4,7 +4,7 @@ import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
-import { getShortId, transformControlPlaneStatus } from '@/utils/misc';
+import { getShortId, transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
 import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
 

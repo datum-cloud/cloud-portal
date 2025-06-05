@@ -2,7 +2,7 @@ import { routes } from '@/constants/routes';
 import { authenticator } from '@/modules/auth/auth.server';
 import { zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
 import { IAuthSession } from '@/resources/interfaces/auth.interface';
-import { isProduction } from '@/utils/misc';
+import { isProduction } from '@/utils/helpers/misc.helper';
 import { createCookie, createCookieSessionStorage, redirect } from 'react-router';
 
 /**

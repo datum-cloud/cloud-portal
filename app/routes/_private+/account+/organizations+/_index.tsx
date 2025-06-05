@@ -7,8 +7,8 @@ import { routes } from '@/constants/routes';
 import { IOrganization } from '@/resources/interfaces/organization.inteface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
 import { CustomError } from '@/utils/errorHandle';
-import { getInitials } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
+import { getInitials } from '@/utils/helpers/misc.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { HomeIcon, PlusIcon, SettingsIcon } from 'lucide-react';
 import { Link, useLoaderData, useNavigate, LoaderFunctionArgs } from 'react-router';
 
