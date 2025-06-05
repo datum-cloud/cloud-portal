@@ -7,7 +7,7 @@ import {
   HttpRouteMatchSchema,
   HttpRouteRuleSchema,
 } from '@/resources/schemas/http-route.schema';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect } from 'react';

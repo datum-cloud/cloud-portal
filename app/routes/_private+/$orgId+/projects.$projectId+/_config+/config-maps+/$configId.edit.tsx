@@ -7,10 +7,10 @@ import { withMiddleware } from '@/modules/middleware/middleware';
 import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
 import { updateConfigMapSchema } from '@/resources/schemas/config-map.schema';
-import { yamlToJson } from '@/utils/editor';
 import { CustomError } from '@/utils/errorHandle';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { yamlToJson } from '@/utils/helpers/editor.helper';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import {

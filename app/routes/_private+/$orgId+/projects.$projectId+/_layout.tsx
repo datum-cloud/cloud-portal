@@ -9,8 +9,8 @@ import { createProjectsControl } from '@/resources/control-plane/projects.contro
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { CustomError } from '@/utils/errorHandle';
-import { transformControlPlaneStatus } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
+import { transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import {
   AreaChartIcon,

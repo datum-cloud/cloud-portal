@@ -2,7 +2,7 @@ import { routes } from '@/constants/routes';
 import { destroyIdTokenSession } from '@/modules/cookie/id-token.server';
 import { destroyOrgSession } from '@/modules/cookie/org.server';
 import { destroySession } from '@/modules/cookie/session.server';
-import { combineHeaders } from '@/utils/misc';
+import { combineHeaders } from '@/utils/helpers/misc.helper';
 import { AppLoadContext, redirect } from 'react-router';
 
 export const destroyLocalSessions = async (request: Request, context: AppLoadContext) => {

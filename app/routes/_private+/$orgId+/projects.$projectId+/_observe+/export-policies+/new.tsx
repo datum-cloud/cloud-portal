@@ -4,8 +4,8 @@ import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
 import { newExportPolicySchema } from '@/resources/schemas/export-policy.schema';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, useParams } from 'react-router';
 

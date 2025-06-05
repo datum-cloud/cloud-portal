@@ -6,7 +6,7 @@ import { DataTableProps } from './data-table.types';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { DataTableProvider } from '@/providers/dataTable.provider';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import {
   ColumnFiltersState,
   PaginationState,

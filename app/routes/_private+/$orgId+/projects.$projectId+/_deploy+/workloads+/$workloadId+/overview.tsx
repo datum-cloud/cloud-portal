@@ -19,9 +19,9 @@ import {
   IWorkloadDeploymentControlResponse,
 } from '@/resources/interfaces/workload.interface';
 import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { transformControlPlaneStatus } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 import { motion } from 'framer-motion';
 import { ClockIcon, PencilIcon } from 'lucide-react';

@@ -1,5 +1,4 @@
 import { NonceProvider } from '@/hooks/useNonce';
-import { initEnvs } from '@/utils/env';
 import { createReadableStreamFromReadable } from '@react-router/node';
 import { isbot } from 'isbot';
 import { PassThrough } from 'node:stream';
@@ -7,36 +6,36 @@ import { renderToPipeableStream } from 'react-dom/server';
 import type { AppLoadContext, EntryContext } from 'react-router';
 import { ServerRouter } from 'react-router';
 
-/**
- * Environment Variables.
- */
-initEnvs();
+export const streamTimeout = 5_000;
 
-const ABORT_DELAY = 5_000;
+function isBot(userAgent: string | null): boolean {
+  if (!userAgent) return false;
+
+  // Skip bot detection for Cypress tests
+  if (/Cypress|axios/.test(userAgent)) return false;
+
+  return isbot(userAgent);
+}
 
 export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  reactRouterContext: EntryContext,
+  routerContext: EntryContext,
   loadContext: AppLoadContext
 ) {
-  const callbackName = isbot(request.headers.get('user-agent')) ? 'onAllReady' : 'onShellReady';
-
-  /**
-   * Content Security Policy.
-   * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
-   */
-  const nonce = String(loadContext.cspNonce) ?? undefined;
+  let userAgent = request.headers.get('user-agent');
+  const callbackName = isBot(userAgent) || routerContext.isSpaMode ? 'onAllReady' : 'onShellReady';
 
   return new Promise((resolve, reject) => {
     let shellRendered = false;
     const { pipe, abort } = renderToPipeableStream(
-      <NonceProvider value={nonce}>
-        <ServerRouter context={reactRouterContext} url={request.url} />
+      <NonceProvider value={loadContext.cspNonce}>
+        <ServerRouter nonce={loadContext.cspNonce} context={routerContext} url={request.url} />
       </NonceProvider>,
       {
-        [callbackName]: () => {
+        nonce: loadContext.cspNonce,
+        [callbackName]() {
           shellRendered = true;
           const body = new PassThrough();
           const stream = createReadableStreamFromReadable(body);
@@ -61,10 +60,9 @@ export default async function handleRequest(
             console.error(error);
           }
         },
-        nonce,
       }
     );
 
-    setTimeout(abort, ABORT_DELAY);
+    setTimeout(abort, streamTimeout + 1000);
   });
 }

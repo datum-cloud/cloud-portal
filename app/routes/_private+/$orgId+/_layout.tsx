@@ -4,7 +4,7 @@ import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api+/organizations+/$orgId';
 import { CustomError } from '@/utils/errorHandle';
-import { getPathWithParams } from '@/utils/path';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useEffect } from 'react';
 import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
 

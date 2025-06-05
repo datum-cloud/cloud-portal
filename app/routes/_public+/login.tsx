@@ -1,6 +1,6 @@
 import { routes } from '@/constants/routes';
 import { isAuthenticated } from '@/modules/cookie/session.server';
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { LoaderFunctionArgs, MetaFunction } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {

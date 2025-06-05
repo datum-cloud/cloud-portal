@@ -1,7 +1,7 @@
 import { TabsProps } from './tabs.types';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Tabs, TabsLinkTrigger, TabsList } from '@/components/ui/tabs';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { useMemo } from 'react';
 import { useLocation } from 'react-router';
 

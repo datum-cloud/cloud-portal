@@ -12,7 +12,7 @@ import { createSecretsControl } from '@/resources/control-plane/secrets.control'
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions';
 import { CustomError } from '@/utils/errorHandle';
-import { getPathWithParams } from '@/utils/path';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';

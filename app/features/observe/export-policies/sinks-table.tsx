@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
-import { transformControlPlaneStatus } from '@/utils/misc';
+import { transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
 import { find } from 'es-toolkit/compat';
 import { SettingsIcon } from 'lucide-react';
 import { useMemo } from 'react';

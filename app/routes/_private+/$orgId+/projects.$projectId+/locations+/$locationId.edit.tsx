@@ -8,8 +8,8 @@ import { createLocationsControl } from '@/resources/control-plane/locations.cont
 import { ILocationControlResponse } from '@/resources/interfaces/location.interface';
 import { NewLocationSchema, newLocationSchema } from '@/resources/schemas/location.schema';
 import { CustomError } from '@/utils/errorHandle';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import {

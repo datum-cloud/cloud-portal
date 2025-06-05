@@ -2,7 +2,7 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { Field } from '@/components/field/field';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
-import { getShortId } from '@/utils/misc';
+import { getShortId } from '@/utils/helpers/misc.helper';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 
 export const SimpleConfigMapDetail = ({ configMap }: { configMap: IConfigMapControlResponse }) => {

@@ -17,7 +17,7 @@ import {
 } from '@/resources/interfaces/export-policy.interface';
 import { NewExportPolicySchema } from '@/resources/schemas/export-policy.schema';
 import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/misc';
+import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createExportPoliciesControl = (client: Client) => {

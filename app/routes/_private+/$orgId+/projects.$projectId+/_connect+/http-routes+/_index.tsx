@@ -8,8 +8,8 @@ import { createHttpRoutesControl } from '@/resources/control-plane/http-routes.c
 import { IHttpRouteControlResponseLite } from '@/resources/interfaces/http-route.interface';
 import { ROUTE_PATH as HTTP_ROUTES_ACTIONS_PATH } from '@/routes/api+/connect+/http-routes+/actions';
 import { CustomError } from '@/utils/errorHandle';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';

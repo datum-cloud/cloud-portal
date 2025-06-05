@@ -23,7 +23,7 @@ import {
   storagesSchema,
   UpdateWorkloadSchema,
 } from '@/resources/schemas/workload.schema';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { getFormProps, useForm, FormProvider } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { defineStepper } from '@stepperize/react';

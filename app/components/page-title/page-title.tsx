@@ -1,4 +1,4 @@
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 
 export const PageTitle = ({
   title,

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { InputWithAddons } from '@/components/ui/input-with-addons';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { CopyIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';

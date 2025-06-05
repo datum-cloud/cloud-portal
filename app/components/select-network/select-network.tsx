@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { NetworkDialogForm, NetworkDialogFormRef } from '@/features/network/dialog-form';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { ROUTE_PATH as NETWORKS_LIST_ROUTE_PATH } from '@/routes/api+/connect+/networks+/list';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers/misc.helper';
 import { CheckIcon, ChevronDown, Loader2, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';

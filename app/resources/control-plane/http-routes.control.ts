@@ -18,7 +18,7 @@ import {
 } from '@/resources/interfaces/http-route.interface';
 import { HttpRouteSchema } from '@/resources/schemas/http-route.schema';
 import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject } from '@/utils/misc';
+import { convertLabelsToObject } from '@/utils/helpers/misc.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createHttpRoutesControl = (client: Client) => {

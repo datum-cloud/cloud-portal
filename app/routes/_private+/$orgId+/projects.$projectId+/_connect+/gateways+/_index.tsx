@@ -12,8 +12,8 @@ import { createGatewaysControl } from '@/resources/control-plane/gateways.contro
 import { IGatewayControlResponseLite } from '@/resources/interfaces/gateway.interface';
 import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api+/connect+/gateways+/actions';
 import { CustomError } from '@/utils/errorHandle';
-import { transformControlPlaneStatus } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
+import { transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { InfoIcon, PlusIcon } from 'lucide-react';

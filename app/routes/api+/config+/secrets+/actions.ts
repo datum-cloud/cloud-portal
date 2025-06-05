@@ -6,8 +6,8 @@ import { withMiddleware } from '@/modules/middleware/middleware';
 import { createSecretsControl } from '@/resources/control-plane/secrets.control';
 import { secretEditSchema } from '@/resources/schemas/secret.schema';
 import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
+import { convertLabelsToObject } from '@/utils/helpers/misc.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 

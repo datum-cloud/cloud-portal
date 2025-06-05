@@ -9,8 +9,8 @@ import {
 } from '@/components/ui/command';
 import { routes } from '@/constants/routes';
 import { useOs } from '@/hooks/useOs';
-import { cn } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
+import { cn } from '@/utils/helpers/misc.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';

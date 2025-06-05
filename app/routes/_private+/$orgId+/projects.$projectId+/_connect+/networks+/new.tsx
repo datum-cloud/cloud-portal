@@ -1,7 +1,7 @@
 import { routes } from '@/constants/routes';
 import { NetworkForm } from '@/features/network/form';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { MetaFunction, useNavigate, useParams } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {

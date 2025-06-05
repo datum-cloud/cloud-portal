@@ -1,11 +1,16 @@
-import { startTransition } from 'react';
+import { StrictMode, startTransition } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
 
 async function main() {
   startTransition(() => {
-    hydrateRoot(document, <HydratedRouter />);
+    hydrateRoot(
+      document,
+      <StrictMode>
+        <HydratedRouter />
+      </StrictMode>
+    );
   });
 }
 
-main().catch((error) => console.error(error));
+main().catch(console.error);

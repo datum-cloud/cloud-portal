@@ -1,4 +1,4 @@
-import { isDevelopment } from './misc';
+import { isDevelopment } from './helpers/misc.helper';
 
 export class CustomError extends Error {
   code: number;
