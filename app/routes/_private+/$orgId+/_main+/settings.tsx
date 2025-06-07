@@ -25,7 +25,7 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export const action = async ({ request, params, context }: ActionFunctionArgs) => {
   const { orgId } = params;
-  const { apiClient, cache } = context as AppLoadContext;
+  const { apiClient } = context as AppLoadContext;
 
   const orgAPI = iamOrganizationsAPI(apiClient as AxiosInstance);
 
@@ -53,19 +53,6 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
     let res: IOrganization | null = null;
     if (validateRes) {
       res = await orgAPI.update(orgId, payload);
-    }
-
-    await cache.removeItem(`organizations:${orgId}`);
-    const organizations = await cache.getItem('organizations');
-    if (organizations) {
-      const newOrganizations = (organizations as IOrganization[]).map((org: IOrganization) => {
-        if (org.id === orgId) {
-          return res;
-        }
-        return org;
-      });
-
-      await cache.setItem('organizations', newOrganizations);
     }
 
     return redirectWithToast(routes.account.organizations.root, {
