@@ -1,9 +1,8 @@
 /* eslint-disable import/no-unresolved */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { sessionStorage, SESSION_KEY } from '@/modules/cookie/session.server';
-import { createCacheClient } from '@/modules/unstorage/unstorage.js';
 import { createAPIFactory } from '@/resources/api/api.factory.js';
 import { createControlPlaneFactory } from '@/resources/control-plane/control.factory.js';
+import { createCacheClient } from '@/utils/caches/base.js';
 import { createRequestHandler } from '@react-router/express';
 import compression from 'compression';
 import express, { Request, Response } from 'express';
@@ -188,7 +187,7 @@ app.use(express.static('build/client', { maxAge: '1h' }));
 /**
  * Handle 404s for missing image/favicon requests
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 app.get(['/img/*splat', '/favicons/*splat'], (_req: any, res: any) => {
   // if we made it past the express.static for these, then we're missing something.
   // So we'll just send a 404 and won't bother calling other middleware.
@@ -263,7 +262,4 @@ app.all(
 /**
  * Start the server
  */
-app.listen(PORT, () =>
-  // eslint-disable-next-line no-console
-  console.log(`Express server listening at http://localhost:${PORT}`)
-);
+app.listen(PORT, () => console.log(`Express server listening at http://localhost:${PORT}`));

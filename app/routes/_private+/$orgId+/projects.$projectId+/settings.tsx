@@ -23,7 +23,7 @@ export const handle = {
 };
 
 export const action = withMiddleware(async ({ request, context, params }: ActionFunctionArgs) => {
-  const { controlPlaneClient, cache } = context as AppLoadContext;
+  const { controlPlaneClient } = context as AppLoadContext;
   const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
   switch (request.method) {
@@ -59,8 +59,6 @@ export const action = withMiddleware(async ({ request, context, params }: Action
           await projectsControl.update(orgId, projectId, parsed.value, false);
         }
 
-        await cache.removeItem(`projects:${orgId}`);
-
         return dataWithToast(null, {
           title: 'Project updated successfully',
           description: 'You have successfully updated a project.',
@@ -77,9 +75,6 @@ export const action = withMiddleware(async ({ request, context, params }: Action
     case 'DELETE': {
       const formData = Object.fromEntries(await request.formData());
       const { projectName, orgId: orgEntityId } = formData;
-
-      // Invalidate the projects cache
-      await cache.removeItem(`projects:${orgEntityId}`);
 
       await projectsControl.delete(orgEntityId as string, projectName as string);
       return redirectWithToast(
