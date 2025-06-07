@@ -48,8 +48,8 @@ export const SelectNetwork = ({
     return options.find((option) => option.value === value);
   }, [value, options]);
 
-  const fetchOptions = async (noCache = false) => {
-    fetcher.load(`${NETWORKS_LIST_ROUTE_PATH}?projectId=${projectId}&noCache=${noCache}`);
+  const fetchOptions = async () => {
+    fetcher.load(`${NETWORKS_LIST_ROUTE_PATH}?projectId=${projectId}`);
   };
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export const SelectNetwork = ({
 
     setValue(newNetwork.name);
 
-    fetchOptions(true);
+    fetchOptions();
   };
 
   return (

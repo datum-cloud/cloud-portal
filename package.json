@@ -102,7 +102,6 @@
     "tailwind-merge": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.19.4",
-    "unstorage": "^1.16.0",
     "zod": "^3.25.36"
   },
   "devDependencies": {

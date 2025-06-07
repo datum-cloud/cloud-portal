@@ -14,7 +14,7 @@ export const meta: MetaFunction = mergeMeta(() => {
 });
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
-  const { apiClient, cache } = context as AppLoadContext;
+  const { apiClient } = context as AppLoadContext;
   const orgAPI = iamOrganizationsAPI(apiClient as AxiosInstance);
 
   const clonedRequest = request.clone();
@@ -37,9 +37,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     if (validateRes) {
       await orgAPI.create(payload);
     }
-
-    // Invalidate the organizations cache
-    await cache.removeItem('organizations');
 
     return redirectWithToast(routes.account.organizations.root, {
       title: 'Organization created successfully',
