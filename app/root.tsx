@@ -9,7 +9,6 @@ import { useToast } from '@/hooks/useToast';
 import { csrf } from '@/modules/cookie/csrf.server';
 import { themeSessionResolver } from '@/modules/cookie/theme.server';
 import { getToastSession } from '@/modules/cookie/toast.server';
-import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/cache';
 import { ROUTE_PATH as SET_THEME_ROUTE_PATH } from '@/routes/api+/set-theme';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
@@ -131,17 +130,6 @@ export function App() {
     // when the state is idle then we can to complete the progress bar
     if (state === 'idle') NProgress.done();
   }, [state]);
-
-  /**
-   * Clears the application cache by making a POST request to the cache route
-   * when the user is about to leave/reload the page.
-   * This ensures that any cached data is properly cleared to maintain data consistency
-   * and prevent stale cache issues on subsequent visits.
-   */
-  useBeforeUnload(() => {
-    // Clear Cache with hit API
-    fetch(CACHE_ROUTE_PATH, { method: 'POST' });
-  });
 
   return (
     <html

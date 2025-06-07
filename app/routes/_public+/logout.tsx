@@ -4,9 +4,9 @@ import { getIdTokenSession } from '@/modules/cookie/id-token.server';
 import { getSession } from '@/modules/cookie/session.server';
 import { destroyLocalSessions } from '@/utils/session';
 import type { ActionFunctionArgs } from 'react-router';
-import { LoaderFunctionArgs, redirect, AppLoadContext } from 'react-router';
+import { LoaderFunctionArgs, redirect } from 'react-router';
 
-const signOut = async (request: Request, context: AppLoadContext) => {
+const signOut = async (request: Request) => {
   try {
     // 1. Revoke tokens
     const { session } = await getSession(request);
@@ -28,18 +28,18 @@ const signOut = async (request: Request, context: AppLoadContext) => {
       return redirect(endSessionUrl.toString());
     }
 
-    return destroyLocalSessions(request, context);
+    return destroyLocalSessions(request);
   } catch (error) {
     console.error('Error during sign out process:', error);
 
-    return destroyLocalSessions(request, context);
+    return destroyLocalSessions(request);
   }
 };
 
-export async function action({ request, context }: ActionFunctionArgs) {
-  return signOut(request, context);
+export async function action({ request }: ActionFunctionArgs) {
+  return signOut(request);
 }
 
-export async function loader({ request, context }: LoaderFunctionArgs) {
-  return signOut(request, context);
+export async function loader({ request }: LoaderFunctionArgs) {
+  return signOut(request);
 }

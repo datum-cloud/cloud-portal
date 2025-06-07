@@ -21,7 +21,7 @@ export const meta: MetaFunction = mergeMeta(() => {
 });
 
 export const action = withMiddleware(async ({ request, params, context }: ActionFunctionArgs) => {
-  const { controlPlaneClient, cache } = context as AppLoadContext;
+  const { controlPlaneClient } = context as AppLoadContext;
   const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
   const clonedRequest = request.clone();
@@ -46,9 +46,6 @@ export const action = withMiddleware(async ({ request, params, context }: Action
     if (dryRunRes) {
       await projectsControl.create(payload, false);
     }
-
-    // Invalidate the projects cache
-    await cache.removeItem(`projects:${payload.orgEntityId}`);
 
     // TODO: temporary solution for handle delay on new project
     // https://github.com/datum-cloud/cloud-portal/issues/45
