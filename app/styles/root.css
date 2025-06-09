@@ -1,6 +1,6 @@
 @import 'tailwindcss';
-
 @import 'nprogress/nprogress.css' layer(base);
+
 @import './fonts.css' layer(base);
 @import './custom.css' layer(base);
 
@@ -82,6 +82,9 @@
   --sidebar-accent-foreground: hsl(240 5.9% 10%); /* #191919 */
   --sidebar-border: hsl(220 13% 91%); /* #E8E8E8 */
   --sidebar-ring: hsl(217.2 91.2% 59.8%); /* #3B82F6 */
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
+  --sidebar-width-mobile: 18rem;
 }
 
 .dark {

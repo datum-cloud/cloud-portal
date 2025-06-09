@@ -39,7 +39,7 @@ export default function EditNetwork() {
   const { orgId, projectId } = useParams();
 
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <NetworkForm
         projectId={projectId}
         defaultValue={network}

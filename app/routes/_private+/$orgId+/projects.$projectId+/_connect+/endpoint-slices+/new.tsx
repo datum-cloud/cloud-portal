@@ -64,7 +64,7 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
 
 export default function ConnectEndpointSlicesNewPage() {
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <EndpointSliceForm />
     </div>
   );

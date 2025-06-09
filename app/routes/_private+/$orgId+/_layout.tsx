@@ -31,7 +31,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const { headers } = await setOrgSession(request, org);
 
     return data(org, { headers });
-  } catch (error) {
+  } catch {
     return redirectWithToast(routes.account.organizations.root, {
       title: 'Error',
       description: 'Organization not found',

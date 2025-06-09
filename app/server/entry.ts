@@ -34,7 +34,7 @@ app.use(
     contentSecurityPolicy: {
       reportTo: env.isDev ? '/' : undefined,
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", ...(env.isDev ? ['ws:'] : [])],
+      connectSrc: ["'self'", ...(env.isDev ? ['ws:'] : []), env.API_URL],
       fontSrc: ["'self'"],
       frameSrc: ["'self'"],
       imgSrc: ["'self'", 'data:'],

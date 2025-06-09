@@ -103,7 +103,7 @@ export default function EditConfigMap() {
   const data = useLoaderData<typeof loader>();
 
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <ConfigMapForm defaultValue={data} />
     </div>
   );

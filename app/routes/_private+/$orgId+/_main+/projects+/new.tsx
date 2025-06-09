@@ -66,7 +66,7 @@ export const action = withMiddleware(async ({ request, params, context }: Action
 
 export default function NewProject() {
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <CreateProjectForm />
     </div>
   );

@@ -8,7 +8,6 @@ import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { useApp } from '@/providers/app.provider';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { iamOrganizationsAPI } from '@/resources/api/iam/organizations.api';
-import { IOrganization } from '@/resources/interfaces/organization.inteface';
 import { OrganizationSchema, organizationSchema } from '@/resources/schemas/organization.schema';
 import { ROUTE_PATH as ORG_ACTION_PATH } from '@/routes/api+/organizations+/$orgId';
 import { CustomError } from '@/utils/errorHandle';
@@ -50,9 +49,8 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
     const validateRes = await orgAPI.update(orgId, payload, true);
 
     // If dry run succeeds, create for real
-    let res: IOrganization | null = null;
     if (validateRes) {
-      res = await orgAPI.update(orgId, payload);
+      await orgAPI.update(orgId, payload);
     }
 
     return redirectWithToast(routes.account.organizations.root, {

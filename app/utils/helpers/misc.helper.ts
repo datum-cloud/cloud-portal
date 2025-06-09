@@ -232,7 +232,7 @@ export function isBase64(str: string): boolean {
   try {
     const decoded = atob(str);
     return btoa(decoded) === str;
-  } catch (e) {
+  } catch {
     return false;
   }
 }

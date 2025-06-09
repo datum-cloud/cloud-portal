@@ -76,7 +76,7 @@ export default function NewWorkload() {
   const { projectId } = useParams();
 
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <WorkloadStepper projectId={projectId} />
     </div>
   );

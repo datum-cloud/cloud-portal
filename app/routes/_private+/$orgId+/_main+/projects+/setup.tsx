@@ -36,7 +36,7 @@ export const loader = withMiddleware(async ({ request, params, context }) => {
         projectId,
       })
     );
-  } catch (error) {
+  } catch {
     return null;
   }
 }, authMiddleware);

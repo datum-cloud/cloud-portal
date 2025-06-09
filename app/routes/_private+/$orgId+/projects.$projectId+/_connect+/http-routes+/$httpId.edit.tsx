@@ -90,7 +90,7 @@ export default function ConnectHttpRoutesEditPage() {
   const { projectId } = useParams();
 
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <HttpRouteForm projectId={projectId} defaultValue={httpRoute} />
     </div>
   );
