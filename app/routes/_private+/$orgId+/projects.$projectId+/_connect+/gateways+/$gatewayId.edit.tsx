@@ -1,10 +1,10 @@
 import { routes } from '@/constants/routes';
 import { GatewayForm } from '@/features/connect/gateway/form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createGatewaysControl } from '@/resources/control-plane/gateways.control';
 import { IGatewayControlResponse } from '@/resources/interfaces/gateway.interface';
 import { gatewaySchema } from '@/resources/schemas/gateway.schema';
+import { dataWithToast, redirectWithToast } from '@/utils/cookies/toast';
+import { validateCSRF } from '@/utils/helpers/csrf.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
@@ -93,7 +93,7 @@ export default function ConnectGatewaysEditPage() {
   const { projectId } = useParams();
 
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <GatewayForm defaultValue={gateway} projectId={projectId} />
     </div>
   );

@@ -1,8 +1,8 @@
 import { routes } from '@/constants/routes';
 import { setOrgSession } from '@/modules/cookie/org.server';
-import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api+/organizations+/$orgId';
+import { redirectWithToast } from '@/utils/cookies/toast';
 import { CustomError } from '@/utils/errorHandle';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useEffect } from 'react';
@@ -31,7 +31,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const { headers } = await setOrgSession(request, org);
 
     return data(org, { headers });
-  } catch (error) {
+  } catch {
     return redirectWithToast(routes.account.organizations.root, {
       title: 'Error',
       description: 'Organization not found',

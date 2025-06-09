@@ -1,7 +1,7 @@
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
 import { CustomError } from '@/utils/errorHandle';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, data } from 'react-router';
 
@@ -22,7 +22,7 @@ export const loader = withMiddleware(async ({ request, context }) => {
 
     const status = await exportPoliciesControl.getStatus(projectId, exportPolicyId);
     return data(status);
-  } catch (error) {
+  } catch {
     return data(null);
   }
 }, authMiddleware);

@@ -1,9 +1,9 @@
 import { routes } from '@/constants/routes';
 import { SecretForm } from '@/features/secret/form/form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { redirectWithToast, dataWithToast } from '@/modules/cookie/toast.server';
 import { createSecretsControl } from '@/resources/control-plane/secrets.control';
 import { SecretNewSchema, secretNewSchema } from '@/resources/schemas/secret.schema';
+import { redirectWithToast, dataWithToast } from '@/utils/cookies/toast';
+import { validateCSRF } from '@/utils/helpers/csrf.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
@@ -67,7 +67,7 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
 
 export default function ConfigSecretsNewPage() {
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <SecretForm />
     </div>
   );

@@ -164,7 +164,7 @@ export const CreateLocationForm = ({
                 const value = (e.target as HTMLInputElement).value;
                 nameControl.change(value);
               }}
-              onBlur={(e: React.FormEvent<HTMLInputElement>) => {
+              onBlur={() => {
                 if (isEdit) {
                   nameControl.change(defaultValue?.name ?? '');
                 }

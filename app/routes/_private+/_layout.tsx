@@ -1,25 +1,25 @@
 import { routes } from '@/constants/routes';
-import { zitadelIssuer } from '@/modules/auth/strategies/zitadel.server';
-import { createAxiosClient } from '@/modules/axios/axios';
-import { getSession } from '@/modules/cookie/session.server';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
+import { apiRequest } from '@/modules/axios/axios';
 import { AppProvider } from '@/providers/app.provider';
 import { ConfirmationDialogProvider } from '@/providers/confirmationDialog.provider';
 import { IUser } from '@/resources/interfaces/user.interface';
+import { env } from '@/utils/config/env.server';
+import { sessionCookie } from '@/utils/cookies/session';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { LoaderFunctionArgs, Outlet, data, redirect, useLoaderData } from 'react-router';
 
 export const loader = withMiddleware(async ({ request }: LoaderFunctionArgs) => {
   try {
-    const { session } = await getSession(request);
+    const { data: session } = await sessionCookie.get(request);
 
     if (!session) {
       return redirect(routes.auth.logOut);
     }
 
     // Get user info from Zitadel
-    const apiClient = createAxiosClient({
-      baseURL: zitadelIssuer,
+    const apiClient = apiRequest({
+      baseURL: env.AUTH_OIDC_ISSUER,
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
       },

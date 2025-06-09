@@ -4,8 +4,6 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { Button } from '@/components/ui/button';
 import { routes } from '@/constants/routes';
 import { ExportPolicyStatus } from '@/features/observe/export-policies/status';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
@@ -13,6 +11,8 @@ import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/
 import { CustomError } from '@/utils/errorHandle';
 import { transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';

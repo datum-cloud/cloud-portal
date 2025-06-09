@@ -1,7 +1,7 @@
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
 import { CustomError } from '@/utils/errorHandle';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, data } from 'react-router';
 
@@ -22,7 +22,7 @@ export const loader = withMiddleware(async ({ request, context }) => {
 
     const status = await projectsControl.getStatus(orgId, projectId);
     return data(status);
-  } catch (error) {
+  } catch {
     return data(null);
   }
 }, authMiddleware);

@@ -1,7 +1,7 @@
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createLocationsControl } from '@/resources/control-plane/locations.control';
 import { CustomError } from '@/utils/errorHandle';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, data } from 'react-router';
 

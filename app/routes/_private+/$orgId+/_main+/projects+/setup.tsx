@@ -1,11 +1,11 @@
 import { WaitingPage } from '@/components/waiting-page/waiting-page';
 import { routes } from '@/constants/routes';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
 import { CustomError } from '@/utils/errorHandle';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { Client } from '@hey-api/client-axios';
 import { useEffect } from 'react';
 import { AppLoadContext, MetaFunction, redirect, useRevalidator } from 'react-router';
@@ -36,7 +36,7 @@ export const loader = withMiddleware(async ({ request, params, context }) => {
         projectId,
       })
     );
-  } catch (error) {
+  } catch {
     return null;
   }
 }, authMiddleware);

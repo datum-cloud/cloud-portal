@@ -1,5 +1,5 @@
+import { env } from '@/utils/config/env.server';
 import { CustomError } from '@/utils/errorHandle';
-import { isDevelopment } from '@/utils/helpers/misc.helper';
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 import curlirize from 'axios-curlirize';
 
@@ -19,7 +19,7 @@ export const createAxiosClient = (options: AxiosRequestConfig): AxiosInstance =>
   });
 
   // Curlirize the client for debugging purposes
-  if (isDevelopment()) {
+  if (env.isDev) {
     curlirize(instance);
   }
 

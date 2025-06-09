@@ -2,11 +2,10 @@ import { LogoIcon } from '@/components/logo/logo-icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { routes } from '@/constants/routes';
-import PublicLayout from '@/layouts/public/public';
 import { isDevelopment } from '@/utils/helpers/misc.helper';
 import { HomeIcon, Loader2, RefreshCcwIcon } from 'lucide-react';
 import NProgress from 'nprogress';
-import { JSX, useEffect, useMemo, useState } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import type { ErrorResponse } from 'react-router';
 import {
   Link,
@@ -38,6 +37,9 @@ export function GenericErrorBoundary({
   const navigate = useNavigate();
   const fetcher = useFetcher();
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [message, setMessage] = useState<string>(
+    "We've encountered a problem, please try again. Sorry!"
+  );
 
   if (typeof document !== 'undefined') {
     console.error(error);
@@ -45,94 +47,89 @@ export function GenericErrorBoundary({
 
   useEffect(() => {
     NProgress.done();
-    // Check for 401 Unauthorized error
-    if (isRouteErrorResponse(error) && error.status === 401) {
-      // Perform sign out
-      const signOut = async () => {
-        try {
-          // Call your sign out endpoint
-          await fetcher.submit(null, {
-            method: 'POST',
-            action: routes.auth.logOut,
-          });
 
-          // Redirect to login page
-          navigate(routes.auth.logIn);
-        } catch (e) {
-          // Fallback: just redirect to login if the logout request fails
-          navigate(routes.auth.logIn);
+    console.log(error);
+
+    if (isRouteErrorResponse(error)) {
+      if (error.statusText === 'AUTH_ERROR') {
+        console.log(error.data.message);
+        if ((error.data.message as string).toLowerCase().includes('session expired')) {
+          console.log('molla');
+          navigate(routes.auth.logOut);
+        } else {
+          setMessage(error.data.message);
         }
-      };
-
-      signOut();
-    } else {
-      setIsLoading(false);
+      } else {
+        setMessage(`${error.status} ${error.statusText}`);
+      }
+    } else if (error instanceof Error) {
+      setMessage(error.message);
     }
+
+    setIsLoading(false);
   }, [error]);
 
-  const isOrganizationNotFound = useMemo(() => {
-    return error && typeof params?.orgId !== 'undefined';
-  }, [error, params]);
-
   return (
-    <PublicLayout>
-      <Card className="overflow-hidden">
-        <CardContent className="flex min-h-[500px] flex-col items-center justify-center gap-6">
-          <LogoIcon width={64} className="mb-4" />
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-2">
-              <Loader2 className="size-4 animate-spin" />
-              <p className="text-muted-foreground">Loading...</p>
-            </div>
-          ) : (
-            <>
-              <div className="flex max-w-xl flex-col gap-2">
-                <p className="w-full text-center text-2xl font-bold">
-                  Whoops! Something went wrong.
-                </p>
-
-                {isDevelopment() ? (
-                  <div className="text-muted-foreground text-center text-sm">
-                    {isRouteErrorResponse(error)
-                      ? (statusHandlers?.[error.status] ?? defaultStatusHandler)({
-                          error,
-                          params,
-                        })
-                      : unexpectedErrorHandler(error)}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center text-sm">
-                    Something went wrong on our end. Our team has been notified, and we&apos;re
-                    working to fix it. Please try again later. If the issue persists, reach out to{' '}
-                    <Link to={`mailto:support@datum.net`} className="text-primary underline">
-                      support@datum.net
-                    </Link>
-                    .
+    <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
+      <div className="w-full max-w-sm md:max-w-3xl">
+        <Card className="overflow-hidden">
+          <CardContent className="flex min-h-[500px] flex-col items-center justify-center gap-6">
+            <LogoIcon width={64} className="mb-4" />
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 className="size-4 animate-spin" />
+                <p className="text-muted-foreground">Loading...</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex max-w-xl flex-col gap-2">
+                  <p className="w-full text-center text-2xl font-bold">
+                    Whoops! Something went wrong.
                   </p>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <Link to={isOrganizationNotFound ? routes.account.organizations.root : routes.home}>
-                  <Button size="sm">
-                    <HomeIcon className="size-4" />
-                    Back to {isOrganizationNotFound ? 'Organizations' : 'Home'}
+
+                  {isDevelopment() ? (
+                    <div className="text-muted-foreground text-center text-sm">
+                      {isRouteErrorResponse(error)
+                        ? (statusHandlers?.[error.status] ?? defaultStatusHandler)({
+                            error,
+                            params,
+                          })
+                        : unexpectedErrorHandler(error)}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-center text-sm">
+                      Something went wrong on our end. Our team has been notified, and we&apos;re
+                      working to fix it. Please try again later. If the issue persists, reach out to{' '}
+                      <Link to={`mailto:support@datum.net`} className="text-primary underline">
+                        support@datum.net
+                      </Link>
+                      .
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link to={routes.home}>
+                    <Button size="sm">
+                      <HomeIcon className="size-4" />
+                      Back to Home
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigate(0);
+                    }}>
+                    <RefreshCcwIcon className="size-4" />
+                    Refresh Page
                   </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    navigate(0);
-                  }}>
-                  <RefreshCcwIcon className="size-4" />
-                  Refresh Page
-                </Button>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </PublicLayout>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
 

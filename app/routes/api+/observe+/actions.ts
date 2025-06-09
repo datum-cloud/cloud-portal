@@ -1,9 +1,9 @@
 import { routes } from '@/constants/routes';
-import { redirectWithToast } from '@/modules/cookie/toast.server';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
+import { redirectWithToast } from '@/utils/cookies/toast';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext } from 'react-router';
 

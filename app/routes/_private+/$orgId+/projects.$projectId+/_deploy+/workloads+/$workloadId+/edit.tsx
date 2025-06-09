@@ -1,11 +1,11 @@
 import { routes } from '@/constants/routes';
 import { WorkloadUpdateForm } from '@/features/workload/form/update-form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
 import { newWorkloadSchema } from '@/resources/schemas/workload.schema';
+import { dataWithToast, redirectWithToast } from '@/utils/cookies/toast';
 import { CustomError } from '@/utils/errorHandle';
+import { validateCSRF } from '@/utils/helpers/csrf.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
@@ -103,7 +103,7 @@ export default function WorkloadEditPage() {
   const { projectId } = useParams();
 
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <WorkloadUpdateForm projectId={projectId} defaultValue={workload} />
     </div>
   );

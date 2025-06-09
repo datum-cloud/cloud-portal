@@ -1,9 +1,9 @@
 import { routes } from '@/constants/routes';
 import { EndpointSliceForm } from '@/features/connect/endpoint-slice/form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createEndpointSlicesControl } from '@/resources/control-plane/endpoint-slices.control';
 import { endpointSliceSchema } from '@/resources/schemas/endpoint-slice.schema';
+import { dataWithToast, redirectWithToast } from '@/utils/cookies/toast';
+import { validateCSRF } from '@/utils/helpers/csrf.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
@@ -68,7 +68,7 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
 
 export default function ConnectEndpointSlicesNewPage() {
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <EndpointSliceForm />
     </div>
   );

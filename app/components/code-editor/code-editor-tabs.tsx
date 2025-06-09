@@ -14,8 +14,6 @@ export function CodeEditorTabs({
   id,
   name = 'code-editor',
   minHeight = '300px',
-  defaultValue,
-  label,
 }: CodeEditorTabsProps) {
   const [activeTab, setActiveTab] = useState<EditorLanguage>(format);
 
@@ -25,7 +23,7 @@ export function CodeEditorTabs({
 
     try {
       return value ? yamlToJson(value) : '{}';
-    } catch (e) {
+    } catch {
       toast.error('Initial YAML to JSON conversion failed', { duration: Infinity });
       return '{}';
     }
@@ -37,7 +35,7 @@ export function CodeEditorTabs({
 
     try {
       return value ? jsonToYaml(value) : '';
-    } catch (e) {
+    } catch {
       toast.error('Initial JSON to YAML conversion failed', { duration: Infinity });
       return '';
     }
@@ -128,7 +126,7 @@ export function CodeEditorTabs({
       if (activeTab === 'json') {
         onChange?.(newJson, 'json');
       }
-    } catch (e) {
+    } catch {
       toast.error('Failed to update YAML from JSON value', {
         id: 'json-to-yaml-error',
         duration: Infinity,
@@ -149,7 +147,7 @@ export function CodeEditorTabs({
       if (activeTab === 'yaml') {
         onChange?.(newYaml, 'yaml');
       }
-    } catch (e) {
+    } catch {
       toast.error('Failed to update JSON from YAML value', {
         id: 'yaml-to-json-error',
         duration: Infinity,

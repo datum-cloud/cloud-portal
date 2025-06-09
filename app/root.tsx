@@ -1,21 +1,28 @@
+import { GenericErrorBoundary } from './components/misc/ErrorBoundary';
+import { routes } from './constants/routes';
+import { authenticator } from './modules/auth/auth.server';
+import { queryClient } from './modules/tanstack/query';
+import { AppProvider } from './providers/app.provider';
+import { createAPIFactory } from './resources/api/api-factory.server';
+import { authAPI } from './resources/api/auth.api';
+import { iamOrganizationsAPI } from './resources/api/iam/organizations.api';
+import { organizationCookie } from './utils/cookies';
+import { csrf } from './utils/helpers/csrf.helper';
 import { FathomAnalytics } from '@/components/fathom/fathom';
 import { ClientHintCheck } from '@/components/misc/ClientHints';
-import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary';
 import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher';
 import { Toaster } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { useNonce } from '@/hooks/useNonce';
 import { useToast } from '@/hooks/useToast';
-import { csrf } from '@/modules/cookie/csrf.server';
-import { themeSessionResolver } from '@/modules/cookie/theme.server';
-import { getToastSession } from '@/modules/cookie/toast.server';
-import { ROUTE_PATH as SET_THEME_ROUTE_PATH } from '@/routes/api+/set-theme';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
-import RootCSS from '@/styles/root.css?url';
+import styles from '@/styles/root.css?url';
 import { env } from '@/utils/config/env.server';
+import { themeSessionResolver } from '@/utils/cookies/theme';
+import { getToastSession } from '@/utils/cookies/toast';
 import { metaObject } from '@/utils/helpers/meta.helper';
 import { isProduction, combineHeaders, cn } from '@/utils/helpers/misc.helper';
+import { QueryClientProvider } from '@tanstack/react-query';
 import NProgress from 'nprogress';
 import { useEffect, useMemo } from 'react';
 import {
@@ -26,10 +33,13 @@ import {
   Scripts,
   ScrollRestoration,
   data,
-  useBeforeUnload,
+  isRouteErrorResponse,
+  redirect,
   useFetchers,
   useLoaderData,
+  useNavigate,
   useNavigation,
+  useRouteError,
 } from 'react-router';
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router';
 import { ThemeProvider, useTheme, PreventFlashOnWrongTheme, Theme } from 'remix-themes';
@@ -39,7 +49,7 @@ import { AuthenticityTokenProvider } from 'remix-utils/csrf/react';
 NProgress.configure({ showSpinner: false });
 
 // Links
-export const links: LinksFunction = () => [{ rel: 'stylesheet', href: RootCSS }];
+export const links: LinksFunction = () => [{ rel: 'stylesheet', href: styles, as: 'style' }];
 
 // Meta
 export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
@@ -61,18 +71,42 @@ export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
   return metaObject(data ? pageTitle : 'Error');
 };
 
-// Loader
 export async function loader({ request }: LoaderFunctionArgs) {
   const { toast, headers: toastHeaders } = await getToastSession(request);
   const [csrfToken, csrfCookieHeader] = await csrf.commitToken(request);
   const { getTheme } = await themeSessionResolver(request);
 
+  let user = null;
+  let token = null;
+  let organization = null;
+  const isAuthenticated = await authenticator.isAuthenticated(request);
+
+  if (isAuthenticated) {
+    const session = await authenticator.getSession(request);
+
+    token = session?.accessToken;
+    user = await authAPI().profile(session?.accessToken ?? '');
+
+    const { data: orgCookie } = await organizationCookie.get(request);
+
+    if (orgCookie?.id && token) {
+      const apiClient = createAPIFactory(token);
+      organization = await iamOrganizationsAPI(apiClient).detail(orgCookie?.id);
+    }
+  }
+
   return data(
     {
       toast,
       csrfToken,
-      env: env,
+      ENV: {
+        API_URL: env.API_URL,
+        FATHOM_ID: env.FATHOM_ID,
+      },
       theme: getTheme(),
+      user,
+      token,
+      organization,
     } as const,
     {
       headers: combineHeaders(
@@ -83,17 +117,32 @@ export async function loader({ request }: LoaderFunctionArgs) {
   );
 }
 
+export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useLoaderData<typeof loader>();
+
+  return (
+    <ThemeProvider specifiedTheme={data?.theme ?? Theme.LIGHT} themeAction={routes.action.setTheme}>
+      {children}
+    </ThemeProvider>
+  );
+}
+
 export default function AppWithProviders() {
   const data = useLoaderData<typeof loader>();
   return (
-    <ThemeProvider specifiedTheme={data.theme} themeAction={SET_THEME_ROUTE_PATH}>
-      <AuthenticityTokenProvider token={data.csrfToken}>
-        {data.env.FATHOM_ID && isProduction() && (
-          <FathomAnalytics privateKey={data.env.FATHOM_ID} />
-        )}
-        <App />
-      </AuthenticityTokenProvider>
-    </ThemeProvider>
+    <AuthenticityTokenProvider token={data.csrfToken}>
+      <AppProvider
+        user={data.user ?? undefined}
+        token={data.token ?? undefined}
+        organization={data.organization ?? undefined}>
+        <QueryClientProvider client={queryClient}>
+          <App />
+          {data.ENV.FATHOM_ID && isProduction() && (
+            <FathomAnalytics privateKey={data.ENV.FATHOM_ID} />
+          )}
+        </QueryClientProvider>
+      </AppProvider>
+    </AuthenticityTokenProvider>
   );
 }
 
@@ -146,19 +195,45 @@ export function App() {
         <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} />
         <Links />
       </head>
-      <body className="h-auto w-full" suppressHydrationWarning>
-        <TooltipProvider>
-          <Outlet />
-        </TooltipProvider>
+      <body className="bg-background overscroll-none font-sans antialiased">
+        <Outlet />
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />
         <ThemeSwitcher />
+        <script nonce={nonce} suppressHydrationWarning>
+          {`window.ENV = ${JSON.stringify(data.ENV)};`}
+        </script>
       </body>
     </html>
   );
 }
 
+function ErrorLayout({ children }: { children: React.ReactNode }) {
+  const nonce = useNonce();
+  const [theme] = useTheme();
+
+  return (
+    <html lang="en" className={cn(theme)}>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <Links />
+      </head>
+      <body className="bg-background theme-alpha overscroll-none font-sans antialiased">
+        {children}
+
+        <ScrollRestoration nonce={nonce} />
+        <Scripts nonce={nonce} />
+      </body>
+    </html>
+  );
+}
 export function ErrorBoundary() {
-  return <GenericErrorBoundary />;
+  return (
+    <ErrorLayout>
+      <GenericErrorBoundary />
+    </ErrorLayout>
+  );
 }

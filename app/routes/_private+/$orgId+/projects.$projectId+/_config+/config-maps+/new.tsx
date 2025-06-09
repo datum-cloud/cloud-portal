@@ -1,13 +1,13 @@
 import { routes } from '@/constants/routes';
 import { ConfigMapForm } from '@/features/config-map/form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { redirectWithToast, dataWithToast } from '@/modules/cookie/toast.server';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control';
 import { configMapSchema } from '@/resources/schemas/config-map.schema';
+import { redirectWithToast, dataWithToast } from '@/utils/cookies/toast';
+import { validateCSRF } from '@/utils/helpers/csrf.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router';
@@ -68,7 +68,7 @@ export const action = withMiddleware(async ({ request, context, params }: Action
 
 export default function NewConfigMap() {
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <ConfigMapForm />
     </div>
   );

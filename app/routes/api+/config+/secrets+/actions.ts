@@ -1,13 +1,13 @@
 import { routes } from '@/constants/routes';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createSecretsControl } from '@/resources/control-plane/secrets.control';
 import { secretEditSchema } from '@/resources/schemas/secret.schema';
+import { dataWithToast, redirectWithToast } from '@/utils/cookies/toast';
 import { CustomError } from '@/utils/errorHandle';
+import { validateCSRF } from '@/utils/helpers/csrf.helper';
 import { convertLabelsToObject } from '@/utils/helpers/misc.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 

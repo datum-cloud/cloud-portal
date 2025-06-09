@@ -1,13 +1,13 @@
 import { routes } from '@/constants/routes';
 import { CreateProjectForm } from '@/features/project/create-form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
 import { projectSchema, ProjectSchema } from '@/resources/schemas/project.schema';
+import { dataWithToast, redirectWithToast } from '@/utils/cookies/toast';
+import { validateCSRF } from '@/utils/helpers/csrf.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router';
@@ -70,7 +70,7 @@ export const action = withMiddleware(async ({ request, params, context }: Action
 
 export default function NewProject() {
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <CreateProjectForm />
     </div>
   );

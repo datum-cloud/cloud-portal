@@ -1,8 +1,4 @@
 import { routes } from '@/constants/routes';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createNetworksControl } from '@/resources/control-plane/networks.control';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import {
@@ -11,8 +7,12 @@ import {
   UpdateNetworkSchema,
   updateNetworkSchema,
 } from '@/resources/schemas/network.schema';
+import { dataWithToast, redirectWithToast } from '@/utils/cookies/toast';
 import { CustomError } from '@/utils/errorHandle';
-import { getPathWithParams } from '@/utils/path';
+import { validateCSRF } from '@/utils/helpers/csrf.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext } from 'react-router';
 

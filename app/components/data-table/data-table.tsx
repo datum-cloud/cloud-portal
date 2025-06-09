@@ -1,4 +1,4 @@
-import { DataTableEmptyContent } from './data-table-empty-content';
+import { EmptyContent } from '../empty-content/empty-content';
 import { DataTableHeader } from './data-table-header';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableRowActions } from './data-table-row-actions';
@@ -22,7 +22,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 export const DataTable = <TData, TValue>({
   columns,
@@ -105,10 +105,6 @@ export const DataTable = <TData, TValue>({
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [columnFilters])
 
-  const columnsLength = useMemo(() => {
-    return columns.length + (rowActions.length > 0 ? 1 : 0);
-  }, [columns, rowActions]);
-
   return (
     <DataTableProvider
       table={table}
@@ -125,6 +121,7 @@ export const DataTable = <TData, TValue>({
       <div
         className={cn(
           'mx-auto flex h-full w-full max-w-(--breakpoint-xl) flex-col gap-4',
+          data?.length === 0 ? 'justify-center' : '',
           className
         )}>
         {data?.length > 0 ? (
@@ -166,7 +163,7 @@ export const DataTable = <TData, TValue>({
             {(data ?? [])?.length > 10 && <DataTablePagination table={table} />}
           </>
         ) : (
-          <DataTableEmptyContent {...emptyContent} />
+          <EmptyContent {...emptyContent} />
         )}
       </div>
     </DataTableProvider>

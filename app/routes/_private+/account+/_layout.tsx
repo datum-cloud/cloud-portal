@@ -1,6 +1,6 @@
+import { NavItem } from '@/components/sidebar-container/app-sidebar/nav-main';
+import { DashboardLayout } from '@/components/sidebar-container/sidebar-container';
 import { routes } from '@/constants/routes';
-import { DashboardLayout } from '@/layouts/dashboard/dashboard';
-import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { Building2Icon, FileIcon, KeyIcon, SettingsIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { Outlet } from 'react-router';

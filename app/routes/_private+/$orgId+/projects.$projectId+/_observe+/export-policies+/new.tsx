@@ -1,9 +1,9 @@
 import { routes } from '@/constants/routes';
 import { ExportPolicyStepperForm } from '@/features/observe/export-policies/form/stepper-form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
 import { newExportPolicySchema } from '@/resources/schemas/export-policy.schema';
+import { dataWithToast, redirectWithToast } from '@/utils/cookies/toast';
+import { validateCSRF } from '@/utils/helpers/csrf.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
@@ -73,7 +73,7 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
 export default function ObserveExportPoliciesNewPage() {
   const { projectId } = useParams();
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <ExportPolicyStepperForm projectId={projectId} />
     </div>
   );
