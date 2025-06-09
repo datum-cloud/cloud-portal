@@ -71,7 +71,7 @@ export const action = withMiddleware(async ({ request, params, context }: Action
 
 export default function NewLocation() {
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <CreateLocationForm />
     </div>
   );

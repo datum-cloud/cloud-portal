@@ -1,3 +1,8 @@
+import { sessionStorage, SESSION_KEY } from '@/modules/cookie/session.server';
+import { createAPIFactory } from '@/resources/api/api.factory';
+import type { APIFactory } from '@/resources/api/api.factory';
+import { createControlPlaneFactory } from '@/resources/control-plane/control.factory';
+import type { ControlPlaneFactory } from '@/resources/control-plane/control.factory';
 import { Context } from 'hono';
 import { SecureHeadersVariables } from 'hono/secure-headers';
 import type { AppLoadContext } from 'react-router';
@@ -16,6 +21,16 @@ declare module 'react-router' {
      * The CSP nonce
      */
     readonly cspNonce: string;
+
+    /**
+     * API client for making authenticated requests
+     */
+    readonly apiClient: APIFactory;
+
+    /**
+     * Control plane client for making authenticated requests
+     */
+    readonly controlPlaneClient: ControlPlaneFactory;
   }
 }
 
@@ -29,17 +44,42 @@ type ContextOptions = {
   };
 };
 
+/**
+ * Creates API context with authenticated clients
+ * @param cookie The incoming request
+ * @returns API context with authenticated clients
+ */
+async function createApiContext(cookie?: string) {
+  const session = await sessionStorage.getSession(cookie);
+  const sessionData = session.get(SESSION_KEY);
+
+  const apiClient = createAPIFactory(sessionData?.accessToken || '');
+  const controlPlaneClient = createControlPlaneFactory(sessionData?.accessToken || '');
+
+  return {
+    apiClient,
+    controlPlaneClient,
+  };
+}
+
 // Create a function to generate the load context creator
 export const createContextGenerator = <Env extends { Variables: SecureHeadersVariables }>(
   createGetLoadContextFn: (
-    callback: (c: Context<Env>, options: ContextOptions) => AppLoadContext
-  ) => (c: Context<Env>, options: ContextOptions) => AppLoadContext
+    callback: (c: Context<Env>, options: ContextOptions) => Promise<AppLoadContext> | AppLoadContext
+  ) => (c: Context<Env>, options: ContextOptions) => Promise<AppLoadContext> | AppLoadContext
 ) => {
-  return createGetLoadContextFn((c: Context<Env>, { mode, build }) => {
+  return createGetLoadContextFn(async (c: Context<Env>, { mode, build }) => {
     const isProductionMode = mode === 'production';
+
+    // Get cookie from request headers
+    // Create API context from the request
+    const { apiClient, controlPlaneClient } = await createApiContext(c.req.header('cookie'));
+
     return {
       appVersion: isProductionMode ? build.assets.version : 'dev',
       cspNonce: c.get('secureHeadersNonce'),
+      apiClient,
+      controlPlaneClient,
     };
   });
 };

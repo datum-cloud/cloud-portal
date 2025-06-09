@@ -68,7 +68,7 @@ export const action = withMiddleware(async ({ request, context, params }: Action
 
 export default function NewConfigMap() {
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <ConfigMapForm />
     </div>
   );

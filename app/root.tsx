@@ -3,7 +3,6 @@ import { ClientHintCheck } from '@/components/misc/ClientHints';
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary';
 import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher';
 import { Toaster } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { useNonce } from '@/hooks/useNonce';
 import { useToast } from '@/hooks/useToast';
 import { csrf } from '@/modules/cookie/csrf.server';
@@ -12,7 +11,7 @@ import { getToastSession } from '@/modules/cookie/toast.server';
 import { ROUTE_PATH as SET_THEME_ROUTE_PATH } from '@/routes/api+/set-theme';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
-import RootCSS from '@/styles/root.css?url';
+import styles from '@/styles/root.css?url';
 import { env } from '@/utils/config/env.server';
 import { metaObject } from '@/utils/helpers/meta.helper';
 import { isProduction, combineHeaders, cn } from '@/utils/helpers/misc.helper';
@@ -26,7 +25,6 @@ import {
   Scripts,
   ScrollRestoration,
   data,
-  useBeforeUnload,
   useFetchers,
   useLoaderData,
   useNavigation,
@@ -39,7 +37,7 @@ import { AuthenticityTokenProvider } from 'remix-utils/csrf/react';
 NProgress.configure({ showSpinner: false });
 
 // Links
-export const links: LinksFunction = () => [{ rel: 'stylesheet', href: RootCSS }];
+export const links: LinksFunction = () => [{ rel: 'stylesheet', href: styles, as: 'style' }];
 
 // Meta
 export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
@@ -83,17 +81,23 @@ export async function loader({ request }: LoaderFunctionArgs) {
   );
 }
 
+export function Layout({ children }: { children: React.ReactNode }) {
+  const data = useLoaderData<typeof loader>();
+
+  return (
+    <ThemeProvider specifiedTheme={data?.theme ?? Theme.LIGHT} themeAction={SET_THEME_ROUTE_PATH}>
+      {children}
+    </ThemeProvider>
+  );
+}
+
 export default function AppWithProviders() {
   const data = useLoaderData<typeof loader>();
   return (
-    <ThemeProvider specifiedTheme={data.theme} themeAction={SET_THEME_ROUTE_PATH}>
-      <AuthenticityTokenProvider token={data.csrfToken}>
-        {data.env.FATHOM_ID && isProduction() && (
-          <FathomAnalytics privateKey={data.env.FATHOM_ID} />
-        )}
-        <App />
-      </AuthenticityTokenProvider>
-    </ThemeProvider>
+    <AuthenticityTokenProvider token={data.csrfToken}>
+      <App />
+      {data.env.FATHOM_ID && isProduction() && <FathomAnalytics privateKey={data.env.FATHOM_ID} />}
+    </AuthenticityTokenProvider>
   );
 }
 
@@ -146,10 +150,8 @@ export function App() {
         <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} />
         <Links />
       </head>
-      <body className="h-auto w-full" suppressHydrationWarning>
-        <TooltipProvider>
-          <Outlet />
-        </TooltipProvider>
+      <body className="bg-background overscroll-none font-sans antialiased">
+        <Outlet />
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />

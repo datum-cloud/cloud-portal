@@ -103,7 +103,7 @@ export default function WorkloadEditPage() {
   const { projectId } = useParams();
 
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <WorkloadUpdateForm projectId={projectId} defaultValue={workload} />
     </div>
   );

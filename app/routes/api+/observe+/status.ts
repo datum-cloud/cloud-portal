@@ -22,7 +22,7 @@ export const loader = withMiddleware(async ({ request, context }) => {
 
     const status = await exportPoliciesControl.getStatus(projectId, exportPolicyId);
     return data(status);
-  } catch (error) {
+  } catch {
     return data(null);
   }
 }, authMiddleware);

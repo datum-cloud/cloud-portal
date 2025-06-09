@@ -94,7 +94,7 @@ export default function EditLocation() {
   const location = useLoaderData<typeof loader>();
 
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <CreateLocationForm defaultValue={location} />
     </div>
   );

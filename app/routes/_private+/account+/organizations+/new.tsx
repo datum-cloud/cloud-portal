@@ -57,7 +57,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
 
 export default function AccountOrganizationsNew() {
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <OrganizationForm />
     </div>
   );

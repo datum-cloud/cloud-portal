@@ -3,7 +3,6 @@ import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { iamOrganizationsAPI } from '@/resources/api/iam/organizations.api';
-import { IOrganization } from '@/resources/interfaces/organization.inteface';
 import { CustomError } from '@/utils/errorHandle';
 import { AxiosInstance } from 'axios';
 import { AppLoadContext, data } from 'react-router';

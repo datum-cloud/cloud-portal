@@ -93,7 +93,7 @@ export default function ConnectGatewaysEditPage() {
   const { projectId } = useParams();
 
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <GatewayForm defaultValue={gateway} projectId={projectId} />
     </div>
   );

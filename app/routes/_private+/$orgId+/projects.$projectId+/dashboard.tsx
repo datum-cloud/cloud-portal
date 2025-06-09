@@ -99,7 +99,7 @@ export default function ProjectDashboardPage() {
   }, [project, status]);
 
   return (
-    <div className="mx-auto my-4 w-full max-w-7xl md:my-6">
+    <div className="mx-auto w-full max-w-7xl">
       <div className="mx-6 flex flex-col gap-12 space-y-4">
         {/* Project Information */}
         <div className="flex flex-col gap-5">

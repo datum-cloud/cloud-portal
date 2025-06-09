@@ -94,7 +94,7 @@ export default function ConnectEndpointSlicesEditPage() {
   const { projectId } = useParams();
 
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
+    <div className="mx-auto w-full max-w-3xl">
       <EndpointSliceForm projectId={projectId} defaultValue={endpointSlice} />
     </div>
   );
