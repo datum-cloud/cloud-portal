@@ -1,6 +1,6 @@
 import { OrganizationSwitcher } from './org-switcher';
 import { ProjectSwitcher } from './project-switcher';
-import SearchBar from './search-bar';
+// import SearchBar from './search-bar';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -33,7 +33,7 @@ export const Header = ({
       </div>
       {/* Right Section */}
       <div className="flex h-9 flex-1 items-center justify-end gap-3 pr-4">
-        <SearchBar />
+        {/* <SearchBar /> */}
         <div className="flex h-full items-center gap-2">
           <Button variant="outline" size="sm" className="cursor-pointer px-2">
             Feedback
