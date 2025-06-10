@@ -11,6 +11,7 @@ import { useApp } from '@/providers/app.provider';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { transformControlPlaneStatus } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';
+import { differenceInMinutes } from 'date-fns';
 import { motion } from 'framer-motion';
 import { ArrowRight, Binoculars, Cloud, GlobeLock, Mail, Network } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
@@ -89,6 +90,14 @@ export default function ProjectDashboardPage() {
     };
   }, [revalidate, status]);
 
+  const isNewProject = useMemo(() => {
+    return (
+      status?.status === ControlPlaneStatus.Success &&
+      project?.createdAt &&
+      differenceInMinutes(new Date(), new Date(project.createdAt)) < 5
+    );
+  }, [project, status]);
+
   return (
     <div className="mx-auto my-4 w-full max-w-7xl md:my-6">
       <div className="mx-6 flex flex-col gap-12 space-y-4">
@@ -123,16 +132,18 @@ export default function ProjectDashboardPage() {
             className="flex flex-col gap-12 space-y-4">
             <div className="flex flex-col items-center gap-12 md:flex-row md:justify-between">
               <div className="flex flex-col gap-12 space-y-4">
-                <motion.div
-                  className="flex flex-col gap-3"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}>
-                  <SectionTitle>Welcome to your project</SectionTitle>
-                  <SectionDescription>
-                    Your project is now ready! Start configuring and managing resources now.
-                  </SectionDescription>
-                </motion.div>
+                {isNewProject && (
+                  <motion.div
+                    className="flex flex-col gap-3"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}>
+                    <SectionTitle>Welcome to your project</SectionTitle>
+                    <SectionDescription>
+                      Your project is now ready! Start configuring and managing resources now.
+                    </SectionDescription>
+                  </motion.div>
+                )}
 
                 <motion.div
                   className="flex flex-col gap-3"

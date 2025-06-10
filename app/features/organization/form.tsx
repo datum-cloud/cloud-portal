@@ -1,4 +1,5 @@
 import { Field } from '@/components/field/field';
+import { InputWithCopy } from '@/components/input-with-copy/input-with-copy';
 import { SelectLabels } from '@/components/select-labels/select-labels';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,7 +16,7 @@ import { useIsPending } from '@/hooks/useIsPending';
 import { IOrganization } from '@/resources/interfaces/organization.inteface';
 import { organizationSchema } from '@/resources/schemas/organization.schema';
 import { generateId, generateRandomString } from '@/utils/idGenerator';
-import { convertObjectToLabels } from '@/utils/misc';
+import { cn, convertObjectToLabels } from '@/utils/misc';
 import {
   FormProvider,
   getFormProps,
@@ -91,47 +92,53 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
           <AuthenticityTokenInput />
 
           <CardContent className="space-y-4">
-            <Field
-              isRequired
-              label="Description"
-              description="Enter a short, human-friendly name. Can be changed later."
-              errors={description.errors}>
-              <Input
-                placeholder="e.g. My Organization"
-                ref={inputRef}
-                onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                  const value = (e.target as HTMLInputElement).value;
+            <div className={cn('flex gap-4', isEdit ? 'flex-col-reverse' : 'flex-col')}>
+              <Field
+                isRequired
+                label="Description"
+                description="Enter a short, human-friendly name. Can be changed later."
+                errors={description.errors}>
+                <Input
+                  placeholder="e.g. My Organization"
+                  ref={inputRef}
+                  onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                    const value = (e.target as HTMLInputElement).value;
 
-                  if (value && !isEdit) {
-                    nameControl.change(generateId(value, { randomText: randomSuffix }));
-                  }
-                }}
-                {...getInputProps(description, { type: 'text' })}
-              />
-            </Field>
-            <Field
-              isRequired
-              label="Name"
-              description="A namespace-unique stable identifier for your organization. This cannot be changed once the organization is created"
-              errors={name.errors}>
-              <Input
-                readOnly={isEdit}
-                placeholder="e.g. my-organization-343j33"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = (e.target as HTMLInputElement).value;
-                  nameControl.change(value);
-                }}
-                onBlur={(e: React.FormEvent<HTMLInputElement>) => {
-                  const value = (e.target as HTMLInputElement).value;
-                  if (value.length === 0) {
-                    nameControl.change(
-                      generateId(description.value ?? '', { randomText: randomSuffix })
-                    );
-                  }
-                }}
-                {...getInputProps(name, { type: 'text' })}
-              />
-            </Field>
+                    if (value && !isEdit) {
+                      nameControl.change(generateId(value, { randomText: randomSuffix }));
+                    }
+                  }}
+                  {...getInputProps(description, { type: 'text' })}
+                />
+              </Field>
+              <Field
+                isRequired
+                label="Name"
+                description="A namespace-unique stable identifier for your organization. This cannot be changed once the organization is created"
+                errors={name.errors}>
+                {isEdit ? (
+                  <InputWithCopy value={defaultValue?.name ?? ''} className="bg-muted h-9" />
+                ) : (
+                  <Input
+                    readOnly={isEdit}
+                    placeholder="e.g. my-organization-343j33"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const value = (e.target as HTMLInputElement).value;
+                      nameControl.change(value);
+                    }}
+                    onBlur={(e: React.FormEvent<HTMLInputElement>) => {
+                      const value = (e.target as HTMLInputElement).value;
+                      if (value.length === 0) {
+                        nameControl.change(
+                          generateId(description.value ?? '', { randomText: randomSuffix })
+                        );
+                      }
+                    }}
+                    {...getInputProps(name, { type: 'text' })}
+                  />
+                )}
+              </Field>
+            </div>
             <Field
               label="Labels"
               errors={labels.errors}
