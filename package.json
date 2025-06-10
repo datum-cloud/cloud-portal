@@ -113,7 +113,7 @@
     "@types/express": "^5.0.2",
     "@types/js-yaml": "^4.0.9",
     "@types/morgan": "^1.9.9",
-    "@types/node": "^22.15.24",
+    "@types/node": "^24.0.0",
     "@types/nprogress": "^0.2.3",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
