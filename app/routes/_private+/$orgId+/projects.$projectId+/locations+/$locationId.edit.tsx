@@ -1,15 +1,15 @@
 import { routes } from '@/constants/routes';
 import { CreateLocationForm } from '@/features/location/form/create-form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createLocationsControl } from '@/resources/control-plane/locations.control';
 import { ILocationControlResponse } from '@/resources/interfaces/location.interface';
 import { NewLocationSchema, newLocationSchema } from '@/resources/schemas/location.schema';
+import { dataWithToast, redirectWithToast } from '@/utils/cookies/toast';
 import { CustomError } from '@/utils/errorHandle';
+import { validateCSRF } from '@/utils/helpers/csrf.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import {

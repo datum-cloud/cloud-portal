@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { LOCATION_CLASSES, LOCATION_PROVIDERS } from '@/constants/options';
 import { routes } from '@/constants/routes';
-import { dataWithToast } from '@/modules/cookie/toast.server';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createLocationsControl } from '@/resources/control-plane/locations.control';
 import { ILocationControlResponse, LocationClass } from '@/resources/interfaces/location.interface';
 import { loader as apiLocationsLoader } from '@/routes/api+/locations/_index';
+import { dataWithToast } from '@/utils/cookies/toast';
 // CustomError import removed as it's no longer used
 import { toTitleCase } from '@/utils/helpers/misc.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';

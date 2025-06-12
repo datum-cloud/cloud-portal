@@ -1,8 +1,8 @@
-import { sessionStorage, SESSION_KEY } from '@/modules/cookie/session.server';
-import { createAPIFactory } from '@/resources/api/api.factory';
-import type { APIFactory } from '@/resources/api/api.factory';
+import { createAPIFactory } from '@/resources/api/api-factory.server';
+import type { APIFactory } from '@/resources/api/api-factory.server';
 import { createControlPlaneFactory } from '@/resources/control-plane/control.factory';
 import type { ControlPlaneFactory } from '@/resources/control-plane/control.factory';
+import { sessionCookie } from '@/utils/cookies/session';
 import { Context } from 'hono';
 import { SecureHeadersVariables } from 'hono/secure-headers';
 import type { AppLoadContext } from 'react-router';
@@ -49,12 +49,11 @@ type ContextOptions = {
  * @param cookie The incoming request
  * @returns API context with authenticated clients
  */
-async function createApiContext(cookie?: string) {
-  const session = await sessionStorage.getSession(cookie);
-  const sessionData = session.get(SESSION_KEY);
+async function createApiContext(request: Request) {
+  const { data } = await sessionCookie.get(request);
 
-  const apiClient = createAPIFactory(sessionData?.accessToken || '');
-  const controlPlaneClient = createControlPlaneFactory(sessionData?.accessToken || '');
+  const apiClient = createAPIFactory(data?.accessToken || '');
+  const controlPlaneClient = createControlPlaneFactory(data?.accessToken || '');
 
   return {
     apiClient,
@@ -73,7 +72,7 @@ export const createContextGenerator = <Env extends { Variables: SecureHeadersVar
 
     // Get cookie from request headers
     // Create API context from the request
-    const { apiClient, controlPlaneClient } = await createApiContext(c.req.header('cookie'));
+    const { apiClient, controlPlaneClient } = await createApiContext(c.req.raw);
 
     return {
       appVersion: isProductionMode ? build.assets.version : 'dev',

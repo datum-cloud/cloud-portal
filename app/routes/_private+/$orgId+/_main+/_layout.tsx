@@ -1,6 +1,6 @@
+import { NavItem } from '@/components/sidebar-container/app-sidebar/nav-main';
+import { DashboardLayout } from '@/components/sidebar-container/sidebar-container';
 import { routes } from '@/constants/routes';
-import { DashboardLayout } from '@/layouts/dashboard/dashboard';
-import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { useApp } from '@/providers/app.provider';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { FileIcon, HomeIcon, SettingsIcon } from 'lucide-react';

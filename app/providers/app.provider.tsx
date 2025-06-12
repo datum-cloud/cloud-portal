@@ -1,57 +1,51 @@
 import { IOrganization } from '@/resources/interfaces/organization.inteface';
 import { IUser } from '@/resources/interfaces/user.interface';
-import { ReactNode, createContext, useContext, useEffect, useState, useMemo } from 'react';
+import { ReactNode, createContext, useContext, useState } from 'react';
 
 interface AppContextType {
-  user: IUser | undefined;
-  organization: IOrganization | undefined;
-  orgId: string | undefined;
-  setUser: (user: IUser) => void;
-  setOrganization: (organization: IOrganization) => void;
+  isAuthenticated: boolean;
+  user: IUser | null;
+  organization: IOrganization | null;
+  token: string | null;
+  setUser: (user: IUser | null) => void;
+  setOrganization: (organization: IOrganization | null) => void;
+  setToken: (token: string | null) => void;
 }
 
 const AppContext = createContext<AppContextType>({
-  user: undefined,
-  organization: undefined,
-  orgId: undefined,
+  isAuthenticated: false,
+  user: null,
+  organization: null,
+  token: null,
   setUser: () => {},
   setOrganization: () => {},
+  setToken: () => {},
 });
 
 interface AppProviderProps {
   children: ReactNode;
-  initialUser?: IUser;
-  initialOrganization?: IOrganization;
+  user?: IUser;
+  token?: string;
+  organization?: IOrganization;
 }
 
-export function AppProvider({ children, initialUser, initialOrganization }: AppProviderProps) {
-  const [user, setUser] = useState<IUser>(initialUser!);
-  const [organization, setOrganization] = useState<IOrganization>(initialOrganization!);
-
-  const updateUserData = (userData: IUser) => {
-    setUser(userData);
-  };
-
-  const updateOrganizationData = (orgData: IOrganization) => {
-    setOrganization(orgData);
-  };
-
-  const orgId = useMemo(() => organization?.id, [organization]);
-
-  useEffect(() => {
-    if (initialUser) {
-      setUser(initialUser);
-    }
-  }, [initialUser]);
+export function AppProvider({ children, user, token, organization }: AppProviderProps) {
+  const [userState, setUserState] = useState<IUser | null>(user ?? null);
+  const [organizationState, setOrganizationState] = useState<IOrganization | null>(
+    organization ?? null
+  );
+  const [tokenState, setTokenState] = useState<string | null>(token ?? null);
 
   return (
     <AppContext.Provider
       value={{
-        user,
-        organization,
-        orgId,
-        setUser: updateUserData,
-        setOrganization: updateOrganizationData,
+        isAuthenticated: !!tokenState,
+        user: userState,
+        token: tokenState,
+        organization: organizationState,
+        setUser: setUserState,
+        setToken: setTokenState,
+        setOrganization: setOrganizationState,
       }}>
       {children}
     </AppContext.Provider>

@@ -92,7 +92,7 @@ export interface DataTableProps<TData, TValue> {
   loadingText?: string;
 
   // Empty state props
-  emptyContent?: DataTableEmptyContentProps;
+  emptyContent?: EmptyContentProps;
 }
 
 export interface DataTableRowActionsProps<TData> {
@@ -109,19 +109,4 @@ export interface DataTableTitleProps {
   title?: string;
   description?: string;
   actions?: React.ReactNode;
-}
-
-export interface DataTableEmptyContentProps {
-  title?: string;
-  subtitle?: string;
-  image?: string;
-  size?: 'sm' | 'md' | 'lg';
-  actions?: Array<{
-    type: 'button' | 'link' | 'external-link';
-    label: string;
-    onClick?: () => void;
-    to?: string;
-    variant?: React.ComponentProps<typeof Button>['variant'];
-    icon?: React.ReactNode;
-  }>;
 }

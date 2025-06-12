@@ -1,4 +1,5 @@
-// import { API_BASENAME, api } from './routes/api';
+import { API_BASENAME, api } from './routes/api';
+import { ORGANIZATIONS_BASENAME, organizations } from './routes/organizations';
 import { bunAdapter } from '@/server/adapter/bun';
 import { nodeAdapter } from '@/server/adapter/node';
 import { env } from '@/utils/config/env.server';
@@ -50,7 +51,10 @@ app.use(
 );
 
 // API
-// app.route(API_BASENAME, api);
+app.route(API_BASENAME, api);
+
+// Organizations
+app.route(ORGANIZATIONS_BASENAME, organizations);
 
 // Health checks
 app.get('/_healthz', (c) => {
