@@ -1,8 +1,8 @@
-import { getOrgSession } from '@/modules/cookie/org.server';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
+import { organizationCookie } from '@/utils/cookies/organization';
 import { CustomError } from '@/utils/errorHandle';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, data } from 'react-router';
 
@@ -12,7 +12,7 @@ export const loader = withMiddleware(async ({ request, context }) => {
   const { controlPlaneClient } = context as AppLoadContext;
   const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
-  const { org } = await getOrgSession(request);
+  const { data: org } = await organizationCookie.get(request);
 
   if (!org) {
     throw new CustomError('Organization not found', 404);

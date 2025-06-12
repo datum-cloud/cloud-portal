@@ -6,16 +6,16 @@ import { Button } from '@/components/ui/button';
 import { routes } from '@/constants/routes';
 import { WorkloadStatus } from '@/features/workload/status';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
-import { deletedWorkloadIdsCookie } from '@/modules/cookie/workload.server';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
 import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions';
+import { workloadCookie } from '@/utils/cookies/workload';
 import { CustomError } from '@/utils/errorHandle';
 import { transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { Loader2, PlusIcon } from 'lucide-react';
@@ -43,7 +43,7 @@ export const loader = withMiddleware(async ({ context, params, request }: Loader
   const workloads = await workloadsControl.list(projectId);
 
   // Get deleted IDs from cookie
-  const cookieValue = await deletedWorkloadIdsCookie.parse(request.headers.get('Cookie'));
+  const cookieValue = await workloadCookie.parse(request.headers.get('Cookie'));
 
   // Check if cookie value is an array and has elements
   let deletedIds: string[] = [];
@@ -59,7 +59,7 @@ export const loader = withMiddleware(async ({ context, params, request }: Loader
     { workloads, deletedIds },
     {
       headers: {
-        'Set-Cookie': await deletedWorkloadIdsCookie.serialize(deletedIds),
+        'Set-Cookie': await workloadCookie.serialize(deletedIds),
       },
     }
   );

@@ -1,10 +1,10 @@
 import { routes } from '@/constants/routes';
-import { redirectWithToast } from '@/modules/cookie/toast.server';
-import { deletedWorkloadIdsCookie } from '@/modules/cookie/workload.server';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control';
+import { redirectWithToast } from '@/utils/cookies/toast';
+import { workloadCookie } from '@/utils/cookies/workload';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext } from 'react-router';
 
@@ -21,7 +21,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
       await workloadsControl.delete(projectId as string, workloadId as string);
 
       // Get the last deleted workloadIds
-      const cookieValue = await deletedWorkloadIdsCookie.parse(request.headers.get('Cookie'));
+      const cookieValue = await workloadCookie.parse(request.headers.get('Cookie'));
       const deletedIds = Array.isArray(cookieValue) ? cookieValue : [];
 
       // Add the new ID if it doesn't exist already
@@ -41,7 +41,7 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
         },
         {
           headers: {
-            'Set-Cookie': await deletedWorkloadIdsCookie.serialize(deletedIds),
+            'Set-Cookie': await workloadCookie.serialize(deletedIds),
           },
         }
       );

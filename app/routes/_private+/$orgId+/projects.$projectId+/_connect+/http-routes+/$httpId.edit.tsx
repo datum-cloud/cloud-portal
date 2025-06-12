@@ -1,10 +1,10 @@
 import { routes } from '@/constants/routes';
 import { HttpRouteForm } from '@/features/connect/http-route/form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createHttpRoutesControl } from '@/resources/control-plane/http-routes.control';
 import { IHttpRouteControlResponse } from '@/resources/interfaces/http-route.interface';
 import { httpRouteSchema } from '@/resources/schemas/http-route.schema';
+import { dataWithToast, redirectWithToast } from '@/utils/cookies/toast';
+import { validateCSRF } from '@/utils/helpers/csrf.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';

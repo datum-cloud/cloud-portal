@@ -37,6 +37,7 @@ export const env = {
   isDev: parsedEnv.NODE_ENV === 'development',
   isProd: parsedEnv.NODE_ENV === 'production',
   isTest: parsedEnv.NODE_ENV === 'test',
+  isDebug: toBoolean(process.env.DEBUG),
   isCypress: toBoolean(process.env.CYPRESS),
   isOtelEnabled:
     toBoolean(process.env.OTEL_ENABLED) && process.env.OTEL_EXPORTER_OTLP_ENDPOINT !== '',

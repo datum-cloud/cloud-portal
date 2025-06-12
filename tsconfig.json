@@ -8,7 +8,8 @@
     "**/.client/**/*.tsx",
     "cypress/**/*.ts",
     "cypress/**/*.tsx",
-    "server.ts.old"
+    "server.ts.old",
+    "app/modules/auth/strategies/zitadel.server.ts.old"
   ],
   "exclude": ["node_modules", "dist", "build"],
   "compilerOptions": {

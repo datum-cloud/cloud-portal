@@ -1,6 +1,6 @@
 import { routes } from '@/constants/routes';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { redirect } from 'react-router';
 
 export const loader = withMiddleware(async () => {

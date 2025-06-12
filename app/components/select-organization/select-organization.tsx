@@ -11,12 +11,12 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { routes } from '@/constants/routes';
+import { useApp } from '@/providers/app.provider';
 import { IOrganization } from '@/resources/interfaces/organization.inteface';
-import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
 import { cn } from '@/utils/helpers/misc.helper';
 import { CheckIcon, ChevronsUpDownIcon, Loader2, PlusCircleIcon, SettingsIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useFetcher } from 'react-router';
+import { ClientLoaderFunctionArgs, Link, useFetcher } from 'react-router';
 import { toast } from 'sonner';
 
 export const SelectOrganization = ({
@@ -34,14 +34,14 @@ export const SelectOrganization = ({
   hideContent?: boolean;
   hideNewOrganization?: boolean;
 }) => {
+  const { token } = useApp();
   const [open, setOpen] = useState(false);
   const fetcher = useFetcher({ key: 'org-list' });
-
   const [organizations, setOrganizations] = useState<IOrganization[]>([]);
 
   useEffect(() => {
     if (open) {
-      fetcher.load(ORG_LIST_PATH);
+      // fetcher.load(ORG_LIST_PATH);
     }
   }, [open]);
 

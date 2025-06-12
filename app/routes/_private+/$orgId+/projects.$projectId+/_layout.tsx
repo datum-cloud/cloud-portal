@@ -1,16 +1,16 @@
+import { NavItem } from '@/components/sidebar-container/app-sidebar/nav-main';
+import { DashboardLayout } from '@/components/sidebar-container/sidebar-container';
 import { routes } from '@/constants/routes';
-import { DashboardLayout } from '@/layouts/dashboard/dashboard';
-import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
-import { redirectWithToast } from '@/modules/cookie/toast.server';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { useApp } from '@/providers/app.provider';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { redirectWithToast } from '@/utils/cookies/toast';
 import { CustomError } from '@/utils/errorHandle';
 import { transformControlPlaneStatus } from '@/utils/helpers/misc.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { Client } from '@hey-api/client-axios';
 import {
   AreaChartIcon,

@@ -1,4 +1,4 @@
-import { DataTableEmptyContent } from './data-table-empty-content';
+import { EmptyContent } from '../empty-content/empty-content';
 import { DataTableHeader } from './data-table-header';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableRowActions } from './data-table-row-actions';
@@ -163,7 +163,7 @@ export const DataTable = <TData, TValue>({
             {(data ?? [])?.length > 10 && <DataTablePagination table={table} />}
           </>
         ) : (
-          <DataTableEmptyContent {...emptyContent} />
+          <EmptyContent {...emptyContent} />
         )}
       </div>
     </DataTableProvider>

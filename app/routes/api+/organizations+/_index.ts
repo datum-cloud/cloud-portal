@@ -1,7 +1,7 @@
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { iamOrganizationsAPI } from '@/resources/api/iam/organizations.api';
 import { CustomError } from '@/utils/errorHandle';
+import { authMiddleware } from '@/utils/middleware/auth.middleware';
+import { withMiddleware } from '@/utils/middleware/middleware';
 import { AxiosInstance } from 'axios';
 import { AppLoadContext, data } from 'react-router';
 

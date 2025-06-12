@@ -1,44 +1,79 @@
-import { routes } from '@/constants/routes';
-import { IAuthSession } from '@/resources/interfaces/auth.interface';
-import { CustomError } from '@/utils/errorHandle';
-import 'dotenv/config';
-import { OAuth2Strategy as OAuth2 } from 'remix-auth-oauth2';
+import { env } from '@/utils/config/env.server';
+import { tokenCookie, sessionCookie } from '@/utils/cookies';
+import { AuthenticationError } from '@/utils/errors';
+import { jwtDecode } from 'jwt-decode';
+import { OAuth2Strategy } from 'remix-auth-oauth2';
 
-export const zitadelIssuer = process.env.AUTH_OIDC_ISSUER ?? 'http://localhost:3000';
+export interface IZitadelResponse {
+  sub: string;
+  idToken: string;
+  accessToken: string;
+  refreshToken: string | null;
+  expiredAt: Date;
+}
 
-/**
- * https://github.com/sergiodxa/remix-auth-oauth2?tab=readme-ov-file#discovering-the-provider
- * This will fetch the provider's configuration endpoint (/.well-known/openid-configuration)
- * and grab the authorization, token and revocation endpoints from it,
- * it will also grab the code challenge method supported and try to use S256 if it is supported.
- * Remember this will do a fetch when then strategy is created, this will add a latency to the startup of your application. */
-export const zitadelStrategy = await OAuth2.discover<IAuthSession>(
-  zitadelIssuer,
-  {
-    clientId: process.env.AUTH_OIDC_CLIENT_ID ?? '',
-    clientSecret: '',
-    redirectURI: `${process.env.APP_URL ?? 'http://localhost:3000'}${routes.auth.callback}`,
-    scopes: ['openid', 'profile', 'email', 'phone', 'address', 'offline_access'],
-    // codeChallengeMethod: CodeChallengeMethod.S256,
-  },
-  async ({ tokens }) => {
-    try {
-      if (!tokens.idToken()) {
-        throw new CustomError('No id_token in response', 400);
-      }
-
-      if (!tokens.accessToken()) {
-        throw new CustomError('No access_token in response', 400);
-      }
-
-      return {
-        idToken: tokens.idToken(),
-        accessToken: tokens.accessToken(),
-        refreshToken: tokens.hasRefreshToken() ? tokens.refreshToken() : null,
-        expiredAt: tokens.accessTokenExpiresAt(),
-      };
-    } catch (error: any) {
-      throw new CustomError(error?.message ?? 'Failed to fetch user profile', 500);
+class ZitadelStrategy extends OAuth2Strategy<IZitadelResponse> {
+  async logout(request: Request) {
+    const { data } = await tokenCookie.get(request);
+    if (!data?.idToken) {
+      throw new AuthenticationError('No id_token in request');
     }
+
+    const body = new URLSearchParams();
+    body.append('id_token_hint', data.idToken);
+
+    await fetch(`${env.AUTH_OIDC_ISSUER}/oidc/v1/end_session`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body,
+    });
+  }
+
+  async refresh(request: Request): Promise<IZitadelResponse> {
+    const { data } = await sessionCookie.get(request);
+    if (!data?.refreshToken) {
+      throw new AuthenticationError('No refresh_token in request');
+    }
+
+    const tokens = await this.refreshToken(data.refreshToken);
+
+    return {
+      idToken: tokens.idToken(),
+      accessToken: tokens.accessToken(),
+      refreshToken: tokens.hasRefreshToken() ? tokens.refreshToken() : null,
+      expiredAt: tokens.accessTokenExpiresAt(),
+      sub: data.sub,
+    };
+  }
+}
+
+export const zitadelStrategy = await ZitadelStrategy.discover<IZitadelResponse>(
+  env.AUTH_OIDC_ISSUER,
+  {
+    clientId: env.AUTH_OIDC_CLIENT_ID,
+    clientSecret: env.AUTH_OIDC_CLIENT_SECRET ?? null,
+    redirectURI: `${env.APP_URL}/auth/callback`,
+    scopes: ['openid', 'profile', 'email', 'phone', 'address', 'offline_access'],
+  },
+  async ({ tokens }): Promise<IZitadelResponse> => {
+    if (!tokens.idToken()) {
+      throw new AuthenticationError('No id_token in response');
+    }
+
+    if (!tokens.accessToken()) {
+      throw new AuthenticationError('No access_token in response');
+    }
+
+    const decoded = jwtDecode<{ sub: string; email: string }>(tokens.accessToken());
+
+    return {
+      idToken: tokens.idToken(),
+      accessToken: tokens.accessToken(),
+      refreshToken: tokens.hasRefreshToken() ? tokens.refreshToken() : null,
+      expiredAt: tokens.accessTokenExpiresAt(),
+      sub: decoded.sub,
+    };
   }
 );

@@ -1,40 +1,44 @@
 export const routes = {
+  home: '/',
   auth: {
-    root: '/auth',
     logIn: '/login',
-    logOut: '/logout',
+    logOut: '/signout',
     signUp: '/signup',
     callback: '/auth/callback',
-    logOutCallback: '/auth/logout-callback',
   },
-  home: '/',
-  org: {
-    root: '/[orgId]/dashboard',
-    docs: '/[orgId]/docs',
-    settings: {
-      root: '/[orgId]/settings',
-      general: '/[orgId]/settings/general',
-      members: '/[orgId]/settings/members',
-      billing: '/[orgId]/settings/billing',
-    },
-    projects: {
-      root: '/[orgId]/projects',
-      new: '/[orgId]/projects/new',
-      setup: '/[orgId]/projects/setup',
-    },
+  action: {
+    setTheme: '/action/set-theme',
   },
   account: {
     root: '/account',
     organizations: {
-      root: '/account/organizations',
-      new: '/account/organizations/new',
+      root: '/orgs',
+      new: '/orgs/new',
     },
-    projects: '/account/projects',
-    apiKeys: {
-      root: '/account/api-keys',
-      new: '/account/api-keys/new',
+    projects: '/projects',
+    profile: '/account/profile',
+    tokens: {
+      root: '/account/tokens',
+      new: '/account/tokens/new',
     },
-    settings: '/account/settings',
+    security: '/account/security',
+    logs: '/account/logs',
+  },
+  org: {
+    root: '/org/[orgId]',
+    dashboard: '/org/[orgId]/dashboard',
+    docs: '/org/[orgId]/docs',
+    settings: {
+      root: '/org/[orgId]/settings',
+      general: '/org/[orgId]/settings/general',
+      members: '/org/[orgId]/settings/members',
+      billing: '/org/[orgId]/settings/billing',
+    },
+    projects: {
+      root: '/org/[orgId]/projects',
+      new: '/org/[orgId]/projects/new',
+      setup: '/org/[orgId]/projects/setup',
+    },
   },
   projects: {
     detail: '/[orgId]/projects/[projectId]',
