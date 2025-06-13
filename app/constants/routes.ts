@@ -64,7 +64,11 @@ export const routes = {
       networks: {
         root: '/[orgId]/projects/[projectId]/networks',
         new: '/[orgId]/projects/[projectId]/networks/new',
-        edit: '/[orgId]/projects/[projectId]/networks/[networkId]/edit',
+        detail: {
+          root: '/[orgId]/projects/[projectId]/networks/[networkId]',
+          overview: '/[orgId]/projects/[projectId]/networks/[networkId]/overview',
+          edit: '/[orgId]/projects/[projectId]/networks/[networkId]/edit',
+        },
       },
       gateways: {
         root: '/[orgId]/projects/[projectId]/gateways',

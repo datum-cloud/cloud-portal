@@ -9,6 +9,9 @@ import { WorkloadHelper } from '@/features/workload/helper';
 import { WorkloadOverview } from '@/features/workload/overview';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { createInstancesControl } from '@/resources/control-plane/instances.control';
+import { createWorkloadDeploymentsControl } from '@/resources/control-plane/workload-deployments.control';
+import { createWorkloadsControl } from '@/resources/control-plane/workloads.control';
 import {
   ControlPlaneStatus,
   IControlPlaneStatus,
@@ -19,14 +22,16 @@ import {
   IWorkloadDeploymentControlResponse,
 } from '@/resources/interfaces/workload.interface';
 import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions';
+import { CustomError } from '@/utils/errorHandle';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { transformControlPlaneStatus } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';
+import { Client } from '@hey-api/client-axios';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 import { motion } from 'framer-motion';
 import { ClockIcon, PencilIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { MetaFunction, useParams, useRouteLoaderData, useSubmit, Link } from 'react-router';
+import { MetaFunction, useParams, useSubmit, Link, LoaderFunctionArgs, AppLoadContext, data, useLoaderData } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find(
@@ -35,21 +40,44 @@ export const meta: MetaFunction = mergeMeta(({ matches }) => {
       'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout'
   ) as any;
 
-  const { workload } = match.data;
-  return metaObject(`${(workload as IWorkloadControlResponse)?.name || 'Workload'} Overview`);
+  const workload = match.data;
+  return metaObject((workload as IWorkloadControlResponse)?.name || 'Workload');
 });
 
+export const loader = async ({ context, params }: LoaderFunctionArgs) => {
+  const { controlPlaneClient } = context as AppLoadContext;
+  const { projectId, workloadId } = params;
+
+  if (!projectId || !workloadId) {
+    throw new CustomError('Project ID and workload ID are required', 400);
+  }
+
+  const workloadsControl = createWorkloadsControl(controlPlaneClient as Client);
+  const workload = await workloadsControl.detail(projectId, workloadId);
+
+  if (!workload) {
+    throw new CustomError('Workload not found', 404);
+  }
+
+  const workloadDeploymentsControl = createWorkloadDeploymentsControl(controlPlaneClient as Client);
+  const instancesControl = createInstancesControl(controlPlaneClient as Client);
+
+
+  const deployments = await workloadDeploymentsControl.list(projectId, workload.uid);
+  const instances = await instancesControl.list(projectId, workload.uid);
+
+  return data({ deployments, instances, workload });
+};
+
 export default function WorkloadOverviewPage() {
+  const { deployments, instances, workload } = useLoaderData<typeof loader>()
+
   const submit = useSubmit();
   const { confirm } = useConfirmationDialog();
   const { orgId, projectId, workloadId } = useParams();
 
   // revalidate every 10 seconds to keep deployment list fresh
   const revalidator = useRevalidateOnInterval({ enabled: true, interval: 10000 });
-
-  const { deployments, instances, workload } = useRouteLoaderData(
-    'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout'
-  );
 
   const deleteWorkload = async () => {
     const data = workload as IWorkloadControlResponse;
@@ -219,7 +247,6 @@ export default function WorkloadOverviewPage() {
           />
         </TabsContent>
         <TabsContent value="graph" className="max-h-screen min-h-[700px]">
-          {}
           <WorkloadFlow workloadData={workloadMappingData as any} />
         </TabsContent>
       </Tabs>

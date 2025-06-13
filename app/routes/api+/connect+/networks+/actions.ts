@@ -1,5 +1,6 @@
+import { routes } from '@/constants/routes';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast } from '@/modules/cookie/toast.server';
+import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { createNetworksControl } from '@/resources/control-plane/networks.control';
@@ -11,6 +12,7 @@ import {
   updateNetworkSchema,
 } from '@/resources/schemas/network.schema';
 import { CustomError } from '@/utils/errorHandle';
+import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext } from 'react-router';
 
@@ -21,28 +23,28 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
   const networksControl = createNetworksControl(controlPlaneClient as Client);
 
   try {
-    const clonedRequest = request.clone();
-
-    const payload: any = await clonedRequest.json();
-
-    const { projectId } = payload;
-
-    if (!projectId) {
-      throw new CustomError('Project ID is required', 400);
-    }
-
-    // Extract CSRF token from JSON payload
-    const csrfToken = payload?.csrf;
-
-    // Create FormData to validate CSRF token
-    const formData = new FormData();
-    formData.append('csrf', csrfToken);
-
-    // Validate the CSRF token against the request headers
-    await validateCSRF(formData, request.headers);
-
     switch (request.method) {
       case 'POST': {
+        const clonedRequest = request.clone();
+
+        const payload: any = await clonedRequest.json();
+
+        const { projectId } = payload;
+
+        if (!projectId) {
+          throw new CustomError('Project ID is required', 400);
+        }
+
+        // Extract CSRF token from JSON payload
+        const csrfToken = payload?.csrf;
+
+        // Create FormData to validate CSRF token
+        const formData = new FormData();
+        formData.append('csrf', csrfToken);
+
+        // Validate the CSRF token against the request headers
+        await validateCSRF(formData, request.headers);
+
         const parsed = newNetworkSchema.safeParse(payload);
 
         if (!parsed.success) {
@@ -72,6 +74,26 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
         );
       }
       case 'PUT': {
+        const clonedRequest = request.clone();
+
+        const payload: any = await clonedRequest.json();
+
+        const { projectId } = payload;
+
+        if (!projectId) {
+          throw new CustomError('Project ID is required', 400);
+        }
+
+        // Extract CSRF token from JSON payload
+        const csrfToken = payload?.csrf;
+
+        // Create FormData to validate CSRF token
+        const formData = new FormData();
+        formData.append('csrf', csrfToken);
+
+        // Validate the CSRF token against the request headers
+        await validateCSRF(formData, request.headers);
+
         const { networkId } = payload;
 
         if (!networkId) {
@@ -109,6 +131,23 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
           {
             title: 'Network updated successfully',
             description: 'You have successfully updated a network.',
+            type: 'success',
+          }
+        );
+      }
+      case 'DELETE': {
+        const formData = Object.fromEntries(await request.formData());
+        const { networkId, projectId, orgId } = formData;
+
+        await networksControl.delete(projectId as string, networkId as string);
+        return redirectWithToast(
+          getPathWithParams(routes.projects.connect.networks.root, {
+            orgId: orgId as string,
+            projectId: projectId as string,
+          }),
+          {
+            title: 'Network deleted successfully',
+            description: 'The network has been deleted successfully',
             type: 'success',
           }
         );

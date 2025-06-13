@@ -92,12 +92,11 @@ export default function AuthCallbackPage() {
     if (fetcher.data && fetcher.state === 'idle') {
       const { success, data: org } = fetcher.data;
 
-      if (!success) {
+      if (!success || org.length === 0) {
         navigate(routes.account.organizations.root);
-        return;
+      } else {
+        navigate(getPathWithParams(routes.org.projects.root, { orgId: org[0].id }));
       }
-
-      navigate(getPathWithParams(routes.org.projects.root, { orgId: org[0].id }));
       return;
     }
   }, [fetcher.data, fetcher.state]);
