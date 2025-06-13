@@ -9,6 +9,7 @@ import { withMiddleware } from '@/modules/middleware/middleware';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createNetworksControl } from '@/resources/control-plane/networks.control';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
+import { ROUTE_PATH as NETWORKS_ACTIONS_ROUTE_PATH } from '@/routes/api+/connect+/networks+/actions';
 import { CustomError } from '@/utils/errorHandle';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
@@ -21,10 +22,8 @@ import {
   useLoaderData,
   useNavigate,
   useParams,
-  useSubmit
+  useSubmit,
 } from 'react-router';
-
-import { ROUTE_PATH as NETWORKS_ACTIONS_ROUTE_PATH } from '@/routes/api+/connect+/networks+/actions';
 
 export const loader = withMiddleware(async ({ params, context }) => {
   const { projectId } = params;

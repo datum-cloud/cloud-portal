@@ -42,4 +42,4 @@ export const WorkloadOverview = ({
       </motion.div>
     </div>
   );
-}
+};

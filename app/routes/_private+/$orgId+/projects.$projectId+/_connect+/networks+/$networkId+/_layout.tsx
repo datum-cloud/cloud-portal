@@ -1,7 +1,7 @@
-import { createNetworksControl } from "@/resources/control-plane/networks.control";
-import { CustomError } from "@/utils/errorHandle";
-import { Client } from "@hey-api/client-axios";
-import { LoaderFunctionArgs, AppLoadContext, Outlet } from "react-router";
+import { createNetworksControl } from '@/resources/control-plane/networks.control';
+import { CustomError } from '@/utils/errorHandle';
+import { Client } from '@hey-api/client-axios';
+import { LoaderFunctionArgs, AppLoadContext, Outlet } from 'react-router';
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const { projectId, networkId } = params;

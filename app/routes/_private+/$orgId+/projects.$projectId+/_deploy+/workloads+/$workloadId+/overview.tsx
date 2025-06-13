@@ -31,7 +31,16 @@ import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 import { motion } from 'framer-motion';
 import { ClockIcon, PencilIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { MetaFunction, useParams, useSubmit, Link, LoaderFunctionArgs, AppLoadContext, data, useLoaderData } from 'react-router';
+import {
+  MetaFunction,
+  useParams,
+  useSubmit,
+  Link,
+  LoaderFunctionArgs,
+  AppLoadContext,
+  data,
+  useLoaderData,
+} from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find(
@@ -62,7 +71,6 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const workloadDeploymentsControl = createWorkloadDeploymentsControl(controlPlaneClient as Client);
   const instancesControl = createInstancesControl(controlPlaneClient as Client);
 
-
   const deployments = await workloadDeploymentsControl.list(projectId, workload.uid);
   const instances = await instancesControl.list(projectId, workload.uid);
 
@@ -70,7 +78,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 };
 
 export default function WorkloadOverviewPage() {
-  const { deployments, instances, workload } = useLoaderData<typeof loader>()
+  const { deployments, instances, workload } = useLoaderData<typeof loader>();
 
   const submit = useSubmit();
   const { confirm } = useConfirmationDialog();

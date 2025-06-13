@@ -9,7 +9,6 @@ import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 
 export const NetworkBindingsTable = ({ data }: { data: INetworkBindingControlResponse[] }) => {
-
   const columns: ColumnDef<INetworkBindingControlResponse>[] = useMemo(
     () => [
       {

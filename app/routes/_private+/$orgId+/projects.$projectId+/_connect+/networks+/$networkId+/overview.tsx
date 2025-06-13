@@ -1,31 +1,41 @@
-import { createNetworkBindingsControl } from "@/resources/control-plane/network-bindings.control";
-import { INetworkControlResponse } from "@/resources/interfaces/network.interface";
-import { CustomError } from "@/utils/errorHandle";
-import { mergeMeta, metaObject } from "@/utils/meta";
-import { Client } from "@hey-api/client-axios";
-import { AppLoadContext, Link, LoaderFunctionArgs, MetaFunction, data, useLoaderData, useParams, useRouteLoaderData, useSubmit } from "react-router";
-import { motion } from "framer-motion";
-import { PageTitle } from "@/components/page-title/page-title";
-import { ClockIcon, PencilIcon } from "lucide-react";
-import { DateFormat } from "@/components/date-format/date-format";
-import { formatDistanceToNow } from "date-fns";
-import { getPathWithParams } from "@/utils/path";
-import { routes } from "@/constants/routes";
-import { Button } from "@/components/ui/button";
-import { MoreActions } from "@/components/more-actions/more-actions";
-import { NetworkGeneralCard } from "@/features/network/overview/general-card";
-import { NetworkBindingsTable } from "@/features/network/overview/network-bindings";
-import { createNetworkContextControl } from "@/resources/control-plane/network-context.control";
-import { NetworkContextsTable } from "@/features/network/overview/network-contexts";
-import { useRevalidateOnInterval } from "@/hooks/useRevalidatorInterval";
-import { useConfirmationDialog } from "@/providers/confirmationDialog.provider";
+import { DateFormat } from '@/components/date-format/date-format';
+import { MoreActions } from '@/components/more-actions/more-actions';
+import { PageTitle } from '@/components/page-title/page-title';
+import { Button } from '@/components/ui/button';
+import { routes } from '@/constants/routes';
+import { NetworkGeneralCard } from '@/features/network/overview/general-card';
+import { NetworkBindingsTable } from '@/features/network/overview/network-bindings';
+import { NetworkContextsTable } from '@/features/network/overview/network-contexts';
+import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { createNetworkBindingsControl } from '@/resources/control-plane/network-bindings.control';
+import { createNetworkContextControl } from '@/resources/control-plane/network-context.control';
+import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { ROUTE_PATH as NETWORKS_ACTIONS_ROUTE_PATH } from '@/routes/api+/connect+/networks+/actions';
+import { CustomError } from '@/utils/errorHandle';
+import { mergeMeta, metaObject } from '@/utils/meta';
+import { getPathWithParams } from '@/utils/path';
+import { Client } from '@hey-api/client-axios';
+import { formatDistanceToNow } from 'date-fns';
+import { motion } from 'framer-motion';
+import { ClockIcon, PencilIcon } from 'lucide-react';
+import {
+  AppLoadContext,
+  Link,
+  LoaderFunctionArgs,
+  MetaFunction,
+  data,
+  useLoaderData,
+  useParams,
+  useRouteLoaderData,
+  useSubmit,
+} from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find(
     (match) =>
       match.id ===
-      "routes/_private+/$orgId+/projects.$projectId+/_connect+/networks+/$networkId+/_layout"
+      'routes/_private+/$orgId+/projects.$projectId+/_connect+/networks+/$networkId+/_layout'
   ) as any;
 
   const network = match.data;
@@ -45,17 +55,17 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const networkBindings = await bindingsControl.list(projectId, networkId);
 
   // Get network contexts
-  const contextControl = createNetworkContextControl(controlPlaneClient as Client)
+  const contextControl = createNetworkContextControl(controlPlaneClient as Client);
   const networkContexts = await contextControl.list(projectId, networkId);
 
-  return data({ bindings: networkBindings, contexts: networkContexts })
+  return data({ bindings: networkBindings, contexts: networkContexts });
 };
 
 export default function NetworkOverviewPage() {
   const network = useRouteLoaderData(
     'routes/_private+/$orgId+/projects.$projectId+/_connect+/networks+/$networkId+/_layout'
   );
-  const { bindings, contexts } = useLoaderData<typeof loader>()
+  const { bindings, contexts } = useLoaderData<typeof loader>();
 
   const submit = useSubmit();
   const { confirm } = useConfirmationDialog();
@@ -111,8 +121,7 @@ export default function NetworkOverviewPage() {
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.2, duration: 0.4 }}
-      >
+        transition={{ delay: 0.2, duration: 0.4 }}>
         <PageTitle
           title={(network as INetworkControlResponse)?.name ?? 'Network'}
           description={
@@ -190,5 +199,5 @@ export default function NetworkOverviewPage() {
         <NetworkContextsTable data={contexts} />
       </motion.div>
     </motion.div>
-  )
+  );
 }

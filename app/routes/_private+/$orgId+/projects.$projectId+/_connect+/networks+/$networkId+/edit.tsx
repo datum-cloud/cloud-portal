@@ -3,17 +3,13 @@ import { NetworkForm } from '@/features/network/form';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
-import {
-  MetaFunction, useNavigate,
-  useParams,
-  useRouteLoaderData
-} from 'react-router';
+import { MetaFunction, useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find(
     (match) =>
       match.id ===
-      "routes/_private+/$orgId+/projects.$projectId+/_connect+/networks+/$networkId+/_layout"
+      'routes/_private+/$orgId+/projects.$projectId+/_connect+/networks+/$networkId+/_layout'
   ) as any;
 
   const network = match.data;
