@@ -7,9 +7,7 @@ import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction } from 'react-ro
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
   const { exportPolicy } = data as any;
-  return metaObject(
-    `${(exportPolicy as IExportPolicyControlResponse)?.name || 'Export Policy'} Overview`
-  );
+  return metaObject((exportPolicy as IExportPolicyControlResponse)?.name || 'Export Policy');
 });
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {

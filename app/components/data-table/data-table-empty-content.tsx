@@ -11,10 +11,10 @@ export const DataTableEmptyContent = ({
 }: DataTableEmptyContentProps) => {
   const [theme] = useTheme();
   return (
-    <div className="flex flex-col items-center justify-center py-8">
-      <img src={`/images/empty-data-${theme}.svg`} alt="Datum" className="size-50" />
+    <div className="flex flex-col items-center justify-center">
+      <img src={`/images/empty-data-${theme}.svg`} alt="Datum" className="size-25" />
       <div className="my-5 flex flex-col items-center gap-4">
-        <h2 className="text-2xl leading-2 font-semibold">{title}</h2>
+        <h2 className="text-xl leading-2 font-semibold">{title}</h2>
         <p className="text-muted-foreground">{subtitle}</p>
       </div>
       {actions.length > 0 && (

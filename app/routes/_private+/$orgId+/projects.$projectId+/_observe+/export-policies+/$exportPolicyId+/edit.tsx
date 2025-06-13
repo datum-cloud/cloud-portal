@@ -25,9 +25,7 @@ export const meta: MetaFunction = mergeMeta(({ matches }) => {
   ) as any;
 
   const exportPolicy = match.data;
-  return metaObject(
-    `${(exportPolicy as IExportPolicyControlResponse)?.name || 'Export Policy'} Overview`
-  );
+  return metaObject((exportPolicy as IExportPolicyControlResponse)?.name || 'Export Policy');
 });
 
 export const action = async ({ request, params, context }: ActionFunctionArgs) => {

@@ -8,7 +8,7 @@ import {
 } from '@/resources/interfaces/workload.interface';
 import { motion } from 'framer-motion';
 
-export function WorkloadOverview({
+export const WorkloadOverview = ({
   workload,
   deployments,
   instances,
@@ -16,7 +16,7 @@ export function WorkloadOverview({
   workload: IWorkloadControlResponse;
   deployments: IWorkloadDeploymentControlResponse[];
   instances: IInstanceControlResponse[];
-}) {
+}) => {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <motion.div
@@ -42,4 +42,4 @@ export function WorkloadOverview({
       </motion.div>
     </div>
   );
-}
+};

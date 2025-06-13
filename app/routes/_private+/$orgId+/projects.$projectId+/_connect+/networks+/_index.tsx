@@ -4,12 +4,12 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { routes } from '@/constants/routes';
-import { dataWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createNetworksControl } from '@/resources/control-plane/networks.control';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
+import { ROUTE_PATH as NETWORKS_ACTIONS_ROUTE_PATH } from '@/routes/api+/connect+/networks+/actions';
 import { CustomError } from '@/utils/errorHandle';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
@@ -17,7 +17,6 @@ import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import {
-  ActionFunctionArgs,
   AppLoadContext,
   Link,
   useLoaderData,
@@ -38,27 +37,6 @@ export const loader = withMiddleware(async ({ params, context }) => {
   const networks = await networksControl.list(projectId);
 
   return networks;
-}, authMiddleware);
-
-export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { controlPlaneClient } = context as AppLoadContext;
-  const networksControl = createNetworksControl(controlPlaneClient as Client);
-
-  switch (request.method) {
-    case 'DELETE': {
-      const formData = Object.fromEntries(await request.formData());
-      const { networkId, projectId } = formData;
-
-      await networksControl.delete(projectId as string, networkId as string);
-      return dataWithToast(null, {
-        title: 'Network deleted successfully',
-        description: 'The network has been deleted successfully',
-        type: 'success',
-      });
-    }
-    default:
-      throw new Error('Method not allowed');
-  }
 }, authMiddleware);
 
 export default function ConnectNetworksPage() {
@@ -90,11 +68,13 @@ export default function ConnectNetworksPage() {
           {
             networkId: network.name ?? '',
             projectId: projectId ?? '',
+            orgId: orgId ?? '',
           },
           {
             method: 'DELETE',
             fetcherKey: 'network-resources',
             navigate: false,
+            action: NETWORKS_ACTIONS_ROUTE_PATH,
           }
         );
       },
@@ -126,7 +106,7 @@ export default function ConnectNetworksPage() {
         cell: ({ row }) => {
           return (
             <Link
-              to={getPathWithParams(routes.projects.connect.networks.edit, {
+              to={getPathWithParams(routes.projects.connect.networks.detail.overview, {
                 orgId,
                 projectId,
                 networkId: row.original.name,
@@ -181,7 +161,7 @@ export default function ConnectNetworksPage() {
         label: 'Edit',
         action: (row) => {
           navigate(
-            getPathWithParams(routes.projects.connect.networks.edit, {
+            getPathWithParams(routes.projects.connect.networks.detail.edit, {
               orgId,
               projectId,
               networkId: row.name,

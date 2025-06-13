@@ -24,7 +24,7 @@ export const meta: MetaFunction = mergeMeta(({ matches }) => {
       'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout'
   ) as any;
 
-  const { workload } = match.data;
+  const workload = match.data;
   return metaObject(`Manage ${(workload as IWorkloadControlResponse)?.name || 'Workload'}`);
 });
 
@@ -93,7 +93,7 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
 };
 
 export default function WorkloadEditPage() {
-  const { workload } = useRouteLoaderData(
+  const workload = useRouteLoaderData(
     'routes/_private+/$orgId+/projects.$projectId+/_deploy+/workloads+/$workloadId+/_layout'
   );
   const { projectId } = useParams();
