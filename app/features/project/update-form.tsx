@@ -78,7 +78,7 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
             <InputWithCopy value={defaultValue.uid ?? ''} className="bg-muted h-9" />
           </Field>
           <Field
-            label="Immutable Name"
+            label="Name"
             tooltipInfo="Used to identify your project in the dashboard, Datum CLI, and in the URL of your deployments">
             <InputWithCopy value={defaultValue.name ?? ''} className="bg-muted h-9" />
           </Field>
