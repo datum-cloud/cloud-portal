@@ -66,7 +66,7 @@ export const NetworkContextsTable = ({ data }: { data: INetworkContextControlRes
         <DataTable
           columns={columns}
           data={data ?? []}
-          emptyContent={{ title: 'No network contexts found.' }}
+          emptyContent={{ title: 'No network contexts found.', size: 'sm' }}
         />
       </CardContent>
     </Card>

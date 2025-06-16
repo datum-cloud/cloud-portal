@@ -84,7 +84,7 @@ export const NetworkBindingsTable = ({ data }: { data: INetworkBindingControlRes
         <DataTable
           columns={columns}
           data={data ?? []}
-          emptyContent={{ title: 'No network bindings found.' }}
+          emptyContent={{ title: 'No network bindings found.', size: 'sm' }}
         />
       </CardContent>
     </Card>

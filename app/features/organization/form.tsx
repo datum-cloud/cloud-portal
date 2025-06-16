@@ -138,6 +138,11 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
                   />
                 )}
               </Field>
+              {isEdit && (
+                <Field label="ID">
+                  <InputWithCopy value={defaultValue?.uid ?? ''} className="bg-muted h-9" />
+                </Field>
+              )}
             </div>
             <Field
               label="Labels"
