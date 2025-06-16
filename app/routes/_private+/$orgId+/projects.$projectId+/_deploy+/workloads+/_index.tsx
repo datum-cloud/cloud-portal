@@ -66,7 +66,7 @@ export const loader = withMiddleware(async ({ context, params, request }: Loader
 }, authMiddleware);
 
 export default function WorkloadsPage() {
-  // revalidate every 5 seconds to keep workload list fresh
+  // revalidate every 10 seconds to keep workload list fresh
   useRevalidateOnInterval({ enabled: true, interval: 10000 });
 
   const { workloads, deletedIds } = useLoaderData<typeof loader>();
