@@ -17,6 +17,10 @@ import {
   useRouteLoaderData,
 } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>Edit</span>,
+};
+
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find(
     (match) =>

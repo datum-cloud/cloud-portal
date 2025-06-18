@@ -5,6 +5,10 @@ import { mergeMeta, metaObject } from '@/utils/meta';
 import { Client } from '@hey-api/client-axios';
 import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction } from 'react-router';
 
+export const handle = {
+  breadcrumb: (data: IExportPolicyControlResponse) => <span>{data?.name}</span>,
+};
+
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
   const { exportPolicy } = data as any;
   return metaObject((exportPolicy as IExportPolicyControlResponse)?.name || 'Export Policy');

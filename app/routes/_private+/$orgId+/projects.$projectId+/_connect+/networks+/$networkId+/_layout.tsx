@@ -1,7 +1,12 @@
 import { createNetworksControl } from '@/resources/control-plane/networks.control';
+import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { CustomError } from '@/utils/errorHandle';
 import { Client } from '@hey-api/client-axios';
 import { LoaderFunctionArgs, AppLoadContext, Outlet } from 'react-router';
+
+export const handle = {
+  breadcrumb: (data: INetworkControlResponse) => <span>{data.name}</span>,
+};
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const { projectId, networkId } = params;

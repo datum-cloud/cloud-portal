@@ -18,6 +18,10 @@ import {
   useParams,
 } from 'react-router';
 
+export const handle = {
+  breadcrumb: (data: IEndpointSliceControlResponse) => <span>{data?.name}</span>,
+};
+
 export const meta: MetaFunction = mergeMeta(({ data }) => {
   return metaObject(`Edit ${(data as IEndpointSliceControlResponse)?.name || 'Endpoint Slice'}`);
 });

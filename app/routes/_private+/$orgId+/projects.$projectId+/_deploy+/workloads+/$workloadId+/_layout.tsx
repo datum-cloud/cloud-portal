@@ -5,6 +5,10 @@ import { metaObject, mergeMeta } from '@/utils/meta';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, data, LoaderFunctionArgs, MetaFunction, Outlet } from 'react-router';
 
+export const handle = {
+  breadcrumb: (data: IWorkloadControlResponse) => <span>{data?.name}</span>,
+};
+
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
   const { workload } = data as any;
   return metaObject((workload as IWorkloadControlResponse)?.name || 'Workload');
