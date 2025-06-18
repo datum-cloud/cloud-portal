@@ -19,6 +19,10 @@ import { AxiosInstance } from 'axios';
 import { CircleAlertIcon } from 'lucide-react';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, useFetcher } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>Settings</span>,
+};
+
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Organization Settings');
 });
@@ -119,7 +123,7 @@ export default function OrgSettingsPage() {
   };
 
   return (
-    <div className="mx-auto my-4 w-full max-w-3xl md:my-6">
+    <div className="mx-auto w-full max-w-3xl py-8">
       <div className="grid grid-cols-1 gap-6">
         {/* Organization Name Section */}
         <OrganizationForm defaultValue={organization} />

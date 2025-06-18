@@ -17,6 +17,10 @@ import {
   useParams,
 } from 'react-router';
 
+export const handle = {
+  breadcrumb: (data: IGatewayControlResponse) => <span>{data?.name}</span>,
+};
+
 export const meta: MetaFunction = mergeMeta(({ data }) => {
   return metaObject(`Edit ${(data as IGatewayControlResponse)?.name || 'Gateway'}`);
 });

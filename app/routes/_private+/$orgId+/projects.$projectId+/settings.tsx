@@ -18,6 +18,10 @@ import { Client } from '@hey-api/client-axios';
 import { CircleAlertIcon } from 'lucide-react';
 import { ActionFunctionArgs, AppLoadContext, useRouteLoaderData, useSubmit } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>Settings</span>,
+};
+
 export const action = withMiddleware(async ({ request, context, params }: ActionFunctionArgs) => {
   const { controlPlaneClient, cache } = context as AppLoadContext;
   const projectsControl = createProjectsControl(controlPlaneClient as Client);
@@ -135,7 +139,7 @@ export default function ProjectSettingsPage() {
   };
 
   return (
-    <div className="mx-auto my-4 w-full max-w-3xl md:my-6">
+    <div className="mx-auto w-full max-w-3xl py-8">
       <div className="grid grid-cols-1 gap-6">
         {/* Project Name Section */}
         <UpdateProjectForm defaultValue={project} />

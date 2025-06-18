@@ -21,6 +21,10 @@ import {
   useLoaderData,
 } from 'react-router';
 
+export const handle = {
+  breadcrumb: (data: IConfigMapControlResponse) => <span>{data.name}</span>,
+};
+
 export const meta: MetaFunction<IConfigMapControlResponse> = mergeMeta(({ data }) => {
   return metaObject(`Edit ${(data as IConfigMapControlResponse)?.name || 'Config Map'}`);
 });

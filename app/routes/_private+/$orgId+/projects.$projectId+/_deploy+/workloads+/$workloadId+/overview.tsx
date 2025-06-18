@@ -42,6 +42,10 @@ import {
   useLoaderData,
 } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>Overview</span>,
+};
+
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find(
     (match) =>

@@ -10,6 +10,10 @@ import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>New</span>,
+};
+
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('New Secret');
 });

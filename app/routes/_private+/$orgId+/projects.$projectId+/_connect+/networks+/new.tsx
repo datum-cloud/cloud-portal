@@ -4,6 +4,10 @@ import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { MetaFunction, useNavigate, useParams } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>New</span>,
+};
+
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('New Network');
 });

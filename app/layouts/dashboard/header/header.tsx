@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { CircleHelp, SlashIcon } from 'lucide-react';
-import { Link, useParams } from 'react-router';
+import { Link, useMatches, useParams } from 'react-router';
 
 export const Header = ({
   hideSidebar = false,
@@ -17,11 +17,10 @@ export const Header = ({
   currentProject?: IProjectControlResponse;
 }) => {
   const params = useParams<{ orgId: string; projectId: string }>();
-
   return (
-    <header className="bg-background sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between gap-2 border-b">
+    <header className="bg-background sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between gap-4 border-b px-4">
       {/* Left Section */}
-      <div className="flex flex-1 items-center px-4">
+      <div className="flex flex-1 items-center">
         {!hideSidebar && <SidebarTrigger className="-ml-1 cursor-pointer" />}
         {params?.orgId && <OrganizationSwitcher />}
         {params?.projectId && currentProject && (
@@ -32,7 +31,7 @@ export const Header = ({
         )}
       </div>
       {/* Right Section */}
-      <div className="flex h-9 flex-1 items-center justify-end gap-3 pr-4">
+      <div className="flex h-9 flex-1 items-center justify-end gap-3">
         {/* <SearchBar /> */}
         <div className="flex h-full items-center gap-2">
           <Button variant="outline" size="sm" className="cursor-pointer px-2">

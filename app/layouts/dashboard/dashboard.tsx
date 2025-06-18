@@ -1,3 +1,4 @@
+import { Breadcrumb } from './header/breadcrumb';
 import { Header } from './header/header';
 import { NavItem } from './sidebar/nav-main';
 import { DashboardSidebar } from './sidebar/sidebar';
@@ -15,7 +16,6 @@ export function DashboardLayout({
 }: {
   children: React.ReactNode;
   navItems: NavItem[];
-
   sidebarCollapsible?: 'offcanvas' | 'icon' | 'none';
   currentProject?: IProjectControlResponse;
   hideUserDropdown?: boolean;
@@ -26,7 +26,10 @@ export function DashboardLayout({
       <DashboardSidebar navItems={navItems} collapsible={sidebarCollapsible} />
       <SidebarInset>
         <Header currentProject={currentProject} />
-        <div className={cn('flex max-w-full flex-1 flex-col gap-4 p-5', className)}>{children}</div>
+        <Breadcrumb />
+        <div className={cn('flex max-w-full flex-1 flex-col gap-4 px-4 py-5', className)}>
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

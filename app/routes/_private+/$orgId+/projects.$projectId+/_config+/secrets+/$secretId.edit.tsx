@@ -27,6 +27,10 @@ import {
   useSubmit,
 } from 'react-router';
 
+export const handle = {
+  breadcrumb: (data: ISecretControlResponse) => <span>{data.name}</span>,
+};
+
 export const meta: MetaFunction = mergeMeta(({ data }) => {
   return metaObject(`Edit ${(data as ISecretControlResponse)?.name}`);
 });

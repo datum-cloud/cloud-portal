@@ -18,6 +18,10 @@ import {
   useParams,
 } from 'react-router';
 
+export const handle = {
+  breadcrumb: (data: IHttpRouteControlResponse) => <span>{data?.name}</span>,
+};
+
 export const meta: MetaFunction = mergeMeta(({ data }) => {
   return metaObject(`Edit ${(data as IHttpRouteControlResponse)?.name || 'HTTP Route'}`);
 });
