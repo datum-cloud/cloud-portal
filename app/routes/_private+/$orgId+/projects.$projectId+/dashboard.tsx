@@ -17,10 +17,6 @@ import { ArrowRight, Binoculars, Cloud, GlobeLock, Mail, Network } from 'lucide-
 import { useEffect, useMemo, useRef } from 'react';
 import { Link, useRevalidator, useRouteLoaderData } from 'react-router';
 
-export const handle = {
-  breadcrumb: () => <span>Dashboard</span>,
-};
-
 export default function ProjectDashboardPage() {
   const project = useRouteLoaderData('routes/_private+/$orgId+/projects.$projectId+/_layout');
   const { orgId } = useApp();
