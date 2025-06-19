@@ -43,21 +43,30 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
 
     const activeNavItem = useCallback(
       (val: string) => {
-        const currentPath = pathname;
+        // pathname is from useLocation() in the outer scope.
+        // val is the nav item's path string.
 
-        if (val === '/') {
-          return currentPath === '/';
+        const normalize = (p: string): string => {
+          let result = p.startsWith('/') ? p : `/${p}`;
+          // Remove trailing slash, unless it's the root path itself
+          if (result !== '/' && result.endsWith('/')) {
+            result = result.slice(0, -1);
+          }
+          return result;
+        };
+
+        const cleanCurrentPath = normalize(pathname);
+        const cleanNavPath = normalize(val);
+
+        // Handle root path case: nav item is '/'
+        if (cleanNavPath === '/') {
+          return cleanCurrentPath === '/'; // Active if current path is also root
         }
 
-        const normalizedVal = val.startsWith('/') ? val : `/${val}`;
-        const normalizedPath = currentPath.startsWith('/') ? currentPath : `/${currentPath}`;
-
-        const cleanVal = normalizedVal.endsWith('/') ? normalizedVal.slice(0, -1) : normalizedVal;
-        const cleanPath = normalizedPath.endsWith('/')
-          ? normalizedPath.slice(0, -1)
-          : normalizedPath;
-
-        return cleanPath.includes(cleanVal);
+        // Check for exact match or if current path is a sub-path of nav item path
+        // e.g., current: /settings/profile, nav: /settings -> true (startsWith /settings/)
+        // e.g., current: /settings, nav: /settings -> true (exact match)
+        return cleanCurrentPath === cleanNavPath || cleanCurrentPath.startsWith(`${cleanNavPath}/`);
       },
       [pathname]
     );
