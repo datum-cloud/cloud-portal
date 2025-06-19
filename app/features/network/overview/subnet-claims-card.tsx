@@ -2,13 +2,13 @@ import { DataTable } from '@/components/data-table/data-table';
 import { DateFormat } from '@/components/date-format/date-format';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ISubnetControlResponse } from '@/resources/interfaces/network.interface';
+import { ISubnetClaimControlResponse } from '@/resources/interfaces/network.interface';
 import { getShortId } from '@/utils/misc';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 
-export const SubnetsTable = ({ data }: { data: ISubnetControlResponse[] }) => {
-  const columns: ColumnDef<ISubnetControlResponse>[] = useMemo(
+export const SubnetClaimsCard = ({ data }: { data: ISubnetClaimControlResponse[] }) => {
+  const columns: ColumnDef<ISubnetClaimControlResponse>[] = useMemo(
     () => [
       {
         header: 'Name',
@@ -40,18 +40,18 @@ export const SubnetsTable = ({ data }: { data: ISubnetControlResponse[] }) => {
         },
       },
       {
-        header: 'Network Context',
-        accessorKey: 'networkContext',
+        header: 'Subnet Ref',
+        accessorKey: 'subnetRef',
         enableSorting: false,
         cell: ({ row }) => {
-          return row.original.spec?.networkContext?.name;
+          return row.original.status?.subnetRef?.name;
         },
       },
       // --- START: NEW COMBINED COLUMN ---
       // This single column replaces 'IP Family', 'Prefix Length', and 'Start Address'.
       {
-        header: 'Subnet / CIDR',
-        id: 'subnet-cidr-info',
+        header: 'CIDR',
+        id: 'cidr-info',
         enableSorting: false,
         cell: ({ row }) => {
           const { spec } = row.original;
@@ -106,14 +106,16 @@ export const SubnetsTable = ({ data }: { data: ISubnetControlResponse[] }) => {
 
   return (
     <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
-      <CardHeader className="px-6">
-        <CardTitle className="text-base leading-none font-medium">Subnets</CardTitle>
-      </CardHeader>
-      <CardContent className="px-6 pb-6">
+      {data.length > 0 && (
+        <CardHeader className="px-6">
+          <CardTitle className="text-base leading-none font-medium">Subnet Claims</CardTitle>
+        </CardHeader>
+      )}
+      <CardContent>
         <DataTable
           columns={columns}
           data={data ?? []}
-          emptyContent={{ title: 'No subnets found.', size: 'sm' }}
+          emptyContent={{ title: 'No subnet claims found.', size: 'sm' }}
         />
       </CardContent>
     </Card>

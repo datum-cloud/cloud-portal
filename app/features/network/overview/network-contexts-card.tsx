@@ -7,7 +7,7 @@ import { getShortId } from '@/utils/misc';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 
-export const NetworkContextsTable = ({ data }: { data: INetworkContextControlResponse[] }) => {
+export const NetworkContextsCard = ({ data }: { data: INetworkContextControlResponse[] }) => {
   const columns: ColumnDef<INetworkContextControlResponse>[] = useMemo(
     () => [
       {
@@ -59,10 +59,12 @@ export const NetworkContextsTable = ({ data }: { data: INetworkContextControlRes
 
   return (
     <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
-      <CardHeader className="px-6">
-        <CardTitle className="text-base leading-none font-medium">Network Contexts</CardTitle>
-      </CardHeader>
-      <CardContent className="px-6 pb-6">
+      {data.length > 0 && (
+        <CardHeader className="px-6">
+          <CardTitle className="text-base leading-none font-medium">Network Contexts</CardTitle>
+        </CardHeader>
+      )}
+      <CardContent>
         <DataTable
           columns={columns}
           data={data ?? []}

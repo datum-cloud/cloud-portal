@@ -16,7 +16,7 @@ export const DataTableEmptyContent = ({
   // Size-based styling configurations
   const sizeConfig = {
     sm: {
-      container: 'gap-3 py-3',
+      container: 'gap-3',
       image: 'size-32',
       titleContainer: 'mb-2',
       title: 'text-lg font-semibold',
@@ -26,7 +26,7 @@ export const DataTableEmptyContent = ({
       buttonStyle: 'text-sm',
     },
     md: {
-      container: 'gap-5 py-5',
+      container: 'gap-5',
       image: 'size-40',
       titleContainer: 'mb-2',
       title: 'text-xl font-semibold',
@@ -36,7 +36,7 @@ export const DataTableEmptyContent = ({
       buttonStyle: 'text-sm',
     },
     lg: {
-      container: 'gap-6 py-6',
+      container: 'gap-6',
       image: 'size-56',
       titleContainer: 'mb-2',
       title: 'text-2xl font-semibold',

@@ -32,9 +32,6 @@ export const createNetworkBindingsControl = (client: Client) => {
         path: {
           namespace: 'default',
         },
-        /*  query: {
-          fieldSelector: networkId ? `compute.datumapis.com/network-uid=${networkId}` : undefined,
-        }, */
       });
 
       const networkBindings = response.data as ComDatumapisNetworkingV1AlphaNetworkBindingList;

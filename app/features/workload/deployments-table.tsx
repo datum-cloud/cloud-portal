@@ -79,14 +79,16 @@ export const DeploymentsTable = ({ data }: { data: IWorkloadDeploymentControlRes
 
   return (
     <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
-      <CardHeader className="px-6">
-        <CardTitle className="text-base leading-none font-medium">Deployments</CardTitle>
-      </CardHeader>
-      <CardContent className="px-6 pb-6">
+      {data.length > 0 && (
+        <CardHeader className="px-6">
+          <CardTitle className="text-base leading-none font-medium">Deployments</CardTitle>
+        </CardHeader>
+      )}
+      <CardContent>
         <DataTable
           columns={columns}
           data={data ?? []}
-          emptyContent={{ title: 'No deployments found.' }}
+          emptyContent={{ title: 'No deployments found.', size: 'sm' }}
         />
       </CardContent>
     </Card>
