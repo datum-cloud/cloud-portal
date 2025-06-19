@@ -124,5 +124,12 @@ export const routes = {
     roles: '/[orgId]/projects/[projectId]/roles',
     serviceAccounts: '/[orgId]/projects/[projectId]/service-accounts',
     settings: '/[orgId]/projects/[projectId]/settings',
+    resources: {
+      root: '/[orgId]/projects/[projectId]/resources',
+      list: '/[orgId]/projects/[projectId]/resources/[group]/[kind]',
+      detail: '/[orgId]/projects/[projectId]/resources/[group]/[kind]/[resourceId]',
+      edit: '/[orgId]/projects/[projectId]/resources/[group]/[kind]/[resourceId]/edit',
+      new: '/[orgId]/projects/[projectId]/resources/[group]/[kind]/new',
+    },
   },
 };
