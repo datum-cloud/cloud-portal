@@ -6,11 +6,16 @@ import { routes } from '@/constants/routes';
 import { NetworkGeneralCard } from '@/features/network/overview/general-card';
 import { NetworkBindingsTable } from '@/features/network/overview/network-bindings';
 import { NetworkContextsTable } from '@/features/network/overview/network-contexts';
+import { SubnetsTable } from '@/features/network/overview/subnet';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createNetworkBindingsControl } from '@/resources/control-plane/network-bindings.control';
-import { createNetworkContextControl } from '@/resources/control-plane/network-context.control';
-import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
+import { createNetworkContextControl } from '@/resources/control-plane/network-contexts.control';
+import { createSubnetsControl } from '@/resources/control-plane/subnets.control';
+import {
+  INetworkControlResponse,
+  ISubnetControlResponse,
+} from '@/resources/interfaces/network.interface';
 import { ROUTE_PATH as NETWORKS_ACTIONS_ROUTE_PATH } from '@/routes/api+/connect+/networks+/actions';
 import { CustomError } from '@/utils/errorHandle';
 import { mergeMeta, metaObject } from '@/utils/meta';
@@ -62,14 +67,24 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const contextControl = createNetworkContextControl(controlPlaneClient as Client);
   const networkContexts = await contextControl.list(projectId, networkId);
 
-  return data({ bindings: networkBindings, contexts: networkContexts });
+  // Note: Subnets are directly related to NetworkContext resources rather than Network resources
+  let subnets: ISubnetControlResponse[] = [];
+  if (networkContexts.length > 0) {
+    const contexts = networkContexts
+      .map((context) => context.name)
+      .filter((name) => name !== undefined);
+    const subnetsControl = createSubnetsControl(controlPlaneClient as Client);
+    subnets = await subnetsControl.list(projectId, contexts as string[]);
+  }
+
+  return data({ bindings: networkBindings, contexts: networkContexts, subnets });
 };
 
 export default function NetworkOverviewPage() {
   const network = useRouteLoaderData(
     'routes/_private+/$orgId+/projects.$projectId+/_connect+/networks+/$networkId+/_layout'
   );
-  const { bindings, contexts } = useLoaderData<typeof loader>();
+  const { bindings, contexts, subnets } = useLoaderData<typeof loader>();
 
   const submit = useSubmit();
   const { confirm } = useConfirmationDialog();
@@ -199,8 +214,15 @@ export default function NetworkOverviewPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.4 }}>
+        transition={{ delay: 0.8, duration: 0.4 }}>
         <NetworkContextsTable data={contexts} />
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1, duration: 0.4 }}>
+        <SubnetsTable data={subnets} />
       </motion.div>
     </motion.div>
   );

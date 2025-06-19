@@ -2,6 +2,7 @@ import {
   ComDatumapisNetworkingV1AlphaNetwork,
   ComDatumapisNetworkingV1AlphaNetworkBinding,
   ComDatumapisNetworkingV1AlphaNetworkContext,
+  ComDatumapisNetworkingV1AlphaSubnet,
 } from '@/modules/control-plane/networking';
 
 export interface INetworkControlResponse {
@@ -34,4 +35,14 @@ export interface INetworkContextControlResponse {
   namespace?: string;
   spec?: ComDatumapisNetworkingV1AlphaNetworkContext['spec'];
   status?: ComDatumapisNetworkingV1AlphaNetworkContext['status'];
+}
+
+export interface ISubnetControlResponse {
+  name?: string;
+  uid?: string;
+  resourceVersion?: string;
+  createdAt?: Date;
+  namespace?: string;
+  spec?: ComDatumapisNetworkingV1AlphaSubnet['spec'];
+  status?: ComDatumapisNetworkingV1AlphaSubnet['status'];
 }
