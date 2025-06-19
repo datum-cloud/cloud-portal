@@ -76,14 +76,16 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
 
   return (
     <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
-      <CardHeader className="px-6">
-        <CardTitle className="text-base leading-none font-medium">Instances</CardTitle>
-      </CardHeader>
-      <CardContent className="px-6 pb-6">
+      {data.length > 0 && (
+        <CardHeader className="px-6">
+          <CardTitle className="text-base leading-none font-medium">Instances</CardTitle>
+        </CardHeader>
+      )}
+      <CardContent>
         <DataTable
           columns={columns}
           data={data ?? []}
-          emptyContent={{ title: 'No instances found.' }}
+          emptyContent={{ title: 'No instances found.', size: 'sm' }}
         />
       </CardContent>
     </Card>

@@ -30,9 +30,6 @@ export const createSubnetsControl = (client: Client) => {
         path: {
           namespace: 'default',
         },
-        /* query: {
-          fieldSelector: networkId ? `spec.network.name=${networkId}` : undefined,
-        }, */
       });
 
       const subnets = response.data as ComDatumapisNetworkingV1AlphaSubnetList;

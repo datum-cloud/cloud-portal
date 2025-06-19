@@ -4,16 +4,19 @@ import { PageTitle } from '@/components/page-title/page-title';
 import { Button } from '@/components/ui/button';
 import { routes } from '@/constants/routes';
 import { NetworkGeneralCard } from '@/features/network/overview/general-card';
-import { NetworkBindingsTable } from '@/features/network/overview/network-bindings';
-import { NetworkContextsTable } from '@/features/network/overview/network-contexts';
-import { SubnetsTable } from '@/features/network/overview/subnet';
+import { NetworkBindingsCard } from '@/features/network/overview/network-bindings-card';
+import { NetworkContextsCard } from '@/features/network/overview/network-contexts-card';
+import { SubnetClaimsCard } from '@/features/network/overview/subnet-claims-card';
+import { SubnetsCard } from '@/features/network/overview/subnets-card';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createNetworkBindingsControl } from '@/resources/control-plane/network-bindings.control';
 import { createNetworkContextControl } from '@/resources/control-plane/network-contexts.control';
+import { createSubnetClaimsControl } from '@/resources/control-plane/subnet-claims.control';
 import { createSubnetsControl } from '@/resources/control-plane/subnets.control';
 import {
   INetworkControlResponse,
+  ISubnetClaimControlResponse,
   ISubnetControlResponse,
 } from '@/resources/interfaces/network.interface';
 import { ROUTE_PATH as NETWORKS_ACTIONS_ROUTE_PATH } from '@/routes/api+/connect+/networks+/actions';
@@ -69,22 +72,26 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 
   // Note: Subnets are directly related to NetworkContext resources rather than Network resources
   let subnets: ISubnetControlResponse[] = [];
+  let subnetClaims: ISubnetClaimControlResponse[] = [];
   if (networkContexts.length > 0) {
-    const contexts = networkContexts
+    const networkContextNames = networkContexts
       .map((context) => context.name)
       .filter((name) => name !== undefined);
     const subnetsControl = createSubnetsControl(controlPlaneClient as Client);
-    subnets = await subnetsControl.list(projectId, contexts as string[]);
+    subnets = await subnetsControl.list(projectId, networkContextNames as string[]);
+
+    const subnetClaimsControl = createSubnetClaimsControl(controlPlaneClient as Client);
+    subnetClaims = await subnetClaimsControl.list(projectId, networkContextNames as string[]);
   }
 
-  return data({ bindings: networkBindings, contexts: networkContexts, subnets });
+  return data({ bindings: networkBindings, contexts: networkContexts, subnets, subnetClaims });
 };
 
 export default function NetworkOverviewPage() {
   const network = useRouteLoaderData(
     'routes/_private+/$orgId+/projects.$projectId+/_connect+/networks+/$networkId+/_layout'
   );
-  const { bindings, contexts, subnets } = useLoaderData<typeof loader>();
+  const { bindings, contexts, subnets, subnetClaims } = useLoaderData<typeof loader>();
 
   const submit = useSubmit();
   const { confirm } = useConfirmationDialog();
@@ -136,7 +143,7 @@ export default function NetworkOverviewPage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+      className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -208,21 +215,28 @@ export default function NetworkOverviewPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, duration: 0.4 }}>
-        <NetworkBindingsTable data={bindings} />
+        <NetworkBindingsCard data={bindings} />
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.8, duration: 0.4 }}>
-        <NetworkContextsTable data={contexts} />
+        <NetworkContextsCard data={contexts} />
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1, duration: 0.4 }}>
-        <SubnetsTable data={subnets} />
+        <SubnetsCard data={subnets} />
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2, duration: 0.4 }}>
+        <SubnetClaimsCard data={subnetClaims} />
       </motion.div>
     </motion.div>
   );

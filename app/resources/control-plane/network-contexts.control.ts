@@ -32,9 +32,6 @@ export const createNetworkContextControl = (client: Client) => {
         path: {
           namespace: 'default',
         },
-        /* query: {
-          fieldSelector: networkId ? `spec.network.name=${networkId}` : undefined,
-        }, */
       });
 
       const networkContexts = response.data as ComDatumapisNetworkingV1AlphaNetworkContextList;
