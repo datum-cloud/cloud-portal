@@ -16,6 +16,69 @@ interface IUIConfig {
 
 export const uiConfig: IUIConfig[] = [
   {
+    name: 'locations',
+    resource: {
+      group: 'networking.datumapis.com',
+      version: 'v1alpha',
+      kind: 'Location',
+    },
+    menu: {
+      label: 'Locations',
+      icon: List,
+    },
+  },
+  {
+    name: 'config',
+    resource: {
+      group: 'v1',
+      version: 'v1',
+      kind: 'ConfigMap',
+    },
+    menu: {
+      label: 'Config',
+      icon: List,
+    },
+  },
+  {
+    name: 'config-maps',
+    resource: {
+      group: 'v1',
+      version: 'v1',
+      kind: 'ConfigMap',
+    },
+    menu: {
+      label: 'Config Maps',
+      icon: List,
+      parent: 'config',
+    },
+  },
+  {
+    name: 'connect',
+    resource: {
+      group: 'networking.datumapis.com',
+      version: 'v1alpha',
+      kind: 'Network',
+    },
+    menu: {
+      label: 'Connect',
+      icon: List,
+    },
+  },
+  {
+    name: 'networks',
+    resource: {
+      group: 'networking.datumapis.com',
+      version: 'v1alpha',
+      kind: 'Network',
+    },
+    menu: {
+      label: 'Networks',
+      icon: List,
+      parent: 'connect',
+    },
+  },
+
+  /* {
     name: 'network',
     resource: {
       group: 'networking.datumapis.com',
@@ -88,5 +151,5 @@ export const uiConfig: IUIConfig[] = [
       label: 'Workloads',
       icon: List,
     },
-  },
+  }, */
 ];

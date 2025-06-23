@@ -39,10 +39,13 @@ export const loader = async ({ context, params, request }: LoaderFunctionArgs) =
     url: `/projects/${projectId}/control-plane/apis/apiextensions.k8s.io/v1/customresourcedefinitions`,
   });
 
-  const crd = crds.items.find(
-    (c: CustomResourceDefinition) =>
-      c.spec.group === group && c.spec.names.kind.toLowerCase() === kind?.toLowerCase()
-  );
+  console.log('CRDs:', JSON.stringify(crds));
+  const crd = crds.items.find((c: CustomResourceDefinition) => {
+    if (group !== kind) {
+      return c.spec.group === group && c.spec.names.kind.toLowerCase() === kind?.toLowerCase();
+    }
+    return c.spec.names.kind.toLowerCase() === kind?.toLowerCase();
+  });
 
   if (!crd) {
     throw new Response('CRD not found', { status: 404 });
@@ -74,6 +77,8 @@ export const loader = async ({ context, params, request }: LoaderFunctionArgs) =
 export default function ResourceListPage() {
   const { menu, items, columns, crds } = useLoaderData<typeof loader>();
   const { orgId, projectId } = useParams();
+
+  console.log('CRDs:', crds);
 
   const crdsWithColumns = crds.items.filter((crd: CustomResourceDefinition) =>
     crd.spec.versions.some((version: any) => version.additionalPrinterColumns?.length > 0)
