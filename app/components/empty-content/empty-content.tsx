@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/helpers';
 import { Link } from 'react-router';
 import { useTheme } from 'remix-themes';
 
@@ -7,6 +7,7 @@ export interface EmptyContentProps {
   title?: string;
   subtitle?: string;
   image?: string;
+  size?: 'sm' | 'md' | 'lg';
   actions?: Array<{
     type: 'button' | 'link' | 'external-link';
     label: string;

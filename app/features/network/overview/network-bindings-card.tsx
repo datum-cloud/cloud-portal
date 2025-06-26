@@ -4,7 +4,7 @@ import { StatusBadge } from '@/components/status-badge/status-badge';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { INetworkBindingControlResponse } from '@/resources/interfaces/network.interface';
-import { getShortId, transformControlPlaneStatus } from '@/utils/misc';
+import { getShortId, transformControlPlaneStatus } from '@/utils/helpers';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 

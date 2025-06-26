@@ -21,8 +21,7 @@ import {
 } from '@/resources/interfaces/network.interface';
 import { ROUTE_PATH as NETWORKS_ACTIONS_ROUTE_PATH } from '@/routes/api+/connect+/networks+/actions';
 import { CustomError } from '@/utils/errorHandle';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { mergeMeta, metaObject, getPathWithParams } from '@/utils/helpers/';
 import { Client } from '@hey-api/client-axios';
 import { formatDistanceToNow } from 'date-fns';
 import { motion } from 'framer-motion';
