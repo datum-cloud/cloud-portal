@@ -29,39 +29,31 @@ One of the major challenges we have encountered over the years while building AP
 #### Benefits of using SSR:
 
 - **Improved Performance & Faster First Load**
-
   - With SSR, the server pre-renders the React components into static HTML before sending them to the client.
   - This reduces the time it takes for users to see the initial page content (First Contentful Paint), especially on slow networks or devices.
 
 - **Better SEO (Search Engine Optimization)**
-
   - Search engine crawlers struggle with client-side rendered (CSR) applications because they rely on JavaScript execution.
   - SSR ensures that fully rendered pages are available for indexing, improving search rankings.
 
 - **Improved Perceived Performance (Faster TTFB)**
-
   - SSR improves **Time to First Byte (TTFB)** since the server responds with pre-rendered HTML instead of waiting for JavaScript to load, execute, and hydrate the page.
 
 - **Reduced Client-side JavaScript Load**
-
   - SSR offloads rendering from the client to the server, reducing the amount of JavaScript processing needed on the client.
   - This benefits users on low-powered devices.
 
 - **Faster Time-to-Interactive (TTI)**
-
   - Since the user sees content earlier, they perceive the app as faster.
   - Hydration (where React attaches event handlers to the server-rendered HTML) enables full interactivity sooner.
 
 - **Easier Caching & Performance Optimizations**
-
   - Since SSR generates static HTML, it can be cached at the **CDN level**, reducing server load and improving response times for subsequent requests.
 
 - **Progressive Enhancement**
-
   - Users can view and interact with the page even before React fully loads, improving accessibility and user experience.
 
 - **Improved Authentication Handling**
-
   - Since every request **passes through the server**, authentication and permission checks can be **enforced before rendering the page**.
   - This ensures that unauthorized users **never receive restricted content**, unlike in CSR apps, where the frontend might initially load before checking permissions.
   - While not exclusive to SSR, it helps improve the user experience for authenticated applications.
