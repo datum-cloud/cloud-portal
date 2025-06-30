@@ -14,7 +14,7 @@ import { convertLabelsToObject, filterLabels } from '@/utils/misc';
 import { Client } from '@hey-api/client-axios';
 
 export const createLocationsControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL;
+  const baseUrl = `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1`;
 
   const transformLocation = (
     location: ComDatumapisNetworkingV1AlphaLocation

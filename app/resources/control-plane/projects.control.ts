@@ -15,7 +15,7 @@ import { convertLabelsToObject, filterLabels, transformControlPlaneStatus } from
 import { Client } from '@hey-api/client-axios';
 
 export const createProjectsControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL;
+  const baseUrl = `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1`;
 
   const transform = (
     project: ComMiloapisResourcemanagerV1Alpha1Project
@@ -38,7 +38,7 @@ export const createProjectsControl = (client: Client) => {
     list: async (orgEntityId: string) => {
       const response = await listResourcemanagerMiloapisComV1Alpha1Project({
         client,
-        baseURL: `${baseUrl}/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${orgEntityId}/control-plane`,
+        baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
       });
 
       // Type guard to check if data is a valid project list
@@ -69,7 +69,7 @@ export const createProjectsControl = (client: Client) => {
     create: async (payload: ProjectSchema, dryRun: boolean = false) => {
       const response = await createResourcemanagerMiloapisComV1Alpha1Project({
         client,
-        baseURL: `${baseUrl}/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${payload.orgEntityId}/control-plane`,
+        baseURL: `${baseUrl}/organizations/${payload.orgEntityId}/control-plane`,
         query: {
           dryRun: dryRun ? 'All' : undefined,
         },

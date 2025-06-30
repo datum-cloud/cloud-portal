@@ -13,7 +13,7 @@ import { CustomError } from '@/utils/errorHandle';
 import { Client } from '@hey-api/client-axios';
 
 export const createConfigMapsControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL;
+  const baseUrl = `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1`;
 
   const transformConfigMap = (configMap: IoK8sApiCoreV1ConfigMap): IConfigMapControlResponse => {
     return {
