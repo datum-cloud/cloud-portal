@@ -43,7 +43,7 @@ export const CreateProjectForm = () => {
       return parseWithZod(formData, { schema: projectSchema });
     },
     defaultValue: {
-      orgEntityId: organization?.id,
+      orgEntityId: organization?.name,
       name: '',
       description: '',
       labels: [] as string[],
@@ -65,7 +65,7 @@ export const CreateProjectForm = () => {
   const labelsControl = useInputControl(labels);
 
   useEffect(() => {
-    orgEntityIdControl.change(organization?.id);
+    orgEntityIdControl.change(organization?.name);
   }, [organization]);
 
   return (
@@ -89,8 +89,8 @@ export const CreateProjectForm = () => {
               triggerClassName="py-2"
               onSelect={(org) => {
                 setCurrentOrg(org);
-                orgEntityIdControl.change(org.id);
-                navigate(getPathWithParams(routes.org.projects.new, { orgId: org.id }));
+                orgEntityIdControl.change(org.name);
+                navigate(getPathWithParams(routes.org.projects.new, { orgId: org.name }));
               }}
             />
           </Field>
@@ -154,7 +154,7 @@ export const CreateProjectForm = () => {
             onClick={() => {
               navigate(
                 getPathWithParams(routes.org.projects.root, {
-                  orgId: organization?.id,
+                  orgId: organization?.name,
                 })
               );
             }}>

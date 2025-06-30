@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.inteface';
 import { cn, getInitials } from '@/utils/misc';
 
 export const OrganizationItem = ({
@@ -27,7 +27,7 @@ export const OrganizationItem = ({
 
       <div className={cn('grid flex-1 text-left text-sm leading-tight', labelClassName)}>
         <span className="truncate font-medium">{org?.displayName ?? org.name}</span>
-        {org?.status?.personal && (
+        {org.type === OrganizationType.Personal && (
           <span className="text-muted-foreground truncate text-xs">Personal</span>
         )}
       </div>

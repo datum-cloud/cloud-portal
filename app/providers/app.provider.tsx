@@ -36,7 +36,7 @@ export function AppProvider({ children, initialUser, initialOrganization }: AppP
     setOrganization(orgData);
   };
 
-  const orgId = useMemo(() => organization?.id, [organization]);
+  const orgId = useMemo(() => organization?.name, [organization]);
 
   useEffect(() => {
     if (initialUser) {

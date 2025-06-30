@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { sessionStorage, SESSION_KEY } from '@/modules/cookie/session.server';
 import { createCacheClient } from '@/modules/unstorage/unstorage.js';
-import { createAPIFactory } from '@/resources/api/api.factory.js';
 import { createControlPlaneFactory } from '@/resources/control-plane/control.factory.js';
 import { createRequestHandler } from '@react-router/express';
 import compression from 'compression';
@@ -214,12 +213,24 @@ async function apiContext(request: Request) {
   const session = await sessionStorage.getSession(request.headers.cookie);
   const sessionData = session.get(SESSION_KEY);
 
-  const apiClient = createAPIFactory(sessionData?.accessToken);
-  const controlPlaneClient = createControlPlaneFactory(sessionData?.accessToken);
+  // Base URL components
+  const BASE_URL_PREFIX = process.env.API_URL;
+  const RESOURCE_SUFFIX = 'apis/resourcemanager.miloapis.com/v1alpha1';
+  const USER_ID = sessionData?.sub; // This could come from session data or environment variables
+
+  // Construct the base URLs
+  const generalBaseUrl = `${BASE_URL_PREFIX}/${RESOURCE_SUFFIX}`;
+  const iamBaseUrl = `${BASE_URL_PREFIX}/apis/iam.miloapis.com/v1alpha1/users/${USER_ID}/control-plane`;
+
+  // Create a general resource client by default
+  const controlPlaneClient = createControlPlaneFactory(sessionData?.accessToken, generalBaseUrl);
+
+  // Create an IAM resource client
+  const iamClient = createControlPlaneFactory(sessionData?.accessToken, iamBaseUrl);
 
   return {
-    apiClient,
     controlPlaneClient,
+    iamResourceClient: iamClient,
   };
 }
 

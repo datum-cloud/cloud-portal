@@ -2,16 +2,17 @@ import { routes } from '@/constants/routes';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
-import { iamOrganizationsAPI } from '@/resources/api/iam/organizations.api';
+import { createOrganizationsControl } from '@/resources/control-plane/organizations.control';
 import { IOrganization } from '@/resources/interfaces/organization.inteface';
 import { CustomError } from '@/utils/errorHandle';
+import { Client } from '@hey-api/client-axios';
 import { AxiosInstance } from 'axios';
 import { AppLoadContext, data } from 'react-router';
 
 export const ROUTE_PATH = '/api/organizations/:orgId' as const;
 
 export const loader = withMiddleware(async ({ context, params }) => {
-  const { apiClient, cache } = context as AppLoadContext;
+  const { iamResourceClient, cache } = context as AppLoadContext;
   const { orgId } = params;
 
   if (!orgId) {
@@ -26,7 +27,7 @@ export const loader = withMiddleware(async ({ context, params }) => {
     return data(org);
   }
 
-  const orgAPI = iamOrganizationsAPI(apiClient as AxiosInstance);
+  const orgAPI = createOrganizationsControl(iamResourceClient as Client);
   const org = await orgAPI.detail(orgId);
 
   await cache.setItem(key, org);
@@ -35,14 +36,14 @@ export const loader = withMiddleware(async ({ context, params }) => {
 }, authMiddleware);
 
 export const action = withMiddleware(async ({ request, context, params }) => {
-  const { apiClient, cache } = context as AppLoadContext;
+  const { iamResourceClient, cache } = context as AppLoadContext;
   const { orgId } = params;
 
   if (!orgId) {
     throw new CustomError('Organization ID is required', 400);
   }
 
-  const orgAPI = iamOrganizationsAPI(apiClient as AxiosInstance);
+  const orgAPI = createOrganizationsControl(iamResourceClient as Client);
 
   try {
     switch (request.method) {
@@ -54,7 +55,7 @@ export const action = withMiddleware(async ({ request, context, params }) => {
 
         if (organizations) {
           const filtered = (organizations as IOrganization[]).filter(
-            (org: IOrganization) => org.id !== orgId
+            (org: IOrganization) => org.name !== orgId
           );
           await cache.setItem('organizations', filtered);
         }

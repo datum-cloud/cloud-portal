@@ -1,12 +1,12 @@
 import {
-  ComDatumapisResourcemanagerV1AlphaProject,
-  ComDatumapisResourcemanagerV1AlphaProjectList,
-  createResourcemanagerDatumapisComV1AlphaProject,
-  deleteResourcemanagerDatumapisComV1AlphaProject,
-  listResourcemanagerDatumapisComV1AlphaProject,
-  readResourcemanagerDatumapisComV1AlphaProject,
-  readResourcemanagerDatumapisComV1AlphaProjectStatus,
-  replaceResourcemanagerDatumapisComV1AlphaProject,
+  ComMiloapisResourcemanagerV1Alpha1Project,
+  ComMiloapisResourcemanagerV1Alpha1ProjectList,
+  createResourcemanagerMiloapisComV1Alpha1Project,
+  deleteResourcemanagerMiloapisComV1Alpha1Project,
+  listResourcemanagerMiloapisComV1Alpha1Project,
+  readResourcemanagerMiloapisComV1Alpha1Project,
+  readResourcemanagerMiloapisComV1Alpha1ProjectStatus,
+  replaceResourcemanagerMiloapisComV1Alpha1Project,
 } from '@/modules/control-plane/resource-manager';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { UpdateProjectSchema, ProjectSchema } from '@/resources/schemas/project.schema';
@@ -18,14 +18,13 @@ export const createProjectsControl = (client: Client) => {
   const baseUrl = client.instance.defaults.baseURL;
 
   const transform = (
-    project: ComDatumapisResourcemanagerV1AlphaProject
+    project: ComMiloapisResourcemanagerV1Alpha1Project
   ): IProjectControlResponse => {
     const metadata = {
       name: project?.metadata?.name ?? '',
       description: project?.metadata?.annotations?.['kubernetes.io/description'] ?? '',
       createdAt: project?.metadata?.creationTimestamp ?? new Date(),
-      organizationId:
-        project?.metadata?.labels?.['resourcemanager.datumapis.com/organization-id'] ?? '',
+      organizationId: project?.spec?.ownerRef?.name ?? '',
       resourceVersion: project?.metadata?.resourceVersion ?? '',
       uid: project?.metadata?.uid ?? '',
       status: project.status ?? {},
@@ -37,22 +36,22 @@ export const createProjectsControl = (client: Client) => {
 
   return {
     list: async (orgEntityId: string) => {
-      const response = await listResourcemanagerDatumapisComV1AlphaProject({
+      const response = await listResourcemanagerMiloapisComV1Alpha1Project({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
       });
 
       // Type guard to check if data is a valid project list
-      const projectList = response?.data as ComDatumapisResourcemanagerV1AlphaProjectList;
+      const projectList = response?.data as ComMiloapisResourcemanagerV1Alpha1ProjectList;
 
       return (
-        projectList?.items?.map((project: ComDatumapisResourcemanagerV1AlphaProject) =>
+        projectList?.items?.map((project: ComMiloapisResourcemanagerV1Alpha1Project) =>
           transform(project)
         ) ?? []
       );
     },
     detail: async (orgEntityId: string, projectName: string) => {
-      const response = await readResourcemanagerDatumapisComV1AlphaProject({
+      const response = await readResourcemanagerMiloapisComV1Alpha1Project({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
         path: {
@@ -64,19 +63,19 @@ export const createProjectsControl = (client: Client) => {
         throw new CustomError(`Project ${projectName} not found`, 404);
       }
 
-      const project = response.data as ComDatumapisResourcemanagerV1AlphaProject;
+      const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
 
       return transform(project);
     },
     create: async (payload: ProjectSchema, dryRun: boolean = false) => {
-      const response = await createResourcemanagerDatumapisComV1AlphaProject({
+      const response = await createResourcemanagerMiloapisComV1Alpha1Project({
         client,
         baseURL: `${baseUrl}/organizations/${payload.orgEntityId}/control-plane`,
         query: {
           dryRun: dryRun ? 'All' : undefined,
         },
         body: {
-          apiVersion: 'resourcemanager.datumapis.com/v1alpha',
+          apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
           kind: 'Project',
           metadata: {
             name: payload.name,
@@ -86,8 +85,9 @@ export const createProjectsControl = (client: Client) => {
             labels: convertLabelsToObject(payload.labels ?? []),
           },
           spec: {
-            parent: {
-              external: '', // TODO: need to confirm about this part. because it's required
+            ownerRef: {
+              kind: 'Organization',
+              name: payload.orgEntityId,
             },
           },
         },
@@ -97,7 +97,7 @@ export const createProjectsControl = (client: Client) => {
         throw new CustomError('Failed to create project', 500);
       }
 
-      const project = response.data as ComDatumapisResourcemanagerV1AlphaProject;
+      const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
 
       return dryRun ? response.data : transform(project);
     },
@@ -107,7 +107,7 @@ export const createProjectsControl = (client: Client) => {
       payload: UpdateProjectSchema,
       dryRun: boolean = false
     ) => {
-      const response = await replaceResourcemanagerDatumapisComV1AlphaProject({
+      const response = await replaceResourcemanagerMiloapisComV1Alpha1Project({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
         path: { name: projectName },
@@ -115,22 +115,20 @@ export const createProjectsControl = (client: Client) => {
           dryRun: dryRun ? 'All' : undefined,
         },
         body: {
-          apiVersion: 'resourcemanager.datumapis.com/v1alpha',
+          apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
           kind: 'Project',
           metadata: {
             name: projectName,
             annotations: {
               'kubernetes.io/description': payload.description,
             },
-            labels: {
-              ...convertLabelsToObject(payload.labels ?? []),
-              'resourcemanager.datumapis.com/organization-id': orgEntityId,
-            },
+            labels: convertLabelsToObject(payload.labels ?? []),
             resourceVersion: payload.resourceVersion,
           },
           spec: {
-            parent: {
-              external: '', // TODO: need to confirm about this part. because it's required
+            ownerRef: {
+              kind: 'Organization',
+              name: orgEntityId,
             },
           },
         },
@@ -140,12 +138,12 @@ export const createProjectsControl = (client: Client) => {
         throw new CustomError(`Project ${projectName} not found`, 404);
       }
 
-      const project = response.data as ComDatumapisResourcemanagerV1AlphaProject;
+      const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
 
       return dryRun ? response.data : transform(project);
     },
     delete: async (orgEntityId: string, projectName: string) => {
-      const response = await deleteResourcemanagerDatumapisComV1AlphaProject({
+      const response = await deleteResourcemanagerMiloapisComV1Alpha1Project({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
         path: { name: projectName },
@@ -155,12 +153,12 @@ export const createProjectsControl = (client: Client) => {
         throw new CustomError(`Project ${projectName} not found`, 404);
       }
 
-      const project = response.data as ComDatumapisResourcemanagerV1AlphaProject;
+      const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
 
       return project;
     },
     getStatus: async (orgEntityId: string, projectName: string) => {
-      const response = await readResourcemanagerDatumapisComV1AlphaProjectStatus({
+      const response = await readResourcemanagerMiloapisComV1Alpha1ProjectStatus({
         client,
         baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
         path: { name: projectName },
@@ -170,7 +168,7 @@ export const createProjectsControl = (client: Client) => {
         throw new CustomError(`Project ${projectName} not found`, 404);
       }
 
-      const project = response.data as ComDatumapisResourcemanagerV1AlphaProject;
+      const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
 
       return transformControlPlaneStatus(project.status);
     },

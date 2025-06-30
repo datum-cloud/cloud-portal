@@ -94,8 +94,8 @@ export const SelectOrganization = ({
                     const isSelected = org.name === currentOrg?.name;
                     return (
                       <CommandItem
-                        value={`${org.name}-${org.id}`}
-                        key={org.id}
+                        value={`${org.name}`}
+                        key={org.name}
                         onSelect={() => {
                           setOpen(false);
                           if (!isSelected) {

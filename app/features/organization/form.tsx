@@ -59,13 +59,13 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
   const nameControl = useInputControl(name);
   const labelsControl = useInputControl(labels);
 
-  const isEdit = useMemo(() => defaultValue?.id !== undefined, [defaultValue]);
+  const isEdit = useMemo(() => defaultValue?.name !== undefined, [defaultValue]);
 
   useEffect(() => {
     if (defaultValue) {
       form.update({
         value: {
-          name: defaultValue.organizationId,
+          name: defaultValue.name,
           description: defaultValue.displayName,
           labels: convertObjectToLabels(defaultValue.labels ?? {}),
         },

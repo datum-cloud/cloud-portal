@@ -291,13 +291,3 @@ export function generateMergePatchPayloadMap(
 
   return Object.keys(patchMap).length > 0 ? patchMap : { ...safeOriginalMap };
 }
-
-/**
- * Determines the organization ID based on organizationId or uid
- * @param org Organization data
- * @returns The organization ID
- */
-export function determineOrgId(org: Partial<IOrganization>): string | undefined {
-  if (!org) return undefined;
-  return org.organizationId === '' ? org.uid : org.organizationId;
-}

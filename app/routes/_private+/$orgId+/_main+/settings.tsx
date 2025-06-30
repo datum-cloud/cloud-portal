@@ -7,15 +7,15 @@ import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
-import { iamOrganizationsAPI } from '@/resources/api/iam/organizations.api';
-import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { createOrganizationsControl } from '@/resources/control-plane/organizations.control';
+import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.inteface';
 import { OrganizationSchema, organizationSchema } from '@/resources/schemas/organization.schema';
 import { ROUTE_PATH as ORG_ACTION_PATH } from '@/routes/api+/organizations+/$orgId';
 import { CustomError } from '@/utils/errorHandle';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { parseWithZod } from '@conform-to/zod';
-import { AxiosInstance } from 'axios';
+import { Client } from '@hey-api/client-axios';
 import { CircleAlertIcon } from 'lucide-react';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, useFetcher } from 'react-router';
 
@@ -29,9 +29,9 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export const action = async ({ request, params, context }: ActionFunctionArgs) => {
   const { orgId } = params;
-  const { apiClient, cache } = context as AppLoadContext;
+  const { iamResourceClient, cache } = context as AppLoadContext;
 
-  const orgAPI = iamOrganizationsAPI(apiClient as AxiosInstance);
+  const orgAPI = createOrganizationsControl(iamResourceClient as Client);
 
   if (!orgId) {
     throw new CustomError('Organization ID is required', 400);
@@ -63,7 +63,7 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
     const organizations = await cache.getItem('organizations');
     if (organizations) {
       const newOrganizations = (organizations as IOrganization[]).map((org: IOrganization) => {
-        if (org.id === orgId) {
+        if (org.name === orgId) {
           return res;
         }
         return org;
@@ -115,7 +115,7 @@ export default function OrgSettingsPage() {
           {},
           {
             method: 'DELETE',
-            action: getPathWithParams(ORG_ACTION_PATH, { orgId: organization?.id }),
+            action: getPathWithParams(ORG_ACTION_PATH, { orgId: organization?.name }),
           }
         );
       },
@@ -129,7 +129,7 @@ export default function OrgSettingsPage() {
         <OrganizationForm defaultValue={organization} />
 
         {/* Danger Zone */}
-        {organization && !organization?.status?.personal && (
+        {organization && organization?.type !== OrganizationType.Personal ? (
           <Card className="border-destructive/50 hover:border-destructive border pb-0 transition-colors">
             <CardHeader>
               <CardTitle className="text-destructive">Danger zone</CardTitle>
@@ -157,7 +157,7 @@ export default function OrgSettingsPage() {
               </Button>
             </CardFooter>
           </Card>
-        )}
+        ) : null}
       </div>
     </div>
   );
