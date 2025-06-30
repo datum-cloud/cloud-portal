@@ -22,7 +22,7 @@ import { convertLabelsToObject } from '@/utils/misc';
 import { Client } from '@hey-api/client-axios';
 
 export const createHttpRoutesControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL;
+  const baseUrl = `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1`;
 
   const transformHttpRouteLite = (
     httpRoute: IoK8sNetworkingGatewayV1HttpRoute

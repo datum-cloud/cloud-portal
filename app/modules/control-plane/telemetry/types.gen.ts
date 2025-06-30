@@ -663,7 +663,7 @@ export type ListTelemetryDatumapisComV1Alpha1ExportPolicyForAllNamespacesData = 
      */
     watch?: boolean;
   };
-  url: '/apis/telemetry.datumapis.com/v1alpha1/exportpolicies';
+  url: '/apis/telemetry.miloapis.com/v1alpha1/exportpolicies';
 };
 
 export type ListTelemetryDatumapisComV1Alpha1ExportPolicyForAllNamespacesErrors = {
@@ -757,7 +757,7 @@ export type DeleteTelemetryDatumapisComV1Alpha1CollectionNamespacedExportPolicyD
      */
     watch?: boolean;
   };
-  url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies';
+  url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies';
 };
 
 export type DeleteTelemetryDatumapisComV1Alpha1CollectionNamespacedExportPolicyErrors = {
@@ -851,7 +851,7 @@ export type ListTelemetryDatumapisComV1Alpha1NamespacedExportPolicyData = {
      */
     watch?: boolean;
   };
-  url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies';
+  url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies';
 };
 
 export type ListTelemetryDatumapisComV1Alpha1NamespacedExportPolicyErrors = {
@@ -897,7 +897,7 @@ export type CreateTelemetryDatumapisComV1Alpha1NamespacedExportPolicyData = {
      */
     fieldValidation?: string;
   };
-  url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies';
+  url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies';
 };
 
 export type CreateTelemetryDatumapisComV1Alpha1NamespacedExportPolicyErrors = {
@@ -963,7 +963,7 @@ export type DeleteTelemetryDatumapisComV1Alpha1NamespacedExportPolicyData = {
      */
     propagationPolicy?: string;
   };
-  url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}';
+  url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}';
 };
 
 export type DeleteTelemetryDatumapisComV1Alpha1NamespacedExportPolicyErrors = {
@@ -1011,7 +1011,7 @@ export type ReadTelemetryDatumapisComV1Alpha1NamespacedExportPolicyData = {
      */
     resourceVersion?: string;
   };
-  url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}';
+  url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}';
 };
 
 export type ReadTelemetryDatumapisComV1Alpha1NamespacedExportPolicyErrors = {
@@ -1065,7 +1065,7 @@ export type PatchTelemetryDatumapisComV1Alpha1NamespacedExportPolicyData = {
      */
     force?: boolean;
   };
-  url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}';
+  url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}';
 };
 
 export type PatchTelemetryDatumapisComV1Alpha1NamespacedExportPolicyErrors = {
@@ -1115,7 +1115,7 @@ export type ReplaceTelemetryDatumapisComV1Alpha1NamespacedExportPolicyData = {
      */
     fieldValidation?: string;
   };
-  url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}';
+  url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}';
 };
 
 export type ReplaceTelemetryDatumapisComV1Alpha1NamespacedExportPolicyErrors = {
@@ -1163,7 +1163,7 @@ export type ReadTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatusData = 
      */
     resourceVersion?: string;
   };
-  url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}/status';
+  url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}/status';
 };
 
 export type ReadTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatusErrors = {
@@ -1217,7 +1217,7 @@ export type PatchTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatusData =
      */
     force?: boolean;
   };
-  url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}/status';
+  url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}/status';
 };
 
 export type PatchTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatusErrors = {
@@ -1267,7 +1267,7 @@ export type ReplaceTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatusData
      */
     fieldValidation?: string;
   };
-  url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}/status';
+  url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}/status';
 };
 
 export type ReplaceTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatusErrors = {

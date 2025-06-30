@@ -56,7 +56,7 @@ export const listTelemetryDatumapisComV1Alpha1ExportPolicyForAllNamespaces = <
     unknown,
     ThrowOnError
   >({
-    url: '/apis/telemetry.datumapis.com/v1alpha1/exportpolicies',
+    url: '/apis/telemetry.miloapis.com/v1alpha1/exportpolicies',
     ...options,
   });
 };
@@ -77,7 +77,7 @@ export const deleteTelemetryDatumapisComV1Alpha1CollectionNamespacedExportPolicy
     unknown,
     ThrowOnError
   >({
-    url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies',
+    url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies',
     ...options,
   });
 };
@@ -95,7 +95,7 @@ export const listTelemetryDatumapisComV1Alpha1NamespacedExportPolicy = <
     unknown,
     ThrowOnError
   >({
-    url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies',
+    url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies',
     ...options,
   });
 };
@@ -113,7 +113,7 @@ export const createTelemetryDatumapisComV1Alpha1NamespacedExportPolicy = <
     unknown,
     ThrowOnError
   >({
-    url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies',
+    url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ export const deleteTelemetryDatumapisComV1Alpha1NamespacedExportPolicy = <
     unknown,
     ThrowOnError
   >({
-    url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}',
+    url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ export const readTelemetryDatumapisComV1Alpha1NamespacedExportPolicy = <
     unknown,
     ThrowOnError
   >({
-    url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}',
+    url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}',
     ...options,
   });
 };
@@ -175,7 +175,7 @@ export const patchTelemetryDatumapisComV1Alpha1NamespacedExportPolicy = <
     unknown,
     ThrowOnError
   >({
-    url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}',
+    url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}',
     ...options,
     headers: {
       'Content-Type': 'application/apply-patch+yaml',
@@ -197,7 +197,7 @@ export const replaceTelemetryDatumapisComV1Alpha1NamespacedExportPolicy = <
     unknown,
     ThrowOnError
   >({
-    url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}',
+    url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}',
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -219,7 +219,7 @@ export const readTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatus = <
     unknown,
     ThrowOnError
   >({
-    url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}/status',
+    url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}/status',
     ...options,
   });
 };
@@ -237,7 +237,7 @@ export const patchTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatus = <
     unknown,
     ThrowOnError
   >({
-    url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}/status',
+    url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}/status',
     ...options,
     headers: {
       'Content-Type': 'application/apply-patch+yaml',
@@ -262,7 +262,7 @@ export const replaceTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatus = 
     unknown,
     ThrowOnError
   >({
-    url: '/apis/telemetry.datumapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}/status',
+    url: '/apis/telemetry.miloapis.com/v1alpha1/namespaces/{namespace}/exportpolicies/{name}/status',
     ...options,
     headers: {
       'Content-Type': 'application/json',

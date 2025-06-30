@@ -11,7 +11,7 @@ export default function OrgLayout() {
   const { organization } = useApp();
 
   const navItems: NavItem[] = useMemo(() => {
-    const orgId = organization?.id;
+    const orgId = organization?.name;
     return [
       {
         title: 'Home',

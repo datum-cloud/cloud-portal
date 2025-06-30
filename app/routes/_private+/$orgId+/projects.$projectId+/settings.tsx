@@ -16,6 +16,7 @@ import { getPathWithParams } from '@/utils/path';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { CircleAlertIcon } from 'lucide-react';
+import { useEffect } from 'react';
 import { ActionFunctionArgs, AppLoadContext, useRouteLoaderData, useSubmit } from 'react-router';
 
 export const handle = {
@@ -53,13 +54,25 @@ export const action = withMiddleware(async ({ request, context, params }: Action
         const { controlPlaneClient } = context as AppLoadContext;
         const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
-        const dryRunRes = await projectsControl.update(orgId, projectId, parsed.value, true);
+        const dryRunRes = await projectsControl.update(projectId, parsed.value, true);
 
         if (dryRunRes) {
-          await projectsControl.update(orgId, projectId, parsed.value, false);
-        }
+          const res = await projectsControl.update(projectId, parsed.value, false);
 
-        await cache.removeItem(`projects:${orgId}`);
+          const projects = await cache.getItem(`projects:${orgId}`);
+          if (projects) {
+            const newProjects = (projects as IProjectControlResponse[]).map(
+              (project: IProjectControlResponse) => {
+                if (project.name === projectId) {
+                  return res;
+                }
+                return project;
+              }
+            );
+
+            await cache.setItem(`projects:${orgId}`, newProjects);
+          }
+        }
 
         return dataWithToast(null, {
           title: 'Project updated successfully',

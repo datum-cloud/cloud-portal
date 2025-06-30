@@ -21,7 +21,7 @@ import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/misc
 import { Client } from '@hey-api/client-axios';
 
 export const createExportPoliciesControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL;
+  const baseUrl = `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1`;
 
   const transformPolicy = (
     policy: ComDatumapisTelemetryV1Alpha1ExportPolicy
@@ -117,7 +117,7 @@ export const createExportPoliciesControl = (client: Client) => {
         },
         body: {
           ...formatted,
-          apiVersion: 'telemetry.datumapis.com/v1alpha1',
+          apiVersion: 'telemetry.miloapis.com/v1alpha1',
           kind: 'ExportPolicy',
         },
       });
@@ -162,7 +162,7 @@ export const createExportPoliciesControl = (client: Client) => {
         },
         body: {
           ...formatted,
-          apiVersion: 'telemetry.datumapis.com/v1alpha1',
+          apiVersion: 'telemetry.miloapis.com/v1alpha1',
           kind: 'ExportPolicy',
         },
       });
