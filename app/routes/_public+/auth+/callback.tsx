@@ -95,7 +95,7 @@ export default function AuthCallbackPage() {
       if (!success || org.length === 0) {
         navigate(routes.account.organizations.root);
       } else {
-        navigate(getPathWithParams(routes.org.projects.root, { orgId: org[0].id }));
+        navigate(getPathWithParams(routes.org.projects.root, { orgId: org[0].name }));
       }
       return;
     }

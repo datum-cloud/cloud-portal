@@ -8,7 +8,7 @@ import {
   readResourcemanagerMiloapisComV1Alpha1Organization,
   replaceResourcemanagerMiloapisComV1Alpha1Organization,
 } from '@/modules/control-plane/resource-manager';
-import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.inteface';
+import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { OrganizationSchema } from '@/resources/schemas/organization.schema';
 import { CustomError } from '@/utils/errorHandle';
 import { convertLabelsToObject } from '@/utils/misc';
@@ -20,7 +20,7 @@ export const createOrganizationsControl = (client: Client) => {
 
     return {
       name: metadata?.name,
-      displayName: metadata?.annotations?.['app.kubernetes.io/name'],
+      displayName: metadata?.annotations?.['kubernetes.io/display-name'],
       createdAt: metadata?.creationTimestamp ?? new Date(),
       uid: metadata?.uid ?? '',
       resourceVersion: metadata?.resourceVersion ?? '',
@@ -93,7 +93,7 @@ export const createOrganizationsControl = (client: Client) => {
           metadata: {
             name: payload.name,
             annotations: {
-              'kubernetes.io/description': payload.description,
+              'kubernetes.io/display-name': payload.description,
               ...convertLabelsToObject(payload.annotations ?? []),
             },
             labels: convertLabelsToObject(payload.labels ?? []),
@@ -124,10 +124,11 @@ export const createOrganizationsControl = (client: Client) => {
           metadata: {
             name: payload.name,
             annotations: {
-              'kubernetes.io/description': payload.description,
+              'kubernetes.io/display-name': payload.description,
               ...convertLabelsToObject(payload.annotations ?? []),
             },
             labels: convertLabelsToObject(payload.labels ?? []),
+            resourceVersion: payload.resourceVersion,
           },
         },
       });

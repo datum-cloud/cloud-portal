@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { routes } from '@/constants/routes';
-import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.inteface';
+import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
 import { CustomError } from '@/utils/errorHandle';
 import { getInitials } from '@/utils/misc';

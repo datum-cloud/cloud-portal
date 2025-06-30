@@ -28,7 +28,7 @@ export const createProjectsControl = (client: Client) => {
       resourceVersion: project?.metadata?.resourceVersion ?? '',
       uid: project?.metadata?.uid ?? '',
       status: project.status ?? {},
-      labels: filterLabels(project?.metadata?.labels ?? {}),
+      labels: filterLabels(project?.metadata?.labels ?? {}, ['resourcemanager']),
     };
 
     return metadata;
@@ -38,7 +38,7 @@ export const createProjectsControl = (client: Client) => {
     list: async (orgEntityId: string) => {
       const response = await listResourcemanagerMiloapisComV1Alpha1Project({
         client,
-        baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
+        baseURL: `${baseUrl}/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${orgEntityId}/control-plane`,
       });
 
       // Type guard to check if data is a valid project list
@@ -50,10 +50,9 @@ export const createProjectsControl = (client: Client) => {
         ) ?? []
       );
     },
-    detail: async (orgEntityId: string, projectName: string) => {
+    detail: async (projectName: string) => {
       const response = await readResourcemanagerMiloapisComV1Alpha1Project({
         client,
-        baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
         path: {
           name: projectName,
         },
@@ -70,7 +69,7 @@ export const createProjectsControl = (client: Client) => {
     create: async (payload: ProjectSchema, dryRun: boolean = false) => {
       const response = await createResourcemanagerMiloapisComV1Alpha1Project({
         client,
-        baseURL: `${baseUrl}/organizations/${payload.orgEntityId}/control-plane`,
+        baseURL: `${baseUrl}/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${payload.orgEntityId}/control-plane`,
         query: {
           dryRun: dryRun ? 'All' : undefined,
         },
@@ -109,7 +108,6 @@ export const createProjectsControl = (client: Client) => {
     ) => {
       const response = await replaceResourcemanagerMiloapisComV1Alpha1Project({
         client,
-        baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
         path: { name: projectName },
         query: {
           dryRun: dryRun ? 'All' : undefined,
@@ -145,7 +143,6 @@ export const createProjectsControl = (client: Client) => {
     delete: async (orgEntityId: string, projectName: string) => {
       const response = await deleteResourcemanagerMiloapisComV1Alpha1Project({
         client,
-        baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
         path: { name: projectName },
       });
 
@@ -157,10 +154,9 @@ export const createProjectsControl = (client: Client) => {
 
       return project;
     },
-    getStatus: async (orgEntityId: string, projectName: string) => {
+    getStatus: async (projectName: string) => {
       const response = await readResourcemanagerMiloapisComV1Alpha1ProjectStatus({
         client,
-        baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
         path: { name: projectName },
       });
 

@@ -3,10 +3,9 @@ import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { createOrganizationsControl } from '@/resources/control-plane/organizations.control';
-import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { CustomError } from '@/utils/errorHandle';
 import { Client } from '@hey-api/client-axios';
-import { AxiosInstance } from 'axios';
 import { AppLoadContext, data } from 'react-router';
 
 export const ROUTE_PATH = '/api/organizations/:orgId' as const;
@@ -36,14 +35,14 @@ export const loader = withMiddleware(async ({ context, params }) => {
 }, authMiddleware);
 
 export const action = withMiddleware(async ({ request, context, params }) => {
-  const { iamResourceClient, cache } = context as AppLoadContext;
+  const { controlPlaneClient, cache } = context as AppLoadContext;
   const { orgId } = params;
 
   if (!orgId) {
     throw new CustomError('Organization ID is required', 400);
   }
 
-  const orgAPI = createOrganizationsControl(iamResourceClient as Client);
+  const orgAPI = createOrganizationsControl(controlPlaneClient as Client);
 
   try {
     switch (request.method) {

@@ -2,7 +2,7 @@ import { SelectOrganization } from '@/components/select-organization/select-orga
 import { Badge } from '@/components/ui/badge';
 import { routes } from '@/constants/routes';
 import { useApp } from '@/providers/app.provider';
-import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.inteface';
+import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { getPathWithParams } from '@/utils/path';
 import { Link, useNavigate } from 'react-router';
 

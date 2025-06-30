@@ -8,7 +8,7 @@ import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { useApp } from '@/providers/app.provider';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createOrganizationsControl } from '@/resources/control-plane/organizations.control';
-import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.inteface';
+import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { OrganizationSchema, organizationSchema } from '@/resources/schemas/organization.schema';
 import { ROUTE_PATH as ORG_ACTION_PATH } from '@/routes/api+/organizations+/$orgId';
 import { CustomError } from '@/utils/errorHandle';
@@ -29,9 +29,9 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export const action = async ({ request, params, context }: ActionFunctionArgs) => {
   const { orgId } = params;
-  const { iamResourceClient, cache } = context as AppLoadContext;
+  const { controlPlaneClient, cache } = context as AppLoadContext;
 
-  const orgAPI = createOrganizationsControl(iamResourceClient as Client);
+  const orgAPI = createOrganizationsControl(controlPlaneClient as Client);
 
   if (!orgId) {
     throw new CustomError('Organization ID is required', 400);

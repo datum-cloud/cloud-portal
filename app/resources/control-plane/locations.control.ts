@@ -33,7 +33,7 @@ export const createLocationsControl = (client: Client) => {
       provider: (spec?.provider as any) ?? {},
       cityCode: spec?.topology?.['topology.datum.net/city-code'] ?? '',
       namespace: metadata?.namespace ?? 'default',
-      labels: filterLabels(metadata?.labels ?? {}),
+      labels: filterLabels(metadata?.labels ?? {}, ['resourcemanager']),
     };
   };
 

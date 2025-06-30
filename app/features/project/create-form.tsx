@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { routes } from '@/constants/routes';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
-import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { projectSchema } from '@/resources/schemas/project.schema';
 import { generateId, generateRandomString } from '@/utils/idGenerator';
 import { getPathWithParams } from '@/utils/path';
