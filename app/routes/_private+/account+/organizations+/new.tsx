@@ -14,8 +14,8 @@ export const meta: MetaFunction = mergeMeta(() => {
 });
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
-  const { iamResourceClient, cache } = context as AppLoadContext;
-  const orgAPI = createOrganizationsControl(iamResourceClient as Client);
+  const { controlPlaneClient, cache } = context as AppLoadContext;
+  const orgAPI = createOrganizationsControl(controlPlaneClient as Client);
 
   const clonedRequest = request.clone();
   const formData = await clonedRequest.formData();

@@ -215,11 +215,10 @@ async function apiContext(request: Request) {
 
   // Base URL components
   const BASE_URL_PREFIX = process.env.API_URL;
-  const RESOURCE_SUFFIX = 'apis/resourcemanager.miloapis.com/v1alpha1';
   const USER_ID = sessionData?.sub; // This could come from session data or environment variables
 
   // Construct the base URLs
-  const generalBaseUrl = `${BASE_URL_PREFIX}`;
+  const generalBaseUrl = BASE_URL_PREFIX;
   const iamBaseUrl = `${BASE_URL_PREFIX}/apis/iam.miloapis.com/v1alpha1/users/${USER_ID}/control-plane`;
 
   // Create a general resource client by default

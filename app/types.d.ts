@@ -1,5 +1,6 @@
 // Import required types
 import { ControlPlaneFactory } from '@/resources/control-plane/control.factory';
+import { Client } from '@hey-api/client-axios';
 import 'react-router';
 import { Storage } from 'unstorage';
 
@@ -13,6 +14,8 @@ declare module 'react-router' {
   interface AppLoadContext extends ControlPlaneFactory {
     // Add any additional context properties here
     cache: Storage;
+    controlPlaneClient: Client;
+    iamResourceClient: Client;
   }
 }
 

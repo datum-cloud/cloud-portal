@@ -4,6 +4,7 @@ import {
   createResourcemanagerMiloapisComV1Alpha1Project,
   deleteResourcemanagerMiloapisComV1Alpha1Project,
   listResourcemanagerMiloapisComV1Alpha1Project,
+  patchResourcemanagerMiloapisComV1Alpha1Project,
   readResourcemanagerMiloapisComV1Alpha1Project,
   readResourcemanagerMiloapisComV1Alpha1ProjectStatus,
   replaceResourcemanagerMiloapisComV1Alpha1Project,
@@ -100,34 +101,25 @@ export const createProjectsControl = (client: Client) => {
 
       return dryRun ? response.data : transform(project);
     },
-    update: async (
-      orgEntityId: string,
-      projectName: string,
-      payload: UpdateProjectSchema,
-      dryRun: boolean = false
-    ) => {
-      const response = await replaceResourcemanagerMiloapisComV1Alpha1Project({
+    update: async (projectName: string, payload: UpdateProjectSchema, dryRun: boolean = false) => {
+      const response = await patchResourcemanagerMiloapisComV1Alpha1Project({
         client,
         path: { name: projectName },
         query: {
           dryRun: dryRun ? 'All' : undefined,
+          fieldManager: 'datum-cloud-portal',
+        },
+        headers: {
+          'Content-Type': 'application/merge-patch+json',
         },
         body: {
           apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
           kind: 'Project',
           metadata: {
-            name: projectName,
             annotations: {
               'kubernetes.io/description': payload.description,
             },
             labels: convertLabelsToObject(payload.labels ?? []),
-            resourceVersion: payload.resourceVersion,
-          },
-          spec: {
-            ownerRef: {
-              kind: 'Organization',
-              name: orgEntityId,
-            },
           },
         },
       });

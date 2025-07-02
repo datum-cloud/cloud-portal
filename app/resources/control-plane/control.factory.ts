@@ -8,12 +8,10 @@ import { Client } from '@hey-api/client-axios';
  * @returns Client instance
  */
 export const createControlPlaneFactory = (authToken: string, baseURL: string): Client => {
-  const apiClient: Client = createControlPlaneClient({
+  return createControlPlaneClient({
     baseURL,
     authToken,
   });
-
-  return apiClient;
 };
 
 export type ControlPlaneFactory = ReturnType<typeof createControlPlaneFactory>;
