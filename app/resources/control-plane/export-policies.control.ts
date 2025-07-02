@@ -117,7 +117,7 @@ export const createExportPoliciesControl = (client: Client) => {
         },
         body: {
           ...formatted,
-          apiVersion: 'telemetry.datumapis.com/v1alpha1',
+          apiVersion: 'telemetry.miloapis.com/v1alpha1',
           kind: 'ExportPolicy',
         },
       });
@@ -162,7 +162,7 @@ export const createExportPoliciesControl = (client: Client) => {
         },
         body: {
           ...formatted,
-          apiVersion: 'telemetry.datumapis.com/v1alpha1',
+          apiVersion: 'telemetry.miloapis.com/v1alpha1',
           kind: 'ExportPolicy',
         },
       });

@@ -358,7 +358,7 @@ policy.`,
   },
   'x-kubernetes-group-version-kind': [
     {
-      group: 'telemetry.datumapis.com',
+      group: 'telemetry.miloapis.com',
       kind: 'ExportPolicy',
       version: 'v1alpha1',
     },
@@ -401,7 +401,7 @@ export const com_datumapis_telemetry_v1alpha1_ExportPolicyListSchema = {
   },
   'x-kubernetes-group-version-kind': [
     {
-      group: 'telemetry.datumapis.com',
+      group: 'telemetry.miloapis.com',
       kind: 'ExportPolicyList',
       version: 'v1alpha1',
     },
