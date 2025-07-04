@@ -24,7 +24,7 @@
     "test:unit:debug": "cypress open --component"
   },
   "dependencies": {
-    "@conform-to/react": "1.7.2",
+    "@conform-to/react": "1.8.1",
     "@conform-to/zod": "1.7.2",
     "@dagrejs/dagre": "^1.1.4",
     "@epic-web/client-hints": "^1.3.5",
