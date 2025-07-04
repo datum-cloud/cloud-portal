@@ -68,8 +68,7 @@ export default function ProjectsPage() {
             <Link
               className={cn(
                 'text-primary leading-none font-semibold',
-                isDeleted && 'pointer-events-none',
-                !row.original.description && 'italic'
+                isDeleted && 'pointer-events-none'
               )}
               to={
                 isDeleted
@@ -79,7 +78,7 @@ export default function ProjectsPage() {
                       projectId: row.original.name,
                     })
               }>
-              {row.original.description ?? 'No description'}
+              {row.original.description}
             </Link>
           );
         },
@@ -87,23 +86,6 @@ export default function ProjectsPage() {
       {
         header: 'Name',
         accessorKey: 'name',
-        cell: ({ row }) => {
-          const isDeleted = Boolean(row.original.name && row.original.name === deletedId);
-          return (
-            <Link
-              className={cn(isDeleted && 'pointer-events-none')}
-              to={
-                isDeleted
-                  ? '#'
-                  : getPathWithParams(routes.projects.detail, {
-                      orgId,
-                      projectId: row.original.name,
-                    })
-              }>
-              {row.original.name}
-            </Link>
-          );
-        },
       },
       {
         header: 'Status',

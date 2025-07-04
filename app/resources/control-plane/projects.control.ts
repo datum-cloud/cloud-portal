@@ -22,8 +22,9 @@ export const createProjectsControl = (client: Client) => {
     project: ComMiloapisResourcemanagerV1Alpha1Project
   ): IProjectControlResponse => {
     const metadata = {
-      name: project?.metadata?.name ?? '',
-      description: project?.metadata?.annotations?.['kubernetes.io/description'] ?? '',
+      name: project?.metadata?.name,
+      description:
+        project?.metadata?.annotations?.['kubernetes.io/description'] ?? project?.metadata?.name,
       createdAt: project?.metadata?.creationTimestamp ?? new Date(),
       organizationId: project?.spec?.ownerRef?.name ?? '',
       resourceVersion: project?.metadata?.resourceVersion ?? '',

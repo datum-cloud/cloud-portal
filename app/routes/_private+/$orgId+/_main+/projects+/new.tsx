@@ -50,11 +50,10 @@ export const action = withMiddleware(async ({ request, params, context }: Action
     // Invalidate the projects cache
     await cache.removeItem(`projects:${payload.orgEntityId}`);
 
-    // TODO: temporary solution for handle delay on new project
-    // https://github.com/datum-cloud/cloud-portal/issues/45
     return redirectWithToast(
-      getPathWithParams(`${routes.org.projects.setup}?projectId=${payload.name}`, {
+      getPathWithParams(routes.projects.detail, {
         orgId: params.orgId,
+        projectId: payload.name,
       }),
       {
         title: 'Project created successfully!',
