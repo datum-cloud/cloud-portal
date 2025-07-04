@@ -8,6 +8,7 @@ import { useApp } from '@/providers/app.provider';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { uiConfig } from '@/ui.config';
 import { CustomError } from '@/utils/errorHandle';
 import { transformControlPlaneStatus } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';
@@ -24,6 +25,37 @@ import {
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { AppLoadContext, Outlet, redirect, useLoaderData } from 'react-router';
+
+function groupByParent(items: typeof uiConfig) {
+  const parentMap = new Map<string, typeof uiConfig>();
+  const childrenMap = new Map<string, typeof uiConfig>();
+
+  // First pass: identify parents and children
+  items.forEach((item) => {
+    if (item.menu.parent) {
+      if (!childrenMap.has(item.menu.parent)) {
+        childrenMap.set(item.menu.parent, []);
+      }
+      childrenMap.get(item.menu.parent)?.push(item);
+    } else {
+      if (!parentMap.has(item.name)) {
+        parentMap.set(item.name, []);
+      }
+      parentMap.get(item.name)?.push(item);
+    }
+  });
+
+  // Second pass: create the grouped structure
+  const groupedItems = Array.from(parentMap.entries()).map(([parentName, parentItems]) => {
+    const children = childrenMap.get(parentName) || [];
+    return {
+      ...parentItems[0],
+      children,
+    };
+  });
+
+  return groupedItems;
+}
 
 export const loader = withMiddleware(async ({ params, context }) => {
   const { controlPlaneClient } = context as AppLoadContext;
@@ -72,8 +104,9 @@ export default function ProjectLayout() {
     const currentStatus = transformControlPlaneStatus(project.status);
     const isReady = currentStatus.status === ControlPlaneStatus.Success;
     const projectId = project.name;
+    const groupedConfig = groupByParent(uiConfig);
 
-    return [
+    const defaultMenus = [
       {
         title: 'Dashboard',
         href: getPathWithParams(routes.projects.dashboard, {
@@ -258,7 +291,34 @@ export default function ProjectLayout() {
         disabled: !isReady,
         icon: SettingsIcon,
       },
-    ];
+    ] satisfies NavItem[];
+
+    const resourceMenus = groupedConfig.map((config) => ({
+      title: config.menu.label,
+      href: getPathWithParams(routes.projects.resources.list, {
+        orgId,
+        projectId,
+        group: config.resource.group,
+        kind: config.resource.kind,
+      }),
+      type: config.children?.length ? ('collapsible' as const) : ('link' as const),
+      icon: config.menu.icon,
+      disabled: !isReady,
+      ...(config.children?.length && {
+        children: config.children.map((child) => ({
+          title: child.menu.label,
+          href: getPathWithParams(routes.projects.resources.list, {
+            orgId,
+            projectId,
+            group: child.resource.group,
+            kind: child.resource.kind,
+          }),
+          type: 'link' as const,
+        })),
+      }),
+    })) satisfies NavItem[];
+
+    return [...defaultMenus, ...resourceMenus];
   }, [orgId, project]);
 
   return (
