@@ -17,6 +17,7 @@ export const organizationSchema = z
     description: z
       .string({ required_error: 'Description is required.' })
       .max(100, { message: 'Description must be less than 100 characters long.' }),
+    resourceVersion: z.string().optional(),
   })
   .and(organizationMetadataSchema);
 

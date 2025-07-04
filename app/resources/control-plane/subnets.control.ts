@@ -7,7 +7,7 @@ import { ISubnetControlResponse } from '@/resources/interfaces/network.interface
 import { Client } from '@hey-api/client-axios';
 
 export const createSubnetsControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL;
+  const baseUrl = `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1`;
 
   const transformSubnet = (subnet: ComDatumapisNetworkingV1AlphaSubnet): ISubnetControlResponse => {
     const { metadata, spec, status } = subnet;

@@ -10,5 +10,5 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return redirect(routes.account.organizations.root);
   }
 
-  return redirect(getPathWithParams(routes.org.projects.root, { orgId: org.id }));
+  return redirect(getPathWithParams(routes.org.projects.root, { orgId: org.name }));
 };

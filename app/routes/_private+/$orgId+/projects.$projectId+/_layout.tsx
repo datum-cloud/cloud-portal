@@ -36,21 +36,10 @@ export const loader = withMiddleware(async ({ params, context }) => {
       throw new CustomError('Project ID and Organization ID are required', 400);
     }
 
-    const project: IProjectControlResponse = await projectsControl.detail(orgId, projectId);
+    const project: IProjectControlResponse = await projectsControl.detail(projectId);
 
     return project;
   } catch (error) {
-    // TODO: temporary solution for handle delay on new project
-    // https://github.com/datum-cloud/cloud-portal/issues/45
-
-    if ((error as any).status === 403) {
-      return redirect(
-        getPathWithParams(`${routes.org.projects.setup}?projectId=${projectId}`, {
-          orgId: params.orgId,
-        })
-      );
-    }
-
     return redirectWithToast(
       getPathWithParams(routes.home, {
         orgId: params.orgId,

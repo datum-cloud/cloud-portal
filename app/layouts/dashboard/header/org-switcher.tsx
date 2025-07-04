@@ -2,7 +2,7 @@ import { SelectOrganization } from '@/components/select-organization/select-orga
 import { Badge } from '@/components/ui/badge';
 import { routes } from '@/constants/routes';
 import { useApp } from '@/providers/app.provider';
-import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { getPathWithParams } from '@/utils/path';
 import { Link, useNavigate } from 'react-router';
 
@@ -13,12 +13,12 @@ export const OrganizationSwitcher = () => {
   return (
     <div className="flex items-center gap-1 pl-2">
       <Link
-        to={getPathWithParams(routes.org.projects.root, { orgId: currentOrg?.id })}
+        to={getPathWithParams(routes.org.projects.root, { orgId: currentOrg?.name })}
         className="flex w-fit max-w-[300px] items-center justify-between gap-2 text-left text-sm leading-tight">
         <span className="truncate font-semibold">
           {currentOrg?.displayName ?? currentOrg?.name}
         </span>
-        {currentOrg?.status?.personal && (
+        {currentOrg?.type === OrganizationType.Personal && (
           <Badge variant="secondary" className="border">
             Personal
           </Badge>
@@ -30,7 +30,7 @@ export const OrganizationSwitcher = () => {
         hideContent
         onSelect={(org: IOrganization) => {
           setOrganization(org);
-          navigate(getPathWithParams(routes.org.projects.root, { orgId: org.id }));
+          navigate(getPathWithParams(routes.org.projects.root, { orgId: org.name }));
         }}
       />
     </div>

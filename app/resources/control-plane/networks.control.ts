@@ -13,7 +13,7 @@ import { CustomError } from '@/utils/errorHandle';
 import { Client } from '@hey-api/client-axios';
 
 export const createNetworksControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL;
+  const baseUrl = `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1`;
 
   const transformNetwork = (
     network: ComDatumapisNetworkingV1AlphaNetwork

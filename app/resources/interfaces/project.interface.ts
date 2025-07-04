@@ -1,5 +1,5 @@
 import { ILabel } from './label.interface';
-import { ComDatumapisResourcemanagerV1AlphaProject } from '@/modules/control-plane/resource-manager';
+import { ComMiloapisResourcemanagerV1Alpha1Project } from '@/modules/control-plane/resource-manager';
 
 export interface IProjectControlResponse {
   name?: string;
@@ -8,6 +8,6 @@ export interface IProjectControlResponse {
   organizationId?: string;
   resourceVersion?: string;
   uid?: string;
-  status?: ComDatumapisResourcemanagerV1AlphaProject['status'];
+  status?: ComMiloapisResourcemanagerV1Alpha1Project['status'];
   labels?: ILabel;
 }

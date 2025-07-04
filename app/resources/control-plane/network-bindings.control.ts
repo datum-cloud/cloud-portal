@@ -7,7 +7,7 @@ import { INetworkBindingControlResponse } from '@/resources/interfaces/network.i
 import { Client } from '@hey-api/client-axios';
 
 export const createNetworkBindingsControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL;
+  const baseUrl = `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1`;
 
   const transformNetworkBinding = (
     networkBinding: ComDatumapisNetworkingV1AlphaNetworkBinding

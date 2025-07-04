@@ -3,7 +3,7 @@ import {
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
 import { ILabel } from '@/resources/interfaces/label.interface';
-import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -157,12 +157,12 @@ export function convertObjectToLabels(
  * Filters labels by excluding those with specified prefixes
  * Useful for removing system or internal labels from display
  * @param labels - Record object containing all labels
- * @param skipPrefixes - Array of prefixes to exclude (default: ['resourcemanager'])
+ * @param skipPrefixes - Array of prefixes to exclude (e.g: ['resourcemanager'])
  * @returns Filtered record object with matching labels removed
  */
 export function filterLabels(
   labels: Record<string, string>,
-  skipPrefixes: string[] = ['resourcemanager']
+  skipPrefixes: string[]
 ): Record<string, string> {
   return Object.fromEntries(
     Object.entries(labels).filter(([key]) => !skipPrefixes.some((prefix) => key.startsWith(prefix)))
@@ -290,14 +290,4 @@ export function generateMergePatchPayloadMap(
   }
 
   return Object.keys(patchMap).length > 0 ? patchMap : { ...safeOriginalMap };
-}
-
-/**
- * Determines the organization ID based on organizationId or uid
- * @param org Organization data
- * @returns The organization ID
- */
-export function determineOrgId(org: Partial<IOrganization>): string | undefined {
-  if (!org) return undefined;
-  return org.organizationId === '' ? org.uid : org.organizationId;
 }

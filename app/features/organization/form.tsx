@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { routes } from '@/constants/routes';
 import { useIsPending } from '@/hooks/useIsPending';
-import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { organizationSchema } from '@/resources/schemas/organization.schema';
 import { generateId, generateRandomString } from '@/utils/idGenerator';
 import { cn, convertObjectToLabels } from '@/utils/misc';
@@ -59,13 +59,13 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
   const nameControl = useInputControl(name);
   const labelsControl = useInputControl(labels);
 
-  const isEdit = useMemo(() => defaultValue?.id !== undefined, [defaultValue]);
+  const isEdit = useMemo(() => defaultValue?.name !== undefined, [defaultValue]);
 
   useEffect(() => {
     if (defaultValue) {
       form.update({
         value: {
-          name: defaultValue.organizationId,
+          name: defaultValue.name,
           description: defaultValue.displayName,
           labels: convertObjectToLabels(defaultValue.labels ?? {}),
         },
@@ -92,6 +92,9 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
           <AuthenticityTokenInput />
 
           <CardContent className="space-y-4">
+            {isEdit && (
+              <input type="hidden" name="resourceVersion" value={defaultValue?.resourceVersion} />
+            )}
             <div className={cn('flex gap-4', isEdit ? 'flex-col-reverse' : 'flex-col')}>
               <Field
                 isRequired

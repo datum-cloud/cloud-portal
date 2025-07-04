@@ -10,7 +10,7 @@ import { transformControlPlaneStatus } from '@/utils/misc';
 import { Client } from '@hey-api/client-axios';
 
 export const createWorkloadDeploymentsControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL;
+  const baseUrl = `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1`;
 
   const transform = (
     workload: ComDatumapisComputeV1AlphaWorkloadDeployment

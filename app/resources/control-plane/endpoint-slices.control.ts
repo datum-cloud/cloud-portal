@@ -22,7 +22,7 @@ import { convertLabelsToObject } from '@/utils/misc';
 import { Client } from '@hey-api/client-axios';
 
 export const createEndpointSlicesControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL;
+  const baseUrl = `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1`;
 
   const transformEndpointSliceLite = (
     endpointSlice: IoK8sApiDiscoveryV1EndpointSlice
