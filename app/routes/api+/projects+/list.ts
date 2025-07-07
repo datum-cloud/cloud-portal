@@ -18,7 +18,7 @@ export const loader = withMiddleware(async ({ request, context }) => {
     throw new CustomError('Organization not found', 404);
   }
 
-  const orgEntityId = org.id;
+  const orgEntityId = org.name;
 
   const key = `projects:${orgEntityId}`;
   const isCached = await cache.hasItem(key);

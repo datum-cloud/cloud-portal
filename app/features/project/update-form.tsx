@@ -33,25 +33,22 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: updateProjectSchema });
     },
+    defaultValue: {
+      description: defaultValue.description,
+      labels: convertObjectToLabels(defaultValue.labels ?? {}),
+    },
   });
 
   const displayNameControl = useInputControl(fields.description as FieldMetadata<string>);
   const labelsControl = useInputControl(fields.labels as FieldMetadata<string[]>);
 
   useEffect(() => {
-    if (defaultValue) {
-      form.update({
-        value: {
-          description: defaultValue.description,
-          labels: convertObjectToLabels(defaultValue.labels ?? {}),
-        },
-      });
-    }
-  }, [defaultValue]);
-
-  useEffect(() => {
     isHydrated && inputRef.current?.focus();
   }, [isHydrated]);
+
+  useEffect(() => {
+    form.reset();
+  }, [defaultValue]);
 
   return (
     <Card>
@@ -75,12 +72,12 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
 
         <CardContent className="space-y-4">
           <Field label="ID">
-            <InputWithCopy value={defaultValue.uid ?? ''} className="bg-muted h-9" />
+            <InputWithCopy value={defaultValue?.uid ?? ''} className="bg-muted h-9" />
           </Field>
           <Field
             label="Name"
             tooltipInfo="Used to identify your project in the dashboard, Datum CLI, and in the URL of your deployments">
-            <InputWithCopy value={defaultValue.name ?? ''} className="bg-muted h-9" />
+            <InputWithCopy value={defaultValue?.name ?? ''} className="bg-muted h-9" />
           </Field>
 
           <Field

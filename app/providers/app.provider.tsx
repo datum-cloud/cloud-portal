@@ -1,4 +1,4 @@
-import { IOrganization } from '@/resources/interfaces/organization.inteface';
+import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IUser } from '@/resources/interfaces/user.interface';
 import { ReactNode, createContext, useContext, useEffect, useState, useMemo } from 'react';
 
@@ -36,7 +36,7 @@ export function AppProvider({ children, initialUser, initialOrganization }: AppP
     setOrganization(orgData);
   };
 
-  const orgId = useMemo(() => organization?.id, [organization]);
+  const orgId = useMemo(() => organization?.name, [organization]);
 
   useEffect(() => {
     if (initialUser) {

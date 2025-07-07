@@ -2,11 +2,11 @@ import { routes } from '@/constants/routes';
 import { OrganizationForm } from '@/features/organization/form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
-import { iamOrganizationsAPI } from '@/resources/api/iam/organizations.api';
+import { createOrganizationsControl } from '@/resources/control-plane/organizations.control';
 import { OrganizationSchema, organizationSchema } from '@/resources/schemas/organization.schema';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { parseWithZod } from '@conform-to/zod';
-import { AxiosInstance } from 'axios';
+import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
@@ -14,8 +14,8 @@ export const meta: MetaFunction = mergeMeta(() => {
 });
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
-  const { apiClient, cache } = context as AppLoadContext;
-  const orgAPI = iamOrganizationsAPI(apiClient as AxiosInstance);
+  const { controlPlaneClient, cache } = context as AppLoadContext;
+  const orgAPI = createOrganizationsControl(controlPlaneClient as Client);
 
   const clonedRequest = request.clone();
   const formData = await clonedRequest.formData();

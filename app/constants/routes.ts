@@ -20,7 +20,6 @@ export const routes = {
     projects: {
       root: '/[orgId]/projects',
       new: '/[orgId]/projects/new',
-      setup: '/[orgId]/projects/setup',
     },
   },
   account: {

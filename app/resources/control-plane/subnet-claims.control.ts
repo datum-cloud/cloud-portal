@@ -7,7 +7,7 @@ import { ISubnetClaimControlResponse } from '@/resources/interfaces/network.inte
 import { Client } from '@hey-api/client-axios';
 
 export const createSubnetClaimsControl = (client: Client) => {
-  const baseUrl = client.instance.defaults.baseURL;
+  const baseUrl = `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1`;
 
   const transformSubnetClaim = (
     subnetClaim: ComDatumapisNetworkingV1AlphaSubnetClaim
