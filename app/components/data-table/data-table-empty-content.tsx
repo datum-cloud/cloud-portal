@@ -2,7 +2,7 @@ import { DataTableEmptyContentProps } from './data-table.types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/misc';
 import { Link } from 'react-router';
-import { Theme, useTheme } from 'remix-themes';
+import { useTheme } from 'remix-themes';
 
 export const DataTableEmptyContent = ({
   title = 'No data found',

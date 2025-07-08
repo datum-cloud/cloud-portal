@@ -7,14 +7,16 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { CircleHelp, SlashIcon } from 'lucide-react';
-import { Link, useMatches, useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 
 export const Header = ({
   hideSidebar = false,
   currentProject,
+  title,
 }: {
   hideSidebar?: boolean;
   currentProject?: IProjectControlResponse;
+  title?: string;
 }) => {
   const params = useParams<{ orgId: string; projectId: string }>();
   return (
@@ -22,6 +24,7 @@ export const Header = ({
       {/* Left Section */}
       <div className="flex flex-1 items-center">
         {!hideSidebar && <SidebarTrigger className="-ml-1 cursor-pointer" />}
+        {title && <span className="ml-2 text-sm font-semibold">{title}</span>}
         {params?.orgId && <OrganizationSwitcher />}
         {params?.projectId && currentProject && (
           <>

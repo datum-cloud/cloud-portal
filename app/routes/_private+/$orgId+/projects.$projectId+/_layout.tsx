@@ -23,7 +23,7 @@ import {
   TerminalIcon,
 } from 'lucide-react';
 import { useMemo } from 'react';
-import { AppLoadContext, Outlet, redirect, useLoaderData } from 'react-router';
+import { AppLoadContext, Outlet, useLoaderData } from 'react-router';
 
 export const loader = withMiddleware(async ({ params, context }) => {
   const { controlPlaneClient } = context as AppLoadContext;

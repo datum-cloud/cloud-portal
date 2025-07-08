@@ -22,7 +22,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 export const DataTable = <TData, TValue>({
   columns,
@@ -105,10 +105,6 @@ export const DataTable = <TData, TValue>({
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [columnFilters])
 
-  const columnsLength = useMemo(() => {
-    return columns.length + (rowActions.length > 0 ? 1 : 0);
-  }, [columns, rowActions]);
-
   return (
     <DataTableProvider
       table={table}
@@ -122,11 +118,7 @@ export const DataTable = <TData, TValue>({
       columnVisibility={{}}
       enableColumnOrdering={false}
       isLoading={undefined}>
-      <div
-        className={cn(
-          'mx-auto flex h-full w-full max-w-(--breakpoint-xl) flex-col gap-4',
-          className
-        )}>
+      <div className={cn('flex h-full w-full flex-col gap-4', className)}>
         {data?.length > 0 ? (
           <>
             {/* Header Section */}

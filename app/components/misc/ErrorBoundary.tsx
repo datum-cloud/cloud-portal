@@ -58,7 +58,7 @@ export function GenericErrorBoundary({
 
           // Redirect to login page
           navigate(routes.auth.logIn);
-        } catch (e) {
+        } catch {
           // Fallback: just redirect to login if the logout request fails
           navigate(routes.auth.logIn);
         }

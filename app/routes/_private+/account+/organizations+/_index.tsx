@@ -1,17 +1,14 @@
 import { DataTableEmptyContent } from '@/components/data-table/data-table-empty-content';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { routes } from '@/constants/routes';
+import { OrganizationListCard } from '@/features/organization/list-card';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
 import { CustomError } from '@/utils/errorHandle';
-import { getInitials } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
-import { HomeIcon, PlusIcon, SettingsIcon } from 'lucide-react';
-import { Link, useLoaderData, useNavigate, LoaderFunctionArgs } from 'react-router';
+import { PlusIcon } from 'lucide-react';
+import { useLoaderData, useNavigate, LoaderFunctionArgs } from 'react-router';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const req = await fetch(`${process.env.APP_URL}${ORG_LIST_PATH}`, {
@@ -30,143 +27,78 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return data;
 };
 
-// TODO: implement members avatar when the API is ready
-/* const MembersAvatar = ({ org }: { org: IOrganization }) => {
-  const members = useMemo(() => {
-    return org.members.map((member) => ({
-      name: `${member.user.firstName} ${member.user.lastName}`,
-      image: member.user.avatarRemoteURL,
-    }))
-  }, [org])
-
+const NewOrganizationCard = () => {
+  const navigate = useNavigate();
   return (
-    <AvatarStack
-      avatars={members}
-      maxAvatarsAmount={6}
-      avatarClassName="size-8 border border-input"
-    />
-  )
-} */
+    <Card
+      className="hover:border-accent-foreground cursor-pointer border-dashed py-4 shadow-none transition-all"
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        navigate(routes.account.organizations.new);
+      }}>
+      <CardContent className="flex flex-row items-center justify-between gap-4 px-4">
+        {/* Left Side */}
+        <div className="flex flex-row items-center gap-4">
+          {/* Avatar */}
+          <Avatar className="size-12 !rounded-md">
+            <AvatarFallback className="rounded-md">
+              <PlusIcon size={24} />
+            </AvatarFallback>
+          </Avatar>
+          {/* Organization Info */}
+          <div className="flex flex-col gap-1">
+            <h3 className="text-foreground text-lg leading-5 font-semibold">
+              Create New Organization
+            </h3>
+            <p className="text-muted-foreground text-sm">
+              Collaborate with your team by creating a new organization
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 export default function AccountOrganizations() {
-  const navigate = useNavigate();
   const orgs: IOrganization[] = useLoaderData<typeof loader>();
 
-  return (
-    <div className="mx-auto flex h-full w-full max-w-(--breakpoint-xl) flex-col gap-4">
-      {orgs.length === 0 ? (
-        <DataTableEmptyContent
-          title="No organizations found"
-          subtitle="You don't have any organizations"
-          actions={[
-            {
-              type: 'link',
-              label: 'New Organization',
-              to: routes.account.organizations.new,
-              icon: <PlusIcon className="size-4" />,
-            },
-          ]}
-        />
-      ) : (
-        <>
-          <PageTitle
-            title="Organizations"
-            description="Manage your organizations"
-            actions={
-              <Link to={routes.account.organizations.new}>
-                <Button>
-                  <PlusIcon className="size-4" />
-                  New Organization
-                </Button>
-              </Link>
-            }
-          />
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {(orgs ?? [])
-              .sort((a, b) =>
-                (a?.displayName ?? a?.name ?? '').localeCompare(b?.displayName ?? b?.name ?? '')
-              )
-              .map((org) => (
-                <Card
-                  key={org.name}
-                  className="hover:bg-accent/50 flex h-40 cursor-pointer flex-col justify-between gap-0 py-0 transition-all"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    navigate(getPathWithParams(routes.org.projects.root, { orgId: org.name }));
-                  }}>
-                  <CardContent className="px-4 py-4">
-                    <div className="space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-foreground truncate text-base leading-tight font-semibold">
-                            {org?.displayName ?? org.name}
-                          </h3>
-                          {org.displayName !== org.name && (
-                            <p className="text-muted-foreground text-xs font-medium tracking-wide">
-                              {org?.name}
-                            </p>
-                          )}
-                        </div>
-                        {org.type === OrganizationType.Personal ? (
-                          <Badge variant="secondary" className="border-input shrink-0 border">
-                            Personal
-                          </Badge>
-                        ) : (
-                          <Avatar className="size-8 shrink-0 rounded-md">
-                            <AvatarFallback className="text-primary-foreground rounded-md bg-slate-400">
-                              {getInitials(org?.displayName ?? org?.name ?? '')}
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
-                      </div>
-                      {Object.keys(org.labels ?? {}).length > 0 && (
-                        <div className="mt-2 flex items-center gap-2">
-                          {Object.keys(org.labels ?? {}).map((key) => (
-                            <Badge
-                              key={key}
-                              variant="secondary"
-                              className="border-input shrink-0 border">
-                              {key}:{org.labels?.[key]}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                      {/* <div className="pt-2">
-                    <MembersAvatar org={org} />
-                  </div> */}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex flex-row items-center justify-between gap-2 px-4 pb-4">
-                    <Link
-                      to={getPathWithParams(routes.org.root, { orgId: org.name })}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        navigate(getPathWithParams(routes.org.root, { orgId: org.name }));
-                      }}
-                      className="sm text-primary flex h-fit cursor-pointer items-center gap-1 px-0 text-xs no-underline">
-                      <HomeIcon className="size-4" />
-                      Dashboard
-                    </Link>
+  return orgs.length === 0 ? (
+    <DataTableEmptyContent
+      title="No organizations found"
+      subtitle="You don't have any organizations"
+      actions={[
+        {
+          type: 'link',
+          label: 'Create New Organization',
+          to: routes.account.organizations.new,
+          icon: <PlusIcon className="size-4" />,
+        },
+      ]}
+    />
+  ) : (
+    <>
+      <PageTitle
+        title="Organizations"
+        description="Manage your organizations and create new ones to collaborate with your team."
+      />
+      <div className="flex w-full flex-col gap-4">
+        {(orgs ?? [])
+          .sort((a, b) => {
+            // Put personal organization first
+            if (a.type === OrganizationType.Personal) return -1;
+            if (b.type === OrganizationType.Personal) return 1;
 
-                    <Link
-                      to={getPathWithParams(routes.org.settings.root, { orgId: org.name })}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        navigate(getPathWithParams(routes.org.settings.root, { orgId: org.name }));
-                      }}
-                      className="sm text-primary flex h-fit cursor-pointer items-center gap-1 px-0 text-xs no-underline">
-                      <SettingsIcon className="size-4" />
-                      Settings
-                    </Link>
-                  </CardFooter>
-                </Card>
-              ))}
-          </div>
-        </>
-      )}
-    </div>
+            // Then sort alphabetically by displayName or name
+            return (a?.displayName ?? a?.name ?? '').localeCompare(b?.displayName ?? b?.name ?? '');
+          })
+          .map((org) => (
+            <OrganizationListCard key={org.name} org={org} />
+          ))}
+
+        <NewOrganizationCard />
+      </div>
+    </>
   );
 }

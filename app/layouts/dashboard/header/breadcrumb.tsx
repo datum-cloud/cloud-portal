@@ -14,7 +14,7 @@ import { useLocation, useMatches, useParams } from 'react-router';
 /**
  * Type for route handle with breadcrumb function
  */
-interface RouteHandleWithBreadcrumb {
+interface _RouteHandleWithBreadcrumb {
   breadcrumb: (data?: unknown) => React.ReactNode;
 }
 
@@ -76,7 +76,7 @@ export const Breadcrumb = (): React.ReactElement | null => {
   if (!items.length) return null;
 
   return (
-    <BreadcrumbUI className="px-4 pt-4 pb-0">
+    <BreadcrumbUI>
       <BreadcrumbList>
         {items.map((item) => (
           <React.Fragment key={item.key}>

@@ -1,7 +1,7 @@
 import { routes } from '@/constants/routes';
 import { DashboardLayout } from '@/layouts/dashboard/dashboard';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
-import { Building2Icon, FileIcon, KeyIcon, SettingsIcon } from 'lucide-react';
+import { Building2Icon, SettingsIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { Outlet } from 'react-router';
 
@@ -15,35 +15,16 @@ export default function AccountLayout() {
         icon: Building2Icon,
       },
       {
-        title: 'Projects',
-        href: routes.account.projects,
+        title: 'Account Settings',
+        href: routes.account.settings,
         type: 'link',
-        icon: FileIcon,
-      },
-      {
-        title: 'Account',
-        type: 'group',
-        href: routes.account.root,
-        children: [
-          {
-            title: 'Settings',
-            type: 'link',
-            href: routes.account.settings,
-            icon: SettingsIcon,
-          },
-          {
-            title: 'API Keys',
-            type: 'link',
-            href: routes.account.apiKeys.root,
-            icon: KeyIcon,
-          },
-        ],
+        icon: SettingsIcon,
       },
     ];
   }, []);
 
   return (
-    <DashboardLayout navItems={navItems} sidebarCollapsible="icon">
+    <DashboardLayout navItems={navItems} sidebarCollapsible="icon" headerTitle="Account Management">
       <Outlet />
     </DashboardLayout>
   );

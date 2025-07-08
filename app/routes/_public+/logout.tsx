@@ -1,10 +1,10 @@
-import { routes } from '@/constants/routes';
 import { zitadelIssuer, zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
 import { getIdTokenSession } from '@/modules/cookie/id-token.server';
 import { getSession } from '@/modules/cookie/session.server';
+import { CustomError } from '@/utils/errorHandle';
 import { destroyLocalSessions } from '@/utils/session';
 import type { ActionFunctionArgs } from 'react-router';
-import { LoaderFunctionArgs, redirect, AppLoadContext } from 'react-router';
+import { LoaderFunctionArgs, AppLoadContext } from 'react-router';
 
 const signOut = async (request: Request, context: AppLoadContext) => {
   try {
@@ -16,17 +16,21 @@ const signOut = async (request: Request, context: AppLoadContext) => {
 
     // 2. Redirect to OIDC provider's end_session_endpoint
     const { idToken } = await getIdTokenSession(request);
-    if (idToken) {
-      const endSessionUrl = new URL(`${zitadelIssuer}/oidc/v1/end_session`);
-      endSessionUrl.searchParams.append('id_token_hint', idToken);
-      endSessionUrl.searchParams.append(
-        'post_logout_redirect_uri',
-        `${process.env.APP_URL}${routes.auth.logOutCallback}`
-      );
-      endSessionUrl.searchParams.append('client_id', process.env.AUTH_OIDC_CLIENT_ID ?? ''); // Some providers might require client_id
 
-      return redirect(endSessionUrl.toString());
+    if (!idToken) {
+      throw new CustomError('No id_token in request', 400);
     }
+
+    const body = new URLSearchParams();
+    body.append('id_token_hint', idToken);
+
+    await fetch(`${zitadelIssuer}/oidc/v1/end_session`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body,
+    });
 
     return destroyLocalSessions(request, context);
   } catch (error) {

@@ -45,7 +45,7 @@ export const loader = withMiddleware(async ({ request, context }) => {
       description: 'Please try again later',
       type: 'error',
     });
-  } catch (error) {
+  } catch {
     return data(null);
   }
 }, authMiddleware);

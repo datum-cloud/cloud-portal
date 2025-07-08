@@ -1,3 +1,4 @@
+/* eslint-disable unused-imports/no-unused-vars */
 // Import required types
 import { ControlPlaneFactory } from '@/resources/control-plane/control.factory';
 import { Client } from '@hey-api/client-axios';

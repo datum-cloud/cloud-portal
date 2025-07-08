@@ -8,7 +8,8 @@
     "**/.client/**/*.tsx",
     ".react-router/types/**/*",
     "cypress/**/*.ts",
-    "cypress/**/*.tsx"
+    "cypress/**/*.tsx",
+    "app/routes/_private+/account+/organizations+/_index.tsx.old"
   ],
   "exclude": ["remix.init/**/*", "node_modules/**/*", "server.ts", "otel.ts"],
   "compilerOptions": {
