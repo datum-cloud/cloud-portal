@@ -22,7 +22,7 @@ export const loader = withMiddleware(async ({ request, context }: LoaderFunction
 
     const status = await gatewaysControl.getStatus(projectId, gatewayId);
     return data(status);
-  } catch (error) {
+  } catch {
     return data(null);
   }
 }, authMiddleware);

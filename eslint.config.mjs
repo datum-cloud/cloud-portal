@@ -3,6 +3,7 @@ import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
 import eslintPluginReact from 'eslint-plugin-react';
 import eslintPluginReactHooks from 'eslint-plugin-react-hooks';
+import unusedImports from 'eslint-plugin-unused-imports';
 import tseslint from 'typescript-eslint';
 
 export default [
@@ -27,6 +28,7 @@ export default [
       // import: eslintPluginImport,
       'jsx-a11y': eslintPluginJsxA11y,
       prettier: eslintPluginPrettier,
+      'unused-imports': unusedImports,
     },
     rules: {
       ...tseslint.configs.recommendedTypeChecked[0].rules,
@@ -43,6 +45,18 @@ export default [
       //   },
       // ],
       'react-hooks/exhaustive-deps': 'off',
+
+      'no-unused-vars': 'off', // or "@typescript-eslint/no-unused-vars": "off",
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
+        'warn',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+        },
+      ],
     },
     settings: {
       react: {

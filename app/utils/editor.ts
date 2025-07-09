@@ -37,7 +37,7 @@ export function formatJson(jsonStr: string): string {
   try {
     const parsed = JSON.parse(jsonStr);
     return JSON.stringify(parsed, null, 2);
-  } catch (error) {
+  } catch {
     throw new Error('Invalid JSON format');
   }
 }
@@ -49,7 +49,7 @@ export function formatYaml(yamlStr: string): string {
   try {
     const parsed = load(yamlStr);
     return dump(parsed, { indent: 2 });
-  } catch (error) {
+  } catch {
     throw new Error('Invalid YAML format');
   }
 }

@@ -176,7 +176,6 @@ export const MultiSelect = ({
   maxCount = 3,
   modalPopover = false,
 
-  asChild = false,
   className,
   boxClassName,
   actions,

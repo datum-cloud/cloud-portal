@@ -7,7 +7,6 @@ import {
   patchResourcemanagerMiloapisComV1Alpha1Project,
   readResourcemanagerMiloapisComV1Alpha1Project,
   readResourcemanagerMiloapisComV1Alpha1ProjectStatus,
-  replaceResourcemanagerMiloapisComV1Alpha1Project,
 } from '@/modules/control-plane/resource-manager';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { UpdateProjectSchema, ProjectSchema } from '@/resources/schemas/project.schema';

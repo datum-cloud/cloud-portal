@@ -16,7 +16,6 @@ import { getPathWithParams } from '@/utils/path';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { CircleAlertIcon } from 'lucide-react';
-import { useEffect } from 'react';
 import { ActionFunctionArgs, AppLoadContext, useRouteLoaderData, useSubmit } from 'react-router';
 
 export const handle = {

@@ -62,7 +62,6 @@ const TagInputContext = React.createContext<TagsInputContextProps | null>(null);
 export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
   (
     {
-      children,
       value,
       onValueChange,
       placeholder,

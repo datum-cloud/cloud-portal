@@ -32,10 +32,6 @@ export interface CodeEditorTabsProps {
   name?: string;
   /** Minimum height of the editor */
   minHeight?: string;
-  /** Default value when reset is clicked */
-  defaultValue?: string;
-  /** Label to show above the editor */
-  label?: string;
 }
 
 export const jsonSchema = z.object({

@@ -3,7 +3,6 @@ import {
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
 import { ILabel } from '@/resources/interfaces/label.interface';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -222,7 +221,7 @@ export function isBase64(str: string): boolean {
   try {
     const decoded = atob(str);
     return btoa(decoded) === str;
-  } catch (e) {
+  } catch {
     return false;
   }
 }

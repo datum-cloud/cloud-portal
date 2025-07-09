@@ -26,6 +26,11 @@
   --winter-sky-700: hsl(180 12% 96%); /* #F5F7F7 */
   --winter-sky-600: hsl(180 10% 97%); /* #F7FAFA */
 
+  /* Butter Color */
+  --butter-900: hsl(48 72% 84%); /* #F2E6BC */
+  --butter-800: hsl(48 100% 93%); /* #FFF6D7 */
+  --butter-foreground: hsl(240 10% 3.9%); /* #312847 */
+
   /* Base colors */
   --background: hsl(0 0% 100%); /* #FFFFFF */
   --foreground: hsl(240 10% 3.9%); /* #0A0A0A */
@@ -195,6 +200,12 @@
   --color-sunglow-800: var(--sunglow-800);
   --color-sunglow-900: var(--sunglow-900);
   --color-sunglow-foreground: var(--sunglow-foreground);
+
+  /* Butter Colors */
+  --color-butter: var(--butter-900);
+  --color-butter-900: var(--butter-900);
+  --color-butter-800: var(--butter-800);
+  --color-butter-foreground: var(--butter-foreground);
 
   --color-sidebar: var(--sidebar-background);
   --color-sidebar-foreground: var(--sidebar-foreground);

@@ -14,7 +14,13 @@ import { routes } from '@/constants/routes';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
 import { cn } from '@/utils/misc';
-import { CheckIcon, ChevronsUpDownIcon, Loader2, PlusCircleIcon, SettingsIcon } from 'lucide-react';
+import {
+  Building2Icon,
+  CheckIcon,
+  ChevronsUpDownIcon,
+  Loader2,
+  PlusCircleIcon,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useFetcher } from 'react-router';
 import { toast } from 'sonner';
@@ -124,14 +130,14 @@ export const SelectOrganization = ({
                   </Link>
                 </CommandItem>
                 <CommandSeparator />
-                <CommandItem className="cursor-pointer" asChild>
+                <CommandItem className="cursor-pointer py-1.5" asChild>
                   <Link
                     to={routes.account.organizations.root}
-                    className="flex items-center gap-2 px-3">
+                    className="my-1.5 flex items-center gap-2 px-3">
                     <div className="flex w-6 items-center justify-center">
-                      <SettingsIcon />
+                      <Building2Icon />
                     </div>
-                    <span>Manage Organizations</span>
+                    <span>All Organizations</span>
                   </Link>
                 </CommandItem>
               </>
