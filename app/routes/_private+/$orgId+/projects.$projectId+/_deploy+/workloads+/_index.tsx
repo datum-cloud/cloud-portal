@@ -89,9 +89,6 @@ export default function WorkloadsPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${workload.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the workload name to confirm deletion',
-      confirmValue: workload.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {

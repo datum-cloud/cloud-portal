@@ -131,9 +131,6 @@ export default function ProjectSettingsPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${project.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the project name to confirm deletion',
-      confirmValue: project.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {

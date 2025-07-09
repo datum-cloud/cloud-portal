@@ -60,9 +60,6 @@ export default function ConnectNetworksPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${network.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the network name to confirm deletion',
-      confirmValue: network.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {

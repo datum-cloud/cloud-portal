@@ -62,9 +62,6 @@ export default function ConnectGatewaysPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${gateway.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the gateway name to confirm deletion',
-      confirmValue: gateway.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {

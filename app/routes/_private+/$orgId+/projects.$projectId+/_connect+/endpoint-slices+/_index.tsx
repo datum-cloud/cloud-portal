@@ -57,9 +57,6 @@ export default function ConnectEndpointSlicesPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${endpointSlice.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the endpoint slice name to confirm deletion',
-      confirmValue: endpointSlice.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {

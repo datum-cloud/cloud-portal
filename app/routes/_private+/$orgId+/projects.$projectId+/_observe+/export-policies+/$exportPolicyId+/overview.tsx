@@ -57,9 +57,6 @@ export default function ExportPolicyOverview() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${exportPolicy?.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the export policy name to confirm deletion',
-      confirmValue: exportPolicy?.name ?? 'delete',
       onSubmit: async () => {
         // Clear the interval when deleting a export policy
         revalidator.clear();

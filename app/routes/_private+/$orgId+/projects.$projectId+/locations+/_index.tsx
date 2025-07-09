@@ -78,19 +78,13 @@ export default function LocationsPage() {
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>
-            {location.displayName} ({location.name})
-          </strong>
-          ?
+          <strong>{location.name}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${location.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the location name to confirm deletion',
-      confirmValue: location.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {
