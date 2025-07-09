@@ -83,9 +83,6 @@ export default function ConfigMapsPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${configMap.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the config map name to confirm deletion',
-      confirmValue: configMap.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {

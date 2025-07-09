@@ -69,9 +69,6 @@ export default function EditSecret() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${secret.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the secret name to confirm deletion',
-      confirmValue: secret.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {

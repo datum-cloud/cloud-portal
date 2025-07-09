@@ -60,9 +60,6 @@ export default function ObserveExportPoliciesPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${exportPolicy.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the export policy name to confirm deletion',
-      confirmValue: exportPolicy.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {

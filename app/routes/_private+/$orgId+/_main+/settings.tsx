@@ -107,9 +107,6 @@ export default function OrgSettingsPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${organization?.displayName}" to confirm.`,
-      confirmInputPlaceholder: 'Type the organization name to confirm deletion',
-      confirmValue: organization?.displayName ?? 'delete',
       onSubmit: async () => {
         await fetcher.submit(
           {},

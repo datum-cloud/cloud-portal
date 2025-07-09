@@ -105,9 +105,6 @@ export default function WorkloadOverviewPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${data?.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the workload name to confirm deletion',
-      confirmValue: data?.name ?? 'delete',
       onSubmit: async () => {
         // Clear the interval when deleting a workload
         revalidator.clear();

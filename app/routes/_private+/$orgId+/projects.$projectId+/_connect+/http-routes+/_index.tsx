@@ -63,9 +63,6 @@ export default function ConnectHttpRoutesPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${httpRoute.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the http route name to confirm deletion',
-      confirmValue: httpRoute.name ?? 'delete',
       onSubmit: async () => {
         await submit(
           {

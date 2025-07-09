@@ -65,9 +65,9 @@ export const ConfirmationDialog = ({
 
     // Confirmation
     showConfirmInput: false,
-    confirmInputLabel: 'Type "delete" to confirm.',
+    confirmInputLabel: 'Type "DELETE" to confirm.',
     confirmInputPlaceholder: 'Type in here...',
-    confirmValue: 'delete',
+    confirmValue: 'DELETE',
   });
 
   const resolveRef = useRef<(value: boolean) => void>(null);
@@ -111,10 +111,7 @@ export const ConfirmationDialog = ({
 
   const isDisabled = useMemo(() => {
     if (dialogProps.showConfirmInput) {
-      return (
-        confirmValidationValue.toLowerCase() !==
-        (dialogProps.confirmValue ?? 'delete').toLowerCase()
-      );
+      return confirmValidationValue !== (dialogProps.confirmValue ?? 'DELETE');
     }
 
     return isPending;
