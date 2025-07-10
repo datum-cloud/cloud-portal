@@ -24,7 +24,7 @@ export type ComMiloapisResourcemanagerV1Alpha1Organization = {
     /**
      * The type of organization.
      */
-    type: 'Personal' | 'Business' | 'Government' | 'Research' | 'Education' | 'Nonprofit' | 'Other';
+    type: 'Personal' | 'Standard';
   };
   /**
    * OrganizationStatus defines the observed state of Organization

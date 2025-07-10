@@ -3,12 +3,7 @@ import { ILabel } from '@/resources/interfaces/label.interface';
 
 export enum OrganizationType {
   Personal = 'Personal',
-  Business = 'Business',
-  Government = 'Government',
-  Research = 'Research',
-  Education = 'Education',
-  Nonprofit = 'Nonprofit',
-  Other = 'Other',
+  Standard = 'Standard',
 }
 export interface IOrganization {
   name?: string;

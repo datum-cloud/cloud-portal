@@ -5,8 +5,8 @@ import {
   createResourcemanagerMiloapisComV1Alpha1Organization,
   deleteResourcemanagerMiloapisComV1Alpha1Organization,
   listResourcemanagerMiloapisComV1Alpha1OrganizationMembershipForAllNamespaces,
+  patchResourcemanagerMiloapisComV1Alpha1Organization,
   readResourcemanagerMiloapisComV1Alpha1Organization,
-  replaceResourcemanagerMiloapisComV1Alpha1Organization,
 } from '@/modules/control-plane/resource-manager';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { OrganizationSchema } from '@/resources/schemas/organization.schema';
@@ -98,6 +98,9 @@ export const createOrganizationsControl = (client: Client) => {
             },
             labels: convertLabelsToObject(payload.labels ?? []),
           },
+          spec: {
+            type: OrganizationType.Standard,
+          },
         },
       });
 
@@ -110,25 +113,27 @@ export const createOrganizationsControl = (client: Client) => {
       return dryRun ? response.data : transform(org);
     },
     update: async (orgId: string, payload: OrganizationSchema, dryRun: boolean = false) => {
-      const response = await replaceResourcemanagerMiloapisComV1Alpha1Organization({
+      const response = await patchResourcemanagerMiloapisComV1Alpha1Organization({
         client,
         path: {
           name: orgId,
         },
         query: {
           dryRun: dryRun ? 'All' : undefined,
+          fieldManager: 'datum-cloud-portal',
+        },
+        headers: {
+          'Content-Type': 'application/merge-patch+json',
         },
         body: {
           apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
           kind: 'Organization',
           metadata: {
-            name: payload.name,
             annotations: {
               'kubernetes.io/display-name': payload.description,
               ...convertLabelsToObject(payload.annotations ?? []),
             },
             labels: convertLabelsToObject(payload.labels ?? []),
-            resourceVersion: payload.resourceVersion,
           },
         },
       });
