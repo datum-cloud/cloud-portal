@@ -14,8 +14,8 @@ export const OrganizationSwitcher = () => {
     <div className="flex items-center gap-1 pl-2">
       <Link
         to={getPathWithParams(routes.org.projects.root, { orgId: currentOrg?.name })}
-        className="flex w-fit max-w-[300px] items-center justify-between gap-2 text-left text-sm leading-tight">
-        <span className="truncate font-semibold">
+        className="flex w-fit items-center justify-between gap-2 text-left text-sm leading-tight">
+        <span className="xs:whitespace-normal font-semibold">
           {currentOrg?.displayName ?? currentOrg?.name}
         </span>
         {currentOrg?.type === OrganizationType.Personal && (

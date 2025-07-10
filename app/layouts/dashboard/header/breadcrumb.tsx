@@ -59,7 +59,7 @@ export const Breadcrumb = (): React.ReactElement | null => {
       });
 
     if ((params.orgId || params.projectId) && !location.pathname.includes('/dashboard')) {
-      const route = params?.projectId ? routes.projects.dashboard : routes.org.root;
+      const route = params?.projectId ? routes.projects.dashboard : routes.org.projects.root;
       filteredMatches.unshift({
         key: `breadcrumb-dashboard`,
         path: getPathWithParams(route, { orgId: params.orgId, projectId: params.projectId }),

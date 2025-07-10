@@ -9,7 +9,7 @@ export default function AccountLayout() {
   const navItems: NavItem[] = useMemo(() => {
     return [
       {
-        title: 'Organizations',
+        title: 'My Organizations',
         href: routes.account.organizations.root,
         type: 'link',
         icon: Building2Icon,
@@ -24,7 +24,7 @@ export default function AccountLayout() {
   }, []);
 
   return (
-    <DashboardLayout navItems={navItems} sidebarCollapsible="icon" headerTitle="Account Management">
+    <DashboardLayout navItems={navItems} sidebarCollapsible="icon">
       <Outlet />
     </DashboardLayout>
   );
