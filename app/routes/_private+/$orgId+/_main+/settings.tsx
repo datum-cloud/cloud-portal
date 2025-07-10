@@ -1,10 +1,9 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { routes } from '@/constants/routes';
 import { OrganizationForm } from '@/features/organization/form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
+import { dataWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createOrganizationsControl } from '@/resources/control-plane/organizations.control';
@@ -17,7 +16,14 @@ import { getPathWithParams } from '@/utils/path';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { CircleAlertIcon } from 'lucide-react';
-import { ActionFunctionArgs, AppLoadContext, MetaFunction, useFetcher } from 'react-router';
+import { useEffect } from 'react';
+import {
+  ActionFunctionArgs,
+  AppLoadContext,
+  MetaFunction,
+  useActionData,
+  useFetcher,
+} from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Settings</span>,
@@ -59,37 +65,24 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
       res = await orgAPI.update(orgId, payload);
     }
 
-    await cache.removeItem(`organizations:${orgId}`);
-    const organizations = await cache.getItem('organizations');
-    if (organizations) {
-      const newOrganizations = (organizations as IOrganization[]).map((org: IOrganization) => {
-        if (org.name === orgId) {
-          return res;
-        }
-        return org;
-      });
+    await cache.removeItem('organizations');
 
-      await cache.setItem('organizations', newOrganizations);
-    }
-
-    return redirectWithToast(routes.account.organizations.root, {
+    return dataWithToast(res, {
       title: 'Organization updated successfully',
       description: 'You have successfully updated an organization.',
       type: 'success',
     });
   } catch (error) {
-    return dataWithToast(
-      {},
-      {
-        title: 'Error',
-        description: error instanceof Error ? error.message : (error as Response).statusText,
-        type: 'error',
-      }
-    );
+    return dataWithToast(null, {
+      title: 'Error',
+      description: error instanceof Error ? error.message : (error as Response).statusText,
+      type: 'error',
+    });
   }
 };
 
 export default function OrgSettingsPage() {
+  const data = useActionData<typeof action>();
   const fetcher = useFetcher({ key: 'org-settings' });
   const { organization } = useApp();
   const { confirm } = useConfirmationDialog();
@@ -118,6 +111,10 @@ export default function OrgSettingsPage() {
       },
     });
   };
+
+  useEffect(() => {
+    console.log(data);
+  }, [data]);
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">

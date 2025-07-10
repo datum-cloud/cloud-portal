@@ -80,7 +80,7 @@ export default function AccountOrganizations() {
   ) : (
     <>
       <PageTitle
-        title="Organizations"
+        title="Your Organizations"
         description="Manage your organizations and create new ones to collaborate with your team."
       />
       <div className="flex w-full flex-col gap-4">
