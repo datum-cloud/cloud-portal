@@ -5,12 +5,12 @@ export const DATE_FORMAT = `MMMM d, yyyy 'at' h:mm`;
 export const DateFormat = ({
   date,
   format = DATE_FORMAT,
-  omitAmPm = false,
+  showAmPm = false,
   className,
 }: {
   date: string | Date;
   format?: string;
-  omitAmPm?: boolean;
+  showAmPm?: boolean;
   className?: string;
 }) => {
   const parsedDate = date instanceof Date ? date : new Date(date);
@@ -20,7 +20,7 @@ export const DateFormat = ({
   }
 
   const formattedDate = _format(parsedDate, format);
-  const amPm = omitAmPm ? '' : _format(parsedDate, 'a').toLowerCase();
+  const amPm = showAmPm ? _format(parsedDate, 'a').toLowerCase() : '';
 
   return (
     <div className={cn(className)}>

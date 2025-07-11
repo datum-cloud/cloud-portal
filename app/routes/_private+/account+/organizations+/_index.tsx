@@ -1,6 +1,7 @@
 import { DataTableEmptyContent } from '@/components/data-table/data-table-empty-content';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { routes } from '@/constants/routes';
 import { OrganizationListCard } from '@/features/organization/list-card';
@@ -8,7 +9,7 @@ import { IOrganization, OrganizationType } from '@/resources/interfaces/organiza
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
 import { CustomError } from '@/utils/errorHandle';
 import { PlusIcon } from 'lucide-react';
-import { useLoaderData, useNavigate, LoaderFunctionArgs } from 'react-router';
+import { useLoaderData, useNavigate, LoaderFunctionArgs, Link } from 'react-router';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const req = await fetch(`${process.env.APP_URL}${ORG_LIST_PATH}`, {
@@ -48,9 +49,7 @@ const NewOrganizationCard = () => {
           </Avatar>
           {/* Organization Info */}
           <div className="flex flex-col gap-1">
-            <h3 className="text-foreground text-lg leading-5 font-semibold">
-              Create New Organization
-            </h3>
+            <h3 className="text-foreground text-lg leading-5 font-semibold">New organization</h3>
             <p className="text-muted-foreground text-sm">
               Collaborate with your team by creating a new organization
             </p>
@@ -71,7 +70,7 @@ export default function AccountOrganizations() {
       actions={[
         {
           type: 'link',
-          label: 'Create New Organization',
+          label: 'New organization',
           to: routes.account.organizations.new,
           icon: <PlusIcon className="size-4" />,
         },
@@ -81,7 +80,14 @@ export default function AccountOrganizations() {
     <>
       <PageTitle
         title="Your Organizations"
-        description="Manage your organizations and create new ones to collaborate with your team."
+        actions={
+          <Link to={routes.account.organizations.new}>
+            <Button>
+              <PlusIcon className="size-4" />
+              New organization
+            </Button>
+          </Link>
+        }
       />
       <div className="flex w-full flex-col gap-4">
         {(orgs ?? [])
@@ -97,7 +103,7 @@ export default function AccountOrganizations() {
             <OrganizationListCard key={org.name} org={org} />
           ))}
 
-        <NewOrganizationCard />
+        {/* <NewOrganizationCard /> */}
       </div>
     </>
   );

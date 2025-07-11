@@ -241,7 +241,7 @@ export default function ProjectLayout() {
         ],
       },
       {
-        title: 'Settings',
+        title: 'Project Settings',
         href: getPathWithParams(routes.projects.settings, { orgId, projectId }),
         type: 'link',
         disabled: !isReady,
