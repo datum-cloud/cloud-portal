@@ -28,7 +28,7 @@ export default function OrgLayout() {
         icon: FoldersIcon,
       },
       {
-        title: 'Settings',
+        title: 'Organization settings',
         href: getPathWithParams(routes.org.settings.root, { orgId }),
         type: 'link',
         icon: SettingsIcon,

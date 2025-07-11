@@ -85,7 +85,7 @@ export const ProjectSwitcher = ({
           <Command>
             <CommandInput
               className="h-9 rounded-md border-none focus-visible:ring-0"
-              placeholder="Find Project..."
+              placeholder="Find project..."
             />
             <CommandList className="max-h-none">
               <CommandEmpty>No results found.</CommandEmpty>
@@ -128,7 +128,7 @@ export const ProjectSwitcher = ({
                   to={getPathWithParams(routes.org.projects.new, { orgId })}
                   className="flex items-center gap-2 px-3">
                   <PlusIcon className="size-4" />
-                  <span>Create Project</span>
+                  <span>Create project</span>
                 </Link>
               </CommandItem>
             </CommandList>

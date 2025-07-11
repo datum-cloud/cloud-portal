@@ -9,7 +9,7 @@ export default function AccountLayout() {
   const navItems: NavItem[] = useMemo(() => {
     return [
       {
-        title: 'Your Organizations',
+        title: 'Organizations',
         href: routes.account.organizations.root,
         type: 'link',
         icon: Building2Icon,

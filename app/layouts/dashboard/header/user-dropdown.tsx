@@ -12,7 +12,7 @@ import {
 import { routes } from '@/constants/routes';
 import { useApp } from '@/providers/app.provider';
 import { cn, getInitials } from '@/utils/misc';
-import { KeyIcon, LogOut, UserIcon } from 'lucide-react';
+import { LogOut, UserCogIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSubmit } from 'react-router';
 
@@ -79,14 +79,8 @@ export const UserDropdown = () => {
           <DropdownMenuItem
             className="cursor-pointer"
             onClick={() => navigate(routes.account.settings)}>
-            <UserIcon />
-            Your Profile
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => navigate(routes.account.apiKeys.root)}>
-            <KeyIcon />
-            API Keys
+            <UserCogIcon />
+            Account Settings
           </DropdownMenuItem>
         </DropdownMenuGroup>
 

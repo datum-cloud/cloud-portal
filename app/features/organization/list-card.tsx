@@ -53,7 +53,7 @@ export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
             <p className="text-muted-foreground text-sm">{org?.name}</p>
             {org?.createdAt && (
               <div className="text-muted-foreground flex items-center gap-1 text-xs">
-                <span>Created on</span> <DateFormat date={org?.createdAt} format="MMM dd, yyyy" />
+                <span>Created on</span> <DateFormat date={org?.createdAt} format="MMM do, yyyy" />
               </div>
             )}
           </div>

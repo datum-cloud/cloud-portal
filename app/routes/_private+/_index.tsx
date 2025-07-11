@@ -1,14 +1,14 @@
 import { routes } from '@/constants/routes';
-import { getOrgSession } from '@/modules/cookie/org.server';
-import { getPathWithParams } from '@/utils/path';
-import { LoaderFunctionArgs, redirect } from 'react-router';
+import { redirect } from 'react-router';
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { org } = await getOrgSession(request);
+export const loader = async () => {
+  /* const { org } = await getOrgSession(request);
 
   if (!org) {
     return redirect(routes.account.organizations.root);
   }
 
-  return redirect(getPathWithParams(routes.org.projects.root, { orgId: org.name }));
+  return redirect(getPathWithParams(routes.org.projects.root, { orgId: org.name })); */
+
+  return redirect(routes.account.organizations.root);
 };

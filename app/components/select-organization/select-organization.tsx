@@ -82,7 +82,7 @@ export const SelectOrganization = ({
         <Command>
           <CommandInput
             className="h-9 rounded-md border-none focus-visible:ring-0"
-            placeholder="Find Organization..."
+            placeholder="Find organization..."
           />
           <CommandList className="max-h-none">
             <CommandEmpty>No results found.</CommandEmpty>
@@ -126,7 +126,7 @@ export const SelectOrganization = ({
                     <div className="flex w-6 items-center justify-center">
                       <PlusCircleIcon className="text-blue-400" />
                     </div>
-                    <span>Create Organization</span>
+                    <span>Create organization</span>
                   </Link>
                 </CommandItem>
                 <CommandSeparator />
@@ -137,7 +137,7 @@ export const SelectOrganization = ({
                     <div className="flex w-6 items-center justify-center">
                       <Building2Icon />
                     </div>
-                    <span>All Organizations</span>
+                    <span>All organizations</span>
                   </Link>
                 </CommandItem>
               </>

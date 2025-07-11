@@ -122,7 +122,7 @@ export default function ProjectsPage() {
     [orgId, deletedId]
   );
 
-  const rowActions: DataTableRowActionsProps<IProjectControlResponse>[] = useMemo(
+  const _rowActions: DataTableRowActionsProps<IProjectControlResponse>[] = useMemo(
     () => [
       {
         key: 'locations',
@@ -169,7 +169,7 @@ export default function ProjectsPage() {
     <DataTable
       columns={columns}
       data={projects ?? []}
-      rowActions={rowActions}
+      rowActions={[]}
       emptyContent={{
         title: 'No projects found.',
         subtitle: 'Create your first project to get started.',
