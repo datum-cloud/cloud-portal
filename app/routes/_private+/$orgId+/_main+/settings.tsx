@@ -16,14 +16,7 @@ import { getPathWithParams } from '@/utils/path';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { CircleAlertIcon } from 'lucide-react';
-import { useEffect } from 'react';
-import {
-  ActionFunctionArgs,
-  AppLoadContext,
-  MetaFunction,
-  useActionData,
-  useFetcher,
-} from 'react-router';
+import { ActionFunctionArgs, AppLoadContext, MetaFunction, useFetcher } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Settings</span>,
@@ -66,8 +59,9 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
     }
 
     await cache.removeItem('organizations');
+    await cache.removeItem(`organizations:${orgId}`);
 
-    return dataWithToast(res, {
+    return dataWithToast(null, {
       title: 'Organization updated successfully',
       description: 'You have successfully updated an organization.',
       type: 'success',
@@ -82,7 +76,6 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
 };
 
 export default function OrgSettingsPage() {
-  const data = useActionData<typeof action>();
   const fetcher = useFetcher({ key: 'org-settings' });
   const { organization } = useApp();
   const { confirm } = useConfirmationDialog();
@@ -111,10 +104,6 @@ export default function OrgSettingsPage() {
       },
     });
   };
-
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
