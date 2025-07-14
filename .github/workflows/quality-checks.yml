@@ -16,7 +16,7 @@ env:
   NODE_ENV: production
   CYPRESS_BASE_URL: http://localhost:3000
   CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
-  AUTH_OIDC_ISSUER: https://auth-new.staging.env.datum.net
+  AUTH_OIDC_ISSUER: https://auth.staging.env.datum.net
   AUTH_OIDC_CLIENT_ID: '325848903272435738'
   BUN_CACHE: ~/.bun/install/cache
 

@@ -7,20 +7,13 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { routes } from '@/constants/routes';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
 import { cn } from '@/utils/misc';
-import {
-  Building2Icon,
-  CheckIcon,
-  ChevronsUpDownIcon,
-  Loader2,
-  PlusCircleIcon,
-} from 'lucide-react';
+import { Building2Icon, CheckIcon, ChevronsUpDownIcon, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useFetcher } from 'react-router';
 import { toast } from 'sonner';
@@ -119,7 +112,7 @@ export const SelectOrganization = ({
 
             {!hideNewOrganization && (
               <>
-                <CommandItem className="cursor-pointer" asChild>
+                {/* <CommandItem className="cursor-pointer" asChild>
                   <Link
                     to={routes.account.organizations.new}
                     className="flex items-center gap-2 px-3">
@@ -129,7 +122,7 @@ export const SelectOrganization = ({
                     <span>Create organization</span>
                   </Link>
                 </CommandItem>
-                <CommandSeparator />
+                <CommandSeparator /> */}
                 <CommandItem className="cursor-pointer py-1.5" asChild>
                   <Link
                     to={routes.account.organizations.root}
