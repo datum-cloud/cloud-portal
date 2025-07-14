@@ -9,7 +9,10 @@ import {
   readResourcemanagerMiloapisComV1Alpha1Organization,
 } from '@/modules/control-plane/resource-manager';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
-import { OrganizationSchema } from '@/resources/schemas/organization.schema';
+import {
+  OrganizationSchema,
+  UpdateOrganizationSchema,
+} from '@/resources/schemas/organization.schema';
 import { CustomError } from '@/utils/errorHandle';
 import { convertLabelsToObject } from '@/utils/misc';
 import { Client } from '@hey-api/client-axios';
@@ -112,7 +115,22 @@ export const createOrganizationsControl = (client: Client) => {
 
       return dryRun ? response.data : transform(org);
     },
-    update: async (orgId: string, payload: OrganizationSchema, dryRun: boolean = false) => {
+    update: async (orgId: string, payload: UpdateOrganizationSchema, dryRun: boolean = false) => {
+      // Build metadata object conditionally based on available payload properties
+      const metadata: Record<string, any> = {};
+
+      // Only add annotations if description is provided
+      if (payload.description) {
+        metadata.annotations = {
+          'kubernetes.io/display-name': payload.description,
+        };
+      }
+
+      // Only add labels if they are provided
+      if ('labels' in payload && payload.labels && payload.labels.length > 0) {
+        metadata.labels = convertLabelsToObject(payload.labels);
+      }
+
       const response = await patchResourcemanagerMiloapisComV1Alpha1Organization({
         client,
         path: {
@@ -128,13 +146,7 @@ export const createOrganizationsControl = (client: Client) => {
         body: {
           apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
           kind: 'Organization',
-          metadata: {
-            annotations: {
-              'kubernetes.io/display-name': payload.description,
-              ...convertLabelsToObject(payload.annotations ?? []),
-            },
-            labels: convertLabelsToObject(payload.labels ?? []),
-          },
+          metadata,
         },
       });
 

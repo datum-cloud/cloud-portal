@@ -21,4 +21,13 @@ export const organizationSchema = z
   })
   .and(organizationMetadataSchema);
 
+export const updateOrganizationSchema = z.object({
+  description: z
+    .string({ required_error: 'Description is required.' })
+    .max(100, { message: 'Description must be less than 100 characters long.' })
+    .optional(),
+  labels: z.array(z.string()).optional(),
+});
+
 export type OrganizationSchema = z.infer<typeof organizationSchema>;
+export type UpdateOrganizationSchema = z.infer<typeof updateOrganizationSchema>;

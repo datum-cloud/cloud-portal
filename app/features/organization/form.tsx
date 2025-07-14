@@ -1,6 +1,6 @@
 import { Field } from '@/components/field/field';
-import { InputWithCopy } from '@/components/input-with-copy/input-with-copy';
 import { SelectLabels } from '@/components/select-labels/select-labels';
+import { TextCopyBox } from '@/components/text-copy/text-copy-box';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -120,7 +120,7 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
                 description="A namespace-unique stable identifier for your organization. This cannot be changed once the organization is created"
                 errors={name.errors}>
                 {isEdit ? (
-                  <InputWithCopy value={defaultValue?.name ?? ''} className="bg-muted h-9" />
+                  <TextCopyBox value={defaultValue?.name ?? ''} />
                 ) : (
                   <Input
                     readOnly={isEdit}
@@ -143,7 +143,7 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
               </Field>
               {isEdit && (
                 <Field label="ID">
-                  <InputWithCopy value={defaultValue?.uid ?? ''} className="bg-muted h-9" />
+                  <TextCopyBox value={defaultValue?.uid ?? ''} />
                 </Field>
               )}
             </div>
@@ -160,15 +160,17 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
             </Field>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="link"
-              disabled={isPending}
-              onClick={() => {
-                navigate(routes.account.organizations.root);
-              }}>
-              Return to List
-            </Button>
+            {!isEdit && (
+              <Button
+                type="button"
+                variant="link"
+                disabled={isPending}
+                onClick={() => {
+                  navigate(routes.account.organizations.root);
+                }}>
+                Return to List
+              </Button>
+            )}
             <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
               {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
             </Button>

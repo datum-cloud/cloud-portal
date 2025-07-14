@@ -102,6 +102,21 @@ export const createProjectsControl = (client: Client) => {
       return dryRun ? response.data : transform(project);
     },
     update: async (projectName: string, payload: UpdateProjectSchema, dryRun: boolean = false) => {
+      // Build metadata object conditionally based on available payload properties
+      const metadata: Record<string, any> = {};
+
+      // Only add annotations if description is provided
+      if (payload.description) {
+        metadata.annotations = {
+          'kubernetes.io/description': payload.description,
+        };
+      }
+
+      // Only add labels if they are provided
+      if ('labels' in payload && payload.labels && payload.labels.length > 0) {
+        metadata.labels = convertLabelsToObject(payload.labels);
+      }
+
       const response = await patchResourcemanagerMiloapisComV1Alpha1Project({
         client,
         path: { name: projectName },
@@ -115,12 +130,7 @@ export const createProjectsControl = (client: Client) => {
         body: {
           apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
           kind: 'Project',
-          metadata: {
-            annotations: {
-              'kubernetes.io/description': payload.description,
-            },
-            labels: convertLabelsToObject(payload.labels ?? []),
-          },
+          metadata,
         },
       });
 
