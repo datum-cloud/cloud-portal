@@ -71,28 +71,25 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
               <AuthenticityTokenInput />
 
               <div className="flex flex-col gap-6">
-                <Field
-                  isRequired
-                  label="Organization display name"
-                  errors={fields.description?.errors}>
+                <Field isRequired label="Display name" errors={fields.description?.errors}>
                   <Input
                     placeholder="e.g. My Organization"
                     {...getInputProps(fields.description, { type: 'text' })}
                   />
                 </Field>
-                <Field label="Organization name">
+                <Field label="Name">
                   <TextCopyBox value={organization?.name ?? ''} />
                 </Field>
-                <Field label="Organization UID">
+                <Field label="UUID">
                   <TextCopyBox value={organization?.uid ?? ''} />
                 </Field>
               </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            <Button type="button" variant="link" disabled={isPending} onClick={handleReset}>
+            {/* <Button type="button" variant="link" disabled={isPending} onClick={handleReset}>
               Cancel
-            </Button>
+            </Button> */}
             <Button
               variant="default"
               type="submit"

@@ -2,7 +2,6 @@ import { PageTitle } from '@/components/page-title/page-title';
 import { routes } from '@/constants/routes';
 import { ProjectDangerCard } from '@/features/project/settings/danger-card';
 import { ProjectGeneralCard } from '@/features/project/settings/general-card';
-import { ProjectLabelCard } from '@/features/project/settings/label-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { redirectWithToast, dataWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
@@ -122,7 +121,7 @@ export default function ProjectSettingsPage() {
       {/* Project Name Section */}
       <ProjectGeneralCard project={project} />
       {/* Labels */}
-      <ProjectLabelCard labels={project?.labels ?? {}} />
+      {/* <ProjectLabelCard labels={project?.labels ?? {}} /> */}
       {/* Danger Zone */}
       <ProjectDangerCard project={project} />
     </div>

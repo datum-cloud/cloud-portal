@@ -1,7 +1,6 @@
 import { PageTitle } from '@/components/page-title/page-title';
 import { OrganizationDangerCard } from '@/features/organization/settings/danger-card';
 import { OrganizationGeneralCard } from '@/features/organization/settings/general-card';
-import { OrganizationLabelCard } from '@/features/organization/settings/label-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
@@ -86,7 +85,7 @@ export default function OrgSettingsPage() {
       <OrganizationGeneralCard organization={organization ?? {}} />
 
       {/* Labels */}
-      <OrganizationLabelCard labels={organization?.labels ?? {}} />
+      {/* <OrganizationLabelCard labels={organization?.labels ?? {}} /> */}
 
       {/* Danger Zone */}
       {organization && organization?.type !== OrganizationType.Personal ? (

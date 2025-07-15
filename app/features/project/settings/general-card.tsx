@@ -71,25 +71,25 @@ export const ProjectGeneralCard = ({ project }: { project: IProjectControlRespon
               <AuthenticityTokenInput />
 
               <div className="flex flex-col gap-6">
-                <Field isRequired label="Project display name" errors={fields.description?.errors}>
+                <Field isRequired label="Display name" errors={fields.description?.errors}>
                   <Input
                     placeholder="e.g. My Project"
                     {...getInputProps(fields.description, { type: 'text' })}
                   />
                 </Field>
-                <Field label="Project name">
+                <Field label="Name">
                   <TextCopyBox value={project?.name ?? ''} />
                 </Field>
-                <Field label="Project UID">
+                <Field label="UUID">
                   <TextCopyBox value={project?.uid ?? ''} />
                 </Field>
               </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            <Button type="button" variant="link" disabled={isPending} onClick={handleReset}>
+            {/* <Button type="button" variant="link" disabled={isPending} onClick={handleReset}>
               Cancel
-            </Button>
+            </Button> */}
             <Button
               variant="default"
               type="submit"
