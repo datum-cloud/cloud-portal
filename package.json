@@ -74,7 +74,7 @@
     "es-toolkit": "^1.38.0",
     "express": "^5.1.0",
     "express-prom-bundle": "^8.0.0",
-    "express-rate-limit": "^7.5.0",
+    "express-rate-limit": "^8.0.0",
     "fathom-client": "^3.7.2",
     "helmet": "^8.1.0",
     "isbot": "^5.1.28",
