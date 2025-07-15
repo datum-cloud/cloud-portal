@@ -1,26 +1,28 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageTitle } from '@/components/page-title/page-title';
 import { routes } from '@/constants/routes';
-import { UpdateProjectForm } from '@/features/project/update-form';
+import { ProjectDangerCard } from '@/features/project/settings/danger-card';
+import { ProjectGeneralCard } from '@/features/project/settings/general-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { redirectWithToast, dataWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
 import { CustomError } from '@/utils/errorHandle';
+import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
-import { CircleAlertIcon } from 'lucide-react';
-import { ActionFunctionArgs, AppLoadContext, useRouteLoaderData, useSubmit } from 'react-router';
+import { ActionFunctionArgs, AppLoadContext, MetaFunction, useRouteLoaderData } from 'react-router';
 
 export const handle = {
-  breadcrumb: () => <span>Settings</span>,
+  breadcrumb: () => <span>Project settings</span>,
 };
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return metaObject('Project settings');
+});
 
 export const action = withMiddleware(async ({ request, context, params }: ActionFunctionArgs) => {
   const { controlPlaneClient, cache } = context as AppLoadContext;
@@ -45,19 +47,19 @@ export const action = withMiddleware(async ({ request, context, params }: Action
           throw new Error('Invalid form data');
         }
 
-        const orgId = parsed.value.orgEntityId;
-        if (!orgId) {
-          throw new Error('Organization ID is required');
-        }
-
         const { controlPlaneClient } = context as AppLoadContext;
         const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
         const dryRunRes = await projectsControl.update(projectId, parsed.value, true);
 
         if (dryRunRes) {
-          const res = await projectsControl.update(projectId, parsed.value, false);
+          const res = (await projectsControl.update(
+            projectId,
+            parsed.value,
+            false
+          )) as IProjectControlResponse;
 
+          const orgId = res.organizationId;
           const projects = await cache.getItem(`projects:${orgId}`);
           if (projects) {
             const newProjects = (projects as IProjectControlResponse[]).map(
@@ -112,73 +114,16 @@ export const action = withMiddleware(async ({ request, context, params }: Action
 
 export default function ProjectSettingsPage() {
   const project = useRouteLoaderData('routes/_private+/$orgId+/projects.$projectId+/_layout');
-  const submit = useSubmit();
-  const { confirm } = useConfirmationDialog();
-
-  const deleteProject = async (project: IProjectControlResponse) => {
-    await confirm({
-      title: 'Delete Project',
-      description: (
-        <span>
-          Are you sure you want to delete&nbsp;
-          <strong>
-            {project.description} ({project.name})
-          </strong>
-          ?
-        </span>
-      ),
-      submitText: 'Delete',
-      cancelText: 'Cancel',
-      variant: 'destructive',
-      showConfirmInput: true,
-      onSubmit: async () => {
-        await submit(
-          {
-            projectName: project?.name ?? '',
-            orgId: project?.organizationId ?? '',
-          },
-          {
-            method: 'DELETE',
-            fetcherKey: 'project-resources',
-            navigate: false,
-          }
-        );
-      },
-    });
-  };
 
   return (
-    <div className="mx-auto w-full max-w-3xl py-8">
-      <div className="grid grid-cols-1 gap-6">
-        {/* Project Name Section */}
-        <UpdateProjectForm defaultValue={project} />
-        {/* Danger Zone */}
-        <Card className="border-destructive/50 hover:border-destructive border pb-0 transition-colors">
-          <CardHeader>
-            <CardTitle className="text-destructive">Danger zone</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Alert variant="destructive">
-              <CircleAlertIcon className="size-5 shrink-0" />
-              <AlertTitle className="text-sm font-semibold">Warning: Destructive Action</AlertTitle>
-              <AlertDescription>
-                This action cannot be undone. Once deleted, this project and all its resources will
-                be permanently removed. The project name will be reserved and cannot be reused for
-                future projects to prevent deployment conflicts.
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-          <CardFooter className="border-destructive/50 bg-destructive/10 flex justify-end border-t px-6 py-2">
-            <Button
-              variant="destructive"
-              size="sm"
-              className="font-medium"
-              onClick={() => deleteProject(project)}>
-              Delete
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+      <PageTitle title="Project settings" />
+      {/* Project Name Section */}
+      <ProjectGeneralCard project={project} />
+      {/* Labels */}
+      {/* <ProjectLabelCard labels={project?.labels ?? {}} /> */}
+      {/* Danger Zone */}
+      <ProjectDangerCard project={project} />
     </div>
   );
 }

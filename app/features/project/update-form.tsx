@@ -1,6 +1,6 @@
 import { Field } from '@/components/field/field';
-import { InputWithCopy } from '@/components/input-with-copy/input-with-copy';
 import { SelectLabels } from '@/components/select-labels/select-labels';
+import { TextCopyBox } from '@/components/text-copy/text-copy-box';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -72,12 +72,12 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
 
         <CardContent className="space-y-4">
           <Field label="ID">
-            <InputWithCopy value={defaultValue?.uid ?? ''} className="bg-muted h-9" />
+            <TextCopyBox value={defaultValue?.uid ?? ''} />
           </Field>
           <Field
             label="Name"
             tooltipInfo="Used to identify your project in the dashboard, Datum CLI, and in the URL of your deployments">
-            <InputWithCopy value={defaultValue?.name ?? ''} className="bg-muted h-9" />
+            <TextCopyBox value={defaultValue?.name ?? ''} />
           </Field>
 
           <Field

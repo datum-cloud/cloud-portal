@@ -1,4 +1,4 @@
-import { InputWithCopy } from '@/components/input-with-copy/input-with-copy';
+import { TextCopyBox } from '@/components/text-copy/text-copy-box';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { motion } from 'framer-motion';
 import { Terminal } from 'lucide-react';
@@ -16,7 +16,7 @@ export const PreviewKey = ({ value }: { value: string }) => {
           Please copy and save your API key somewhere safe - it won&apos;t be shown again.
         </AlertDescription>
         <div className="mt-2 max-w-lg pl-7">
-          <InputWithCopy value={value} className="bg-muted h-9" buttonClassName="h-6" />
+          <TextCopyBox value={value} className="bg-muted h-9" buttonClassName="h-6" />
         </div>
       </Alert>
     </motion.div>
