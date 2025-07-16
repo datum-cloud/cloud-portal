@@ -1,5 +1,4 @@
 import { Field } from '@/components/field/field';
-import { SelectLabels } from '@/components/select-labels/select-labels';
 import { SelectOrganization } from '@/components/select-organization/select-organization';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,7 +34,7 @@ export const CreateProjectForm = () => {
 
   const [currentOrg, setCurrentOrg] = useState<IOrganization | undefined>(organization);
 
-  const [form, { name, description, orgEntityId, labels }] = useForm({
+  const [form, { name, description, orgEntityId }] = useForm({
     constraint: getZodConstraint(projectSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
@@ -62,7 +61,6 @@ export const CreateProjectForm = () => {
 
   const nameControl = useInputControl(name);
   const orgEntityIdControl = useInputControl(orgEntityId);
-  const labelsControl = useInputControl(labels);
 
   useEffect(() => {
     orgEntityIdControl.change(organization?.name);
@@ -134,7 +132,7 @@ export const CreateProjectForm = () => {
               {...getInputProps(name, { type: 'text' })}
             />
           </Field>
-          <Field
+          {/* <Field
             label="Labels"
             errors={labels.errors}
             description="Add labels to help identify, organize, and filter your projects.">
@@ -144,7 +142,7 @@ export const CreateProjectForm = () => {
                 labelsControl.change(value);
               }}
             />
-          </Field>
+          </Field> */}
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
           <Button

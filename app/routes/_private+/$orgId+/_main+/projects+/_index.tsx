@@ -1,10 +1,8 @@
 import { DataTable } from '@/components/data-table/data-table';
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
 import { DateFormat } from '@/components/date-format/date-format';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { routes } from '@/constants/routes';
-import { ProjectStatus } from '@/features/project/status';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
@@ -12,11 +10,11 @@ import { useApp } from '@/providers/app.provider';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { CustomError } from '@/utils/errorHandle';
-import { cn, transformControlPlaneStatus } from '@/utils/misc';
+import { cn } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { BookOpenIcon, Loader2, PlusIcon } from 'lucide-react';
+import { BookOpenIcon, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { AppLoadContext, data, Link, useLoaderData, useNavigate } from 'react-router';
 
@@ -60,7 +58,7 @@ export default function ProjectsPage() {
   const columns: ColumnDef<IProjectControlResponse>[] = useMemo(
     () => [
       {
-        header: 'Description',
+        header: 'Display Name',
         accessorKey: 'description',
         cell: ({ row }) => {
           const isDeleted = Boolean(row.original.name && row.original.name === deletedId);
@@ -86,30 +84,6 @@ export default function ProjectsPage() {
       {
         header: 'Name',
         accessorKey: 'name',
-      },
-      {
-        header: 'Status',
-        accessorKey: 'status',
-        cell: ({ row }) => {
-          const isDeleted = Boolean(row.original.name && row.original.name === deletedId);
-          return isDeleted ? (
-            <Badge
-              variant="outline"
-              className="text-destructive flex items-center gap-1 border-none text-sm font-normal">
-              <Loader2 className="size-3 animate-spin cursor-default" />
-              Deleting
-            </Badge>
-          ) : (
-            row.original.status && (
-              <ProjectStatus
-                currentStatus={transformControlPlaneStatus(row.original.status)}
-                projectId={row.original.name}
-                type="badge"
-                badgeClassName="px-0"
-              />
-            )
-          );
-        },
       },
       {
         header: 'Creation Date',
