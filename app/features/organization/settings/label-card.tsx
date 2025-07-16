@@ -6,7 +6,13 @@ import { useIsPending } from '@/hooks/useIsPending';
 import { ILabel } from '@/resources/interfaces/label.interface';
 import { updateOrganizationSchema } from '@/resources/schemas/organization.schema';
 import { convertObjectToLabels } from '@/utils/misc';
-import { FormProvider, getFormProps, useForm, useInputControl } from '@conform-to/react';
+import {
+  FieldMetadata,
+  FormProvider,
+  getFormProps,
+  useForm,
+  useInputControl,
+} from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';
@@ -31,7 +37,7 @@ export const OrganizationLabelCard = ({ labels }: { labels: ILabel }) => {
     },
   });
 
-  const labelsControl = useInputControl(fields.labels);
+  const labelsControl = useInputControl(fields.labels as FieldMetadata<string[]>);
 
   const setValue = () => {
     form.update({
