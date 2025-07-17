@@ -2,6 +2,16 @@
  * Audit log formatting and categorization utilities
  */
 import type { ActivityCategory, FormatAuditMessageOptions } from './types';
+import {
+  isValid,
+  parseISO,
+  fromUnixTime,
+  subSeconds,
+  subMinutes,
+  subHours,
+  subDays,
+  subWeeks,
+} from 'date-fns';
 
 // Cache status descriptions for better performance
 const STATUS_DESCRIPTIONS: Record<number, string> = {
@@ -117,83 +127,88 @@ export function formatAuditMessage(auditLog: any, options: FormatAuditMessageOpt
 }
 
 /**
- * Converts time parameter to ISO date string and human-readable label
+ * Converts time parameter to ISO date string using date-fns
  */
-export function convertTimeToUserFriendly(
-  timeParam: string,
-  originalParam?: string
-): { isoDate: string; label: string } {
+export function convertTimeToUserFriendly(timeParam: string): string {
   const now = new Date();
 
   // Handle empty or 'now'
   if (!timeParam || timeParam === 'now') {
-    return {
-      isoDate: now.toISOString(),
-      label: 'now',
-    };
+    return now.toISOString();
   }
 
-  // Handle relative time formats (1h, 30m, 24h, 7d)
+  // Handle relative time formats (1s, 30m, 24h, 7d, 2w) using date-fns
   const relativeMatch = timeParam.match(/^(\d+)([smhdw])$/);
   if (relativeMatch) {
     const [, amount, unit] = relativeMatch;
-    const value = parseInt(amount);
+    const value = parseInt(amount, 10);
 
-    let milliseconds = 0;
-    let labelUnit = '';
+    let targetDate: Date;
 
-    switch (unit) {
-      case 's':
-        milliseconds = value * 1000;
-        labelUnit = value === 1 ? 'second' : 'seconds';
-        break;
-      case 'm':
-        milliseconds = value * 60 * 1000;
-        labelUnit = value === 1 ? 'minute' : 'minutes';
-        break;
-      case 'h':
-        milliseconds = value * 60 * 60 * 1000;
-        labelUnit = value === 1 ? 'hour' : 'hours';
-        break;
-      case 'd':
-        milliseconds = value * 24 * 60 * 60 * 1000;
-        labelUnit = value === 1 ? 'day' : 'days';
-        break;
-      case 'w':
-        milliseconds = value * 7 * 24 * 60 * 60 * 1000;
-        labelUnit = value === 1 ? 'week' : 'weeks';
-        break;
+    try {
+      switch (unit) {
+        case 's':
+          targetDate = subSeconds(now, value);
+          break;
+        case 'm':
+          targetDate = subMinutes(now, value);
+          break;
+        case 'h':
+          targetDate = subHours(now, value);
+          break;
+        case 'd':
+          targetDate = subDays(now, value);
+          break;
+        case 'w':
+          targetDate = subWeeks(now, value);
+          break;
+        default:
+          throw new Error(`Unsupported time unit: ${unit}`);
+      }
+
+      if (isValid(targetDate)) {
+        return targetDate.toISOString();
+      }
+    } catch (error) {
+      console.warn(`Error processing relative time ${timeParam}:`, error);
     }
-
-    const targetDate = new Date(now.getTime() - milliseconds);
-    return {
-      isoDate: targetDate.toISOString(),
-      label: `${value} ${labelUnit} ago`,
-    };
   }
 
-  // Handle Unix timestamp (seconds)
-  const timestamp = parseInt(timeParam);
+  // Handle Unix timestamp (seconds) using date-fns
+  const timestamp = parseInt(timeParam, 10);
   if (!isNaN(timestamp) && timestamp > 0 && timeParam === timestamp.toString()) {
-    const date = new Date(timestamp * 1000);
-    return {
-      isoDate: date.toISOString(),
-      label: date.toLocaleString(),
-    };
+    try {
+      const date = fromUnixTime(timestamp);
+      if (isValid(date)) {
+        return date.toISOString();
+      }
+    } catch (error) {
+      console.warn(`Error processing Unix timestamp ${timeParam}:`, error);
+    }
   }
 
-  // Handle ISO date string
-  const date = new Date(timeParam);
-  if (!isNaN(date.getTime())) {
-    return {
-      isoDate: date.toISOString(),
-      label: date.toLocaleString(),
-    };
+  // Handle ISO date string using date-fns
+  try {
+    const date = parseISO(timeParam);
+    if (isValid(date)) {
+      return date.toISOString();
+    }
+  } catch (error) {
+    console.warn(`Error parsing ISO date ${timeParam}:`, error);
+  }
+
+  // Handle date-only format (YYYY-MM-DD)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(timeParam)) {
+    try {
+      const date = parseISO(`${timeParam}T00:00:00Z`);
+      if (isValid(date)) {
+        return date.toISOString();
+      }
+    } catch (error) {
+      console.warn(`Error parsing date ${timeParam}:`, error);
+    }
   }
 
   // Fallback to current time
-  return {
-    isoDate: now.toISOString(),
-    label: originalParam || timeParam,
-  };
+  return now.toISOString();
 }

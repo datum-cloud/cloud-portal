@@ -53,9 +53,9 @@ export class LokiActivityLogsService {
     // Sort logs by timestamp descending (most recent first)
     logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-    // Convert time parameters to user-friendly formats
-    const startTime = convertTimeToUserFriendly(validatedParams.start, queryParams.start);
-    const endTime = convertTimeToUserFriendly(validatedParams.end, queryParams.end);
+    // Convert time parameters to ISO date strings
+    const startTime = convertTimeToUserFriendly(validatedParams.start);
+    const endTime = convertTimeToUserFriendly(validatedParams.end);
 
     // Build response
     return {
@@ -64,10 +64,8 @@ export class LokiActivityLogsService {
       hasMore: logs.length >= validatedParams.limit,
       query: logQuery,
       timeRange: {
-        start: startTime.isoDate,
-        end: endTime.isoDate,
-        startLabel: startTime.label,
-        endLabel: endTime.label,
+        start: startTime,
+        end: endTime,
       },
     };
   }
