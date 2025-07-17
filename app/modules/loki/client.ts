@@ -6,7 +6,7 @@ import { sanitizeSearchQuery } from './validator';
 import { GrafanaApi } from '@myunisoft/loki';
 
 export const LOKI_CONFIG: LokiConfig = {
-  remoteApiURL: process.env.LOKI_URL || '',
+  remoteApiURL: process.env.TELEMETRY_URL || '',
   defaultLimit: 100,
   maxLimit: 1000,
   defaultTimeRange: '48h',
