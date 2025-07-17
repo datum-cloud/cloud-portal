@@ -49,11 +49,6 @@ export const ProjectGeneralCard = ({ project }: { project: IProjectControlRespon
     }
   }, [project]);
 
-  // Handle form reset
-  const handleReset = () => {
-    setValue();
-  };
-
   return (
     <Card>
       <FormProvider context={form.context}>

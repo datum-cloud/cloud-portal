@@ -19,6 +19,8 @@ const schema = z.object({
   AUTH_OIDC_CLIENT_ID: z.string().optional(),
 
   FATHOM_ID: z.string().optional(),
+
+  TELEMETRY_URL: z.string().optional(),
 });
 
 declare global {
@@ -57,5 +59,6 @@ export function getSharedEnvs() {
     APP_URL: process.env.APP_URL,
     API_URL: process.env.API_URL,
     FATHOM_ID: process.env.FATHOM_ID,
+    TELEMETRY_URL: process.env.TELEMETRY_URL,
   };
 }

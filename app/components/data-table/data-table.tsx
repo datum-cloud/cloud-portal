@@ -3,6 +3,7 @@ import { DataTableHeader } from './data-table-header';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableRowActions } from './data-table-row-actions';
 import { DataTableProps } from './data-table.types';
+import { DataTableLoadingContent } from '@/components/data-table/data-table-loading';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { DataTableProvider } from '@/providers/dataTable.provider';
@@ -30,6 +31,8 @@ export const DataTable = <TData, TValue>({
   defaultColumnFilters = [],
   defaultSorting = [],
   filterFields = [],
+  mode = 'table',
+  hideHeader = false,
   className,
   rowActions = [],
   tableTitle,
@@ -37,6 +40,10 @@ export const DataTable = <TData, TValue>({
     title: 'No results.',
   },
   tableContainerClassName,
+  tableClassName,
+  tableCardClassName,
+  isLoading,
+  loadingText,
 }: DataTableProps<TData, TValue>) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultColumnFilters);
   const [sorting, setSorting] = useState<SortingState>(defaultSorting);
@@ -119,7 +126,9 @@ export const DataTable = <TData, TValue>({
       enableColumnOrdering={false}
       isLoading={undefined}>
       <div className={cn('flex h-full w-full flex-col gap-4', className)}>
-        {data?.length > 0 ? (
+        {isLoading ? (
+          <DataTableLoadingContent title={loadingText} />
+        ) : data?.length > 0 ? (
           <>
             {/* Header Section */}
             {tableTitle && <PageTitle {...tableTitle} />}
@@ -127,29 +136,71 @@ export const DataTable = <TData, TValue>({
             {/* Table Section */}
             <div
               className={cn(
-                'flex max-w-full flex-col overflow-hidden rounded-md border',
+                'flex max-w-full flex-col overflow-hidden',
+                mode === 'table' ? 'rounded-md border' : '',
                 tableContainerClassName
               )}>
-              <Table>
-                <DataTableHeader table={table} hasRowActions={rowActions.length > 0} />
+              <Table className={tableClassName}>
+                {!hideHeader && (
+                  <DataTableHeader table={table} hasRowActions={rowActions.length > 0} />
+                )}
 
                 <TableBody>
-                  {table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          className={cn(cell.column.columnDef.meta?.className)}>
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
+                  {mode === 'table'
+                    ? // Traditional table rows
+                      table.getRowModel().rows.map((row) => (
+                        <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell
+                              key={cell.id}
+                              className={cn(cell.column.columnDef.meta?.className)}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                          {rowActions && rowActions.length > 0 && (
+                            <TableCell className="p-2">
+                              <DataTableRowActions row={row.original} actions={rowActions} />
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      ))
+                    : // Card-style rows
+                      table.getRowModel().rows.map((row) => (
+                        <TableRow key={row.id} className="border-none hover:bg-transparent">
+                          <TableCell
+                            colSpan={columns.length + (rowActions.length > 0 ? 1 : 0)}
+                            className={cn('p-0 pb-3', !hideHeader && 'first:pt-3')}>
+                            <div
+                              className={cn(
+                                'group bg-card relative rounded-lg border p-4 shadow-sm transition-all duration-200',
+                                'hover:border-primary/20 hover:shadow-md',
+                                row.getIsSelected() && 'ring-primary ring-2 ring-offset-2',
+                                tableCardClassName
+                              )}>
+                              {/* Card Content */}
+                              <div className="space-y-2">
+                                {row.getVisibleCells().map((cell) => (
+                                  <div
+                                    key={cell.id}
+                                    className={cn(
+                                      'text-foreground text-sm',
+                                      cell.column.columnDef.meta?.className
+                                    )}>
+                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Card Actions */}
+                              {rowActions && rowActions.length > 0 && (
+                                <div className="absolute top-2 right-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                                  <DataTableRowActions row={row.original} actions={rowActions} />
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                      {rowActions && rowActions.length > 0 && (
-                        <TableCell className="p-2">
-                          <DataTableRowActions row={row.original} actions={rowActions} />
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
                 </TableBody>
               </Table>
             </div>

@@ -52,3 +52,27 @@
     transform: translateY(0);
   }
 }
+
+@keyframes spin-pause {
+  0% {
+    transform: rotate(0deg);
+  }
+  80% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-pause {
+  animation: spin-pause 1.2s linear infinite;
+}
+
+.activity-log-event {
+  text-transform: capitalize;
+}
+.activity-log-event,
+.activity-log-resource,
+.activity-log-error-message {
+  font-weight: 600;
+}
