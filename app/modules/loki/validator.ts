@@ -2,6 +2,16 @@
  * Query parameter validation utilities
  */
 import type { QueryParams, ValidatedQueryParams } from './types';
+import {
+  isValid,
+  parseISO,
+  getUnixTime,
+  subSeconds,
+  subMinutes,
+  subHours,
+  subDays,
+  subWeeks,
+} from 'date-fns';
 
 const LOKI_CONFIG = {
   defaultLimit: 100,
@@ -30,7 +40,7 @@ export function validateQueryParams(params: QueryParams): ValidatedQueryParams {
 }
 
 /**
- * Validates time parameters with support for multiple formats
+ * Validates time parameters with support for multiple formats using date-fns
  */
 export function validateTimeParam(param: string | undefined, defaultValue: string): string {
   if (!param) {
@@ -44,20 +54,65 @@ export function validateTimeParam(param: string | undefined, defaultValue: strin
     return 'now';
   }
 
-  // Handle relative time formats (1h, 30m, 24h, 7d)
-  if (/^\d+[smhd]$/.test(trimmed)) {
-    return trimmed;
+  // Handle relative time formats (1s, 30m, 24h, 7d, 2w) using date-fns
+  const relativeMatch = trimmed.match(/^(\d+)([smhdw])$/);
+  if (relativeMatch) {
+    const [, amount, unit] = relativeMatch;
+    const value = parseInt(amount, 10);
+    const now = new Date();
+
+    let targetDate: Date;
+
+    try {
+      switch (unit) {
+        case 's':
+          targetDate = subSeconds(now, value);
+          break;
+        case 'm':
+          targetDate = subMinutes(now, value);
+          break;
+        case 'h':
+          targetDate = subHours(now, value);
+          break;
+        case 'd':
+          targetDate = subDays(now, value);
+          break;
+        case 'w':
+          targetDate = subWeeks(now, value);
+          break;
+        default:
+          throw new Error(`Unsupported time unit: ${unit}`);
+      }
+
+      if (isValid(targetDate)) {
+        return getUnixTime(targetDate).toString();
+      }
+    } catch (error) {
+      console.warn(`Error processing relative time ${trimmed}:`, error);
+    }
   }
 
-  // Handle ISO 8601/RFC3339 dates (check before Unix timestamp)
+  // Handle ISO 8601/RFC3339 dates using date-fns
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(trimmed)) {
     try {
-      const date = new Date(trimmed);
-      if (!isNaN(date.getTime())) {
-        return Math.floor(date.getTime() / 1000).toString();
+      const date = parseISO(trimmed);
+      if (isValid(date)) {
+        return getUnixTime(date).toString();
       }
-    } catch {
-      // Fall through to default
+    } catch (error) {
+      console.warn(`Error parsing ISO date ${trimmed}:`, error);
+    }
+  }
+
+  // Handle various date formats using date-fns
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    try {
+      const date = parseISO(`${trimmed}T00:00:00Z`);
+      if (isValid(date)) {
+        return getUnixTime(date).toString();
+      }
+    } catch (error) {
+      console.warn(`Error parsing date ${trimmed}:`, error);
     }
   }
 
@@ -65,7 +120,17 @@ export function validateTimeParam(param: string | undefined, defaultValue: strin
   if (/^\d+$/.test(trimmed)) {
     const timestamp = parseInt(trimmed, 10);
     if (!isNaN(timestamp) && timestamp > 0) {
-      return trimmed;
+      // Validate that the timestamp is reasonable (not too far in past/future)
+      const date = new Date(timestamp * 1000);
+      const now = new Date();
+      const oneYearAgo = subDays(now, 365);
+      const oneYearFromNow = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+      if (date >= oneYearAgo && date <= oneYearFromNow) {
+        return trimmed;
+      } else {
+        console.warn(`Unix timestamp ${trimmed} is outside reasonable range`);
+      }
     }
   }
 
