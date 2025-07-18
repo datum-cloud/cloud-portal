@@ -27,8 +27,12 @@ export const loader = withMiddleware(async ({ request }: LoaderFunctionArgs) => 
       start: url.searchParams.get('start') || undefined,
       end: url.searchParams.get('end') || undefined,
       project: url.searchParams.get('project') || undefined,
-      level: url.searchParams.get('level') || undefined,
-      search: url.searchParams.get('search') || undefined,
+      // Hybrid filtering approach
+      q: url.searchParams.get('q') || undefined,
+      user: url.searchParams.get('user') || undefined,
+      action: url.searchParams.get('action') || undefined,
+      resource: url.searchParams.get('resource') || undefined,
+      status: url.searchParams.get('status') || undefined,
     };
 
     const service = new LokiActivityLogsService(session.accessToken);

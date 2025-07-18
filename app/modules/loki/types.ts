@@ -14,15 +14,18 @@ export interface QueryParams {
   start?: string;
   end?: string;
   project?: string;
-  level?: string;
-  search?: string;
+  // Hybrid filtering approach
+  q?: string; // Flexible search across multiple fields (user, resource, action, etc.)
+  user?: string; // Specific user filter
+  action?: string; // Specific action filter (CREATE, DELETE, etc.)
+  resource?: string; // Specific resource type filter
+  status?: string; // Status filter (success, error, or specific codes like 403)
 }
 
 export interface ValidatedQueryParams {
   limit: number;
   start: string;
   end: string;
-  level?: string;
 }
 
 export interface LokiQueryResponse {
@@ -78,8 +81,12 @@ export interface ActivityLogsResponse {
 export interface LogQLQueryOptions {
   baseSelector: string;
   projectName?: string;
-  level?: string;
-  search?: string;
+  // Hybrid filtering approach
+  q?: string; // Flexible search across multiple fields
+  user?: string; // Specific user filter
+  action?: string; // Specific action filter
+  resource?: string; // Specific resource type filter
+  status?: string; // Status filter (success, error, or specific codes)
 }
 
 export interface FormatAuditMessageOptions {

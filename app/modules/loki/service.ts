@@ -35,8 +35,12 @@ export class LokiActivityLogsService {
     const logQuery = buildLogQLQuery({
       baseSelector: '{telemetry_datumapis_com_audit_log="true"}',
       projectName,
-      level: validatedParams.level || queryParams.level,
-      search: queryParams.search,
+      // Hybrid filtering approach
+      q: queryParams.q,
+      user: queryParams.user,
+      action: queryParams.action,
+      resource: queryParams.resource,
+      status: queryParams.status,
     });
 
     // Execute query
@@ -47,8 +51,31 @@ export class LokiActivityLogsService {
     });
 
     // Process logs
-    const logs =
+    let logs =
       response.logs && Array.isArray(response.logs) ? processLogEntries(response.logs) : [];
+
+    // Apply flexible search (q parameter) on server side
+    if (queryParams.q) {
+      const searchTerm = queryParams.q.toLowerCase();
+      logs = logs.filter((log) => {
+        const searchableText = [
+          log.user?.username || '',
+          log.verb || '',
+          log.resource?.resource || '',
+          log.resource?.name || '',
+          log.resource?.apiGroup || '',
+          log.message || '',
+          log.responseStatus?.code?.toString() || '',
+          log.responseStatus?.reason || '',
+          log.requestUri || '',
+          log.userAgent || '',
+        ]
+          .join(' ')
+          .toLowerCase();
+
+        return searchableText.includes(searchTerm);
+      });
+    }
 
     // Sort logs by timestamp descending (most recent first)
     logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());

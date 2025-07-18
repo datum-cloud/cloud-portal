@@ -2,7 +2,6 @@
  * Loki client management and query execution
  */
 import type { LokiConfig, LokiQueryResponse, LogQLQueryOptions } from './types';
-import { sanitizeSearchQuery } from './validator';
 import { GrafanaApi } from '@myunisoft/loki';
 
 export const LOKI_CONFIG: LokiConfig = {
@@ -13,24 +12,45 @@ export const LOKI_CONFIG: LokiConfig = {
 } as const;
 
 /**
- * Builds LogQL query string with filters
+ * Builds LogQL query string with hybrid filtering approach
  */
 export function buildLogQLQuery(options: LogQLQueryOptions): string {
-  const { baseSelector, projectName, level, search } = options;
+  const { baseSelector, projectName, q, user, action, resource, status } = options;
 
   let query = `${baseSelector} | json`;
 
+  // Project filter (legacy support)
   if (projectName) {
     query += ` | annotations_resourcemanager_miloapis_com_project_name="${projectName}"`;
   }
 
-  if (level) {
-    query += ` | level="${level}"`;
+  // Note: LogQL doesn't support OR conditions in filters
+  // The 'q' parameter will be handled by client-side filtering
+  // Only specific field filters are supported in LogQL
+
+  // Specific field filters (AND conditions)
+  if (user) {
+    query += ` | user_username="${user}"`;
   }
 
-  if (search) {
-    const sanitizedSearch = sanitizeSearchQuery(search);
-    query += ` | line_format "{{.}}" | regexp "(?i)${sanitizedSearch}"`;
+  if (action) {
+    query += ` | verb="${action}"`;
+  }
+
+  if (resource) {
+    query += ` | objectRef_resource="${resource}"`;
+  }
+
+  if (status) {
+    // Handle status filter - can be 'success', 'error', or specific codes
+    if (status === 'success') {
+      query += ` | responseStatus_code < 400`;
+    } else if (status === 'error') {
+      query += ` | responseStatus_code >= 400`;
+    } else {
+      // Specific status code
+      query += ` | responseStatus_code = ${status}`;
+    }
   }
 
   return query;
