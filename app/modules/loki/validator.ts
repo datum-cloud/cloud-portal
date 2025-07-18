@@ -35,7 +35,6 @@ export function validateQueryParams(params: QueryParams): ValidatedQueryParams {
     limit,
     start,
     end,
-    level: params.level || undefined,
   };
 }
 
