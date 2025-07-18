@@ -68,14 +68,10 @@ export interface ActivityLogEntry {
 
 export interface ActivityLogsResponse {
   logs: ActivityLogEntry[];
-  total: number;
-  hasMore: boolean;
   query: string;
   timeRange: {
     start: string; // ISO date string
     end: string; // ISO date string
-    startLabel?: string; // Human-readable label like "48 hours ago"
-    endLabel?: string; // Human-readable label like "now"
   };
 }
 
