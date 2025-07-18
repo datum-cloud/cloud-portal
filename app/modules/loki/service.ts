@@ -23,7 +23,7 @@ export class LokiActivityLogsService {
   async getActivityLogs(queryParams: QueryParams): Promise<ActivityLogsResponse> {
     // Validate and sanitize parameters
     const validatedParams = validateQueryParams(queryParams);
-    const projectName = queryParams.project || 'test-logs-t6cckb';
+    const projectName = queryParams.project;
 
     // Log the parameters for debugging
     console.log('Loki query parameters:', { ...validatedParams, projectName });
@@ -60,8 +60,6 @@ export class LokiActivityLogsService {
     // Build response
     return {
       logs,
-      total: logs.length,
-      hasMore: logs.length >= validatedParams.limit,
       query: logQuery,
       timeRange: {
         start: startTime,
