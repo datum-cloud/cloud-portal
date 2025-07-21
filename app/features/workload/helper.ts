@@ -78,7 +78,7 @@ const mappingSpecToForm = (value: IWorkloadControlResponse) => {
                 key: secret.key,
               });
             } else if (has(env, 'valueFrom.configMapKeyRef')) {
-              const configMap = get(env, 'valueFrom.configMapKeyRef', {});
+              const configMap: any = get(env, 'valueFrom.configMapKeyRef', {});
               Object.assign(payload, {
                 type: ContainerEnvType.CONFIG_MAP,
                 refName: configMap.name,
