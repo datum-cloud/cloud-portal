@@ -49,11 +49,6 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
     }
   }, [organization]);
 
-  // Handle form reset
-  const handleReset = () => {
-    setValue();
-  };
-
   return (
     <Card>
       <FormProvider context={form.context}>

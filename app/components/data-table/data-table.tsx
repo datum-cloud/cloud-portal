@@ -3,6 +3,7 @@ import { DataTableHeader } from './data-table-header';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableRowActions } from './data-table-row-actions';
 import { DataTableProps } from './data-table.types';
+import { DataTableLoadingContent } from '@/components/data-table/data-table-loading';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { DataTableProvider } from '@/providers/dataTable.provider';
@@ -38,6 +39,8 @@ export const DataTable = <TData, TValue>({
   },
   tableContainerClassName,
   tableClassName,
+  isLoading,
+  loadingText,
 }: DataTableProps<TData, TValue>) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultColumnFilters);
   const [sorting, setSorting] = useState<SortingState>(defaultSorting);
@@ -120,7 +123,9 @@ export const DataTable = <TData, TValue>({
       enableColumnOrdering={false}
       isLoading={undefined}>
       <div className={cn('flex h-full w-full flex-col gap-4', className)}>
-        {data?.length > 0 ? (
+        {isLoading ? (
+          <DataTableLoadingContent title={loadingText} />
+        ) : data?.length > 0 ? (
           <>
             {/* Header Section */}
             {tableTitle && <PageTitle {...tableTitle} />}

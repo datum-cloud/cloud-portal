@@ -4,6 +4,7 @@
 import {
   formatAuditMessage,
   formatAuditMessageHtml,
+  formatStatusMessage,
   categorizeAuditActivity,
   mapAuditLogLevel,
 } from './formatter';
@@ -91,29 +92,7 @@ export function processLogEntry(logLine: string): ActivityLogEntry {
   }
 
   // Create status message if available
-  let statusMessage: string | undefined;
-  if (isAuditLog && auditLog.responseStatus?.code) {
-    const statusCode = auditLog.responseStatus.code;
-    // Common status descriptions
-    const statusDescriptions: Record<number, string> = {
-      200: 'OK',
-      201: 'Created',
-      204: 'No Content',
-      400: 'Bad Request',
-      401: 'Unauthorized',
-      403: 'Forbidden',
-      404: 'Not Found',
-      409: 'Conflict',
-      500: 'Internal Server Error',
-    };
-    const description = statusDescriptions[statusCode] || '';
-    statusMessage = `${statusCode} ${description}`;
-
-    // Add error message if present
-    // if (auditLog.responseStatus.message && statusCode >= 400) {
-    //   statusMessage += ` - ${auditLog.responseStatus.message}`;
-    // }
-  }
+  const statusMessage = isAuditLog ? formatStatusMessage(auditLog) : undefined;
 
   const activityEntry: ActivityLogEntry = {
     timestamp: formattedTimestamp,

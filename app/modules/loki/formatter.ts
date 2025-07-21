@@ -82,6 +82,7 @@ export function formatAuditMessage(auditLog: any, options: FormatAuditMessageOpt
   const resource = auditLog.objectRef?.resource || 'resource';
   const resourceName = auditLog.objectRef?.name;
   const namespace = auditLog.objectRef?.namespace;
+  const user = auditLog.user?.username || 'unknown';
 
   // Create a more descriptive action based on the verb
   let actionDescription = action;
@@ -93,7 +94,7 @@ export function formatAuditMessage(auditLog: any, options: FormatAuditMessageOpt
   if (action === 'Get') actionDescription = 'Retrieved';
   if (action === 'Watch') actionDescription = 'Watched';
 
-  let message = `${actionDescription} ${resource}`;
+  let message = `${user} ${actionDescription.toLowerCase()} ${resource}`;
 
   if (resourceName) {
     message += `/${resourceName}`;
@@ -139,6 +140,21 @@ export function formatAuditMessage(auditLog: any, options: FormatAuditMessageOpt
 }
 
 /**
+ * Formats a status message with code and description
+ */
+export function formatStatusMessage(auditLog: any): string | undefined {
+  if (!auditLog.responseStatus?.code) {
+    return undefined;
+  }
+
+  const statusCode = auditLog.responseStatus.code;
+  const description = STATUS_DESCRIPTIONS[statusCode] || '';
+  let statusMessage = `${statusCode} ${description}`;
+
+  return statusMessage;
+}
+
+/**
  * Formats an HTML message for audit logs with class names for styling
  */
 export function formatAuditMessageHtml(
@@ -152,6 +168,7 @@ export function formatAuditMessageHtml(
   const resource = auditLog.objectRef?.resource || auditLog.resource?.resource || 'resource';
   const resourceName = auditLog.objectRef?.name || auditLog.resource?.name;
   const namespace = auditLog.objectRef?.namespace || auditLog.resource?.namespace;
+  const user = auditLog.user?.username || 'unknown';
 
   // Create a more descriptive action based on the verb
   let actionDescription = action;
@@ -163,7 +180,7 @@ export function formatAuditMessageHtml(
   if (action === 'Get') actionDescription = 'Retrieved';
   if (action === 'Watch') actionDescription = 'Watched';
 
-  let message = `<span class="activity-log-event">${actionDescription}</span> `;
+  let message = `<span class="activity-log-user">${user}</span> <span class="activity-log-event">${actionDescription.toLowerCase()}</span> `;
   message += `<span class="activity-log-resource">${resource}`;
 
   if (resourceName) {
@@ -174,19 +191,6 @@ export function formatAuditMessageHtml(
   if (namespace && namespace !== 'default') {
     message += ` in <span class="activity-log-namespace">${namespace}</span>`;
   }
-
-  // User information removed as requested
-
-  /* if (auditLog.responseStatus?.code) {
-    const code = auditLog.responseStatus.code;
-    message += ` → <span class="activity-log-status activity-log-status-${code >= 400 ? 'error' : 'success'}">${code}`;
-
-    const description = STATUS_DESCRIPTIONS[statusCode];
-    if (description) {
-      message += ` ${description}`;
-    }
-    message += '</span>';
-  } */
 
   // Add error message if present and it's an error
   if (
