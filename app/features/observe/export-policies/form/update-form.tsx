@@ -147,7 +147,7 @@ export const ExportPolicyUpdateForm = ({
           if (has(promAuth, 'basicAuth')) {
             authentication = {
               authType: ExportPolicyAuthenticationType.BASIC_AUTH,
-              secretName: promAuth?.basicAuth?.secretRef?.name ?? '',
+              secretName: (promAuth as any)?.basicAuth?.secretRef?.name ?? '',
             };
           }
 

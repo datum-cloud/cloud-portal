@@ -16,7 +16,6 @@ The chart display the following stacked information:
   This is non-JavaScript memory — it’s memory allocated by native code but linked to JS objects so the garbage collector still knows about them.
 
   Common sources:
-
   - Buffer objects (e.g. Buffer.alloc(10000))
   - Native modules written in C/C++\*
   - WebAssembly, or bindings to native libraries (e.g. ffi, sqlite3, image/video processors)
