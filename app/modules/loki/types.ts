@@ -36,6 +36,8 @@ export interface LokiQueryResponse {
 export interface ActivityLogEntry {
   timestamp: string;
   message: string;
+  formattedMessage?: string; // HTML formatted message with class names
+  statusMessage?: string; // Status code and description
   level: string;
   labels?: Record<string, string>;
   raw?: string;

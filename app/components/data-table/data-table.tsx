@@ -37,6 +37,7 @@ export const DataTable = <TData, TValue>({
     title: 'No results.',
   },
   tableContainerClassName,
+  tableClassName,
 }: DataTableProps<TData, TValue>) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultColumnFilters);
   const [sorting, setSorting] = useState<SortingState>(defaultSorting);
@@ -130,7 +131,7 @@ export const DataTable = <TData, TValue>({
                 'flex max-w-full flex-col overflow-hidden rounded-md border',
                 tableContainerClassName
               )}>
-              <Table>
+              <Table className={tableClassName}>
                 <DataTableHeader table={table} hasRowActions={rowActions.length > 0} />
 
                 <TableBody>

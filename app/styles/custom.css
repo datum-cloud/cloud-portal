@@ -52,3 +52,26 @@
     transform: translateY(0);
   }
 }
+
+.activity-log-event {
+  font-weight: 500;
+}
+
+.activity-log-resource {
+  border: 1px solid var(--color-butter-900);
+  background-color: var(--color-butter-800);
+  color: var(--color-butter-foreground);
+  transition: background-color 0.2s;
+
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-md);
+  border-width: 1px;
+  padding: 1px 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.activity-log-error-message {
+  color: var(--destructive);
+}

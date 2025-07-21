@@ -75,15 +75,25 @@ export function categorizeAuditActivity(verb: string, responseCode?: number): Ac
  * Formats a human-readable message for audit logs
  */
 export function formatAuditMessage(auditLog: any, options: FormatAuditMessageOptions = {}): string {
-  const action = auditLog.verb?.toUpperCase() || 'UNKNOWN';
+  // Format verb with first letter capitalized
+  const action = auditLog.verb
+    ? auditLog.verb.charAt(0).toUpperCase() + auditLog.verb.slice(1).toLowerCase()
+    : 'Unknown';
   const resource = auditLog.objectRef?.resource || 'resource';
   const resourceName = auditLog.objectRef?.name;
   const namespace = auditLog.objectRef?.namespace;
-  const user = auditLog.user?.username || 'unknown';
-  const statusCode = auditLog.responseStatus?.code;
-  const stage = auditLog.stage;
 
-  let message = `${action} ${resource}`;
+  // Create a more descriptive action based on the verb
+  let actionDescription = action;
+  if (action === 'Create') actionDescription = 'Created';
+  if (action === 'Update') actionDescription = 'Updated';
+  if (action === 'Delete') actionDescription = 'Deleted';
+  if (action === 'Patch') actionDescription = 'Modified';
+  if (action === 'List') actionDescription = 'Listed';
+  if (action === 'Get') actionDescription = 'Retrieved';
+  if (action === 'Watch') actionDescription = 'Watched';
+
+  let message = `${actionDescription} ${resource}`;
 
   if (resourceName) {
     message += `/${resourceName}`;
@@ -93,11 +103,9 @@ export function formatAuditMessage(auditLog: any, options: FormatAuditMessageOpt
     message += ` in namespace ${namespace}`;
   }
 
-  message += ` by ${user}`;
-
-  if (stage && stage !== 'ResponseComplete') {
+  /* if (stage && stage !== 'ResponseComplete') {
     message += ` (${stage})`;
-  }
+  } */
 
   /* if (statusCode) {
     message += ` → ${statusCode}`;
@@ -109,7 +117,11 @@ export function formatAuditMessage(auditLog: any, options: FormatAuditMessageOpt
   } */
 
   // Add error message if present and it's an error
-  if (auditLog.responseStatus?.message && statusCode && statusCode >= 400) {
+  if (
+    auditLog.responseStatus?.message &&
+    auditLog.responseStatus?.code &&
+    auditLog.responseStatus.code >= 400
+  ) {
     const errorMsg = auditLog.responseStatus.message;
 
     // Apply truncation if enabled
@@ -121,6 +133,78 @@ export function formatAuditMessage(auditLog: any, options: FormatAuditMessageOpt
         : errorMsg;
 
     message += ` - ${processedMsg}`;
+  }
+
+  return message;
+}
+
+/**
+ * Formats an HTML message for audit logs with class names for styling
+ */
+export function formatAuditMessageHtml(
+  auditLog: any,
+  options: FormatAuditMessageOptions = {}
+): string {
+  // Format verb with first letter capitalized
+  const action = auditLog.verb
+    ? auditLog.verb.charAt(0).toUpperCase() + auditLog.verb.slice(1).toLowerCase()
+    : 'Unknown';
+  const resource = auditLog.objectRef?.resource || auditLog.resource?.resource || 'resource';
+  const resourceName = auditLog.objectRef?.name || auditLog.resource?.name;
+  const namespace = auditLog.objectRef?.namespace || auditLog.resource?.namespace;
+
+  // Create a more descriptive action based on the verb
+  let actionDescription = action;
+  if (action === 'Create') actionDescription = 'Created';
+  if (action === 'Update') actionDescription = 'Updated';
+  if (action === 'Delete') actionDescription = 'Deleted';
+  if (action === 'Patch') actionDescription = 'Modified';
+  if (action === 'List') actionDescription = 'Listed';
+  if (action === 'Get') actionDescription = 'Retrieved';
+  if (action === 'Watch') actionDescription = 'Watched';
+
+  let message = `<span class="activity-log-event">${actionDescription}</span> `;
+  message += `<span class="activity-log-resource">${resource}`;
+
+  if (resourceName) {
+    message += `/${resourceName}`;
+  }
+  message += '</span>';
+
+  if (namespace && namespace !== 'default') {
+    message += ` in <span class="activity-log-namespace">${namespace}</span>`;
+  }
+
+  // User information removed as requested
+
+  /* if (auditLog.responseStatus?.code) {
+    const code = auditLog.responseStatus.code;
+    message += ` → <span class="activity-log-status activity-log-status-${code >= 400 ? 'error' : 'success'}">${code}`;
+
+    const description = STATUS_DESCRIPTIONS[statusCode];
+    if (description) {
+      message += ` ${description}`;
+    }
+    message += '</span>';
+  } */
+
+  // Add error message if present and it's an error
+  if (
+    auditLog.responseStatus?.message &&
+    auditLog.responseStatus?.code &&
+    auditLog.responseStatus.code >= 400
+  ) {
+    const errorMsg = auditLog.responseStatus.message;
+
+    // Apply truncation if enabled
+    const { truncate = true, maxLength = 100, truncateSuffix = '...' } = options;
+
+    const processedMsg =
+      truncate && errorMsg.length > maxLength
+        ? `${errorMsg.substring(0, maxLength)}${truncateSuffix}`
+        : errorMsg;
+
+    message += ` - <span class="activity-log-error-message">${processedMsg}</span>`;
   }
 
   return message;

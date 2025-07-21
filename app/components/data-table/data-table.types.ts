@@ -82,6 +82,7 @@ export interface DataTableProps<TData, TValue> {
   // Styling props
   className?: string;
   tableContainerClassName?: string;
+  tableClassName?: string;
 
   // Actions and behavior props
   rowActions?: DataTableRowActionsProps<TData>[];

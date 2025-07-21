@@ -1,7 +1,12 @@
 /**
  * Log parsing utilities
  */
-import { formatAuditMessage, categorizeAuditActivity, mapAuditLogLevel } from './formatter';
+import {
+  formatAuditMessage,
+  formatAuditMessageHtml,
+  categorizeAuditActivity,
+  mapAuditLogLevel,
+} from './formatter';
 import type { ParsedLogLine, ActivityLogEntry } from './types';
 
 /**
@@ -85,9 +90,38 @@ export function processLogEntry(logLine: string): ActivityLogEntry {
     message = auditLog.message || auditLog.msg || logLine;
   }
 
+  // Create status message if available
+  let statusMessage: string | undefined;
+  if (isAuditLog && auditLog.responseStatus?.code) {
+    const statusCode = auditLog.responseStatus.code;
+    // Common status descriptions
+    const statusDescriptions: Record<number, string> = {
+      200: 'OK',
+      201: 'Created',
+      204: 'No Content',
+      400: 'Bad Request',
+      401: 'Unauthorized',
+      403: 'Forbidden',
+      404: 'Not Found',
+      409: 'Conflict',
+      500: 'Internal Server Error',
+    };
+    const description = statusDescriptions[statusCode] || '';
+    statusMessage = `${statusCode} ${description}`;
+
+    // Add error message if present
+    // if (auditLog.responseStatus.message && statusCode >= 400) {
+    //   statusMessage += ` - ${auditLog.responseStatus.message}`;
+    // }
+  }
+
   const activityEntry: ActivityLogEntry = {
     timestamp: formattedTimestamp,
     message,
+    formattedMessage: isAuditLog
+      ? formatAuditMessageHtml(auditLog, { truncate: false })
+      : undefined,
+    statusMessage,
     level: isAuditLog ? mapAuditLogLevel(auditLog.level || 'Metadata') : auditLog.level || 'info',
     // labels: {}, // No stream labels in this response format
     raw: logLine,

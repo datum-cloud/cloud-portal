@@ -20,6 +20,7 @@ import {
   MapIcon,
   SettingsIcon,
   ShieldCheckIcon,
+  SquareActivity,
   TerminalIcon,
 } from 'lucide-react';
 import { useMemo } from 'react';
@@ -239,6 +240,13 @@ export default function ProjectLayout() {
             type: 'link',
           },
         ],
+      },
+      {
+        title: 'Activity Logs',
+        href: getPathWithParams(routes.projects.activityLogs, { orgId, projectId }),
+        type: 'link',
+        disabled: !isReady,
+        icon: SquareActivity,
       },
       {
         title: 'Project Settings',
