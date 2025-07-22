@@ -45,7 +45,7 @@ spec:
             - name: APP_URL
               value: https://cloud.datum.net
             - name: TELEMETRY_URL
-              value: https://telemetry.datum.net
+              value: https://loki-single-binary.telemetry-system.svc.cluster.local:3100
           envFrom:
             - secretRef:
                 name: cloud-portal

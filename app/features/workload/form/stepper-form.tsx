@@ -235,7 +235,7 @@ export const WorkloadStepper = ({
   }, [stepper.current, stepper.metadata]) */
 
   return (
-    <Card className="relative">
+    <Card>
       <CardHeader>
         <CardTitle>{isEdit ? 'Update' : 'Create a new'} workload</CardTitle>
         <CardDescription>

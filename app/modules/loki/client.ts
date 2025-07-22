@@ -15,7 +15,7 @@ export const LOKI_CONFIG: LokiConfig = {
  * Builds LogQL query string with hybrid filtering approach
  */
 export function buildLogQLQuery(options: LogQLQueryOptions): string {
-  const { baseSelector, projectName, q, user, action, resource, status } = options;
+  const { baseSelector, projectName, user, action, resource, status } = options;
 
   let query = `${baseSelector} | json`;
 

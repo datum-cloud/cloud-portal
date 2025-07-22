@@ -15,8 +15,8 @@ import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
-import { motion } from 'framer-motion';
 import { ArrowLeft, ClockIcon } from 'lucide-react';
+import { motion } from 'motion/react';
 import {
   AppLoadContext,
   Link,

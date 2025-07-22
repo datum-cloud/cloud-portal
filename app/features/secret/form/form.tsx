@@ -41,7 +41,7 @@ export const SecretForm = ({ defaultValue }: { defaultValue?: ISecretControlResp
   }, [defaultValue]);
 
   return (
-    <Card className="relative">
+    <Card>
       <CardHeader>
         <CardTitle>{isEdit ? 'Update' : 'Create a new'} secret</CardTitle>
         <CardDescription>

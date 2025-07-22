@@ -1,7 +1,7 @@
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { motion } from 'framer-motion';
 import { Terminal } from 'lucide-react';
+import { motion } from 'motion/react';
 
 export const PreviewKey = ({ value }: { value: string }) => {
   return (

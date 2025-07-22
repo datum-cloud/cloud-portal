@@ -115,11 +115,15 @@ export const routes = {
       },
     },
     internetEdge: {
-      root: '/[orgId]/projects/[projectId]/http-proxies',
-      httpProxies: {
-        root: '/[orgId]/projects/[projectId]/http-proxies',
-        new: '/[orgId]/projects/[projectId]/http-proxies/new',
-        edit: '/[orgId]/projects/[projectId]/http-proxies/[proxyId]/edit',
+      root: '/[orgId]/projects/[projectId]/httpproxy',
+      httpProxy: {
+        root: '/[orgId]/projects/[projectId]/httpproxy',
+        new: '/[orgId]/projects/[projectId]/httpproxy/new',
+        detail: {
+          root: '/[orgId]/projects/[projectId]/httpproxy/[proxyId]',
+          overview: '/[orgId]/projects/[projectId]/httpproxy/[proxyId]/overview',
+          edit: '/[orgId]/projects/[projectId]/httpproxy/[proxyId]/edit',
+        },
       },
     },
     services: '/[orgId]/projects/[projectId]/services',

@@ -115,7 +115,7 @@ export const EndpointSliceForm = ({
   }, [defaultValue]);
 
   return (
-    <Card className="relative">
+    <Card>
       <CardHeader>
         <CardTitle>Create a new Endpoint Slice</CardTitle>
         <CardDescription>
