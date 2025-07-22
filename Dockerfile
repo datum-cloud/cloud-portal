@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1
 
 # Use the latest Bun version
-FROM oven/bun:1.2 AS base
+FROM oven/bun:1.2.17 AS base
 
 # Install unzip using apt (Debian/Ubuntu package manager)
 RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/*
