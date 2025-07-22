@@ -1,4 +1,6 @@
+import { DateFormat } from '@/components/date-format/date-format';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { ActivityLogEntry } from '@/modules/loki/types';
 import { cn } from '@/utils/misc';
 import { formatDistanceToNowStrict } from 'date-fns';
@@ -41,7 +43,14 @@ export const ActivityLogItem = ({ log, index }: ActivityLogItemProps) => {
         </div>
 
         <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-xs">
-          <span>{formatDistanceToNowStrict(new Date(log.timestamp), { addSuffix: true })}</span>
+          <Tooltip>
+            <TooltipTrigger>
+              {formatDistanceToNowStrict(new Date(log.timestamp), { addSuffix: true })}
+            </TooltipTrigger>
+            <TooltipContent>
+              <DateFormat date={log.timestamp} />
+            </TooltipContent>
+          </Tooltip>
           {(log.sourceIPs ?? []).length > 0 && <span>Source: {log.sourceIPs?.join(', ')}</span>}
         </div>
       </div>
