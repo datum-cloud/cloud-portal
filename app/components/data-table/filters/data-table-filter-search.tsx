@@ -1,10 +1,11 @@
 'use client';
 
-import { useFilterValue, useFilterUpdater, useFilterClearer } from './data-table-filter-context';
+import { useFilterUpdater } from './data-table-filter-context';
 import { FilterSearchProps } from './types';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/utils/misc';
 import { Search, X } from 'lucide-react';
+import { useQueryState, parseAsString } from 'nuqs';
 import { useCallback } from 'react';
 
 export const FilterSearch = ({
@@ -12,27 +13,35 @@ export const FilterSearch = ({
   filterKey = 'search',
   className,
 }: FilterSearchProps) => {
-  const search = useFilterValue(filterKey);
-  const updateSearch = useFilterUpdater(filterKey);
-  const clearSearch = useFilterClearer(filterKey);
+  // Register with context (this also returns a placeholder updater)
+  useFilterUpdater(filterKey);
+
+  // Use nuqs directly for state management
+  const [search, setSearch] = useQueryState(
+    filterKey,
+    parseAsString.withDefault('').withOptions({
+      shallow: false,
+      throttleMs: 300,
+    })
+  );
 
   const handleSearchChange = useCallback(
     (value: string) => {
-      updateSearch(value || null);
+      setSearch(value || null);
     },
-    [updateSearch]
+    [setSearch]
   );
 
   const handleClear = useCallback(() => {
-    clearSearch();
-  }, [clearSearch]);
+    setSearch(null);
+  }, [setSearch]);
 
   return (
     <div className={cn('relative flex items-center', className)}>
       <Search className="text-muted-foreground absolute left-3 h-4 w-4" />
       <Input
         placeholder={placeholder}
-        value={typeof search === 'string' ? search : ''}
+        value={search || ''}
         onChange={(e) => handleSearchChange(e.target.value)}
         className="min-w-[200px] pr-9 pl-9"
       />

@@ -1,12 +1,13 @@
 'use client';
 
-import { useFilterValue, useFilterUpdater, useFilterClearer } from './data-table-filter-context';
+import { useFilterUpdater } from './data-table-filter-context';
 import { FilterDatePickerProps } from './types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/utils/misc';
 import { Calendar, X } from 'lucide-react';
+import { useQueryState, parseAsString } from 'nuqs';
 import { useCallback, useState } from 'react';
 
 export const FilterDatePicker = ({
@@ -15,22 +16,30 @@ export const FilterDatePicker = ({
   mode = 'single',
   className,
 }: FilterDatePickerProps) => {
-  const dateValue = useFilterValue(filterKey);
-  const updateDateValue = useFilterUpdater(filterKey);
-  const clearDateValue = useFilterClearer(filterKey);
+  // Register with context
+  useFilterUpdater(filterKey);
+
+  // Use nuqs directly for state management
+  const [dateValue, setDateValue] = useQueryState(
+    filterKey,
+    parseAsString.withDefault('').withOptions({
+      shallow: false,
+      throttleMs: 300,
+    })
+  );
 
   const [isOpen, setIsOpen] = useState(false);
 
   const handleDateChange = useCallback(
     (value: string) => {
-      updateDateValue(value || null);
+      setDateValue(value || null);
     },
-    [updateDateValue]
+    [setDateValue]
   );
 
   const handleClear = useCallback(() => {
-    clearDateValue();
-  }, [clearDateValue]);
+    setDateValue(null);
+  }, [setDateValue]);
 
   return (
     <div className={cn('relative flex items-center', className)}>
@@ -43,14 +52,14 @@ export const FilterDatePicker = ({
               !dateValue && 'text-muted-foreground'
             )}>
             <Calendar className="mr-2 h-4 w-4" />
-            {(typeof dateValue === 'string' ? dateValue : '') || placeholder}
+            {dateValue || placeholder}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-4" align="start">
           <div className="space-y-2">
             <Input
               type="date"
-              value={typeof dateValue === 'string' ? dateValue : ''}
+              value={dateValue || ''}
               onChange={(e) => handleDateChange(e.target.value)}
               className="w-full"
             />

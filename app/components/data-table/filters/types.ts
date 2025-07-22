@@ -3,8 +3,12 @@ import { ReactNode } from 'react';
 export type FilterValue = Record<string, string | string[] | Date | null | undefined>;
 
 export interface FilterContextValue {
-  filters: FilterValue;
-  updateFilter: (key: string, value: any) => void;
+  // Registry of active filter keys
+  registerFilter: (key: string) => void;
+
+  // Utility functions
+  getFilterValue: (key: string) => any;
+  getActiveFilters: () => FilterValue;
   clearFilter: (key: string) => void;
   clearAllFilters: () => void;
 }

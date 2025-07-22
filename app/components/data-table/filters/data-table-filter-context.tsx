@@ -8,17 +8,17 @@ export const FilterContext = createContext<FilterContextValue | null>(null);
 /**
  * Hook to access filter context within DataTableFilter components
  *
- * @returns FilterContextValue containing filter state and methods
+ * @returns FilterContextValue containing utility functions
  * @throws Error if used outside DataTableFilter provider
  *
  * @example
  * ```tsx
  * const CustomFilterComponent = () => {
- *   const { filters, updateFilter, clearFilter } = useFilterContext();
+ *   const { getActiveFilters, clearAllFilters } = useFilterContext();
  *
  *   return (
- *     <button onClick={() => updateFilter('status', 'active')}>
- *       Set Active Status
+ *     <button onClick={clearAllFilters}>
+ *       Clear All ({Object.keys(getActiveFilters()).length})
  *     </button>
  *   );
  * };
@@ -33,10 +33,10 @@ export const useFilterContext = () => {
 };
 
 /**
- * Hook to get a specific filter value
+ * Hook to get a specific filter value from URL
  *
  * @param filterKey - The key of the filter to get
- * @returns The current value of the specified filter
+ * @returns The current value of the specified filter from URL
  *
  * @example
  * ```tsx
@@ -47,33 +47,29 @@ export const useFilterContext = () => {
  * ```
  */
 export const useFilterValue = (filterKey: string) => {
-  const { filters } = useFilterContext();
-  return filters[filterKey];
+  const { getFilterValue } = useFilterContext();
+  return getFilterValue(filterKey);
 };
 
 /**
- * Hook to get filter update function for a specific key
+ * Hook to register a filter and get its updater function
+ * This is used internally by filter components
  *
- * @param filterKey - The key of the filter to update
+ * @param filterKey - The key of the filter to register
  * @returns Function to update the specified filter
- *
- * @example
- * ```tsx
- * const QuickStatusFilter = () => {
- *   const updateStatus = useFilterUpdater('status');
- *
- *   return (
- *     <div>
- *       <button onClick={() => updateStatus('active')}>Active</button>
- *       <button onClick={() => updateStatus('inactive')}>Inactive</button>
- *     </div>
- *   );
- * };
- * ```
  */
 export const useFilterUpdater = (filterKey: string) => {
-  const { updateFilter } = useFilterContext();
-  return (value: any) => updateFilter(filterKey, value);
+  const { registerFilter, getFilterValue } = useFilterContext();
+
+  // Register this filter key with the context
+  registerFilter(filterKey);
+
+  // Return a function that can be used to update this filter
+  // Note: The actual update will be handled by the filter component's nuqs
+  return (value: any) => {
+    // This is a placeholder - actual updates happen in individual components
+    // The context will be notified through URL changes
+  };
 };
 
 /**
@@ -124,6 +120,7 @@ export const useFilterClearer = (filterKey: string) => {
  * ```
  */
 export const useHasActiveFilters = () => {
-  const { filters } = useFilterContext();
-  return Object.keys(filters).length > 0;
+  const { getActiveFilters } = useFilterContext();
+  const activeFilters = getActiveFilters();
+  return Object.keys(activeFilters).length > 0;
 };

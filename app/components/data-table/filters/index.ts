@@ -30,5 +30,4 @@ export {
 } from './data-table-filter-context';
 
 // Utility components
-export { FilterToolbar } from './filter-toolbar';
 export { QuickFilter } from './quick-filter';

@@ -19,6 +19,7 @@ import { getSharedEnvs } from '@/utils/env';
 import { metaObject } from '@/utils/meta';
 import { isProduction, combineHeaders, getDomainUrl } from '@/utils/misc';
 import NProgress from 'nprogress';
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { useEffect, useMemo } from 'react';
 import {
   Links,
@@ -191,7 +192,9 @@ export default function AppWithProviders() {
         {sharedEnv.FATHOM_ID && isProduction() && (
           <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />
         )}
-        <Outlet />
+        <NuqsAdapter>
+          <Outlet />
+        </NuqsAdapter>
       </AuthenticityTokenProvider>
     </Document>
   );

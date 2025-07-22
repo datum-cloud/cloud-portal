@@ -1,24 +1,33 @@
 'use client';
 
-import { useFilterValue, useFilterUpdater, useFilterClearer } from './data-table-filter-context';
+import { useFilterUpdater } from './data-table-filter-context';
 import { FilterCustomProps } from './types';
+import { useQueryState, parseAsString } from 'nuqs';
 import { useCallback } from 'react';
 
 export const FilterCustom = ({ filterKey, children }: FilterCustomProps) => {
-  const value = useFilterValue(filterKey);
-  const updateValue = useFilterUpdater(filterKey);
-  const clearValue = useFilterClearer(filterKey);
+  // Register with context
+  useFilterUpdater(filterKey);
+
+  // Use nuqs directly for state management
+  const [value, setValue] = useQueryState(
+    filterKey,
+    parseAsString.withDefault('').withOptions({
+      shallow: false,
+      throttleMs: 300,
+    })
+  );
 
   const handleChange = useCallback(
     (newValue: any) => {
-      updateValue(newValue || null);
+      setValue(newValue || null);
     },
-    [updateValue]
+    [setValue]
   );
 
   const handleClear = useCallback(() => {
-    clearValue();
-  }, [clearValue]);
+    setValue(null);
+  }, [setValue]);
 
   return children({
     value,
