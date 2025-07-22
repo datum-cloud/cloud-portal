@@ -13,8 +13,12 @@ try {
   // Load OpenTelemetry first
   console.log('Loading OpenTelemetry instrumentation...');
   import('./otel.ts')
-    .then(() => {
-      console.log('OpenTelemetry loaded successfully');
+    .then(async (otelModule) => {
+      // Initialize OpenTelemetry manually
+      const isOtelInitialized = await otelModule.initializeOtel();
+      if (isOtelInitialized) {
+        console.log('✅ OpenTelemetry loaded successfully');
+      }
 
       // Then load the server
       console.log('Starting server...');
