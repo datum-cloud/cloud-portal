@@ -79,9 +79,15 @@ export interface DataTableProps<TData, TValue> {
   defaultSorting?: SortingState;
   filterFields?: DataTableFilterField<TData>[];
 
+  // Display mode props
+  mode?: 'table' | 'card';
+  hideHeader?: boolean;
+
   // Styling props
   className?: string;
   tableContainerClassName?: string;
+  tableClassName?: string;
+  tableCardClassName?: string;
 
   // Actions and behavior props
   rowActions?: DataTableRowActionsProps<TData>[];

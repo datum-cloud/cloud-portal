@@ -121,6 +121,7 @@ export const routes = {
     iam: '/[orgId]/projects/[projectId]/iam-policies',
     roles: '/[orgId]/projects/[projectId]/roles',
     serviceAccounts: '/[orgId]/projects/[projectId]/service-accounts',
+    activityLogs: '/[orgId]/projects/[projectId]/activity-logs',
     settings: '/[orgId]/projects/[projectId]/settings',
   },
 };
