@@ -217,7 +217,7 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
                       'data-[active=true]:text-primary h-9 font-medium transition-all data-[active=true]:font-semibold'
                     )}>
                     {item?.icon && <item.icon />}
-                    <span className="lowercase first-letter:uppercase">{item.title}</span>
+                    <span>{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
@@ -253,7 +253,7 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
                   'data-[active=true]:text-primary h-9 font-medium transition-all data-[active=true]:font-semibold'
                 )}>
                 {currentItem?.icon && <currentItem.icon />}
-                <span className="lowercase first-letter:uppercase">{currentItem.title}</span>
+                <span>{currentItem.title}</span>
                 <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
               </SidebarMenuButton>
             </CollapsibleTrigger>
@@ -291,14 +291,14 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
                   className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {item?.icon && <item.icon className="size-4" />}
-                    <span className="lowercase first-letter:uppercase">{item.title}</span>
+                    <span>{item.title}</span>
                   </div>
                   <ExternalLinkIcon className="ml-auto size-4" />
                 </a>
               ) : (
                 <Link to={item.href || ''}>
                   {item?.icon && <item.icon />}
-                  <span className="lowercase first-letter:uppercase">{item.title}</span>
+                  <span>{item.title}</span>
                 </Link>
               )}
             </SidebarMenuButton>

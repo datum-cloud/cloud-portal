@@ -12,17 +12,7 @@ import { CustomError } from '@/utils/errorHandle';
 import { transformControlPlaneStatus } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
-import {
-  AreaChartIcon,
-  BoltIcon,
-  GlobeIcon,
-  HomeIcon,
-  MapIcon,
-  SettingsIcon,
-  ShieldCheckIcon,
-  SquareActivity,
-  TerminalIcon,
-} from 'lucide-react';
+import { AreaChartIcon, HomeIcon, NetworkIcon, SettingsIcon, SquareActivity } from 'lucide-react';
 import { useMemo } from 'react';
 import { AppLoadContext, Outlet, useLoaderData } from 'react-router';
 
@@ -64,6 +54,69 @@ export default function ProjectLayout() {
     const projectId = project.name;
 
     return [
+      {
+        title: 'Home',
+        href: getPathWithParams(routes.projects.dashboard, {
+          orgId,
+          projectId,
+        }),
+        type: 'link',
+        icon: HomeIcon,
+      },
+      {
+        title: 'Internet edge',
+        href: getPathWithParams(routes.projects.internetEdge.root, {
+          orgId,
+          projectId,
+        }),
+        type: 'collapsible',
+        icon: NetworkIcon,
+        disabled: !isReady,
+        children: [
+          {
+            title: 'HTTP proxies',
+            href: getPathWithParams(routes.projects.internetEdge.httpProxies.root, {
+              orgId,
+              projectId,
+            }),
+            type: 'link',
+          },
+        ],
+      },
+      {
+        title: 'Metrics',
+        href: getPathWithParams(routes.projects.observe.root, { orgId, projectId }),
+        type: 'collapsible',
+        icon: AreaChartIcon,
+        disabled: !isReady,
+        children: [
+          {
+            title: 'Export policies',
+            href: getPathWithParams(routes.projects.observe.exportPolicies.root, {
+              orgId,
+              projectId,
+            }),
+            type: 'link',
+          },
+        ],
+      },
+      {
+        title: 'Activity logs',
+        href: getPathWithParams(routes.projects.activityLogs, { orgId, projectId }),
+        type: 'link',
+        disabled: !isReady,
+        icon: SquareActivity,
+      },
+      {
+        title: 'Project settings',
+        href: getPathWithParams(routes.projects.settings, { orgId, projectId }),
+        type: 'link',
+        disabled: !isReady,
+        icon: SettingsIcon,
+      },
+    ];
+
+    /* return [
       {
         title: 'Dashboard',
         href: getPathWithParams(routes.projects.dashboard, {
@@ -255,7 +308,7 @@ export default function ProjectLayout() {
         disabled: !isReady,
         icon: SettingsIcon,
       },
-    ];
+    ]; */
   }, [orgId, project]);
 
   return (

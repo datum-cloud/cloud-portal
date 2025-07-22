@@ -44,6 +44,8 @@ spec:
               value: https://api.datum.net
             - name: APP_URL
               value: https://cloud.datum.net
+            - name: TELEMETRY_URL
+              value: https://telemetry.datum.net
           envFrom:
             - secretRef:
                 name: cloud-portal
