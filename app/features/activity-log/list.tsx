@@ -1,5 +1,5 @@
 import { ActivityLogItem } from './list-item';
-import { DataTable } from '@/components/data-table/data-table';
+import { DataTable, DataTableFilter, FilterValue } from '@/components/data-table/filters';
 import type { ActivityLogEntry } from '@/modules/loki/types';
 import { ROUTE_PATH as ACTIVITY_LOGS_ROUTE_PATH } from '@/routes/api+/activity-logs';
 import { ColumnDef } from '@tanstack/react-table';
@@ -49,6 +49,12 @@ export const ActivityLogList = () => {
     []
   );
 
+  const handleFiltersChange = (filters: FilterValue) => {
+    console.log('Activity log filters changed:', filters);
+    // TODO: Implement server-side filtering
+    // You can make API calls here with the filter parameters
+  };
+
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
       if (fetcher.data?.success) {
@@ -77,6 +83,20 @@ export const ActivityLogList = () => {
         tableClassName="table-fixed"
         isLoading={isLoading}
         loadingText="Loading activity logs..."
+        filters={
+          <DataTableFilter onFiltersChange={handleFiltersChange}>
+            <DataTableFilter.Search placeholder="Search activity logs..." filterKey="search" />
+            <DataTableFilter.Select
+              options={[
+                { label: 'Info', value: 'info' },
+                { label: 'Warning', value: 'warning' },
+                { label: 'Error', value: 'error' },
+              ]}
+              placeholder="Level"
+              filterKey="level"
+            />
+          </DataTableFilter>
+        }
       />
     </div>
   );

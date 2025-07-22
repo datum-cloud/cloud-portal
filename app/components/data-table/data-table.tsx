@@ -33,6 +33,8 @@ export const DataTable = <TData, TValue>({
   filterFields = [],
   mode = 'table',
   hideHeader = false,
+  filters,
+  onFiltersChange,
   className,
   rowActions = [],
   tableTitle,
@@ -131,6 +133,9 @@ export const DataTable = <TData, TValue>({
           <>
             {/* Header Section */}
             {tableTitle && <PageTitle {...tableTitle} />}
+
+            {/* Filter Section */}
+            {filters}
 
             {/* Table Section */}
             <div

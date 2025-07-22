@@ -1,6 +1,7 @@
+import { FilterValue } from './filters/types';
 import { Button } from '@/components/ui/button';
 import { ColumnDef, ColumnFiltersState, SortingState } from '@tanstack/react-table';
-import { JSX } from 'react';
+import { JSX, ReactNode } from 'react';
 
 export type SearchParams = {
   [key: string]: string | string[] | undefined;
@@ -82,6 +83,10 @@ export interface DataTableProps<TData, TValue> {
   // Display mode props
   mode?: 'table' | 'card';
   hideHeader?: boolean;
+
+  // Filter props
+  filters?: ReactNode;
+  onFiltersChange?: (filters: FilterValue) => void;
 
   // Styling props
   className?: string;
