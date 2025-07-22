@@ -36,7 +36,7 @@ export const routes = {
   },
   projects: {
     detail: '/[orgId]/projects/[projectId]',
-    dashboard: '/[orgId]/projects/[projectId]/dashboard',
+    dashboard: '/[orgId]/projects/[projectId]/home',
     locations: {
       root: '/[orgId]/projects/[projectId]/locations',
       new: '/[orgId]/projects/[projectId]/locations/new',
@@ -112,6 +112,14 @@ export const routes = {
           overview: '/[orgId]/projects/[projectId]/export-policies/[exportPolicyId]/overview',
           edit: '/[orgId]/projects/[projectId]/export-policies/[exportPolicyId]/edit',
         },
+      },
+    },
+    internetEdge: {
+      root: '/[orgId]/projects/[projectId]/http-proxies',
+      httpProxies: {
+        root: '/[orgId]/projects/[projectId]/http-proxies',
+        new: '/[orgId]/projects/[projectId]/http-proxies/new',
+        edit: '/[orgId]/projects/[projectId]/http-proxies/[proxyId]/edit',
       },
     },
     services: '/[orgId]/projects/[projectId]/services',
