@@ -62,7 +62,7 @@
     "@xyflow/react": "^12.8.2",
     "axios": "^1.10.0",
     "axios-curlirize": "^2.0.0",
-    "bun": "1.2.17",
+    "bun": "1.2.19",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
