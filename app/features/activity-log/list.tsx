@@ -64,6 +64,8 @@ export const ActivityLogList = () => {
   return (
     <div className="mx-auto flex h-full w-full max-w-5xl flex-col gap-6">
       <DataTable
+        hideHeader
+        mode="card"
         columns={columns}
         data={logs}
         emptyContent={{
