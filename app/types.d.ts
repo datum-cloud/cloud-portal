@@ -25,3 +25,11 @@ declare module '@tanstack/table-core' {
     className?: string;
   }
 }
+
+export type {};
+
+declare global {
+  interface Window {
+    [key: string]: any;
+  }
+}

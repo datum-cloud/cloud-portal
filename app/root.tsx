@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/useToast';
 import { csrf } from '@/modules/cookie/csrf.server';
 import { themeSessionResolver } from '@/modules/cookie/theme.server';
 import { getToastSession } from '@/modules/cookie/toast.server';
+import MarkerIoEmbed from '@/modules/markerio';
 import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/cache';
 import { ROUTE_PATH as SET_THEME_ROUTE_PATH } from '@/routes/api+/set-theme';
 // Import global CSS styles for the application
@@ -132,6 +133,7 @@ function Document({
       </head>
       <body className="h-auto w-full" suppressHydrationWarning>
         <TooltipProvider>{children}</TooltipProvider>
+        <MarkerIoEmbed nonce={nonce} />
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />
