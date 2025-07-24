@@ -101,8 +101,8 @@ export default function ProjectLayout() {
         ],
       },
       {
-        title: 'Activity logs',
-        href: getPathWithParams(routes.projects.activityLogs, { orgId, projectId }),
+        title: 'Activity',
+        href: getPathWithParams(routes.projects.activity, { orgId, projectId }),
         type: 'link',
         disabled: !isReady,
         icon: SquareActivity,
@@ -295,7 +295,7 @@ export default function ProjectLayout() {
         ],
       },
       {
-        title: 'Activity Logs',
+        title: 'Activities',
         href: getPathWithParams(routes.projects.activityLogs, { orgId, projectId }),
         type: 'link',
         disabled: !isReady,

@@ -15,13 +15,25 @@ export const LOKI_CONFIG: LokiConfig = {
  * Builds LogQL query string with hybrid filtering approach
  */
 export function buildLogQLQuery(options: LogQLQueryOptions): string {
-  const { baseSelector, projectName, user, action, resource, status } = options;
+  const { baseSelector, projectName, q, user, resource, status, actions } = options;
 
   let query = `${baseSelector} | json`;
 
   // Project filter (legacy support)
   if (projectName) {
     query += ` | annotations_resourcemanager_miloapis_com_project_name="${projectName}"`;
+  }
+
+  // Filter for specific verbs using regex (if verbs parameter is provided)
+  if (actions) {
+    const actionList = actions
+      .split(',')
+      .map((v) => v.trim().toLowerCase())
+      .filter((v) => v);
+    if (actionList.length > 0) {
+      const actionPattern = actionList.join('|');
+      query += ` | verb=~"(?i)(${actionPattern})"`;
+    }
   }
 
   // Note: LogQL doesn't support OR conditions in filters
@@ -31,10 +43,6 @@ export function buildLogQLQuery(options: LogQLQueryOptions): string {
   // Specific field filters (AND conditions)
   if (user) {
     query += ` | user_username="${user}"`;
-  }
-
-  if (action) {
-    query += ` | verb="${action}"`;
   }
 
   if (resource) {

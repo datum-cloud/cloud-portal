@@ -30,9 +30,9 @@ export const loader = withMiddleware(async ({ request }: LoaderFunctionArgs) => 
       // Hybrid filtering approach
       q: url.searchParams.get('q') || undefined,
       user: url.searchParams.get('user') || undefined,
-      action: url.searchParams.get('action') || undefined,
       resource: url.searchParams.get('resource') || undefined,
       status: url.searchParams.get('status') || undefined,
+      actions: url.searchParams.get('actions') || undefined,
     };
 
     const service = new LokiActivityLogsService(session.accessToken);
@@ -43,7 +43,6 @@ export const loader = withMiddleware(async ({ request }: LoaderFunctionArgs) => 
       data: activityLogsResponse,
     });
   } catch (error) {
-    console.error('Activity logs error:', error);
     return data({
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',

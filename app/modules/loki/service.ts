@@ -38,9 +38,9 @@ export class LokiActivityLogsService {
       // Hybrid filtering approach
       q: queryParams.q,
       user: queryParams.user,
-      action: queryParams.action,
       resource: queryParams.resource,
       status: queryParams.status,
+      actions: queryParams.actions,
     });
 
     // Execute query
