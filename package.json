@@ -101,7 +101,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.20.3",
     "unstorage": "^1.16.1",
-    "zod": "^3.25.36"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.79.1",
