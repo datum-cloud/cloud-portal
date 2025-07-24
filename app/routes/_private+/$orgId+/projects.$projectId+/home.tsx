@@ -12,7 +12,7 @@ import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interfa
 import { transformControlPlaneStatus } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';
 import { differenceInMinutes } from 'date-fns';
-import { ArrowRight, Binoculars, Cloud, GlobeLock, Mail, Network } from 'lucide-react';
+import { ArrowRight, Binoculars, Mail, Waypoints } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useMemo, useRef } from 'react';
 import { Link, useRevalidator, useRouteLoaderData } from 'react-router';
@@ -39,30 +39,16 @@ export default function ProjectDashboardPage() {
 
     return [
       {
-        title: 'Deploy a global workload',
+        title: 'Configure HTTPProxy',
         description:
-          'Easily deploy and scale your applications across regions, ensuring high availability and performance worldwide.',
-        icon: <Cloud />,
-        link: getPathWithParams(routes.projects.deploy.workloads.root, routeParams),
+          'Set up and manage HTTPProxy to control and secure your web traffic at the edge.',
+        icon: <Waypoints />,
+        link: getPathWithParams(routes.projects.internetEdge.httpProxy.root, routeParams),
       },
       {
-        title: 'Connect multiple networks',
+        title: 'Define Log Export Policies',
         description:
-          'Establish secure and reliable connectivity between multiple networks, enabling seamless communication across your infrastructure.',
-        icon: <Network />,
-        link: getPathWithParams(routes.projects.connect.networks.root, routeParams),
-      },
-      {
-        title: 'Secure project access',
-        description:
-          'Protect your cloud resources with robust access controls, ensuring only authorized users and services can interact with your project.',
-        icon: <GlobeLock />,
-        link: getPathWithParams(routes.projects.iam, routeParams),
-      },
-      {
-        title: 'Observe network traffic',
-        description:
-          'Monitor, analyze, and troubleshoot network activity in real time to enhance security and optimize performance.',
+          'Define policies to export logs and metrics for analysis, troubleshooting, and compliance purposes.',
         icon: <Binoculars />,
         link: getPathWithParams(routes.projects.observe.exportPolicies.root, routeParams),
       },
@@ -161,20 +147,20 @@ export default function ProjectDashboardPage() {
                   <div className="flex gap-3">
                     <Button variant="outline" size="sm" className="h-7 w-fit">
                       <Link
-                        to={getPathWithParams(routes.projects.locations.root, {
+                        to={getPathWithParams(routes.projects.internetEdge.httpProxy.root, {
                           orgId,
                           projectId: project.name,
                         })}>
-                        Explore Locations
+                        Explore HTTPProxy
                       </Link>
                     </Button>
                     <Button variant="outline" size="sm" className="h-7 w-fit">
                       <a
-                        href="https://docs.datum.net/docs/tutorials/infra-provider-gcp/"
+                        href="https://docs.datum.net/docs/tutorials/gateway/"
                         target="_blank"
                         rel="noreferrer"
                         className="flex items-center gap-2">
-                        About Locations
+                        About HTTPProxy
                         <ArrowRight className="size-4" />
                       </a>
                     </Button>

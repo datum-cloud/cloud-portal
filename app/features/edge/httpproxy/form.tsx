@@ -9,7 +9,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { routes } from '@/constants/routes';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
@@ -17,7 +16,6 @@ import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.int
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api+/edge+/httpproxy+/actions';
 import { generateId, generateRandomString } from '@/utils/idGenerator';
-import { getPathWithParams } from '@/utils/path';
 import {
   FormProvider,
   getFormProps,
@@ -195,20 +193,6 @@ export const HttpProxyForm = ({
               <div />
             )}
             <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="link"
-                disabled={isPending}
-                onClick={() => {
-                  navigate(
-                    getPathWithParams(routes.projects.internetEdge.httpProxy.root, {
-                      projectId,
-                      orgId,
-                    })
-                  );
-                }}>
-                Return to List
-              </Button>
               <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
                 {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
               </Button>
