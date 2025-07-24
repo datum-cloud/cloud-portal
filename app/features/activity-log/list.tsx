@@ -24,7 +24,7 @@ export const ActivityLogList = () => {
       const queryParams: QueryParams = {
         project: params.projectId,
         start: '7d',
-        limit: '100',
+        limit: '1000',
         // Only Write operations
         actions: 'create,update,patch,delete,deletecollection',
       };
