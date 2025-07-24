@@ -30,10 +30,9 @@ export const loader = withMiddleware(async ({ request }: LoaderFunctionArgs) => 
       // Hybrid filtering approach
       q: url.searchParams.get('q') || undefined,
       user: url.searchParams.get('user') || undefined,
-      action: url.searchParams.get('action') || undefined,
       resource: url.searchParams.get('resource') || undefined,
       status: url.searchParams.get('status') || undefined,
-      verbs: url.searchParams.get('verbs') || undefined,
+      actions: url.searchParams.get('actions') || undefined,
     };
 
     const service = new LokiActivityLogsService(session.accessToken);

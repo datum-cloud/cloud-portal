@@ -1,6 +1,6 @@
 import { ActivityLogItem } from './list-item';
 import { DataTable } from '@/components/data-table/data-table';
-import type { ActivityLogEntry } from '@/modules/loki/types';
+import type { ActivityLogEntry, QueryParams } from '@/modules/loki/types';
 import { ROUTE_PATH as ACTIVITY_LOGS_ROUTE_PATH } from '@/routes/api+/activity-logs';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useEffect, useState } from 'react';
@@ -21,15 +21,17 @@ export const ActivityLogList = () => {
   // Fetch activity logs on component mount
   useEffect(() => {
     if (params.projectId) {
-      const searchParams = new URLSearchParams({
+      const queryParams: QueryParams = {
         project: params.projectId,
         start: '7d',
         limit: '100',
         // Only Write operations
-        verbs: 'create,update,patch,delete,deletecollection',
-      });
+        actions: 'create,update,patch,delete,deletecollection',
+      };
 
-      fetcher.load(`${ACTIVITY_LOGS_ROUTE_PATH}?${searchParams.toString()}`);
+      fetcher.load(
+        `${ACTIVITY_LOGS_ROUTE_PATH}?${new URLSearchParams(queryParams as Record<string, string>).toString()}`
+      );
     }
   }, [params.projectId]);
 
