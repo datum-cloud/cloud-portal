@@ -290,3 +290,19 @@ export function generateMergePatchPayloadMap(
 
   return Object.keys(patchMap).length > 0 ? patchMap : { ...safeOriginalMap };
 }
+
+/**
+ * Checks if an IP address is a private (RFC 1918) address
+ * Useful for determining if an IP is internal/private vs public/external
+ * @param ip - The IP address string to check (e.g., "192.168.1.1")
+ * @returns Boolean indicating whether the IP is in a private range
+ */
+export function isPrivateIP(ip: string): boolean {
+  const parts = ip.split('.').map(Number);
+
+  return (
+    parts[0] === 10 || // 10.0.0.0/8
+    (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || // 172.16.0.0 – 172.31.255.255
+    (parts[0] === 192 && parts[1] === 168) // 192.168.0.0/16
+  );
+}

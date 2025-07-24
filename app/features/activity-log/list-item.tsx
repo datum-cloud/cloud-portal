@@ -2,7 +2,7 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { ActivityLogEntry } from '@/modules/loki/types';
-import { cn } from '@/utils/misc';
+import { cn, isPrivateIP } from '@/utils/misc';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { CheckCircle, Info, AlertTriangle, XCircle } from 'lucide-react';
 
@@ -48,7 +48,9 @@ export const ActivityLogItem = ({ log, index }: ActivityLogItemProps) => {
                 <DateFormat date={log.timestamp} />
               </TooltipContent>
             </Tooltip>
-            {(log.sourceIPs ?? []).length > 0 && <span>Source: {log.sourceIPs?.join(', ')}</span>}
+            {(log.sourceIPs ?? []).length > 0 && (
+              <span>Source: {log.sourceIPs?.filter((ip) => !isPrivateIP(ip)).join(', ')}</span>
+            )}
           </div>
         </div>
       </div>
