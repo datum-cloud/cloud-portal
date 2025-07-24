@@ -25,6 +25,8 @@ export const ActivityLogList = () => {
         project: params.projectId,
         start: '7d',
         limit: '100',
+        // Only Write operations
+        verbs: 'create,update,patch,delete,deletecollection',
       });
 
       fetcher.load(`${ACTIVITY_LOGS_ROUTE_PATH}?${searchParams.toString()}`);
@@ -69,14 +71,14 @@ export const ActivityLogList = () => {
         columns={columns}
         data={logs}
         emptyContent={{
-          title: 'No activity logs found.',
+          title: 'No activity found.',
         }}
         tableTitle={{
-          title: 'Activity Logs',
+          title: 'Activity',
         }}
         tableClassName="table-fixed"
         isLoading={isLoading}
-        loadingText="Loading activity logs..."
+        loadingText="Loading activity..."
         tableCardClassName="px-3 py-2"
       />
     </div>

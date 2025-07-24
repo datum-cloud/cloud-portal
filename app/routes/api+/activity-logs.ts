@@ -33,6 +33,7 @@ export const loader = withMiddleware(async ({ request }: LoaderFunctionArgs) => 
       action: url.searchParams.get('action') || undefined,
       resource: url.searchParams.get('resource') || undefined,
       status: url.searchParams.get('status') || undefined,
+      verbs: url.searchParams.get('verbs') || undefined,
     };
 
     const service = new LokiActivityLogsService(session.accessToken);
@@ -43,7 +44,6 @@ export const loader = withMiddleware(async ({ request }: LoaderFunctionArgs) => 
       data: activityLogsResponse,
     });
   } catch (error) {
-    console.error('Activity logs error:', error);
     return data({
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',

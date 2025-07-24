@@ -41,6 +41,7 @@ export class LokiActivityLogsService {
       action: queryParams.action,
       resource: queryParams.resource,
       status: queryParams.status,
+      verbs: queryParams.verbs,
     });
 
     // Execute query

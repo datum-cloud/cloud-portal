@@ -20,6 +20,20 @@ export interface QueryParams {
   action?: string; // Specific action filter (CREATE, DELETE, etc.)
   resource?: string; // Specific resource type filter
   status?: string; // Status filter (success, error, or specific codes like 403)
+  /**
+   * Verb filter
+   * get - Read a specific resource
+   * list - List a collection of resources
+   * watch - Watch for changes
+   * create - Submit new resources
+   * update - Modify existing resources
+   * patch - Partially update resources
+   * delete - Remove a resource
+   * deletecollection - Remove multiple resources
+   * proxy - Proxy access through Kubernetes API server
+   * * - Wildcard to match all verbs
+   */
+  verbs?: string; // Comma-separated list of verbs to filter (e.g., "create,update,delete")
 }
 
 export interface ValidatedQueryParams {
@@ -89,6 +103,7 @@ export interface LogQLQueryOptions {
   action?: string; // Specific action filter
   resource?: string; // Specific resource type filter
   status?: string; // Status filter (success, error, or specific codes)
+  verbs?: string; // Comma-separated list of verbs to filter (e.g., "create,update,delete")
 }
 
 export interface FormatAuditMessageOptions {
