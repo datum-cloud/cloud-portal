@@ -74,8 +74,8 @@ export default function ProjectLayout() {
         disabled: !isReady,
         children: [
           {
-            title: 'HTTP proxies',
-            href: getPathWithParams(routes.projects.internetEdge.httpProxies.root, {
+            title: 'HTTPProxy',
+            href: getPathWithParams(routes.projects.internetEdge.httpProxy.root, {
               orgId,
               projectId,
             }),

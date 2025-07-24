@@ -121,7 +121,7 @@ export const HttpRouteForm = ({
   }, [defaultValue]);
 
   return (
-    <Card className="relative">
+    <Card>
       <CardHeader>
         <CardTitle>{isEdit ? 'Update' : 'Create'} HTTP route</CardTitle>
         <CardDescription>

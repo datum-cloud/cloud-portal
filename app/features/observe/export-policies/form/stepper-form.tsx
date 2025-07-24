@@ -172,7 +172,7 @@ export const ExportPolicyStepperForm = ({
   };
 
   return (
-    <Card className="relative">
+    <Card>
       <CardHeader>
         <CardTitle>{isEdit ? 'Update' : 'Create a new'} export policy</CardTitle>
         <CardDescription>

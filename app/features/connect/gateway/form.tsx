@@ -139,7 +139,7 @@ export const GatewayForm = ({
   }, [defaultValue]);
 
   return (
-    <Card className="relative">
+    <Card>
       <CardHeader>
         <CardTitle>{isEdit ? 'Update' : 'Create a new'} gateway</CardTitle>
         <CardDescription>

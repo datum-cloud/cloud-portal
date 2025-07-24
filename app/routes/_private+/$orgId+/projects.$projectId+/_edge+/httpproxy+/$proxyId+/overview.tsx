@@ -3,16 +3,14 @@ import { MoreActions } from '@/components/more-actions/more-actions';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Button } from '@/components/ui/button';
 import { routes } from '@/constants/routes';
-import { ExportPolicyGeneralCard } from '@/features/observe/export-policies/general-card';
-import { WorkloadSinksTable } from '@/features/observe/export-policies/sinks-table';
-import { WorkloadSourcesTable } from '@/features/observe/export-policies/sources-table';
-import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { HttpProxyGeneralCard } from '@/features/edge/httpproxy/overview/general-card';
+import { HttpProxyHostnamesCard } from '@/features/edge/httpproxy/overview/hostnames-card';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
-import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions';
+import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
+import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api+/edge+/httpproxy+/actions';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
-import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
+import { formatDistanceToNow } from 'date-fns';
 import { ClockIcon, PencilIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link, MetaFunction, useParams, useRouteLoaderData, useSubmit } from 'react-router';
@@ -25,32 +23,29 @@ export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find(
     (match) =>
       match.id ===
-      'routes/_private+/$orgId+/projects.$projectId+/_observe+/export-policies+/$exportPolicyId+/_layout'
+      'routes/_private+/$orgId+/projects.$projectId+/_edge+/httpproxy+/$proxyId+/_layout'
   ) as any;
 
-  const exportPolicy = match.data;
-  return metaObject((exportPolicy as IExportPolicyControlResponse)?.name || 'Export Policy');
+  const httpProxy = match.data;
+  return metaObject((httpProxy as IHttpProxyControlResponse)?.name || 'HTTPProxy');
 });
 
-export default function ExportPolicyOverview() {
-  const exportPolicy = useRouteLoaderData(
-    'routes/_private+/$orgId+/projects.$projectId+/_observe+/export-policies+/$exportPolicyId+/_layout'
+export default function HttpProxyOverviewPage() {
+  const httpProxy = useRouteLoaderData(
+    'routes/_private+/$orgId+/projects.$projectId+/_edge+/httpproxy+/$proxyId+/_layout'
   );
 
   const submit = useSubmit();
   const { confirm } = useConfirmationDialog();
   const { orgId, projectId } = useParams();
 
-  // revalidate every 10 seconds to keep deployment list fresh
-  const revalidator = useRevalidateOnInterval({ enabled: true, interval: 10000 });
-
-  const deleteExportPolicy = async () => {
+  const deleteHttpProxy = async () => {
     await confirm({
-      title: 'Delete Export Policy',
+      title: 'Delete HTTPProxy',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{exportPolicy?.name}</strong>?
+          <strong>{httpProxy?.name}</strong>?
         </span>
       ),
       submitText: 'Delete',
@@ -58,19 +53,16 @@ export default function ExportPolicyOverview() {
       variant: 'destructive',
       showConfirmInput: true,
       onSubmit: async () => {
-        // Clear the interval when deleting a export policy
-        revalidator.clear();
-
         await submit(
           {
-            exportPolicyId: exportPolicy?.name ?? '',
+            id: httpProxy?.name ?? '',
             projectId: projectId ?? '',
             orgId: orgId ?? '',
           },
           {
-            action: EXPORT_POLICIES_ACTIONS_ROUTE_PATH,
+            action: HTTP_PROXIES_ACTIONS_PATH,
             method: 'DELETE',
-            fetcherKey: 'export-policy-resources',
+            fetcherKey: 'http-proxy-resources',
             navigate: false,
           }
         );
@@ -90,18 +82,18 @@ export default function ExportPolicyOverview() {
         transition={{ delay: 0.2, duration: 0.4 }}
         className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <PageTitle
-          title={(exportPolicy as IExportPolicyControlResponse)?.name ?? 'Export Policy'}
+          title={(httpProxy as IHttpProxyControlResponse)?.name ?? 'HTTPProxy'}
           description={
             <div className="flex items-center gap-1">
               <ClockIcon className="text-muted-foreground h-4 w-4" />
               <DateFormat
                 className="text-muted-foreground text-sm"
-                date={(exportPolicy as IExportPolicyControlResponse)?.createdAt ?? ''}
+                date={(httpProxy as IHttpProxyControlResponse)?.createdAt ?? ''}
               />
               <span className="text-muted-foreground text-sm">
                 (
                 {formatDistanceToNow(
-                  new Date((exportPolicy as IExportPolicyControlResponse)?.createdAt ?? ''),
+                  new Date((httpProxy as IHttpProxyControlResponse)?.createdAt ?? ''),
                   {
                     addSuffix: true,
                   }
@@ -119,10 +111,10 @@ export default function ExportPolicyOverview() {
               <Button variant="outline" size="sm">
                 <Link
                   className="flex items-center gap-2"
-                  to={getPathWithParams(routes.projects.observe.exportPolicies.detail.edit, {
+                  to={getPathWithParams(routes.projects.internetEdge.httpProxy.detail.edit, {
                     orgId,
                     projectId,
-                    exportPolicyId: exportPolicy?.name ?? '',
+                    proxyId: httpProxy?.name ?? '',
                   })}>
                   <PencilIcon className="size-4" />
                   Edit
@@ -135,7 +127,7 @@ export default function ExportPolicyOverview() {
                     key: 'delete',
                     label: 'Delete',
                     variant: 'destructive',
-                    action: deleteExportPolicy,
+                    action: deleteHttpProxy,
                   },
                 ]}
               />
@@ -144,26 +136,18 @@ export default function ExportPolicyOverview() {
         />
       </motion.div>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+      <div className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-2 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.4 }}
-          className="w-1/2">
-          <ExportPolicyGeneralCard exportPolicy={exportPolicy} />
+          transition={{ delay: 0.4, duration: 0.4 }}>
+          <HttpProxyGeneralCard httpProxy={httpProxy} />
         </motion.div>
-
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.4 }}>
-          <WorkloadSourcesTable data={exportPolicy.sources ?? []} />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.4 }}>
-          <WorkloadSinksTable data={exportPolicy.sinks ?? []} status={exportPolicy.status ?? {}} />
+          <HttpProxyHostnamesCard hostnames={httpProxy?.status?.hostnames ?? []} />
         </motion.div>
       </div>
     </motion.div>

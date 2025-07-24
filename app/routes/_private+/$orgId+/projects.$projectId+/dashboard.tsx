@@ -12,8 +12,8 @@ import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interfa
 import { transformControlPlaneStatus } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';
 import { differenceInMinutes } from 'date-fns';
-import { motion } from 'framer-motion';
 import { ArrowRight, Binoculars, Cloud, GlobeLock, Mail, Network } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useEffect, useMemo, useRef } from 'react';
 import { Link, useRevalidator, useRouteLoaderData } from 'react-router';
 

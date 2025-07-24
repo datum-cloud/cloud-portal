@@ -28,8 +28,8 @@ import { transformControlPlaneStatus } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
-import { motion } from 'framer-motion';
 import { ClockIcon, PencilIcon } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useEffect, useMemo } from 'react';
 import {
   MetaFunction,
