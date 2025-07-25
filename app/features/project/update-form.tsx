@@ -53,7 +53,7 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Project settings</CardTitle>
+        <CardTitle>Project Settings</CardTitle>
       </CardHeader>
 
       <Form
@@ -71,9 +71,6 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
         )}
 
         <CardContent className="space-y-4">
-          <Field label="ID">
-            <TextCopyBox value={defaultValue?.uid ?? ''} />
-          </Field>
           <Field
             label="Name"
             tooltipInfo="Used to identify your project in the dashboard, Datum CLI, and in the URL of your deployments">
@@ -82,7 +79,7 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
 
           <Field
             isRequired
-            label="Display Name"
+            label="Description"
             description="Enter a short, human-friendly name. Can be changed later."
             errors={fields.description.errors}>
             <Input

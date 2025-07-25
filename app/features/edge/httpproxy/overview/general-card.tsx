@@ -4,7 +4,7 @@ import { StatusBadge } from '@/components/status-badge/status-badge';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { getShortId, transformControlPlaneStatus } from '@/utils/misc';
+import { transformControlPlaneStatus } from '@/utils/misc';
 import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
@@ -19,17 +19,6 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: IHttpProxyContr
         className: 'px-2',
         content: (
           <TextCopy className="text-sm" value={httpProxy.name ?? ''} text={httpProxy.name} />
-        ),
-      },
-      {
-        label: 'UID',
-        className: 'px-2',
-        content: (
-          <TextCopy
-            className="text-sm"
-            value={httpProxy.uid ?? ''}
-            text={getShortId(httpProxy.uid ?? '')}
-          />
         ),
       },
       {

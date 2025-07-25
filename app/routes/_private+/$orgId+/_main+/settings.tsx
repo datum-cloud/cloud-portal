@@ -17,11 +17,11 @@ import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router';
 
 export const handle = {
-  breadcrumb: () => <span>Organization settings</span>,
+  breadcrumb: () => <span>Organization Settings</span>,
 };
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Organization settings');
+  return metaObject('Organization Settings');
 });
 
 export const action = async ({ request, params, context }: ActionFunctionArgs) => {
@@ -78,8 +78,8 @@ export default function OrgSettingsPage() {
   const { organization } = useApp();
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-      <PageTitle title="Organization settings" />
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+      <PageTitle title="Organization Settings" />
 
       {/* General Settings */}
       <OrganizationGeneralCard organization={organization ?? {}} />

@@ -214,12 +214,12 @@ async function apiContext(request: Request) {
   const sessionData = session.get(SESSION_KEY);
 
   // Base URL components
-  const BASE_URL_PREFIX = process.env.API_URL;
+  const BASE_API_URL = process.env.API_URL;
   const USER_ID = sessionData?.sub; // This could come from session data or environment variables
 
   // Construct the base URLs
-  const generalBaseUrl = BASE_URL_PREFIX;
-  const iamBaseUrl = `${BASE_URL_PREFIX}/apis/iam.miloapis.com/v1alpha1/users/${USER_ID}/control-plane`;
+  const generalBaseUrl = BASE_API_URL;
+  const iamBaseUrl = `${BASE_API_URL}/apis/iam.miloapis.com/v1alpha1/users/${USER_ID}/control-plane`;
 
   // Create a general resource client by default
   const controlPlaneClient = createControlPlaneFactory(sessionData?.accessToken, generalBaseUrl);

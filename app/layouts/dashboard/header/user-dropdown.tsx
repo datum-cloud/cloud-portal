@@ -53,8 +53,6 @@ export const UserDropdown = () => {
   const { user } = useApp();
   const [open, setOpen] = useState(false);
 
-  const fullName = `${user?.given_name} ${user?.family_name}`;
-
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
@@ -63,7 +61,7 @@ export const UserDropdown = () => {
           variant="ghost"
           size="sm"
           className="h-8 cursor-pointer p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden data-[state=open]:bg-transparent">
-          <UserItem type="avatar" fullName={fullName} className="px-0" />
+          <UserItem type="avatar" fullName={user?.fullName!} className="px-0" />
           {/* <ChevronDownIcon className="size-4 text-primary/60" /> */}
         </Button>
       </DropdownMenuTrigger>
@@ -72,7 +70,7 @@ export const UserDropdown = () => {
         align="end"
         sideOffset={4}>
         <DropdownMenuLabel className="p-0 font-normal">
-          <UserItem type="full" fullName={fullName} description={user?.email} />
+          <UserItem type="full" fullName={user?.fullName!} description={user?.email} />
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

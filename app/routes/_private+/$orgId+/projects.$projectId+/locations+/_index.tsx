@@ -103,23 +103,6 @@ export default function LocationsPage() {
 
   const columns: ColumnDef<ILocationControlResponse>[] = useMemo(
     () => [
-      /* {
-      header: 'Display Name',
-      accessorKey: 'displayName',
-      cell: ({ row }) => {
-        return (
-          <Link
-            to={getPathWithParams(routes.projects.locations.edit, {
-              orgId,
-              projectId,
-              locationId: row.original.name,
-            })}
-            className="font-semibold text-primary">
-            {row.original.displayName || row.original.name}
-          </Link>
-        )
-      },
-    }, */
       {
         header: 'Name',
         accessorKey: 'name',

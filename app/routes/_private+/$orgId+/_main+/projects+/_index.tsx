@@ -58,7 +58,7 @@ export default function ProjectsPage() {
   const columns: ColumnDef<IProjectControlResponse>[] = useMemo(
     () => [
       {
-        header: 'Display Name',
+        header: 'Description',
         accessorKey: 'description',
         cell: ({ row }) => {
           const isDeleted = Boolean(row.original.name && row.original.name === deletedId);

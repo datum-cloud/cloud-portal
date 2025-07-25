@@ -1,11 +1,10 @@
 import { Field } from '@/components/field/field';
-import { TextCopyBox } from '@/components/text-copy/text-copy-box';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useIsPending } from '@/hooks/useIsPending';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { updateOrganizationSchema } from '@/resources/schemas/organization.schema';
+import { useApp } from '@/providers/app.provider';
+import { userSchema } from '@/resources/schemas/user.schema';
 import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect } from 'react';
@@ -13,40 +12,37 @@ import { useFetcher } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 
 /**
- * Organization General Settings Card Component
- * Displays and allows editing of general organization settings
+ * Account General Settings Card Component
+ * Displays and allows editing of general account settings
  */
-export const OrganizationGeneralCard = ({ organization }: { organization: IOrganization }) => {
-  const formId = 'organization-form';
+export const AccountGeneralCard = () => {
+  const { user } = useApp();
+  const formId = 'account-form';
   const fetcher = useFetcher({ key: formId });
   const isPending = useIsPending({ formId, fetcherKey: formId });
 
   const [form, fields] = useForm({
     id: formId,
-    constraint: getZodConstraint(updateOrganizationSchema.pick({ description: true })),
+    constraint: getZodConstraint(userSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, {
-        schema: updateOrganizationSchema.pick({ description: true }),
-      });
+      return parseWithZod(formData, { schema: userSchema });
     },
   });
 
-  const setValue = () => {
-    form.update({
-      value: {
-        description: organization?.displayName ?? '',
-      },
-    });
-  };
-
-  // Update form when organization data changes
+  // Update form when account data changes
   useEffect(() => {
-    if (organization) {
-      setValue();
+    if (user) {
+      form.update({
+        value: {
+          firstName: user?.givenName ?? '',
+          lastName: user?.familyName ?? '',
+          email: user?.email ?? '',
+        },
+      });
     }
-  }, [organization]);
+  }, [user]);
 
   return (
     <Card>
@@ -59,22 +55,37 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
           <CardContent>
             <AuthenticityTokenInput />
 
-            <div className="flex flex-col gap-6">
-              <Field isRequired label="Description" errors={fields.description?.errors}>
+            <div className="flex items-center gap-6">
+              <Field
+                isRequired
+                label="First Name"
+                errors={fields.firstName?.errors}
+                className="w-1/2">
                 <Input
-                  placeholder="e.g. My Organization"
-                  {...getInputProps(fields.description, { type: 'text' })}
+                  placeholder="e.g. John"
+                  {...getInputProps(fields.firstName, { type: 'text' })}
                 />
               </Field>
-              <Field label="Name">
-                <TextCopyBox value={organization?.name ?? ''} />
+              <Field
+                isRequired
+                label="Last Name"
+                errors={fields.lastName?.errors}
+                className="w-1/2">
+                <Input
+                  placeholder="e.g. Doe"
+                  {...getInputProps(fields.lastName, { type: 'text' })}
+                />
               </Field>
             </div>
+            <Field label="Email" className="mt-6 w-full">
+              <Input
+                readOnly
+                placeholder="e.g. john.doe@example.com"
+                {...getInputProps(fields.email, { type: 'email' })}
+              />
+            </Field>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            {/* <Button type="button" variant="link" disabled={isPending} onClick={handleReset}>
-              Cancel
-            </Button> */}
             <Button
               variant="default"
               type="submit"

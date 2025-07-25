@@ -191,25 +191,6 @@ export const NetworkForm = ({
           )}
 
           <CardContent className="space-y-4">
-            {/* <Field
-            label="Display name"
-            description="Enter a short, human-friendly name. Can be changed later."
-            errors={fields.displayName.errors}>
-            <Input
-              {...getInputProps(fields.displayName, { type: 'text' })}
-              key={fields.displayName.id}
-              placeholder="e.g. My Network"
-              onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                if (!isEdit) {
-                  const value = (e.target as HTMLInputElement).value
-
-                  if (value) {
-                    nameControl.change(generateId(value, { randomText: randomSuffix }))
-                  }
-                }
-              }}
-            />
-          </Field> */}
             <Field
               isRequired
               label="Name"

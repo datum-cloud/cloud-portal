@@ -94,7 +94,7 @@ export const CreateProjectForm = () => {
           </Field>
           <Field
             isRequired
-            label="Display Name"
+            label="Description"
             description="Enter a short, human-friendly name. Can be changed later."
             errors={description.errors}>
             <Input

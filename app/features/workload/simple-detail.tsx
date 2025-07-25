@@ -3,7 +3,7 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { Field } from '@/components/field/field';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
-import { getShortId, transformControlPlaneStatus } from '@/utils/misc';
+import { transformControlPlaneStatus } from '@/utils/misc';
 import { formatDistanceToNow } from 'date-fns';
 
 export const SimpleWorkloadDetail = ({
@@ -22,15 +22,6 @@ export const SimpleWorkloadDetail = ({
           text={workload?.name ?? ''}
         />
       </Field>
-      {workload?.uid && (
-        <Field label="UUID">
-          <TextCopy
-            className="text-muted-foreground text-sm"
-            value={workload?.uid}
-            text={getShortId(workload?.uid)}
-          />
-        </Field>
-      )}
       <Field label="Namespace">
         <span className="text-muted-foreground text-sm">{workload?.namespace}</span>
       </Field>
