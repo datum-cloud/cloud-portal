@@ -66,7 +66,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
               <AuthenticityTokenInput />
 
               <div className="flex flex-col gap-6">
-                <Field isRequired label="Display name" errors={fields.description?.errors}>
+                <Field isRequired label="Description" errors={fields.description?.errors}>
                   <Input
                     placeholder="e.g. My Organization"
                     {...getInputProps(fields.description, { type: 'text' })}
@@ -74,9 +74,6 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
                 </Field>
                 <Field label="Name">
                   <TextCopyBox value={organization?.name ?? ''} />
-                </Field>
-                <Field label="UUID">
-                  <TextCopyBox value={organization?.uid ?? ''} />
                 </Field>
               </div>
             </div>

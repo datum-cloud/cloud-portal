@@ -80,23 +80,6 @@ export default function ConnectNetworksPage() {
 
   const columns: ColumnDef<INetworkControlResponse>[] = useMemo(
     () => [
-      /* {
-      header: 'Display Name',
-      accessorKey: 'displayName',
-      cell: ({ row }) => {
-        return (
-          <Link
-            to={getPathWithParams(routes.projects.connect.networks.edit, {
-              orgId,
-              projectId,
-              networkId: row.original.name,
-            })}
-            className="font-semibold text-primary">
-            {row.original.displayName || row.original.name}
-          </Link>
-        )
-      },
-    }, */
       {
         header: 'Name',
         accessorKey: 'name',

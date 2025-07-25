@@ -1,8 +1,6 @@
 import { DateFormat } from '@/components/date-format/date-format';
 import { Field } from '@/components/field/field';
-import { TextCopy } from '@/components/text-copy/text-copy';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
-import { getShortId } from '@/utils/misc';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 
 export const SimpleConfigMapDetail = ({ configMap }: { configMap: IConfigMapControlResponse }) => {
@@ -11,15 +9,6 @@ export const SimpleConfigMapDetail = ({ configMap }: { configMap: IConfigMapCont
       <Field label="Name">
         <span className="text-muted-foreground text-sm">{configMap?.name}</span>
       </Field>
-      {configMap?.uid && (
-        <Field label="UUID">
-          <TextCopy
-            className="text-muted-foreground text-sm"
-            value={configMap?.uid}
-            text={getShortId(configMap?.uid)}
-          />
-        </Field>
-      )}
       <Field label="Namespace">
         <span className="text-muted-foreground text-sm">{configMap?.namespace}</span>
       </Field>
