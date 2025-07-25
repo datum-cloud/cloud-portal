@@ -31,7 +31,7 @@
     "@hey-api/client-axios": "^0.9.1",
     "@monaco-editor/react": "^4.7.0",
     "@myunisoft/loki": "^6.0.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.60.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.62.0",
     "@opentelemetry/exporter-metrics-otlp-http": "^0.202.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.202.0",
     "@opentelemetry/sdk-node": "^0.202.0",
