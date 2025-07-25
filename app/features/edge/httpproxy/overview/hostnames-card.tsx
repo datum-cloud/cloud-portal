@@ -31,7 +31,7 @@ export const HttpProxyHostnamesCard = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Available Proxy Endpoints</CardTitle>
+        <CardTitle>Hostnames</CardTitle>
         {endpoint && (
           <CardDescription>
             These endpoints will forward requests to your backend:{' '}
@@ -43,22 +43,23 @@ export const HttpProxyHostnamesCard = ({
         {(hostnames ?? [])?.length > 0 && (
           <div className="flex flex-col gap-2.5">
             {hostnames?.map((hostname) => {
-              const value = `https://${hostname}`;
               return (
                 <div
                   key={hostname}
                   className="border-input bg-background flex items-center justify-between gap-2 rounded-md border p-2">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline">HTTPS</Badge>
+                    <Badge variant="outline" className="text-[10px]">
+                      HTTP/HTTPS
+                    </Badge>
                     <span className="text-sm font-medium">{hostname}</span>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     className="h-7"
-                    onClick={() => copyToClipboard(value)}>
+                    onClick={() => copyToClipboard(hostname)}>
                     <CopyIcon className="size-4" />
-                    {copied && copiedText?.includes(value) ? 'Copied' : 'Copy'}
+                    {copied && copiedText === hostname ? 'Copied' : 'Copy'}
                   </Button>
                 </div>
               );

@@ -15,7 +15,7 @@ import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api+/edge+/httpproxy+/actions';
-import { generateId, generateRandomString } from '@/utils/idGenerator';
+import { generateRandomString } from '@/utils/idGenerator';
 import {
   FormProvider,
   getFormProps,
@@ -25,7 +25,7 @@ import {
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect, useMemo, useRef } from 'react';
-import { Form, useNavigate, useSubmit } from 'react-router';
+import { Form, useSubmit } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 
@@ -39,7 +39,6 @@ export const HttpProxyForm = ({
   const { orgId } = useApp();
   const isHydrated = useHydrated();
   const isPending = useIsPending();
-  const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
   const submit = useSubmit();
 
@@ -49,7 +48,7 @@ export const HttpProxyForm = ({
    * Generates a resource name from an endpoint URL
    * Handles both domain names and IP addresses
    */
-  const generateNameFromEndpoint = (endpoint: string, randomSuffix: string): string => {
+  /* const generateNameFromEndpoint = (endpoint: string, randomSuffix: string): string => {
     try {
       // Add protocol if missing to make URL parsing work
       const urlString = endpoint.includes('://') ? endpoint : `http://${endpoint}`;
@@ -70,7 +69,7 @@ export const HttpProxyForm = ({
       // Fallback if URL parsing fails
       return generateId(endpoint, { randomText: randomSuffix });
     }
-  };
+  }; */
 
   const isEdit = useMemo(() => {
     return defaultValue?.uid !== undefined;
@@ -151,32 +150,26 @@ export const HttpProxyForm = ({
           <CardContent className="space-y-4">
             <Field
               isRequired
-              label="Backend Endpoint"
-              description="Enter the URL or hostname where your service is running"
-              errors={fields.endpoint.errors}>
-              <Input
-                {...getInputProps(fields.endpoint, { type: 'text' })}
-                ref={inputRef}
-                key={fields.endpoint.id}
-                placeholder="e.g. https://api.example.com or api.example.com"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = (e.target as HTMLInputElement).value;
-                  if (value && !isEdit) {
-                    nameControl.change(generateNameFromEndpoint(value, randomSuffix));
-                  }
-                }}
-              />
-            </Field>
-            <Field
-              isRequired
               label="Proxy Name"
               description="This name will be used to identify your HTTPProxy resource"
               errors={fields.name.errors}>
               <Input
                 {...getInputProps(fields.name, { type: 'text' })}
                 readOnly={isEdit}
+                ref={inputRef}
                 key={fields.name.id}
                 placeholder="e.g. api-example-com-3sd122"
+              />
+            </Field>
+            <Field
+              isRequired
+              label="Backend Endpoint"
+              description="Enter the URL or hostname where your service is running"
+              errors={fields.endpoint.errors}>
+              <Input
+                {...getInputProps(fields.endpoint, { type: 'text' })}
+                key={fields.endpoint.id}
+                placeholder="e.g. https://api.example.com or api.example.com"
               />
             </Field>
           </CardContent>
