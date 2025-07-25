@@ -1,11 +1,10 @@
 export interface IUser {
   sub?: string;
-  name?: string;
-  given_name?: string;
-  family_name?: string;
-  locale?: string;
-  updated_at?: number;
-  preferred_username?: string;
   email?: string;
-  email_verified?: boolean;
+  familyName?: string;
+  givenName?: string;
+  createdAt?: Date;
+  uid?: string;
+  resourceVersion?: string;
+  fullName?: string;
 }

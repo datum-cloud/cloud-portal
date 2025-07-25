@@ -37,8 +37,8 @@ export const AccountGeneralCard = () => {
     if (user) {
       form.update({
         value: {
-          firstName: user?.given_name ?? '',
-          lastName: user?.family_name ?? '',
+          firstName: user?.givenName ?? '',
+          lastName: user?.familyName ?? '',
           email: user?.email ?? '',
         },
       });
@@ -55,7 +55,7 @@ export const AccountGeneralCard = () => {
           className="flex flex-col gap-6">
           <CardContent className="grid grid-cols-12">
             <Label className="text-foreground col-span-12 items-start lg:col-span-5">
-              General settings
+              Profile information
             </Label>
 
             <div className="relative col-span-12 flex flex-col gap-6 lg:col-span-7">
@@ -64,14 +64,12 @@ export const AccountGeneralCard = () => {
               <div className="flex flex-col gap-6">
                 <Field isRequired label="First Name" errors={fields.firstName?.errors}>
                   <Input
-                    readOnly
                     placeholder="e.g. John"
                     {...getInputProps(fields.firstName, { type: 'text' })}
                   />
                 </Field>
                 <Field isRequired label="Last Name" errors={fields.lastName?.errors}>
                   <Input
-                    readOnly
                     placeholder="e.g. Doe"
                     {...getInputProps(fields.lastName, { type: 'text' })}
                   />
@@ -90,7 +88,7 @@ export const AccountGeneralCard = () => {
             <Button
               variant="default"
               type="submit"
-              disabled={isPending || !form.valid || true}
+              disabled={isPending || !form.valid}
               isLoading={isPending}>
               {isPending ? 'Saving' : 'Save'}
             </Button>
