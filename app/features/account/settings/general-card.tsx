@@ -2,7 +2,6 @@ import { Field } from '@/components/field/field';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
 import { userSchema } from '@/resources/schemas/user.schema';
@@ -53,36 +52,38 @@ export const AccountGeneralCard = () => {
           autoComplete="off"
           {...getFormProps(form)}
           className="flex flex-col gap-6">
-          <CardContent className="grid grid-cols-12">
-            <Label className="text-foreground col-span-12 items-start lg:col-span-5">
-              Profile information
-            </Label>
+          <CardContent>
+            <AuthenticityTokenInput />
 
-            <div className="relative col-span-12 flex flex-col gap-6 lg:col-span-7">
-              <AuthenticityTokenInput />
-
-              <div className="flex flex-col gap-6">
-                <Field isRequired label="First Name" errors={fields.firstName?.errors}>
-                  <Input
-                    placeholder="e.g. John"
-                    {...getInputProps(fields.firstName, { type: 'text' })}
-                  />
-                </Field>
-                <Field isRequired label="Last Name" errors={fields.lastName?.errors}>
-                  <Input
-                    placeholder="e.g. Doe"
-                    {...getInputProps(fields.lastName, { type: 'text' })}
-                  />
-                </Field>
-                <Field label="Email">
-                  <Input
-                    readOnly
-                    placeholder="e.g. john.doe@example.com"
-                    {...getInputProps(fields.email, { type: 'email' })}
-                  />
-                </Field>
-              </div>
+            <div className="flex items-center gap-6">
+              <Field
+                isRequired
+                label="First Name"
+                errors={fields.firstName?.errors}
+                className="w-1/2">
+                <Input
+                  placeholder="e.g. John"
+                  {...getInputProps(fields.firstName, { type: 'text' })}
+                />
+              </Field>
+              <Field
+                isRequired
+                label="Last Name"
+                errors={fields.lastName?.errors}
+                className="w-1/2">
+                <Input
+                  placeholder="e.g. Doe"
+                  {...getInputProps(fields.lastName, { type: 'text' })}
+                />
+              </Field>
             </div>
+            <Field label="Email" className="mt-6 w-full">
+              <Input
+                readOnly
+                placeholder="e.g. john.doe@example.com"
+                {...getInputProps(fields.email, { type: 'email' })}
+              />
+            </Field>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             <Button

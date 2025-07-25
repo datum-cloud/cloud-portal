@@ -17,11 +17,11 @@ import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, useRouteLoaderData } from 'react-router';
 
 export const handle = {
-  breadcrumb: () => <span>Project settings</span>,
+  breadcrumb: () => <span>Project Settings</span>,
 };
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Project settings');
+  return metaObject('Project Settings');
 });
 
 export const action = withMiddleware(async ({ request, context, params }: ActionFunctionArgs) => {
@@ -116,8 +116,8 @@ export default function ProjectSettingsPage() {
   const project = useRouteLoaderData('routes/_private+/$orgId+/projects.$projectId+/_layout');
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
-      <PageTitle title="Project settings" />
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+      <PageTitle title="Project Settings" />
       {/* Project Name Section */}
       <ProjectGeneralCard project={project} />
       {/* Labels */}

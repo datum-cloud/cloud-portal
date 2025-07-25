@@ -53,7 +53,7 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Project settings</CardTitle>
+        <CardTitle>Project Settings</CardTitle>
       </CardHeader>
 
       <Form

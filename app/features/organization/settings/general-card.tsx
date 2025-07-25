@@ -3,7 +3,6 @@ import { TextCopyBox } from '@/components/text-copy/text-copy-box';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { updateOrganizationSchema } from '@/resources/schemas/organization.schema';
@@ -57,25 +56,19 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
           autoComplete="off"
           {...getFormProps(form)}
           className="flex flex-col gap-6">
-          <CardContent className="grid grid-cols-12">
-            <Label className="text-foreground col-span-12 items-start lg:col-span-5">
-              General settings
-            </Label>
+          <CardContent>
+            <AuthenticityTokenInput />
 
-            <div className="relative col-span-12 flex flex-col gap-6 lg:col-span-7">
-              <AuthenticityTokenInput />
-
-              <div className="flex flex-col gap-6">
-                <Field isRequired label="Description" errors={fields.description?.errors}>
-                  <Input
-                    placeholder="e.g. My Organization"
-                    {...getInputProps(fields.description, { type: 'text' })}
-                  />
-                </Field>
-                <Field label="Name">
-                  <TextCopyBox value={organization?.name ?? ''} />
-                </Field>
-              </div>
+            <div className="flex flex-col gap-6">
+              <Field isRequired label="Description" errors={fields.description?.errors}>
+                <Input
+                  placeholder="e.g. My Organization"
+                  {...getInputProps(fields.description, { type: 'text' })}
+                />
+              </Field>
+              <Field label="Name">
+                <TextCopyBox value={organization?.name ?? ''} />
+              </Field>
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
