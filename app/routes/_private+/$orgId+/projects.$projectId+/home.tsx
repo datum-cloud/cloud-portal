@@ -156,7 +156,7 @@ export default function ProjectDashboardPage() {
                     </Button>
                     <Button variant="outline" size="sm" className="h-7 w-fit">
                       <a
-                        href="https://docs.datum.net/docs/tutorials/gateway/"
+                        href="https://docs.datum.net/docs/tutorials/httpproxy/"
                         target="_blank"
                         rel="noreferrer"
                         className="flex items-center gap-2">
