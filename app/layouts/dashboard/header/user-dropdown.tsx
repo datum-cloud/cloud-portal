@@ -76,9 +76,9 @@ export const UserDropdown = () => {
         <DropdownMenuGroup>
           <DropdownMenuItem
             className="cursor-pointer"
-            onClick={() => navigate(routes.account.settings)}>
+            onClick={() => navigate(routes.account.preferences)}>
             <UserCogIcon />
-            Account Settings
+            Account preferences
           </DropdownMenuItem>
         </DropdownMenuGroup>
 

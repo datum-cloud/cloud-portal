@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useIsPending } from '@/hooks/useIsPending';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
+import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { updateOrganizationSchema } from '@/resources/schemas/organization.schema';
 import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
@@ -61,28 +61,34 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
 
             <div className="flex flex-col gap-6">
               <Field isRequired label="Description" errors={fields.description?.errors}>
-                <Input
-                  placeholder="e.g. My Organization"
-                  {...getInputProps(fields.description, { type: 'text' })}
-                />
+                {organization && organization?.type === OrganizationType.Personal ? (
+                  <TextCopyBox value={organization?.displayName ?? ''} />
+                ) : (
+                  <Input
+                    placeholder="e.g. My Organization"
+                    {...getInputProps(fields.description, { type: 'text' })}
+                  />
+                )}
               </Field>
               <Field label="Name">
                 <TextCopyBox value={organization?.name ?? ''} />
               </Field>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end gap-2">
-            {/* <Button type="button" variant="link" disabled={isPending} onClick={handleReset}>
+          {organization && organization?.type !== OrganizationType.Personal && (
+            <CardFooter className="flex justify-end gap-2">
+              {/* <Button type="button" variant="link" disabled={isPending} onClick={handleReset}>
               Cancel
             </Button> */}
-            <Button
-              variant="default"
-              type="submit"
-              disabled={isPending || !form.valid}
-              isLoading={isPending}>
-              {isPending ? 'Saving' : 'Save'}
-            </Button>
-          </CardFooter>
+              <Button
+                variant="default"
+                type="submit"
+                disabled={isPending || !form.valid}
+                isLoading={isPending}>
+                {isPending ? 'Saving' : 'Save'}
+              </Button>
+            </CardFooter>
+          )}
         </fetcher.Form>
       </FormProvider>
     </Card>

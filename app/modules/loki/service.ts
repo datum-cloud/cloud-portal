@@ -23,10 +23,9 @@ export class LokiActivityLogsService {
   async getActivityLogs(queryParams: QueryParams): Promise<ActivityLogsResponse> {
     // Validate and sanitize parameters
     const validatedParams = validateQueryParams(queryParams);
-    const projectName = queryParams.project;
 
     // Log the parameters for debugging
-    console.log('Loki query parameters:', { ...validatedParams, projectName });
+    console.log('Loki query parameters:', { ...validatedParams });
 
     // Create Loki client
     const client = createLokiClient(this.accessToken);
@@ -34,13 +33,18 @@ export class LokiActivityLogsService {
     // Build LogQL query
     const logQuery = buildLogQLQuery({
       baseSelector: '{telemetry_datumapis_com_audit_log="true"}',
-      projectName,
-      // Hybrid filtering approach
+      // Hybrid filtering approach with type conversion
+      project: queryParams.project,
       q: queryParams.q,
       user: queryParams.user,
       resource: queryParams.resource,
+      objectName: queryParams.objectName,
+      apiGroup: queryParams.apiGroup,
+      apiVersion: queryParams.apiVersion,
       status: queryParams.status,
       actions: queryParams.actions,
+      stage: queryParams.stage,
+      excludeDryRun: queryParams.excludeDryRun, // Pass boolean directly
     });
 
     // Execute query

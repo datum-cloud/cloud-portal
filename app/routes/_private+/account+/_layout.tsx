@@ -15,10 +15,11 @@ export default function AccountLayout() {
         icon: Building2Icon,
       },
       {
-        title: 'Account Settings',
-        href: routes.account.settings,
+        title: 'Account settings',
+        href: routes.account.preferences,
         type: 'link',
         icon: SettingsIcon,
+        tabChildLinks: [routes.account.preferences, routes.account.activity],
       },
     ];
   }, []);

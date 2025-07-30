@@ -17,8 +17,15 @@ export interface QueryParams {
   // Hybrid filtering approach
   q?: string; // Flexible search across multiple fields (user, resource, action, etc.)
   user?: string; // Specific user filter
-  resource?: string; // Specific resource type filter
+  // ObjectRef filtering - supports complete Kubernetes resource identification
+  resource?: string; // objectRef_resource (e.g., "organizations", "locations")
+  objectName?: string; // objectRef_name (e.g., "personal-org-793a7f9c")
+  apiGroup?: string; // objectRef_apiGroup (e.g., "resourcemanager.miloapis.com")
+  apiVersion?: string; // objectRef_apiVersion (e.g., "v1alpha1")
   status?: string; // Status filter (success, error, or specific codes like 403)
+  // Loki-specific filtering
+  stage?: string; // Audit log stage filter (default: "ResponseComplete")
+  excludeDryRun?: boolean; // Exclude dry run requests (default: true)
   /**
    * Action filter
    * get - Read a specific resource
@@ -95,13 +102,20 @@ export interface ActivityLogsResponse {
 
 export interface LogQLQueryOptions {
   baseSelector: string;
-  projectName?: string;
   // Hybrid filtering approach
   q?: string; // Flexible search across multiple fields
+  project?: string;
   user?: string; // Specific user filter
   action?: string; // Specific action filter
-  resource?: string; // Specific resource type filter
+  // ObjectRef filtering - supports complete Kubernetes resource identification
+  resource?: string; // objectRef_resource (e.g., "organizations", "locations")
+  objectName?: string; // objectRef_name (e.g., "personal-org-793a7f9c")
+  apiGroup?: string; // objectRef_apiGroup (e.g., "resourcemanager.miloapis.com")
+  apiVersion?: string; // objectRef_apiVersion (e.g., "v1alpha1")
   status?: string; // Status filter (success, error, or specific codes)
+  // Loki-specific filtering
+  stage?: string; // Audit log stage filter (default: "ResponseComplete")
+  excludeDryRun?: boolean; // Exclude dry run requests (default: true)
   actions?: string; // Comma-separated list of verbs to filter (e.g., "create,update,delete")
 }
 

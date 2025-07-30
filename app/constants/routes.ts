@@ -11,10 +11,8 @@ export const routes = {
     root: '/[orgId]/dashboard',
     docs: '/[orgId]/docs',
     settings: {
-      root: '/[orgId]/settings',
-      general: '/[orgId]/settings/general',
-      members: '/[orgId]/settings/members',
-      billing: '/[orgId]/settings/billing',
+      root: '/[orgId]/preferences',
+      activity: '/[orgId]/activity',
     },
     projects: {
       root: '/[orgId]/projects',
@@ -32,7 +30,8 @@ export const routes = {
       root: '/account/api-keys',
       new: '/account/api-keys/new',
     },
-    settings: '/account/settings',
+    preferences: '/account/preferences',
+    activity: '/account/activity',
   },
   projects: {
     detail: '/[orgId]/projects/[projectId]',

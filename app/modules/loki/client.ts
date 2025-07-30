@@ -15,13 +15,35 @@ export const LOKI_CONFIG: LokiConfig = {
  * Builds LogQL query string with hybrid filtering approach
  */
 export function buildLogQLQuery(options: LogQLQueryOptions): string {
-  const { baseSelector, projectName, q, user, resource, status, actions } = options;
+  const {
+    baseSelector,
+    project,
+    user,
+    resource,
+    objectName,
+    apiGroup,
+    apiVersion,
+    status,
+    actions,
+    stage,
+    excludeDryRun,
+  } = options;
 
   let query = `${baseSelector} | json`;
 
+  // Add stage filter if specified
+  if (stage) {
+    query += ` | stage="${stage}"`;
+  }
+
+  // Add dry run exclusion filter if enabled
+  if (excludeDryRun) {
+    query += ` | requestURI !~ ".*dryRun=All.*"`;
+  }
+
   // Project filter (legacy support)
-  if (projectName) {
-    query += ` | annotations_resourcemanager_miloapis_com_project_name="${projectName}"`;
+  if (project) {
+    query += ` | annotations_resourcemanager_miloapis_com_project_name="${project}"`;
   }
 
   // Filter for specific verbs using regex (if verbs parameter is provided)
@@ -45,8 +67,21 @@ export function buildLogQLQuery(options: LogQLQueryOptions): string {
     query += ` | user_username="${user}"`;
   }
 
+  // ObjectRef filtering - complete Kubernetes resource identification
   if (resource) {
     query += ` | objectRef_resource="${resource}"`;
+  }
+
+  if (objectName) {
+    query += ` | objectRef_name="${objectName}"`;
+  }
+
+  if (apiGroup) {
+    query += ` | objectRef_apiGroup="${apiGroup}"`;
+  }
+
+  if (apiVersion) {
+    query += ` | objectRef_apiVersion="${apiVersion}"`;
   }
 
   if (status) {

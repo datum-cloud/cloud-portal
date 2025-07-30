@@ -32,7 +32,7 @@ export default function AccountOrganizations() {
       subtitle="You don't have any organizations"
     />
   ) : (
-    <>
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
       <PageTitle title="Your Organizations" />
       <div className="flex w-full flex-col gap-4">
         {(orgs ?? [])
@@ -50,6 +50,6 @@ export default function AccountOrganizations() {
 
         {/* <NewOrganizationCard /> */}
       </div>
-    </>
+    </div>
   );
 }

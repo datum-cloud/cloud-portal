@@ -15,7 +15,6 @@ import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api+/edge+/httpproxy+/actions';
-import { generateRandomString } from '@/utils/idGenerator';
 import {
   FormProvider,
   getFormProps,
@@ -43,33 +42,6 @@ export const HttpProxyForm = ({
   const submit = useSubmit();
 
   const inputRef = useRef<HTMLInputElement>(null);
-
-  /**
-   * Generates a resource name from an endpoint URL
-   * Handles both domain names and IP addresses
-   */
-  /* const generateNameFromEndpoint = (endpoint: string, randomSuffix: string): string => {
-    try {
-      // Add protocol if missing to make URL parsing work
-      const urlString = endpoint.includes('://') ? endpoint : `http://${endpoint}`;
-      const hostname = new URL(urlString).hostname;
-
-      // Check if the hostname is an IP address
-      const isIpAddress = /^\d{1,3}(\.\d{1,3}){3}$/.test(hostname);
-
-      if (isIpAddress) {
-        // For IP addresses, use "ip-" prefix and replace dots with dashes
-        const ipFormatted = `ip-${hostname}`;
-        return generateId(ipFormatted, { randomText: randomSuffix });
-      } else {
-        // For regular domains
-        return generateId(hostname, { randomText: randomSuffix });
-      }
-    } catch {
-      // Fallback if URL parsing fails
-      return generateId(endpoint, { randomText: randomSuffix });
-    }
-  }; */
 
   const isEdit = useMemo(() => {
     return defaultValue?.uid !== undefined;
@@ -118,7 +90,6 @@ export const HttpProxyForm = ({
 
   const nameControl = useInputControl(fields.name);
   const endpointControl = useInputControl(fields.endpoint);
-  const randomSuffix = useMemo(() => generateRandomString(6), []);
 
   useEffect(() => {
     isHydrated && inputRef.current?.focus();
