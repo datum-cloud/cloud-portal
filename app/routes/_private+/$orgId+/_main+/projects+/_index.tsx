@@ -14,7 +14,7 @@ import { cn } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { BookOpenIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { AppLoadContext, data, Link, useLoaderData, useNavigate } from 'react-router';
 
@@ -148,13 +148,6 @@ export default function ProjectsPage() {
         title: 'No projects found.',
         subtitle: 'Create your first project to get started.',
         actions: [
-          {
-            type: 'external-link',
-            label: 'Documentation',
-            to: 'https://docs.datum.net/docs/tasks/create-project/',
-            variant: 'ghost',
-            icon: <BookOpenIcon className="size-4" />,
-          },
           {
             type: 'link',
             label: 'New Project',

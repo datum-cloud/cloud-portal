@@ -2,88 +2,86 @@ import { DataTableEmptyContentProps } from './data-table.types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/misc';
 import { Link } from 'react-router';
-import { useTheme } from 'remix-themes';
+
+// Common styles that don't change across sizes
+const BASE_STYLES = {
+  container:
+    'flex h-full max-h-72 flex-col items-center justify-center rounded-lg border-2 border-dashed gap-3',
+  titleContainer: 'flex flex-col items-center mb-2',
+  title: 'text-lg font-semibold',
+  subtitle: 'text-sm text-muted-foreground',
+  actionsContainer: 'flex items-center',
+  button: 'flex items-center gap-1 text-sm',
+} as const;
+
+// Size-specific configurations (only what changes)
+const SIZE_CONFIG = {
+  sm: {
+    image: 'size-32',
+    actionsGap: 'gap-1.5',
+  },
+  md: {
+    image: 'size-40',
+    actionsGap: 'gap-3',
+  },
+  lg: {
+    image: 'size-56',
+    actionsGap: 'gap-3',
+  },
+} as const;
+
+type DataTableEmptyContentSize = keyof typeof SIZE_CONFIG;
 
 export const DataTableEmptyContent = ({
   title = 'No data found',
   subtitle = 'There is no data to display.',
-  image,
   size = 'md',
   actions = [],
 }: DataTableEmptyContentProps) => {
-  const [theme] = useTheme();
+  const sizeStyles = SIZE_CONFIG[size as DataTableEmptyContentSize];
 
-  // Size-based styling configurations
-  const sizeConfig = {
-    sm: {
-      container: 'gap-3',
-      image: 'size-32',
-      titleContainer: 'mb-2',
-      title: 'text-lg font-semibold',
-      subtitle: 'text-sm text-muted-foreground',
-      actionsContainer: 'gap-1.5',
-      buttonSize: 'sm' as const,
-      buttonStyle: 'text-sm',
-    },
-    md: {
-      container: 'gap-5',
-      image: 'size-40',
-      titleContainer: 'mb-2',
-      title: 'text-xl font-semibold',
-      subtitle: 'text-base text-muted-foreground',
-      actionsContainer: 'gap-3',
-      buttonSize: 'default' as const,
-      buttonStyle: 'text-sm',
-    },
-    lg: {
-      container: 'gap-6',
-      image: 'size-56',
-      titleContainer: 'mb-2',
-      title: 'text-2xl font-semibold',
-      subtitle: 'text-base text-muted-foreground',
-      actionsContainer: 'gap-3',
-      buttonSize: 'lg' as const,
-      buttonStyle: 'text-base',
-    },
+  const renderAction = (action: NonNullable<DataTableEmptyContentProps['actions']>[0]) => {
+    const buttonContent = (
+      <Button size="sm" variant={action.variant} className={cn(BASE_STYLES.button)}>
+        {action.icon}
+        <span>{action.label}</span>
+      </Button>
+    );
+
+    if (action.type === 'link' || action.type === 'external-link') {
+      return (
+        <Link
+          key={action.label}
+          to={action.to ?? ''}
+          target={action.type === 'external-link' ? '_blank' : '_self'}>
+          {buttonContent}
+        </Link>
+      );
+    }
+
+    return (
+      <Button
+        key={action.label}
+        size="sm"
+        onClick={action.onClick}
+        variant={action.variant}
+        className={cn(BASE_STYLES.button)}>
+        {action.icon}
+        <span>{action.label}</span>
+      </Button>
+    );
   };
 
-  const styles = sizeConfig[size];
-
   return (
-    <div className={`flex h-full flex-col items-center justify-center ${styles.container}`}>
-      <img src={image || `/images/empty-data-${theme}.svg`} alt="Datum" className={styles.image} />
-      <div className={`flex flex-col items-center ${styles.titleContainer}`}>
-        <h2 className={styles.title}>{title}</h2>
-        <p className={styles.subtitle}>{subtitle}</p>
+    <div className={BASE_STYLES.container}>
+      <div className={BASE_STYLES.titleContainer}>
+        <h2 className={BASE_STYLES.title}>{title}</h2>
+        <p className={BASE_STYLES.subtitle}>{subtitle}</p>
       </div>
+
       {actions.length > 0 && (
-        <div className={`flex items-center ${styles.actionsContainer}`}>
-          {actions.map((action) => {
-            return action.type === 'link' || action.type === 'external-link' ? (
-              <Link
-                key={action.label}
-                to={action.to ?? ''}
-                target={action.type === 'external-link' ? '_blank' : '_self'}>
-                <Button
-                  size={styles.buttonSize}
-                  variant={action.variant}
-                  className={cn('flex items-center gap-2', styles.buttonStyle)}>
-                  {action.icon}
-                  <span>{action.label}</span>
-                </Button>
-              </Link>
-            ) : (
-              <Button
-                size={styles.buttonSize}
-                key={action.label}
-                onClick={action.onClick}
-                variant={action.variant}
-                className={cn('flex items-center gap-2', styles.buttonStyle)}>
-                {action.icon}
-                <span>{action.label}</span>
-              </Button>
-            );
-          })}
+        <div className={cn(BASE_STYLES.actionsContainer, sizeStyles.actionsGap)}>
+          {actions.map(renderAction)}
         </div>
       )}
     </div>

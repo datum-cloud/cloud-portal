@@ -127,7 +127,8 @@ export const DataTable = <TData, TValue>({
       isLoading={undefined}>
       <div
         className={cn(
-          'mx-auto flex h-full w-full max-w-(--breakpoint-xl) flex-col gap-4',
+          'mx-auto flex h-full w-full flex-col gap-4',
+          !isLoading && data?.length > 0 ? 'max-w-(--breakpoint-xl)' : '',
           className
         )}>
         {isLoading ? (
