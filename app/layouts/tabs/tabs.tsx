@@ -10,7 +10,7 @@ export default function TabsLayout({
   className,
   widthClassName = 'w-full max-w-5xl',
   tabsTitle,
-  navs,
+  navItems,
 }: TabsProps) {
   const pathname = useLocation().pathname;
 
@@ -40,7 +40,7 @@ export default function TabsLayout({
         <div className={cn('mx-auto px-5', widthClassName)}>
           <Tabs value={activeTab}>
             <TabsList className="bg-background flex w-full justify-start rounded-none p-0">
-              {(navs ?? []).map((nav) => (
+              {(navItems ?? []).map((nav) => (
                 <TabsLinkTrigger
                   key={nav.value}
                   value={nav.value}
@@ -60,8 +60,8 @@ export default function TabsLayout({
         </div>
       </div>
 
-      <div className={cn('mx-auto px-5', widthClassName)}>
-        <div className="flex flex-1 flex-col">{children}</div>
+      <div className={cn('mx-auto h-full px-5 pt-2', widthClassName)}>
+        <div className="flex h-full flex-1 flex-col">{children}</div>
       </div>
     </div>
   );

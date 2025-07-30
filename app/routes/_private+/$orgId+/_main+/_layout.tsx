@@ -12,15 +12,10 @@ export default function OrgLayout() {
 
   const navItems: NavItem[] = useMemo(() => {
     const orgId = organization?.name;
+    const settingsRoot = getPathWithParams(routes.org.settings.root, { orgId });
+    const settingsActivity = getPathWithParams(routes.org.settings.activity, { orgId });
+
     return [
-      /*      {
-        title: 'Home',
-        href: getPathWithParams(routes.org.root, {
-          orgId,
-        }),
-        type: 'link',
-        icon: HomeIcon,
-      }, */
       {
         title: 'Projects',
         href: getPathWithParams(routes.org.projects.root, { orgId }),
@@ -29,9 +24,10 @@ export default function OrgLayout() {
       },
       {
         title: 'Organization settings',
-        href: getPathWithParams(routes.org.settings.root, { orgId }),
+        href: settingsRoot,
         type: 'link',
         icon: SettingsIcon,
+        tabChildLinks: [settingsRoot, settingsActivity],
       },
     ];
   }, [organization]);

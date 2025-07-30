@@ -4,6 +4,47 @@ import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { data, type LoaderFunctionArgs } from 'react-router';
 
+/**
+ * Helper function to parse and validate activity log query parameters
+ */
+const parseActivityLogParams = (searchParams: URLSearchParams): QueryParams => {
+  const getStringParam = (key: string): string | undefined => {
+    const value = searchParams.get(key);
+    return value || undefined;
+  };
+
+  const getBooleanParam = (key: string): boolean | undefined => {
+    const value = searchParams.get(key);
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return undefined;
+  };
+
+  return {
+    // Basic parameters
+    limit: getStringParam('limit'),
+    start: getStringParam('start'),
+    end: getStringParam('end'),
+    project: getStringParam('project'),
+
+    // Search and filtering
+    q: getStringParam('q'),
+    user: getStringParam('user'),
+    status: getStringParam('status'),
+    actions: getStringParam('actions'),
+
+    // ObjectRef filtering
+    resource: getStringParam('resource'),
+    objectName: getStringParam('objectName'),
+    apiGroup: getStringParam('apiGroup'),
+    apiVersion: getStringParam('apiVersion'),
+
+    // Loki-specific filtering
+    stage: getStringParam('stage'),
+    excludeDryRun: getBooleanParam('excludeDryRun'),
+  };
+};
+
 // Route configuration
 export const ROUTE_PATH = '/api/activity-logs' as const;
 
@@ -20,20 +61,9 @@ export const loader = withMiddleware(async ({ request }: LoaderFunctionArgs) => 
       });
     }
 
-    // Parse query parameters
+    // Parse and validate query parameters
     const url = new URL(request.url);
-    const queryParams: QueryParams = {
-      limit: url.searchParams.get('limit') || undefined,
-      start: url.searchParams.get('start') || undefined,
-      end: url.searchParams.get('end') || undefined,
-      project: url.searchParams.get('project') || undefined,
-      // Hybrid filtering approach
-      q: url.searchParams.get('q') || undefined,
-      user: url.searchParams.get('user') || undefined,
-      resource: url.searchParams.get('resource') || undefined,
-      status: url.searchParams.get('status') || undefined,
-      actions: url.searchParams.get('actions') || undefined,
-    };
+    const queryParams = parseActivityLogParams(url.searchParams);
 
     const service = new LokiActivityLogsService(session.accessToken);
     const activityLogsResponse = await service.getActivityLogs(queryParams);

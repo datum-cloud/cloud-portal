@@ -125,7 +125,11 @@ export const DataTable = <TData, TValue>({
       columnVisibility={{}}
       enableColumnOrdering={false}
       isLoading={undefined}>
-      <div className={cn('flex h-full w-full flex-col gap-4', className)}>
+      <div
+        className={cn(
+          'mx-auto flex h-full w-full max-w-(--breakpoint-xl) flex-col gap-4',
+          className
+        )}>
         {isLoading ? (
           <DataTableLoadingContent title={loadingText} />
         ) : data?.length > 0 ? (

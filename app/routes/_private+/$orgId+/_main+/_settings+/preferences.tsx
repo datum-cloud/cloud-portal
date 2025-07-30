@@ -1,4 +1,3 @@
-import { PageTitle } from '@/components/page-title/page-title';
 import { OrganizationDangerCard } from '@/features/organization/settings/danger-card';
 import { OrganizationGeneralCard } from '@/features/organization/settings/general-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
@@ -17,11 +16,11 @@ import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router';
 
 export const handle = {
-  breadcrumb: () => <span>Organization Settings</span>,
+  breadcrumb: () => <span>Preferences</span>,
 };
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Organization Settings');
+  return metaObject('Preferences');
 });
 
 export const action = async ({ request, params, context }: ActionFunctionArgs) => {
@@ -74,18 +73,13 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
   }
 };
 
-export default function OrgSettingsPage() {
+export default function OrgPreferencesPage() {
   const { organization } = useApp();
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <PageTitle title="Organization Settings" />
-
+    <div className="mx-auto flex w-full flex-col gap-4">
       {/* General Settings */}
       <OrganizationGeneralCard organization={organization ?? {}} />
-
-      {/* Labels */}
-      {/* <OrganizationLabelCard labels={organization?.labels ?? {}} /> */}
 
       {/* Danger Zone */}
       {organization && organization?.type !== OrganizationType.Personal ? (

@@ -1,4 +1,3 @@
-import { PageTitle } from '@/components/page-title/page-title';
 import { routes } from '@/constants/routes';
 import { AccountGeneralCard } from '@/features/account/settings/general-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
@@ -20,11 +19,11 @@ import {
 } from 'react-router';
 
 export const handle = {
-  breadcrumb: () => <span>Account settings</span>,
+  breadcrumb: () => <span>Preferences</span>,
 };
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Account settings');
+  return metaObject('Preferences');
 });
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
@@ -65,7 +64,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   }
 };
 
-export default function AccountSettingsPage() {
+export default function AccountPreferencesPage() {
   const user = useActionData<typeof action>();
 
   const { setUser } = useApp();
@@ -76,11 +75,5 @@ export default function AccountSettingsPage() {
     }
   }, [user]);
 
-  return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <PageTitle title="Account settings" />
-      {/* Project Name Section */}
-      <AccountGeneralCard />
-    </div>
-  );
+  return <AccountGeneralCard />;
 }

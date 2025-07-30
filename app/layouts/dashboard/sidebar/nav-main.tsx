@@ -34,6 +34,13 @@ export type NavItem = {
   children?: NavItem[];
   open?: boolean;
   hidden?: boolean;
+
+  // Tab Child Links - used to highlight parent nav item when on child tab routes
+  // TODO: Replace with proper route hierarchy detection or nested route structure
+  // Currently needed to mark parent nav items as active when user is on tab child routes
+  // Mixed layout scenario: `/account/preferences` and `/account/activity` use tabs layout,
+  // while `/account/organizations` uses sidebar layout, but all share the same parent sidebar nav
+  tabChildLinks?: string[];
 };
 export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { items: NavItem[] }>(
   ({ className, items, ...props }, ref) => {
@@ -42,9 +49,9 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
     const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
 
     const activeNavItem = useCallback(
-      (val: string) => {
+      (item: NavItem) => {
         // pathname is from useLocation() in the outer scope.
-        // val is the nav item's path string.
+        // item is the nav item object with href and tabChildLinks.
 
         const normalize = (p: string): string => {
           let result = p.startsWith('/') ? p : `/${p}`;
@@ -56,7 +63,13 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
         };
 
         const cleanCurrentPath = normalize(pathname);
-        const cleanNavPath = normalize(val);
+
+        // If no href, can't be active
+        if (!item.href) {
+          return false;
+        }
+
+        const cleanNavPath = normalize(item.href);
 
         // Handle root path case: nav item is '/'
         if (cleanNavPath === '/') {
@@ -64,9 +77,20 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
         }
 
         // Check for exact match or if current path is a sub-path of nav item path
-        // e.g., current: /settings/profile, nav: /settings -> true (startsWith /settings/)
-        // e.g., current: /settings, nav: /settings -> true (exact match)
-        return cleanCurrentPath === cleanNavPath || cleanCurrentPath.startsWith(`${cleanNavPath}/`);
+        const isDirectMatch =
+          cleanCurrentPath === cleanNavPath || cleanCurrentPath.startsWith(`${cleanNavPath}/`);
+
+        // Check tabChildLinks for mixed layout scenarios (tabs + sidebar)
+        const isTabChildMatch =
+          item.tabChildLinks?.some((childPath) => {
+            const cleanChildPath = normalize(childPath);
+            return (
+              cleanCurrentPath === cleanChildPath ||
+              cleanCurrentPath.startsWith(`${cleanChildPath}/`)
+            );
+          }) ?? false;
+
+        return isDirectMatch || isTabChildMatch;
       },
       [pathname]
     );
@@ -100,7 +124,7 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
         );
       }
 
-      const isActive = activeNavItem(item.href as string);
+      const isActive = activeNavItem(item);
       const pathnameExistInDropdowns =
         item.children?.filter((dropdownItem: NavItem) =>
           pathname.includes(dropdownItem.href as string)
@@ -133,11 +157,11 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
                 <DropdownMenuGroup>
                   {item.children?.map((subItem) => {
                     const hasSubChildren = (subItem.children || []).length > 0;
-                    const isSubItemActive = activeNavItem(subItem.href as string);
+                    const isSubItemActive = activeNavItem(subItem);
 
                     if (hasSubChildren) {
                       const hasActiveSubChild = subItem.children?.some((thirdLevelItem) =>
-                        activeNavItem(thirdLevelItem.href as string)
+                        activeNavItem(thirdLevelItem)
                       );
 
                       return (
@@ -158,9 +182,7 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
                             <DropdownMenuSeparator />
                             <DropdownMenuGroup>
                               {subItem.children?.map((thirdLevelItem) => {
-                                const isThirdLevelActive = activeNavItem(
-                                  thirdLevelItem.href as string
-                                );
+                                const isThirdLevelActive = activeNavItem(thirdLevelItem);
 
                                 return (
                                   <DropdownMenuItem

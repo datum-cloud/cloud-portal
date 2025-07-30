@@ -116,7 +116,7 @@ export default function ProjectSettingsPage() {
   const project = useRouteLoaderData('routes/_private+/$orgId+/projects.$projectId+/_layout');
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
       <PageTitle title="Project Settings" />
       {/* Project Name Section */}
       <ProjectGeneralCard project={project} />

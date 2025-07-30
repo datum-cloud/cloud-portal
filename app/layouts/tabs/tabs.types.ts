@@ -5,7 +5,7 @@ export interface TabsProps {
   className?: string;
   widthClassName?: string;
   tabsTitle?: TabsTitleProps;
-  navs?: TabsNavProps[];
+  navItems?: TabsNavProps[];
 }
 
 export interface TabsNavProps {
