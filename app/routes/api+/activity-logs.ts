@@ -26,6 +26,7 @@ const parseActivityLogParams = (searchParams: URLSearchParams): QueryParams => {
     start: getStringParam('start'),
     end: getStringParam('end'),
     project: getStringParam('project'),
+    organization: getStringParam('organization'),
 
     // Search and filtering
     q: getStringParam('q'),

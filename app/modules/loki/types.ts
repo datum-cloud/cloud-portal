@@ -14,6 +14,7 @@ export interface QueryParams {
   start?: string;
   end?: string;
   project?: string;
+  organization?: string;
   // Hybrid filtering approach
   q?: string; // Flexible search across multiple fields (user, resource, action, etc.)
   user?: string; // Specific user filter
@@ -105,6 +106,7 @@ export interface LogQLQueryOptions {
   // Hybrid filtering approach
   q?: string; // Flexible search across multiple fields
   project?: string;
+  organization?: string;
   user?: string; // Specific user filter
   action?: string; // Specific action filter
   // ObjectRef filtering - supports complete Kubernetes resource identification
