@@ -18,6 +18,7 @@ export function buildLogQLQuery(options: LogQLQueryOptions): string {
   const {
     baseSelector,
     project,
+    organization,
     user,
     resource,
     objectName,
@@ -44,6 +45,11 @@ export function buildLogQLQuery(options: LogQLQueryOptions): string {
   // Project filter (legacy support)
   if (project) {
     query += ` | annotations_resourcemanager_miloapis_com_project_name="${project}"`;
+  }
+
+  // organization filter
+  if (organization) {
+    query += ` | annotations_resourcemanager_miloapis_com_organization_name="${organization}"`;
   }
 
   // Filter for specific verbs using regex (if verbs parameter is provided)

@@ -12,5 +12,5 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export default function OrgActivityPage() {
   const { orgId } = useParams();
-  return <ActivityLogList params={{ resource: 'organizations', objectName: orgId }} />;
+  return <ActivityLogList params={{ organization: orgId }} />;
 }

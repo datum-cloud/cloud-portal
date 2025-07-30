@@ -35,6 +35,7 @@ export class LokiActivityLogsService {
       baseSelector: '{telemetry_datumapis_com_audit_log="true"}',
       // Hybrid filtering approach with type conversion
       project: queryParams.project,
+      organization: queryParams.organization,
       q: queryParams.q,
       user: queryParams.user,
       resource: queryParams.resource,
