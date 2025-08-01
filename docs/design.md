@@ -2,19 +2,23 @@
 
 ### Project Structure and Organization
 
-We will implement a robust and scalable project structure leveraging **[Remix](https://hygraph.com/blog/remix-vs-next) file-based routing** and conventions. This approach will ensure long-term maintainability, ease of development, and efficient team collaboration.
+We implement a robust and scalable project structure based on **feature-based modules** and Remix's file-based routing conventions. This approach ensures long-term maintainability, developer efficiency, and clear separation of concerns.
 
-- **Modular Feature-Based Organization**: Components, styles, and logic related to specific features will be grouped in dedicated directories.
-- **Clear Separation of Concerns**: Maintain a strict separation between components, hooks, utilities, and resources/services.
-  - `components/`, `hooks/`, `utils/`, `resources/api/`, `resources/state`
-- **Absolute Imports with Aliases**: Use absolute imports for better readability (`@components`, `@hooks`, `@utils`).
-- **Consistent Naming Conventions**:
-  - **Components**: PascalCase (`UserProfile.tsx`)
-  - **Hooks**: camelCase with 'use' prefix (`useAuth.ts`)
-  - **Utilities**: camelCase (`formatDate.ts`)
-  - **Types/Interfaces**: PascalCase with type/interface prefix (`TUser`, `IUser`)
-  - **Constants**: UPPERCASE (`API_ENDPOINTS`)
-- **Optimized for [Remix](https://hygraph.com/blog/remix-vs-next)**: This structure will take full advantage of [Remix](https://hygraph.com/blog/remix-vs-next) features like file-based routing, server components, and data fetching, leading to improved performance, SEO, and a better developer experience.
+The application is primarily organized into the following top-level directories within `app/`:
+
+- **`app/features/`**: This is the core of the application's UI. Each subdirectory is a self-contained feature module that includes its own top-level components and internal sub-components. This co-location makes features easy to develop and maintain. (See `[Feature Modules](./architecture/feature-modules.md)` for more details).
+
+- **`app/components/`**: This is the shared UI library for the application. It contains reusable components that are not specific to any single feature, organized by scope (`common`, `layout`, `forms`, `ui`). (See `[Shared Components](./architecture/shared-components.md)` for more details).
+
+- **`app/resources/`**: This is the data layer of the application. It is responsible for all communication with external APIs and defines the data contracts for the application (schemas, interfaces, and API control files).
+
+- **`app/routes/`**: This directory contains the Remix routes. The route files are responsible for loading data from the `resources` layer and passing it to the appropriate components from the `features` and `components` directories.
+
+- **`app/modules/`**: Contains shared business logic, authentication services, and other modules that are not directly tied to the UI.
+
+- **`app/hooks/` & `app/utils/`**: These directories contain globally reusable hooks and utility functions, respectively.
+
+This structure takes full advantage of Remix's capabilities while providing a clear and scalable organization for the codebase.
 
 ### Remix and SSR (Server Side Rendering)
 
