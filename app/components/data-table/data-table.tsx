@@ -4,9 +4,9 @@ import { DataTablePagination } from './data-table-pagination';
 import { DataTableRowActions } from './data-table-row-actions';
 import { DataTableProps } from './data-table.types';
 import { DataTableLoadingContent } from '@/components/data-table/data-table-loading';
+import { DataTableProvider } from '@/components/data-table/data-table.provider';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-import { DataTableProvider } from '@/providers/dataTable.provider';
 import { cn } from '@/utils/misc';
 import {
   ColumnFiltersState,
@@ -30,7 +30,7 @@ export const DataTable = <TData, TValue>({
   data,
   defaultColumnFilters = [],
   defaultSorting = [],
-  filterFields = [],
+  filterComponent,
   mode = 'table',
   hideHeader = false,
   className,
@@ -116,9 +116,8 @@ export const DataTable = <TData, TValue>({
 
   return (
     <DataTableProvider
-      table={table}
-      columns={columns}
-      filterFields={filterFields}
+      table={table as any}
+      columns={columns as any}
       columnFilters={columnFilters}
       sorting={sorting}
       // REMINDER: default values for the `/infinite` table
@@ -139,6 +138,9 @@ export const DataTable = <TData, TValue>({
           <>
             {/* Header Section */}
             {tableTitle && <PageTitle {...tableTitle} />}
+
+            {/* Filter Section */}
+            {filterComponent}
 
             {/* Table Section */}
             <div

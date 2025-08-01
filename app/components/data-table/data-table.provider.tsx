@@ -1,4 +1,3 @@
-import { DataTableFilterField } from '@/components/data-table/data-table.types';
 import type {
   ColumnDef,
   ColumnFiltersState,
@@ -14,7 +13,6 @@ import { createContext, useContext, useMemo } from 'react';
 
 interface DataTableContextType<TData = unknown, TValue = unknown> {
   table: Table<TData>;
-  filterFields: DataTableFilterField<TData>[];
   columns: ColumnDef<TData, TValue>[];
   enableColumnOrdering: boolean;
   isLoading?: boolean;
@@ -45,7 +43,6 @@ export function DataTableProvider<TData, TValue>({
       props.columnOrder,
       props.columnVisibility,
       props.table,
-      props.filterFields,
       props.columns,
       props.enableColumnOrdering,
       props.isLoading,
