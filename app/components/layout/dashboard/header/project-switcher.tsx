@@ -9,7 +9,7 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api+/projects+/list';
 import { cn } from '@/utils/misc';

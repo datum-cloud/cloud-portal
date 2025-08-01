@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { redirect } from 'react-router';
 
 export const loader = async () => {

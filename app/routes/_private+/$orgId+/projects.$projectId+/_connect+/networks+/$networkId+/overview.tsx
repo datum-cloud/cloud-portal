@@ -2,7 +2,7 @@ import { DateFormat } from '@/components/common/date-format';
 import { MoreAction } from '@/components/common/more-action';
 import { PageTitle } from '@/components/layout/page-title';
 import { Button } from '@/components/ui/button';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { NetworkGeneralCard } from '@/features/network/overview/general-card';
 import { NetworkBindingsCard } from '@/features/network/overview/network-bindings-card';
 import { NetworkContextsCard } from '@/features/network/overview/network-contexts-card';

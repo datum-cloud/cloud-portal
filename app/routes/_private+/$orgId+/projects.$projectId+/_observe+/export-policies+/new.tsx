@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { ExportPolicyStepperForm } from '@/features/observe/export-policies/form/stepper-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';

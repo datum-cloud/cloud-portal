@@ -1,5 +1,5 @@
 import { PageTitle } from '@/components/layout/page-title';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { ProjectDangerCard } from '@/features/project/settings/danger-card';
 import { ProjectGeneralCard } from '@/features/project/settings/general-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';

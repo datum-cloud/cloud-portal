@@ -4,8 +4,11 @@ import { DateFormat } from '@/components/common/date-format';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { LOCATION_CLASSES, LOCATION_PROVIDERS } from '@/constants/options';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
+import {
+  LOCATION_CLASSES,
+  LOCATION_PROVIDERS,
+} from '@/features/location/constants/location.constants';
 import { dataWithToast } from '@/modules/cookie/toast.server';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createLocationsControl } from '@/resources/control-plane/locations.control';

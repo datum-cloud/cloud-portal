@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { CreateLocationForm } from '@/features/location/form/create-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';

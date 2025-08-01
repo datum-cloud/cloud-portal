@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { SecretForm } from '@/features/secret/form/form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { redirectWithToast, dataWithToast } from '@/modules/cookie/toast.server';

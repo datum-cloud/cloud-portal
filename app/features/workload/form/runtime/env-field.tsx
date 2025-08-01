@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ENV_TYPES } from '@/constants/options';
+import { ENV_TYPES } from '@/features/workload/constants/workload.constants';
 import { ContainerEnvType } from '@/resources/interfaces/workload.interface';
 import { RuntimeEnvSchema } from '@/resources/schemas/workload.schema';
 import { cn } from '@/utils/misc';

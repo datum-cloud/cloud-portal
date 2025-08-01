@@ -9,7 +9,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
 import { cn } from '@/utils/misc';

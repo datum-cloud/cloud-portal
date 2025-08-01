@@ -3,7 +3,7 @@ import { MoreAction } from '@/components/common/more-action';
 import { PageTitle } from '@/components/layout/page-title';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { WorkloadFlow } from '@/features/workload/flow/flow';
 import { WorkloadHelper } from '@/features/workload/helper';
 import { WorkloadOverview } from '@/features/workload/overview';

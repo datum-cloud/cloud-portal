@@ -2,7 +2,7 @@ import { DateFormat } from '@/components/common/date-format';
 import { MoreAction } from '@/components/common/more-action';
 import { PageTitle } from '@/components/layout/page-title';
 import { Button } from '@/components/ui/button';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { ExportPolicyGeneralCard } from '@/features/observe/export-policies/general-card';
 import { WorkloadSinksTable } from '@/features/observe/export-policies/sinks-table';
 import { WorkloadSourcesTable } from '@/features/observe/export-policies/sources-table';

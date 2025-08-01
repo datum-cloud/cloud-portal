@@ -2,7 +2,7 @@ import { DataTable } from '@/components/common/data-table/data-table';
 import { DataTableRowActionsProps } from '@/components/common/data-table/data-table.types';
 import { DateFormat } from '@/components/common/date-format';
 import { Button } from '@/components/ui/button';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createHttpRoutesControl } from '@/resources/control-plane/http-routes.control';
 import { IHttpRouteControlResponseLite } from '@/resources/interfaces/http-route.interface';

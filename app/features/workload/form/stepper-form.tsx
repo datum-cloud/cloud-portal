@@ -6,7 +6,7 @@ import { MetadataForm } from '@/components/forms/metadata/metadata-form';
 import { MetadataPreview } from '@/components/forms/metadata/metadata-preview';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BOOT_IMAGES } from '@/constants/bootImages';
+import { BOOT_IMAGES } from '@/features/workload/constants/workload.constants';
 import { WorkloadHelper } from '@/features/workload/helper';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IWorkloadControlResponse, RuntimeType } from '@/resources/interfaces/workload.interface';

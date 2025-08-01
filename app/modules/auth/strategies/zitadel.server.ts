@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { IAuthSession } from '@/resources/interfaces/auth.interface';
 import { CustomError } from '@/utils/errorHandle';
 import 'dotenv/config';

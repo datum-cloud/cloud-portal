@@ -3,7 +3,7 @@ import { MoreAction } from '@/components/common/more-action';
 import { PageTitle } from '@/components/layout/page-title';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { EditSecretKeys } from '@/features/secret/form/edit/edit-keys';
 import { EditSecretMetadata } from '@/features/secret/form/edit/edit-metadata';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';

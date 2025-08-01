@@ -10,7 +10,7 @@ import {
   CardFooter,
   CardTitle,
 } from '@/components/ui/card';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';

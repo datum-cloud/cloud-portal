@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { authenticator } from '@/modules/auth/auth.server';
 import { zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
 import { IAuthSession } from '@/resources/interfaces/auth.interface';

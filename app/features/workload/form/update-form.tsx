@@ -12,8 +12,8 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
-import { BOOT_IMAGES } from '@/constants/bootImages';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
+import { BOOT_IMAGES } from '@/features/workload/constants/workload.constants';
 import { WorkloadHelper } from '@/features/workload/helper';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';

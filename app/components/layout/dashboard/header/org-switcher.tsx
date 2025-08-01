@@ -1,6 +1,6 @@
 import { SelectOrganization } from '@/components/forms/selects/select-organization/select-organization';
 import { Badge } from '@/components/ui/badge';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { useApp } from '@/providers/app.provider';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { getPathWithParams } from '@/utils/path';

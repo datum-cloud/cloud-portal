@@ -3,7 +3,7 @@ import { DataTableRowActionsProps } from '@/components/common/data-table/data-ta
 import { DateFormat } from '@/components/common/date-format';
 import { StatusBadge } from '@/components/common/status-badge';
 import { Button } from '@/components/ui/button';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';

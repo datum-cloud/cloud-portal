@@ -7,7 +7,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { useOs } from '@/hooks/useOs';
 import { cn } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';

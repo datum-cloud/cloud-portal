@@ -2,7 +2,7 @@ import { LogoIcon } from '@/components/layout/logo/logo-icon';
 import { PublicLayout } from '@/components/layout/public';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { isDevelopment } from '@/utils/misc';
 import { HomeIcon, Loader2, RefreshCcwIcon } from 'lucide-react';
 import NProgress from 'nprogress';

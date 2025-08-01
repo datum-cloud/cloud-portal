@@ -5,7 +5,7 @@ import { TextCopy } from '@/components/common/text-copy/text-copy';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { GatewayStatus } from '@/features/connect/gateway/status';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createGatewaysControl } from '@/resources/control-plane/gateways.control';

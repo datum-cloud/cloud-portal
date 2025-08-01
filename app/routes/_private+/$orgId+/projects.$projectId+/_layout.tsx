@@ -1,6 +1,6 @@
 import { DashboardLayout } from '@/components/layout/dashboard';
 import { NavItem } from '@/components/layout/dashboard/sidebar/nav-main';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';

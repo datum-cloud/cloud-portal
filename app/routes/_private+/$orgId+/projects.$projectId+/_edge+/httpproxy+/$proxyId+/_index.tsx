@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { getPathWithParams } from '@/utils/path';
 import { LoaderFunctionArgs, redirect } from 'react-router';
 

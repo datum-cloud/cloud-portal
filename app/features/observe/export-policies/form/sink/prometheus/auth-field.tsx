@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { SINK_AUTH_TYPES } from '@/constants/options';
+import { SINK_AUTH_TYPES } from '@/features/observe/export-policies/constants/export-policy.constants';
 import { ExportPolicyAuthenticationType } from '@/resources/interfaces/export-policy.interface';
 import { SecretType } from '@/resources/interfaces/secret.interface';
 import { ExportPolicySinkAuthenticationSchema } from '@/resources/schemas/export-policy.schema';

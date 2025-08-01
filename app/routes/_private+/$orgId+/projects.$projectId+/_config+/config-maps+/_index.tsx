@@ -2,7 +2,7 @@ import { DataTable } from '@/components/common/data-table/data-table';
 import { DataTableRowActionsProps } from '@/components/common/data-table/data-table.types';
 import { DateFormat } from '@/components/common/date-format';
 import { Button } from '@/components/ui/button';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { dataWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';

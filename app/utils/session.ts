@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { destroyIdTokenSession } from '@/modules/cookie/id-token.server';
 import { destroyOrgSession } from '@/modules/cookie/org.server';
 import { destroySession } from '@/modules/cookie/session.server';

@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { NetworkForm } from '@/features/network/form';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { mergeMeta, metaObject } from '@/utils/meta';

@@ -8,7 +8,7 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { cn } from '@/utils/misc';
 import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';

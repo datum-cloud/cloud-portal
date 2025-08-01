@@ -6,7 +6,7 @@ import {
   BreadcrumbSeparator,
   Breadcrumb as BreadcrumbUI,
 } from '@/components/ui/breadcrumb';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { getPathWithParams } from '@/utils/path';
 import React, { useMemo } from 'react';
 import { useLocation, useMatches, useParams } from 'react-router';

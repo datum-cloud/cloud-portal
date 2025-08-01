@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { setOrgSession } from '@/modules/cookie/org.server';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';

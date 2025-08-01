@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { AccountGeneralCard } from '@/features/account/settings/general-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { getSession } from '@/modules/cookie/session.server';

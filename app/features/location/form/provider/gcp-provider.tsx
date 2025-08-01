@@ -2,7 +2,7 @@ import { Field } from '@/components/forms/field/field';
 import { FieldLabel } from '@/components/forms/field/field-label';
 import { SelectBox, SelectBoxOption } from '@/components/forms/selects/select-box';
 import { Input } from '@/components/ui/input';
-import GCP_REGIONS from '@/constants/json/gcp-region.json';
+import GCP_REGIONS from '@/features/location/constants/json/gcp-region.json';
 import { LocationProvider } from '@/resources/interfaces/location.interface';
 import { FieldMetadata, getInputProps, getSelectProps, useInputControl } from '@conform-to/react';
 import { Slash } from 'lucide-react';

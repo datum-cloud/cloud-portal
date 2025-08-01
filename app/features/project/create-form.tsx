@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
 import { IOrganization } from '@/resources/interfaces/organization.interface';

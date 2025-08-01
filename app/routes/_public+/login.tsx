@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { isAuthenticated } from '@/modules/cookie/session.server';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { LoaderFunctionArgs, MetaFunction } from 'react-router';

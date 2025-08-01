@@ -1,7 +1,7 @@
 import { IGroupNode } from '../types';
 import { List } from '@/components/common/list';
 import { Button } from '@/components/ui/button';
-import { STORAGE_TYPES } from '@/constants/options';
+import { STORAGE_TYPES } from '@/features/workload/constants/workload.constants';
 import { Handle, Position } from '@xyflow/react';
 import { SquarePlusIcon, SquareMinusIcon } from 'lucide-react';
 import { useMemo } from 'react';

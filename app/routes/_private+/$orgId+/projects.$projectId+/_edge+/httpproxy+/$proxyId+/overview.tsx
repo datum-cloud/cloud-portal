@@ -2,7 +2,7 @@ import { DateFormat } from '@/components/common/date-format';
 import { MoreAction } from '@/components/common/more-action';
 import { PageTitle } from '@/components/layout/page-title';
 import { Button } from '@/components/ui/button';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { HttpProxyGeneralCard } from '@/features/edge/httpproxy/overview/general-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/httpproxy/overview/hostnames-card';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';

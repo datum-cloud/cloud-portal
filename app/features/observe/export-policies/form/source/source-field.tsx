@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { POLICY_SOURCE_TYPES } from '@/constants/options';
+import { POLICY_SOURCE_TYPES } from '@/features/observe/export-policies/constants/export-policy.constants';
 import { ExportPolicySourceFieldSchema } from '@/resources/schemas/export-policy.schema';
 import { cn } from '@/utils/misc';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';

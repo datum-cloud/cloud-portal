@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { Link, useNavigation, useSubmit } from 'react-router';
 
 export default function AuthCard({ mode }: { mode: 'login' | 'signup' }) {

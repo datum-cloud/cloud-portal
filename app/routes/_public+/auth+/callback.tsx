@@ -1,5 +1,5 @@
 import { LogoIcon } from '@/components/layout/logo/logo-icon';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { authenticator } from '@/modules/auth/auth.server';
 import { setIdTokenSession } from '@/modules/cookie/id-token.server';
 import { getSession, setSession } from '@/modules/cookie/session.server';

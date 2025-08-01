@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { deletedWorkloadIdsCookie } from '@/modules/cookie/workload.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';

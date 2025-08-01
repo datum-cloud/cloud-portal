@@ -1,5 +1,6 @@
 import { CodeEditor } from './code-editor';
 import { EditorLanguage, CodeEditorTabsProps } from './code-editor.types';
+import { CODE_EDITOR_TABS } from './constants';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { isValidJson, isValidYaml, jsonToYaml, yamlToJson } from '@/utils/editor';
 import { useEffect, useState } from 'react';
@@ -156,6 +157,16 @@ export const CodeEditorTabs = ({
     }
   };
 
+  const values: Record<EditorLanguage, string> = {
+    yaml: yamlValue,
+    json: jsonValue,
+  };
+
+  const handlers: Record<EditorLanguage, (value: string) => void> = {
+    yaml: handleYamlChange,
+    json: handleJsonChange,
+  };
+
   return (
     <>
       <Tabs
@@ -163,32 +174,26 @@ export const CodeEditorTabs = ({
         onValueChange={(val: string) => handleTabChange(val as EditorLanguage)}
         className="w-full">
         <TabsList className="grid w-[200px] grid-cols-2">
-          <TabsTrigger value="yaml">YAML</TabsTrigger>
-          <TabsTrigger value="json">JSON</TabsTrigger>
+          {CODE_EDITOR_TABS.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="yaml">
-          <CodeEditor
-            language="yaml"
-            value={yamlValue}
-            onChange={handleYamlChange}
-            name={name}
-            id={id}
-            error={activeTab === 'yaml' ? error : undefined}
-            minHeight={minHeight}
-          />
-        </TabsContent>
-        <TabsContent value="json">
-          <CodeEditor
-            language="json"
-            value={jsonValue}
-            onChange={handleJsonChange}
-            name={name}
-            id={id}
-            error={activeTab === 'json' ? error : undefined}
-            minHeight={minHeight}
-          />
-        </TabsContent>
+        {CODE_EDITOR_TABS.map((tab) => (
+          <TabsContent key={tab.value} value={tab.value}>
+            <CodeEditor
+              language={tab.value}
+              value={values[tab.value]}
+              onChange={handlers[tab.value]}
+              name={name}
+              id={id}
+              error={activeTab === tab.value ? error : undefined}
+              minHeight={minHeight}
+            />
+          </TabsContent>
+        ))}
       </Tabs>
       {/* Hidden field to capture the current format */}
       <input type="hidden" name="format" value={activeTab} />

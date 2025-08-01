@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { NetworkForm } from '@/features/network/form';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';

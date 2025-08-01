@@ -2,7 +2,7 @@ import { DateFormat } from '@/components/common/date-format';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { cn, getInitials } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';

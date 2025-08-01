@@ -3,7 +3,7 @@ import { DataTableRowActionsProps } from '@/components/common/data-table/data-ta
 import { DateFormat } from '@/components/common/date-format';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { routes } from '@/constants/routes';
+import { routes } from '@/constants/paths';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
