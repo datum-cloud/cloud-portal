@@ -1,5 +1,5 @@
-import { Field } from '@/components/field/field';
-import { SelectOrganization } from '@/components/select-organization/select-organization';
+import { Field } from '@/components/forms/field/field';
+import { SelectOrganization } from '@/components/forms/selects/select-organization/select-organization';
 import { Button } from '@/components/ui/button';
 import {
   Card,

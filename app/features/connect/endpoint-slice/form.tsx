@@ -1,8 +1,8 @@
 import { EndpointsForm } from './endpoint/endpoints-form';
 import { PortsForm } from './port/ports-form';
 import { SelectAddressType } from './select-address-type';
-import { Field } from '@/components/field/field';
-import { MetadataForm } from '@/components/metadata/metadata-form';
+import { Field } from '@/components/forms/field';
+import { MetadataForm } from '@/components/forms/metadata';
 import { Button } from '@/components/ui/button';
 import {
   Card,

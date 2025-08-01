@@ -1,6 +1,6 @@
-import { Field } from '@/components/field/field';
-import { SelectConfigMap } from '@/components/select-configmap/select-configmap';
-import { SelectSecret } from '@/components/select-secret/select-secret';
+import { Field } from '@/components/forms/field/field';
+import { SelectConfigMap } from '@/components/forms/selects/select-configmap';
+import { SelectSecret } from '@/components/forms/selects/select-secret';
 import { Input } from '@/components/ui/input';
 import {
   Select,

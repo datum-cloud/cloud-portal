@@ -1,4 +1,4 @@
-import { StatusBadge } from '@/components/status-badge/status-badge';
+import { StatusBadge } from '@/components/common/status-badge';
 import { Button } from '@/components/ui/button';
 import { routes } from '@/constants/routes';
 import {

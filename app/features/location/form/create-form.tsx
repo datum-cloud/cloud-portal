@@ -2,8 +2,8 @@ import { GCPProvider } from './provider/gcp-provider';
 import { SelectLocationClass } from './select-class';
 import { SelectIATA } from './select-iata';
 import { SelectLocationProvider } from './select-provider';
-import { Field } from '@/components/field/field';
-import { SelectLabels } from '@/components/select-labels/select-labels';
+import { Field } from '@/components/forms/field/field';
+import { SelectLabels } from '@/components/forms/selects/select-labels/select-labels';
 import { Button } from '@/components/ui/button';
 import {
   Card,

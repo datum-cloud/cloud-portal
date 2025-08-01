@@ -1,4 +1,4 @@
-import { createCodeEditorSchema } from '@/components/code-editor/code-editor.types';
+import { createCodeEditorSchema } from '@/components/common/code-editor/code-editor.types';
 import { z } from 'zod';
 
 export const configMapSchema = createCodeEditorSchema('Configuration').transform((data) => {

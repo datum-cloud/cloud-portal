@@ -1,4 +1,4 @@
-import { PageTitle } from '@/components/page-title/page-title';
+import { PageTitle } from '@/components/layout/page-title';
 import { routes } from '@/constants/routes';
 import { ProjectDangerCard } from '@/features/project/settings/danger-card';
 import { ProjectGeneralCard } from '@/features/project/settings/general-card';

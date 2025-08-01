@@ -1,5 +1,5 @@
-import { Field } from '@/components/field/field';
-import { FieldLabel } from '@/components/field/field-label';
+import { Field } from '@/components/forms/field/field';
+import { FieldLabel } from '@/components/forms/field/field-label';
 import { Input } from '@/components/ui/input';
 import { InputWithAddons } from '@/components/ui/input-with-addons';
 import { ExportPolicySinkPrometheusFieldSchema } from '@/resources/schemas/export-policy.schema';

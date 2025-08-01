@@ -1,6 +1,6 @@
 import { PrometheusField } from './prometheus/prometheus-field';
-import { Field } from '@/components/field/field';
-import { MultiSelect } from '@/components/multi-select/multi-select';
+import { Field } from '@/components/forms/field/field';
+import { MultiSelect } from '@/components/forms/multi-select';
 import { Input } from '@/components/ui/input';
 import {
   Select,

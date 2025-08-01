@@ -1,7 +1,7 @@
 import { WorkloadStatus } from './status';
-import { DataTable } from '@/components/data-table/data-table';
-import { DateFormat } from '@/components/date-format/date-format';
-import { TextCopy } from '@/components/text-copy/text-copy';
+import { DataTable } from '@/components/common/data-table/data-table';
+import { DateFormat } from '@/components/common/date-format';
+import { TextCopy } from '@/components/common/text-copy/text-copy';
 import { CardContent, CardHeader, CardTitle, Card } from '@/components/ui/card';
 import { IInstanceControlResponse } from '@/resources/interfaces/workload.interface';
 import { transformControlPlaneStatus } from '@/utils/misc';

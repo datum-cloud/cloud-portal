@@ -1,6 +1,6 @@
-import { Field } from '@/components/field/field';
-import { SelectAnnotations } from '@/components/select-annotations/select-annotations';
-import { SelectLabels } from '@/components/select-labels/select-labels';
+import { Field } from '@/components/forms/field/field';
+import { SelectAnnotations } from '@/components/forms/selects/select-annotations/select-annotations';
+import { SelectLabels } from '@/components/forms/selects/select-labels/select-labels';
 import { Input } from '@/components/ui/input';
 import {
   Select,

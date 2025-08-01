@@ -1,5 +1,5 @@
 import { ListenersForm } from './listener/listeners-form';
-import { MetadataForm } from '@/components/metadata/metadata-form';
+import { MetadataForm } from '@/components/forms/metadata/metadata-form';
 import { Button } from '@/components/ui/button';
 import {
   Card,

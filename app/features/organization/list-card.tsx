@@ -1,4 +1,4 @@
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateFormat } from '@/components/common/date-format';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';

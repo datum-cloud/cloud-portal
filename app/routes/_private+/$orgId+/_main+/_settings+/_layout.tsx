@@ -1,6 +1,5 @@
+import { TabsLayout, TabsNavProps } from '@/components/layout/tabs';
 import { routes } from '@/constants/routes';
-import TabsLayout from '@/layouts/tabs/tabs';
-import { TabsNavProps } from '@/layouts/tabs/tabs.types';
 import { useApp } from '@/providers/app.provider';
 import { getPathWithParams } from '@/utils/path';
 import { useMemo } from 'react';

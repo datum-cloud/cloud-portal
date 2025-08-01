@@ -1,5 +1,5 @@
-import { Field } from '@/components/field/field';
-import { SelectSecret } from '@/components/select-secret/select-secret';
+import { Field } from '@/components/forms/field/field';
+import { SelectSecret } from '@/components/forms/selects/select-secret';
 import { Label } from '@/components/ui/label';
 import {
   Select,

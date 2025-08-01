@@ -1,5 +1,5 @@
 import { ActivityLogItem } from './list-item';
-import { DataTable } from '@/components/data-table/data-table';
+import { DataTable } from '@/components/common/data-table/data-table';
 import type { ActivityLogEntry, QueryParams } from '@/modules/loki/types';
 import { ROUTE_PATH as ACTIVITY_LOGS_ROUTE_PATH } from '@/routes/api+/activity-logs';
 import { ColumnDef } from '@tanstack/react-table';

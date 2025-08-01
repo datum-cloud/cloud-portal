@@ -1,4 +1,4 @@
-import { LogoIcon } from '@/components/logo/logo-icon';
+import { LogoIcon } from '@/components/layout/logo/logo-icon';
 import { routes } from '@/constants/routes';
 import { authenticator } from '@/modules/auth/auth.server';
 import { setIdTokenSession } from '@/modules/cookie/id-token.server';

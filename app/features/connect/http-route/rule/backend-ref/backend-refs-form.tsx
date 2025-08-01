@@ -1,5 +1,5 @@
 import { BackendRefField } from './backend-ref-field';
-import { FieldLabel } from '@/components/field/field-label';
+import { FieldLabel } from '@/components/forms/field/field-label';
 import { Button } from '@/components/ui/button';
 import {
   HttpRouteBackendRefSchema,

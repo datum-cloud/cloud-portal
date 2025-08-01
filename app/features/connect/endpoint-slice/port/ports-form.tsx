@@ -1,5 +1,5 @@
 import { PortField } from './port-field';
-import { FieldLabel } from '@/components/field/field-label';
+import { FieldLabel } from '@/components/forms/field/field-label';
 import { Button } from '@/components/ui/button';
 import { EndpointSlicePortProtocol } from '@/resources/interfaces/endpoint-slice.interface';
 import {

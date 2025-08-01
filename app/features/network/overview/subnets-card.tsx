@@ -1,6 +1,6 @@
-import { DataTable } from '@/components/data-table/data-table';
-import { DateFormat } from '@/components/date-format/date-format';
-import { TextCopy } from '@/components/text-copy/text-copy';
+import { DataTable } from '@/components/common/data-table/data-table';
+import { DateFormat } from '@/components/common/date-format';
+import { TextCopy } from '@/components/common/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ISubnetControlResponse } from '@/resources/interfaces/network.interface';
 import { getShortId } from '@/utils/misc';

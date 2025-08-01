@@ -1,4 +1,4 @@
-import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
+import { SelectBox, SelectBoxOption } from '@/components/forms/selects/select-box';
 import { IEndpointSliceControlResponseLite } from '@/resources/interfaces/endpoint-slice.interface';
 import { ROUTE_PATH as ENDPOINT_SLICES_LIST_ROUTE_PATH } from '@/routes/api+/connect+/endpoint-slices+/list';
 import { useEffect, useMemo, useState } from 'react';

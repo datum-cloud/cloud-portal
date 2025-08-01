@@ -1,7 +1,7 @@
-import { CodeEditor } from '@/components/code-editor/code-editor';
-import { DataTable } from '@/components/data-table/data-table';
-import { StatusBadge } from '@/components/status-badge/status-badge';
-import { TextCopy } from '@/components/text-copy/text-copy';
+import { CodeEditor } from '@/components/common/code-editor/code-editor';
+import { DataTable } from '@/components/common/data-table/data-table';
+import { StatusBadge } from '@/components/common/status-badge';
+import { TextCopy } from '@/components/common/text-copy/text-copy';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';

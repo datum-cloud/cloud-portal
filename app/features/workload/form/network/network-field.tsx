@@ -1,7 +1,7 @@
-import { Field } from '@/components/field/field';
-import { MultiSelect } from '@/components/multi-select/multi-select';
-import { Option } from '@/components/select-autocomplete/select-autocomplete.types';
-import { SelectNetwork } from '@/components/select-network/select-network';
+import { Field } from '@/components/forms/field/field';
+import { MultiSelect } from '@/components/forms/multi-select';
+import { Option } from '@/components/forms/selects/select-autocomplete/select-autocomplete.types';
+import { SelectNetwork } from '@/components/forms/selects/select-network';
 import { NetworkFieldSchema } from '@/resources/schemas/workload.schema';
 import { getSelectProps, useForm, useInputControl } from '@conform-to/react';
 import { useEffect, useState } from 'react';

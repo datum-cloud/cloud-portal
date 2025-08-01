@@ -1,7 +1,7 @@
 import { EnvsForm } from './envs-form';
 import { PortsForm } from './ports-form';
-import { Field } from '@/components/field/field';
-import { FieldLabel } from '@/components/field/field-label';
+import { Field } from '@/components/forms/field/field';
+import { FieldLabel } from '@/components/forms/field/field-label';
 import { Input } from '@/components/ui/input';
 import {
   RuntimeContainerSchema,

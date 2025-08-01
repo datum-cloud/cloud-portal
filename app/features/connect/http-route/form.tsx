@@ -1,6 +1,6 @@
 import { RulesForm } from './rule/rules-form';
-import { Field } from '@/components/field/field';
-import { MetadataForm } from '@/components/metadata/metadata-form';
+import { Field } from '@/components/forms/field';
+import { MetadataForm } from '@/components/forms/metadata';
 import { Button } from '@/components/ui/button';
 import {
   Card,

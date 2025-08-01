@@ -1,6 +1,6 @@
-import { CodeEditor } from '@/components/code-editor/code-editor';
-import { DataTable } from '@/components/data-table/data-table';
-import { TextCopy } from '@/components/text-copy/text-copy';
+import { CodeEditor } from '@/components/common/code-editor/code-editor';
+import { DataTable } from '@/components/common/data-table/data-table';
+import { TextCopy } from '@/components/common/text-copy/text-copy';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';

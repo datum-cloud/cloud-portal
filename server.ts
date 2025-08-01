@@ -1,8 +1,8 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { sessionStorage, SESSION_KEY } from '@/modules/cookie/session.server';
-import { createCacheClient } from '@/modules/unstorage/unstorage.js';
-import { createControlPlaneFactory } from '@/resources/control-plane/control.factory.js';
+import { createCacheClient } from '@/modules/unstorage/unstorage';
+import { createControlPlaneFactory } from '@/resources/control-plane/control.factory';
 import { createRequestHandler } from '@react-router/express';
 import compression from 'compression';
 import express, { Request, Response } from 'express';

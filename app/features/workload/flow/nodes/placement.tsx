@@ -1,5 +1,5 @@
 import { IGroupNode } from '../types';
-import { List } from '@/components/list/list';
+import { List } from '@/components/common/list';
 import { Button } from '@/components/ui/button';
 import { Handle, Position } from '@xyflow/react';
 import { SquarePlusIcon, SquareMinusIcon } from 'lucide-react';

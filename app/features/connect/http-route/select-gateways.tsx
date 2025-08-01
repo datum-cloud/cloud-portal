@@ -1,4 +1,4 @@
-import { MultiSelect, MultiSelectOption } from '@/components/multi-select/multi-select';
+import { MultiSelect, MultiSelectOption } from '@/components/forms/multi-select';
 import { IGatewayControlResponseLite } from '@/resources/interfaces/gateway.interface';
 import { ROUTE_PATH as GATEWAYS_LIST_ROUTE_PATH } from '@/routes/api+/connect+/gateways+/list';
 import { useEffect, useState } from 'react';

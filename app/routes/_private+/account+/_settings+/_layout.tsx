@@ -1,6 +1,5 @@
+import { TabsLayout, TabsNavProps } from '@/components/layout/tabs';
 import { routes } from '@/constants/routes';
-import TabsLayout from '@/layouts/tabs/tabs';
-import { TabsNavProps } from '@/layouts/tabs/tabs.types';
 import { Outlet } from 'react-router';
 
 export default function AccountSettingsLayout() {

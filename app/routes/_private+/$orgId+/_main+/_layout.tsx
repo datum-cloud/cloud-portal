@@ -1,6 +1,6 @@
+import { DashboardLayout } from '@/components/layout/dashboard';
+import { NavItem } from '@/components/layout/dashboard/sidebar/nav-main';
 import { routes } from '@/constants/routes';
-import { DashboardLayout } from '@/layouts/dashboard/dashboard';
-import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { useApp } from '@/providers/app.provider';
 import { getPathWithParams } from '@/utils/path';
 import { FoldersIcon, SettingsIcon } from 'lucide-react';

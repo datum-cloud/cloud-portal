@@ -1,7 +1,7 @@
 import { SimpleConfigMapDetail } from './simple-detail';
-import { CodeEditorTabs } from '@/components/code-editor/code-editor-tabs';
-import { EditorLanguage } from '@/components/code-editor/code-editor.types';
-import { Field } from '@/components/field/field';
+import { CodeEditorTabs } from '@/components/common/code-editor/code-editor-tabs';
+import { EditorLanguage } from '@/components/common/code-editor/code-editor.types';
+import { Field } from '@/components/forms/field/field';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {

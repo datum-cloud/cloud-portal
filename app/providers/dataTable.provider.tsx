@@ -1,4 +1,4 @@
-import { DataTableFilterField } from '@/components/data-table/data-table.types';
+import { DataTableFilterField } from '@/components/common/data-table/data-table.types';
 import type {
   ColumnDef,
   ColumnFiltersState,

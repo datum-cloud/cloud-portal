@@ -1,7 +1,7 @@
 import { BackendRefDefaultValues, BackendRefsForm } from './backend-ref/backend-refs-form';
 import { FilterDefaultValues, FiltersForm } from './filter/filters-form';
 import { MatchDefaultValues, MatchesForm } from './match/matches-form';
-import { FieldLabel } from '@/components/field/field-label';
+import { FieldLabel } from '@/components/forms/field';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { HttpRouteRuleSchema, HttpRouteSchema } from '@/resources/schemas/http-route.schema';

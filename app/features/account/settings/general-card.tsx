@@ -1,4 +1,4 @@
-import { Field } from '@/components/field/field';
+import { Field } from '@/components/forms/field';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

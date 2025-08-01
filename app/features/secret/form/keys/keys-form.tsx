@@ -1,5 +1,5 @@
 import { KeyField } from './key-field';
-import { FieldLabel } from '@/components/field/field-label';
+import { FieldLabel } from '@/components/forms/field/field-label';
 import { Button } from '@/components/ui/button';
 import { SecretEnvSchema, SecretVariablesSchema } from '@/resources/schemas/secret.schema';
 import { cn } from '@/utils/misc';

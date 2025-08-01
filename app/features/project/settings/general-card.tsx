@@ -1,5 +1,5 @@
-import { Field } from '@/components/field/field';
-import { TextCopyBox } from '@/components/text-copy/text-copy-box';
+import { TextCopyBox } from '@/components/common/text-copy/text-copy-box';
+import { Field } from '@/components/forms/field/field';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

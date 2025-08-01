@@ -2,7 +2,7 @@ import { NetworksForm } from './network/networks-form';
 import { PlacementsForm } from './placement/placements-form';
 import { RuntimeForm } from './runtime/runtime-form';
 import { StoragesForm } from './storage/storages-form';
-import { MetadataForm } from '@/components/metadata/metadata-form';
+import { MetadataForm } from '@/components/forms/metadata/metadata-form';
 import { Button } from '@/components/ui/button';
 import {
   CardDescription,

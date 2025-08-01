@@ -1,4 +1,4 @@
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateFormat } from '@/components/common/date-format';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { ActivityLogEntry } from '@/modules/loki/types';

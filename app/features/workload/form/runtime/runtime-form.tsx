@@ -1,8 +1,8 @@
 import { ContainerForm } from './container-form';
 import { VirtualMachineForm } from './virtual-machine-form';
-import { Field } from '@/components/field/field';
-import { FieldLabel } from '@/components/field/field-label';
-import { List, ListItem } from '@/components/list/list';
+import { List, ListItem } from '@/components/common/list';
+import { Field } from '@/components/forms/field/field';
+import { FieldLabel } from '@/components/forms/field/field-label';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,

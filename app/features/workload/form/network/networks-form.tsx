@@ -1,6 +1,6 @@
 import { NetworkFieldForm } from './network-field';
-import { List, ListItem } from '@/components/list/list';
-import { Option } from '@/components/select-autocomplete/select-autocomplete.types';
+import { List, ListItem } from '@/components/common/list';
+import { Option } from '@/components/forms/selects/select-autocomplete/select-autocomplete.types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';

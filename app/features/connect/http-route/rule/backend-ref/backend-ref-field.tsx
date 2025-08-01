@@ -1,5 +1,5 @@
 import { SelectEndpointSlice } from '../../select-endpoint-slices';
-import { Field } from '@/components/field/field';
+import { Field } from '@/components/forms/field/field';
 import { Input } from '@/components/ui/input';
 import { HttpRouteBackendRefSchema } from '@/resources/schemas/http-route.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';

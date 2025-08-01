@@ -1,4 +1,4 @@
-import { SelectLabels } from '@/components/select-labels/select-labels';
+import { SelectLabels } from '@/components/forms/selects/select-labels/select-labels';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';

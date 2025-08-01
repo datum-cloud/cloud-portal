@@ -1,5 +1,5 @@
 import { TlsConfiguration } from './tls-configuration';
-import { Field } from '@/components/field/field';
+import { Field } from '@/components/forms/field/field';
 import { Input } from '@/components/ui/input';
 import {
   Select,

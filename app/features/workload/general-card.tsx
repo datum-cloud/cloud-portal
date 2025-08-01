@@ -1,7 +1,7 @@
 import { WorkloadStatus } from './status';
-import { DateFormat } from '@/components/date-format/date-format';
-import { List, ListItem } from '@/components/list/list';
-import { TextCopy } from '@/components/text-copy/text-copy';
+import { DateFormat } from '@/components/common/date-format';
+import { List, ListItem } from '@/components/common/list';
+import { TextCopy } from '@/components/common/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
 import { getShortId, transformControlPlaneStatus } from '@/utils/misc';

@@ -1,7 +1,7 @@
-import { DataTable } from '@/components/data-table/data-table';
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
-import { DateFormat } from '@/components/date-format/date-format';
-import { StatusBadge } from '@/components/status-badge/status-badge';
+import { DataTable } from '@/components/common/data-table/data-table';
+import { DataTableRowActionsProps } from '@/components/common/data-table/data-table.types';
+import { DateFormat } from '@/components/common/date-format';
+import { StatusBadge } from '@/components/common/status-badge';
 import { Button } from '@/components/ui/button';
 import { routes } from '@/constants/routes';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';

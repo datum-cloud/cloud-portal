@@ -2,7 +2,7 @@ import {
   ConfirmationDialog,
   type ConfirmationDialogProps,
   type ConfirmationDialogRef,
-} from '@/components/confirmation-dialog/confirmation-dialog';
+} from '@/components/common/confirmation-dialog';
 import { createContext, useCallback, useContext, useRef } from 'react';
 
 const ConfirmationContext = createContext<{

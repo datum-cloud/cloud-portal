@@ -1,5 +1,5 @@
-import { Option } from '@/components/select-autocomplete/select-autocomplete.types';
-import { SelectBox } from '@/components/select-box/select-box';
+import { Option } from '@/components/forms/selects/select-autocomplete/select-autocomplete.types';
+import { SelectBox } from '@/components/forms/selects/select-box';
 import { useMemo } from 'react';
 
 const iataOptions = [

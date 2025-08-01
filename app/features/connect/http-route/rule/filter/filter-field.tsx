@@ -1,5 +1,5 @@
 import { URLRewriteField } from './url-rewrite-field';
-import { Field } from '@/components/field/field';
+import { Field } from '@/components/forms/field/field';
 import {
   Select,
   SelectContent,

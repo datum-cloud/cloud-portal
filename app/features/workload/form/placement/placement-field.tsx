@@ -1,4 +1,4 @@
-import { Field } from '@/components/field/field';
+import { Field } from '@/components/forms/field/field';
 import { Input } from '@/components/ui/input';
 import { SelectIATA } from '@/features/location/form/select-iata';
 import { PlacementFieldSchema } from '@/resources/schemas/workload.schema';

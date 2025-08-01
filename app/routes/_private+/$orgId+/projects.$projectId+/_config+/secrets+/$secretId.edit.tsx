@@ -1,6 +1,6 @@
-import { DateFormat } from '@/components/date-format/date-format';
-import { MoreActions } from '@/components/more-actions/more-actions';
-import { PageTitle } from '@/components/page-title/page-title';
+import { DateFormat } from '@/components/common/date-format';
+import { MoreAction } from '@/components/common/more-action';
+import { PageTitle } from '@/components/layout/page-title';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { routes } from '@/constants/routes';
@@ -137,7 +137,7 @@ export default function EditSecret() {
                   Return to List
                 </Link>
               </Button>
-              <MoreActions
+              <MoreAction
                 className="border-input bg-background hover:bg-accent hover:text-accent-foreground size-9 rounded-md border px-3"
                 actions={[
                   {

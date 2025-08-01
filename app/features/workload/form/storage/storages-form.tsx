@@ -1,6 +1,6 @@
 import { BootField } from './boot-field';
 import { StorageField } from './storage-field';
-import { List, ListItem } from '@/components/list/list';
+import { List, ListItem } from '@/components/common/list';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';

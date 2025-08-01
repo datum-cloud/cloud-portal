@@ -1,8 +1,8 @@
 import { AuthField } from './auth-field';
 import { BatchField } from './batch-field';
 import { RetryField } from './retry-field';
-import { Field } from '@/components/field/field';
-import { FieldLabel } from '@/components/field/field-label';
+import { Field } from '@/components/forms/field/field';
+import { FieldLabel } from '@/components/forms/field/field-label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import {

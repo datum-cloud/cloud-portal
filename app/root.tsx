@@ -1,7 +1,7 @@
-import { FathomAnalytics } from '@/components/fathom/fathom';
-import { ClientHintCheck } from '@/components/misc/ClientHints';
-import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary';
-import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher';
+import { ClientHintCheck } from '@/components/common/client-hints';
+import { GenericErrorBoundary } from '@/components/common/error-boundary';
+import { FathomAnalytics } from '@/components/common/fathom';
+import { ThemeSwitcher } from '@/components/common/theme-switcher';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { getHints } from '@/hooks/useHints';

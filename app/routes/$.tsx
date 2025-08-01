@@ -1,4 +1,4 @@
-import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary';
+import { GenericErrorBoundary } from '@/components/common/error-boundary';
 import { CustomError } from '@/utils/errorHandle';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { HelpCircle } from 'lucide-react';

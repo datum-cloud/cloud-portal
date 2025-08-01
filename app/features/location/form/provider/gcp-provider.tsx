@@ -1,6 +1,6 @@
-import { Field } from '@/components/field/field';
-import { FieldLabel } from '@/components/field/field-label';
-import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
+import { Field } from '@/components/forms/field/field';
+import { FieldLabel } from '@/components/forms/field/field-label';
+import { SelectBox, SelectBoxOption } from '@/components/forms/selects/select-box';
 import { Input } from '@/components/ui/input';
 import GCP_REGIONS from '@/constants/json/gcp-region.json';
 import { LocationProvider } from '@/resources/interfaces/location.interface';

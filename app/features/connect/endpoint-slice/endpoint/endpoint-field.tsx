@@ -1,4 +1,4 @@
-import { Field } from '@/components/field/field';
+import { Field } from '@/components/forms/field/field';
 import { TagsInput } from '@/components/ui/tag-input';
 import { EndpointSliceEndpointSchema } from '@/resources/schemas/endpoint-slice.schema';
 import { getCollectionProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';

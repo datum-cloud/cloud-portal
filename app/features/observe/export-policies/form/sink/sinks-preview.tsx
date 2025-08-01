@@ -1,4 +1,4 @@
-import { List, ListItem } from '@/components/list/list';
+import { List, ListItem } from '@/components/common/list';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';

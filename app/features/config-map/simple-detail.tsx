@@ -1,5 +1,5 @@
-import { DateFormat } from '@/components/date-format/date-format';
-import { Field } from '@/components/field/field';
+import { DateFormat } from '@/components/common/date-format';
+import { Field } from '@/components/forms/field/field';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 

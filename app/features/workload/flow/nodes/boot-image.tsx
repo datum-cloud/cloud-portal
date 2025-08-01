@@ -1,4 +1,4 @@
-import { List } from '@/components/list/list';
+import { List } from '@/components/common/list';
 import { Handle, Position } from '@xyflow/react';
 import { useMemo } from 'react';
 

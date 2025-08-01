@@ -1,5 +1,5 @@
-import { List } from '@/components/list/list';
-import { TextCopy } from '@/components/text-copy/text-copy';
+import { List } from '@/components/common/list';
+import { TextCopy } from '@/components/common/text-copy/text-copy';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
 import { getShortId } from '@/utils/misc';
 import { Handle, Position } from '@xyflow/react';

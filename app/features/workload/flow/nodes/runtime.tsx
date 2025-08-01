@@ -1,4 +1,4 @@
-import { List } from '@/components/list/list';
+import { List } from '@/components/common/list';
 import { RUNTIME_TYPES } from '@/constants/options';
 import { RuntimeType } from '@/resources/interfaces/workload.interface';
 import { Handle, Position } from '@xyflow/react';

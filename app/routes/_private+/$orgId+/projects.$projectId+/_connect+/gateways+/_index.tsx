@@ -1,7 +1,7 @@
-import { DataTable } from '@/components/data-table/data-table';
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
-import { DateFormat } from '@/components/date-format/date-format';
-import { TextCopy } from '@/components/text-copy/text-copy';
+import { DataTable } from '@/components/common/data-table/data-table';
+import { DataTableRowActionsProps } from '@/components/common/data-table/data-table.types';
+import { DateFormat } from '@/components/common/date-format';
+import { TextCopy } from '@/components/common/text-copy/text-copy';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';

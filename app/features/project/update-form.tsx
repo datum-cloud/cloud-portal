@@ -1,6 +1,6 @@
-import { Field } from '@/components/field/field';
-import { SelectLabels } from '@/components/select-labels/select-labels';
-import { TextCopyBox } from '@/components/text-copy/text-copy-box';
+import { TextCopyBox } from '@/components/common/text-copy/text-copy-box';
+import { Field } from '@/components/forms/field/field';
+import { SelectLabels } from '@/components/forms/selects/select-labels/select-labels';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

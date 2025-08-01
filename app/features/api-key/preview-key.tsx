@@ -1,4 +1,4 @@
-import { TextCopyBox } from '@/components/text-copy/text-copy-box';
+import { TextCopyBox } from '@/components/common/text-copy/text-copy-box';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 import { motion } from 'motion/react';

@@ -1,5 +1,5 @@
-import { DataTableEmptyContent } from '@/components/data-table/data-table-empty-content';
-import { PageTitle } from '@/components/page-title/page-title';
+import { EmptyState } from '@/components/common/empty-state';
+import { PageTitle } from '@/components/layout/page-title';
 import { OrganizationListCard } from '@/features/organization/list-card';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
@@ -27,10 +27,7 @@ export default function AccountOrganizations() {
   const orgs: IOrganization[] = useLoaderData<typeof loader>();
 
   return orgs.length === 0 ? (
-    <DataTableEmptyContent
-      title="No organizations found"
-      subtitle="You don't have any organizations"
-    />
+    <EmptyState title="No organizations found" subtitle="You don't have any organizations" />
   ) : (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
       <PageTitle title="Your Organizations" />
