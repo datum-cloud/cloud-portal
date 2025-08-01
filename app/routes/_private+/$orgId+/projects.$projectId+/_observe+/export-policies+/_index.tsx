@@ -84,17 +84,7 @@ export default function ObserveExportPoliciesPage() {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return (
-            <Link
-              to={getPathWithParams(routes.projects.observe.exportPolicies.detail.overview, {
-                orgId,
-                projectId,
-                exportPolicyId: row.original.name,
-              })}
-              className="text-primary font-semibold">
-              {row.original.name}
-            </Link>
-          );
+          return <span className="text-primary font-semibold">{row.original.name}</span>;
         },
       },
       {
@@ -168,6 +158,15 @@ export default function ObserveExportPoliciesPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
+      onRowClick={(row) => {
+        navigate(
+          getPathWithParams(routes.projects.observe.exportPolicies.detail.overview, {
+            orgId,
+            projectId,
+            exportPolicyId: row.name,
+          })
+        );
+      }}
       emptyContent={{
         title: 'No export policies found.',
         subtitle: 'Create your first export policy to get started.',

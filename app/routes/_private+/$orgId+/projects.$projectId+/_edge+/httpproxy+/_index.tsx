@@ -89,27 +89,14 @@ export default function EdgeHttpProxiesPage() {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return (
-            <Link
-              to={getPathWithParams(routes.projects.internetEdge.httpProxy.detail.overview, {
-                orgId,
-                projectId,
-                proxyId: row.original.name,
-              })}>
-              <span className="text-primary font-semibold">{row.original.name}</span>
-            </Link>
-          );
+          return <span className="text-primary font-semibold">{row.original.name}</span>;
         },
       },
       {
         header: 'Endpoint',
         accessorKey: 'endpoint',
         cell: ({ row }) => {
-          return (
-            <Link to={row.original.endpoint ?? ''} target="_blank">
-              {row.original.endpoint}
-            </Link>
-          );
+          return row.original.endpoint;
         },
       },
       {
@@ -168,6 +155,15 @@ export default function EdgeHttpProxiesPage() {
     <DataTable
       columns={columns}
       data={data ?? []}
+      onRowClick={(row) => {
+        navigate(
+          getPathWithParams(routes.projects.internetEdge.httpProxy.detail.overview, {
+            orgId,
+            projectId,
+            proxyId: row.name,
+          })
+        );
+      }}
       emptyContent={{
         title: 'No HTTPProxy found.',
         subtitle: 'Create your first http proxy to get started.',

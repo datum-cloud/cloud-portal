@@ -35,6 +35,8 @@ export const DataTable = <TData, TValue>({
   hideHeader = false,
   className,
   rowActions = [],
+  onRowClick,
+  rowClassName,
   tableTitle,
   emptyContent = {
     title: 'No results.',
@@ -154,7 +156,14 @@ export const DataTable = <TData, TValue>({
                   {mode === 'table'
                     ? // Traditional table rows
                       table.getRowModel().rows.map((row) => (
-                        <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                        <TableRow
+                          key={row.id}
+                          data-state={row.getIsSelected() && 'selected'}
+                          onClick={() => onRowClick?.(row.original)}
+                          className={cn(
+                            onRowClick && 'cursor-pointer',
+                            rowClassName?.(row.original)
+                          )}>
                           {row.getVisibleCells().map((cell) => (
                             <TableCell
                               key={cell.id}
@@ -176,9 +185,11 @@ export const DataTable = <TData, TValue>({
                             colSpan={columns.length + (rowActions.length > 0 ? 1 : 0)}
                             className={cn('p-0 pb-3', !hideHeader && 'first:pt-3')}>
                             <div
+                              onClick={() => onRowClick?.(row.original)}
                               className={cn(
                                 'group bg-card relative rounded-lg border p-4 shadow-sm transition-all duration-200',
                                 'hover:border-primary/20 hover:shadow-md',
+                                onRowClick && 'cursor-pointer',
                                 row.getIsSelected() && 'ring-primary ring-2 ring-offset-2',
                                 tableCardClassName
                               )}>
