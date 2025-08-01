@@ -91,6 +91,8 @@ export interface DataTableProps<TData, TValue> {
 
   // Actions and behavior props
   rowActions?: DataTableRowActionsProps<TData>[];
+  onRowClick?: (row: TData) => void;
+  rowClassName?: (row: TData) => string;
   tableTitle?: DataTableTitleProps;
 
   // Loading state props

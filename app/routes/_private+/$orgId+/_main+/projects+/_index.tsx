@@ -10,7 +10,6 @@ import { useApp } from '@/providers/app.provider';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { CustomError } from '@/utils/errorHandle';
-import { cn } from '@/utils/misc';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
@@ -61,24 +60,29 @@ export default function ProjectsPage() {
         header: 'Description',
         accessorKey: 'description',
         cell: ({ row }) => {
-          const isDeleted = Boolean(row.original.name && row.original.name === deletedId);
           return (
-            <Link
-              className={cn(
-                'text-primary leading-none font-semibold',
-                isDeleted && 'pointer-events-none'
-              )}
-              to={
-                isDeleted
-                  ? '#'
-                  : getPathWithParams(routes.projects.detail, {
-                      orgId,
-                      projectId: row.original.name,
-                    })
-              }>
+            <span className="text-primary leading-none font-semibold">
               {row.original.description}
-            </Link>
+            </span>
           );
+          // const isDeleted = Boolean(row.original.name && row.original.name === deletedId);
+          // return (
+          //   <Link
+          //     className={cn(
+          //       'text-primary leading-none font-semibold',
+          //       isDeleted && 'pointer-events-none'
+          //     )}
+          //     to={
+          //       isDeleted
+          //         ? '#'
+          //         : getPathWithParams(routes.projects.detail, {
+          //             orgId,
+          //             projectId: row.original.name,
+          //           })
+          //     }>
+          //     {row.original.description}
+          //   </Link>
+          // );
         },
       },
       {
@@ -93,7 +97,7 @@ export default function ProjectsPage() {
         },
       },
     ],
-    [orgId, deletedId]
+    [orgId]
   );
 
   const _rowActions: DataTableRowActionsProps<IProjectControlResponse>[] = useMemo(
@@ -144,6 +148,22 @@ export default function ProjectsPage() {
       columns={columns}
       data={projects ?? []}
       rowActions={[]}
+      onRowClick={(row) => {
+        if (row.name && row.name !== deletedId) {
+          return navigate(
+            getPathWithParams(routes.projects.detail, { orgId, projectId: row.name })
+          );
+        }
+
+        return undefined;
+      }}
+      rowClassName={(row) => {
+        if (row.name && row.name === deletedId) {
+          return 'pointer-events-none opacity-50';
+        }
+
+        return '';
+      }}
       emptyContent={{
         title: 'No projects found.',
         subtitle: 'Create your first project to get started.',
