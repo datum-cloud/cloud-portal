@@ -13,8 +13,3 @@ export const meta: MetaFunction = mergeMeta(() => {
 export async function loader({ request }: LoaderFunctionArgs) {
   return isAuthenticated(request, routes.home);
 }
-
-/* export default function Signup() {
-  return <AuthCard mode="signup" />
-}
- */

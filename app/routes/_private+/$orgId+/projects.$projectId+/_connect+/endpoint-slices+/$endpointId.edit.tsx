@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { EndpointSliceForm } from '@/features/connect/endpoint-slice/endpoint-slice-form';
+import { EndpointSliceForm } from '@/features/connect';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createEndpointSlicesControl } from '@/resources/control-plane/endpoint-slices.control';

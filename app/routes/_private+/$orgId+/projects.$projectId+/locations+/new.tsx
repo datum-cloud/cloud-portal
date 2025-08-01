@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { LocationForm } from '@/features/location/location-form';
+import { LocationForm } from '@/features/location';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';

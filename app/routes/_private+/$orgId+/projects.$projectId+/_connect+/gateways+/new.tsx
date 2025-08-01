@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { GatewayForm } from '@/features/connect/gateway/gateway-form';
+import { GatewayForm } from '@/features/connect';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createGatewaysControl } from '@/resources/control-plane/gateways.control';

@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { AccountGeneralCard } from '@/features/account/components/settings/general-card';
+import { AccountGeneralCard } from '@/features/account';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { getSession } from '@/modules/cookie/session.server';
 import { dataWithToast } from '@/modules/cookie/toast.server';

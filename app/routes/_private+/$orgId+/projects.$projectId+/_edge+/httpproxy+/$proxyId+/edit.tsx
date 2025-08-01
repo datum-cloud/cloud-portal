@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { HttpProxyForm } from '@/features/edge/httpproxy/http-proxy-form';
+import { HttpProxyForm } from '@/features/edge';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';

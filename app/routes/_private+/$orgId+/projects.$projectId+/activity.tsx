@@ -1,4 +1,4 @@
-import { ActivityLogList } from '@/features/activity-log/activity-log-list';
+import { ActivityLogList } from '@/features/activity-log';
 import { useParams } from 'react-router';
 
 export default function ProjectActivityLogsPage() {
