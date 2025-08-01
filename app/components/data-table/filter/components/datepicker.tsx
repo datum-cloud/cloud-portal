@@ -1,87 +1,9 @@
-import { useFilter } from '../filter.context';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useDateFilter, useDateRangeFilter } from '../../hooks/useFilterQueryState';
+import { CalendarDatePicker } from '@/components/ui/calendar-date-picker';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/utils/misc';
-import { format } from 'date-fns';
-import { Calendar, X } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-
-export interface DatePreset {
-  label: string;
-  value: { from: Date; to: Date };
-  shortcut?: string;
-}
-
-// Default presets for range mode
-const createDefaultPresets = (): DatePreset[] => {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  return [
-    {
-      label: 'Today',
-      value: { from: today, to: today },
-      shortcut: 'T',
-    },
-    {
-      label: 'Yesterday',
-      value: {
-        from: new Date(today.getTime() - 24 * 60 * 60 * 1000),
-        to: new Date(today.getTime() - 24 * 60 * 60 * 1000),
-      },
-      shortcut: 'Y',
-    },
-    {
-      label: 'Last 7 days',
-      value: {
-        from: new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000),
-        to: today,
-      },
-      shortcut: '7D',
-    },
-    {
-      label: 'Last 14 days',
-      value: {
-        from: new Date(today.getTime() - 13 * 24 * 60 * 60 * 1000),
-        to: today,
-      },
-      shortcut: '14D',
-    },
-    {
-      label: 'Last 30 days',
-      value: {
-        from: new Date(today.getTime() - 29 * 24 * 60 * 60 * 1000),
-        to: today,
-      },
-      shortcut: '30D',
-    },
-    {
-      label: 'Last 90 days',
-      value: {
-        from: new Date(today.getTime() - 89 * 24 * 60 * 60 * 1000),
-        to: today,
-      },
-      shortcut: '90D',
-    },
-    {
-      label: 'This month',
-      value: {
-        from: new Date(now.getFullYear(), now.getMonth(), 1),
-        to: today,
-      },
-      shortcut: 'TM',
-    },
-    {
-      label: 'Last month',
-      value: {
-        from: new Date(now.getFullYear(), now.getMonth() - 1, 1),
-        to: new Date(now.getFullYear(), now.getMonth(), 0),
-      },
-      shortcut: 'LM',
-    },
-  ];
-};
+import { DateRange } from 'react-day-picker';
 
 export interface DatePickerFilterProps {
   filterKey: string;
@@ -90,8 +12,16 @@ export interface DatePickerFilterProps {
   className?: string;
   disabled?: boolean;
   mode?: 'single' | 'range';
-  presets?: DatePreset[];
-  useDefaultPresets?: boolean; // Whether to use default presets for range mode
+  closeOnSelect?: boolean; // Whether to close popover on selection
+  yearsRange?: number; // Range of years to show in selector
+  placeholder?: string;
+  excludePresets?: string[];
+  // Date range constraints
+  minDate?: Date;
+  maxDate?: Date;
+  disableFuture?: boolean;
+  disablePast?: boolean;
+  maxRange?: number; // Maximum number of days between start and end date
 }
 
 export function DatePickerFilter({
@@ -101,87 +31,95 @@ export function DatePickerFilter({
   className,
   disabled,
   mode = 'single',
-  presets,
-  useDefaultPresets = true,
+  closeOnSelect = true,
+  yearsRange = 10,
+  placeholder,
+  excludePresets,
+  minDate,
+  maxDate,
+  disableFuture = false,
+  disablePast = false,
+  maxRange,
 }: DatePickerFilterProps) {
-  const { value, setValue, reset } = useFilter<Date | { from?: Date; to?: Date }>(filterKey);
+  // Use appropriate hook based on mode
+  const singleFilter = useDateFilter(filterKey);
+  const rangeFilter = useDateRangeFilter(filterKey);
+
+  const { value, setValue } = mode === 'range' ? rangeFilter : singleFilter;
 
   const isRange = mode === 'range';
   const dateValue = value;
 
-  // Determine which presets to use
-  const effectivePresets = useMemo(() => {
-    if (presets) {
-      return presets; // Use provided presets
+  // Convert filter value to CalendarDatePicker format
+  const calendarDate = useMemo((): DateRange => {
+    if (isRange && dateValue && typeof dateValue === 'object' && 'from' in dateValue) {
+      // Range mode: use from and to dates
+      const result = {
+        from: dateValue.from || undefined,
+        to: dateValue.to || undefined,
+      };
+      return result;
+    } else if (!isRange && dateValue instanceof Date) {
+      // Single mode: use the same date for both from and to
+      if (!isNaN(dateValue.getTime())) {
+        const result = {
+          from: dateValue,
+          to: dateValue,
+        };
+        return result;
+      } else {
+        return {
+          from: undefined,
+          to: undefined,
+        };
+      }
     }
-    if (isRange && useDefaultPresets) {
-      return createDefaultPresets(); // Use default presets for range mode
-    }
-    return []; // No presets
-  }, [presets, isRange, useDefaultPresets]);
+    // Empty state
+    return {
+      from: undefined,
+      to: undefined,
+    };
+  }, [dateValue, isRange, filterKey]);
 
-  const handleSingleDateChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const newDate = event.target.value ? new Date(event.target.value) : null;
-      setValue(newDate as any);
+  // Handle date selection from CalendarDatePicker
+  const handleDateSelect = useCallback(
+    (range: DateRange | undefined) => {
+      // Early return if range is null/undefined
+      if (!range || (range.from === null && range.to === null)) {
+        setValue(null as any);
+        return;
+      }
+
+      if (isRange) {
+        // Range mode: set both from and to
+        // Validate dates before setting
+        const validFrom =
+          range.from && range.from instanceof Date && !isNaN(range.from.getTime())
+            ? range.from
+            : undefined;
+        const validTo =
+          range.to && range.to instanceof Date && !isNaN(range.to.getTime()) ? range.to : undefined;
+
+        setValue({
+          from: validFrom,
+          to: validTo,
+        } as any);
+      } else {
+        // Single mode: use only the from date
+        // Ensure we have a valid date before setting
+        if (range.from && range.from instanceof Date && !isNaN(range.from.getTime())) {
+          setValue(range.from as any);
+        } else {
+          // If invalid date, reset to null
+          setValue(null as any);
+        }
+      }
     },
-    [setValue]
+    [setValue, isRange, filterKey]
   );
-
-  const handleRangeFromChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const newDate = event.target.value ? new Date(event.target.value) : null;
-      const currentRange = (dateValue as { from?: Date; to?: Date }) || {};
-      setValue({
-        from: newDate || undefined,
-        to: currentRange.to,
-      } as any);
-    },
-    [setValue, dateValue]
-  );
-
-  const handleRangeToChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const newDate = event.target.value ? new Date(event.target.value) : null;
-      const currentRange = (dateValue as { from?: Date; to?: Date }) || {};
-      setValue({
-        from: currentRange.from,
-        to: newDate || undefined,
-      } as any);
-    },
-    [setValue, dateValue]
-  );
-
-  const handlePresetSelect = useCallback(
-    (preset: DatePreset) => {
-      setValue(preset.value as any);
-    },
-    [setValue]
-  );
-
-  const handleClear = useCallback(() => {
-    reset();
-  }, [reset]);
-
-  const formatDateForInput = (date: Date | null | undefined): string => {
-    if (!date) return '';
-    return format(date, 'yyyy-MM-dd');
-  };
-
-  const formatDisplayDate = (date: Date | null | undefined): string => {
-    if (!date) return '';
-    return format(date, 'MMM dd, yyyy');
-  };
-
-  const hasValue = isRange
-    ? dateValue &&
-      typeof dateValue === 'object' &&
-      'from' in dateValue &&
-      (dateValue.from || dateValue.to)
-    : dateValue instanceof Date;
 
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('min-w-60 space-y-2', className)}>
       {label && (
         <div className="space-y-1">
           <Label className="text-sm font-medium">{label}</Label>
@@ -189,119 +127,24 @@ export function DatePickerFilter({
         </div>
       )}
 
-      <div className="space-y-2">
-        {isRange ? (
-          <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <Label htmlFor={`${filterKey}_from`} className="text-muted-foreground text-xs">
-                From
-              </Label>
-              <div className="relative">
-                <Calendar className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                <Input
-                  id={`${filterKey}_from`}
-                  type="date"
-                  value={formatDateForInput(
-                    dateValue && typeof dateValue === 'object' && 'from' in dateValue
-                      ? dateValue.from
-                      : null
-                  )}
-                  onChange={handleRangeFromChange}
-                  disabled={disabled}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor={`${filterKey}_to`} className="text-muted-foreground text-xs">
-                To
-              </Label>
-              <div className="relative">
-                <Calendar className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                <Input
-                  id={`${filterKey}_to`}
-                  type="date"
-                  value={formatDateForInput(
-                    dateValue && typeof dateValue === 'object' && 'to' in dateValue
-                      ? dateValue.to
-                      : null
-                  )}
-                  onChange={handleRangeToChange}
-                  disabled={disabled}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="relative">
-            <Calendar className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input
-              id={filterKey}
-              type="date"
-              value={formatDateForInput(dateValue as Date)}
-              onChange={handleSingleDateChange}
-              disabled={disabled}
-              className="pr-9 pl-9"
-            />
-            {hasValue && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleClear}
-                className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 p-0">
-                <X className="h-4 w-4" />
-                <span className="sr-only">Clear date</span>
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Date Display */}
-        {hasValue && (
-          <div className="text-muted-foreground text-xs">
-            {isRange && dateValue && typeof dateValue === 'object' && 'from' in dateValue
-              ? `${formatDisplayDate(dateValue.from || null)} - ${formatDisplayDate(dateValue.to || null)}`
-              : formatDisplayDate(dateValue as Date)}
-          </div>
-        )}
-
-        {/* Presets */}
-        {effectivePresets && effectivePresets.length > 0 && (
-          <div className="space-y-1">
-            <Label className="text-muted-foreground text-xs">Quick select</Label>
-            <div className="flex flex-wrap gap-1">
-              {effectivePresets.map((preset) => (
-                <Button
-                  key={preset.label}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePresetSelect(preset)}
-                  className="h-7 text-xs">
-                  {preset.label}
-                  {preset.shortcut && (
-                    <span className="text-muted-foreground ml-1">({preset.shortcut})</span>
-                  )}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Clear button */}
-        {hasValue && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleClear}
-            className="text-muted-foreground hover:text-foreground h-7 text-xs">
-            Clear
-          </Button>
-        )}
-      </div>
+      {/* Calendar Date Picker */}
+      <CalendarDatePicker
+        id={`calendar-${filterKey}`}
+        date={calendarDate}
+        onDateSelect={handleDateSelect}
+        numberOfMonths={isRange ? 2 : 1}
+        closeOnSelect={closeOnSelect}
+        yearsRange={yearsRange}
+        variant="outline"
+        className={cn('w-full justify-start', disabled && 'pointer-events-none opacity-50')}
+        placeholder={placeholder}
+        excludePresets={excludePresets}
+        minDate={minDate}
+        maxDate={maxDate}
+        disableFuture={disableFuture}
+        disablePast={disablePast}
+        maxRange={maxRange}
+      />
     </div>
   );
 }

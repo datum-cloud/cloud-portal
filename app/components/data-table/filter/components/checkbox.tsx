@@ -1,4 +1,4 @@
-import { useFilter } from '../filter.context';
+import { useArrayFilter } from '../../hooks/useFilterQueryState';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -27,11 +27,11 @@ export function CheckboxFilter({
   label,
   description,
   className,
-  disabled,
-  options,
+  disabled = false,
+  options = [],
 }: CheckboxFilterProps) {
-  const { value, setValue, reset } = useFilter<string[]>(filterKey);
-  const selectedValues = (value as string[]) || [];
+  const { value, setValue, reset } = useArrayFilter(filterKey);
+  const selectedValues = value || [];
 
   const handleToggle = useCallback(
     (optionValue: string, checked: boolean) => {

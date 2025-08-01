@@ -142,10 +142,10 @@ export async function executeLokiQuery(
     });
 
     return response;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Loki query failed:', error);
     throw new Error(
-      `Failed to query Loki: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Failed to query Loki: ${error?.data ? error.data : error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
 }

@@ -1,4 +1,4 @@
-import { useFilter } from '../filter.context';
+import { useStringFilter } from '../../hooks/useFilterQueryState';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/utils/misc';
@@ -26,11 +26,11 @@ export function RadioFilter({
   label,
   description,
   className,
-  disabled,
-  options,
+  disabled = false,
+  options = [],
 }: RadioFilterProps) {
-  const { value, setValue, reset } = useFilter<string>(filterKey);
-  const selectedValue = (value as string) || '';
+  const { value, setValue } = useStringFilter(filterKey);
+  const selectedValue = value || '';
 
   const handleValueChange = useCallback(
     (newValue: string) => {

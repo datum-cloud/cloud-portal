@@ -17,6 +17,11 @@ export interface DataTableProps<TData, TValue> {
 
   // Filter system (compound components)
   filterComponent?: React.ReactNode;
+  defaultFilters?: Record<string, any>;
+  onFiltersChange?: (filters: Record<string, any>) => void;
+
+  // Filter strategy
+  serverSideFiltering?: boolean; // true = API/server filtering, false = client/table filtering (default: false)
 
   // Display mode props
   mode?: 'table' | 'card';

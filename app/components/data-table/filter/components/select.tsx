@@ -1,4 +1,4 @@
-import { useFilter } from '../filter.context';
+import { useStringFilter, useArrayFilter } from '../../hooks/useFilterQueryState';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,14 +39,18 @@ export function SelectFilter({
   filterKey,
   label,
   description,
-  placeholder,
+  placeholder = 'Select...',
   className,
-  disabled,
+  disabled = false,
   multiple = false,
   searchable = false,
-  options,
+  options = [],
 }: SelectFilterProps) {
-  const { value, setValue, reset } = useFilter<string | string[]>(filterKey);
+  // Use appropriate hook based on multiple selection
+  const singleFilter = useStringFilter(filterKey);
+  const multipleFilter = useArrayFilter(filterKey);
+
+  const { value, reset } = multiple ? multipleFilter : singleFilter;
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
 
@@ -59,25 +63,29 @@ export function SelectFilter({
         const newValues = currentValues.includes(optionValue)
           ? currentValues.filter((v) => v !== optionValue)
           : [...currentValues, optionValue];
-        setValue(newValues);
+        (multipleFilter.setValue as (value: string[]) => void)(newValues);
       } else {
-        setValue(optionValue === value ? '' : optionValue);
+        (singleFilter.setValue as (value: string) => void)(
+          optionValue === value ? '' : optionValue
+        );
         setOpen(false);
       }
     },
-    [value, setValue, multiple]
+    [value, singleFilter, multipleFilter, multiple]
   );
 
   const handleRemove = useCallback(
     (optionValue: string) => {
       if (multiple) {
         const currentValues = (value as string[]) || [];
-        setValue(currentValues.filter((v) => v !== optionValue));
+        (multipleFilter.setValue as (value: string[]) => void)(
+          currentValues.filter((v) => v !== optionValue)
+        );
       } else {
         reset();
       }
     },
-    [value, setValue, multiple, reset]
+    [value, multipleFilter, multiple, reset]
   );
 
   const handleClear = useCallback(() => {

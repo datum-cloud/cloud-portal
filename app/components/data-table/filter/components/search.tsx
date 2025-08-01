@@ -1,10 +1,11 @@
-import { useFilter } from '../filter.context';
+import { useStringFilter } from '../../hooks/useFilterQueryState';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { InputWithAddons } from '@/components/ui/input-with-addons';
 import { Label } from '@/components/ui/label';
+import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/utils/misc';
 import { Search, X } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 
 export interface SearchFilterProps {
   filterKey: string;
@@ -13,32 +14,44 @@ export interface SearchFilterProps {
   description?: string;
   className?: string;
   disabled?: boolean;
+  debounceMs?: number; // Debounce delay in milliseconds (default: 300)
+  immediate?: boolean; // Skip debouncing for immediate updates (default: false)
 }
 
 export function SearchFilter({
   filterKey,
   label,
-  placeholder,
+  placeholder = 'Search...',
   description,
   className,
-  disabled,
+  disabled = false,
+  debounceMs = 300,
+  immediate = false,
 }: SearchFilterProps) {
-  const { value, setValue, reset } = useFilter<string>(filterKey);
-  const searchValue = value || '';
+  const { value, setValue } = useStringFilter(filterKey);
+  const [localValue, setLocalValue] = useState(value || '');
 
-  const handleChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setValue(event.target.value);
-    },
-    [setValue]
-  );
+  // Debounced value that triggers the actual filter update
+  const debouncedValue = useDebounce(localValue, immediate ? 0 : debounceMs);
 
-  const handleClear = useCallback(() => {
-    reset();
-  }, [reset]);
+  // Update local value when external value changes (e.g., URL changes, reset)
+  useEffect(() => {
+    setLocalValue(value || '');
+  }, [value]);
+
+  // Update filter when debounced value changes
+  useEffect(() => {
+    if (debouncedValue !== value) {
+      setValue(debouncedValue);
+    }
+  }, [debouncedValue, setValue, value]);
+
+  const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalValue(event.target.value);
+  }, []);
 
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('min-w-60 space-y-2', className)}>
       {label && (
         <div className="space-y-1">
           <Label htmlFor={filterKey} className="text-sm font-medium">
@@ -49,27 +62,29 @@ export function SearchFilter({
       )}
 
       <div className="relative">
-        <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-        <Input
+        <InputWithAddons
           id={filterKey}
           type="text"
           placeholder={placeholder || 'Search...'}
-          value={searchValue}
+          value={localValue}
           onChange={handleChange}
           disabled={disabled}
-          className="pr-9 pl-9"
+          containerClassName="h-9"
+          leading={<Search size={14} className="text-muted-foreground" />}
+          trailing={
+            localValue && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocalValue('')}
+                className="text-muted-foreground hover:text-primary size-4 p-0 hover:bg-transparent">
+                <X size={14} />
+                <span className="sr-only">Clear search</span>
+              </Button>
+            )
+          }
         />
-        {searchValue && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleClear}
-            className="hover:bg-muted absolute top-1/2 right-1 h-7 w-7 -translate-y-1/2 p-0">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Clear search</span>
-          </Button>
-        )}
       </div>
     </div>
   );
