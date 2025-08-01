@@ -6,7 +6,7 @@ import {
   ExplorerCard,
   SectionDescription,
   SectionTitle,
-} from '@/features/project/dashboard';
+} from '@/features/project/components/dashboard';
 import { useApp } from '@/providers/app.provider';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { transformControlPlaneStatus } from '@/utils/misc';

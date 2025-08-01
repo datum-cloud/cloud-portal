@@ -4,7 +4,7 @@ import { DateFormat } from '@/components/common/date-format';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { routes } from '@/constants/paths';
-import { SECRET_TYPES } from '@/features/secret/constants/secret.constants';
+import { SECRET_TYPES } from '@/features/secret/components/constants/secret.constants';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';

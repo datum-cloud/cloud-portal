@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { NetworkForm } from '@/features/network/form';
+import { NetworkForm } from '@/features/network/network-form';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';

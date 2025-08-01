@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { CreateLocationForm } from '@/features/location/form/create-form';
+import { LocationForm } from '@/features/location/location-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
@@ -95,7 +95,7 @@ export default function EditLocation() {
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <CreateLocationForm defaultValue={location} />
+      <LocationForm defaultValue={location} />
     </div>
   );
 }

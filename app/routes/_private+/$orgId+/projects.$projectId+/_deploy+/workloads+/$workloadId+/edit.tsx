@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { WorkloadUpdateForm } from '@/features/workload/form/update-form';
+import { WorkloadUpdateForm } from '@/features/workload/workload-update-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control';

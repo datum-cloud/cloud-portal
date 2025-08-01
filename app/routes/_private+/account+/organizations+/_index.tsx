@@ -1,6 +1,6 @@
 import { EmptyState } from '@/components/common/empty-state';
 import { PageTitle } from '@/components/layout/page-title';
-import { OrganizationListCard } from '@/features/organization/list-card';
+import { OrganizationListCard } from '@/features/organization/components/list-card';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
 import { CustomError } from '@/utils/errorHandle';

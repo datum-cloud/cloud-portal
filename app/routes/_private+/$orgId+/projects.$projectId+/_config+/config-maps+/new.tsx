@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { ConfigMapForm } from '@/features/config-map/form';
+import { ConfigMapForm } from '@/features/config-map/config-map-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { redirectWithToast, dataWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';

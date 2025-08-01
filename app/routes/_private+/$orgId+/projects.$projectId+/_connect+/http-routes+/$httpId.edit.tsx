@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { HttpRouteForm } from '@/features/connect/http-route/form';
+import { HttpRouteForm } from '@/features/connect/http-route/http-route-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createHttpRoutesControl } from '@/resources/control-plane/http-routes.control';

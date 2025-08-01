@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { OrganizationForm } from '@/features/organization/form';
+import { OrganizationForm } from '@/features/organization/organization-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createOrganizationsControl } from '@/resources/control-plane/organizations.control';

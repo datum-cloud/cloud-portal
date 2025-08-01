@@ -1,4 +1,4 @@
-import { ActivityLogList } from '@/features/activity-log/list';
+import { ActivityLogList } from '@/features/activity-log/activity-log-list';
 import { useApp } from '@/providers/app.provider';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { MetaFunction } from 'react-router';

@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { ExportPolicyUpdateForm } from '@/features/observe/export-policies/form/update-form';
+import { ExportPolicyUpdateForm } from '@/features/observe/export-policies/export-policy-update-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';

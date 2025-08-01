@@ -1,4 +1,4 @@
-import { SelectOrganization } from '@/components/forms/selects/select-organization/select-organization';
+import { SelectOrganization } from '@/components/forms/selects/select-organization';
 import { Badge } from '@/components/ui/badge';
 import { routes } from '@/constants/paths';
 import { useApp } from '@/providers/app.provider';

@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { NetworkForm } from '@/features/network/form';
+import { NetworkForm } from '@/features/network/network-form';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { MetaFunction, useNavigate, useParams } from 'react-router';

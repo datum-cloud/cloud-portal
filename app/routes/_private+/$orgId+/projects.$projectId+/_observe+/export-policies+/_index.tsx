@@ -3,7 +3,7 @@ import { DataTableRowActionsProps } from '@/components/common/data-table/data-ta
 import { DateFormat } from '@/components/common/date-format';
 import { Button } from '@/components/ui/button';
 import { routes } from '@/constants/paths';
-import { ExportPolicyStatus } from '@/features/observe/export-policies/status';
+import { ExportPolicyStatus } from '@/features/observe/export-policies/components/status';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';

@@ -8,7 +8,7 @@ import { routes } from '@/constants/paths';
 import {
   LOCATION_CLASSES,
   LOCATION_PROVIDERS,
-} from '@/features/location/constants/location.constants';
+} from '@/features/location/components/constants/location.constants';
 import { dataWithToast } from '@/modules/cookie/toast.server';
 import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { createLocationsControl } from '@/resources/control-plane/locations.control';

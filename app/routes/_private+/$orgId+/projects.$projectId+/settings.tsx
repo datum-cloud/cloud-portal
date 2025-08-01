@@ -1,7 +1,7 @@
 import { PageTitle } from '@/components/layout/page-title';
 import { routes } from '@/constants/paths';
-import { ProjectDangerCard } from '@/features/project/settings/danger-card';
-import { ProjectGeneralCard } from '@/features/project/settings/general-card';
+import { ProjectDangerCard } from '@/features/project/components/settings/danger-card';
+import { ProjectGeneralCard } from '@/features/project/components/settings/general-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { redirectWithToast, dataWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';

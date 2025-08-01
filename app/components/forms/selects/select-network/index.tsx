@@ -9,7 +9,7 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { NetworkDialogForm, NetworkDialogFormRef } from '@/features/network/dialog-form';
+import { NetworkDialogForm, NetworkDialogFormRef } from '@/features/network/components/dialog-form';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { ROUTE_PATH as NETWORKS_LIST_ROUTE_PATH } from '@/routes/api+/connect+/networks+/list';
 import { cn } from '@/utils/misc';

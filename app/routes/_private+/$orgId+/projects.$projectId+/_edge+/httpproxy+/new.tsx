@@ -1,5 +1,5 @@
-import { HttpProxyForm } from '@/features/edge/httpproxy/form';
-import { HttpProxyPreview } from '@/features/edge/httpproxy/preview';
+import { HttpProxyPreview } from '@/features/edge/httpproxy/components/preview';
+import { HttpProxyForm } from '@/features/edge/httpproxy/http-proxy-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';

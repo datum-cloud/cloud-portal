@@ -1,5 +1,5 @@
-import { OrganizationDangerCard } from '@/features/organization/settings/danger-card';
-import { OrganizationGeneralCard } from '@/features/organization/settings/general-card';
+import { OrganizationDangerCard } from '@/features/organization/components/settings/danger-card';
+import { OrganizationGeneralCard } from '@/features/organization/components/settings/general-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';

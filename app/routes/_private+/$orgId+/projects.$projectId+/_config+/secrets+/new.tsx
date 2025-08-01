@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { SecretForm } from '@/features/secret/form/form';
+import { SecretForm } from '@/features/secret/secret-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { redirectWithToast, dataWithToast } from '@/modules/cookie/toast.server';
 import { createSecretsControl } from '@/resources/control-plane/secrets.control';

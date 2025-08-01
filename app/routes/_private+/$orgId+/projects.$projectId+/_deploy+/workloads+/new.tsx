@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { WorkloadStepper } from '@/features/workload/form/stepper-form';
+import { WorkloadStepper } from '@/features/workload/workload-stepper-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';

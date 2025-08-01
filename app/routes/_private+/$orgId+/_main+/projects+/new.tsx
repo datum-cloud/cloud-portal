@@ -1,5 +1,5 @@
 import { routes } from '@/constants/paths';
-import { CreateProjectForm } from '@/features/project/create-form';
+import { ProjectCreateForm } from '@/features/project/project-create-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
@@ -73,7 +73,7 @@ export const action = withMiddleware(async ({ request, params, context }: Action
 export default function NewProject() {
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <CreateProjectForm />
+      <ProjectCreateForm />
     </div>
   );
 }
