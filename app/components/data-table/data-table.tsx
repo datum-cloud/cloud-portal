@@ -2,11 +2,11 @@ import { DataTableEmptyContent } from './data-table-empty-content';
 import { DataTableHeader } from './data-table-header';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableRowActions } from './data-table-row-actions';
+import { DataTableProvider } from './data-table.context';
 import { DataTableProps } from './data-table.types';
 import { DataTableLoadingContent } from '@/components/data-table/data-table-loading';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-import { DataTableProvider } from '@/providers/dataTable.provider';
 import { cn } from '@/utils/misc';
 import {
   ColumnFiltersState,
@@ -30,7 +30,10 @@ export const DataTable = <TData, TValue>({
   data,
   defaultColumnFilters = [],
   defaultSorting = [],
-  filterFields = [],
+  filterComponent,
+  defaultFilters,
+  onFiltersChange,
+  serverSideFiltering = false,
   mode = 'table',
   hideHeader = false,
   className,
@@ -53,13 +56,6 @@ export const DataTable = <TData, TValue>({
     pageIndex: 0,
     pageSize: 20,
   });
-
-  // TODO: enable this functionality when you want to use the column visibility feature and search functionality
-  // const [columnVisibility, setColumnVisibility] = useLocalStorage<VisibilityState>(
-  //   'data-table-visibility',
-  //   {},
-  // )
-  // const [_, setSearch] = useQueryStates(searchParamsParser)
 
   const table: TTable<TData> = useReactTable({
     data,
@@ -93,53 +89,41 @@ export const DataTable = <TData, TValue>({
     },
   });
 
-  // TODO: enable this functionality when you want to use search functionality
-  // useEffect(() => {
-  //   const columnFiltersWithNullable = filterFields.map((field) => {
-  //     const filterValue = columnFilters.find((filter) => filter.id === field.value)
-  //     if (!filterValue) return { id: field.value, value: null }
-  //     return { id: field.value, value: filterValue.value }
-  //   })
-
-  //   const search = columnFiltersWithNullable.reduce(
-  //     (prev, curr) => {
-  //       prev[curr.id as string] = curr.value
-  //       return prev
-  //     },
-  //     {} as Record<string, unknown>,
-  //   )
-
-  //   setSearch(search)
-
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [columnFilters])
-
   return (
     <DataTableProvider
       table={table}
       columns={columns}
-      filterFields={filterFields}
       columnFilters={columnFilters}
       sorting={sorting}
-      // REMINDER: default values for the `/infinite` table
       rowSelection={{}}
       columnOrder={[]}
       columnVisibility={{}}
       enableColumnOrdering={false}
-      isLoading={undefined}>
+      isLoading={isLoading}
+      defaultFilters={defaultFilters}
+      onFiltersChange={onFiltersChange}
+      serverSideFiltering={serverSideFiltering}>
       <div
         className={cn(
           'mx-auto flex h-full w-full flex-col gap-4',
           !isLoading && data?.length > 0 ? 'max-w-(--breakpoint-xl)' : '',
           className
         )}>
-        {isLoading ? (
-          <DataTableLoadingContent title={loadingText} />
-        ) : data?.length > 0 ? (
+        {filterComponent && (
           <>
             {/* Header Section */}
             {tableTitle && <PageTitle {...tableTitle} />}
 
+            {/* Filter Section */}
+            {filterComponent}
+          </>
+        )}
+
+        {isLoading ? (
+          <DataTableLoadingContent title={loadingText} />
+        ) : data?.length > 0 ? (
+          <>
+            {!filterComponent && tableTitle && <PageTitle {...tableTitle} />}
             {/* Table Section */}
             <div
               className={cn(
@@ -183,11 +167,11 @@ export const DataTable = <TData, TValue>({
                         <TableRow key={row.id} className="border-none hover:bg-transparent">
                           <TableCell
                             colSpan={columns.length + (rowActions.length > 0 ? 1 : 0)}
-                            className={cn('p-0 pb-3', !hideHeader && 'first:pt-3')}>
+                            className={cn('p-0 pb-2', !hideHeader && 'first:pt-3')}>
                             <div
                               onClick={() => onRowClick?.(row.original)}
                               className={cn(
-                                'group bg-card relative rounded-lg border p-4 shadow-sm transition-all duration-200',
+                                'bg-card group relative rounded-lg border p-4 shadow-sm transition-all duration-200',
                                 'hover:border-primary/20 hover:shadow-md',
                                 onRowClick && 'cursor-pointer',
                                 row.getIsSelected() && 'ring-primary ring-2 ring-offset-2',

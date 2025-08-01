@@ -1,9 +1,12 @@
 import { ActivityLogItem } from './list-item';
+import { DataTableFilter } from '@/components/data-table';
 import { DataTable } from '@/components/data-table/data-table';
 import type { ActivityLogEntry, QueryParams } from '@/modules/loki/types';
 import { ROUTE_PATH as ACTIVITY_LOGS_ROUTE_PATH } from '@/routes/api+/activity-logs';
 import { ColumnDef } from '@tanstack/react-table';
+import { getUnixTime } from 'date-fns';
 import { useMemo, useEffect, useState } from 'react';
+import { DateRange } from 'react-day-picker';
 import { useFetcher } from 'react-router';
 import { toast } from 'sonner';
 
@@ -23,20 +26,38 @@ export const ActivityLogList = ({
   }>({ key: 'activity-logs' });
   const [logs, setLogs] = useState<ActivityLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filters, setFilters] = useState<{ q?: string; date?: DateRange }>();
 
   // Memoize the query parameters to prevent infinite re-renders
-  const queryParams = useMemo(
-    () => ({
-      start: '7d',
+  const queryParams = useMemo(() => {
+    let start: string | number = '7d';
+    let end: string | number = '';
+
+    if (filters?.date) {
+      start = filters.date.from ? getUnixTime(filters.date.from) : start;
+      end = filters.date.to ? getUnixTime(filters.date.to) : end;
+    }
+
+    return {
+      start,
+      end,
       limit: '1000',
-      // Only Write operations
-      actions: 'create,update,patch,delete,deletecollection',
+      actions: 'create,update,patch,delete,deletecollection', // Only Write operations
       stage: 'ResponseComplete',
       excludeDryRun: true,
+      q: filters?.q,
       ...(params ?? {}),
-    }),
-    [params?.project, params?.user, params?.q, params?.resource, params?.status, params?.actions]
-  );
+    };
+  }, [
+    params?.project,
+    params?.user,
+    params?.q,
+    params?.resource,
+    params?.status,
+    params?.actions,
+    filters?.q,
+    filters?.date,
+  ]);
 
   // Fetch activity logs when query parameters change
   useEffect(() => {
@@ -96,6 +117,21 @@ export const ActivityLogList = ({
       loadingText="Loading activity..."
       tableCardClassName="px-3 py-2"
       className={className}
+      serverSideFiltering
+      onFiltersChange={setFilters}
+      filterComponent={
+        <DataTableFilter>
+          <DataTableFilter.Search filterKey="q" placeholder="Search activity..." />
+          <DataTableFilter.DatePicker
+            filterKey="date"
+            placeholder="Filter by time range"
+            mode="range"
+            excludePresets={['thisYear', 'lastYear']}
+            closeOnSelect={false}
+            disableFuture
+          />
+        </DataTableFilter>
+      }
     />
   );
 };

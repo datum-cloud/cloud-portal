@@ -20,6 +20,7 @@ import { getSharedEnvs } from '@/utils/env';
 import { metaObject } from '@/utils/meta';
 import { isProduction, combineHeaders, getDomainUrl } from '@/utils/misc';
 import NProgress from 'nprogress';
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { useEffect, useMemo } from 'react';
 import {
   Links,
@@ -132,7 +133,7 @@ function Document({
         <Links />
       </head>
       <body className="h-auto w-full" suppressHydrationWarning>
-        <TooltipProvider>{children}</TooltipProvider>
+        {children}
         <MarkerIoEmbed nonce={nonce} />
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
@@ -190,10 +191,14 @@ export default function AppWithProviders() {
   return (
     <Document nonce={nonce} lang="en">
       <AuthenticityTokenProvider token={csrfToken}>
-        {sharedEnv.FATHOM_ID && isProduction() && (
-          <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />
-        )}
-        <Outlet />
+        <NuqsAdapter>
+          <TooltipProvider>
+            {sharedEnv.FATHOM_ID && isProduction() && (
+              <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />
+            )}
+            <Outlet />
+          </TooltipProvider>
+        </NuqsAdapter>
       </AuthenticityTokenProvider>
     </Document>
   );
