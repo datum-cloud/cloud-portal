@@ -9,9 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown';
-import { routes } from '@/constants/routes';
+import { paths } from '@/config/paths';
 import { useApp } from '@/providers/app.provider';
-import { cn, getInitials } from '@/utils/misc';
+import { cn } from '@/utils/common';
+import { getInitials } from '@/utils/text';
 import { LogOut, UserCogIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSubmit } from 'react-router';
@@ -76,7 +77,7 @@ export const UserDropdown = () => {
         <DropdownMenuGroup>
           <DropdownMenuItem
             className="cursor-pointer"
-            onClick={() => navigate(routes.account.preferences)}>
+            onClick={() => navigate(paths.account.preferences)}>
             <UserCogIcon />
             Account preferences
           </DropdownMenuItem>
@@ -87,7 +88,7 @@ export const UserDropdown = () => {
           asChild
           className="text-destructive"
           onClick={() => {
-            submit(null, { method: 'POST', action: routes.auth.logOut });
+            submit(null, { method: 'POST', action: paths.auth.logOut });
           }}>
           <Button
             type="submit"

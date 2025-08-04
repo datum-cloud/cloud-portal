@@ -1,3 +1,4 @@
+import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import {
   ComDatumapisComputeV1AlphaWorkload,
   ComDatumapisComputeV1AlphaWorkloadList,
@@ -14,8 +15,8 @@ import {
   RuntimeType,
 } from '@/resources/interfaces/workload.interface';
 import { NewWorkloadSchema, RuntimeEnvSchema } from '@/resources/schemas/workload.schema';
-import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/misc';
+import { convertLabelsToObject } from '@/utils/data';
+import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createWorkloadsControl = (client: Client) => {

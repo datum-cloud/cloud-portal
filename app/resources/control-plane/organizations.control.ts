@@ -13,8 +13,8 @@ import {
   OrganizationSchema,
   UpdateOrganizationSchema,
 } from '@/resources/schemas/organization.schema';
-import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject } from '@/utils/misc';
+import { convertLabelsToObject } from '@/utils/data';
+import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createOrganizationsControl = (client: Client) => {

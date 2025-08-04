@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { routes } from '@/constants/routes';
+import { paths } from '@/config/paths';
 import { Link, useNavigation, useSubmit } from 'react-router';
 
 export default function AuthCard({ mode }: { mode: 'login' | 'signup' }) {
@@ -26,11 +26,11 @@ export default function AuthCard({ mode }: { mode: 'login' | 'signup' }) {
               variant="outline"
               className="w-full cursor-pointer"
               isLoading={
-                navigation.state === 'submitting' && navigation.formAction === routes.auth.root
+                navigation.state === 'submitting' && navigation.formAction === paths.auth.root
               }
               disabled={navigation.state === 'submitting'}
               onClick={() => {
-                submit(null, { method: 'POST', action: routes.auth.root });
+                submit(null, { method: 'POST', action: paths.auth.root });
               }}>
               <span>{mode === 'login' ? 'Sign in' : 'Sign up'}</span>
             </Button>
@@ -38,7 +38,7 @@ export default function AuthCard({ mode }: { mode: 'login' | 'signup' }) {
           <div className="text-muted-foreground text-center text-sm">
             {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}{' '}
             <Link
-              to={mode === 'login' ? routes.auth.signUp : routes.auth.logIn}
+              to={mode === 'login' ? paths.auth.signUp : paths.auth.logIn}
               className="hover:text-primary font-medium underline underline-offset-4 transition-all">
               {mode === 'login' ? 'Sign up' : 'Log in'}
             </Link>

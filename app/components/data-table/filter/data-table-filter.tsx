@@ -9,7 +9,7 @@ import { SelectFilter } from './components/select';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { ChevronDown, Filter, RotateCcw } from 'lucide-react';
 import { ReactNode, useState, Children } from 'react';
 

@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { Ellipsis } from 'lucide-react';
 
 export interface MoreActionsProps<TData> {
@@ -44,7 +44,11 @@ export const MoreActions = <TData,>({
         {actions.map((action) => (
           <DropdownMenuItem
             key={action.key}
-            onClick={() => action.action(row)}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              action.action(row);
+            }}
             className={cn(
               'cursor-pointer',
               action.variant === 'destructive' && 'text-destructive',

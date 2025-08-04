@@ -3,8 +3,8 @@ import { DataTable } from '@/components/data-table/data-table';
 import { DateFormat } from '@/components/date-format/date-format';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { CardContent, CardHeader, CardTitle, Card } from '@/components/ui/card';
+import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { IInstanceControlResponse } from '@/resources/interfaces/workload.interface';
-import { transformControlPlaneStatus } from '@/utils/misc';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 

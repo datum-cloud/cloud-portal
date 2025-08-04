@@ -17,8 +17,8 @@ import {
   IHttpRouteControlResponseLite,
 } from '@/resources/interfaces/http-route.interface';
 import { HttpRouteSchema } from '@/resources/schemas/http-route.schema';
-import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject } from '@/utils/misc';
+import { convertLabelsToObject } from '@/utils/data';
+import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createHttpRoutesControl = (client: Client) => {

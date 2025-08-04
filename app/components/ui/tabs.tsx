@@ -1,4 +1,4 @@
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import * as React from 'react';
 import { Link } from 'react-router';

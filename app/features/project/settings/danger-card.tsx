@@ -1,7 +1,7 @@
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { CircleAlertIcon } from 'lucide-react';
 import { useFetcher } from 'react-router';

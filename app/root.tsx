@@ -1,4 +1,4 @@
-import { FathomAnalytics } from '@/components/fathom/fathom';
+import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { ClientHintCheck } from '@/components/misc/ClientHints';
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary';
 import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher';
@@ -10,15 +10,16 @@ import { useToast } from '@/hooks/useToast';
 import { csrf } from '@/modules/cookie/csrf.server';
 import { themeSessionResolver } from '@/modules/cookie/theme.server';
 import { getToastSession } from '@/modules/cookie/toast.server';
+import { FathomAnalytics } from '@/modules/fathom/fathom';
 import MarkerIoEmbed from '@/modules/markerio';
-import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api+/cache';
-import { ROUTE_PATH as SET_THEME_ROUTE_PATH } from '@/routes/api+/set-theme';
+import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api/action/set-cache';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
 import RootCSS from '@/styles/root.css?url';
-import { getSharedEnvs } from '@/utils/env';
+import { getSharedEnvs } from '@/utils/environment';
+import { isProduction } from '@/utils/environment';
 import { metaObject } from '@/utils/meta';
-import { isProduction, combineHeaders, getDomainUrl } from '@/utils/misc';
+import { combineHeaders, getDomainUrl } from '@/utils/path';
 import NProgress from 'nprogress';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { useEffect, useMemo } from 'react';
@@ -97,7 +98,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const data = useRouteLoaderData<typeof loader>('root');
 
   return (
-    <ThemeProvider specifiedTheme={data?.theme ?? Theme.LIGHT} themeAction={SET_THEME_ROUTE_PATH}>
+    <ThemeProvider specifiedTheme={data?.theme ?? Theme.LIGHT} themeAction="/api/set-theme">
       {children}
     </ThemeProvider>
   );
@@ -193,10 +194,12 @@ export default function AppWithProviders() {
       <AuthenticityTokenProvider token={csrfToken}>
         <NuqsAdapter>
           <TooltipProvider>
-            {sharedEnv.FATHOM_ID && isProduction() && (
-              <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />
-            )}
-            <Outlet />
+            <ConfirmationDialogProvider>
+              {sharedEnv.FATHOM_ID && isProduction() && (
+                <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />
+              )}
+              <Outlet />
+            </ConfirmationDialogProvider>
           </TooltipProvider>
         </NuqsAdapter>
       </AuthenticityTokenProvider>

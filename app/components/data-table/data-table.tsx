@@ -7,7 +7,7 @@ import { DataTableProps } from './data-table.types';
 import { DataTableLoadingContent } from '@/components/data-table/data-table-loading';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import {
   ColumnFiltersState,
   PaginationState,

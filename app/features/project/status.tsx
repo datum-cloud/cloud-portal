@@ -4,8 +4,9 @@ import {
   ControlPlaneStatus,
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
-import { ROUTE_PATH as PROJECT_STATUS_ROUTE_PATH } from '@/routes/api+/projects+/status';
-import { useEffect, useRef, useState } from 'react';
+import { ROUTE_PATH as PROJECT_STATUS_ROUTE_PATH } from '@/routes/api/projects/status';
+import { getPathWithParams } from '@/utils/path';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';
 
 export const ProjectStatus = ({
@@ -28,7 +29,7 @@ export const ProjectStatus = ({
 
   const loadStatus = () => {
     if (projectId && orgId) {
-      fetcher.load(`${PROJECT_STATUS_ROUTE_PATH}?projectId=${projectId}&orgId=${orgId}`);
+      fetcher.load(getPathWithParams(PROJECT_STATUS_ROUTE_PATH, { id: projectId }));
     }
   };
 
@@ -59,17 +60,28 @@ export const ProjectStatus = ({
   }, [projectId, orgId]);
 
   useEffect(() => {
-    if (fetcher.data) {
-      const { status } = fetcher.data as IControlPlaneStatus;
+    if (fetcher.data && fetcher.state === 'idle') {
+      const { success, data } = fetcher.data;
 
-      setStatus(fetcher.data);
+      if (!success) {
+        return;
+      }
+
+      setStatus(data);
       if (
-        (status === ControlPlaneStatus.Success || status === ControlPlaneStatus.Error) &&
+        (data === ControlPlaneStatus.Success || data === ControlPlaneStatus.Error) &&
         intervalRef.current
       ) {
         clearInterval(intervalRef.current);
       }
     }
+  }, [fetcher.data, fetcher.state]);
+
+  const tooltipText = useMemo(() => {
+    if (fetcher.data?.data === ControlPlaneStatus.Success) {
+      return 'Active';
+    }
+    return undefined;
   }, [fetcher.data]);
 
   return status ? (
@@ -78,7 +90,7 @@ export const ProjectStatus = ({
       type={type}
       showTooltip={showTooltip}
       badgeClassName={badgeClassName}
-      tooltipText={fetcher.data?.status === ControlPlaneStatus.Success ? 'Active' : undefined}
+      tooltipText={tooltipText}
     />
   ) : (
     <></>

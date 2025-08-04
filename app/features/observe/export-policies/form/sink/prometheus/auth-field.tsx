@@ -9,11 +9,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { SINK_AUTH_TYPES } from '@/constants/options';
+import { SINK_AUTH_TYPES } from '@/features/observe/constants';
 import { ExportPolicyAuthenticationType } from '@/resources/interfaces/export-policy.interface';
 import { SecretType } from '@/resources/interfaces/secret.interface';
 import { ExportPolicySinkAuthenticationSchema } from '@/resources/schemas/export-policy.schema';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { getSelectProps, useForm, useInputControl } from '@conform-to/react';
 import { useEffect, useState } from 'react';
 

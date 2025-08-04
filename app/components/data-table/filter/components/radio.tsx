@@ -1,7 +1,7 @@
 import { useStringFilter } from '../../hooks/useFilterQueryState';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { ReactNode, useCallback } from 'react';
 
 export interface RadioOption {

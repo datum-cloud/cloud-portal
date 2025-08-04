@@ -1,3 +1,4 @@
+import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import {
   ComMiloapisResourcemanagerV1Alpha1Project,
   ComMiloapisResourcemanagerV1Alpha1ProjectList,
@@ -10,8 +11,8 @@ import {
 } from '@/modules/control-plane/resource-manager';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { UpdateProjectSchema, ProjectSchema } from '@/resources/schemas/project.schema';
-import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject, filterLabels, transformControlPlaneStatus } from '@/utils/misc';
+import { convertLabelsToObject, filterLabels } from '@/utils/data';
+import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createProjectsControl = (client: Client) => {

@@ -8,11 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { paths } from '@/config/paths';
+import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { HttpProxyHostnamesCard } from '@/features/edge/httpproxy/overview/hostnames-card';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { ROUTE_PATH as HTTP_PROXY_DETAIL_PATH } from '@/routes/api+/edge+/httpproxy+/$proxyId';
-import { transformControlPlaneStatus } from '@/utils/misc';
+import { ROUTE_PATH as HTTP_PROXY_DETAIL_PATH } from '@/routes/api/httpproxy/$id';
 import { getPathWithParams } from '@/utils/path';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { ExternalLinkIcon, InfoIcon, Loader2, SignalHighIcon } from 'lucide-react';
@@ -73,7 +74,7 @@ export const HttpProxyPreview = ({ data, projectId }: HttpProxyPreviewProps) => 
     if (proxyStatus.status === ControlPlaneStatus.Pending && proxy?.name) {
       intervalRef.current = setInterval(() => {
         fetcher.load(
-          `${getPathWithParams(HTTP_PROXY_DETAIL_PATH, { proxyId: proxy.name })}?projectId=${projectId}`
+          `${getPathWithParams(HTTP_PROXY_DETAIL_PATH, { id: proxy.name })}?projectId=${projectId}`
         );
       }, 2000);
     } else {
@@ -172,7 +173,12 @@ export const HttpProxyPreview = ({ data, projectId }: HttpProxyPreviewProps) => 
               </motion.div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2 pt-6">
-              <Button variant="default" type="button" onClick={() => navigate(-1)}>
+              <Button
+                variant="default"
+                type="button"
+                onClick={() =>
+                  navigate(getPathWithParams(paths.project.detail.httpProxy.root, { projectId }))
+                }>
                 Done
               </Button>
             </CardFooter>

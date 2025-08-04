@@ -9,7 +9,7 @@ import {
   SelectContent,
   SelectItem,
 } from '@/components/ui/select';
-import { POLICY_SINK_TYPES } from '@/constants/options';
+import { POLICY_SINK_TYPES } from '@/features/observe/constants';
 import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.interface';
 import {
   ExportPolicySinkFieldSchema,

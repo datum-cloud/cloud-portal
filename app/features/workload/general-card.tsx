@@ -3,8 +3,9 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
-import { getShortId, transformControlPlaneStatus } from '@/utils/misc';
+import { getShortId } from '@/utils/text';
 import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
 

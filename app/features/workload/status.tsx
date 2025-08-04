@@ -3,7 +3,7 @@ import {
   ControlPlaneStatus,
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
-import { ROUTE_PATH as WORKLOAD_STATUS_ROUTE_PATH } from '@/routes/api+/workloads+/status';
+import { ROUTE_PATH as WORKLOAD_STATUS_ROUTE_PATH } from '@/routes/old/api+/workloads+/status';
 import { useEffect, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';
 

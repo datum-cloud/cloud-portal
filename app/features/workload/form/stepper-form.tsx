@@ -6,7 +6,7 @@ import { MetadataForm } from '@/components/metadata/metadata-form';
 import { MetadataPreview } from '@/components/metadata/metadata-preview';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BOOT_IMAGES } from '@/constants/bootImages';
+import { BOOT_IMAGES } from '@/features/workload/constants';
 import { WorkloadHelper } from '@/features/workload/helper';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IWorkloadControlResponse, RuntimeType } from '@/resources/interfaces/workload.interface';
@@ -23,7 +23,7 @@ import {
   storagesSchema,
   UpdateWorkloadSchema,
 } from '@/resources/schemas/workload.schema';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { getFormProps, useForm, FormProvider } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { defineStepper } from '@stepperize/react';

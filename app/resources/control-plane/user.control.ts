@@ -1,5 +1,6 @@
 import { IUser } from '@/resources/interfaces/user.interface';
 import { UserSchema } from '@/resources/schemas/user.schema';
+import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export interface ComMiloapisIamV1Alpha1User {
@@ -43,7 +44,7 @@ export const createUserControl = (client: Client) => {
       });
 
       if (!response.data) {
-        throw new Error(`User with ID ${userId} not found`);
+        throw new CustomError(`User with ID ${userId} not found`, 404);
       }
 
       return transform(response.data as ComMiloapisIamV1Alpha1User);
@@ -66,7 +67,7 @@ export const createUserControl = (client: Client) => {
       });
 
       if (!response.data) {
-        throw new Error(`User with ID ${userId} not found`);
+        throw new CustomError(`User with ID ${userId} not found`, 404);
       }
 
       return transform(response.data as ComMiloapisIamV1Alpha1User);

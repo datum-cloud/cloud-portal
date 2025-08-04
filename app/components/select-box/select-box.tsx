@@ -8,7 +8,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { CheckIcon, ChevronDown, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 

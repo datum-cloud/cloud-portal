@@ -26,7 +26,7 @@ interface AppProviderProps {
 
 export function AppProvider({ children, initialUser, initialOrganization }: AppProviderProps) {
   const [user, setUser] = useState<IUser>(initialUser!);
-  const [organization, setOrganization] = useState<IOrganization>(initialOrganization!);
+  const [organization, setOrganization] = useState<IOrganization | undefined>(initialOrganization!);
 
   const updateUserData = (userData: IUser) => {
     setUser(userData);
@@ -36,7 +36,7 @@ export function AppProvider({ children, initialUser, initialOrganization }: AppP
     setOrganization(orgData);
   };
 
-  const orgId = useMemo(() => organization?.name, [organization]);
+  const currentOrgId = useMemo(() => organization?.name, [organization]);
 
   useEffect(() => {
     if (initialUser) {
@@ -49,7 +49,7 @@ export function AppProvider({ children, initialUser, initialOrganization }: AppP
       value={{
         user,
         organization,
-        orgId,
+        orgId: currentOrgId,
         setUser: updateUserData,
         setOrganization: updateOrganizationData,
       }}>

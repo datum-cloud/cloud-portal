@@ -1,3 +1,4 @@
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,12 +10,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { paths } from '@/config/paths';
 import { useIsPending } from '@/hooks/useIsPending';
-import { useApp } from '@/providers/app.provider';
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
-import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api+/edge+/httpproxy+/actions';
+import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
+import { getPathWithParams } from '@/utils/path';
 import {
   FormProvider,
   getFormProps,
@@ -24,7 +25,7 @@ import {
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect, useMemo, useRef } from 'react';
-import { Form, useSubmit } from 'react-router';
+import { Form, useFetcher } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 
@@ -35,11 +36,10 @@ export const HttpProxyForm = ({
   projectId?: string;
   defaultValue?: IHttpProxyControlResponse;
 }) => {
-  const { orgId } = useApp();
   const isHydrated = useHydrated();
   const isPending = useIsPending();
   const { confirm } = useConfirmationDialog();
-  const submit = useSubmit();
+  const fetcher = useFetcher({ key: 'delete-httpproxy' });
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -61,17 +61,17 @@ export const HttpProxyForm = ({
       variant: 'destructive',
       showConfirmInput: true,
       onSubmit: async () => {
-        await submit(
+        await fetcher.submit(
           {
             id: defaultValue?.name ?? '',
             projectId: projectId ?? '',
-            orgId: orgId ?? '',
+            redirectUri: getPathWithParams(paths.project.detail.httpProxy.root, {
+              projectId,
+            }),
           },
           {
             action: HTTP_PROXIES_ACTIONS_PATH,
             method: 'DELETE',
-            fetcherKey: 'http-proxy-resources',
-            navigate: false,
           }
         );
       },
@@ -127,7 +127,7 @@ export const HttpProxyForm = ({
               <Input
                 {...getInputProps(fields.name, { type: 'text' })}
                 readOnly={isEdit}
-                ref={inputRef}
+                ref={isEdit ? undefined : inputRef}
                 key={fields.name.id}
                 placeholder="e.g. api-example-com-3sd122"
               />
@@ -140,6 +140,7 @@ export const HttpProxyForm = ({
               <Input
                 {...getInputProps(fields.endpoint, { type: 'text' })}
                 key={fields.endpoint.id}
+                ref={isEdit ? inputRef : undefined}
                 placeholder="e.g. https://api.example.com or api.example.com"
               />
             </Field>

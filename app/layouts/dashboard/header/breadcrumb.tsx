@@ -6,7 +6,7 @@ import {
   BreadcrumbSeparator,
   Breadcrumb as BreadcrumbUI,
 } from '@/components/ui/breadcrumb';
-import { routes } from '@/constants/routes';
+import { paths } from '@/config/paths';
 import { getPathWithParams } from '@/utils/path';
 import React, { useMemo } from 'react';
 import { useLocation, useMatches, useParams } from 'react-router';
@@ -59,7 +59,7 @@ export const Breadcrumb = (): React.ReactElement | null => {
       });
 
     if ((params.orgId || params.projectId) && !location.pathname.includes('/dashboard')) {
-      const route = params?.projectId ? routes.projects.dashboard : routes.org.projects.root;
+      const route = params?.projectId ? paths.projects.dashboard : paths.org.detail.projects.root;
       filteredMatches.unshift({
         key: `breadcrumb-dashboard`,
         path: getPathWithParams(route, { orgId: params.orgId, projectId: params.projectId }),

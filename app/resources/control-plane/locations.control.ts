@@ -9,8 +9,8 @@ import {
 } from '@/modules/control-plane/networking';
 import { ILocationControlResponse, LocationClass } from '@/resources/interfaces/location.interface';
 import { NewLocationSchema } from '@/resources/schemas/location.schema';
-import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject, filterLabels } from '@/utils/misc';
+import { convertLabelsToObject, filterLabels } from '@/utils/data';
+import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createLocationsControl = (client: Client) => {

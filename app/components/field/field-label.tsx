@@ -1,6 +1,6 @@
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { CircleHelp } from 'lucide-react';
 import { useState } from 'react';
 

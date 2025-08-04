@@ -2,7 +2,7 @@ import { useArrayFilter } from '../../hooks/useFilterQueryState';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { ReactNode, useCallback } from 'react';
 
 export interface CheckboxOption {

@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BOOT_IMAGES } from '@/constants/bootImages';
+import { BOOT_IMAGES } from '@/features/workload/constants';
 
 export const BootField = ({
   defaultValue,

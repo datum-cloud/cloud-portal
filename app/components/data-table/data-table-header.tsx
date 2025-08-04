@@ -1,5 +1,5 @@
 import { TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { Table as TTable, flexRender } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
 

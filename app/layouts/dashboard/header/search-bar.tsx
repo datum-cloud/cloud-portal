@@ -7,9 +7,9 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { routes } from '@/constants/routes';
+import { paths } from '@/config/paths';
 import { useOs } from '@/hooks/useOs';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { getPathWithParams } from '@/utils/path';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -60,10 +60,12 @@ export default function SearchBar({ className }: { className?: string }) {
             {orgId && (
               <>
                 <CommandItem asChild>
-                  <Link to={getPathWithParams(routes.org.projects.root, { orgId })}>Projects</Link>
+                  <Link to={getPathWithParams(paths.org.detail.projects.root, { orgId })}>
+                    Projects
+                  </Link>
                 </CommandItem>
                 <CommandItem asChild>
-                  <Link to={getPathWithParams(routes.org.settings.root, { orgId })}>
+                  <Link to={getPathWithParams(paths.org.detail.settings.preferences, { orgId })}>
                     Org Settings
                   </Link>
                 </CommandItem>

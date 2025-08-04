@@ -2,7 +2,7 @@ import { Option, SelectAutocompleteProps } from './select-autocomplete.types';
 import { VirtualizedList } from './virtualized-list';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { ChevronDown, Loader2 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 

@@ -22,7 +22,7 @@ import {
   UpdateExportPolicySchema,
 } from '@/resources/schemas/export-policy.schema';
 import { MetadataSchema, metadataSchema } from '@/resources/schemas/metadata.schema';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { defineStepper } from '@stepperize/react';
@@ -188,7 +188,7 @@ export const ExportPolicyStepperForm = ({
           method="POST"
           autoComplete="off"
           className="flex flex-col gap-6">
-          <CardContent>
+          <CardContent className="relative">
             {isPending && (
               <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 backdrop-blur-xs">
                 <Loader2 className="size-4 animate-spin" />

@@ -1,5 +1,5 @@
-import { CustomError } from '@/utils/errorHandle';
-import { isDevelopment } from '@/utils/misc';
+import { isDevelopment } from '@/utils/environment';
+import { CustomError } from '@/utils/error';
 import { Client, ClientOptions, createClient, createConfig } from '@hey-api/client-axios';
 import { AxiosError } from 'axios';
 import curlirize from 'axios-curlirize';

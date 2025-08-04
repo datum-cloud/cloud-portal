@@ -9,13 +9,13 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { routes } from '@/constants/routes';
+import { paths } from '@/config/paths';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
-import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api+/projects+/list';
-import { cn } from '@/utils/misc';
+import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api/projects';
+import { cn } from '@/utils/common';
 import { getPathWithParams } from '@/utils/path';
 import { CheckIcon, ChevronsUpDownIcon, Loader2, PlusIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useFetcher, useNavigate } from 'react-router';
 
 const ProjectItem = ({ project }: { project: IProjectControlResponse }) => {
@@ -30,11 +30,9 @@ const ProjectItem = ({ project }: { project: IProjectControlResponse }) => {
 
 export const ProjectSwitcher = ({
   currentProject,
-  orgId,
   triggerClassName,
 }: {
   currentProject: IProjectControlResponse;
-  orgId: string;
   triggerClassName?: string;
 }) => {
   const navigate = useNavigate();
@@ -43,7 +41,7 @@ export const ProjectSwitcher = ({
   const [loaded, setLoaded] = useState(false);
 
   const onSelect = (project: IProjectControlResponse) => {
-    navigate(getPathWithParams(routes.projects.dashboard, { orgId, projectId: project.name }));
+    navigate(getPathWithParams(paths.project.detail.home, { projectId: project.name }));
   };
 
   useEffect(() => {
@@ -59,11 +57,19 @@ export const ProjectSwitcher = ({
     };
   }, []);
 
+  const projects: IProjectControlResponse[] = useMemo(() => {
+    if (fetcher.state === 'idle' && fetcher.data) {
+      if (fetcher.data.success) {
+        return fetcher.data.data;
+      }
+    }
+    return [];
+  }, [fetcher.data, fetcher.state]);
+
   return (
     <div className="flex items-center gap-1 pl-2">
       <Link
-        to={getPathWithParams(routes.projects.detail, {
-          orgId,
+        to={getPathWithParams(paths.project.detail.home, {
           projectId: currentProject.name,
         })}
         className="flex w-fit max-w-[300px] items-center truncate text-left text-sm leading-tight font-semibold">
@@ -95,9 +101,9 @@ export const ProjectSwitcher = ({
                   <span>Loading projects...</span>
                 </CommandItem>
               )}
-              {fetcher.data?.length > 0 && (
+              {projects.length > 0 && (
                 <CommandGroup className="max-h-[300px] overflow-y-auto">
-                  {(fetcher.data ?? [])
+                  {(projects ?? [])
                     .sort((a: IProjectControlResponse, b: IProjectControlResponse) =>
                       (a?.description ?? '').localeCompare(b?.description ?? '')
                     )
@@ -125,7 +131,9 @@ export const ProjectSwitcher = ({
               <CommandSeparator />
               <CommandItem asChild className="cursor-pointer">
                 <Link
-                  to={getPathWithParams(routes.org.projects.new, { orgId })}
+                  to={getPathWithParams(paths.org.detail.projects.new, {
+                    orgId: currentProject.organizationId,
+                  })}
                   className="flex items-center gap-2 px-3">
                   <PlusIcon className="size-4" />
                   <span>Create project</span>

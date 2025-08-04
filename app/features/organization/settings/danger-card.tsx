@@ -1,16 +1,20 @@
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
+import { paths } from '@/config/paths';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { ROUTE_PATH as ORG_ACTION_PATH } from '@/routes/api+/organizations+/$orgId';
+import { ROUTE_PATH as ORG_ACTION_PATH } from '@/routes/api/organizations/$id';
 import { getPathWithParams } from '@/utils/path';
 import { CircleAlertIcon } from 'lucide-react';
-import { useFetcher } from 'react-router';
+import { useEffect } from 'react';
+import { useFetcher, useNavigate } from 'react-router';
+import { toast } from 'sonner';
 
 export const OrganizationDangerCard = ({ organization }: { organization: IOrganization }) => {
   const fetcher = useFetcher({ key: 'org-delete' });
   const { confirm } = useConfirmationDialog();
+  const navigate = useNavigate();
 
   const deleteOrganization = async () => {
     await confirm({
@@ -33,12 +37,24 @@ export const OrganizationDangerCard = ({ organization }: { organization: IOrgani
           {},
           {
             method: 'DELETE',
-            action: getPathWithParams(ORG_ACTION_PATH, { orgId: organization?.name }),
+            action: getPathWithParams(ORG_ACTION_PATH, { id: organization?.name }),
           }
         );
       },
     });
   };
+
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      const { success } = fetcher.data;
+
+      if (success) {
+        navigate(paths.account.organizations.root);
+        toast.success('Organization deleted successfully');
+      }
+    }
+  }, [fetcher.data, fetcher.state]);
+
   return (
     <Card className="border-destructive/50 hover:border-destructive border pb-0 transition-colors">
       <CardHeader>

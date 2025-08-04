@@ -1,5 +1,6 @@
 import { SinksForm } from './sink/sinks-form';
 import { SourcesForm } from './source/sources-form';
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { MetadataForm } from '@/components/metadata/metadata-form';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,10 +11,8 @@ import {
   CardFooter,
   CardTitle,
 } from '@/components/ui/card';
-import { routes } from '@/constants/routes';
+import { paths } from '@/config/paths';
 import { useIsPending } from '@/hooks/useIsPending';
-import { useApp } from '@/providers/app.provider';
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import {
   ExportPolicyAuthenticationType,
   ExportPolicySinkType,
@@ -28,15 +27,15 @@ import {
   updateExportPolicySchema,
 } from '@/resources/schemas/export-policy.schema';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
-import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api+/observe+/actions';
-import { convertObjectToLabels } from '@/utils/misc';
+import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/export-policies';
+import { convertObjectToLabels } from '@/utils/data';
 import { getPathWithParams } from '@/utils/path';
 import { useForm, FormProvider, getFormProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { has } from 'es-toolkit/compat';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import { Fragment, cloneElement, useMemo } from 'react';
-import { useSubmit, useNavigate, Form } from 'react-router';
+import { useSubmit, useNavigate, Form, useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 const sections = [
@@ -68,9 +67,9 @@ export const ExportPolicyUpdateForm = ({
   projectId?: string;
   defaultValue?: IExportPolicyControlResponse;
 }) => {
-  const { orgId } = useApp();
   const csrf = useAuthenticityToken();
   const submit = useSubmit();
+  const fetcher = useFetcher();
   const navigate = useNavigate();
   const isPending = useIsPending();
   const { confirm } = useConfirmationDialog();
@@ -197,17 +196,17 @@ export const ExportPolicyUpdateForm = ({
       confirmInputPlaceholder: 'Type the export policy name to confirm deletion',
       confirmValue: defaultValue?.name ?? 'delete',
       onSubmit: async () => {
-        await submit(
+        await fetcher.submit(
           {
-            exportPolicyId: defaultValue?.name ?? '',
+            id: defaultValue?.name ?? '',
             projectId: projectId ?? '',
-            orgId: orgId ?? '',
+            redirectUri: getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
+              projectId,
+            }),
           },
           {
             action: EXPORT_POLICIES_ACTIONS_ROUTE_PATH,
             method: 'DELETE',
-            fetcherKey: 'export-policy-resources',
-            navigate: false,
           }
         );
       },
@@ -301,9 +300,8 @@ export const ExportPolicyUpdateForm = ({
                 disabled={isPending}
                 onClick={() => {
                   navigate(
-                    getPathWithParams(routes.projects.observe.exportPolicies.root, {
+                    getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
                       projectId,
-                      orgId,
                     })
                   );
                 }}>

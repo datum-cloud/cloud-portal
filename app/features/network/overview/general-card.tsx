@@ -4,7 +4,7 @@ import { TextCopy } from '@/components/text-copy/text-copy';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
-import { getShortId } from '@/utils/misc';
+import { getShortId } from '@/utils/text';
 import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
 

@@ -2,7 +2,7 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { ActivityLogEntry } from '@/modules/loki/types';
-import { cn, isPrivateIP } from '@/utils/misc';
+import { cn, isPrivateIP } from '@/utils/common';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { CheckCircle, Info, AlertTriangle, XCircle } from 'lucide-react';
 

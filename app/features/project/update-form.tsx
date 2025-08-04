@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
-import { convertObjectToLabels } from '@/utils/misc';
+import { convertObjectToLabels } from '@/utils/data';
 import {
   FieldMetadata,
   getFormProps,

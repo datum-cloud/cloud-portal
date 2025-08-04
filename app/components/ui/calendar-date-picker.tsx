@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { cva, VariantProps } from 'class-variance-authority';
 import {
   startOfWeek,
