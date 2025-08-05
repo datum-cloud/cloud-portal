@@ -1,7 +1,7 @@
 import { List } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
-import { getShortId } from '@/utils/misc';
+import { getShortId } from '@/utils/text';
 import { Handle, Position } from '@xyflow/react';
 import { useMemo } from 'react';
 

@@ -1,6 +1,6 @@
 import { DataTableEmptyContentProps } from './data-table.types';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { Link } from 'react-router';
 
 // Common styles that don't change across sizes

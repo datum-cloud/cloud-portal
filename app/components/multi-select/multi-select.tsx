@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { CheckIcon, XCircle, ChevronDown, XIcon, WandSparkles } from 'lucide-react';
 import * as React from 'react';

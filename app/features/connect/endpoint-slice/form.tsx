@@ -1,6 +1,7 @@
 import { EndpointsForm } from './endpoint/endpoints-form';
 import { PortsForm } from './port/ports-form';
 import { SelectAddressType } from './select-address-type';
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
 import { MetadataForm } from '@/components/metadata/metadata-form';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,6 @@ import {
 } from '@/components/ui/card';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import {
   EndpointSliceAddressType,
   IEndpointSliceControlResponse,
@@ -24,8 +24,8 @@ import {
   endpointSliceSchema,
 } from '@/resources/schemas/endpoint-slice.schema';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
-import { ROUTE_PATH as ENDPOINT_SLICES_ACTIONS_PATH } from '@/routes/api+/connect+/endpoint-slices+/actions';
-import { convertObjectToLabels } from '@/utils/misc';
+import { ROUTE_PATH as ENDPOINT_SLICES_ACTIONS_PATH } from '@/routes/old/api+/connect+/endpoint-slices+/actions';
+import { convertObjectToLabels } from '@/utils/data';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect, useMemo, useState } from 'react';

@@ -4,7 +4,7 @@ import {
   ControlPlaneStatus,
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { CircleIcon, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

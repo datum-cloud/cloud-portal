@@ -3,7 +3,8 @@ import {
   ControlPlaneStatus,
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
-import { ROUTE_PATH as EXPORT_POLICY_STATUS_ROUTE_PATH } from '@/routes/api+/observe+/status';
+import { ROUTE_PATH as EXPORT_POLICY_STATUS_ROUTE_PATH } from '@/routes/api/export-policies/status';
+import { getPathWithParams } from '@/utils/path';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';
 
@@ -34,7 +35,7 @@ export const ExportPolicyStatus = ({
   const loadStatus = (exportPolicyId: string) => {
     if (projectId && exportPolicyId) {
       fetcher.load(
-        `${EXPORT_POLICY_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${exportPolicyId}`
+        `${getPathWithParams(EXPORT_POLICY_STATUS_ROUTE_PATH, { id: exportPolicyId })}?projectId=${projectId}`
       );
     }
   };

@@ -12,7 +12,7 @@ import {
   RuntimeSchema,
   StorageFieldSchema,
 } from '@/resources/schemas/workload.schema';
-import { convertObjectToLabels } from '@/utils/misc';
+import { convertObjectToLabels } from '@/utils/data';
 import { filter, find, flatMap, get, has, map } from 'es-toolkit/compat';
 
 const mappingSpecToForm = (value: IWorkloadControlResponse) => {

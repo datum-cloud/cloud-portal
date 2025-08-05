@@ -2,8 +2,8 @@ import { WorkloadStatus } from './status';
 import { DateFormat } from '@/components/date-format/date-format';
 import { Field } from '@/components/field/field';
 import { TextCopy } from '@/components/text-copy/text-copy';
+import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
-import { transformControlPlaneStatus } from '@/utils/misc';
 import { formatDistanceToNow } from 'date-fns';
 
 export const SimpleWorkloadDetail = ({

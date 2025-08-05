@@ -1,4 +1,4 @@
-import { isProduction } from '@/utils/misc';
+import { isProduction } from '@/utils/environment';
 import { createCookie, createCookieSessionStorage } from 'react-router';
 
 /**

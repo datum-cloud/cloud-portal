@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router';
 

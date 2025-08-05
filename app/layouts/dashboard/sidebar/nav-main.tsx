@@ -19,7 +19,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { ChevronRight, ExternalLinkIcon, LucideIcon } from 'lucide-react';
 import { ComponentProps, Fragment, forwardRef, useCallback, useState } from 'react';
 import { Link, useLocation } from 'react-router';
@@ -248,7 +248,8 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
                     className={cn(
                       level >= 1 ? 'mr-0 pr-[.1rem]' : '',
                       level === 2 ? 'pl-4' : '',
-                      level === 3 ? 'pl-6' : ''
+                      level === 3 ? 'pl-6' : '',
+                      'mr-0 pr-0'
                     )}>
                     {item.children?.map((subItem) => renderNavItem(subItem, level + 1))}
                   </SidebarMenuSub>

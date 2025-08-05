@@ -1,6 +1,6 @@
 import { LogoProps } from './logo';
 import { logoStyles } from './logo.styles';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { useTheme, Theme } from 'remix-themes';
 
 export const LogoIcon = ({ width = 385, className }: LogoProps) => {

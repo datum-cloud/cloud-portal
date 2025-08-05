@@ -5,7 +5,7 @@ import { FieldLabel } from '@/components/field/field-label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { HttpRouteRuleSchema, HttpRouteSchema } from '@/resources/schemas/http-route.schema';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect } from 'react';

@@ -2,6 +2,7 @@ import { NetworksForm } from './network/networks-form';
 import { PlacementsForm } from './placement/placements-form';
 import { RuntimeForm } from './runtime/runtime-form';
 import { StoragesForm } from './storage/storages-form';
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { MetadataForm } from '@/components/metadata/metadata-form';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,12 +13,11 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
-import { BOOT_IMAGES } from '@/constants/bootImages';
-import { routes } from '@/constants/routes';
+import { paths } from '@/config/paths';
+import { BOOT_IMAGES } from '@/features/workload/constants';
 import { WorkloadHelper } from '@/features/workload/helper';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
 import {
@@ -27,7 +27,7 @@ import {
   RuntimeSchema,
   UpdateWorkloadSchema,
 } from '@/resources/schemas/workload.schema';
-import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api+/workloads+/actions';
+import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/old/api+/workloads+/actions';
 import { getPathWithParams } from '@/utils/path';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
@@ -303,7 +303,7 @@ export const WorkloadUpdateForm = ({
                 disabled={isPending}
                 onClick={() => {
                   navigate(
-                    getPathWithParams(routes.projects.deploy.workloads.root, {
+                    getPathWithParams(paths.projects.deploy.workloads.root, {
                       projectId,
                       orgId,
                     })

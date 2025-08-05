@@ -1,4 +1,4 @@
-import { isValidJson, isValidYaml } from '@/utils/editor';
+import { isValidJson, isValidYaml } from '@/utils/format';
 import { z } from 'zod';
 
 export type EditorLanguage = string;

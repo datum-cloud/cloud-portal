@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { useIsPending } from '@/hooks/useIsPending';
 import { ILabel } from '@/resources/interfaces/label.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
-import { convertObjectToLabels } from '@/utils/misc';
+import { convertObjectToLabels } from '@/utils/data';
 import {
   FieldMetadata,
   FormProvider,

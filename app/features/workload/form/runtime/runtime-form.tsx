@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { RUNTIME_TYPES } from '@/constants/options';
+import { RUNTIME_TYPES } from '@/features/workload/constants';
 import { RuntimeType } from '@/resources/interfaces/workload.interface';
 import {
   RuntimeContainerSchema,

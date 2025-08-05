@@ -1,4 +1,4 @@
-import { routes } from '@/constants/routes';
+import { paths } from '@/config/paths';
 
 describe('Log in', () => {
   beforeEach(() => {
@@ -6,7 +6,7 @@ describe('Log in', () => {
     cy.clearCookies();
     cy.clearLocalStorage();
 
-    cy.visit(routes.auth.logIn);
+    cy.visit(paths.auth.logIn);
   });
 
   it('should render the log in page', () => {

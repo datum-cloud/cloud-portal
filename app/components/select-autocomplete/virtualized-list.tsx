@@ -7,7 +7,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { CheckIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';

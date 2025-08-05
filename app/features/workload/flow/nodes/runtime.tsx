@@ -1,5 +1,5 @@
 import { List } from '@/components/list/list';
-import { RUNTIME_TYPES } from '@/constants/options';
+import { RUNTIME_TYPES } from '@/features/workload/constants';
 import { RuntimeType } from '@/resources/interfaces/workload.interface';
 import { Handle, Position } from '@xyflow/react';
 import { useMemo } from 'react';

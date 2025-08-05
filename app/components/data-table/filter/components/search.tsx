@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { InputWithAddons } from '@/components/ui/input-with-addons';
 import { Label } from '@/components/ui/label';
 import { useDebounce } from '@/hooks/useDebounce';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { Search, X } from 'lucide-react';
 import { useCallback, useState, useEffect } from 'react';
 
@@ -69,7 +69,7 @@ export function SearchFilter({
           value={localValue}
           onChange={handleChange}
           disabled={disabled}
-          containerClassName="h-9"
+          containerClassName="h-10"
           leading={<Search size={14} className="text-muted-foreground" />}
           trailing={
             localValue && (

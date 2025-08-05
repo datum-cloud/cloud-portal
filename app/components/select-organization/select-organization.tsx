@@ -9,10 +9,10 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { routes } from '@/constants/routes';
+import { paths } from '@/config/paths';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api+/organizations+/_index';
-import { cn } from '@/utils/misc';
+import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
+import { cn } from '@/utils/common';
 import { Building2Icon, CheckIcon, ChevronsUpDownIcon, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useFetcher } from 'react-router';
@@ -114,7 +114,7 @@ export const SelectOrganization = ({
               <>
                 {/* <CommandItem className="cursor-pointer" asChild>
                   <Link
-                    to={routes.account.organizations.new}
+                    to={paths.account.organizations.new}
                     className="flex items-center gap-2 px-3">
                     <div className="flex w-6 items-center justify-center">
                       <PlusCircleIcon className="text-blue-400" />
@@ -125,7 +125,7 @@ export const SelectOrganization = ({
                 <CommandSeparator /> */}
                 <CommandItem className="cursor-pointer py-1.5" asChild>
                   <Link
-                    to={routes.account.organizations.root}
+                    to={paths.account.organizations.root}
                     className="my-1.5 flex items-center gap-2 px-3">
                     <div className="flex w-6 items-center justify-center">
                       <Building2Icon />

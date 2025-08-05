@@ -17,8 +17,8 @@ import {
   IEndpointSliceControlResponseLite,
 } from '@/resources/interfaces/endpoint-slice.interface';
 import { EndpointSliceSchema } from '@/resources/schemas/endpoint-slice.schema';
-import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject } from '@/utils/misc';
+import { convertLabelsToObject } from '@/utils/data';
+import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createEndpointSlicesControl = (client: Client) => {

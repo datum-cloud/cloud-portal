@@ -9,7 +9,7 @@ import {
 } from '@/modules/control-plane/networking';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { NewNetworkSchema, UpdateNetworkSchema } from '@/resources/schemas/network.schema';
-import { CustomError } from '@/utils/errorHandle';
+import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createNetworksControl = (client: Client) => {

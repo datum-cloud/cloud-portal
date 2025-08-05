@@ -1,4 +1,4 @@
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { format as _format } from 'date-fns';
 
 export const DATE_FORMAT = `MMMM d, yyyy 'at' HH:mm`;

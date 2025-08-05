@@ -1,5 +1,5 @@
 import { FieldLabel } from './field-label';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 
 interface FieldProps {
   label?: string | React.ReactNode;

@@ -59,8 +59,12 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
           <CardContent>
             <AuthenticityTokenInput />
 
-            <div className="flex flex-col gap-6">
-              <Field isRequired label="Description" errors={fields.description?.errors}>
+            <div className="flex items-center gap-6">
+              <Field
+                isRequired={organization?.type !== OrganizationType.Personal}
+                label="Description"
+                errors={fields.description?.errors}
+                className="w-1/2">
                 {organization && organization?.type === OrganizationType.Personal ? (
                   <TextCopyBox value={organization?.displayName ?? ''} />
                 ) : (
@@ -70,7 +74,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
                   />
                 )}
               </Field>
-              <Field label="Name">
+              <Field label="Name" className="w-1/2">
                 <TextCopyBox value={organization?.name ?? ''} />
               </Field>
             </div>

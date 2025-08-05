@@ -9,7 +9,7 @@ import {
 } from '@/modules/control-plane/api-v1';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
 import { ConfigMapSchema } from '@/resources/schemas/config-map.schema';
-import { CustomError } from '@/utils/errorHandle';
+import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createConfigMapsControl = (client: Client) => {

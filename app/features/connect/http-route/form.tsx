@@ -1,4 +1,5 @@
 import { RulesForm } from './rule/rules-form';
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
 import { MetadataForm } from '@/components/metadata/metadata-form';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,6 @@ import {
 import { SelectGateways } from '@/features/connect/http-route/select-gateways';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import { IHttpRouteControlResponse } from '@/resources/interfaces/http-route.interface';
 import {
   HttpRouteRuleSchema,
@@ -21,8 +21,8 @@ import {
   httpRouteSchema,
 } from '@/resources/schemas/http-route.schema';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
-import { ROUTE_PATH as HTTP_ROUTES_ACTIONS_PATH } from '@/routes/api+/connect+/http-routes+/actions';
-import { convertObjectToLabels } from '@/utils/misc';
+import { ROUTE_PATH as HTTP_ROUTES_ACTIONS_PATH } from '@/routes/old/api+/connect+/http-routes+/actions';
+import { convertObjectToLabels } from '@/utils/data';
 import {
   FieldMetadata,
   FormProvider,

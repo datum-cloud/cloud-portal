@@ -1,3 +1,4 @@
+import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import {
   ComDatumapisTelemetryV1Alpha1ExportPolicy,
   ComDatumapisTelemetryV1Alpha1ExportPolicyList,
@@ -16,8 +17,8 @@ import {
   IExportPolicyControlResponse,
 } from '@/resources/interfaces/export-policy.interface';
 import { NewExportPolicySchema } from '@/resources/schemas/export-policy.schema';
-import { CustomError } from '@/utils/errorHandle';
-import { convertLabelsToObject, transformControlPlaneStatus } from '@/utils/misc';
+import { convertLabelsToObject } from '@/utils/data';
+import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createExportPoliciesControl = (client: Client) => {

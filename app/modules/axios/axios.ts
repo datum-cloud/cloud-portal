@@ -1,5 +1,5 @@
-import { CustomError } from '@/utils/errorHandle';
-import { isDevelopment } from '@/utils/misc';
+import { isDevelopment } from '@/utils/environment';
+import { CustomError } from '@/utils/error';
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 import curlirize from 'axios-curlirize';
 

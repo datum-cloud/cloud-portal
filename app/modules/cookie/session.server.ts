@@ -1,8 +1,8 @@
-import { routes } from '@/constants/routes';
+import { paths } from '@/config/paths';
 import { authenticator } from '@/modules/auth/auth.server';
 import { zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
 import { IAuthSession } from '@/resources/interfaces/auth.interface';
-import { isProduction } from '@/utils/misc';
+import { isProduction } from '@/utils/environment';
 import { createCookie, createCookieSessionStorage, redirect } from 'react-router';
 
 /**
@@ -113,7 +113,7 @@ export async function isAuthenticated(
 
   if (!session) {
     if (noAuthRedirect) {
-      return redirect(routes.auth.logOut, {
+      return redirect(paths.auth.logOut, {
         headers: currentHeaders,
       });
     }
@@ -130,7 +130,7 @@ export async function isAuthenticated(
 
     // Check if session is expired
     if (tokenExpiryTime < Date.now()) {
-      return redirect(routes.auth.logOut, {
+      return redirect(paths.auth.logOut, {
         headers: currentHeaders,
       });
     }
@@ -155,7 +155,7 @@ export async function isAuthenticated(
       } catch (error) {
         console.error('Refresh token failed:', error);
         // If refresh fails, log the user out
-        return redirect(routes.auth.logOut, {
+        return redirect(paths.auth.logOut, {
           headers: currentHeaders,
         });
       }

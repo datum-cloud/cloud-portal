@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { STORAGE_TYPES } from '@/constants/options';
+import { STORAGE_TYPES } from '@/features/workload/constants';
 import { StorageType } from '@/resources/interfaces/workload.interface';
 import { StorageFieldSchema } from '@/resources/schemas/workload.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';

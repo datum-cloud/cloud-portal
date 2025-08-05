@@ -1,8 +1,143 @@
-import { remixRoutesOptionAdapter } from '@react-router/remix-routes-option-adapter';
-import { flatRoutes } from 'remix-flat-routes';
+import { type RouteConfig, index, layout, prefix, route } from '@react-router/dev/routes';
 
-export default remixRoutesOptionAdapter((defineRoutes) => {
-  return flatRoutes('routes', defineRoutes, {
-    ignoredRouteFiles: ['**/.*'], // Ignore dot files (like .DS_Store)
-  });
-});
+export default [
+  // Public Routes
+  layout('layouts/public.layout.tsx', [
+    // Auth
+    route('login', 'routes/auth/login.tsx', { id: 'login' }),
+    route('signup', 'routes/auth/login.tsx', { id: 'signup' }),
+  ]),
+
+  // Protected Routes with auth
+  layout('layouts/private.layout.tsx', [
+    index('routes/index.tsx'),
+
+    // Account
+    route('account', 'routes/account/layout.tsx', [
+      index('routes/account/index.tsx'),
+
+      // Account Organizations
+      route('organizations', 'routes/account/organizations/layout.tsx', [
+        index('routes/account/organizations/index.tsx'),
+      ]),
+
+      // Account Preferences
+      layout('routes/account/settings/layout.tsx', [
+        route('preferences', 'routes/account/settings/preferences.tsx'),
+        route('activity', 'routes/account/settings/activity.tsx'),
+      ]),
+    ]),
+
+    // Org
+    route('org', 'routes/org/layout.tsx', [
+      index('routes/org/index.tsx'),
+
+      // Org Detail
+      route(':orgId', 'routes/org/detail/layout.tsx', { id: 'org-detail' }, [
+        index('routes/org/detail/index.tsx'),
+
+        // Projects of an organization
+        route('projects', 'routes/org/detail/projects/layout.tsx', [
+          index('routes/org/detail/projects/index.tsx'),
+          route('new', 'routes/org/detail/projects/new.tsx'),
+        ]),
+
+        // Settings of an organization
+        layout('routes/org/detail/settings/layout.tsx', [
+          route('preferences', 'routes/org/detail/settings/preferences.tsx'),
+          route('activity', 'routes/org/detail/settings/activity.tsx'),
+        ]),
+      ]),
+    ]),
+
+    // Project
+    route('project', 'routes/project/layout.tsx', [
+      index('routes/project/index.tsx'),
+
+      // Project Detail
+      route(':projectId', 'routes/project/detail/layout.tsx', { id: 'project-detail' }, [
+        index('routes/project/detail/index.tsx'),
+
+        route('home', 'routes/project/detail/home.tsx'),
+        route('activity', 'routes/project/detail/activity.tsx'),
+        route('settings', 'routes/project/detail/settings.tsx'),
+
+        // HTTPProxy
+        route('httpproxy', 'routes/project/detail/edge/httpproxy/layout.tsx', [
+          index('routes/project/detail/edge/httpproxy/index.tsx'),
+          route('new', 'routes/project/detail/edge/httpproxy/new.tsx'),
+
+          route(
+            ':proxyId',
+            'routes/project/detail/edge/httpproxy/detail/layout.tsx',
+            { id: 'httpproxy-detail' },
+            [
+              index('routes/project/detail/edge/httpproxy/detail/index.tsx'),
+              route('overview', 'routes/project/detail/edge/httpproxy/detail/overview.tsx'),
+              route('edit', 'routes/project/detail/edge/httpproxy/detail/edit.tsx'),
+            ]
+          ),
+        ]),
+
+        // Export Policies
+        route('export-policies', 'routes/project/detail/metrics/export-policies/layout.tsx', [
+          index('routes/project/detail/metrics/export-policies/index.tsx'),
+          route('new', 'routes/project/detail/metrics/export-policies/new.tsx'),
+
+          route(
+            ':exportPolicyId',
+            'routes/project/detail/metrics/export-policies/detail/layout.tsx',
+            { id: 'export-policy-detail' },
+            [
+              index('routes/project/detail/metrics/export-policies/detail/index.tsx'),
+              route(
+                'overview',
+                'routes/project/detail/metrics/export-policies/detail/overview.tsx'
+              ),
+              route('edit', 'routes/project/detail/metrics/export-policies/detail/edit.tsx'),
+            ]
+          ),
+        ]),
+      ]),
+    ]),
+  ]),
+
+  // API
+  ...prefix('api', [
+    // Public APIs
+    route('set-theme', 'routes/api/action/set-theme.ts'),
+    route('set-cache', 'routes/api/action/set-cache.ts'),
+
+    // Private APIs (with auth middleware)
+    layout('layouts/private.layout.tsx', { id: 'private-api' }, [
+      // Organizations
+      route('organizations', 'routes/api/organizations/index.ts'),
+      route('organizations/:id', 'routes/api/organizations/$id.ts'),
+
+      // Projects
+      route('projects', 'routes/api/projects/index.ts'),
+      route('projects/:id/status', 'routes/api/projects/status.ts'),
+
+      // HTTPProxies
+      route('httpproxy', 'routes/api/httpproxy/index.ts'),
+      route('httpproxy/:id', 'routes/api/httpproxy/$id.ts'),
+
+      // Export Policies
+      route('export-policies', 'routes/api/export-policies/index.ts'),
+      route('export-policies/:id/status', 'routes/api/export-policies/status.ts'),
+
+      // Secrets
+      route('secrets', 'routes/api/secrets/index.ts'),
+
+      // Activities
+      route('activity', 'routes/api/activity/index.ts'),
+    ]),
+  ]),
+
+  // Global Routes
+  route('logout', 'routes/auth/logout.tsx', { id: 'logout' }),
+  ...prefix('auth', [
+    index('routes/auth/index.tsx'),
+    route('callback', 'routes/auth/callback.tsx'),
+  ]),
+] as RouteConfig;

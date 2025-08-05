@@ -15,12 +15,12 @@ import {
   SecretEditSchema,
   secretEditSchema,
 } from '@/resources/schemas/secret.schema';
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api+/config+/secrets+/actions';
+import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/old/api+/config+/secrets+/actions';
 import {
   convertLabelsToObject,
   convertObjectToLabels,
   generateMergePatchPayloadMap,
-} from '@/utils/misc';
+} from '@/utils/data';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect, useMemo } from 'react';

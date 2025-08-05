@@ -2,7 +2,7 @@ import { ActivityLogItem } from './list-item';
 import { DataTableFilter } from '@/components/data-table';
 import { DataTable } from '@/components/data-table/data-table';
 import type { ActivityLogEntry, QueryParams } from '@/modules/loki/types';
-import { ROUTE_PATH as ACTIVITY_LOGS_ROUTE_PATH } from '@/routes/api+/activity-logs';
+import { ROUTE_PATH as ACTIVITY_ROUTE_PATH } from '@/routes/api/activity';
 import { ColumnDef } from '@tanstack/react-table';
 import { getUnixTime } from 'date-fns';
 import { useMemo, useEffect, useState } from 'react';
@@ -69,7 +69,7 @@ export const ActivityLogList = ({
       }
     });
 
-    fetcher.load(`${ACTIVITY_LOGS_ROUTE_PATH}?${new URLSearchParams(stringParams).toString()}`);
+    fetcher.load(`${ACTIVITY_ROUTE_PATH}?${new URLSearchParams(stringParams).toString()}`);
   }, [queryParams]);
 
   const columns: ColumnDef<ActivityLogEntry>[] = useMemo(

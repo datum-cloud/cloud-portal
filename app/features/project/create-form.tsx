@@ -10,13 +10,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { routes } from '@/constants/routes';
+import { paths } from '@/config/paths';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { projectSchema } from '@/resources/schemas/project.schema';
-import { generateId, generateRandomString } from '@/utils/idGenerator';
 import { getPathWithParams } from '@/utils/path';
+import { generateId, generateRandomString } from '@/utils/text';
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { RocketIcon } from 'lucide-react';
@@ -88,7 +88,7 @@ export const CreateProjectForm = () => {
               onSelect={(org) => {
                 setCurrentOrg(org);
                 orgEntityIdControl.change(org.name);
-                navigate(getPathWithParams(routes.org.projects.new, { orgId: org.name }));
+                navigate(getPathWithParams(paths.org.detail.projects.new, { orgId: org.name }));
               }}
             />
           </Field>
@@ -132,17 +132,6 @@ export const CreateProjectForm = () => {
               {...getInputProps(name, { type: 'text' })}
             />
           </Field>
-          {/* <Field
-            label="Labels"
-            errors={labels.errors}
-            description="Add labels to help identify, organize, and filter your projects.">
-            <SelectLabels
-              defaultValue={labels.value as string[]}
-              onChange={(value) => {
-                labelsControl.change(value);
-              }}
-            />
-          </Field> */}
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
           <Button
@@ -151,7 +140,7 @@ export const CreateProjectForm = () => {
             disabled={isPending}
             onClick={() => {
               navigate(
-                getPathWithParams(routes.org.projects.root, {
+                getPathWithParams(paths.org.detail.projects.root, {
                   orgId: organization?.name,
                 })
               );

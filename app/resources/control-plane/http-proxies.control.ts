@@ -9,7 +9,7 @@ import {
 } from '@/modules/control-plane/networking';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { HttpProxySchema } from '@/resources/schemas/http-proxy.schema';
-import { CustomError } from '@/utils/errorHandle';
+import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createHttpProxiesControl = (client: Client) => {

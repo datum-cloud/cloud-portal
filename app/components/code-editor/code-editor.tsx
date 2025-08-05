@@ -1,5 +1,5 @@
 import { CodeEditorProps } from './code-editor.types';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import Editor, { Monaco } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
 import { useRef } from 'react';

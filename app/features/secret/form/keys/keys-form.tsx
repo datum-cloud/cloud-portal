@@ -2,7 +2,7 @@ import { KeyField } from './key-field';
 import { FieldLabel } from '@/components/field/field-label';
 import { Button } from '@/components/ui/button';
 import { SecretEnvSchema, SecretVariablesSchema } from '@/resources/schemas/secret.schema';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { FormMetadata, useForm } from '@conform-to/react';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';

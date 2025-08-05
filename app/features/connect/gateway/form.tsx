@@ -1,4 +1,5 @@
 import { ListenersForm } from './listener/listeners-form';
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { MetadataForm } from '@/components/metadata/metadata-form';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,7 +12,6 @@ import {
 } from '@/components/ui/card';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
-import { useConfirmationDialog } from '@/providers/confirmationDialog.provider';
 import {
   GatewayProtocol,
   GatewayAllowedRoutes,
@@ -25,8 +25,8 @@ import {
   gatewaySchema,
 } from '@/resources/schemas/gateway.schema';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
-import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api+/connect+/gateways+/actions';
-import { convertObjectToLabels } from '@/utils/misc';
+import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/old/api+/connect+/gateways+/actions';
+import { convertObjectToLabels } from '@/utils/data';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { get } from 'es-toolkit/compat';

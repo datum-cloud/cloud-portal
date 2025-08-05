@@ -5,7 +5,7 @@ import {
   EndpointSliceEndpointSchema,
   EndpointSliceSchema,
 } from '@/resources/schemas/endpoint-slice.schema';
-import { cn } from '@/utils/misc';
+import { cn } from '@/utils/common';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect } from 'react';

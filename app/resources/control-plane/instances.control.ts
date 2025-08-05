@@ -1,3 +1,4 @@
+import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import {
   ComDatumapisComputeV1AlphaInstance,
   ComDatumapisComputeV1AlphaInstanceList,
@@ -5,8 +6,7 @@ import {
   readComputeDatumapisComV1AlphaNamespacedInstanceStatus,
 } from '@/modules/control-plane/compute';
 import { IInstanceControlResponse } from '@/resources/interfaces/workload.interface';
-import { CustomError } from '@/utils/errorHandle';
-import { transformControlPlaneStatus } from '@/utils/misc';
+import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createInstancesControl = (client: Client) => {

@@ -21,8 +21,7 @@ import {
   LocationProvider,
 } from '@/resources/interfaces/location.interface';
 import { newLocationSchema } from '@/resources/schemas/location.schema';
-// import { generateId, generateRandomString } from '@/utils/idGenerator'
-import { convertObjectToLabels } from '@/utils/misc';
+import { convertObjectToLabels } from '@/utils/data';
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect, useMemo, useRef } from 'react';
@@ -69,9 +68,6 @@ export const CreateLocationForm = ({
   const labelsControl = useInputControl(fields.labels);
 
   const providerConfigControl = useInputControl(fields.providerConfig.getFieldset().provider);
-
-  // Generate a random suffix for the location name
-  // const randomSuffix = useMemo(() => generateRandomString(6), [])
 
   const isEdit = useMemo(() => defaultValue?.uid !== undefined, [defaultValue]);
 
@@ -148,16 +144,6 @@ export const CreateLocationForm = ({
                 if (isEdit) {
                   nameControl.change(defaultValue?.name ?? '');
                 }
-                /* else {
-                  const value = (e.target as HTMLInputElement).value
-                  if (value.length === 0) {
-                    nameControl.change(
-                      generateId(fields.displayName.value ?? '', {
-                        randomText: randomSuffix,
-                      }),
-                    )
-                  }
-                } */
               }}
             />
           </Field>

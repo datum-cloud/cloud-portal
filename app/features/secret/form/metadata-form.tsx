@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { SECRET_TYPES } from '@/constants/options';
+import { SECRET_TYPES } from '@/features/secret/constants';
 import { SecretBaseSchema } from '@/resources/schemas/secret.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
 import { useEffect, useRef } from 'react';

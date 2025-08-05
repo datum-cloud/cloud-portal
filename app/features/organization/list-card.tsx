@@ -2,23 +2,14 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { routes } from '@/constants/routes';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
-import { cn, getInitials } from '@/utils/misc';
-import { getPathWithParams } from '@/utils/path';
+import { cn } from '@/utils/common';
+import { getInitials } from '@/utils/text';
 import { Building2, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router';
 
 export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
-  const navigate = useNavigate();
   return (
-    <Card
-      className="hover:bg-accent/50 cursor-pointer py-4 transition-all"
-      onClick={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        navigate(getPathWithParams(routes.org.projects.root, { orgId: org.name }));
-      }}>
+    <Card className="hover:bg-accent/50 cursor-pointer py-4 transition-all">
       <CardContent className="flex flex-row items-center justify-between gap-4 px-4">
         {/* Left Side */}
         <div className="flex flex-row items-center gap-4">

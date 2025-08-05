@@ -1,5 +1,5 @@
 // sessions.server.tsx
-import { isProduction } from '@/utils/misc';
+import { isProduction } from '@/utils/environment';
 import { createCookieSessionStorage } from 'react-router';
 import { createThemeSessionResolver } from 'remix-themes';
 

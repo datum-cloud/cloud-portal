@@ -1,6 +1,6 @@
 import { SelectBox, SelectBoxOption } from '../select-box/select-box';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
-import { ROUTE_PATH as SECRETS_LIST_ROUTE_PATH } from '@/routes/api+/config+/secrets+/list';
+import { ROUTE_PATH as SECRETS_LIST_ROUTE_PATH } from '@/routes/api/secrets';
 import { useEffect, useState } from 'react';
 import { useFetcher } from 'react-router';
 
@@ -37,7 +37,7 @@ export const SelectSecret = ({
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
-      const opt = (fetcher.data ?? [])
+      const opt = (fetcher.data?.data ?? [])
         .filter((secret: ISecretControlResponse) => {
           if (!filter) return true;
           return Object.entries(filter).every(

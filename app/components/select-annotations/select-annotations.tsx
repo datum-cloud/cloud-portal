@@ -1,7 +1,7 @@
 import { AnnotationFormDialog, AnnotationFormDialogRef } from './annotations-form-dialog';
 import { MultiSelect, MultiSelectOption } from '@/components/multi-select/multi-select';
 import { LabelFormSchema } from '@/resources/schemas/metadata.schema';
-import { splitOption } from '@/utils/misc';
+import { splitOption } from '@/utils/data';
 import { PlusIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';

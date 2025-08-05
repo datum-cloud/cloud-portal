@@ -1,5 +1,5 @@
 import { NonceProvider } from '@/hooks/useNonce';
-import { initEnvs } from '@/utils/env';
+import { initEnvs } from '@/utils/environment';
 import { createReadableStreamFromReadable } from '@react-router/node';
 import { isbot } from 'isbot';
 import { PassThrough } from 'node:stream';

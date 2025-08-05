@@ -11,12 +11,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { routes } from '@/constants/routes';
+import { paths } from '@/config/paths';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { organizationSchema } from '@/resources/schemas/organization.schema';
-import { generateId, generateRandomString } from '@/utils/idGenerator';
-import { cn, convertObjectToLabels } from '@/utils/misc';
+import { cn } from '@/utils/common';
+import { convertObjectToLabels } from '@/utils/data';
+import { generateId, generateRandomString } from '@/utils/text';
 import {
   FormProvider,
   getFormProps,
@@ -166,7 +167,7 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
                 variant="link"
                 disabled={isPending}
                 onClick={() => {
-                  navigate(routes.account.organizations.root);
+                  navigate(paths.account.organizations.root);
                 }}>
                 Return to List
               </Button>
