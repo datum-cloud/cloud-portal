@@ -109,7 +109,6 @@ export default function EdgeHttpProxiesPage() {
                 status={transformControlPlaneStatus(row.original.status)}
                 type="badge"
                 readyText="Active"
-                badgeClassName="px-0"
               />
             )
           );

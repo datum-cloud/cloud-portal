@@ -79,6 +79,23 @@ export default [
           ),
         ]),
 
+        // Domains
+        route('domains', 'routes/project/detail/edge/domains/layout.tsx', [
+          index('routes/project/detail/edge/domains/index.tsx'),
+          route('new', 'routes/project/detail/edge/domains/new.tsx'),
+
+          route(
+            ':domainId',
+            'routes/project/detail/edge/domains/detail/layout.tsx',
+            { id: 'domain-detail' },
+            [
+              index('routes/project/detail/edge/domains/detail/index.tsx'),
+              route('overview', 'routes/project/detail/edge/domains/detail/overview.tsx'),
+              // route('edit', 'routes/project/detail/edge/domains/detail/edit.tsx'),
+            ]
+          ),
+        ]),
+
         // Export Policies
         route('export-policies', 'routes/project/detail/metrics/export-policies/layout.tsx', [
           index('routes/project/detail/metrics/export-policies/index.tsx'),
@@ -118,6 +135,10 @@ export default [
       route('projects', 'routes/api/projects/index.ts'),
       route('projects/:id/status', 'routes/api/projects/status.ts'),
 
+      // Domains
+      route('domains', 'routes/api/domains/index.ts'),
+      route('domains/:id/status', 'routes/api/domains/status.ts'),
+
       // HTTPProxies
       route('httpproxy', 'routes/api/httpproxy/index.ts'),
       route('httpproxy/:id', 'routes/api/httpproxy/$id.ts'),
@@ -140,4 +161,7 @@ export default [
     index('routes/auth/index.tsx'),
     route('callback', 'routes/auth/callback.tsx'),
   ]),
+
+  // Catch-all route for 404 errors - must be last
+  route('*', 'routes/not-found.tsx'),
 ] as RouteConfig;

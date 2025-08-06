@@ -2,36 +2,42 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateFormat } from '@/components/date-format/date-format';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { PageTitle } from '@/components/page-title/page-title';
-import { Button } from '@/components/ui/button';
 import { paths } from '@/config/paths';
-import { HttpProxyGeneralCard } from '@/features/edge/httpproxy/overview/general-card';
-import { HttpProxyHostnamesCard } from '@/features/edge/httpproxy/overview/hostnames-card';
-import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
+import { transformControlPlaneStatus } from '@/features/control-plane/utils';
+import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
+import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
+import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
+import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
 import { getPathWithParams } from '@/utils/path';
 import { formatDistanceToNow } from 'date-fns';
-import { ClockIcon, PencilIcon } from 'lucide-react';
+import { ClockIcon } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Link, useFetcher, useParams, useRouteLoaderData } from 'react-router';
+import { useEffect, useMemo } from 'react';
+import { useFetcher, useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Overview</span>,
 };
 
-export default function HttpProxyOverviewPage() {
-  const httpProxy = useRouteLoaderData('httpproxy-detail');
+export default function DomainOverviewPage() {
+  const domain = useRouteLoaderData('domain-detail');
 
-  const fetcher = useFetcher({ key: 'delete-httpproxy' });
+  const fetcher = useFetcher({ key: 'delete-domain' });
   const { confirm } = useConfirmationDialog();
   const { projectId } = useParams();
 
-  const deleteHttpProxy = async () => {
+  // revalidate every 10 seconds to keep deployment list fresh
+  const revalidator = useRevalidateOnInterval({ enabled: true, interval: 10000 });
+
+  const deleteDomain = async () => {
     await confirm({
-      title: 'Delete HTTPProxy',
+      title: 'Delete Domain',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{httpProxy?.name}</strong>?
+          <strong>{domain?.name}</strong>?
         </span>
       ),
       submitText: 'Delete',
@@ -39,22 +45,37 @@ export default function HttpProxyOverviewPage() {
       variant: 'destructive',
       showConfirmInput: true,
       onSubmit: async () => {
+        // Clear the interval when deleting a export policy
+        revalidator.clear();
+
         await fetcher.submit(
           {
-            id: httpProxy?.name ?? '',
+            id: domain?.name ?? '',
             projectId: projectId ?? '',
-            redirectUri: getPathWithParams(paths.project.detail.httpProxy.root, {
+            redirectUri: getPathWithParams(paths.project.detail.domains.root, {
               projectId,
             }),
           },
           {
-            action: HTTP_PROXIES_ACTIONS_PATH,
+            action: DOMAINS_ACTIONS_PATH,
             method: 'DELETE',
           }
         );
       },
     });
   };
+
+  const status = useMemo(() => transformControlPlaneStatus(domain?.status), [domain]);
+
+  useEffect(() => {
+    if (status.status !== ControlPlaneStatus.Pending) {
+      revalidator.clear();
+    }
+
+    return () => {
+      revalidator.clear();
+    };
+  }, [status]);
 
   return (
     <motion.div
@@ -68,18 +89,18 @@ export default function HttpProxyOverviewPage() {
         transition={{ delay: 0.2, duration: 0.4 }}
         className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <PageTitle
-          title={(httpProxy as IHttpProxyControlResponse)?.name ?? 'HTTPProxy'}
+          title={(domain as IDomainControlResponse)?.name ?? 'Domain'}
           description={
             <div className="flex items-center gap-1">
               <ClockIcon className="text-muted-foreground h-4 w-4" />
               <DateFormat
                 className="text-muted-foreground text-sm"
-                date={(httpProxy as IHttpProxyControlResponse)?.createdAt ?? ''}
+                date={(domain as IDomainControlResponse)?.createdAt ?? ''}
               />
               <span className="text-muted-foreground text-sm">
                 (
                 {formatDistanceToNow(
-                  new Date((httpProxy as IHttpProxyControlResponse)?.createdAt ?? ''),
+                  new Date((domain as IDomainControlResponse)?.createdAt ?? ''),
                   {
                     addSuffix: true,
                   }
@@ -94,17 +115,6 @@ export default function HttpProxyOverviewPage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4, duration: 0.3 }}
               className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Link
-                  className="flex items-center gap-2"
-                  to={getPathWithParams(paths.project.detail.httpProxy.detail.edit, {
-                    projectId,
-                    proxyId: httpProxy?.name ?? '',
-                  })}>
-                  <PencilIcon className="size-4" />
-                  Edit
-                </Link>
-              </Button>
               <MoreActions
                 className="border-input bg-background hover:bg-accent hover:text-accent-foreground size-9 rounded-md border px-3"
                 actions={[
@@ -112,7 +122,7 @@ export default function HttpProxyOverviewPage() {
                     key: 'delete',
                     label: 'Delete',
                     variant: 'destructive',
-                    action: deleteHttpProxy,
+                    action: deleteDomain,
                   },
                 ]}
               />
@@ -121,19 +131,21 @@ export default function HttpProxyOverviewPage() {
         />
       </motion.div>
 
-      <div className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-2 gap-6">
+      <div className="mx-auto grid w-full max-w-6xl flex-1 items-start gap-6 md:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.4 }}>
-          <HttpProxyGeneralCard httpProxy={httpProxy} />
+          transition={{ delay: 0.3, duration: 0.4 }}>
+          <DomainGeneralCard domain={domain} />
         </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.4 }}>
-          <HttpProxyHostnamesCard hostnames={httpProxy?.status?.hostnames ?? []} />
-        </motion.div>
+        {status.status === ControlPlaneStatus.Pending && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.4 }}>
+            <DomainVerificationCard domain={domain} />
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );

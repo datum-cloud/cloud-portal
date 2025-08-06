@@ -59,7 +59,6 @@ export const DeploymentsTable = ({ data }: { data: IWorkloadDeploymentControlRes
                 currentStatus={transformControlPlaneStatus(row.original.status)}
                 type="badge"
                 readyText="Available"
-                badgeClassName="px-0"
               />
             )
           );

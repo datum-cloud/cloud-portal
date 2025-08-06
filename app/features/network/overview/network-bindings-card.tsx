@@ -58,7 +58,6 @@ export const NetworkBindingsCard = ({ data }: { data: INetworkBindingControlResp
                 status={transformControlPlaneStatus(row.original.status)}
                 type="badge"
                 readyText="Active"
-                badgeClassName="px-0"
               />
             )
           );

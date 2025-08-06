@@ -4,34 +4,32 @@ import { StatusBadge } from '@/components/status-badge/status-badge';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
-import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
+import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 
-export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: IHttpProxyControlResponse }) => {
+export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }) => {
   const listItems: ListItem[] = useMemo(() => {
-    if (!httpProxy) return [];
+    if (!domain) return [];
 
     return [
       {
         label: 'Name',
         className: 'px-2',
-        content: (
-          <TextCopy className="text-sm" value={httpProxy.name ?? ''} text={httpProxy.name} />
-        ),
+        content: <TextCopy className="text-sm" value={domain.name ?? ''} text={domain.name} />,
       },
       {
         label: 'Namespace',
         className: 'px-2',
-        content: <span className="capitalize">{httpProxy.namespace}</span>,
+        content: <span className="capitalize">{domain.namespace}</span>,
       },
       {
-        label: 'Endpoint',
+        label: 'Domain',
         className: 'px-2',
         content: (
-          <Link to={httpProxy.endpoint ?? ''} target="_blank">
-            {httpProxy.endpoint}
+          <Link to={domain.domainName ?? ''} target="_blank">
+            {domain.domainName}
           </Link>
         ),
       },
@@ -40,9 +38,11 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: IHttpProxyContr
         className: 'px-2',
         content: (
           <StatusBadge
-            status={transformControlPlaneStatus(httpProxy.status)}
+            status={transformControlPlaneStatus(domain.status)}
             type="badge"
-            readyText="Active"
+            readyText="Verified"
+            pendingText="Verification in progress..."
+            tooltipText="Update your DNS provider with the provided record, or use the HTTP token method."
           />
         ),
       },
@@ -51,10 +51,10 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: IHttpProxyContr
         className: 'px-2',
         content: (
           <div className="flex items-center gap-1">
-            <DateFormat className="text-sm" date={httpProxy?.createdAt ?? ''} />
+            <DateFormat className="text-sm" date={domain?.createdAt ?? ''} />
             <span className="text-sm">
               (
-              {formatDistanceToNow(new Date(httpProxy?.createdAt ?? ''), {
+              {formatDistanceToNow(new Date(domain?.createdAt ?? ''), {
                 addSuffix: true,
               })}
               )
@@ -63,7 +63,7 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: IHttpProxyContr
         ),
       },
     ];
-  }, [httpProxy]);
+  }, [domain]);
 
   return (
     <Card className="w-full">

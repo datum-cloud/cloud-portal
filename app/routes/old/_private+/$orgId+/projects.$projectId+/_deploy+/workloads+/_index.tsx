@@ -154,7 +154,6 @@ export default function WorkloadsPage() {
                 id={row.original.name}
                 workloadType="workload"
                 type="badge"
-                badgeClassName="px-0"
               />
             )
           );

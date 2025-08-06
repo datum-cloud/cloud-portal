@@ -100,6 +100,13 @@ export default function ProjectLayout() {
         disabled: !isReady,
         children: [
           {
+            title: 'Domains',
+            href: getPathWithParams(paths.project.detail.domains.root, {
+              projectId,
+            }),
+            type: 'link',
+          },
+          {
             title: 'HTTPProxy',
             href: getPathWithParams(paths.project.detail.httpProxy.root, {
               projectId,

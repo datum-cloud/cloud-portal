@@ -158,7 +158,6 @@ export default function ConnectGatewaysPage() {
                 projectId={projectId}
                 id={row.original.name}
                 type="badge"
-                badgeClassName="px-0"
               />
             )
           );
