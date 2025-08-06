@@ -33,7 +33,7 @@ export const TextCopy = ({
   };
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-2">
       <span className={className}>{text ?? value}</span>
       <Tooltip>
         <TooltipTrigger asChild>

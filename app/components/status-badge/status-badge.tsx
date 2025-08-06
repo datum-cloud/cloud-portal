@@ -13,7 +13,7 @@ export const StatusBadge = ({
   type = 'dot',
   showTooltip = true,
   badgeClassName,
-  loadingText = 'Setting up...',
+  pendingText = 'Setting up...',
   errorText = 'Failed',
   readyText = 'Ready',
   tooltipText,
@@ -22,7 +22,7 @@ export const StatusBadge = ({
   type?: 'dot' | 'badge';
   showTooltip?: boolean;
   badgeClassName?: string;
-  loadingText?: string;
+  pendingText?: string;
   errorText?: string;
   readyText?: string;
   tooltipText?: string | React.ReactNode;
@@ -63,7 +63,7 @@ export const StatusBadge = ({
           <Badge
             variant="outline"
             className={cn(
-              'flex cursor-default items-center gap-1 border-none text-sm font-normal',
+              'flex cursor-default items-center gap-1 border-none px-0 text-sm font-normal',
               badgeClassName
             )}>
             <Dot />
@@ -71,7 +71,7 @@ export const StatusBadge = ({
               ? readyText
               : planeStatus === ControlPlaneStatus.Error
                 ? errorText
-                : loadingText}
+                : pendingText}
           </Badge>
         )}
       </TooltipTrigger>

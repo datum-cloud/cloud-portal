@@ -56,7 +56,6 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
                 readyText="Available"
                 currentStatus={transformControlPlaneStatus(row.original.status)}
                 type="badge"
-                badgeClassName="px-0"
               />
             )
           );

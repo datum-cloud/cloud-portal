@@ -68,7 +68,6 @@ export const WorkloadSinksTable = ({
               status={transformedStatus}
               type="badge"
               showTooltip
-              badgeClassName="px-0"
               tooltipText={
                 transformedStatus?.status === ControlPlaneStatus.Success ? 'Active' : undefined
               }

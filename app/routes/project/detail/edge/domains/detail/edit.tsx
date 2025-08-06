@@ -1,9 +1,9 @@
 import { paths } from '@/config/paths';
-import { HttpProxyForm } from '@/features/edge/httpproxy/form';
+import { DomainForm } from '@/features/edge/domain/form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
-import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';
-import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
+import { createDomainsControl } from '@/resources/control-plane/domains.control';
+import { domainSchema } from '@/resources/schemas/domain.schema';
 import { getPathWithParams } from '@/utils/path';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
@@ -14,10 +14,10 @@ export const handle = {
 };
 
 export const action = async ({ params, context, request }: ActionFunctionArgs) => {
-  const { projectId, proxyId } = params;
+  const { projectId, domainId } = params;
 
-  if (!projectId || !proxyId) {
-    throw new Error('Project ID and proxy ID are required');
+  if (!projectId || !domainId) {
+    throw new Error('Project ID and domain ID are required');
   }
 
   const clonedRequest = request.clone();
@@ -26,28 +26,28 @@ export const action = async ({ params, context, request }: ActionFunctionArgs) =
   try {
     await validateCSRF(formData, clonedRequest.headers);
 
-    const parsed = parseWithZod(formData, { schema: httpProxySchema });
+    const parsed = parseWithZod(formData, { schema: domainSchema });
 
     if (parsed.status !== 'success') {
       throw new Error('Invalid form data');
     }
 
     const { controlPlaneClient } = context as AppLoadContext;
-    const httpProxiesControl = createHttpProxiesControl(controlPlaneClient as Client);
+    const domainsControl = createDomainsControl(controlPlaneClient as Client);
 
-    const dryRunRes = await httpProxiesControl.update(projectId, proxyId, parsed.value, true);
+    const dryRunRes = await domainsControl.update(projectId, domainId, parsed.value, true);
 
     if (dryRunRes) {
-      await httpProxiesControl.update(projectId, proxyId, parsed.value, false);
+      await domainsControl.update(projectId, domainId, parsed.value, false);
     }
 
     return redirectWithToast(
-      getPathWithParams(paths.project.detail.httpProxy.root, {
+      getPathWithParams(paths.project.detail.domains.detail.root, {
         projectId,
       }),
       {
-        title: 'HTTPProxy updated successfully',
-        description: 'You have successfully updated an HTTPProxy.',
+        title: 'Domain updated successfully',
+        description: 'You have successfully updated a domain.',
         type: 'success',
       }
     );
@@ -60,14 +60,14 @@ export const action = async ({ params, context, request }: ActionFunctionArgs) =
   }
 };
 
-export default function HttpProxyEditPage() {
-  const httpProxy = useRouteLoaderData('httpproxy-detail');
+export default function DomainEditPage() {
+  const domain = useRouteLoaderData('domain-detail');
 
   const { projectId } = useParams();
 
   return (
     <div className="mx-auto w-full max-w-2xl py-8">
-      <HttpProxyForm projectId={projectId} defaultValue={httpProxy} />
+      <DomainForm projectId={projectId} defaultValue={domain} />
     </div>
   );
 }

@@ -5,55 +5,61 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { Button } from '@/components/ui/button';
 import { paths } from '@/config/paths';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
-import { ExportPolicyStatus } from '@/features/observe/export-policies/status';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
-import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
-import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/old/api+/observe+/actions';
+import { DomainStatus } from '@/features/edge/domain/status';
+import { createDomainsControl } from '@/resources/control-plane/domains.control';
+import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
 import { CustomError } from '@/utils/error';
+import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   AppLoadContext,
   Link,
+  LoaderFunctionArgs,
+  MetaFunction,
+  useFetcher,
   useLoaderData,
   useNavigate,
   useParams,
-  useSubmit,
 } from 'react-router';
+import { toast } from 'sonner';
 
-export const loader = withMiddleware(async ({ context, params }) => {
+export const meta: MetaFunction = mergeMeta(() => {
+  return metaObject('Domains');
+});
+
+export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params;
   const { controlPlaneClient } = context as AppLoadContext;
-  const exportPoliciesControl = createExportPoliciesControl(controlPlaneClient as Client);
+  const domainsControl = createDomainsControl(controlPlaneClient as Client);
 
   if (!projectId) {
     throw new CustomError('Project ID is required', 400);
   }
 
-  const policies = await exportPoliciesControl.list(projectId);
-  return policies;
-}, authMiddleware);
+  const domains = await domainsControl.list(projectId);
+  return domains;
+};
 
-export default function ObserveExportPoliciesPage() {
-  const { orgId, projectId } = useParams();
+export default function DomainsPage() {
+  const { projectId } = useParams();
   const data = useLoaderData<typeof loader>();
-
-  const submit = useSubmit();
+  const fetcher = useFetcher({ key: 'delete-domain' });
   const navigate = useNavigate();
+
   const { confirm } = useConfirmationDialog();
 
-  const deleteExportPolicy = async (exportPolicy: IExportPolicyControlResponse) => {
+  const deleteDomain = async (domain: IDomainControlResponse) => {
     await confirm({
-      title: 'Delete Export Policy',
+      title: 'Delete Domain',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{exportPolicy.name}</strong>?
+          <strong>{domain.name}</strong>?
         </span>
       ),
       submitText: 'Delete',
@@ -61,24 +67,21 @@ export default function ObserveExportPoliciesPage() {
       variant: 'destructive',
       showConfirmInput: true,
       onSubmit: async () => {
-        await submit(
+        await fetcher.submit(
           {
-            exportPolicyId: exportPolicy?.name ?? '',
+            id: domain?.name ?? '',
             projectId: projectId ?? '',
-            orgId: orgId ?? '',
           },
           {
-            action: EXPORT_POLICIES_ACTIONS_ROUTE_PATH,
             method: 'DELETE',
-            fetcherKey: 'export-policy-resources',
-            navigate: false,
+            action: DOMAINS_ACTIONS_PATH,
           }
         );
       },
     });
   };
 
-  const columns: ColumnDef<IExportPolicyControlResponse>[] = useMemo(
+  const columns: ColumnDef<IDomainControlResponse>[] = useMemo(
     () => [
       {
         header: 'Name',
@@ -88,17 +91,10 @@ export default function ObserveExportPoliciesPage() {
         },
       },
       {
-        header: '# of Sources',
-        accessorKey: 'sources',
+        header: 'Domain',
+        accessorKey: 'domainName',
         cell: ({ row }) => {
-          return row.original.sources?.length ?? 0;
-        },
-      },
-      {
-        header: '# of Sinks',
-        accessorKey: 'sinks',
-        cell: ({ row }) => {
-          return row.original.sinks?.length ?? 0;
+          return row.original.domainName;
         },
       },
       {
@@ -107,11 +103,10 @@ export default function ObserveExportPoliciesPage() {
         cell: ({ row }) => {
           return (
             row.original.status && (
-              <ExportPolicyStatus
-                currentStatus={transformControlPlaneStatus(row.original.status)}
+              <DomainStatus
+                domainId={row.original.name}
                 projectId={projectId}
-                id={row.original.name}
-                type="badge"
+                currentStatus={transformControlPlaneStatus(row.original.status)}
               />
             )
           );
@@ -125,33 +120,30 @@ export default function ObserveExportPoliciesPage() {
         },
       },
     ],
-    [orgId, projectId]
+    [projectId]
   );
 
-  const rowActions: DataTableRowActionsProps<IExportPolicyControlResponse>[] = useMemo(
+  const rowActions: DataTableRowActionsProps<IDomainControlResponse>[] = useMemo(
     () => [
-      {
-        key: 'edit',
-        label: 'Edit',
-        action: (row) => {
-          navigate(
-            getPathWithParams(paths.projects.observe.exportPolicies.detail.edit, {
-              orgId,
-              projectId,
-              exportPolicyId: row.name,
-            })
-          );
-        },
-      },
       {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
-        action: (row) => deleteExportPolicy(row),
+        action: (row) => deleteDomain(row),
       },
     ],
-    [orgId, projectId]
+    [projectId]
   );
+
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      if (fetcher.data.success) {
+        toast.success('Domain deleted successfully');
+      } else {
+        toast.error(fetcher.data.error);
+      }
+    }
+  }, [fetcher.data, fetcher.state]);
 
   return (
     <DataTable
@@ -159,38 +151,38 @@ export default function ObserveExportPoliciesPage() {
       data={data ?? []}
       onRowClick={(row) => {
         navigate(
-          getPathWithParams(paths.projects.observe.exportPolicies.detail.overview, {
-            orgId,
+          getPathWithParams(paths.project.detail.domains.detail.overview, {
             projectId,
-            exportPolicyId: row.name,
+            domainId: row.name,
           })
         );
       }}
       emptyContent={{
-        title: 'No export policies found.',
-        subtitle: 'Create your first export policy to get started.',
+        title: 'No Domain found.',
+        subtitle: 'Create your first domain to get started.',
         actions: [
           {
             type: 'link',
-            label: 'New Export Policy',
-            to: getPathWithParams(paths.projects.observe.exportPolicies.new, { orgId, projectId }),
+            label: 'New Domain',
+            to: getPathWithParams(paths.project.detail.domains.new, {
+              projectId,
+            }),
             variant: 'default',
             icon: <PlusIcon className="size-4" />,
           },
         ],
       }}
       tableTitle={{
-        title: 'Export Policies',
-        description: 'Manage export policies for your project resources',
+        title: 'Domains',
+        description: 'Manage Domains for your project resources',
         actions: (
           <Link
-            to={getPathWithParams(paths.projects.observe.exportPolicies.new, {
-              orgId,
+            to={getPathWithParams(paths.project.detail.domains.new, {
               projectId,
             })}>
             <Button>
               <PlusIcon className="size-4" />
-              New Export Policy
+              New Domain
             </Button>
           </Link>
         ),

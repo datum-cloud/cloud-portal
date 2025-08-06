@@ -107,7 +107,6 @@ export default function HttpProxyPage() {
                 status={transformControlPlaneStatus(row.original.status)}
                 type="badge"
                 readyText="Active"
-                badgeClassName="px-0"
               />
             )
           );
