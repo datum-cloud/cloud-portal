@@ -81,7 +81,9 @@ export const EditSecretKeys = ({
       if (success) {
         setCurrentAction(undefined);
         if (currentAction === 'delete') {
-          toast.success('Key deleted successfully');
+          toast.success('Key deleted successfully', {
+            description: 'The key has been deleted successfully',
+          });
         }
       }
     }

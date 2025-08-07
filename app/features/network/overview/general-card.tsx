@@ -32,7 +32,7 @@ export const NetworkGeneralCard = ({ network }: { network: INetworkControlRespon
       {
         label: 'Namespace',
         className: 'px-2',
-        content: <span className="capitalize">{network.namespace}</span>,
+        content: <span>{network.namespace}</span>,
       },
       {
         label: 'IP Family',

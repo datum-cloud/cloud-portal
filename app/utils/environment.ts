@@ -10,13 +10,11 @@ const schema = z.object({
   SESSION_SECRET: z.string().optional(),
   APP_URL: z.string().optional(),
   API_URL: z.string().optional(),
-  // Auth providers
-  // Github
-  AUTH_GITHUB_ID: z.string().optional(),
-  AUTH_GITHUB_SECRET: z.string().optional(),
-  // Google
-  AUTH_GOOGLE_ID: z.string().optional(),
-  AUTH_GOOGLE_SECRET: z.string().optional(),
+
+  // Cloud Valid providers
+  CLOUDVALID_API_URL: z.string().optional(),
+  CLOUDVALID_API_KEY: z.string().optional(),
+  CLOUDVALID_TEMPLATE_ID: z.string().optional(),
 
   // Zitadel
   AUTH_OIDC_ISSUER: z.string().optional(),

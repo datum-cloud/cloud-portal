@@ -5,8 +5,10 @@ import { PageTitle } from '@/components/page-title/page-title';
 import { paths } from '@/config/paths';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
+import { QuickSetupCard } from '@/features/edge/domain/overview/quick-setup-card';
 import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { dataWithToast } from '@/modules/cookie/toast.server';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
@@ -14,11 +16,33 @@ import { getPathWithParams } from '@/utils/path';
 import { formatDistanceToNow } from 'date-fns';
 import { ClockIcon } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useEffect, useMemo } from 'react';
-import { useFetcher, useParams, useRouteLoaderData } from 'react-router';
+import { useEffect, useMemo, useRef } from 'react';
+import {
+  LoaderFunctionArgs,
+  data,
+  useFetcher,
+  useParams,
+  useRouteLoaderData,
+  useSearchParams,
+} from 'react-router';
+import { toast } from 'sonner';
 
 export const handle = {
   breadcrumb: () => <span>Overview</span>,
+};
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const cloudvalid = url.searchParams.get('cloudvalid') as string;
+
+  if (cloudvalid === 'success') {
+    return dataWithToast(null, {
+      title: 'DNS setup submitted',
+      description: 'Verification is scheduled and will run shortly.',
+    });
+  }
+
+  return data(null);
 };
 
 export default function DomainOverviewPage() {
@@ -29,8 +53,13 @@ export default function DomainOverviewPage() {
   const { projectId } = useParams();
 
   // revalidate every 10 seconds to keep deployment list fresh
-  const revalidator = useRevalidateOnInterval({ enabled: true, interval: 10000 });
+  const revalidator = useRevalidateOnInterval({ enabled: false, interval: 10000 });
+  const [searchParams, setSearchParams] = useSearchParams();
 
+  // Track previous status for transition detection
+  const previousStatusRef = useRef<ControlPlaneStatus | null>(null);
+
+  const status = useMemo(() => transformControlPlaneStatus(domain?.status), [domain]);
   const deleteDomain = async () => {
     await confirm({
       title: 'Delete Domain',
@@ -65,17 +94,43 @@ export default function DomainOverviewPage() {
     });
   };
 
-  const status = useMemo(() => transformControlPlaneStatus(domain?.status), [domain]);
-
   useEffect(() => {
     if (status.status !== ControlPlaneStatus.Pending) {
       revalidator.clear();
+    } else {
+      revalidator.start();
     }
 
     return () => {
       revalidator.clear();
     };
   }, [status]);
+
+  // Handle status transitions and show success toast
+  useEffect(() => {
+    const currentStatus = status.status;
+    const previousStatus = previousStatusRef.current;
+
+    // Show success toast when transitioning from Pending to Success
+    if (
+      previousStatus === ControlPlaneStatus.Pending &&
+      currentStatus === ControlPlaneStatus.Success &&
+      domain?.name
+    ) {
+      toast.success('Domain verification completed!', {
+        description: `${domain.name} has been successfully verified.`,
+      });
+    }
+
+    // Update the previous status reference
+    previousStatusRef.current = currentStatus;
+  }, [status.status, domain?.name]);
+
+  useEffect(() => {
+    if (searchParams.get('cloudvalid') === 'success') {
+      setSearchParams({});
+    }
+  }, [searchParams]);
 
   return (
     <motion.div
@@ -131,6 +186,16 @@ export default function DomainOverviewPage() {
         />
       </motion.div>
 
+      {/*       {status.status === ControlPlaneStatus.Pending && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.4 }}
+          className="mx-auto w-full max-w-6xl">
+          <ConditionsAlert status={domain.status} />
+        </motion.div>
+      )} */}
+
       <div className="mx-auto grid w-full max-w-6xl flex-1 items-start gap-6 md:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -139,12 +204,20 @@ export default function DomainOverviewPage() {
           <DomainGeneralCard domain={domain} />
         </motion.div>
         {status.status === ControlPlaneStatus.Pending && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.4 }}>
-            <DomainVerificationCard domain={domain} />
-          </motion.div>
+          <div className="flex flex-col gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.4 }}>
+              <QuickSetupCard domain={domain} projectId={projectId ?? ''} />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9, duration: 0.4 }}>
+              <DomainVerificationCard domain={domain} />
+            </motion.div>
+          </div>
         )}
       </div>
     </motion.div>

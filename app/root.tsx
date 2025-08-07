@@ -119,12 +119,7 @@ function Document({
   const [theme] = useTheme();
 
   return (
-    <html
-      lang={lang}
-      dir={dir}
-      className={`${theme} overflow-x-hidden`}
-      data-theme={theme ?? ''}
-      suppressHydrationWarning>
+    <html lang={lang} dir={dir} className={`${theme} overflow-x-hidden`} data-theme={theme ?? ''}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -133,7 +128,7 @@ function Document({
         <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} />
         <Links />
       </head>
-      <body className="h-auto w-full" suppressHydrationWarning>
+      <body className="h-auto w-full">
         {children}
         <MarkerIoEmbed nonce={nonce} />
         <ScrollRestoration nonce={nonce} />

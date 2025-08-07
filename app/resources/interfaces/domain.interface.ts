@@ -9,6 +9,7 @@ export interface IDomainControlResponse {
   domainName?: string;
   status?: ComDatumapisNetworkingV1AlphaDomain['status'] & {
     verification?: {
+      nextVerificationAttempt?: string;
       dnsRecord?: {
         name: string;
         type: string;
