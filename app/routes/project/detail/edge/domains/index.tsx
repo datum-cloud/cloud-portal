@@ -138,7 +138,9 @@ export default function DomainsPage() {
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
       if (fetcher.data.success) {
-        toast.success('Domain deleted successfully');
+        toast.success('Domain deleted successfully', {
+          description: 'The domain has been deleted successfully',
+        });
       } else {
         toast.error(fetcher.data.error);
       }

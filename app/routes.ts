@@ -152,6 +152,9 @@ export default [
 
       // Activities
       route('activity', 'routes/api/activity/index.ts'),
+
+      // Cloud Validations
+      route('cloudvalid/dns', 'routes/api/cloudvalid/dns.ts'),
     ]),
   ]),
 

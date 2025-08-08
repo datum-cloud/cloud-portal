@@ -33,7 +33,7 @@ export const WorkloadGeneralCard = ({ workload }: { workload: IWorkloadControlRe
       {
         label: 'Namespace',
         className: 'px-2',
-        content: <span className="capitalize">{workload.namespace}</span>,
+        content: <span>{workload.namespace}</span>,
       },
       {
         label: 'Status',

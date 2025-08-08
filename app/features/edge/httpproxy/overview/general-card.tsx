@@ -24,7 +24,7 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: IHttpProxyContr
       {
         label: 'Namespace',
         className: 'px-2',
-        content: <span className="capitalize">{httpProxy.namespace}</span>,
+        content: <span>{httpProxy.namespace}</span>,
       },
       {
         label: 'Endpoint',

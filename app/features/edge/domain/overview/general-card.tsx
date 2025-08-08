@@ -1,9 +1,9 @@
 import { DateFormat } from '@/components/date-format/date-format';
 import { List, ListItem } from '@/components/list/list';
-import { StatusBadge } from '@/components/status-badge/status-badge';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
+import { DomainStatus } from '@/features/edge/domain/status';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
@@ -22,7 +22,7 @@ export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }
       {
         label: 'Namespace',
         className: 'px-2',
-        content: <span className="capitalize">{domain.namespace}</span>,
+        content: <span>{domain.namespace}</span>,
       },
       {
         label: 'Domain',
@@ -37,12 +37,9 @@ export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }
         label: 'Status',
         className: 'px-2',
         content: (
-          <StatusBadge
-            status={transformControlPlaneStatus(domain.status)}
-            type="badge"
-            readyText="Verified"
-            pendingText="Verification in progress..."
-            tooltipText="Update your DNS provider with the provided record, or use the HTTP token method."
+          <DomainStatus
+            currentStatus={transformControlPlaneStatus(domain.status)}
+            domainStatus={domain.status}
           />
         ),
       },
