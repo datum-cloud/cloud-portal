@@ -4,7 +4,6 @@ import { DataTableRowActionsProps } from '@/components/data-table/data-table.typ
 import { DateFormat } from '@/components/date-format/date-format';
 import { Button } from '@/components/ui/button';
 import { paths } from '@/config/paths';
-import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { createDomainsControl } from '@/resources/control-plane/domains.control';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
@@ -106,7 +105,7 @@ export default function DomainsPage() {
               <DomainStatus
                 domainId={row.original.name}
                 projectId={projectId}
-                currentStatus={transformControlPlaneStatus(row.original.status)}
+                domainStatus={row.original.status}
               />
             )
           );

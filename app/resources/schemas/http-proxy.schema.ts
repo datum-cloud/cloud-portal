@@ -1,5 +1,10 @@
 import { nameSchema } from '@/resources/schemas/metadata.schema';
+import { createHostnameSchema } from '@/utils/validation';
 import { z } from 'zod';
+
+export const httpProxyHostnameSchema = z.object({
+  hostnames: z.array(createHostnameSchema('Hostname', true)).optional(),
+});
 
 export const httpProxySchema = z
   .object({
@@ -33,6 +38,8 @@ export const httpProxySchema = z
       { message: 'Endpoint must be a domain with HTTP/HTTPS protocol and no path' }
     ),
   })
+  .and(httpProxyHostnameSchema)
   .and(nameSchema);
 
 export type HttpProxySchema = z.infer<typeof httpProxySchema>;
+export type HttpProxyHostnameSchema = z.infer<typeof httpProxyHostnameSchema>;

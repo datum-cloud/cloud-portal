@@ -25,18 +25,20 @@ export const createHttpProxiesControl = (client: Client) => {
       uid: metadata?.uid ?? '',
       resourceVersion: metadata?.resourceVersion ?? '',
       endpoint: spec?.rules?.[0]?.backends?.[0]?.endpoint ?? '',
+      hostnames: spec?.hostnames ?? [],
       status,
       namespace: metadata?.namespace ?? '',
     };
   };
 
   const formatHttpProxy = (payload: HttpProxySchema): ComDatumapisNetworkingV1AlphaHttpProxy => {
-    const { name, endpoint } = payload;
+    const { name, endpoint, hostnames } = payload;
     return {
       metadata: {
         name,
       },
       spec: {
+        hostnames: (hostnames ?? []) as string[],
         rules: [
           {
             backends: [
@@ -127,6 +129,7 @@ export const createHttpProxiesControl = (client: Client) => {
           kind: 'HTTPProxy',
           apiVersion: 'networking.datumapis.com/v1alpha',
           spec: {
+            hostnames: payload.hostnames ?? [],
             rules: [
               {
                 backends: [

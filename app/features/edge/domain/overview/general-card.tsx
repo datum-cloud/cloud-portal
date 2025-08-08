@@ -2,7 +2,6 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { formatDistanceToNow } from 'date-fns';
@@ -36,12 +35,7 @@ export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }
       {
         label: 'Status',
         className: 'px-2',
-        content: (
-          <DomainStatus
-            currentStatus={transformControlPlaneStatus(domain.status)}
-            domainStatus={domain.status}
-          />
-        ),
+        content: <DomainStatus domainStatus={domain.status} />,
       },
       {
         label: 'Created At',

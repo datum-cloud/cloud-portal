@@ -139,6 +139,10 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
    */
   spec: {
     /**
+     * Hostnames are the hostnames that this HTTPProxy will be associated with.
+     */
+    hostnames?: Array<string>;
+    /**
      * Rules are a list of HTTP matchers, filters and actions.
      */
     rules: Array<{

@@ -127,7 +127,8 @@ export const HttpProxyPreview = ({ data, projectId }: HttpProxyPreviewProps) => 
               <motion.div variants={itemVariants}>
                 <HttpProxyHostnamesCard
                   endpoint={proxy?.endpoint}
-                  hostnames={proxy?.status?.hostnames ?? []}
+                  customHostnames={proxy?.hostnames ?? []}
+                  status={proxy?.status}
                 />
               </motion.div>
 

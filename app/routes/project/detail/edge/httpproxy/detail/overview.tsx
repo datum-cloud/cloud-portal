@@ -132,7 +132,10 @@ export default function HttpProxyOverviewPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.4 }}>
-          <HttpProxyHostnamesCard hostnames={httpProxy?.status?.hostnames ?? []} />
+          <HttpProxyHostnamesCard
+            customHostnames={httpProxy?.hostnames ?? []}
+            status={httpProxy?.status}
+          />
         </motion.div>
       </div>
     </motion.div>

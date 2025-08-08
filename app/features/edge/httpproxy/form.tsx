@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { paths } from '@/config/paths';
+import { HostnamesForm } from '@/features/edge/httpproxy/form/hostnames-form';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
@@ -144,6 +145,7 @@ export const HttpProxyForm = ({
                 placeholder="e.g. https://api.example.com or api.example.com"
               />
             </Field>
+            <HostnamesForm defaultValue={defaultValue?.hostnames} form={form} fields={fields} />
           </CardContent>
           <CardFooter className="flex justify-between gap-2">
             {isEdit ? (
