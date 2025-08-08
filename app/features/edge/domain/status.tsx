@@ -1,5 +1,6 @@
 import { StatusDot, StatusText } from '@/components/status-badge/status-badge';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import {
   ControlPlaneStatus,
   IControlPlaneStatus,
@@ -34,15 +35,13 @@ const getConditionTitle = (condition: Condition): string => {
 };
 
 export const DomainStatus = ({
-  currentStatus,
   domainId,
   projectId,
   domainStatus,
 }: {
-  currentStatus?: IControlPlaneStatus;
   domainId?: string;
   projectId?: string;
-  domainStatus?: IDomainControlResponse['status'];
+  domainStatus: IDomainControlResponse['status'];
 }) => {
   const fetcher = useFetcher({ key: `domain-status-${domainId}` });
   const intervalRef = useRef<NodeJS.Timeout>(null);
@@ -55,6 +54,10 @@ export const DomainStatus = ({
       );
     }
   };
+
+  const currentStatus = useMemo(() => {
+    return transformControlPlaneStatus(domainStatus);
+  }, [domainStatus]);
 
   useEffect(() => {
     setStatus(currentStatus);
@@ -114,11 +117,11 @@ export const DomainStatus = ({
       <HoverCardTrigger
         className={cn(
           'flex cursor-pointer items-center gap-1',
-          status?.status === ControlPlaneStatus.Success ? 'pointer-events-none' : ''
+          currentStatus?.status === ControlPlaneStatus.Success ? 'pointer-events-none' : ''
         )}>
-        <StatusDot status={status?.status} />
+        <StatusDot status={currentStatus?.status} />
         <StatusText
-          status={status?.status}
+          status={currentStatus?.status}
           pendingText="Verification in progress..."
           readyText="Verified"
         />

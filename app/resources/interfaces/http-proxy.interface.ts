@@ -7,5 +7,6 @@ export interface IHttpProxyControlResponse {
   resourceVersion?: string;
   namespace?: string;
   endpoint?: string;
+  hostnames?: string[];
   status?: ComDatumapisNetworkingV1AlphaHttpProxy['status'];
 }

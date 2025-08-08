@@ -4,6 +4,7 @@ import {
   HTTPPathMatchType,
   HTTPPathRewriteType,
 } from '@/resources/interfaces/http-route.interface';
+import { createHostnameSchema } from '@/utils/validation';
 import { z } from 'zod';
 
 // ----- Match Section -----
@@ -87,25 +88,7 @@ export const httpRequestRedirectSchema = z.object({
 
 // Schema for URL rewrite filter
 export const httpURLRewriteSchema = z.object({
-  hostname: z
-    .string({ required_error: 'Hostname is required' })
-    .refine(
-      (val) =>
-        !val ||
-        /^(\*\.)?[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(
-          val
-        ),
-      {
-        message:
-          "Hostname must follow RFC 1123 format with optional wildcard prefix (e.g., '*.example.com')",
-      }
-    )
-    .refine((val) => !val || !val.includes('*') || val.startsWith('*.'), {
-      message: 'Wildcard label (*) must appear by itself as the first label',
-    })
-    .refine((val) => !val || !/^\d+\.\d+\.\d+\.\d+$/.test(val), {
-      message: 'IP addresses are not allowed as hostnames',
-    }),
+  hostname: createHostnameSchema('Hostname', true),
   path: httpPathRewriteSchema.optional(),
 });
 
