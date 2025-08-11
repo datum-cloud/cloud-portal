@@ -19,11 +19,10 @@ import {
 import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useMemo } from 'react';
-import { useNavigate, Form } from 'react-router';
+import { Form } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 
 export const SecretForm = ({ defaultValue }: { defaultValue?: ISecretControlResponse }) => {
-  const navigate = useNavigate();
   const isPending = useIsPending();
 
   const [form, fields] = useForm({
@@ -43,7 +42,7 @@ export const SecretForm = ({ defaultValue }: { defaultValue?: ISecretControlResp
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEdit ? 'Update' : 'Create a new'} secret</CardTitle>
+        <CardTitle>{isEdit ? 'Update' : 'Create a new'} Secret</CardTitle>
         <CardDescription>
           {isEdit
             ? 'Update the secret with the new values below.'
@@ -71,15 +70,6 @@ export const SecretForm = ({ defaultValue }: { defaultValue?: ISecretControlResp
           </CardContent>
 
           <CardFooter className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="link"
-              disabled={isPending}
-              onClick={() => {
-                navigate(-1);
-              }}>
-              Return to List
-            </Button>
             <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
               {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
             </Button>

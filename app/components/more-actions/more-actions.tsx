@@ -51,7 +51,8 @@ export const MoreActions = <TData,>({
             }}
             className={cn(
               'cursor-pointer',
-              action.variant === 'destructive' && 'text-destructive',
+              action.variant === 'destructive' &&
+                'text-destructive [&_svg]:!text-destructive hover:!text-destructive hover:[&_svg]:!text-destructive',
               action.className
             )}
             disabled={action.isDisabled?.(row) ?? false}>

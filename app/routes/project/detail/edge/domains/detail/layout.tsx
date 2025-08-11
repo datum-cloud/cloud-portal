@@ -3,7 +3,7 @@ import { IDomainControlResponse } from '@/resources/interfaces/domain.interface'
 import { CustomError } from '@/utils/error';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { Client } from '@hey-api/client-axios';
-import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction } from 'react-router';
+import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction, Outlet } from 'react-router';
 
 export const handle = {
   breadcrumb: (data: IDomainControlResponse) => <span>{data?.name}</span>,
@@ -32,3 +32,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 
   return data(domain);
 };
+
+export default function DomainDetailLayout() {
+  return <Outlet />;
+}

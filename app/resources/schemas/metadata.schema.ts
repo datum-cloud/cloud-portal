@@ -1,14 +1,8 @@
+import { createNameSchema } from '@/utils/validation';
 import { z } from 'zod';
 
 export const nameSchema = z.object({
-  name: z
-    .string({ required_error: 'Name is required.' })
-    .min(1, { message: 'Name is required.' })
-    .max(63, { message: 'Name must be at most 63 characters long.' })
-    .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
-      message:
-        'Name must use lowercase letters, numbers, and hyphens only. Must start and end with a letter or number.',
-    }),
+  name: createNameSchema(),
 });
 
 export const labelFormSchema = z.object({

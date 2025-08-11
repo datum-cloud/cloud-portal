@@ -18,16 +18,19 @@ export const HttpProxyHostnamesCard = ({
   status: IHttpProxyControlResponse['status'];
   customHostnames?: string[];
 }) => {
-  const [copiedText, copy] = useCopyToClipboard();
+  const [_, copy] = useCopyToClipboard();
+  const [copiedText, setCopiedText] = useState('');
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = (value: string) => {
     if (!value) return;
 
     copy(value).then(() => {
+      setCopiedText(value);
       toast.success('Copied to clipboard');
       setCopied(true);
       setTimeout(() => {
+        setCopiedText('');
         setCopied(false);
       }, 2000);
     });

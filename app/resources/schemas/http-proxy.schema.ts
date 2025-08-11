@@ -3,7 +3,7 @@ import { createHostnameSchema } from '@/utils/validation';
 import { z } from 'zod';
 
 export const httpProxyHostnameSchema = z.object({
-  hostnames: z.array(createHostnameSchema('Hostname', true)).optional(),
+  hostnames: z.array(createHostnameSchema('Hostname')).optional(),
 });
 
 export const httpProxySchema = z

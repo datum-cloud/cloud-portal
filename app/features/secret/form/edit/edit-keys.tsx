@@ -15,7 +15,7 @@ import {
   VariablesFormDialogRef,
 } from '@/features/secret/form/keys/keys-form-dialog';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/old/api+/config+/secrets+/actions';
+import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import { PencilIcon, PlusIcon, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';
@@ -51,9 +51,6 @@ export const EditSecretKeys = ({
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${variable}" to confirm.`,
-      confirmInputPlaceholder: 'Type the variable name to confirm deletion',
-      confirmValue: variable ?? 'delete',
       onSubmit: async () => {
         await fetcher.submit(
           {

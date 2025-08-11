@@ -72,7 +72,7 @@ export default function DomainNewPage() {
   const { projectId } = useParams();
 
   return (
-    <div className="mx-auto w-full max-w-2xl py-8">
+    <div className="mx-auto w-full max-w-3xl py-8">
       <DomainForm projectId={projectId} />
     </div>
   );

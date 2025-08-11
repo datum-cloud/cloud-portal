@@ -40,6 +40,18 @@ export const paths = {
     detail: {
       root: '/project/[projectId]',
       home: '/project/[projectId]/home',
+      config: {
+        root: '/project/[projectId]/secrets',
+        secrets: {
+          root: '/project/[projectId]/secrets',
+          new: '/project/[projectId]/secrets/new',
+          detail: {
+            root: '/project/[projectId]/secrets/[secretId]',
+            overview: '/project/[projectId]/secrets/[secretId]/overview',
+            edit: '/project/[projectId]/secrets/[secretId]/edit',
+          },
+        },
+      },
       httpProxy: {
         root: '/project/[projectId]/httpproxy',
         new: '/project/[projectId]/httpproxy/new',
@@ -47,6 +59,7 @@ export const paths = {
           root: '/project/[projectId]/httpproxy/[proxyId]',
           overview: '/project/[projectId]/httpproxy/[proxyId]/overview',
           edit: '/project/[projectId]/httpproxy/[proxyId]/edit',
+          grafana: '/project/[projectId]/httpproxy/[proxyId]/grafana',
         },
       },
       domains: {

@@ -14,7 +14,7 @@ import { IDomainControlResponse } from '@/resources/interfaces/domain.interface'
 import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
 import { getPathWithParams } from '@/utils/path';
 import { formatDistanceToNow } from 'date-fns';
-import { ClockIcon } from 'lucide-react';
+import { ClockIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useMemo, useRef } from 'react';
 import {
@@ -177,6 +177,7 @@ export default function DomainOverviewPage() {
                     key: 'delete',
                     label: 'Delete',
                     variant: 'destructive',
+                    icon: <TrashIcon />,
                     action: deleteDomain,
                   },
                 ]}

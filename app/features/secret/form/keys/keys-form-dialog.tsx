@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { useIsPending } from '@/hooks/useIsPending';
 import { SecretVariablesSchema, secretVariablesSchema } from '@/resources/schemas/secret.schema';
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/old/api+/config+/secrets+/actions';
+import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import { isBase64, toBase64 } from '@/utils/text';
 import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';

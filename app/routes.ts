@@ -62,6 +62,21 @@ export default [
         route('activity', 'routes/project/detail/activity.tsx'),
         route('settings', 'routes/project/detail/settings.tsx'),
 
+        // Config
+        route('secrets', 'routes/project/detail/config/secrets/layout.tsx', [
+          index('routes/project/detail/config/secrets/index.tsx'),
+          route('new', 'routes/project/detail/config/secrets/new.tsx'),
+          route(
+            ':secretId',
+            'routes/project/detail/config/secrets/detail/layout.tsx',
+            { id: 'secret-detail' },
+            [
+              index('routes/project/detail/config/secrets/detail/index.tsx'),
+              route('edit', 'routes/project/detail/config/secrets/detail/edit.tsx'),
+            ]
+          ),
+        ]),
+
         // HTTPProxy
         route('httpproxy', 'routes/project/detail/edge/httpproxy/layout.tsx', [
           index('routes/project/detail/edge/httpproxy/index.tsx'),
@@ -75,6 +90,7 @@ export default [
               index('routes/project/detail/edge/httpproxy/detail/index.tsx'),
               route('overview', 'routes/project/detail/edge/httpproxy/detail/overview.tsx'),
               route('edit', 'routes/project/detail/edge/httpproxy/detail/edit.tsx'),
+              route('grafana', 'routes/project/detail/edge/httpproxy/detail/grafana.tsx'),
             ]
           ),
         ]),
@@ -155,6 +171,9 @@ export default [
 
       // Cloud Validations
       route('cloudvalid/dns', 'routes/api/cloudvalid/dns.ts'),
+
+      // Telemetry
+      route('telemetry/grafana', 'routes/api/telemetry/grafana.ts'),
     ]),
   ]),
 

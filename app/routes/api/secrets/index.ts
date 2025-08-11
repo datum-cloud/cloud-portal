@@ -1,7 +1,11 @@
+import { validateCSRF } from '@/modules/cookie/csrf.server';
+import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { createSecretsControl } from '@/resources/control-plane/secrets.control';
+import { secretEditSchema } from '@/resources/schemas/secret.schema';
+import { convertLabelsToObject } from '@/utils/data';
 import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
-import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
+import { ActionFunctionArgs, AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
 export const ROUTE_PATH = '/api/secrets' as const;
 
@@ -44,5 +48,80 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       { success: false, error: error?.message ?? 'An unexpected error occurred' },
       { status: 500 }
     );
+  }
+};
+
+export const action = async ({ request, context }: ActionFunctionArgs) => {
+  const { controlPlaneClient } = context as AppLoadContext;
+  try {
+    const secretsControl = createSecretsControl(controlPlaneClient as Client);
+
+    switch (request.method) {
+      case 'PATCH': {
+        const clonedRequest = request.clone();
+
+        const payload: any = await clonedRequest.json();
+
+        const { projectId, secretId, csrf, action } = payload;
+
+        if (!projectId || !secretId) {
+          throw new CustomError('Project ID and secret ID are required', 400);
+        }
+
+        // Create FormData to validate CSRF token
+        const formData = new FormData();
+        formData.append('csrf', csrf);
+
+        // Validate the CSRF token against the request headers
+        await validateCSRF(formData, request.headers);
+
+        // // Validate form data with Zod
+        const parsed = secretEditSchema.safeParse(payload);
+
+        if (!parsed.success) {
+          throw new CustomError('Invalid form data', 400);
+        }
+
+        let body: any = parsed.data;
+        if (action === 'metadata') {
+          body = {
+            metadata: {
+              annotations: convertLabelsToObject(body?.annotations ?? []),
+              labels: convertLabelsToObject(body?.labels ?? []),
+            },
+          };
+        }
+
+        // First try with dryRun to validate
+        const dryRunRes = await secretsControl.update(projectId, secretId, body, true);
+
+        // If dryRun succeeds, update for real
+        if (dryRunRes) {
+          await secretsControl.update(projectId, secretId, body, false);
+        }
+
+        return data({ success: true });
+      }
+      case 'DELETE': {
+        const formData = Object.fromEntries(await request.formData());
+        const { secretId, projectId, redirectUri } = formData;
+
+        await secretsControl.delete(projectId as string, secretId as string);
+
+        if (redirectUri) {
+          return redirectWithToast(redirectUri as string, {
+            title: 'Secret deleted successfully',
+            description: 'The secret has been deleted successfully',
+            type: 'success',
+          });
+        }
+
+        return data({ success: true, message: 'Secret deleted successfully' }, { status: 200 });
+      }
+      default:
+        throw new CustomError('Method not allowed', 405);
+    }
+  } catch (error: any) {
+    return data({ success: false, error: error.message }, { status: error.status });
   }
 };

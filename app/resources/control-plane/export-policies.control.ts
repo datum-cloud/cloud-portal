@@ -72,7 +72,7 @@ export const createExportPoliciesControl = (client: Client) => {
                   timeout: `${sink.prometheusRemoteWrite?.batch?.timeout ?? 5}s`,
                 },
                 retry: {
-                  backoffDuration: `${sink.prometheusRemoteWrite?.retry?.backoffDuration ?? 1}s`,
+                  backoffDuration: `${sink.prometheusRemoteWrite?.retry?.backoffDuration ?? 5}s`,
                   maxAttempts: sink.prometheusRemoteWrite?.retry?.maxAttempts ?? 3,
                 },
                 ...(sink.prometheusRemoteWrite?.authentication?.authType && {
