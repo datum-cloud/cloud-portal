@@ -1,5 +1,14 @@
 import { z } from 'zod';
 
+export const createNameSchema = (fieldName = 'Name') =>
+  z
+    .string({ required_error: `${fieldName} is required.` })
+    .min(1, { message: `${fieldName} is required.` })
+    .max(63, { message: `${fieldName} must be at most 63 characters long.` })
+    .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
+      message: `${fieldName} must use lowercase letters, numbers, and hyphens only. Must start and end with a letter or number.`,
+    });
+
 /**
  * Creates a reusable Zod schema for validating a Fully Qualified Domain Name (FQDN).
  *
@@ -68,9 +77,9 @@ export const createFqdnSchema = (fieldName = 'Domain') =>
  * 8. Labels cannot start or end with hyphens
  * 9. Must contain at least one dot (except for wildcard cases)
  */
-export const createHostnameSchema = (fieldName = 'Hostname', required = true) => {
-  const baseSchema = z
-    .string(required ? { required_error: `${fieldName} is required` } : undefined)
+export const createHostnameSchema = (fieldName = 'Hostname') =>
+  z
+    .string({ required_error: `${fieldName} is required` })
     .trim()
     .min(1, { message: `${fieldName} cannot be empty` })
     .max(253, { message: `${fieldName} must not exceed 253 characters` })
@@ -155,6 +164,3 @@ export const createHostnameSchema = (fieldName = 'Hostname', required = true) =>
         message: `${fieldName} labels must be 1-63 characters and cannot start or end with hyphens`,
       }
     );
-
-  return required ? baseSchema : baseSchema.optional();
-};

@@ -28,7 +28,7 @@ import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
-import { ClockIcon, PencilIcon } from 'lucide-react';
+import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useMemo } from 'react';
 import {
@@ -232,6 +232,7 @@ export default function WorkloadOverviewPage() {
                     key: 'delete',
                     label: 'Delete',
                     variant: 'destructive',
+                    icon: <TrashIcon />,
                     action: deleteWorkload,
                   },
                 ]}

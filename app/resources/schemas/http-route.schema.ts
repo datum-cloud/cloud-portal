@@ -88,7 +88,7 @@ export const httpRequestRedirectSchema = z.object({
 
 // Schema for URL rewrite filter
 export const httpURLRewriteSchema = z.object({
-  hostname: createHostnameSchema('Hostname', true),
+  hostname: createHostnameSchema('Hostname'),
   path: httpPathRewriteSchema.optional(),
 });
 

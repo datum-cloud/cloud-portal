@@ -2,58 +2,27 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateFormat } from '@/components/date-format/date-format';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { PageTitle } from '@/components/page-title/page-title';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { paths } from '@/config/paths';
 import { EditSecretKeys } from '@/features/secret/form/edit/edit-keys';
-import { EditSecretMetadata } from '@/features/secret/form/edit/edit-metadata';
-import { createSecretsControl } from '@/resources/control-plane/secrets.control';
+import { SecretGeneralCard } from '@/features/secret/form/overview/general-card';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/old/api+/config+/secrets+/actions';
-import { CustomError } from '@/utils/error';
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import { getPathWithParams } from '@/utils/path';
-import { Client } from '@hey-api/client-axios';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
-import { ArrowLeft, ClockIcon, TrashIcon } from 'lucide-react';
+import { ClockIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
-import {
-  AppLoadContext,
-  Link,
-  LoaderFunctionArgs,
-  MetaFunction,
-  useLoaderData,
-  useParams,
-  useSubmit,
-} from 'react-router';
+import { useFetcher, useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {
-  breadcrumb: (data: ISecretControlResponse) => <span>{data.name}</span>,
-};
-
-export const meta: MetaFunction = mergeMeta(({ data }) => {
-  return metaObject(`Edit ${(data as ISecretControlResponse)?.name}`);
-});
-
-export const loader = async ({ params, context }: LoaderFunctionArgs) => {
-  const { projectId, secretId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
-  const secretControl = createSecretsControl(controlPlaneClient as Client);
-
-  if (!projectId || !secretId) {
-    throw new CustomError('Project ID and secret ID are required', 400);
-  }
-
-  const secret = await secretControl.detail(projectId, secretId);
-
-  return secret;
+  breadcrumb: () => <span>Edit</span>,
 };
 
 export default function EditSecret() {
-  const secret = useLoaderData<typeof loader>();
-  const { orgId, projectId, secretId } = useParams();
+  const secret = useRouteLoaderData('secret-detail');
+  const { projectId } = useParams();
 
-  const submit = useSubmit();
+  const fetcher = useFetcher();
   const { confirm } = useConfirmationDialog();
 
   const deleteSecret = async () => {
@@ -70,17 +39,17 @@ export default function EditSecret() {
       variant: 'destructive',
       showConfirmInput: true,
       onSubmit: async () => {
-        await submit(
+        await fetcher.submit(
           {
             secretId: secret.name ?? '',
             projectId: projectId ?? '',
-            orgId: orgId ?? '',
+            redirectUri: getPathWithParams(paths.project.detail.config.secrets.root, {
+              projectId,
+            }),
           },
           {
             action: SECRET_ACTIONS_ROUTE_PATH,
             method: 'DELETE',
-            fetcherKey: 'secret-resources',
-            navigate: false,
           }
         );
       },
@@ -125,18 +94,6 @@ export default function EditSecret() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4, duration: 0.3 }}
               className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Link
-                  className="flex items-center gap-2"
-                  to={getPathWithParams(paths.projects.config.secrets.root, {
-                    orgId,
-                    projectId,
-                    secretId,
-                  })}>
-                  <ArrowLeft className="size-4" />
-                  Return to List
-                </Link>
-              </Button>
               <MoreActions
                 className="border-input bg-background hover:bg-accent hover:text-accent-foreground size-9 rounded-md border px-3"
                 actions={[
@@ -153,17 +110,17 @@ export default function EditSecret() {
           }
         />
       </motion.div>
-      <Tabs defaultValue="metadata" className="w-full gap-6">
+      <Tabs defaultValue="overview" className="w-full gap-6">
         <div className="mx-auto w-full max-w-6xl">
           <TabsList className="grid w-[250px] grid-cols-2">
-            <TabsTrigger value="metadata">Metadata</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="keys">Key-value pairs</TabsTrigger>
           </TabsList>
         </div>
         <div className="mx-auto w-full max-w-6xl">
-          <TabsContent value="metadata">
-            <div className="w-full max-w-3xl">
-              <EditSecretMetadata projectId={projectId ?? ''} defaultValue={secret} />
+          <TabsContent value="overview">
+            <div className="w-full max-w-1/2">
+              <SecretGeneralCard secret={secret} />
             </div>
           </TabsContent>
           <TabsContent value="keys" className="max-h-screen min-h-[700px]">

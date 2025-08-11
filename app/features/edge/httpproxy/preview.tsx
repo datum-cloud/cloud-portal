@@ -10,15 +10,16 @@ import {
 } from '@/components/ui/card';
 import { paths } from '@/config/paths';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
+import { GrafanaTutorialCard } from '@/features/edge/httpproxy/overview/grafana-tutorial-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/httpproxy/overview/hostnames-card';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXY_DETAIL_PATH } from '@/routes/api/httpproxy/$id';
 import { getPathWithParams } from '@/utils/path';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
-import { ExternalLinkIcon, InfoIcon, Loader2, SignalHighIcon } from 'lucide-react';
+import { InfoIcon, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useFetcher, useNavigate } from 'react-router';
+import { useFetcher, useNavigate } from 'react-router';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -151,26 +152,7 @@ export const HttpProxyPreview = ({ data, projectId }: HttpProxyPreviewProps) => 
                 </Alert>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <Alert variant="info">
-                  <SignalHighIcon className="text-info-500 size-4" />
-                  <AlertTitle className="dark:text-info-300">
-                    Want to see some metrics in Grafana?
-                  </AlertTitle>
-                  <AlertDescription className="dark:text-info-500">
-                    <p>
-                      Learn how to export metrics from your Datum project to Grafana Cloud using
-                      Prometheus remote write. This tutorial walks you through generating
-                      credentials, configuring secrets, and setting up an ExportPolicy.
-                    </p>
-                    <Link
-                      to="https://docs.datum.net/docs/tutorials/grafana/"
-                      target="_blank"
-                      className="mt-4 flex items-center gap-1 underline">
-                      <ExternalLinkIcon className="size-4" />
-                      Follow the tutorial
-                    </Link>
-                  </AlertDescription>
-                </Alert>
+                <GrafanaTutorialCard projectId={projectId ?? ''} proxy={proxy ?? {}} />
               </motion.div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2 pt-6">

@@ -3,7 +3,7 @@ import { IExportPolicyControlResponse } from '@/resources/interfaces/export-poli
 import { CustomError } from '@/utils/error';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { Client } from '@hey-api/client-axios';
-import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction } from 'react-router';
+import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction, Outlet } from 'react-router';
 
 export const handle = {
   breadcrumb: (data: IExportPolicyControlResponse) => <span>{data?.name}</span>,
@@ -32,3 +32,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 
   return data(exportPolicy);
 };
+
+export default function ExportPolicyDetailLayout() {
+  return <Outlet />;
+}

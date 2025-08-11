@@ -13,7 +13,7 @@ import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/e
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
-import { ClockIcon, PencilIcon } from 'lucide-react';
+import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link, MetaFunction, useFetcher, useParams, useRouteLoaderData } from 'react-router';
 
@@ -128,6 +128,7 @@ export default function ExportPolicyOverview() {
                     key: 'delete',
                     label: 'Delete',
                     variant: 'destructive',
+                    icon: <TrashIcon />,
                     action: deleteExportPolicy,
                   },
                 ]}

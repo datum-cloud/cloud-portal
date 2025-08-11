@@ -76,7 +76,7 @@ export default function ProjectLayout() {
   const { project, org }: { project: IProjectControlResponse; org: IOrganization } =
     useLoaderData<typeof loader>();
 
-  const { setOrganization } = useApp();
+  const { setOrganization, setProject } = useApp();
 
   const navItems: NavItem[] = useMemo(() => {
     const currentStatus = transformControlPlaneStatus(project.status);
@@ -89,6 +89,24 @@ export default function ProjectLayout() {
         href: getPathWithParams(paths.project.detail.home, { projectId }),
         type: 'link',
         icon: HomeIcon,
+      },
+      {
+        title: 'Config',
+        href: getPathWithParams(paths.project.detail.config.root, {
+          projectId,
+        }),
+        type: 'collapsible',
+        icon: SettingsIcon,
+        disabled: !isReady,
+        children: [
+          {
+            title: 'Secrets',
+            href: getPathWithParams(paths.project.detail.config.secrets.root, {
+              projectId,
+            }),
+            type: 'link',
+          },
+        ],
       },
       {
         title: 'Internet edge',
@@ -153,6 +171,12 @@ export default function ProjectLayout() {
       setOrganization(org);
     }
   }, [org]);
+
+  useEffect(() => {
+    if (project) {
+      setProject(project);
+    }
+  }, [project]);
 
   return (
     <DashboardLayout

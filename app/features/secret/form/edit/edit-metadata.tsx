@@ -15,7 +15,7 @@ import {
   SecretEditSchema,
   secretEditSchema,
 } from '@/resources/schemas/secret.schema';
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/old/api+/config+/secrets+/actions';
+import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import {
   convertLabelsToObject,
   convertObjectToLabels,
@@ -106,8 +106,8 @@ export const EditSecretMetadata = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Update metadata</CardTitle>
-        <CardDescription>Update the metadata with the new values below.</CardDescription>
+        <CardTitle>Update Metadata</CardTitle>
+        <CardDescription>View the metadata information for this secret.</CardDescription>
       </CardHeader>
       <FormProvider context={form.context}>
         <Form

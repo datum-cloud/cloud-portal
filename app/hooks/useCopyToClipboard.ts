@@ -1,27 +1,48 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
-type CopiedValue = string | null;
+interface CopyOptions {
+  withToast?: boolean;
+  toastMessage?: string;
+}
 
-type CopyFn = (text: string) => Promise<boolean>;
+type CopyFn = (text: string, options?: CopyOptions) => Promise<boolean>;
 
-export function useCopyToClipboard(): [CopiedValue, CopyFn] {
-  const [copiedText, setCopiedText] = useState<CopiedValue>(null);
+export function useCopyToClipboard(): [boolean, CopyFn] {
+  const [isCopied, setIsCopied] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const copy: CopyFn = useCallback(async (text) => {
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  const copy: CopyFn = useCallback(async (text, options) => {
     if (!navigator?.clipboard) {
       return false;
     }
 
-    // Try to save to clipboard then save it in the state if worked
     try {
       await navigator.clipboard.writeText(text);
-      setCopiedText(text);
+      setIsCopied(true);
+
+      if (options?.withToast) {
+        toast.success(options.toastMessage ?? 'Copied to clipboard');
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+
       return true;
     } catch {
-      setCopiedText(null);
+      setIsCopied(false);
       return false;
     }
   }, []);
 
-  return [copiedText, copy];
+  return [isCopied, copy];
 }

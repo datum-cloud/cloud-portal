@@ -25,7 +25,7 @@ import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { formatDistanceToNow } from 'date-fns';
-import { ClockIcon, PencilIcon } from 'lucide-react';
+import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import {
   AppLoadContext,
@@ -191,6 +191,7 @@ export default function NetworkOverviewPage() {
                     key: 'delete',
                     label: 'Delete',
                     variant: 'destructive',
+                    icon: <TrashIcon />,
                     action: deleteNetwork,
                   },
                 ]}

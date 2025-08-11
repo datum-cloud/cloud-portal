@@ -97,3 +97,28 @@ export function isValidYaml(yamlStr: string): boolean {
     return false;
   }
 }
+
+export const isValidPrometheusConfig = (json: string): boolean => {
+  const parsed = JSON.parse(json);
+  if (
+    !parsed ||
+    typeof parsed !== 'object' ||
+    !Array.isArray(parsed.remote_write) ||
+    parsed.remote_write.length === 0
+  ) {
+    return false;
+  }
+
+  const firstEntry = parsed.remote_write[0];
+  if (!firstEntry || typeof firstEntry !== 'object') {
+    return false;
+  }
+
+  const { url, basic_auth } = firstEntry;
+  if (typeof url !== 'string' || !url || !basic_auth || typeof basic_auth !== 'object') {
+    return false;
+  }
+
+  const { username, password } = basic_auth;
+  return !!username && typeof password === 'string' && !!password;
+};

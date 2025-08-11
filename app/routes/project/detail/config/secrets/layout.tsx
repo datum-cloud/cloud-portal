@@ -1,9 +1,9 @@
 import { Outlet } from 'react-router';
 
 export const handle = {
-  breadcrumb: () => <span>Domains</span>,
+  breadcrumb: () => <span>Secrets</span>,
 };
 
-export default function DomainsLayout() {
+export default function SecretsLayout() {
   return <Outlet />;
 }

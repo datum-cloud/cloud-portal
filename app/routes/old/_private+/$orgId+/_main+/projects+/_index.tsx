@@ -147,7 +147,6 @@ export default function ProjectsPage() {
     <DataTable
       columns={columns}
       data={projects ?? []}
-      rowActions={[]}
       onRowClick={(row) => {
         if (row.name && row.name !== deletedId) {
           return navigate(getPathWithParams(paths.projects.detail, { orgId, projectId: row.name }));

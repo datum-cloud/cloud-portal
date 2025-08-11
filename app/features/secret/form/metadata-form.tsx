@@ -1,6 +1,4 @@
 import { Field } from '@/components/field/field';
-import { SelectAnnotations } from '@/components/select-annotations/select-annotations';
-import { SelectLabels } from '@/components/select-labels/select-labels';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -28,20 +26,12 @@ export const SecretMetadataForm = ({
   const isHydrated = useHydrated();
 
   const nameControl = useInputControl(fields.name);
-  const labelsControl = useInputControl(fields.labels);
-  const annotationsControl = useInputControl(fields.annotations);
   const typeControl = useInputControl(fields.type);
 
   useEffect(() => {
     if (defaultValue) {
       if (defaultValue.name && fields.name.value === '') {
         nameControl.change(defaultValue.name);
-      }
-      if (defaultValue.labels && !fields.labels.value) {
-        labelsControl.change(defaultValue.labels);
-      }
-      if (defaultValue.annotations && !fields.annotations.value) {
-        annotationsControl.change(defaultValue.annotations);
       }
       if (defaultValue.type && !fields.type.value) {
         typeControl.change(defaultValue.type);
@@ -93,32 +83,6 @@ export const SecretMetadataForm = ({
               ))}
             </SelectContent>
           </Select>
-        </Field>
-      </div>
-      <div className="flex items-start gap-4">
-        <Field
-          className="w-1/2"
-          label="Labels"
-          errors={fields.labels.errors}
-          description="Add labels to help identify, organize, and filter your secrets.">
-          <SelectLabels
-            defaultValue={fields.labels.value as string[]}
-            onChange={(value) => {
-              labelsControl.change(value);
-            }}
-          />
-        </Field>
-        <Field
-          className="w-1/2"
-          label="Annotations"
-          errors={fields.annotations.errors}
-          description="Add annotations to help identify, organize, and filter your secrets.">
-          <SelectAnnotations
-            defaultValue={fields.annotations.value as string[]}
-            onChange={(value) => {
-              annotationsControl.change(value);
-            }}
-          />
         </Field>
       </div>
     </div>

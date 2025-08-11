@@ -5,12 +5,13 @@ import { PageTitle } from '@/components/page-title/page-title';
 import { Button } from '@/components/ui/button';
 import { paths } from '@/config/paths';
 import { HttpProxyGeneralCard } from '@/features/edge/httpproxy/overview/general-card';
+import { GrafanaTutorialCard } from '@/features/edge/httpproxy/overview/grafana-tutorial-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/httpproxy/overview/hostnames-card';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
 import { getPathWithParams } from '@/utils/path';
 import { formatDistanceToNow } from 'date-fns';
-import { ClockIcon, PencilIcon } from 'lucide-react';
+import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link, useFetcher, useParams, useRouteLoaderData } from 'react-router';
 
@@ -101,7 +102,7 @@ export default function HttpProxyOverviewPage() {
                     projectId,
                     proxyId: httpProxy?.name ?? '',
                   })}>
-                  <PencilIcon className="size-4" />
+                  <PencilIcon />
                   Edit
                 </Link>
               </Button>
@@ -112,6 +113,7 @@ export default function HttpProxyOverviewPage() {
                     key: 'delete',
                     label: 'Delete',
                     variant: 'destructive',
+                    icon: <TrashIcon />,
                     action: deleteHttpProxy,
                   },
                 ]}
@@ -128,15 +130,23 @@ export default function HttpProxyOverviewPage() {
           transition={{ delay: 0.4, duration: 0.4 }}>
           <HttpProxyGeneralCard httpProxy={httpProxy} />
         </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.4 }}>
-          <HttpProxyHostnamesCard
-            customHostnames={httpProxy?.hostnames ?? []}
-            status={httpProxy?.status}
-          />
-        </motion.div>
+        <div className="flex flex-col gap-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.4 }}>
+            <HttpProxyHostnamesCard
+              customHostnames={httpProxy?.hostnames ?? []}
+              status={httpProxy?.status}
+            />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.4 }}>
+            <GrafanaTutorialCard projectId={projectId ?? ''} proxy={httpProxy ?? {}} />
+          </motion.div>
+        </div>
       </div>
     </motion.div>
   );
