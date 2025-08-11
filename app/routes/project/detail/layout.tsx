@@ -91,24 +91,6 @@ export default function ProjectLayout() {
         icon: HomeIcon,
       },
       {
-        title: 'Config',
-        href: getPathWithParams(paths.project.detail.config.root, {
-          projectId,
-        }),
-        type: 'collapsible',
-        icon: SettingsIcon,
-        disabled: !isReady,
-        children: [
-          {
-            title: 'Secrets',
-            href: getPathWithParams(paths.project.detail.config.secrets.root, {
-              projectId,
-            }),
-            type: 'link',
-          },
-        ],
-      },
-      {
         title: 'Internet edge',
         href: getPathWithParams(paths.project.detail.httpProxy.root, {
           projectId,
@@ -155,6 +137,24 @@ export default function ProjectLayout() {
         type: 'link',
         disabled: !isReady,
         icon: SquareActivity,
+      },
+      {
+        title: 'Config',
+        href: getPathWithParams(paths.project.detail.config.root, {
+          projectId,
+        }),
+        type: 'collapsible',
+        icon: SettingsIcon,
+        disabled: !isReady,
+        children: [
+          {
+            title: 'Secrets',
+            href: getPathWithParams(paths.project.detail.config.secrets.root, {
+              projectId,
+            }),
+            type: 'link',
+          },
+        ],
       },
       {
         title: 'Project settings',
