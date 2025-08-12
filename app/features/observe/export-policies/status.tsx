@@ -118,9 +118,7 @@ export const ExportPolicyStatus = ({
             {sinkMessages.length > 0 && (
               <ul className="mt-1 list-disc pl-4 text-left">
                 {sinkMessages.map((message: string, index: number) => (
-                  <li key={index} className="capitalize">
-                    {message}
-                  </li>
+                  <li key={index}>{message}</li>
                 ))}
               </ul>
             )}

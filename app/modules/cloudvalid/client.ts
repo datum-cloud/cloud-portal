@@ -29,7 +29,7 @@ export class CloudValidClient {
   constructor(apiKey: string, apiUrl?: string) {
     this.client = axios.create({
       baseURL: apiUrl || 'https://api.cloudvalid.com/api/v2',
-      timeout: 30000,
+      timeout: 60000, // axios timeout in 60 seconds
       params: {
         api_key: apiKey,
       },

@@ -2,6 +2,8 @@ import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
 import { createSecretsControl } from '@/resources/control-plane/secrets.control';
+import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import {
   NewExportPolicySchema,
   newExportPolicySchema,
@@ -53,19 +55,36 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
       throw new Error('Invalid secret');
     }
 
-    // Create export policy
+    // Create controls
+    const secretControl = createSecretsControl(controlPlaneClient as Client);
     const exportPolicyControl = createExportPoliciesControl(controlPlaneClient as Client);
-    const exportPolicy = await exportPolicyControl.create(
+
+    // Dry run
+    const secretDryRun = await secretControl.create(payload.projectId, secretParsed.data, true);
+    const exportPolicyDryRun = await exportPolicyControl.create(
       payload.projectId,
       exportPolicyParsed.data,
-      false
+      true
     );
 
-    // Create secret
-    const secretControl = createSecretsControl(controlPlaneClient as Client);
-    const secret = await secretControl.create(payload.projectId, secretParsed.data, true);
+    // Create
+    if (secretDryRun && exportPolicyDryRun) {
+      const secret = (await secretControl.create(
+        payload.projectId,
+        secretParsed.data,
+        false
+      )) as ISecretControlResponse;
 
-    return data({ success: true, data: { exportPolicy, secret } });
+      const exportPolicy = (await exportPolicyControl.create(
+        payload.projectId,
+        exportPolicyParsed.data,
+        false
+      )) as IExportPolicyControlResponse;
+
+      return data({ success: true, data: { exportPolicy, secret } });
+    }
+
+    return data({ success: false, error: 'Dry run failed' });
   } catch (error: any) {
     const message = error instanceof Error ? error.message : (error as Response).statusText;
     return dataWithToast(
