@@ -76,3 +76,11 @@
 .activity-log-error-message {
   font-weight: 600;
 }
+
+.recharts-wrapper .recharts-legend-wrapper {
+  z-index: 0;
+}
+
+.recharts-wrapper .recharts-tooltip-wrapper {
+  z-index: 1;
+}

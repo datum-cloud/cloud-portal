@@ -12,6 +12,7 @@ import { themeSessionResolver } from '@/modules/cookie/theme.server';
 import { getToastSession } from '@/modules/cookie/toast.server';
 import { FathomAnalytics } from '@/modules/fathom/fathom';
 import MarkerIoEmbed from '@/modules/markerio';
+import { queryClient } from '@/modules/tanstack/query';
 import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api/action/set-cache';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
@@ -20,6 +21,7 @@ import { getSharedEnvs } from '@/utils/environment';
 import { isProduction } from '@/utils/environment';
 import { metaObject } from '@/utils/meta';
 import { combineHeaders, getDomainUrl } from '@/utils/path';
+import { QueryClientProvider } from '@tanstack/react-query';
 import NProgress from 'nprogress';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { useEffect, useMemo } from 'react';
@@ -187,16 +189,18 @@ export default function AppWithProviders() {
   return (
     <Document nonce={nonce} lang="en">
       <AuthenticityTokenProvider token={csrfToken}>
-        <NuqsAdapter>
-          <TooltipProvider>
-            <ConfirmationDialogProvider>
-              {sharedEnv.FATHOM_ID && isProduction() && (
-                <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />
-              )}
-              <Outlet />
-            </ConfirmationDialogProvider>
-          </TooltipProvider>
-        </NuqsAdapter>
+        <QueryClientProvider client={queryClient}>
+          <NuqsAdapter>
+            <TooltipProvider>
+              <ConfirmationDialogProvider>
+                {sharedEnv.FATHOM_ID && isProduction() && (
+                  <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />
+                )}
+                <Outlet />
+              </ConfirmationDialogProvider>
+            </TooltipProvider>
+          </NuqsAdapter>
+        </QueryClientProvider>
       </AuthenticityTokenProvider>
     </Document>
   );
