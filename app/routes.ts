@@ -12,6 +12,9 @@ export default [
   layout('layouts/private.layout.tsx', [
     index('routes/index.tsx'),
 
+    // Dashboard Playground
+    route('dashboard', 'routes/dashboard.tsx'),
+
     // Account
     route('account', 'routes/account/layout.tsx', [
       index('routes/account/index.tsx'),
@@ -169,11 +172,15 @@ export default [
       // Activities
       route('activity', 'routes/api/activity/index.ts'),
 
+      // Third-party APIs
       // Cloud Validations
       route('cloudvalid/dns', 'routes/api/cloudvalid/dns.ts'),
 
       // Telemetry
       route('telemetry/grafana', 'routes/api/telemetry/grafana.ts'),
+
+      // Prometheus
+      route('prometheus', 'routes/api/prometheus/index.ts'),
     ]),
   ]),
 
