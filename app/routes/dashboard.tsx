@@ -6,19 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { MetricCards } from '@/modules/metrics/components/MetricCard';
 import { MetricChart } from '@/modules/metrics/components/MetricChart';
 import type { TimeRange } from '@/modules/prometheus';
-import {
-  Calendar,
-  Clock,
-  RefreshCw,
-  Activity,
-  Cpu,
-  HardDrive,
-  Network,
-  AlertTriangle,
-} from 'lucide-react';
+import { Calendar, Clock, RefreshCw, Activity } from 'lucide-react';
 import { useState } from 'react';
 
 export default function DashboardPlayground() {
@@ -148,12 +138,8 @@ export default function DashboardPlayground() {
                       variant={refreshInterval === option.value ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => {
-                        if (option.value === 0) {
-                          setIsRealtime(false);
-                        } else {
-                          setIsRealtime(true);
-                          setRefreshInterval(option.value);
-                        }
+                        setIsRealtime(option.value !== 0);
+                        setRefreshInterval(option.value);
                       }}>
                       {option.label}
                     </Button>
@@ -169,7 +155,7 @@ export default function DashboardPlayground() {
         </Card>
 
         {/* Metric Cards Row */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        {/* <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           <MetricCards.CpuUsage
             icon={Cpu}
             timeRange={timeRange}
@@ -195,12 +181,12 @@ export default function DashboardPlayground() {
             timeRange={timeRange}
             refetchInterval={isRealtime ? refreshInterval : undefined}
           />
-        </div>
+        </div> */}
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* CPU Usage */}
-          <MetricChart
+          {/* <MetricChart
             title="CPU Usage by Instance (5m Rate)"
             query="sum by (instance) (rate(node_cpu_seconds_total{mode!='idle'}[5m]))"
             timeRange={timeRange}
@@ -208,10 +194,10 @@ export default function DashboardPlayground() {
             chartType="area"
             valueFormat="percentage"
             refetchInterval={isRealtime ? refreshInterval : undefined}
-          />
+          /> */}
 
           {/* Memory Usage */}
-          <MetricChart
+          {/* <MetricChart
             title="Memory Usage by Instance"
             query="(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes"
             timeRange={timeRange}
@@ -219,10 +205,10 @@ export default function DashboardPlayground() {
             chartType="area"
             valueFormat="percentage"
             refetchInterval={isRealtime ? refreshInterval : undefined}
-          />
+          /> */}
 
           {/* Network Traffic */}
-          <MetricChart
+          {/* <MetricChart
             title="Network Traffic (Received)"
             query="rate(node_network_receive_bytes_total[5m])"
             timeRange={timeRange}
@@ -230,10 +216,10 @@ export default function DashboardPlayground() {
             chartType="line"
             valueFormat="bytes"
             refetchInterval={isRealtime ? refreshInterval : undefined}
-          />
+          /> */}
 
           {/* Disk I/O */}
-          <MetricChart
+          {/* <MetricChart
             title="Disk I/O (Read)"
             query="rate(node_disk_read_bytes_total[5m])"
             timeRange={timeRange}
@@ -241,7 +227,7 @@ export default function DashboardPlayground() {
             chartType="bar"
             valueFormat="bytes"
             refetchInterval={isRealtime ? refreshInterval : undefined}
-          />
+          /> */}
 
           {/* Gauge Chart */}
           {/* <MetricChart
@@ -322,15 +308,26 @@ export default function DashboardPlayground() {
 
           {/* Domain Verification Chart */}
           <MetricChart
-            query="avg(datum_cloud_networking_domain_status_next_verification_attempt{})"
-            title="Domain Verification Status"
-            description="Average next verification attempt timestamp for domain status"
-            chartType="line"
-            height={300}
-            step="1h"
+            query="sum(rate(vector_adaptive_concurrency_limit_sum{}[$__rate_interval]))/sum(rate(vector_adaptive_concurrency_limit_count{}[$__rate_interval]))"
+            title="vector_adaptive_concurrency_limit (average)"
+            chartType="gauge"
+            step={step}
             timeRange={timeRange}
-            showLegend={true}
+            showLegend={false}
             showTooltip={true}
+            height={300}
+            refetchInterval={isRealtime ? refreshInterval : undefined}
+          />
+
+          <MetricChart
+            query="avg(datum_cloud_networking_domain_status_next_verification_attempt{})"
+            title="datum_cloud_networking_domain_status_next_verification_attempt (average)"
+            chartType="line"
+            step={step}
+            timeRange={timeRange}
+            showLegend={false}
+            showTooltip={true}
+            height={300}
             refetchInterval={isRealtime ? refreshInterval : undefined}
           />
         </div>
