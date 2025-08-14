@@ -172,17 +172,22 @@ export function MetricChart({
       scale: 'time' as const,
       domain: ['dataMin', 'dataMax'],
       tickFormatter: formatXAxisValue,
+      tick: { fontSize: 10 },
     };
 
     const yAxisProps = {
       tickFormatter: formatAxisValue,
+      tickSize: 2,
       domain: ['dataMin', 'dataMax'],
+      tick: { fontSize: 10 },
     };
 
     const tooltipProps = showTooltip
       ? {
           labelFormatter: (value: number) => new Date(value).toLocaleString(),
           formatter: (value: number) => [formatTooltipValue(value), ''],
+          itemStyle: { fontSize: 12 },
+          labelStyle: { fontSize: 12, fontWeight: 'bold' },
         }
       : undefined;
 
@@ -247,7 +252,12 @@ export function MetricChart({
   };
 
   return (
-    <MetricLoaderWrapper isLoading={isLoading} error={error} title={title} className={className}>
+    <MetricLoaderWrapper
+      isLoading={isLoading}
+      error={error}
+      title={title}
+      className={className}
+      height={height}>
       <Card className={cn(className)} data-variant={variant}>
         <CardHeader>
           {title && (

@@ -3,9 +3,8 @@
  */
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/utils/common';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import React from 'react';
 
 interface MetricLoaderWrapperProps {
@@ -33,6 +32,11 @@ interface MetricLoaderWrapperProps {
    * Optional class name for the container card.
    */
   className?: string;
+
+  /**
+   * Optional height for the container to prevent layout shifts.
+   */
+  height?: number;
 }
 
 export function MetricLoaderWrapper({
@@ -41,6 +45,7 @@ export function MetricLoaderWrapper({
   title,
   children,
   className,
+  height,
 }: MetricLoaderWrapperProps) {
   if (isLoading) {
     return (
@@ -48,10 +53,9 @@ export function MetricLoaderWrapper({
         <CardHeader className="pb-2">
           {title && <CardTitle className="text-sm font-medium">{title}</CardTitle>}
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-4 w-full" />
+        <CardContent style={{ height }}>
+          <div className="flex h-full items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
           </div>
         </CardContent>
       </Card>
