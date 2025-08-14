@@ -10,7 +10,7 @@ services:
     depends_on:
       - otel-collector
   grafana:
-    image: grafana/grafana:12.1.0
+    image: grafana/grafana:12.1.1
     depends_on:
       - prometheus
       - jaeger
