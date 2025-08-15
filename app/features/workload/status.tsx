@@ -3,7 +3,7 @@ import {
   ControlPlaneStatus,
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
-import { ROUTE_PATH as WORKLOAD_STATUS_ROUTE_PATH } from '@/routes/old/api+/workloads+/status';
+import { ROUTE_PATH as WORKLOAD_API_ROUTE_PATH } from '@/routes/api/workloads';
 import { useEffect, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';
 
@@ -33,7 +33,7 @@ export const WorkloadStatus = ({
   const loadStatus = (workloadId: string, workloadType: 'workload' | 'deployment' | 'instance') => {
     if (projectId && workloadId) {
       fetcher.load(
-        `${WORKLOAD_STATUS_ROUTE_PATH}?projectId=${projectId}&id=${workloadId}&type=${workloadType}`
+        `${WORKLOAD_API_ROUTE_PATH}?projectId=${projectId}&id=${workloadId}&type=${workloadType}`
       );
     }
   };
@@ -70,7 +70,10 @@ export const WorkloadStatus = ({
 
   useEffect(() => {
     if (fetcher.data) {
-      const { status } = fetcher.data as IControlPlaneStatus;
+      const statusData = fetcher.data?.data as IControlPlaneStatus;
+      if (!statusData) return;
+
+      const { status } = statusData;
       if (
         (status === ControlPlaneStatus.Success || status === ControlPlaneStatus.Error) &&
         intervalRef.current

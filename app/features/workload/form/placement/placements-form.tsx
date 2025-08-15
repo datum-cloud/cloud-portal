@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ILocationControlResponse } from '@/resources/interfaces/location.interface';
 import { PlacementFieldSchema, PlacementsSchema } from '@/resources/schemas/workload.schema';
-import { ROUTE_PATH as LOCATION_LIST_ROUTE_PATH } from '@/routes/old/api+/locations/_index';
+import { ROUTE_PATH as LOCATION_LIST_ROUTE_PATH } from '@/routes/api/locations';
 import { cn } from '@/utils/common';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { PlusIcon, TrashIcon } from 'lucide-react';

@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { useIsPending } from '@/hooks/useIsPending';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { newNetworkSchema, updateNetworkSchema } from '@/resources/schemas/network.schema';
-import { ROUTE_PATH as NETWORK_ACTIONS_ROUTE_PATH } from '@/routes/old/api+/connect+/networks+/actions';
+import { ROUTE_PATH as NETWORK_ACTIONS_ROUTE_PATH } from '@/routes/api/networks';
 import {
   FormProvider,
   getFormProps,

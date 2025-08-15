@@ -1,6 +1,6 @@
 import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
-import { ROUTE_PATH as CONFIGS_LIST_ROUTE_PATH } from '@/routes/old/api+/config+/config-maps+/list';
+import { ROUTE_PATH as CONFIGS_LIST_ROUTE_PATH } from '@/routes/api/config-maps';
 import { useEffect, useState } from 'react';
 import { useFetcher } from 'react-router';
 

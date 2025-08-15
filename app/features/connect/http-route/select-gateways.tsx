@@ -1,6 +1,6 @@
 import { MultiSelect, MultiSelectOption } from '@/components/multi-select/multi-select';
 import { IGatewayControlResponseLite } from '@/resources/interfaces/gateway.interface';
-import { ROUTE_PATH as GATEWAYS_LIST_ROUTE_PATH } from '@/routes/old/api+/connect+/gateways+/list';
+import { ROUTE_PATH as GATEWAYS_LIST_ROUTE_PATH } from '@/routes/api/gateways';
 import { useEffect, useState } from 'react';
 import { useFetcher } from 'react-router';
 
