@@ -24,7 +24,7 @@ import {
   endpointSliceSchema,
 } from '@/resources/schemas/endpoint-slice.schema';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
-import { ROUTE_PATH as ENDPOINT_SLICES_ACTIONS_PATH } from '@/routes/old/api+/connect+/endpoint-slices+/actions';
+import { ROUTE_PATH as ENDPOINT_SLICES_ACTIONS_PATH } from '@/routes/api/endpoint-slices';
 import { convertObjectToLabels } from '@/utils/data';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
