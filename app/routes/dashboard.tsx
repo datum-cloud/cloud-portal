@@ -330,6 +330,18 @@ export default function DashboardPlayground() {
             height={300}
             refetchInterval={isRealtime ? refreshInterval : undefined}
           />
+
+          <MetricChart
+            query={`sum(rate(envoy_vhost_vcluster_upstream_rq{resourcemanager_datumapis_com_project_name="jreese-test-5d2p7z", label_topology_kubernetes_io_region!=""}[1m])) by (label_topology_kubernetes_io_region)`}
+            title="envoy_vhost_vcluster_upstream_rq"
+            chartType="line"
+            step={step}
+            timeRange={timeRange}
+            showLegend={true}
+            showTooltip={true}
+            height={300}
+            refetchInterval={isRealtime ? refreshInterval : undefined}
+          />
         </div>
 
         {/* Large Chart Section */}

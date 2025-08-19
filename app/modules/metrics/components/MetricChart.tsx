@@ -102,7 +102,6 @@ export interface MetricChartProps extends PrometheusQueryOptions {
 export function MetricChart({
   query,
   timeRange,
-
   step,
   enabled = true,
   refetchInterval,
@@ -137,6 +136,11 @@ export function MetricChart({
     if (!data || data.isEmpty) return [];
     return data.series.map((series) => series.name);
   }, [data]);
+
+  const seriesColors = React.useMemo(() => {
+    if (!data || data.isEmpty) return colors;
+    return data.series.map((series) => series.color || '#8884d8');
+  }, [data, colors]);
 
   const formatTooltipValue = React.useCallback(
     (value: number) => {
@@ -205,8 +209,8 @@ export function MetricChart({
                 key={name}
                 type="monotone"
                 dataKey={name}
-                stroke={colors[index % colors.length]}
-                fill={colors[index % colors.length]}
+                stroke={seriesColors[index]}
+                fill={seriesColors[index]}
                 fillOpacity={0.3}
               />
             ))}
@@ -222,7 +226,7 @@ export function MetricChart({
             {showTooltip && <Tooltip {...tooltipProps} />}
             {showLegend && <Legend />}
             {seriesNames.map((name, index) => (
-              <Bar key={name} dataKey={name} fill={colors[index % colors.length]} />
+              <Bar key={name} dataKey={name} fill={seriesColors[index]} />
             ))}
           </BarChart>
         );
@@ -241,7 +245,7 @@ export function MetricChart({
                 key={name}
                 type="monotone"
                 dataKey={name}
-                stroke={colors[index % colors.length]}
+                stroke={seriesColors[index]}
                 strokeWidth={2}
                 dot={false}
               />

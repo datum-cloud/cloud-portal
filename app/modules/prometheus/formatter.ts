@@ -260,23 +260,58 @@ function generateSeriesName(labels: Record<string, string>): string {
   return 'Series';
 }
 
+// Pre-calculated constants for performance
+const BASE_COLORS = [
+  '#8884d8',
+  '#82ca9d',
+  '#ffc658',
+  '#ff7300',
+  '#e74c3c',
+  '#9b59b6',
+  '#1abc9c',
+  '#f39c12',
+  '#3498db',
+  '#2ecc71',
+  '#e67e22',
+  '#34495e',
+] as const;
+
+const GOLDEN_RATIO = 0.618033988749;
+const SATURATION_LEVELS = [70, 85, 60, 90, 75] as const;
+const LIGHTNESS_LEVELS = [50, 40, 60, 45, 55] as const;
+
+// Memoization cache for generated colors
+const colorCache = new Map<number, string>();
+
 /**
- * Generate colors for chart series
+ * Generate colors for chart series using optimized dynamic HSL color generation
+ * Supports unlimited colors with good visual distinction and performance caching
  */
 function generateColor(index: number): string {
-  const colors = [
-    '#8884d8',
-    '#82ca9d',
-    '#ffc658',
-    '#ff7300',
-    '#00ff00',
-    '#0088fe',
-    '#00c49f',
-    '#ffbb28',
-    '#ff8042',
-    '#8dd1e1',
-  ];
-  return colors[index % colors.length];
+  // Check cache first for O(1) lookup
+  const cached = colorCache.get(index);
+  if (cached) {
+    return cached;
+  }
+
+  let color: string;
+
+  // Use predefined colors for first 12 series (fastest path)
+  if (index < BASE_COLORS.length) {
+    color = BASE_COLORS[index];
+  } else {
+    // Generate dynamic color with pre-calculated constants
+    const dynamicIndex = index - BASE_COLORS.length;
+    const hue = (dynamicIndex * GOLDEN_RATIO * 360) % 360;
+    const saturation = SATURATION_LEVELS[dynamicIndex % SATURATION_LEVELS.length];
+    const lightness = LIGHTNESS_LEVELS[dynamicIndex % LIGHTNESS_LEVELS.length];
+
+    color = `hsl(${Math.round(hue)}, ${saturation}%, ${lightness}%)`;
+  }
+
+  // Cache the result for future use
+  colorCache.set(index, color);
+  return color;
 }
 
 /**
