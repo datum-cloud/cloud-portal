@@ -11,7 +11,6 @@ import {
 } from '@/modules/control-plane/networking';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { DomainSchema } from '@/resources/schemas/domain.schema';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createDomainsControl = (client: Client) => {
@@ -51,10 +50,6 @@ export const createDomainsControl = (client: Client) => {
         path: { namespace: 'default', name: uid },
       });
 
-      if (!response.data) {
-        throw new CustomError('Domain not found', 404);
-      }
-
       const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
 
       return transformDomain(domain);
@@ -65,10 +60,6 @@ export const createDomainsControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: uid },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to delete domain', 500);
-      }
 
       return response.data;
     },
@@ -94,10 +85,6 @@ export const createDomainsControl = (client: Client) => {
           },
         },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to create Domain', 500);
-      }
 
       const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
 
@@ -129,10 +116,6 @@ export const createDomainsControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update Domain', 500);
-      }
-
       const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
 
       return dryRun ? domain : transformDomain(domain);
@@ -143,10 +126,6 @@ export const createDomainsControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: uid },
       });
-
-      if (!response.data) {
-        throw new CustomError(`Domain ${uid} not found`, 404);
-      }
 
       const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
 

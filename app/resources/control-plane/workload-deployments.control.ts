@@ -6,7 +6,6 @@ import {
   readComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatus,
 } from '@/modules/control-plane/compute';
 import { IWorkloadDeploymentControlResponse } from '@/resources/interfaces/workload.interface';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createWorkloadDeploymentsControl = (client: Client) => {
@@ -45,9 +44,9 @@ export const createWorkloadDeploymentsControl = (client: Client) => {
         },
       });
 
-      const deployments = response.data as ComDatumapisComputeV1AlphaWorkloadDeploymentList;
+      const deployments = response?.data as ComDatumapisComputeV1AlphaWorkloadDeploymentList;
 
-      return deployments.items.map(transform);
+      return deployments?.items?.map(transform) ?? [];
     },
     getStatus: async (projectId: string, deploymentId: string) => {
       const response = await readComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatus({
@@ -55,10 +54,6 @@ export const createWorkloadDeploymentsControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: deploymentId },
       });
-
-      if (!response.data) {
-        throw new CustomError(`Workload deployment ${deploymentId} not found`, 404);
-      }
 
       const deployment = response.data as ComDatumapisComputeV1AlphaWorkloadDeployment;
 

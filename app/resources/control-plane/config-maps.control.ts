@@ -9,7 +9,6 @@ import {
 } from '@/modules/control-plane/api-v1';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
 import { ConfigMapSchema } from '@/resources/schemas/config-map.schema';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createConfigMapsControl = (client: Client) => {
@@ -47,10 +46,6 @@ export const createConfigMapsControl = (client: Client) => {
         path: { namespace: 'default', name: configId },
       });
 
-      if (!response.data) {
-        throw new CustomError(`ConfigMap ${configId} not found`, 404);
-      }
-
       const configMap = response.data as IoK8sApiCoreV1ConfigMap;
 
       return transformConfigMap(configMap);
@@ -68,10 +63,6 @@ export const createConfigMapsControl = (client: Client) => {
         },
         body: payload.configuration as IoK8sApiCoreV1ConfigMap,
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to create config map', 500);
-      }
 
       const configMap = response.data as IoK8sApiCoreV1ConfigMap;
 
@@ -104,10 +95,6 @@ export const createConfigMapsControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update config map', 500);
-      }
-
       const configMap = response.data as IoK8sApiCoreV1ConfigMap;
 
       return dryRun ? configMap : transformConfigMap(configMap);
@@ -118,10 +105,6 @@ export const createConfigMapsControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: configId },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to delete config map', 500);
-      }
 
       return response.data;
     },
