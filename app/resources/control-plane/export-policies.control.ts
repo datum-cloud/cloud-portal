@@ -18,7 +18,6 @@ import {
 } from '@/resources/interfaces/export-policy.interface';
 import { NewExportPolicySchema } from '@/resources/schemas/export-policy.schema';
 import { convertLabelsToObject } from '@/utils/data';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createExportPoliciesControl = (client: Client) => {
@@ -123,10 +122,6 @@ export const createExportPoliciesControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to create export policy', 500);
-      }
-
       const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
 
       return dryRun ? exportPolicy : transformPolicy(exportPolicy);
@@ -137,10 +132,6 @@ export const createExportPoliciesControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: exportPolicyId },
       });
-
-      if (!response.data) {
-        throw new CustomError(`Export policy ${exportPolicyId} not found`, 404);
-      }
 
       const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
 
@@ -168,10 +159,6 @@ export const createExportPoliciesControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update export policy', 500);
-      }
-
       const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
 
       return dryRun ? exportPolicy : transformPolicy(exportPolicy);
@@ -183,10 +170,6 @@ export const createExportPoliciesControl = (client: Client) => {
         path: { name: exportPolicyId, namespace: 'default' },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to delete export policy', 500);
-      }
-
       return response.data;
     },
     getStatus: async (projectId: string, exportPolicyId: string) => {
@@ -195,10 +178,6 @@ export const createExportPoliciesControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { name: exportPolicyId, namespace: 'default' },
       });
-
-      if (!response.data) {
-        throw new CustomError(`Export policy ${exportPolicyId} not found`, 404);
-      }
 
       const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
 

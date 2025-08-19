@@ -12,7 +12,6 @@ import {
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { UpdateProjectSchema, ProjectSchema } from '@/resources/schemas/project.schema';
 import { convertLabelsToObject, filterLabels } from '@/utils/data';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createProjectsControl = (client: Client) => {
@@ -60,10 +59,6 @@ export const createProjectsControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError(`Project ${projectName} not found`, 404);
-      }
-
       const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
 
       return transform(project);
@@ -94,26 +89,19 @@ export const createProjectsControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to create project', 500);
-      }
-
       const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
 
       return dryRun ? response.data : transform(project);
     },
     update: async (projectName: string, payload: UpdateProjectSchema, dryRun: boolean = false) => {
-      // Build metadata object conditionally based on available payload properties
       const metadata: Record<string, any> = {};
 
-      // Only add annotations if description is provided
       if (payload.description) {
         metadata.annotations = {
           'kubernetes.io/description': payload.description,
         };
       }
 
-      // Only add labels if they are provided
       if ('labels' in payload && payload.labels && payload.labels.length > 0) {
         metadata.labels = convertLabelsToObject(payload.labels);
       }
@@ -135,10 +123,6 @@ export const createProjectsControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError(`Project ${projectName} not found`, 404);
-      }
-
       const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
 
       return dryRun ? response.data : transform(project);
@@ -149,10 +133,6 @@ export const createProjectsControl = (client: Client) => {
         path: { name: projectName },
       });
 
-      if (!response.data) {
-        throw new CustomError(`Project ${projectName} not found`, 404);
-      }
-
       const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
 
       return project;
@@ -162,10 +142,6 @@ export const createProjectsControl = (client: Client) => {
         client,
         path: { name: projectName },
       });
-
-      if (!response.data) {
-        throw new CustomError(`Project ${projectName} not found`, 404);
-      }
 
       const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
 

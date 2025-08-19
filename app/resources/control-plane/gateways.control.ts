@@ -21,7 +21,6 @@ import {
 } from '@/resources/interfaces/gateway.interface';
 import { GatewaySchema } from '@/resources/schemas/gateway.schema';
 import { convertLabelsToObject } from '@/utils/data';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 import { omit } from 'es-toolkit/compat';
 
@@ -129,10 +128,6 @@ export const createGatewaysControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to create gateway', 500);
-      }
-
       const gateway = response.data as IoK8sNetworkingGatewayV1Gateway;
 
       return dryRun ? gateway : transformGateway(gateway);
@@ -144,10 +139,6 @@ export const createGatewaysControl = (client: Client) => {
         path: { name: gatewayId, namespace: 'default' },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to delete gateway', 500);
-      }
-
       return response.data;
     },
     detail: async (projectId: string, gatewayId: string) => {
@@ -156,10 +147,6 @@ export const createGatewaysControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { name: gatewayId, namespace: 'default' },
       });
-
-      if (!response.data) {
-        throw new CustomError(`Gateway ${gatewayId} not found`, 404);
-      }
 
       const gateway = response.data as IoK8sNetworkingGatewayV1Gateway;
 
@@ -186,10 +173,6 @@ export const createGatewaysControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update gateway', 500);
-      }
-
       const gateway = response.data as IoK8sNetworkingGatewayV1Gateway;
 
       return dryRun ? gateway : transformGateway(gateway);
@@ -200,10 +183,6 @@ export const createGatewaysControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { name: gatewayId, namespace: 'default' },
       });
-
-      if (!response.data) {
-        throw new CustomError(`Gateway ${gatewayId} not found`, 404);
-      }
 
       const gateway = response.data as IoK8sNetworkingGatewayV1Gateway;
 

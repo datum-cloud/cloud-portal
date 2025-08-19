@@ -18,7 +18,6 @@ import {
 } from '@/resources/interfaces/endpoint-slice.interface';
 import { EndpointSliceSchema } from '@/resources/schemas/endpoint-slice.schema';
 import { convertLabelsToObject } from '@/utils/data';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createEndpointSlicesControl = (client: Client) => {
@@ -99,10 +98,6 @@ export const createEndpointSlicesControl = (client: Client) => {
         path: { namespace: 'default' },
       });
 
-      if (!response.data) {
-        throw new CustomError('Endpoint slices not found', 404);
-      }
-
       const endpointSlices = response.data as IoK8sApiDiscoveryV1EndpointSliceList;
 
       return endpointSlices.items.map(transformEndpointSliceLite);
@@ -113,10 +108,6 @@ export const createEndpointSlicesControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: id },
       });
-
-      if (!response.data) {
-        throw new CustomError('Endpoint slice not found', 404);
-      }
 
       const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
 
@@ -141,10 +132,6 @@ export const createEndpointSlicesControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to create endpoint slice', 500);
-      }
-
       const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
 
       return dryRun ? endpointSlice : transformEndpointSliceLite(endpointSlice);
@@ -155,10 +142,6 @@ export const createEndpointSlicesControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: id },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to delete endpoint slice', 500);
-      }
 
       return response.data;
     },
@@ -185,10 +168,6 @@ export const createEndpointSlicesControl = (client: Client) => {
           apiVersion: 'discovery.k8s.io/v1',
         },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to update endpoint slice', 500);
-      }
 
       const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
 
