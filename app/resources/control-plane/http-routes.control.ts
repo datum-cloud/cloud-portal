@@ -18,7 +18,6 @@ import {
 } from '@/resources/interfaces/http-route.interface';
 import { HttpRouteSchema } from '@/resources/schemas/http-route.schema';
 import { convertLabelsToObject } from '@/utils/data';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createHttpRoutesControl = (client: Client) => {
@@ -171,10 +170,6 @@ export const createHttpRoutesControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to create HTTP route', 500);
-      }
-
       const httpRoute = response.data as IoK8sNetworkingGatewayV1HttpRoute;
 
       return dryRun ? httpRoute : transformHttpRouteLite(httpRoute);
@@ -186,10 +181,6 @@ export const createHttpRoutesControl = (client: Client) => {
         path: { namespace: 'default', name: uid },
       });
 
-      if (!response.data) {
-        throw new CustomError('HTTP route not found', 404);
-      }
-
       const httpRoute = response.data as IoK8sNetworkingGatewayV1HttpRoute;
 
       return transformHttpRoute(httpRoute);
@@ -200,10 +191,6 @@ export const createHttpRoutesControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: uid },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to delete HTTP route', 500);
-      }
 
       return response.data;
     },
@@ -230,10 +217,6 @@ export const createHttpRoutesControl = (client: Client) => {
           apiVersion: 'gateway.networking.k8s.io/v1',
         },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to update HTTP route', 500);
-      }
 
       const httpRoute = response.data as IoK8sNetworkingGatewayV1HttpRoute;
 

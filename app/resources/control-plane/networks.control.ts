@@ -9,7 +9,6 @@ import {
 } from '@/modules/control-plane/networking';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { NewNetworkSchema, UpdateNetworkSchema } from '@/resources/schemas/network.schema';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createNetworksControl = (client: Client) => {
@@ -54,10 +53,6 @@ export const createNetworksControl = (client: Client) => {
         path: { namespace: 'default', name: networkId },
       });
 
-      if (!response.data) {
-        throw new CustomError(`Network ${networkId} not found`, 404);
-      }
-
       const network = response.data as ComDatumapisNetworkingV1AlphaNetwork;
 
       return transformNetwork(network);
@@ -88,10 +83,6 @@ export const createNetworksControl = (client: Client) => {
           },
         },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to create location', 500);
-      }
 
       const network = response.data as ComDatumapisNetworkingV1AlphaNetwork;
 
@@ -130,10 +121,6 @@ export const createNetworksControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update network', 500);
-      }
-
       const network = response.data as ComDatumapisNetworkingV1AlphaNetwork;
 
       return dryRun ? network : transformNetwork(network);
@@ -144,10 +131,6 @@ export const createNetworksControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: networkId },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to delete network', 500);
-      }
 
       return response.data;
     },

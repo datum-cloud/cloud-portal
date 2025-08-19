@@ -1,7 +1,5 @@
-import { IUser, IUserPreferences, ThemeValue } from '@/resources/interfaces/user.interface';
+import { IUser } from '@/resources/interfaces/user.interface';
 import { UserPreferencesSchema, UserSchema } from '@/resources/schemas/user.schema';
-import { CustomError } from '@/utils/error';
-import { toBoolean } from '@/utils/text';
 import { Client } from '@hey-api/client-axios';
 
 export interface ComMiloapisIamV1Alpha1User {
@@ -53,10 +51,6 @@ export const createUserControl = (client: Client) => {
         responseType: 'json',
       });
 
-      if (!response.data) {
-        throw new CustomError(`User with ID ${userId} not found`, 404);
-      }
-
       return transform(response.data as ComMiloapisIamV1Alpha1User);
     },
     update: async (userId: string, user: UserSchema): Promise<IUser> => {
@@ -79,10 +73,6 @@ export const createUserControl = (client: Client) => {
         responseType: 'json',
       });
 
-      if (!response.data) {
-        throw new CustomError(`User with ID ${userId} not found`, 404);
-      }
-
       return transform(response.data as ComMiloapisIamV1Alpha1User);
     },
     delete: async (userId: string): Promise<IUser> => {
@@ -90,10 +80,6 @@ export const createUserControl = (client: Client) => {
         url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}`,
         responseType: 'json',
       });
-
-      if (!response.data) {
-        throw new CustomError(`User with ID ${userId} not found`, 404);
-      }
 
       return transform(response.data as ComMiloapisIamV1Alpha1User);
     },
@@ -131,10 +117,6 @@ export const createUserControl = (client: Client) => {
         body,
         responseType: 'json',
       });
-
-      if (!response.data) {
-        throw new CustomError(`User with ID ${userId} not found`, 404);
-      }
 
       return transform(response.data as ComMiloapisIamV1Alpha1User);
     },

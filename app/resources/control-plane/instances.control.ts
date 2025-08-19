@@ -6,7 +6,6 @@ import {
   readComputeDatumapisComV1AlphaNamespacedInstanceStatus,
 } from '@/modules/control-plane/compute';
 import { IInstanceControlResponse } from '@/resources/interfaces/workload.interface';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createInstancesControl = (client: Client) => {
@@ -52,10 +51,6 @@ export const createInstancesControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: instanceId },
       });
-
-      if (!response.data) {
-        throw new CustomError(`Instance ${instanceId} not found`, 404);
-      }
 
       const instance = response.data as ComDatumapisComputeV1AlphaInstance;
 

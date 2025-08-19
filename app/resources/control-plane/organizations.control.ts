@@ -14,7 +14,6 @@ import {
   UpdateOrganizationSchema,
 } from '@/resources/schemas/organization.schema';
 import { convertLabelsToObject } from '@/utils/data';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createOrganizationsControl = (client: Client) => {
@@ -107,10 +106,6 @@ export const createOrganizationsControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to create organization', 500);
-      }
-
       const org = response.data as ComMiloapisResourcemanagerV1Alpha1Organization;
 
       return dryRun ? response.data : transform(org);
@@ -150,10 +145,6 @@ export const createOrganizationsControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update organization', 500);
-      }
-
       const org = response.data as ComMiloapisResourcemanagerV1Alpha1Organization;
 
       return dryRun ? response.data : transform(org);
@@ -166,10 +157,6 @@ export const createOrganizationsControl = (client: Client) => {
           name: orgId,
         },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to delete organization', 500);
-      }
 
       return response.data;
     },

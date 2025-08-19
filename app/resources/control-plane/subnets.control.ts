@@ -32,17 +32,19 @@ export const createSubnetsControl = (client: Client) => {
         },
       });
 
-      const subnets = response.data as ComDatumapisNetworkingV1AlphaSubnetList;
+      const subnets = response?.data as ComDatumapisNetworkingV1AlphaSubnetList;
 
       // Note: Subnets are directly related to NetworkContext resources rather than Network resources
-      return subnets.items
-        .filter((subnet) => {
-          return (
-            subnet.spec?.networkContext?.name &&
-            (networkContexts ?? []).includes(subnet.spec?.networkContext?.name)
-          );
-        })
-        .map(transformSubnet);
+      return (
+        subnets?.items
+          ?.filter((subnet) => {
+            return (
+              subnet.spec?.networkContext?.name &&
+              (networkContexts ?? []).includes(subnet.spec?.networkContext?.name)
+            );
+          })
+          .map(transformSubnet) ?? []
+      );
     },
   };
 };
