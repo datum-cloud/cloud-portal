@@ -1,4 +1,3 @@
-import { paths } from '@/config/paths';
 import { CreateProjectForm } from '@/features/project/create-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
@@ -6,9 +5,10 @@ import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
 import { projectSchema, ProjectSchema } from '@/resources/schemas/project.schema';
-import { CustomError } from '@/utils/error';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { BadRequestError } from '@/utils/errors';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router';
@@ -35,7 +35,7 @@ export const action = withMiddleware(async ({ request, params, context }: Action
     const parsed = parseWithZod(formData, { schema: projectSchema });
 
     if (parsed.status !== 'success') {
-      throw new CustomError('Invalid form data', 400);
+      throw new BadRequestError('Invalid form data');
     }
 
     const payload = parsed.value as ProjectSchema;

@@ -11,7 +11,6 @@ import {
   CardFooter,
   CardTitle,
 } from '@/components/ui/card';
-import { paths } from '@/config/paths';
 import { useIsPending } from '@/hooks/useIsPending';
 import {
   ExportPolicyAuthenticationType,
@@ -28,8 +27,9 @@ import {
 } from '@/resources/schemas/export-policy.schema';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/export-policies';
-import { convertObjectToLabels } from '@/utils/data';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { convertObjectToLabels } from '@/utils/helpers/object.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useForm, FormProvider, getFormProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { has } from 'es-toolkit/compat';

@@ -1,10 +1,10 @@
 import { DataTableEmptyContent } from '@/components/data-table/data-table-empty-content';
 import { PageTitle } from '@/components/page-title/page-title';
-import { paths } from '@/config/paths';
 import { OrganizationListCard } from '@/features/organization/list-card';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useLoaderData, LoaderFunctionArgs, data, Link } from 'react-router';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {

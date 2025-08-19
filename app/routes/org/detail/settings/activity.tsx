@@ -1,5 +1,5 @@
 import { ActivityLogList } from '@/features/activity-log/list';
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { MetaFunction, useParams } from 'react-router';
 
 export const handle = {

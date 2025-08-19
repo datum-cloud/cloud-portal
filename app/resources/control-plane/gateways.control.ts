@@ -20,8 +20,7 @@ import {
   IGatewayControlResponseLite,
 } from '@/resources/interfaces/gateway.interface';
 import { GatewaySchema } from '@/resources/schemas/gateway.schema';
-import { convertLabelsToObject } from '@/utils/data';
-import { CustomError } from '@/utils/error';
+import { convertLabelsToObject } from '@/utils/helpers/object.helper';
 import { Client } from '@hey-api/client-axios';
 import { omit } from 'es-toolkit/compat';
 
@@ -103,67 +102,71 @@ export const createGatewaysControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listGatewayNetworkingV1NamespacedGateway({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-      });
+      try {
+        const response = await listGatewayNetworkingV1NamespacedGateway({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+        });
 
-      const gateways = response.data as IoK8sNetworkingGatewayV1GatewayList;
+        const gateways = response.data as IoK8sNetworkingGatewayV1GatewayList;
 
-      return gateways.items.map(transformGatewayLite);
+        return gateways.items.map(transformGatewayLite);
+      } catch (e) {
+        throw e;
+      }
     },
     create: async (projectId: string, payload: GatewaySchema, dryRun: boolean = false) => {
-      const formatted = formatGateway(payload);
-      const response = await createGatewayNetworkingV1NamespacedGateway({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        body: {
-          ...formatted,
-          apiVersion: 'gateway.networking.k8s.io/v1',
-          kind: 'Gateway',
-        },
-      });
+      try {
+        const formatted = formatGateway(payload);
+        const response = await createGatewayNetworkingV1NamespacedGateway({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          body: {
+            ...formatted,
+            apiVersion: 'gateway.networking.k8s.io/v1',
+            kind: 'Gateway',
+          },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to create gateway', 500);
+        const gateway = response.data as IoK8sNetworkingGatewayV1Gateway;
+
+        return dryRun ? gateway : transformGateway(gateway);
+      } catch (e) {
+        throw e;
       }
-
-      const gateway = response.data as IoK8sNetworkingGatewayV1Gateway;
-
-      return dryRun ? gateway : transformGateway(gateway);
     },
     delete: async (projectId: string, gatewayId: string) => {
-      const response = await deleteGatewayNetworkingV1NamespacedGateway({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { name: gatewayId, namespace: 'default' },
-      });
+      try {
+        const response = await deleteGatewayNetworkingV1NamespacedGateway({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { name: gatewayId, namespace: 'default' },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to delete gateway', 500);
+        return response.data;
+      } catch (e) {
+        throw e;
       }
-
-      return response.data;
     },
     detail: async (projectId: string, gatewayId: string) => {
-      const response = await readGatewayNetworkingV1NamespacedGateway({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { name: gatewayId, namespace: 'default' },
-      });
+      try {
+        const response = await readGatewayNetworkingV1NamespacedGateway({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { name: gatewayId, namespace: 'default' },
+        });
 
-      if (!response.data) {
-        throw new CustomError(`Gateway ${gatewayId} not found`, 404);
+        const gateway = response.data as IoK8sNetworkingGatewayV1Gateway;
+
+        return transformGateway(gateway);
+      } catch (e) {
+        throw e;
       }
-
-      const gateway = response.data as IoK8sNetworkingGatewayV1Gateway;
-
-      return transformGateway(gateway);
     },
     update: async (
       projectId: string,
@@ -171,43 +174,43 @@ export const createGatewaysControl = (client: Client) => {
       payload: GatewaySchema,
       dryRun: boolean = false
     ) => {
-      const formatted = formatGateway(payload);
-      const response = await replaceGatewayNetworkingV1NamespacedGateway({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { name: gatewayId, namespace: 'default' },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        body: {
-          ...formatted,
-          apiVersion: 'gateway.networking.k8s.io/v1',
-          kind: 'Gateway',
-        },
-      });
+      try {
+        const formatted = formatGateway(payload);
+        const response = await replaceGatewayNetworkingV1NamespacedGateway({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { name: gatewayId, namespace: 'default' },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          body: {
+            ...formatted,
+            apiVersion: 'gateway.networking.k8s.io/v1',
+            kind: 'Gateway',
+          },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update gateway', 500);
+        const gateway = response.data as IoK8sNetworkingGatewayV1Gateway;
+
+        return dryRun ? gateway : transformGateway(gateway);
+      } catch (e) {
+        throw e;
       }
-
-      const gateway = response.data as IoK8sNetworkingGatewayV1Gateway;
-
-      return dryRun ? gateway : transformGateway(gateway);
     },
     getStatus: async (projectId: string, gatewayId: string) => {
-      const response = await readGatewayNetworkingV1NamespacedGatewayStatus({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { name: gatewayId, namespace: 'default' },
-      });
+      try {
+        const response = await readGatewayNetworkingV1NamespacedGatewayStatus({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { name: gatewayId, namespace: 'default' },
+        });
 
-      if (!response.data) {
-        throw new CustomError(`Gateway ${gatewayId} not found`, 404);
+        const gateway = response.data as IoK8sNetworkingGatewayV1Gateway;
+
+        return transformControlPlaneStatus(gateway.status);
+      } catch (e) {
+        throw e;
       }
-
-      const gateway = response.data as IoK8sNetworkingGatewayV1Gateway;
-
-      return transformControlPlaneStatus(gateway.status);
     },
   };
 };

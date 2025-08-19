@@ -1,4 +1,4 @@
-import { isProduction } from '@/utils/environment';
+import { isProduction } from '@/utils/config/env.config';
 import { load, trackPageview } from 'fathom-client';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router';

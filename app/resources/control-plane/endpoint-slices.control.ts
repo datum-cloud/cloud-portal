@@ -17,8 +17,7 @@ import {
   IEndpointSliceControlResponseLite,
 } from '@/resources/interfaces/endpoint-slice.interface';
 import { EndpointSliceSchema } from '@/resources/schemas/endpoint-slice.schema';
-import { convertLabelsToObject } from '@/utils/data';
-import { CustomError } from '@/utils/error';
+import { convertLabelsToObject } from '@/utils/helpers/object.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createEndpointSlicesControl = (client: Client) => {
@@ -93,74 +92,74 @@ export const createEndpointSlicesControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listDiscoveryV1NamespacedEndpointSlice({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-      });
+      try {
+        const response = await listDiscoveryV1NamespacedEndpointSlice({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Endpoint slices not found', 404);
+        const endpointSlices = response.data as IoK8sApiDiscoveryV1EndpointSliceList;
+
+        return endpointSlices.items.map(transformEndpointSliceLite);
+      } catch (e) {
+        throw e;
       }
-
-      const endpointSlices = response.data as IoK8sApiDiscoveryV1EndpointSliceList;
-
-      return endpointSlices.items.map(transformEndpointSliceLite);
     },
     detail: async (projectId: string, id: string) => {
-      const response = await readDiscoveryV1NamespacedEndpointSlice({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: id },
-      });
+      try {
+        const response = await readDiscoveryV1NamespacedEndpointSlice({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: id },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Endpoint slice not found', 404);
+        const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
+
+        return transformEndpointSlice(endpointSlice);
+      } catch (e) {
+        throw e;
       }
-
-      const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
-
-      return transformEndpointSlice(endpointSlice);
     },
     create: async (projectId: string, payload: EndpointSliceSchema, dryRun: boolean = false) => {
-      const formatted = formatEndpointSlice(payload);
-      const response = await createDiscoveryV1NamespacedEndpointSlice({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: {
-          ...formatted,
-          kind: 'EndpointSlice',
-          apiVersion: 'discovery.k8s.io/v1',
-        },
-      });
+      try {
+        const formatted = formatEndpointSlice(payload);
+        const response = await createDiscoveryV1NamespacedEndpointSlice({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: {
+            ...formatted,
+            kind: 'EndpointSlice',
+            apiVersion: 'discovery.k8s.io/v1',
+          },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to create endpoint slice', 500);
+        const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
+
+        return dryRun ? endpointSlice : transformEndpointSliceLite(endpointSlice);
+      } catch (e) {
+        throw e;
       }
-
-      const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
-
-      return dryRun ? endpointSlice : transformEndpointSliceLite(endpointSlice);
     },
     delete: async (projectId: string, id: string) => {
-      const response = await deleteDiscoveryV1NamespacedEndpointSlice({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: id },
-      });
+      try {
+        const response = await deleteDiscoveryV1NamespacedEndpointSlice({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: id },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to delete endpoint slice', 500);
+        return response.data;
+      } catch (e) {
+        throw e;
       }
-
-      return response.data;
     },
     update: async (
       projectId: string,
@@ -168,31 +167,31 @@ export const createEndpointSlicesControl = (client: Client) => {
       payload: EndpointSliceSchema,
       dryRun: boolean = false
     ) => {
-      const formatted = formatEndpointSlice(payload);
-      const response = await replaceDiscoveryV1NamespacedEndpointSlice({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: id },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: {
-          ...formatted,
-          kind: 'EndpointSlice',
-          apiVersion: 'discovery.k8s.io/v1',
-        },
-      });
+      try {
+        const formatted = formatEndpointSlice(payload);
+        const response = await replaceDiscoveryV1NamespacedEndpointSlice({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: id },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: {
+            ...formatted,
+            kind: 'EndpointSlice',
+            apiVersion: 'discovery.k8s.io/v1',
+          },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update endpoint slice', 500);
+        const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
+
+        return dryRun ? endpointSlice : transformEndpointSliceLite(endpointSlice);
+      } catch (e) {
+        throw e;
       }
-
-      const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
-
-      return dryRun ? endpointSlice : transformEndpointSliceLite(endpointSlice);
     },
   };
 };

@@ -26,21 +26,25 @@ export const createNetworkContextControl = (client: Client) => {
 
   return {
     list: async (projectId: string, networkId?: string) => {
-      const response = await listNetworkingDatumapisComV1AlphaNamespacedNetworkContext({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-      });
+      try {
+        const response = await listNetworkingDatumapisComV1AlphaNamespacedNetworkContext({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+        });
 
-      const networkContexts = response.data as ComDatumapisNetworkingV1AlphaNetworkContextList;
+        const networkContexts = response.data as ComDatumapisNetworkingV1AlphaNetworkContextList;
 
-      return networkContexts.items
-        .filter((networkContext) => {
-          return networkContext.spec?.network?.name === networkId;
-        })
-        .map(transformNetworkContext);
+        return networkContexts.items
+          .filter((networkContext) => {
+            return networkContext.spec?.network?.name === networkId;
+          })
+          .map(transformNetworkContext);
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };

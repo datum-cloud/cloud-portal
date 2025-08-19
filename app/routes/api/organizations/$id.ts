@@ -1,7 +1,7 @@
 import { setOrgSession } from '@/modules/cookie/org.server';
 import { createOrganizationsControl } from '@/resources/control-plane/organizations.control';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { CustomError } from '@/utils/error';
+import { AppError, BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
@@ -13,7 +13,7 @@ export const loader = async ({ context, params, request }: LoaderFunctionArgs) =
     const { id } = params;
 
     if (!id) {
-      throw new CustomError('Organization ID is required', 400);
+      throw new BadRequestError('Organization ID is required');
     }
 
     const key = `organizations:${id}`;
@@ -46,7 +46,7 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
     const { id } = params;
 
     if (!id) {
-      throw new CustomError('Organization ID is required', 400);
+      throw new BadRequestError('Organization ID is required');
     }
 
     const orgAPI = createOrganizationsControl(controlPlaneClient as Client);
@@ -70,11 +70,11 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
         );
       }
       default:
-        throw new CustomError('Method not allowed', 405);
+        throw new HttpError('Method not allowed', 405);
     }
   } catch (error) {
     const errorMessage =
-      error instanceof Error || error instanceof CustomError
+      error instanceof Error || error instanceof AppError
         ? error.message
         : 'An unexpected error occurred';
     return data({ success: false, error: errorMessage }, { status: 500 });

@@ -1,5 +1,5 @@
-import { isValidPrometheusConfig, isValidYaml, yamlToJson } from '@/utils/format';
-import { createNameSchema } from '@/utils/validation';
+import { isValidPrometheusConfig, isValidYaml, yamlToJson } from '@/utils/helpers/format.helper';
+import { createNameSchema } from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
 
 export const instanceSchema = z.object({

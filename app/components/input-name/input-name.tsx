@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/utils/common';
-import { generateId, generateRandomString } from '@/utils/text';
+import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { FieldMetadata, useInputControl } from '@conform-to/react';
 import { getInputProps } from '@conform-to/react';
 import { CircleHelp } from 'lucide-react';

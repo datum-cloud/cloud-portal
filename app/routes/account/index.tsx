@@ -1,4 +1,4 @@
-import { paths } from '@/config/paths';
+import { paths } from '@/utils/config/paths.config';
 import { redirect } from 'react-router';
 
 export const loader = async () => {

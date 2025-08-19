@@ -7,8 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { paths } from '@/config/paths';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { CheckCircle2, Shield, Settings, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router';

@@ -8,7 +8,7 @@ import {
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { ROUTE_PATH as DOMAIN_STATUS_ROUTE_PATH } from '@/routes/api/domains/status';
 import { cn } from '@/utils/common';
-import { getPathWithParams } from '@/utils/path';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useFetcher } from 'react-router';
 

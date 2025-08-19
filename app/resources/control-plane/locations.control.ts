@@ -9,8 +9,7 @@ import {
 } from '@/modules/control-plane/networking';
 import { ILocationControlResponse, LocationClass } from '@/resources/interfaces/location.interface';
 import { NewLocationSchema } from '@/resources/schemas/location.schema';
-import { convertLabelsToObject, filterLabels } from '@/utils/data';
-import { CustomError } from '@/utils/error';
+import { convertLabelsToObject, filterLabels } from '@/utils/helpers/object.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createLocationsControl = (client: Client) => {
@@ -39,73 +38,77 @@ export const createLocationsControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listNetworkingDatumapisComV1AlphaNamespacedLocation({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-      });
+      try {
+        const response = await listNetworkingDatumapisComV1AlphaNamespacedLocation({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+        });
 
-      const locations = response.data as ComDatumapisNetworkingV1AlphaLocationList;
+        const locations = response.data as ComDatumapisNetworkingV1AlphaLocationList;
 
-      return locations.items.map(transformLocation);
+        return locations.items.map(transformLocation);
+      } catch (e) {
+        throw e;
+      }
     },
     detail: async (projectId: string, locationName: string) => {
-      const response = await readNetworkingDatumapisComV1AlphaNamespacedLocation({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-          name: locationName,
-        },
-      });
+      try {
+        const response = await readNetworkingDatumapisComV1AlphaNamespacedLocation({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+            name: locationName,
+          },
+        });
 
-      if (!response.data) {
-        throw new CustomError(`Location ${locationName} not found`, 404);
+        const location = response.data as ComDatumapisNetworkingV1AlphaLocation;
+
+        return transformLocation(location);
+      } catch (e) {
+        throw e;
       }
-
-      const location = response.data as ComDatumapisNetworkingV1AlphaLocation;
-
-      return transformLocation(location);
     },
     create: async (projectId: string, payload: NewLocationSchema, dryRun: boolean = false) => {
-      const response = await createNetworkingDatumapisComV1AlphaNamespacedLocation({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        body: {
-          apiVersion: 'networking.datumapis.com/v1alpha',
-          kind: 'Location',
-          metadata: {
-            name: payload.name,
-            /* annotations: {
-              'app.kubernetes.io/name': payload.displayName,
-            }, */
-            labels: convertLabelsToObject(payload.labels ?? []),
+      try {
+        const response = await createNetworkingDatumapisComV1AlphaNamespacedLocation({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
           },
-          spec: {
-            locationClassName: payload.class,
-            provider: {
-              [payload.provider]: payload.providerConfig,
+          body: {
+            apiVersion: 'networking.datumapis.com/v1alpha',
+            kind: 'Location',
+            metadata: {
+              name: payload.name,
+              /* annotations: {
+                'app.kubernetes.io/name': payload.displayName,
+              }, */
+              labels: convertLabelsToObject(payload.labels ?? []),
             },
-            topology: {
-              'topology.datum.net/city-code': payload.cityCode,
+            spec: {
+              locationClassName: payload.class,
+              provider: {
+                [payload.provider]: payload.providerConfig,
+              },
+              topology: {
+                'topology.datum.net/city-code': payload.cityCode,
+              },
             },
           },
-        },
-      });
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to create location', 500);
+        const location = response.data as ComDatumapisNetworkingV1AlphaLocation;
+
+        return dryRun ? location : transformLocation(location);
+      } catch (e) {
+        throw e;
       }
-
-      const location = response.data as ComDatumapisNetworkingV1AlphaLocation;
-
-      return dryRun ? location : transformLocation(location);
     },
     update: async (
       projectId: string,
@@ -113,62 +116,62 @@ export const createLocationsControl = (client: Client) => {
       payload: NewLocationSchema,
       dryRun: boolean = false
     ) => {
-      const response = await replaceNetworkingDatumapisComV1AlphaNamespacedLocation({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-          name: locationId,
-        },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        body: {
-          apiVersion: 'networking.datumapis.com/v1alpha',
-          kind: 'Location',
-          metadata: {
-            name: payload.name,
-            /* annotations: {
-              'app.kubernetes.io/name': payload.displayName,
-            }, */
-            resourceVersion: payload.resourceVersion,
-            labels: convertLabelsToObject(payload.labels ?? []),
+      try {
+        const response = await replaceNetworkingDatumapisComV1AlphaNamespacedLocation({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+            name: locationId,
           },
-          spec: {
-            locationClassName: payload.class,
-            provider: {
-              [payload.provider]: payload.providerConfig,
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          body: {
+            apiVersion: 'networking.datumapis.com/v1alpha',
+            kind: 'Location',
+            metadata: {
+              name: payload.name,
+              /* annotations: {
+                'app.kubernetes.io/name': payload.displayName,
+              }, */
+              resourceVersion: payload.resourceVersion,
+              labels: convertLabelsToObject(payload.labels ?? []),
             },
-            topology: {
-              'topology.datum.net/city-code': payload.cityCode,
+            spec: {
+              locationClassName: payload.class,
+              provider: {
+                [payload.provider]: payload.providerConfig,
+              },
+              topology: {
+                'topology.datum.net/city-code': payload.cityCode,
+              },
             },
           },
-        },
-      });
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update location', 500);
+        const location = response.data as ComDatumapisNetworkingV1AlphaLocation;
+
+        return dryRun ? location : transformLocation(location);
+      } catch (e) {
+        throw e;
       }
-
-      const location = response.data as ComDatumapisNetworkingV1AlphaLocation;
-
-      return dryRun ? location : transformLocation(location);
     },
     delete: async (projectId: string, locationName: string) => {
-      const response = await deleteNetworkingDatumapisComV1AlphaNamespacedLocation({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-          name: locationName,
-        },
-      });
+      try {
+        const response = await deleteNetworkingDatumapisComV1AlphaNamespacedLocation({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+            name: locationName,
+          },
+        });
 
-      if (!response.data) {
-        throw new CustomError(`Location ${locationName} not found`, 404);
+        return response.data;
+      } catch (e) {
+        throw e;
       }
-
-      return response.data;
     },
   };
 };

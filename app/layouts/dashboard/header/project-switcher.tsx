@@ -9,11 +9,11 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { paths } from '@/config/paths';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api/projects';
 import { cn } from '@/utils/common';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { CheckIcon, ChevronsUpDownIcon, Loader2, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useFetcher, useNavigate } from 'react-router';

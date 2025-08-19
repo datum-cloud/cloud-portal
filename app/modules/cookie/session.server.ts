@@ -1,8 +1,8 @@
-import { paths } from '@/config/paths';
 import { authenticator } from '@/modules/auth/auth.server';
 import { zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
 import { IAuthSession } from '@/resources/interfaces/auth.interface';
-import { isProduction } from '@/utils/environment';
+import { isProduction } from '@/utils/config/env.config';
+import { paths } from '@/utils/config/paths.config';
 import { createCookie, createCookieSessionStorage, redirect } from 'react-router';
 
 /**

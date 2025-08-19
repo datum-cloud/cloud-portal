@@ -1,7 +1,7 @@
 import { createDomainsControl } from '@/resources/control-plane/domains.control';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
-import { CustomError } from '@/utils/error';
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { BadRequestError, NotFoundError } from '@/utils/errors';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Client } from '@hey-api/client-axios';
 import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction, Outlet } from 'react-router';
 
@@ -19,7 +19,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext;
 
   if (!projectId || !domainId) {
-    throw new CustomError('Project ID and domain ID are required', 400);
+    throw new BadRequestError('Project ID and domain ID are required');
   }
 
   const domainsControl = createDomainsControl(controlPlaneClient as Client);
@@ -27,7 +27,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const domain = await domainsControl.detail(projectId, domainId);
 
   if (!domain) {
-    throw new CustomError('Domain not found', 404);
+    throw new NotFoundError('Domain not found');
   }
 
   return data(domain);

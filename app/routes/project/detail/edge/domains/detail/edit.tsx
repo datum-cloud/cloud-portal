@@ -1,10 +1,10 @@
-import { paths } from '@/config/paths';
 import { DomainForm } from '@/features/edge/domain/form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createDomainsControl } from '@/resources/control-plane/domains.control';
 import { domainSchema } from '@/resources/schemas/domain.schema';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, useRouteLoaderData, useParams, ActionFunctionArgs } from 'react-router';

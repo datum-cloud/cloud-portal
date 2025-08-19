@@ -11,7 +11,7 @@ import {
 import { useIsPending } from '@/hooks/useIsPending';
 import { SecretVariablesSchema, secretVariablesSchema } from '@/resources/schemas/secret.schema';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
-import { isBase64, toBase64 } from '@/utils/text';
+import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
 import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect, useImperativeHandle, useRef, useState } from 'react';

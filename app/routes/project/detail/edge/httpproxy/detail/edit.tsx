@@ -1,10 +1,10 @@
-import { paths } from '@/config/paths';
 import { HttpProxyForm } from '@/features/edge/httpproxy/form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, useRouteLoaderData, useParams, ActionFunctionArgs } from 'react-router';

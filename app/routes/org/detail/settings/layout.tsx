@@ -1,7 +1,7 @@
-import { paths } from '@/config/paths';
 import TabsLayout from '@/layouts/tabs/tabs';
 import { TabsNavProps } from '@/layouts/tabs/tabs.types';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
 import { Outlet, useParams } from 'react-router';
 

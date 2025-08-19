@@ -1,9 +1,9 @@
-import { paths } from '@/config/paths';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { getSession } from '@/modules/cookie/session.server';
 import { createUserControl } from '@/resources/control-plane/user.control';
 import { userSchema } from '@/resources/schemas/user.schema';
-import { CustomError } from '@/utils/error';
+import { paths } from '@/utils/config/paths.config';
+import { BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data, redirect } from 'react-router';
 
@@ -39,7 +39,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         const parsed = userSchema.safeParse(payload);
 
         if (!parsed.success) {
-          throw new CustomError('Invalid form data', 400);
+          throw new BadRequestError('Invalid form data');
         }
 
         const res = await userControl.update(session?.sub, parsed.data);
@@ -52,7 +52,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         return redirect(paths.auth.logOut);
       }
       default:
-        throw new CustomError('Method not allowed', 405);
+        throw new HttpError('Method not allowed', 405);
     }
   } catch (error: any) {
     return data({ success: false, error: error.message }, { status: error.status });

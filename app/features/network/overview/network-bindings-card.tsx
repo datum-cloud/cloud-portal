@@ -5,7 +5,7 @@ import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { INetworkBindingControlResponse } from '@/resources/interfaces/network.interface';
-import { getShortId } from '@/utils/text';
+import { getShortId } from '@/utils/helpers/text.helper';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 

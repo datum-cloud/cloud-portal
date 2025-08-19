@@ -1,5 +1,5 @@
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
-import { CustomError } from '@/utils/error';
+import { BadRequestError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
@@ -10,7 +10,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     const { id } = params;
 
     if (!id) {
-      throw new CustomError('Project ID is required', 400);
+      throw new BadRequestError('Project ID is required');
     }
 
     const { controlPlaneClient } = context as AppLoadContext;

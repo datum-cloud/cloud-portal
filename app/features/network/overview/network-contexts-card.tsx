@@ -3,7 +3,7 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { INetworkContextControlResponse } from '@/resources/interfaces/network.interface';
-import { getShortId } from '@/utils/text';
+import { getShortId } from '@/utils/helpers/text.helper';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 

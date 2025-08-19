@@ -1,4 +1,4 @@
-import { SITE_CONFIG } from '@/config/site';
+import { SITE_CONFIG } from '@/utils/config/site.config';
 import { ClientLoaderFunction, LoaderFunction, MetaDescriptor, MetaFunction } from 'react-router';
 
 // Define the types that were previously imported from 'react-router/route-module'

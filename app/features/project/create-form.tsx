@@ -11,17 +11,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { paths } from '@/config/paths';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { projectSchema } from '@/resources/schemas/project.schema';
-import { getPathWithParams } from '@/utils/path';
-import { generateId, generateRandomString } from '@/utils/text';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { RocketIcon } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Form, useNavigate } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 import { useHydrated } from 'remix-utils/use-hydrated';
@@ -58,9 +57,6 @@ export const CreateProjectForm = () => {
     setCurrentOrg(organization);
   }, [organization]);
 
-  const randomSuffix = useMemo(() => generateRandomString(6), []);
-
-  const nameControl = useInputControl(name);
   const orgEntityIdControl = useInputControl(orgEntityId);
 
   useEffect(() => {
@@ -101,13 +97,6 @@ export const CreateProjectForm = () => {
             <Input
               placeholder="e.g. My Project"
               ref={inputRef}
-              onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                const value = (e.target as HTMLInputElement).value;
-
-                if (value) {
-                  nameControl.change(generateId(value, { randomText: randomSuffix }));
-                }
-              }}
               {...getInputProps(description, { type: 'text' })}
             />
           </Field>
@@ -115,6 +104,7 @@ export const CreateProjectForm = () => {
             required
             description="This unique resource name will be used to identify your project and cannot be changed."
             field={name}
+            baseName={description.value}
           />
         </CardContent>
         <CardFooter className="flex justify-end gap-2">

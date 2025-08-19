@@ -1,10 +1,10 @@
-import { paths } from '@/config/paths';
 import { OrganizationForm } from '@/features/organization/form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createOrganizationsControl } from '@/resources/control-plane/organizations.control';
 import { OrganizationSchema, organizationSchema } from '@/resources/schemas/organization.schema';
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { paths } from '@/utils/config/paths.config';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router';

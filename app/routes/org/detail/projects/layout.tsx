@@ -1,4 +1,4 @@
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { MetaFunction } from 'react-router';
 import { Outlet } from 'react-router';
 

@@ -1,5 +1,4 @@
 import { PageTitle } from '@/components/page-title/page-title';
-import { paths } from '@/config/paths';
 import { ProjectDangerCard } from '@/features/project/settings/danger-card';
 import { ProjectGeneralCard } from '@/features/project/settings/general-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
@@ -7,9 +6,10 @@ import { redirectWithToast, dataWithToast } from '@/modules/cookie/toast.server'
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
-import { CustomError } from '@/utils/error';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { HttpError } from '@/utils/errors';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, useRouteLoaderData } from 'react-router';
@@ -106,7 +106,7 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
       );
     }
     default:
-      throw new CustomError('Method not allowed', 405);
+      throw new HttpError('Method not allowed', 405);
   }
 };
 

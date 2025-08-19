@@ -1,7 +1,6 @@
 import { IUser, IUserPreferences, ThemeValue } from '@/resources/interfaces/user.interface';
 import { UserPreferencesSchema, UserSchema } from '@/resources/schemas/user.schema';
-import { CustomError } from '@/utils/error';
-import { toBoolean } from '@/utils/text';
+import { toBoolean } from '@/utils/helpers/text.helper';
 import { Client } from '@hey-api/client-axios';
 
 export interface ComMiloapisIamV1Alpha1User {
@@ -48,95 +47,95 @@ export const createUserControl = (client: Client) => {
 
   return {
     detail: async (userId: string): Promise<IUser> => {
-      const response = await client.get({
-        url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}`,
-        responseType: 'json',
-      });
+      try {
+        const response = await client.get({
+          url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}`,
+          responseType: 'json',
+        });
 
-      if (!response.data) {
-        throw new CustomError(`User with ID ${userId} not found`, 404);
+        return transform(response.data as ComMiloapisIamV1Alpha1User);
+      } catch (e) {
+        throw e;
       }
-
-      return transform(response.data as ComMiloapisIamV1Alpha1User);
     },
     update: async (userId: string, user: UserSchema): Promise<IUser> => {
-      const response = await client.patch({
-        url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}`,
-        headers: {
-          'Content-Type': 'application/merge-patch+json',
-        },
-        query: {
-          fieldManager: 'datum-cloud-portal',
-        },
-        body: {
-          apiVersion: 'iam.miloapis.com/v1alpha1',
-          kind: 'User',
-          spec: {
-            familyName: user.lastName,
-            givenName: user.firstName,
+      try {
+        const response = await client.patch({
+          url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}`,
+          headers: {
+            'Content-Type': 'application/merge-patch+json',
           },
-        },
-        responseType: 'json',
-      });
+          query: {
+            fieldManager: 'datum-cloud-portal',
+          },
+          body: {
+            apiVersion: 'iam.miloapis.com/v1alpha1',
+            kind: 'User',
+            spec: {
+              familyName: user.lastName,
+              givenName: user.firstName,
+            },
+          },
+          responseType: 'json',
+        });
 
-      if (!response.data) {
-        throw new CustomError(`User with ID ${userId} not found`, 404);
+        return transform(response.data as ComMiloapisIamV1Alpha1User);
+      } catch (e) {
+        throw e;
       }
-
-      return transform(response.data as ComMiloapisIamV1Alpha1User);
     },
     delete: async (userId: string): Promise<IUser> => {
-      const response = await client.delete({
-        url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}`,
-        responseType: 'json',
-      });
+      try {
+        const response = await client.delete({
+          url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}`,
+          responseType: 'json',
+        });
 
-      if (!response.data) {
-        throw new CustomError(`User with ID ${userId} not found`, 404);
+        return transform(response.data as ComMiloapisIamV1Alpha1User);
+      } catch (e) {
+        throw e;
       }
-
-      return transform(response.data as ComMiloapisIamV1Alpha1User);
     },
     updatePreferences: async (
       userId: string,
       preferences: UserPreferencesSchema
     ): Promise<IUser> => {
-      const annotations: Record<string, string> = {};
-      if (preferences.theme) {
-        annotations['preferences/theme'] = preferences.theme;
+      try {
+        const annotations: Record<string, string> = {};
+        if (preferences.theme) {
+          annotations['preferences/theme'] = preferences.theme;
+        }
+        if (preferences.timezone) {
+          annotations['preferences/timezone'] = preferences.timezone;
+        }
+        if (typeof preferences.newsletter === 'boolean') {
+          annotations['preferences/newsletter'] = String(preferences.newsletter);
+        }
+
+        const metadata = Object.keys(annotations).length > 0 ? { annotations } : undefined;
+
+        const body = {
+          apiVersion: 'iam.miloapis.com/v1alpha1',
+          kind: 'User',
+          ...(metadata ? { metadata } : {}),
+        };
+
+        const response = await client.patch({
+          url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}`,
+          headers: {
+            'Content-Type': 'application/merge-patch+json',
+          },
+          query: {
+            fieldManager: 'datum-cloud-portal',
+          },
+          body,
+          responseType: 'json',
+        });
+
+        return transform(response.data as ComMiloapisIamV1Alpha1User);
+      } catch (e) {
+        throw e;
       }
-      if (preferences.timezone) {
-        annotations['preferences/timezone'] = preferences.timezone;
-      }
-      if (typeof preferences.newsletter === 'boolean') {
-        annotations['preferences/newsletter'] = String(preferences.newsletter);
-      }
-
-      const metadata = Object.keys(annotations).length > 0 ? { annotations } : undefined;
-
-      const body = {
-        apiVersion: 'iam.miloapis.com/v1alpha1',
-        kind: 'User',
-        ...(metadata ? { metadata } : {}),
-      };
-
-      const response = await client.patch({
-        url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}`,
-        headers: {
-          'Content-Type': 'application/merge-patch+json',
-        },
-        query: {
-          fieldManager: 'datum-cloud-portal',
-        },
-        body,
-        responseType: 'json',
-      });
-
-      if (!response.data) {
-        throw new CustomError(`User with ID ${userId} not found`, 404);
-      }
-
-      return transform(response.data as ComMiloapisIamV1Alpha1User);
     },
   };
 };

@@ -1,8 +1,8 @@
-import { paths } from '@/config/paths';
 import { destroyIdTokenSession } from '@/modules/cookie/id-token.server';
 import { destroyOrgSession } from '@/modules/cookie/org.server';
 import { destroySession } from '@/modules/cookie/session.server';
-import { combineHeaders } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { combineHeaders } from '@/utils/helpers/path.helper';
 import { AppLoadContext, redirect } from 'react-router';
 
 export const destroyLocalSessions = async (request: Request, context: AppLoadContext) => {

@@ -1,6 +1,6 @@
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { createEndpointSlicesControl } from '@/resources/control-plane/endpoint-slices.control';
-import { CustomError } from '@/utils/error';
+import { BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
@@ -15,7 +15,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const noCache = url.searchParams.get('noCache');
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400);
+    throw new BadRequestError('Project ID is required');
   }
 
   const key = `endpoint-slices:${projectId}`;
@@ -67,7 +67,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         );
       }
       default:
-        throw new CustomError('Method not allowed', 405);
+        throw new HttpError('Method not allowed', 405);
     }
   } catch (error: any) {
     return data({ success: false, error: error.message }, { status: error.status });

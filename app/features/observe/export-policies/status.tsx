@@ -4,7 +4,7 @@ import {
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
 import { ROUTE_PATH as EXPORT_POLICY_STATUS_ROUTE_PATH } from '@/routes/api/export-policies/status';
-import { getPathWithParams } from '@/utils/path';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';
 

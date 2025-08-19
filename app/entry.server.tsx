@@ -1,6 +1,7 @@
 import { NonceProvider } from '@/hooks/useNonce';
-import { initEnvs } from '@/utils/environment';
+import { initEnvs } from '@/utils/config/env.config';
 import { createReadableStreamFromReadable } from '@react-router/node';
+import * as Sentry from '@sentry/react-router';
 import { isbot } from 'isbot';
 import { PassThrough } from 'node:stream';
 import { renderToPipeableStream } from 'react-dom/server';
@@ -14,7 +15,7 @@ initEnvs();
 
 const ABORT_DELAY = 5_000;
 
-export default async function handleRequest(
+async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
@@ -50,7 +51,8 @@ export default async function handleRequest(
             })
           );
 
-          pipe(body);
+          // This enables distributed tracing between client and server
+          pipe(Sentry.getMetaTagTransformer(body));
         },
         onShellError(error: unknown) {
           reject(error);
@@ -68,3 +70,11 @@ export default async function handleRequest(
     setTimeout(abort, ABORT_DELAY);
   });
 }
+
+// Wrap the handleRequest function with Sentry
+export default Sentry.wrapSentryHandleRequest(handleRequest);
+
+// Export handleError for Sentry error capture
+export const handleError = Sentry.createSentryHandleError({
+  logErrors: false,
+});

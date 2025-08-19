@@ -1,6 +1,6 @@
-import { paths } from '@/config/paths';
 import { IAuthSession } from '@/resources/interfaces/auth.interface';
-import { CustomError } from '@/utils/error';
+import { paths } from '@/utils/config/paths.config';
+import { AuthenticationError } from '@/utils/errors';
 import 'dotenv/config';
 import { OAuth2Strategy as OAuth2 } from 'remix-auth-oauth2';
 
@@ -24,11 +24,11 @@ export const zitadelStrategy = await OAuth2.discover<IAuthSession>(
   async ({ tokens }) => {
     try {
       if (!tokens.idToken()) {
-        throw new CustomError('No id_token in response', 400);
+        throw new AuthenticationError('No id_token in response');
       }
 
       if (!tokens.accessToken()) {
-        throw new CustomError('No access_token in response', 400);
+        throw new AuthenticationError('No access_token in response');
       }
 
       return {
@@ -38,7 +38,7 @@ export const zitadelStrategy = await OAuth2.discover<IAuthSession>(
         expiredAt: tokens.accessTokenExpiresAt(),
       };
     } catch (error: any) {
-      throw new CustomError(error?.message ?? 'Failed to fetch user profile', 500);
+      throw new AuthenticationError(error?.message ?? 'Failed to fetch user profile');
     }
   }
 );

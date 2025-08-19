@@ -1,19 +1,37 @@
+# ==========================================
+# BASE STAGE - Common dependencies and setup
+# ==========================================
+
 # syntax = docker/dockerfile:1
 
 # Use the latest Bun version
 FROM oven/bun:1.2.17 AS base
 
-# Install unzip using apt (Debian/Ubuntu package manager)
-RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/*
+# Install system dependencies and clean up in the same layer
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends unzip ca-certificates && \
+    update-ca-certificates && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
 
 # Remix app lives here
 WORKDIR /app
 
 # Set production environment
-ENV NODE_ENV="production"
-
-# Throw-away build stage to reduce size of final image
+ENV NODE_ENV=production \
+    PORT=3000
+    
+# ==========================================
+# BUILD STAGE - Compile and prepare the app
+# ==========================================
 FROM base AS build
+
+ARG SENTRY_AUTH_TOKEN
+ARG VERSION=dev
+
+# Set environment variables
+ENV VERSION=${VERSION}
+ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 
 # Install dependencies
 COPY --link package.json bun.lock ./
@@ -23,28 +41,31 @@ RUN bun install --frozen-lockfile
 COPY --link . .
 
 # Build application
-RUN bun run build
+RUN bun run build && \
+    bun install --production --frozen-lockfile && \
+    touch .env
 
-# Remove development dependencies
-RUN bun install --production --frozen-lockfile
-
-# Add empty .env file so it can be parsed correctly.
-RUN touch .env
-
-# Final stage for app image
+# ==========================================
+# PRODUCTION STAGE - Final lightweight image
+# ==========================================
 FROM base
 
-# Copy built application
+# Accept VERSION as build argument and set as environment variable
+ARG VERSION=dev
+ENV VERSION=${VERSION}
+
+# Copy only necessary files from build stage
 COPY --from=build /app /app
 
-# Copy start script
-COPY docker-start.js /app/docker-start.js
-
 # Start the server by default, this can be overwritten at runtime
-EXPOSE 3000
+EXPOSE ${PORT}
 
-# # Set environment variables
-# ENV OTEL_ENABLED=true
+# Use non-root user for better security
+RUN addgroup --system --gid 1001 datum && \
+    adduser --system --uid 1001 datum && \
+    chown -R datum:datum /app
+
+USER datum
 
 # Use the start script from package.json
 CMD [ "bun", "run", "start" ]

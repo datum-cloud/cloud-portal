@@ -11,12 +11,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { paths } from '@/config/paths';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { domainSchema } from '@/resources/schemas/domain.schema';
 import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   FormProvider,
   getFormProps,

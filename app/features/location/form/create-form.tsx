@@ -21,7 +21,7 @@ import {
   LocationProvider,
 } from '@/resources/interfaces/location.interface';
 import { newLocationSchema } from '@/resources/schemas/location.schema';
-import { convertObjectToLabels } from '@/utils/data';
+import { convertObjectToLabels } from '@/utils/helpers/object.helper';
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect, useMemo, useRef } from 'react';

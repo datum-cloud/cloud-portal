@@ -4,13 +4,13 @@ import { DataTableRowActionsProps } from '@/components/data-table/data-table.typ
 import { DateFormat } from '@/components/date-format/date-format';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { paths } from '@/config/paths';
 import { SECRET_TYPES } from '@/features/secret/constants';
 import { createSecretsControl } from '@/resources/control-plane/secrets.control';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
-import { CustomError } from '@/utils/error';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { BadRequestError } from '@/utils/errors';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
@@ -32,7 +32,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const secretControl = createSecretsControl(controlPlaneClient as Client);
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400);
+    throw new BadRequestError('Project ID is required');
   }
 
   const secrets = await secretControl.list(projectId);

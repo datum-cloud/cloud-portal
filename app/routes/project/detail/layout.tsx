@@ -1,4 +1,3 @@
-import { paths } from '@/config/paths';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { DashboardLayout } from '@/layouts/dashboard/dashboard';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
@@ -10,8 +9,9 @@ import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interfa
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
-import { CustomError } from '@/utils/error';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { BadRequestError, ValidationError } from '@/utils/errors';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import {
   AreaChartIcon,
@@ -29,19 +29,18 @@ export const loader = async ({ params, context, request }: LoaderFunctionArgs) =
   const { projectId } = params;
 
   const projectsControl = createProjectsControl(controlPlaneClient as Client);
-
   try {
     if (!projectId) {
-      throw new CustomError('Project ID is required', 400);
+      throw new ValidationError('Project ID is required');
     }
 
     const project: IProjectControlResponse = await projectsControl.detail(projectId);
 
-    const orgId = project.organizationId;
-
-    if (!orgId) {
-      throw new CustomError('Organization ID is required', 400);
+    if (!project.name) {
+      throw new BadRequestError('Project not found');
     }
+
+    const orgId = project.organizationId;
 
     // get org detail
     const res = await fetch(
@@ -54,16 +53,16 @@ export const loader = async ({ params, context, request }: LoaderFunctionArgs) =
       }
     );
 
-    const orgData = await res.json();
-
-    if (!orgData.success) {
-      throw new CustomError(orgData.error, orgData.status);
+    if (!res.ok) {
+      throw new BadRequestError('Failed to load organization');
     }
+
+    const orgData = await res.json();
 
     const orgSession = await setOrgSession(request, orgData.data.name);
 
     return data({ project, org: orgData.data }, { headers: orgSession.headers });
-  } catch (error) {
+  } catch (error: any) {
     const orgSession = await getOrgSession(request);
 
     return redirectWithToast(
@@ -72,7 +71,7 @@ export const loader = async ({ params, context, request }: LoaderFunctionArgs) =
         : paths.account.organizations.root,
       {
         title: 'Something went wrong',
-        description: (error as CustomError).message,
+        description: error.message,
         type: 'error',
       }
     );

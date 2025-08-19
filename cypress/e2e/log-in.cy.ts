@@ -1,4 +1,4 @@
-import { paths } from '@/config/paths';
+import { paths } from '@/utils/config/paths.config';
 
 describe('Log in', () => {
   beforeEach(() => {

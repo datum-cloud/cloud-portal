@@ -6,7 +6,7 @@ import { TimeDistance } from '@/components/time-distance/time-distance';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
-import { getShortId } from '@/utils/text';
+import { getShortId } from '@/utils/helpers/text.helper';
 import { useMemo } from 'react';
 
 export const WorkloadGeneralCard = ({ workload }: { workload: IWorkloadControlResponse }) => {
