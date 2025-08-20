@@ -101,8 +101,6 @@ export function usePrometheusQuery<
     queryKey = [],
     format = 'chart',
     metricFormat = 'number',
-    onError,
-    onSuccess,
   } = options;
 
   // Validate options

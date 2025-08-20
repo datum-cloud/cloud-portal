@@ -40,11 +40,6 @@ export interface MetricCardProps extends PrometheusQueryOptions {
   precision?: number;
 
   /**
-   * Additional query key for caching
-   */
-  queryKey?: string[];
-
-  /**
    * Error callback
    */
   onError?: (error: Error) => void;
@@ -65,11 +60,6 @@ export interface MetricCardProps extends PrometheusQueryOptions {
   className?: string;
 
   /**
-   * Card variant
-   */
-  variant?: 'default' | 'secondary' | 'destructive';
-
-  /**
    * Custom icon - can be a component type or JSX element
    * @example icon={Activity} // Component type
    * @example icon={<Activity className="h-5 w-5 text-blue-500" />} // JSX with custom styling
@@ -83,11 +73,8 @@ export interface MetricCardProps extends PrometheusQueryOptions {
 export function MetricCard({
   query,
   timeRange,
-
   step,
   enabled = true,
-  refetchInterval,
-  queryKey,
   title,
   description,
   metricFormat = 'number',
@@ -95,17 +82,13 @@ export function MetricCard({
   precision = 2,
   showTrend = false,
   className,
-  variant = 'default',
   icon,
-  onError,
-  onSuccess,
 }: MetricCardProps) {
-  const { data, isLoading, error } = usePrometheusCard({
+  const { data, isLoading, isFetching, error } = usePrometheusCard({
     query,
     timeRange,
     step,
     enabled,
-    refetchInterval,
     metricFormat,
   });
 
@@ -151,6 +134,7 @@ export function MetricCard({
       title={title}
       description={description}
       isLoading={isLoading}
+      isFetching={isFetching}
       error={error}
       className={cn('MetricCard', className)}
       isEmpty={!data}>

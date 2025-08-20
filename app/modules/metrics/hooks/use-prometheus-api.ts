@@ -1,7 +1,8 @@
 /**
  * Hook for making Prometheus queries through the API middleware
  */
-import { prometheusQueryKeys } from './query-keys';
+import { prometheusQueryKeys } from '../common';
+import { useMetrics } from '../context';
 import {
   type FormattedMetricData,
   type MetricCardData,
@@ -10,7 +11,7 @@ import {
   type TimeRange,
   PrometheusError,
 } from '@/modules/prometheus';
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useQuery, type QueryKey, type UseQueryResult } from '@tanstack/react-query';
 
 // #region API Layer
 // =======================================================================================
@@ -61,15 +62,14 @@ async function makePrometheusAPIRequest<T>(request: PrometheusAPIRequest): Promi
  * Generic hook for all Prometheus API queries to consolidate TanStack Query options.
  */
 function usePrometheusAPIQuery<T>(
-  queryKey: readonly (string | object | undefined)[],
+  queryKey: QueryKey,
   request: PrometheusAPIRequest,
-  options: { enabled?: boolean; refetchInterval?: number | false }
+  options: { enabled?: boolean }
 ): UseQueryResult<T, PrometheusError> {
   return useQuery<T, PrometheusError>({
     queryKey,
     queryFn: () => makePrometheusAPIRequest<T>(request),
     enabled: options.enabled,
-    refetchInterval: options.refetchInterval,
     staleTime: 30000, // 30 seconds
     gcTime: 300000, // 5 minutes
     retry: (failureCount: number, error: PrometheusError) => {
@@ -88,12 +88,13 @@ function usePrometheusAPIQuery<T>(
 /**
  * Hook for Prometheus chart queries via API
  */
-export function usePrometheusChart(options: PrometheusQueryOptions) {
-  const { query, timeRange, step, enabled = true, refetchInterval = false } = options;
+export function usePrometheusChart(options: Omit<PrometheusQueryOptions, 'refetchInterval'>) {
+  const { query, timeRange, step, enabled = true } = options;
+  const { lastRefreshed } = useMetrics();
   return usePrometheusAPIQuery<FormattedMetricData>(
-    prometheusQueryKeys.chart({ query, timeRange, step }),
+    prometheusQueryKeys.chart({ query, timeRange, step, lastRefreshed }),
     { type: 'chart', query, timeRange, step },
-    { enabled: enabled && !!query, refetchInterval }
+    { enabled: enabled && !!query }
   );
 }
 
@@ -101,19 +102,14 @@ export function usePrometheusChart(options: PrometheusQueryOptions) {
  * Hook for Prometheus card queries via API
  */
 export function usePrometheusCard(
-  options: PrometheusQueryOptions & { metricFormat?: MetricFormat }
+  options: Omit<PrometheusQueryOptions, 'refetchInterval'> & { metricFormat?: MetricFormat }
 ) {
-  const {
-    query,
-    timeRange,
-    metricFormat = 'number',
-    enabled = true,
-    refetchInterval = false,
-  } = options;
+  const { query, timeRange, metricFormat = 'number', enabled = true } = options;
+  const { lastRefreshed } = useMetrics();
   return usePrometheusAPIQuery<MetricCardData>(
-    prometheusQueryKeys.card({ query, timeRange, metricFormat }),
+    prometheusQueryKeys.card({ query, timeRange, metricFormat, lastRefreshed }),
     { type: 'card', query, timeRange, metricFormat },
-    { enabled: enabled && !!query, refetchInterval }
+    { enabled: enabled && !!query }
   );
 }
 

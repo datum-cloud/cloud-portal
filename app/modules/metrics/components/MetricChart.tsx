@@ -37,7 +37,6 @@ export interface MetricChartProps extends PrometheusQueryOptions {
   showTooltip?: boolean;
   colors?: string[];
   valueFormat?: MetricFormat;
-  refetchInterval?: number;
   yAxisFormatter?: (value: number) => string;
   xAxisFormatter?: (value: number) => string;
   className?: string;
@@ -54,7 +53,6 @@ export function MetricChart({
   timeRange,
   step,
   enabled = true,
-  refetchInterval,
   title,
   description,
   chartType = 'line',
@@ -69,12 +67,11 @@ export function MetricChart({
   yAxisOptions,
   tooltipContent,
 }: MetricChartProps) {
-  const { data, isLoading, error } = usePrometheusChart({
+  const { data, isLoading, isFetching, error } = usePrometheusChart({
     query,
     timeRange,
     step,
     enabled,
-    refetchInterval,
   });
 
   const chartData = React.useMemo(() => {
@@ -161,9 +158,11 @@ export function MetricChart({
       title={title}
       description={description}
       isLoading={isLoading}
+      isFetching={isFetching}
       error={error}
       className={className}
-      isEmpty={!data}>
+      isEmpty={!data}
+      height={height}>
       <div style={{ height }}>
         <ChartContainer config={chartConfig} className="h-full w-full">
           <ChartComponent
@@ -184,7 +183,6 @@ export function MetricChart({
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              interval="preserveStartEnd"
               width={60}
               {...yAxisOptions}
             />

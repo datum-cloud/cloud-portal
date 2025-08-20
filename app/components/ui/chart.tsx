@@ -3,7 +3,6 @@ import * as React from 'react';
 import * as RechartsPrimitive from 'recharts';
 import type { LegendPayload } from 'recharts/types/component/DefaultLegendContent';
 import { NameType, Payload, ValueType } from 'recharts/types/component/DefaultTooltipContent';
-import type { Props as LegendProps } from 'recharts/types/component/Legend';
 import { TooltipContentProps } from 'recharts/types/component/Tooltip';
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -48,7 +47,6 @@ export type CustomTooltipProps = TooltipContentProps<ValueType, NameType> & {
 export type ChartLegendContentProps = {
   className?: string;
   hideIcon?: boolean;
-  verticalAlign?: LegendProps['verticalAlign'];
   payload?: LegendPayload[];
   nameKey?: string;
 };
@@ -261,7 +259,6 @@ function ChartLegendContent({
   className,
   hideIcon = false,
   payload,
-  verticalAlign = 'bottom',
   nameKey,
 }: ChartLegendContentProps) {
   const { config } = useChart();

@@ -7,6 +7,7 @@ import React from 'react';
 
 interface MetricLoaderWrapperProps {
   isLoading: boolean;
+  isRefetching: boolean;
   error: Error | null;
   isEmpty?: boolean;
   emptyState?: React.ReactNode;
@@ -23,19 +24,18 @@ const DefaultEmptyState = () => (
 
 export function MetricLoaderWrapper({
   isLoading,
+  isRefetching,
   error,
   isEmpty = false,
   emptyState,
   children,
   height,
 }: MetricLoaderWrapperProps) {
-  const containerStyle = height ? { height } : {};
+  const containerStyle = height ? { minHeight: height } : {};
 
   if (isLoading) {
     return (
-      <div
-        className="flex h-full w-full items-center justify-center text-gray-400"
-        style={containerStyle}>
+      <div className="flex w-full items-center justify-center text-gray-400" style={containerStyle}>
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
@@ -43,7 +43,7 @@ export function MetricLoaderWrapper({
 
   if (error) {
     return (
-      <div className="h-full w-full p-4" style={containerStyle}>
+      <div className="w-full p-4" style={containerStyle}>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-sm">
@@ -57,12 +57,21 @@ export function MetricLoaderWrapper({
   if (isEmpty) {
     return (
       <div
-        className="text-muted-foreground flex h-full w-full items-center justify-center"
+        className="text-muted-foreground flex w-full items-center justify-center"
         style={containerStyle}>
         {emptyState || <DefaultEmptyState />}
       </div>
     );
   }
 
-  return <>{children}</>;
+  return (
+    <div className="relative" style={containerStyle}>
+      {isRefetching && (
+        <div className="bg-background/50 absolute inset-0 z-10 flex items-center justify-center rounded-lg backdrop-blur-sm">
+          <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+        </div>
+      )}
+      {children}
+    </div>
+  );
 }

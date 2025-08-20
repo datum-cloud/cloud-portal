@@ -12,6 +12,8 @@ import type {
   MetricFormat,
 } from './types';
 
+const DEFAULT_TIME_RANGE_MS = 3600000; // 1 hour in milliseconds
+
 /**
  * Format Prometheus response data for Recharts
  */
@@ -131,7 +133,7 @@ function formatVectorData(
 
   return {
     series,
-    timeRange: timeRange || { start: now - 3600000, end: now }, // Default 1 hour range
+    timeRange: timeRange || { start: now - DEFAULT_TIME_RANGE_MS, end: now }, // Default 1 hour range
   };
 }
 
@@ -173,7 +175,7 @@ function formatScalarData(
 
   return {
     series,
-    timeRange: timeRange || { start: now - 3600000, end: now },
+    timeRange: timeRange || { start: now - DEFAULT_TIME_RANGE_MS, end: now },
   };
 }
 
@@ -325,7 +327,7 @@ function calculateTimeRange(series: ChartSeries[]): { start: number; end: number
 
   if (start === Infinity || end === -Infinity) {
     const now = Date.now();
-    return { start: now - 3600000, end: now }; // Default 1 hour range
+    return { start: now - DEFAULT_TIME_RANGE_MS, end: now }; // Default 1 hour range
   }
 
   return { start, end };
