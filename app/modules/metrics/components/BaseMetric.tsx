@@ -95,7 +95,7 @@ export function BaseMetric({
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
       )}
-      <CardContent>{renderContent()}</CardContent>
+      <CardContent className="pr-4 pl-0">{renderContent()}</CardContent>
     </Card>
   );
 }

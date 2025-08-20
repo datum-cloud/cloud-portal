@@ -114,6 +114,7 @@ export type MetricFormat =
   | 'seconds'
   | 'requestsPerSecond'
   | 'milliseconds'
+  | 'milliseconds-auto'
   | 'duration'
   | 'rate'
   | 'short-number';

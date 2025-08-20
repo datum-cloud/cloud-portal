@@ -1,8 +1,8 @@
 'use client';
 
-import type { TimeRange } from '../../prometheus';
 import { MetricsContext } from './use-metrics';
 import { parseRange } from '@/modules/metrics/utils';
+import type { TimeRange } from '@/modules/prometheus';
 import { useQueryState, parseAsString } from 'nuqs';
 import React from 'react';
 

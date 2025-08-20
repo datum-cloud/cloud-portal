@@ -57,7 +57,7 @@ export function TimeRangeControl(): React.ReactElement {
           id="date"
           variant={'outline'}
           className={cn(
-            'w-[240px] justify-start text-left font-normal',
+            'w-[200px] justify-start text-left font-normal',
             !date && 'text-muted-foreground'
           )}>
           <CalendarIcon className="mr-2 h-4 w-4" />

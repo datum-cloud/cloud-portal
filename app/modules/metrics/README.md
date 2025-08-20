@@ -115,6 +115,88 @@ Pre-built UI elements that use the hooks internally. Import from `@/modules/metr
 import { MetricChart, MetricCard, MetricsControls } from '@/modules/metrics';
 ```
 
+#### MetricChart Callbacks
+
+The `MetricChart` component provides several callback props to handle data changes and query states:
+
+```tsx
+<MetricChart
+  query="rate(http_requests_total[5m])"
+  title="Request Rate"
+  // Data callbacks
+  onDataChange={(rawData, chartData) => {
+    // Handle raw Prometheus data and transformed chart data
+    console.log('Raw metrics:', rawData);
+    console.log('Chart data for rendering:', chartData);
+  }}
+  onSeriesChange={(series) => {
+    // Handle series changes (useful for dynamic legends or summaries)
+    console.log(
+      'Available series:',
+      series.map((s) => s.name)
+    );
+    updateExternalLegend(series);
+  }}
+  onQueryStateChange={({ isLoading, isFetching, error }) => {
+    // Handle loading states and errors
+    if (error) {
+      console.error('Query failed:', error);
+      showErrorNotification(error.message);
+    }
+    setGlobalLoadingState(isLoading);
+  }}
+/>
+```
+
+**Callback Types:**
+
+- **`onDataChange(rawData, chartData)`** - Fires when data changes
+  - `rawData`: Raw Prometheus response data
+  - `chartData`: Transformed data ready for chart rendering
+- **`onSeriesChange(series)`** - Fires when series array changes
+  - `series`: Array of `ChartSeries` objects with name and color
+- **`onQueryStateChange(state)`** - Fires when query state changes
+  - `state`: Object with `isLoading`, `isFetching`, and `error` properties
+
+**Common Use Cases:**
+
+```tsx
+// 1. Data Aggregation
+const [summary, setSummary] = useState(null);
+
+<MetricChart
+  onDataChange={(data, chartData) => {
+    const total = chartData.reduce((sum, point) =>
+      sum + Object.values(point)
+        .filter(v => typeof v === 'number')
+        .reduce((a, b) => a + b, 0), 0
+    );
+    setSummary({ total, dataPoints: chartData.length });
+  }}
+/>
+
+// 2. Real-time Dashboard Updates
+<MetricChart
+  onSeriesChange={(series) => {
+    // Update dashboard summary when new series appear
+    updateDashboardMetrics(series);
+  }}
+  onQueryStateChange={({ isLoading, error }) => {
+    // Show global loading indicator
+    setDashboardLoading(isLoading);
+    if (error) showAlert(error.message);
+  }}
+/>
+
+// 3. External State Synchronization
+<MetricChart
+  onDataChange={(data) => {
+    // Sync with external state management
+    dispatch(updateMetricsData(data));
+  }}
+/>
+```
+
 ## Folder structure
 
 ```text

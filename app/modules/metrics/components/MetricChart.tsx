@@ -19,6 +19,7 @@ import {
   type ChartType,
   type MetricFormat,
   type PrometheusQueryOptions,
+  ChartSeries,
 } from '@/modules/prometheus';
 import { format } from 'date-fns';
 import React from 'react';
@@ -31,11 +32,15 @@ export interface MetricChartProps extends PrometheusQueryOptions {
   chartType?: ChartType;
   height?: number;
   queryKey?: string[];
-  onError?: (error: Error) => void;
-  onSuccess?: (data: any) => void;
+  onDataChange?: (data: any, chartData: any[]) => void;
+  onSeriesChange?: (series: ChartSeries[]) => void;
+  onQueryStateChange?: (state: {
+    isLoading: boolean;
+    isFetching: boolean;
+    error: Error | null;
+  }) => void;
   showLegend?: boolean;
   showTooltip?: boolean;
-  colors?: string[];
   valueFormat?: MetricFormat;
   yAxisFormatter?: (value: number) => string;
   xAxisFormatter?: (value: number) => string;
@@ -59,13 +64,15 @@ export function MetricChart({
   height = 300,
   showLegend = true,
   showTooltip = true,
-  colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300'],
   valueFormat = 'number',
   className,
   yAxisFormatter,
   xAxisFormatter,
   yAxisOptions,
   tooltipContent,
+  onDataChange,
+  onSeriesChange,
+  onQueryStateChange,
 }: MetricChartProps) {
   const { data, isLoading, isFetching, error } = usePrometheusChart({
     query,
@@ -79,18 +86,39 @@ export function MetricChart({
     return transformForRecharts(data);
   }, [data]);
 
+  // Handle data change callbacks
+  React.useEffect(() => {
+    if (data && onDataChange) {
+      onDataChange(data, chartData);
+    }
+  }, [data, chartData, onDataChange]);
+
+  // Handle series change callbacks
+  React.useEffect(() => {
+    if (data?.series && onSeriesChange) {
+      onSeriesChange(data.series);
+    }
+  }, [data?.series, onSeriesChange]);
+
+  // Handle query state change callbacks
+  React.useEffect(() => {
+    if (onQueryStateChange) {
+      onQueryStateChange({ isLoading, isFetching, error });
+    }
+  }, [isLoading, isFetching, error, onQueryStateChange]);
+
   const chartConfig = React.useMemo(() => {
     const config: ChartConfig = {};
     if (data) {
-      data.series.forEach((series, index) => {
+      data.series.forEach((series) => {
         config[series.name] = {
           label: series.name,
-          color: series.color || colors[index % colors.length],
+          color: series.color ?? '#8884d8',
         };
       });
     }
     return config;
-  }, [data, colors]);
+  }, [data]);
 
   const formatAxisValue = React.useCallback(
     (value: number) => {
@@ -120,23 +148,22 @@ export function MetricChart({
   const renderChartSeries = () => {
     if (!data) return null;
 
-    return data.series.map((s) => {
+    return data.series.map((s: ChartSeries) => {
       const seriesProps = {
-        key: s.name,
         series: {
           name: s.name,
-          color: `var(--color-${s.name})`,
+          color: s.color ?? '#8884d8',
         },
       };
 
       switch (chartType) {
         case 'area':
-          return <AreaSeries {...seriesProps} />;
+          return <AreaSeries key={s.name} {...seriesProps} />;
         case 'bar':
-          return <BarSeries {...seriesProps} />;
+          return <BarSeries key={s.name} {...seriesProps} />;
         case 'line':
         default:
-          return <LineSeries {...seriesProps} />;
+          return <LineSeries key={s.name} {...seriesProps} />;
       }
     });
   };
@@ -161,14 +188,14 @@ export function MetricChart({
       isFetching={isFetching}
       error={error}
       className={className}
-      isEmpty={!data}
+      isEmpty={chartData.length === 0}
       height={height}>
       <div style={{ height }}>
         <ChartContainer config={chartConfig} className="h-full w-full">
           <ChartComponent
             data={chartData}
-            margin={{ top: 5, right: 20, left: 10, bottom: showLegend ? 20 : 5 }}>
-            <CartesianGrid vertical={false} />
+            margin={{ top: 0, right: 10, left: 10, bottom: showLegend ? 20 : 5 }}>
+            <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="timestamp"
               type="number"

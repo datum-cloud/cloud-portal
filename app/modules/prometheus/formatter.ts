@@ -240,18 +240,18 @@ export function formatForCard(
  */
 function generateSeriesName(labels: Record<string, string>): string {
   // Common label priorities for naming
-  const priorityLabels = ['instance', 'job', 'service', 'pod', 'container', 'node'];
+  /* const priorityLabels = ['instance', 'job', 'service', 'pod', 'container', 'node'];
 
   for (const label of priorityLabels) {
     if (labels[label]) {
       return labels[label];
     }
-  }
+  } */
 
-  // If no priority labels, use the first available label
+  // If no priority labels, combine all available labels with '-'
   const labelEntries = Object.entries(labels);
   if (labelEntries.length > 0) {
-    return labelEntries[0][1];
+    return labelEntries.map(([_, value]) => value).join(' - ');
   }
 
   return 'Series';
@@ -374,6 +374,11 @@ export function formatValue(value: number, format: MetricFormat = 'number', prec
       return `${value.toFixed(precision)} req/s`;
     case 'milliseconds':
       return `${value.toFixed(precision)} ms`;
+    case 'milliseconds-auto':
+      if (value >= 1000) {
+        return `${(value / 1000).toFixed(precision)}s`;
+      }
+      return `${value.toFixed(0)}ms`;
     case 'duration':
       return formatDuration(value);
     case 'rate':
