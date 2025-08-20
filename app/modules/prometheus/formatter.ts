@@ -23,7 +23,6 @@ export function formatForChart(
     return {
       series: [],
       timeRange: timeRange || { start: 0, end: 0 },
-      isEmpty: true,
     };
   }
 
@@ -97,7 +96,6 @@ function formatMatrixData(
   return {
     series,
     timeRange: calculatedTimeRange,
-    isEmpty: series.length === 0 || series.every((s) => s.data.length === 0),
   };
 }
 
@@ -134,7 +132,6 @@ function formatVectorData(
   return {
     series,
     timeRange: timeRange || { start: now - 3600000, end: now }, // Default 1 hour range
-    isEmpty: series.length === 0,
   };
 }
 
@@ -151,7 +148,6 @@ function formatScalarData(
     return {
       series: [],
       timeRange: timeRange || { start: now - 3600000, end: now },
-      isEmpty: true,
     };
   }
 
@@ -178,7 +174,6 @@ function formatScalarData(
   return {
     series,
     timeRange: timeRange || { start: now - 3600000, end: now },
-    isEmpty: false,
   };
 }
 
@@ -337,18 +332,52 @@ function calculateTimeRange(series: ChartSeries[]): { start: number; end: number
 }
 
 /**
- * Format numeric values based on format type
+ * Format large numbers with metric suffixes (K, M, G, T, P, E).
  */
-export function formatValue(value: number, format: MetricFormat, precision: number = 2): string {
+function formatShortNumber(num: number, precision: number = 2): string {
+  if (num === null || isNaN(num)) return 'N/A';
+  if (num === 0) return '0';
+
+  const absNum = Math.abs(num);
+  const tier = Math.floor(Math.log10(absNum) / 3);
+
+  if (tier === 0) {
+    return num.toLocaleString(undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: precision,
+    });
+  }
+
+  const suffix = ['', 'K', 'M', 'G', 'T', 'P', 'E'][tier];
+  const scale = Math.pow(10, tier * 3);
+  const scaled = num / scale;
+
+  return `${scaled.toFixed(precision)}${suffix}`;
+}
+
+/**
+ * Format numeric values based on the specified format type.
+ */
+export function formatValue(value: number, format: MetricFormat = 'number', precision = 2): string {
   switch (format) {
-    case 'percentage':
+    case 'percent':
+      return `${(value * 100).toFixed(precision)}%`;
+    case 'percent-hundred':
       return `${value.toFixed(precision)}%`;
     case 'bytes':
       return formatBytes(value, precision);
+    case 'seconds':
+      return `${value.toFixed(precision)}s`;
+    case 'requestsPerSecond':
+      return `${value.toFixed(precision)} req/s`;
+    case 'milliseconds':
+      return `${value.toFixed(precision)} ms`;
     case 'duration':
       return formatDuration(value);
     case 'rate':
       return `${value.toFixed(precision)}/s`;
+    case 'short-number':
+      return formatShortNumber(value, precision);
     case 'number':
     default:
       return value.toLocaleString(undefined, {
@@ -390,7 +419,7 @@ function formatDuration(seconds: number): string {
  * Transform data for Recharts components
  */
 export function transformForRecharts(formattedData: FormattedMetricData): any[] {
-  if (formattedData.isEmpty || formattedData.series.length === 0) {
+  if (formattedData.series.length === 0) {
     return [];
   }
 

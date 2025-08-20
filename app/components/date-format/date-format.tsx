@@ -1,7 +1,7 @@
 import { cn } from '@/utils/common';
 import { format as _format } from 'date-fns';
 
-export const DATE_FORMAT = `MMMM d, yyyy 'at' HH:mm`;
+export const DATE_FORMAT = `MMMM d, yyyy HH:mm`;
 export const DateFormat = ({
   date,
   format = DATE_FORMAT,

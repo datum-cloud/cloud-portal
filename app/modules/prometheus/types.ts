@@ -90,7 +90,6 @@ export interface FormattedMetricData {
     start: number;
     end: number;
   };
-  isEmpty: boolean;
 }
 
 export interface MetricCardData {
@@ -107,7 +106,17 @@ export interface MetricCardData {
 
 export type ChartType = 'line' | 'area' | 'bar' | 'gauge';
 
-export type MetricFormat = 'number' | 'percentage' | 'bytes' | 'duration' | 'rate';
+export type MetricFormat =
+  | 'number'
+  | 'bytes'
+  | 'percent'
+  | 'percent-hundred'
+  | 'seconds'
+  | 'requestsPerSecond'
+  | 'milliseconds'
+  | 'duration'
+  | 'rate'
+  | 'short-number';
 
 export interface QueryBuilderOptions {
   metric: string;

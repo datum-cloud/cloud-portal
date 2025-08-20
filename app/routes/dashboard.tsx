@@ -2,9 +2,11 @@
  * Dashboard Playground - Prometheus Module Demo
  * Showcases various chart types and metric cards using the Prometheus module
  */
+import { DateFormat } from '@/components/date-format/date-format';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartTooltipContent } from '@/components/ui/chart';
 import { Separator } from '@/components/ui/separator';
 import { MetricChart } from '@/modules/metrics/components/MetricChart';
 import type { TimeRange } from '@/modules/prometheus';
@@ -154,168 +156,17 @@ export default function DashboardPlayground() {
           </CardContent>
         </Card>
 
-        {/* Metric Cards Row */}
-        {/* <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-          <MetricCards.CpuUsage
-            icon={Cpu}
-            timeRange={timeRange}
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          />
-          <MetricCards.MemoryUsage
-            icon={HardDrive}
-            timeRange={timeRange}
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          />
-          <MetricCards.RequestRate
-            icon={Network}
-            timeRange={timeRange}
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          />
-          <MetricCards.ErrorRate
-            icon={AlertTriangle}
-            timeRange={timeRange}
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          />
-          <MetricCards.ResponseTimeP95
-            icon={Clock}
-            timeRange={timeRange}
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          />
-        </div> */}
-
         {/* Charts Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* CPU Usage */}
-          {/* <MetricChart
-            title="CPU Usage by Instance (5m Rate)"
-            query="sum by (instance) (rate(node_cpu_seconds_total{mode!='idle'}[5m]))"
-            timeRange={timeRange}
-            step={step}
-            chartType="area"
-            valueFormat="percentage"
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          /> */}
-
-          {/* Memory Usage */}
-          {/* <MetricChart
-            title="Memory Usage by Instance"
-            query="(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes"
-            timeRange={timeRange}
-            step={step}
-            chartType="area"
-            valueFormat="percentage"
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          /> */}
-
-          {/* Network Traffic */}
-          {/* <MetricChart
-            title="Network Traffic (Received)"
-            query="rate(node_network_receive_bytes_total[5m])"
-            timeRange={timeRange}
-            step={step}
-            chartType="line"
-            valueFormat="bytes"
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          /> */}
-
-          {/* Disk I/O */}
-          {/* <MetricChart
-            title="Disk I/O (Read)"
-            query="rate(node_disk_read_bytes_total[5m])"
-            timeRange={timeRange}
-            step={step}
-            chartType="bar"
-            valueFormat="bytes"
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          /> */}
-
-          {/* Gauge Chart */}
-          {/* <MetricChart
-            query="prometheus_tsdb_head_series"
-            title="Active Time Series"
-            description="Total number of active time series in the TSDB"
-            chartType="gauge"
-            height={300}
-            timeRange={timeRange}
-            step={step}
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          /> */}
-
-          {/* Area Chart */}
-          {/* <MetricChart
-            query="rate(prometheus_tsdb_wal_writes_failed_total[5m])"
-            title="WAL Write Failures"
-            description="Rate of failed writes to the WAL"
-            chartType="area"
-            height={300}
-            timeRange={timeRange}
-            step={step}
-            valueFormat="rate"
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          /> */}
-
-          {/* Line Chart */}
-          {/* <MetricChart
-            query="go_goroutines"
-            title="Go Goroutines"
-            description="Number of active goroutines"
-            chartType="line"
-            height={300}
-            timeRange={timeRange}
-            step={step}
-            showLegend={true}
-            showTooltip={true}
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          /> */}
-
-          {/* Another Area Chart */}
-          {/* <MetricChart
-            query="rate(node_network_transmit_bytes_total[1m])"
-            title="Network Transmit Rate"
-            description="Rate of bytes transmitted over the network"
-            chartType="area"
-            height={300}
-            timeRange={timeRange}
-            step={step}
-            valueFormat="bytes"
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          /> */}
-
-          {/* Bar Chart */}
-          {/* <MetricChart
-            query="prometheus_notifications_total"
-            title="Notifications Total"
-            description="Total notifications sent"
-            chartType="bar"
-            height={300}
-            timeRange={timeRange}
-            step={step}
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          /> */}
-
-          {/* Multi-series Line Chart */}
-          {/* <MetricChart
-            query="rate(prometheus_http_requests_total[5m]) by (handler)"
-            title="Request Rate by Handler"
-            description="HTTP requests grouped by handler"
-            chartType="line"
-            height={300}
-            timeRange={timeRange}
-            step={step}
-            showLegend={true}
-            refetchInterval={isRealtime ? refreshInterval : undefined}
-          /> */}
-
           {/* Domain Verification Chart */}
           <MetricChart
             query="sum(rate(vector_adaptive_concurrency_limit_sum{}[$__rate_interval]))/sum(rate(vector_adaptive_concurrency_limit_count{}[$__rate_interval]))"
             title="vector_adaptive_concurrency_limit (average)"
-            chartType="gauge"
+            chartType="line"
             step={step}
             timeRange={timeRange}
             showLegend={false}
             showTooltip={true}
-            height={300}
             refetchInterval={isRealtime ? refreshInterval : undefined}
           />
 
@@ -323,49 +174,63 @@ export default function DashboardPlayground() {
             query="avg(datum_cloud_networking_domain_status_next_verification_attempt{})"
             title="datum_cloud_networking_domain_status_next_verification_attempt (average)"
             chartType="line"
+            valueFormat="short-number"
             step={step}
             timeRange={timeRange}
             showLegend={false}
             showTooltip={true}
-            height={300}
             refetchInterval={isRealtime ? refreshInterval : undefined}
           />
 
           <MetricChart
             query={`sum(rate(envoy_vhost_vcluster_upstream_rq{resourcemanager_datumapis_com_project_name="jreese-test-5d2p7z", label_topology_kubernetes_io_region!=""}[1m])) by (label_topology_kubernetes_io_region)`}
-            title="envoy_vhost_vcluster_upstream_rq"
+            title="Regional Upstream RPS"
             chartType="line"
             step={step}
             timeRange={timeRange}
             showLegend={true}
             showTooltip={true}
-            height={300}
+            yAxisFormatter={(value) => `${value.toFixed(3)} req/s`}
             refetchInterval={isRealtime ? refreshInterval : undefined}
+            yAxisOptions={{ width: 80 }}
+            tooltipContent={({ active, payload, label, ...props }) => {
+              if (active && payload && payload.length) {
+                const filteredPayload = payload.filter((p) => p.value > 0);
+                if (filteredPayload.length === 0) return null;
+
+                return (
+                  <ChartTooltipContent
+                    active={active}
+                    payload={filteredPayload}
+                    label={label}
+                    labelFormatter={(value) => <DateFormat date={value} />}
+                    formatter={(value, name, item) => {
+                      const indicatorColor = item.payload.fill || item.color;
+                      return (
+                        <div className="flex flex-1 items-center justify-between leading-none">
+                          <div className="flex items-center gap-1">
+                            <div
+                              className="size-2.5 shrink-0 rounded-[2px]"
+                              style={{
+                                backgroundColor: indicatorColor,
+                                borderColor: indicatorColor,
+                              }}></div>
+                            <span className="font-medium">{name}</span>
+                          </div>
+                          <div className="text-foreground font-medium">
+                            {`${(value as number).toFixed(3)} req/s`}
+                          </div>
+                        </div>
+                      );
+                    }}
+                    {...props}
+                  />
+                );
+              }
+              return null;
+            }}
           />
         </div>
-
-        {/* Large Chart Section */}
-        {/* <Card>
-          <CardHeader>
-            <CardTitle>Detailed Metrics View</CardTitle>
-            <CardDescription>Comprehensive view of Prometheus internal metrics</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <MetricChart
-              query="rate(prometheus_tsdb_head_samples_appended_total[5m])"
-              title="Sample Ingestion Rate"
-              description="Rate of samples being ingested into TSDB"
-              chartType="area"
-              height={400}
-              timeRange={timeRange}
-  
-              showLegend={true}
-              showTooltip={true}
-              valueFormat="rate"
-              refetchInterval={isRealtime ? refreshInterval : undefined}
-            />
-          </CardContent>
-        </Card> */}
 
         {/* Demo Information */}
         <Card>

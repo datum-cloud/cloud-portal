@@ -163,7 +163,7 @@ function ChartTooltipContent({
 
     if (labelFormatter) {
       return (
-        <div className={cn('font-medium', labelClassName)}>{labelFormatter(value, payload)}</div>
+        <div className={cn('font-medium', labelClassName)}>{labelFormatter(label, payload)}</div>
       );
     }
 
@@ -183,7 +183,7 @@ function ChartTooltipContent({
   return (
     <div
       className={cn(
-        'border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
+        'border-border/50 bg-background z-50 grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
         className
       )}>
       {!nestLabel ? tooltipLabel : null}
@@ -271,12 +271,7 @@ function ChartLegendContent({
   }
 
   return (
-    <div
-      className={cn(
-        'flex items-center justify-center gap-4',
-        verticalAlign === 'top' ? 'pb-3' : 'pt-3',
-        className
-      )}>
+    <div className={cn('flex flex-wrap items-center justify-center gap-2', className)}>
       {payload.map((item) => {
         const key = `${nameKey || item.dataKey || 'value'}`;
         const itemConfig = getPayloadConfigFromPayload(config, item, key);

@@ -1,10 +1,14 @@
 /**
  * Single metric display card component
  */
-import { MetricLoaderWrapper } from './common/MetricLoaderWrapper';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BaseMetric } from './common/BaseMetric';
 import { usePrometheusCard } from '@/modules/metrics/hooks';
-import { formatValue, type MetricFormat, type PrometheusQueryOptions } from '@/modules/prometheus';
+import {
+  formatValue,
+  type MetricCardData,
+  type MetricFormat,
+  type PrometheusQueryOptions,
+} from '@/modules/prometheus';
 import { cn } from '@/utils/common';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import React from 'react';
@@ -48,7 +52,7 @@ export interface MetricCardProps extends PrometheusQueryOptions {
   /**
    * Success callback
    */
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: MetricCardData) => void;
 
   /**
    * Show trend indicator
@@ -134,119 +138,39 @@ export function MetricCard({
     return `${sign}${Math.abs(percentage).toFixed(1)}%`;
   }, [showTrend, data?.change]);
 
+  const IconComponent = icon
+    ? React.isValidElement(icon)
+      ? icon
+      : React.createElement(icon as React.ComponentType<{ className?: string }>, {
+          className: 'text-muted-foreground h-4 w-4',
+        })
+    : null;
+
   return (
-    <MetricLoaderWrapper isLoading={isLoading} error={error} title={title} className={className}>
-      <Card className={cn(className)} data-variant={variant}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{title || 'Metric'}</CardTitle>
-          {icon &&
-            (React.isValidElement(icon)
-              ? icon
-              : React.createElement(icon as React.ComponentType<{ className?: string }>, {
-                  className: 'text-muted-foreground h-4 w-4',
-                }))}
-          {isLoading && <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />}
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-1">
-            <div className="text-2xl font-bold">{formattedValue}</div>
-            {description && <CardDescription className="text-xs">{description}</CardDescription>}
-            {showTrend && trendIcon && trendText && (
-              <div className="text-muted-foreground flex items-center gap-1 text-xs">
-                {trendIcon}
-                <span>{trendText}</span>
-                <span>from last period</span>
-              </div>
-            )}
-            {data?.timestamp && (
-              <div className="text-muted-foreground text-xs">
-                Updated {new Date(data.timestamp).toLocaleTimeString()}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </MetricLoaderWrapper>
+    <BaseMetric
+      title={title}
+      description={description}
+      isLoading={isLoading}
+      error={error}
+      className={cn('MetricCard', className)}
+      isEmpty={!data}>
+      <div className="flex items-center justify-between">
+        <div className="text-2xl font-bold">{formattedValue}</div>
+        {IconComponent}
+      </div>
+
+      {showTrend && trendIcon && trendText && (
+        <div className="text-muted-foreground flex items-center gap-1 text-xs">
+          {trendIcon}
+          <span>{trendText}</span>
+          <span>from last period</span>
+        </div>
+      )}
+      {data?.timestamp && (
+        <div className="text-muted-foreground text-xs">
+          Updated {new Date(data.timestamp).toLocaleTimeString()}
+        </div>
+      )}
+    </BaseMetric>
   );
 }
-
-/**
- * Preset metric cards for common use cases
- */
-export const MetricCards = {
-  /**
-   * CPU Usage percentage card
-   */
-  CpuUsage: (props: Omit<MetricCardProps, 'query' | 'metricFormat' | 'title'>) => (
-    <MetricCard
-      {...props}
-      query="(1 - avg(rate(node_cpu_seconds_total{mode='idle'}[5m]))) * 100"
-      title="CPU Usage"
-      metricFormat="percentage"
-    />
-  ),
-
-  /**
-   * Memory Usage percentage card
-   */
-  MemoryUsage: (props: Omit<MetricCardProps, 'query' | 'metricFormat' | 'title'>) => (
-    <MetricCard
-      {...props}
-      query="(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100"
-      title="Memory Usage"
-      metricFormat="percentage"
-    />
-  ),
-
-  /**
-   * Request Rate card
-   */
-  RequestRate: (props: Omit<MetricCardProps, 'query' | 'metricFormat' | 'title' | 'suffix'>) => (
-    <MetricCard
-      {...props}
-      query="rate(http_requests_total[5m])"
-      title="Request Rate"
-      metricFormat="rate"
-      suffix="req/s"
-    />
-  ),
-
-  /**
-   * Error Rate card
-   */
-  ErrorRate: (props: Omit<MetricCardProps, 'query' | 'metricFormat' | 'title'>) => (
-    <MetricCard
-      {...props}
-      query="rate(http_requests_total{status=~'5..'}[5m]) / rate(http_requests_total[5m]) * 100"
-      title="Error Rate"
-      metricFormat="percentage"
-    />
-  ),
-
-  /**
-   * Response Time P95 card
-   */
-  ResponseTimeP95: (
-    props: Omit<MetricCardProps, 'query' | 'metricFormat' | 'title' | 'suffix'>
-  ) => (
-    <MetricCard
-      {...props}
-      query="histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))"
-      title="Response Time P95"
-      metricFormat="duration"
-      suffix="ms"
-    />
-  ),
-
-  /**
-   * Active Connections card
-   */
-  ActiveConnections: (props: Omit<MetricCardProps, 'query' | 'metricFormat' | 'title'>) => (
-    <MetricCard
-      {...props}
-      query="sum(http_connections_active)"
-      title="Active Connections"
-      metricFormat="number"
-    />
-  ),
-};

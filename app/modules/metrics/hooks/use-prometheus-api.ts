@@ -1,6 +1,7 @@
 /**
  * Hook for making Prometheus queries through the API middleware
  */
+import { prometheusQueryKeys } from './query-keys';
 import {
   type FormattedMetricData,
   type MetricCardData,
@@ -22,12 +23,12 @@ interface PrometheusAPIRequest {
   metricFormat?: MetricFormat;
 }
 
-interface PrometheusAPIResponse<T = any> {
+interface PrometheusAPIResponse<T> {
   success: boolean;
   data: T;
   error?: string;
   type?: string;
-  details?: any;
+  details?: unknown;
 }
 
 async function makePrometheusAPIRequest<T>(request: PrometheusAPIRequest): Promise<T> {
@@ -42,8 +43,9 @@ async function makePrometheusAPIRequest<T>(request: PrometheusAPIRequest): Promi
   if (!response.ok || !data.success) {
     throw new PrometheusError(
       data.error || 'API request failed',
-      (data.type as any) || 'network',
-      data.details
+      (data.type as PrometheusError['type']) || 'network',
+      response.status,
+      typeof data.details === 'string' ? data.details : JSON.stringify(data.details)
     );
   }
 
@@ -59,12 +61,12 @@ async function makePrometheusAPIRequest<T>(request: PrometheusAPIRequest): Promi
  * Generic hook for all Prometheus API queries to consolidate TanStack Query options.
  */
 function usePrometheusAPIQuery<T>(
-  queryKey: (string | object | undefined)[],
+  queryKey: readonly (string | object | undefined)[],
   request: PrometheusAPIRequest,
   options: { enabled?: boolean; refetchInterval?: number | false }
 ): UseQueryResult<T, PrometheusError> {
   return useQuery<T, PrometheusError>({
-    queryKey: ['prometheus-api', ...queryKey],
+    queryKey,
     queryFn: () => makePrometheusAPIRequest<T>(request),
     enabled: options.enabled,
     refetchInterval: options.refetchInterval,
@@ -89,7 +91,7 @@ function usePrometheusAPIQuery<T>(
 export function usePrometheusChart(options: PrometheusQueryOptions) {
   const { query, timeRange, step, enabled = true, refetchInterval = false } = options;
   return usePrometheusAPIQuery<FormattedMetricData>(
-    ['chart', query, timeRange, step],
+    prometheusQueryKeys.chart({ query, timeRange, step }),
     { type: 'chart', query, timeRange, step },
     { enabled: enabled && !!query, refetchInterval }
   );
@@ -109,7 +111,7 @@ export function usePrometheusCard(
     refetchInterval = false,
   } = options;
   return usePrometheusAPIQuery<MetricCardData>(
-    ['card', query, timeRange, metricFormat],
+    prometheusQueryKeys.card({ query, timeRange, metricFormat }),
     { type: 'card', query, timeRange, metricFormat },
     { enabled: enabled && !!query, refetchInterval }
   );
@@ -120,7 +122,7 @@ export function usePrometheusCard(
  */
 export function usePrometheusConnection() {
   return usePrometheusAPIQuery<{ connected: boolean }>(
-    ['connection'],
+    prometheusQueryKeys.connections(),
     { type: 'connection' },
     { enabled: true }
   );
@@ -131,7 +133,7 @@ export function usePrometheusConnection() {
  */
 export function usePrometheusBuildInfo() {
   return usePrometheusAPIQuery<Record<string, string>>(
-    ['buildinfo'],
+    prometheusQueryKeys.buildInfo(),
     { type: 'buildinfo' },
     { enabled: true }
   );

@@ -1,8 +1,17 @@
 /**
- * Generic metric chart component using Recharts
+ * Generic metric chart component using Shadcn UI Chart components
  */
-import { MetricLoaderWrapper } from './common/MetricLoaderWrapper';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AreaSeries, BarSeries, LineSeries } from './charts';
+import { BaseMetric } from './common/BaseMetric';
+import { DateFormat } from '@/components/date-format/date-format';
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
 import { usePrometheusChart } from '@/modules/metrics/hooks';
 import {
   formatValue,
@@ -11,101 +20,41 @@ import {
   type MetricFormat,
   type PrometheusQueryOptions,
 } from '@/modules/prometheus';
-import { cn } from '@/utils/common';
-import { Minus } from 'lucide-react';
+import { format } from 'date-fns';
 import React from 'react';
-import {
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
+import { CartesianGrid, AreaChart, BarChart, LineChart, XAxis, YAxis, YAxisProps } from 'recharts';
+import { TooltipContentProps } from 'recharts/types/component/Tooltip';
 
 export interface MetricChartProps extends PrometheusQueryOptions {
-  /**
-   * Chart title
-   */
   title?: string;
-
-  /**
-   * Chart description
-   */
   description?: string;
-
-  /**
-   * Chart type
-   */
   chartType?: ChartType;
-
-  /**
-   * Chart height in pixels
-   */
   height?: number;
-
-  /**
-   * Additional query key for caching
-   */
   queryKey?: string[];
-
-  /**
-   * Error callback
-   */
   onError?: (error: Error) => void;
-
-  /**
-   * Success callback
-   */
   onSuccess?: (data: any) => void;
-
-  /**
-   * Show legend
-   */
   showLegend?: boolean;
-
-  /**
-   * Show tooltip
-   */
   showTooltip?: boolean;
-
-  /**
-   * Custom colors for series
-   */
   colors?: string[];
-
-  /**
-   * Value format for tooltip and axis
-   */
   valueFormat?: MetricFormat;
-
-  /**
-   * Custom CSS class
-   */
+  refetchInterval?: number;
+  yAxisFormatter?: (value: number) => string;
+  xAxisFormatter?: (value: number) => string;
   className?: string;
-
-  /**
-   * Card variant
-   */
-  variant?: 'default' | 'secondary' | 'destructive';
+  yAxisOptions?: YAxisProps;
+  tooltipContent?: (props: TooltipContentProps<any, any>) => React.ReactNode;
 }
 
-/**
- * MetricChart component
- */
+const CustomTooltip = ({ labelFormatter, ...props }: any) => {
+  return <ChartTooltipContent labelFormatter={labelFormatter} {...props} />;
+};
+
 export function MetricChart({
   query,
   timeRange,
   step,
   enabled = true,
   refetchInterval,
-  queryKey,
   title,
   description,
   chartType = 'line',
@@ -115,9 +64,10 @@ export function MetricChart({
   colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300'],
   valueFormat = 'number',
   className,
-  variant = 'default',
-  onError,
-  onSuccess,
+  yAxisFormatter,
+  xAxisFormatter,
+  yAxisOptions,
+  tooltipContent,
 }: MetricChartProps) {
   const { data, isLoading, error } = usePrometheusChart({
     query,
@@ -128,167 +78,133 @@ export function MetricChart({
   });
 
   const chartData = React.useMemo(() => {
-    if (!data || data.isEmpty) return [];
+    if (!data) return [];
     return transformForRecharts(data);
   }, [data]);
 
-  const seriesNames = React.useMemo(() => {
-    if (!data || data.isEmpty) return [];
-    return data.series.map((series) => series.name);
-  }, [data]);
-
-  const seriesColors = React.useMemo(() => {
-    if (!data || data.isEmpty) return colors;
-    return data.series.map((series) => series.color || '#8884d8');
+  const chartConfig = React.useMemo(() => {
+    const config: ChartConfig = {};
+    if (data) {
+      data.series.forEach((series, index) => {
+        config[series.name] = {
+          label: series.name,
+          color: series.color || colors[index % colors.length],
+        };
+      });
+    }
+    return config;
   }, [data, colors]);
-
-  const formatTooltipValue = React.useCallback(
-    (value: number) => {
-      return formatValue(value, valueFormat);
-    },
-    [valueFormat]
-  );
 
   const formatAxisValue = React.useCallback(
     (value: number) => {
-      return formatValue(value, valueFormat, 1);
+      if (yAxisFormatter) {
+        return yAxisFormatter(value);
+      }
+      return formatValue(value, valueFormat, 2);
     },
-    [valueFormat]
+    [valueFormat, yAxisFormatter]
   );
 
-  const formatXAxisValue = React.useCallback((tickItem: number) => {
-    const date = new Date(tickItem);
-    return date.toLocaleTimeString(undefined, {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const formatXAxisValue = React.useCallback(
+    (tickItem: number) => {
+      if (xAxisFormatter) {
+        return xAxisFormatter(tickItem);
+      }
+      return format(new Date(tickItem), 'HH:mm');
+    },
+    [xAxisFormatter]
+  );
+
+  const tooltipLabelFormatter: any = React.useCallback((label: string) => {
+    if (!label) return '';
+    return <DateFormat date={label} />;
   }, []);
 
-  const renderChart = () => {
-    const commonProps = {
-      data: chartData,
-      margin: { top: 5, right: 30, left: 20, bottom: 5 },
-    };
+  const renderChartSeries = () => {
+    if (!data) return null;
 
-    const xAxisProps = {
-      dataKey: 'timestamp',
-      type: 'number' as const,
-      scale: 'time' as const,
-      domain: ['dataMin', 'dataMax'],
-      tickFormatter: formatXAxisValue,
-      tick: { fontSize: 10 },
-    };
+    return data.series.map((s) => {
+      const seriesProps = {
+        key: s.name,
+        series: {
+          name: s.name,
+          color: `var(--color-${s.name})`,
+        },
+      };
 
-    const yAxisProps = {
-      tickFormatter: formatAxisValue,
-      tickSize: 2,
-      domain: ['dataMin', 'dataMax'],
-      tick: { fontSize: 10 },
-    };
-
-    const tooltipProps = showTooltip
-      ? {
-          labelFormatter: (value: number) => new Date(value).toLocaleString(),
-          formatter: (value: number) => [formatTooltipValue(value), ''],
-          itemStyle: { fontSize: 12 },
-          labelStyle: { fontSize: 12, fontWeight: 'bold' },
-        }
-      : undefined;
-
-    switch (chartType) {
-      case 'area':
-        return (
-          <AreaChart {...commonProps}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis {...xAxisProps} />
-            <YAxis {...yAxisProps} />
-            {showTooltip && <Tooltip {...tooltipProps} />}
-            {showLegend && <Legend />}
-            {seriesNames.map((name, index) => (
-              <Area
-                key={name}
-                type="monotone"
-                dataKey={name}
-                stroke={seriesColors[index]}
-                fill={seriesColors[index]}
-                fillOpacity={0.3}
-              />
-            ))}
-          </AreaChart>
-        );
-
-      case 'bar':
-        return (
-          <BarChart {...commonProps}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis {...xAxisProps} />
-            <YAxis {...yAxisProps} />
-            {showTooltip && <Tooltip {...tooltipProps} />}
-            {showLegend && <Legend />}
-            {seriesNames.map((name, index) => (
-              <Bar key={name} dataKey={name} fill={seriesColors[index]} />
-            ))}
-          </BarChart>
-        );
-
-      case 'line':
-      default:
-        return (
-          <LineChart {...commonProps}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis {...xAxisProps} />
-            <YAxis {...yAxisProps} />
-            {showTooltip && <Tooltip {...tooltipProps} />}
-            {showLegend && <Legend />}
-            {seriesNames.map((name, index) => (
-              <Line
-                key={name}
-                type="monotone"
-                dataKey={name}
-                stroke={seriesColors[index]}
-                strokeWidth={2}
-                dot={false}
-              />
-            ))}
-          </LineChart>
-        );
-    }
+      switch (chartType) {
+        case 'area':
+          return <AreaSeries {...seriesProps} />;
+        case 'bar':
+          return <BarSeries {...seriesProps} />;
+        case 'line':
+        default:
+          return <LineSeries {...seriesProps} />;
+      }
+    });
   };
 
+  const ChartComponent = React.useMemo(() => {
+    switch (chartType) {
+      case 'area':
+        return AreaChart;
+      case 'bar':
+        return BarChart;
+      case 'line':
+      default:
+        return LineChart;
+    }
+  }, [chartType]);
+
   return (
-    <MetricLoaderWrapper
+    <BaseMetric
+      title={title}
+      description={description}
       isLoading={isLoading}
       error={error}
-      title={title}
       className={className}
-      height={height}>
-      <Card className={cn(className)} data-variant={variant}>
-        <CardHeader>
-          {title && (
-            <CardTitle className="flex items-center gap-2">
-              {title}
-              {isLoading && <div className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />}
-            </CardTitle>
-          )}
-          {description && <CardDescription>{description}</CardDescription>}
-        </CardHeader>
-        <CardContent>
-          {data && !data.isEmpty ? (
-            <ResponsiveContainer width="100%" height={height}>
-              {renderChart()}
-            </ResponsiveContainer>
-          ) : (
-            <div
-              className="text-muted-foreground flex items-center justify-center"
-              style={{ height }}>
-              <div className="text-center">
-                <Minus className="mx-auto mb-2 h-8 w-8" />
-                <p>No data available</p>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </MetricLoaderWrapper>
+      isEmpty={!data}>
+      <div style={{ height }}>
+        <ChartContainer config={chartConfig} className="h-full w-full">
+          <ChartComponent
+            data={chartData}
+            margin={{ top: 5, right: 20, left: 10, bottom: showLegend ? 20 : 5 }}>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="timestamp"
+              type="number"
+              scale="time"
+              domain={['dataMin', 'dataMax']}
+              tickFormatter={formatXAxisValue}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              tickFormatter={formatAxisValue}
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              interval="preserveStartEnd"
+              width={60}
+              {...yAxisOptions}
+            />
+            {showTooltip && (
+              <ChartTooltip
+                cursor={true}
+                content={
+                  typeof tooltipContent === 'function' ? (
+                    tooltipContent
+                  ) : (
+                    <CustomTooltip labelFormatter={tooltipLabelFormatter} />
+                  )
+                }
+              />
+            )}
+            {renderChartSeries()}
+            {showLegend && <ChartLegend content={<ChartLegendContent className="z-0 mt-2" />} />}
+          </ChartComponent>
+        </ChartContainer>
+      </div>
+    </BaseMetric>
   );
 }
