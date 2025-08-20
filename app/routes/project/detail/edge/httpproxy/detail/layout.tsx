@@ -3,7 +3,7 @@ import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.int
 import { CustomError } from '@/utils/error';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { Client } from '@hey-api/client-axios';
-import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction, Outlet } from 'react-router';
+import { AppLoadContext, LoaderFunctionArgs, MetaFunction, Outlet, data } from 'react-router';
 
 export const handle = {
   breadcrumb: (data: IHttpProxyControlResponse) => <span>{data?.name}</span>,

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PRESET_RANGES } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context';
 import { cn } from '@/utils/common';
 import { endOfDay, format, parseISO, startOfDay } from 'date-fns';
@@ -11,54 +12,13 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import React from 'react';
 import type { DateRange } from 'react-day-picker';
 
-const PRESET_RANGES = [
-  {
-    label: 'Last 5m',
-    value: 'now-5m',
-  },
-  {
-    label: 'Last 15m',
-    value: 'now-15m',
-  },
-  {
-    label: 'Last 30m',
-    value: 'now-30m',
-  },
-  {
-    label: 'Last 1h',
-    value: 'now-1h',
-  },
-  {
-    label: 'Last 3h',
-    value: 'now-3h',
-  },
-  {
-    label: 'Last 6h',
-    value: 'now-6h',
-  },
-  {
-    label: 'Last 12h',
-    value: 'now-12h',
-  },
-  {
-    label: 'Last 24h',
-    value: 'now-24h',
-  },
-  {
-    label: 'Last 2d',
-    value: 'now-2d',
-  },
-  {
-    label: 'Last 7d',
-    value: 'now-7d',
-  },
-];
-
-export function TimeRangeControl() {
+/**
+ * Control to pick a time range using relative presets or absolute dates.
+ */
+export function TimeRangeControl(): React.ReactElement {
   const { range, setRange } = useMetrics();
-  const [isOpen, setIsOpen] = React.useState(false);
-
-  const date: DateRange | undefined = React.useMemo(() => {
+  const [isOpen, setIsOpen] = React.useState<boolean>(false);
+  const date: DateRange | undefined = React.useMemo<DateRange | undefined>(() => {
     if (range.includes('_')) {
       const [startStr, endStr] = range.split('_');
       const start = parseISO(startStr);
@@ -70,7 +30,7 @@ export function TimeRangeControl() {
     return undefined;
   }, [range]);
 
-  const handleDateSelect = (newDate: DateRange | undefined) => {
+  const handleDateSelect = (newDate: DateRange | undefined): void => {
     if (newDate?.from && newDate?.to) {
       const start = startOfDay(newDate.from);
       const end = endOfDay(newDate.to);
@@ -80,18 +40,15 @@ export function TimeRangeControl() {
     }
   };
 
-  const handlePresetSelect = (preset: { value: string }) => {
+  const handlePresetSelect = (preset: { value: string }): void => {
     setRange(preset.value);
     setIsOpen(false);
   };
 
-  const isPreset = range.startsWith('now-');
-  const displayLabel = isPreset
+  const isPreset: boolean = range.startsWith('now-');
+  const displayLabel: string = isPreset
     ? (PRESET_RANGES.find((p) => p.value === range)?.label ?? 'Custom')
-    : `${format(date?.from ?? new Date(), 'LLL dd, y')} - ${format(
-        date?.to ?? new Date(),
-        'LLL dd, y'
-      )}`;
+    : `${format(date?.from ?? new Date(), 'LLL dd, y')} - ${format(date?.to ?? new Date(), 'LLL dd, y')}`;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -119,7 +76,7 @@ export function TimeRangeControl() {
                 <Button
                   key={preset.value}
                   variant={range === preset.value ? 'default' : 'ghost'}
-                  onClick={() => handlePresetSelect(preset)}>
+                  onClick={(): void => handlePresetSelect(preset)}>
                   {preset.label}
                 </Button>
               ))}

@@ -1,7 +1,7 @@
 /**
  * Single metric display card component
  */
-import { BaseMetric } from './common/BaseMetric';
+import { BaseMetric } from './BaseMetric';
 import { usePrometheusCard } from '@/modules/metrics/hooks';
 import {
   formatValue,

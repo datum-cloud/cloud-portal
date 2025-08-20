@@ -14,7 +14,52 @@ This approach provides several benefits:
 
 ## Usage
 
-This module exports React hooks and components designed to work with the `/api/prometheus` endpoint.
+Prefer imports from the top-level barrel `@/modules/metrics`. All data access goes through the `/api/prometheus` route (BFF), not directly to Prometheus.
+
+### Quick start
+
+```tsx
+import {
+  MetricsProvider,
+  MetricsControls,
+  MetricChart,
+  MetricCard,
+  useMetrics,
+} from '@/modules/metrics';
+import React from 'react';
+
+export default function MetricsDashboard(): React.ReactElement {
+  return (
+    <MetricsProvider>
+      <div className="space-y-4">
+        <ControlsAndCharts />
+      </div>
+    </MetricsProvider>
+  );
+}
+
+function ControlsAndCharts(): React.ReactElement {
+  const { timeRange, step } = useMetrics();
+  return (
+    <>
+      <MetricsControls />
+      <MetricChart
+        title="CPU Usage Over Time"
+        query="rate(cpu_usage_total[5m])"
+        timeRange={timeRange}
+        step={step}
+        chartType="area"
+        height={300}
+      />
+      <MetricCard
+        title="Average CPU Load"
+        query="avg(cpu_usage_percent)"
+        metricFormat="percentage"
+      />
+    </>
+  );
+}
+```
 
 ### Hooks
 
@@ -22,12 +67,10 @@ The hooks provide a simple way to fetch formatted data for use in UI components.
 
 #### `usePrometheusChart`
 
-Fetches time-series data suitable for rendering charts.
-
 ```tsx
-import { usePrometheusChart } from '@/modules/metrics/hooks';
+import { usePrometheusChart } from '@/modules/metrics';
 
-function MyChartComponent() {
+export function MyChartComponent(): React.ReactElement {
   const { data, isLoading, error } = usePrometheusChart({
     query: 'rate(http_requests_total[5m])',
     timeRange: {
@@ -39,19 +82,16 @@ function MyChartComponent() {
 
   if (isLoading) return <p>Loading chart...</p>;
   if (error) return <p>Error: {error.message}</p>;
-
-  // Render a chart with `data`
+  return <pre>{JSON.stringify(data, null, 2)}</pre>;
 }
 ```
 
 #### `usePrometheusCard`
 
-Fetches a single aggregated value suitable for a metric card.
-
 ```tsx
-import { usePrometheusCard } from '@/modules/metrics/hooks';
+import { usePrometheusCard } from '@/modules/metrics';
 
-function MyCardComponent() {
+export function MyCardComponent(): React.ReactElement {
   const { data, isLoading, error } = usePrometheusCard({
     query: 'avg(cpu_usage_percent)',
     metricFormat: 'percentage',
@@ -59,50 +99,55 @@ function MyCardComponent() {
 
   if (isLoading) return <p>Loading value...</p>;
   if (error) return <p>Error: {error.message}</p>;
-
-  // Display the `data.value`
+  return <div>{data?.value}</div>;
 }
 ```
 
 ### Components
 
-The components are pre-built UI elements that use these hooks internally.
+Pre-built UI elements that use the hooks internally. Import from `@/modules/metrics`.
 
-#### `MetricChart`
-
-A full-featured chart component that handles its own data fetching.
+- `MetricChart`
+- `MetricCard`
+- `MetricsControls` (groups TimeRange/Step/Refresh)
 
 ```tsx
-import { MetricChart } from '@/modules/metrics/components';
-
-function Dashboard() {
-  return (
-    <MetricChart
-      title="CPU Usage Over Time"
-      query="rate(cpu_usage_total[5m])"
-      timeRange={{
-        start: new Date(Date.now() - 3600 * 1000),
-        end: new Date(),
-      }}
-      step="1m"
-      chartType="area"
-    />
-  );
-}
+import { MetricChart, MetricCard, MetricsControls } from '@/modules/metrics';
 ```
 
-#### `MetricCard`
+## Folder structure
 
-A single-stat card component.
-
-```tsx
-import { MetricCard } from '@/modules/metrics/components';
-
-function Dashboard() {
-  return (
-    <MetricCard title="Average CPU Load" query="avg(cpu_usage_percent)" metricFormat="percentage" />
-  );
-}
+```text
+app/modules/metrics/
+├─ README.md
+├─ index.ts                 # Barrel exports (constants, utils, components, controls, context, hooks)
+├─ constants.ts             # REFRESH_OPTIONS, STEP_OPTIONS, PRESET_RANGES and types
+├─ utils.ts                 # parseDurationToMs, parseRange
+├─ components/
+│  ├─ index.ts
+│  ├─ BaseMetric.tsx
+│  ├─ MetricCard.tsx
+│  ├─ MetricChart.tsx
+│  ├─ MetricPresets.tsx
+│  ├─ controls/
+│  │  ├─ index.ts
+│  │  ├─ MetricsControls.tsx
+│  │  ├─ RefreshControl.tsx
+│  │  ├─ StepControl.tsx
+│  │  └─ TimeRangeControl.tsx
+│  └─ series/
+│     ├─ index.ts
+│     ├─ AreaSeries.tsx
+│     ├─ BarSeries.tsx
+│     └─ LineSeries.tsx
+├─ context/
+│  ├─ index.ts
+│  ├─ metrics-context.ts
+│  ├─ metrics-provider.tsx
+│  └─ use-metrics.ts
+└─ hooks/
+   ├─ index.ts
+   └─ use-prometheus-api.ts
 ```
 
 ## Relationship to Core Library

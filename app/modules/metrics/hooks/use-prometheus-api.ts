@@ -1,8 +1,8 @@
 /**
  * Hook for making Prometheus queries through the API middleware
  */
-import { prometheusQueryKeys } from '../common';
 import { useMetrics } from '../context';
+import { parseDurationToMs } from '@/modules/metrics/utils';
 import {
   type FormattedMetricData,
   type MetricCardData,
@@ -12,6 +12,31 @@ import {
   PrometheusError,
 } from '@/modules/prometheus';
 import { useQuery, type QueryKey, type UseQueryResult } from '@tanstack/react-query';
+import React from 'react';
+
+const prometheusQueryKeys = {
+  all: ['prometheus-api'] as const,
+  charts: () => [...prometheusQueryKeys.all, 'charts'] as const,
+  chart: (options: PrometheusQueryOptions) =>
+    [
+      ...prometheusQueryKeys.charts(),
+      options.query,
+      options.timeRange?.start.getTime(),
+      options.timeRange?.end.getTime(),
+      options.step,
+    ] as const,
+  cards: () => [...prometheusQueryKeys.all, 'cards'] as const,
+  card: (options: PrometheusQueryOptions & { metricFormat?: MetricFormat }) =>
+    [
+      ...prometheusQueryKeys.cards(),
+      options.query,
+      options.timeRange?.start.getTime(),
+      options.timeRange?.end.getTime(),
+      options.metricFormat,
+    ] as const,
+  connections: () => [...prometheusQueryKeys.all, 'connections'] as const,
+  buildInfo: () => [...prometheusQueryKeys.all, 'build-info'] as const,
+};
 
 // #region API Layer
 // =======================================================================================
@@ -64,12 +89,13 @@ async function makePrometheusAPIRequest<T>(request: PrometheusAPIRequest): Promi
 function usePrometheusAPIQuery<T>(
   queryKey: QueryKey,
   request: PrometheusAPIRequest,
-  options: { enabled?: boolean }
+  options: { enabled?: boolean; refetchInterval?: number | false }
 ): UseQueryResult<T, PrometheusError> {
   return useQuery<T, PrometheusError>({
     queryKey,
     queryFn: () => makePrometheusAPIRequest<T>(request),
     enabled: options.enabled,
+    refetchInterval: options.refetchInterval,
     staleTime: 30000, // 30 seconds
     gcTime: 300000, // 5 minutes
     retry: (failureCount: number, error: PrometheusError) => {
@@ -90,11 +116,15 @@ function usePrometheusAPIQuery<T>(
  */
 export function usePrometheusChart(options: Omit<PrometheusQueryOptions, 'refetchInterval'>) {
   const { query, timeRange, step, enabled = true } = options;
-  const { lastRefreshed } = useMetrics();
+  const { refreshInterval } = useMetrics();
+  const refetchMs = React.useMemo(() => {
+    if (refreshInterval === 'off') return false;
+    return parseDurationToMs(refreshInterval) ?? false;
+  }, [refreshInterval]);
   return usePrometheusAPIQuery<FormattedMetricData>(
-    prometheusQueryKeys.chart({ query, timeRange, step, lastRefreshed }),
+    prometheusQueryKeys.chart({ query, timeRange, step }),
     { type: 'chart', query, timeRange, step },
-    { enabled: enabled && !!query }
+    { enabled: enabled && !!query, refetchInterval: refetchMs }
   );
 }
 
@@ -105,11 +135,15 @@ export function usePrometheusCard(
   options: Omit<PrometheusQueryOptions, 'refetchInterval'> & { metricFormat?: MetricFormat }
 ) {
   const { query, timeRange, metricFormat = 'number', enabled = true } = options;
-  const { lastRefreshed } = useMetrics();
+  const { refreshInterval } = useMetrics();
+  const refetchMs = React.useMemo(() => {
+    if (refreshInterval === 'off') return false;
+    return parseDurationToMs(refreshInterval) ?? false;
+  }, [refreshInterval]);
   return usePrometheusAPIQuery<MetricCardData>(
-    prometheusQueryKeys.card({ query, timeRange, metricFormat, lastRefreshed }),
+    prometheusQueryKeys.card({ query, timeRange, metricFormat }),
     { type: 'card', query, timeRange, metricFormat },
-    { enabled: enabled && !!query }
+    { enabled: enabled && !!query, refetchInterval: refetchMs }
   );
 }
 

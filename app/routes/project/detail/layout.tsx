@@ -13,7 +13,14 @@ import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
 import { CustomError } from '@/utils/error';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
-import { AreaChartIcon, HomeIcon, NetworkIcon, SettingsIcon, SquareActivity } from 'lucide-react';
+import {
+  AreaChartIcon,
+  FolderDot,
+  HomeIcon,
+  NetworkIcon,
+  SettingsIcon,
+  SquareActivity,
+} from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { AppLoadContext, LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
 
@@ -144,7 +151,7 @@ export default function ProjectLayout() {
           projectId,
         }),
         type: 'collapsible',
-        icon: SettingsIcon,
+        icon: FolderDot,
         disabled: !isReady,
         children: [
           {

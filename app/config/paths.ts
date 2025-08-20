@@ -60,6 +60,7 @@ export const paths = {
           overview: '/project/[projectId]/httpproxy/[proxyId]/overview',
           edit: '/project/[projectId]/httpproxy/[proxyId]/edit',
           grafana: '/project/[projectId]/httpproxy/[proxyId]/grafana',
+          metrics: '/project/[projectId]/httpproxy/[proxyId]/metrics',
         },
       },
       domains: {

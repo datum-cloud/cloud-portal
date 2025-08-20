@@ -1,8 +1,8 @@
 /**
  * Generic metric chart component using Shadcn UI Chart components
  */
-import { AreaSeries, BarSeries, LineSeries } from './charts';
-import { BaseMetric } from './common/BaseMetric';
+import { BaseMetric } from './BaseMetric';
+import { AreaSeries, BarSeries, LineSeries } from './series';
 import { DateFormat } from '@/components/date-format/date-format';
 import {
   ChartContainer,

@@ -6,9 +6,13 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartTooltipContent } from '@/components/ui/chart';
-import { MetricChart } from '@/modules/metrics/components/MetricChart';
-import { MetricsControls } from '@/modules/metrics/components/controls';
-import { MetricsProvider, useMetrics } from '@/modules/metrics/context';
+import {
+  MetricCard,
+  MetricChart,
+  MetricsControls,
+  MetricsProvider,
+  useMetrics,
+} from '@/modules/metrics';
 import { Activity } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -46,6 +50,12 @@ function DashboardContent() {
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <MetricCard
+            title="Domain Verification Attempt"
+            query="avg(datum_cloud_networking_domain_status_next_verification_attempt{})"
+            metricFormat="number"
+            showTrend={true}
+          />
           {/* Domain Verification Chart */}
           <MetricChart
             query="sum(rate(vector_adaptive_concurrency_limit_sum{}[$__rate_interval]))/sum(rate(vector_adaptive_concurrency_limit_count{}[$__rate_interval]))"

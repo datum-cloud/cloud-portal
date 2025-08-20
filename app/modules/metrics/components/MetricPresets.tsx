@@ -3,7 +3,7 @@ import { MetricCard, type MetricCardProps } from './MetricCard';
 /**
  * Preset metric cards for common use cases
  */
-export const MetricCards = {
+export const MetricPresets = {
   /**
    * CPU Usage percentage card
    */

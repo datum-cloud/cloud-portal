@@ -91,9 +91,14 @@ export default [
             { id: 'httpproxy-detail' },
             [
               index('routes/project/detail/edge/httpproxy/detail/index.tsx'),
-              route('overview', 'routes/project/detail/edge/httpproxy/detail/overview.tsx'),
-              route('edit', 'routes/project/detail/edge/httpproxy/detail/edit.tsx'),
               route('grafana', 'routes/project/detail/edge/httpproxy/detail/grafana.tsx'),
+              route('edit', 'routes/project/detail/edge/httpproxy/detail/edit.tsx'),
+
+              route('', 'routes/project/detail/edge/httpproxy/detail/tabs/layout.tsx', [
+                // Tabs Layout
+                route('overview', 'routes/project/detail/edge/httpproxy/detail/tabs/overview.tsx'),
+                route('metrics', 'routes/project/detail/edge/httpproxy/detail/tabs/metrics.tsx'),
+              ]),
             ]
           ),
         ]),

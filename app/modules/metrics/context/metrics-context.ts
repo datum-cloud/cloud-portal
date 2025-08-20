@@ -19,6 +19,4 @@ export interface MetricsContextType {
   // Refresh state
   refreshInterval: string;
   setRefreshInterval: (value: string) => void;
-  lastRefreshed: Date | null;
-  refetch: () => void;
 }
