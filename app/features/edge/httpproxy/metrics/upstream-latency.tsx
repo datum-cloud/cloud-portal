@@ -13,8 +13,8 @@ export const HttpProxyUpstreamLatency = ({
   const { timeRange, step } = useMetrics();
 
   const query = useMemo(() => {
-    return `histogram_quantile(0.99, sum(rate(envoy_vhost_vcluster_upstream_rq_time_bucket{resourcemanager_datumapis_com_project_name="${projectId}", label_topology_kubernetes_io_region!="", gateway_namespace="default", gateway_name="${proxyId}"}[5m])) by (le, namespace))`;
-  }, [projectId, proxyId]);
+    return `histogram_quantile(0.99, sum(rate(envoy_vhost_vcluster_upstream_rq_time_bucket{resourcemanager_datumapis_com_project_name="${projectId}", label_topology_kubernetes_io_region!="", gateway_namespace="default", gateway_name="${proxyId}"}[${step}])) by (le, namespace))`;
+  }, [projectId, proxyId, step]);
 
   return (
     <MetricChart

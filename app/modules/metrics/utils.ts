@@ -2,7 +2,7 @@
  * Time utility functions shared across the Metrics module
  */
 import type { TimeRange } from '@/modules/prometheus';
-import { parseISO } from 'date-fns';
+import { parseISO, subDays, subHours, subMinutes } from 'date-fns';
 
 /**
  * Parse a Prometheus-like duration (e.g., 5s, 10m, 3h, 7d, 1w) into milliseconds.
@@ -54,4 +54,29 @@ export function parseRange(rangeStr: string): TimeRange {
   const end = new Date();
   const start = new Date(end.getTime() - 6 * 60 * 60 * 1000);
   return { start, end } satisfies TimeRange;
+}
+
+/**
+ * Convert a preset value (e.g., 'now-1h', 'now-30m') to a date range for display purposes.
+ * Returns an object with from and to Date objects.
+ */
+export function getPresetDateRange(presetValue: string): { from: Date; to: Date } {
+  const now = new Date();
+  const value = presetValue.replace('now-', '');
+  let start: Date;
+
+  if (value.endsWith('m')) {
+    const minutes = parseInt(value.replace('m', ''));
+    start = subMinutes(now, minutes);
+  } else if (value.endsWith('h')) {
+    const hours = parseInt(value.replace('h', ''));
+    start = subHours(now, hours);
+  } else if (value.endsWith('d')) {
+    const days = parseInt(value.replace('d', ''));
+    start = subDays(now, days);
+  } else {
+    start = subHours(now, 1); // fallback
+  }
+
+  return { from: start, to: now };
 }

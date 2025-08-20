@@ -3,6 +3,7 @@
 import { MetricsContext } from './use-metrics';
 import { parseRange } from '@/modules/metrics/utils';
 import type { TimeRange } from '@/modules/prometheus';
+import { useQueryClient } from '@tanstack/react-query';
 import { useQueryState, parseAsString } from 'nuqs';
 import React from 'react';
 
@@ -15,6 +16,8 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
   );
 
   const timeRange: TimeRange = React.useMemo(() => parseRange(range), [range]);
+
+  const queryClient = useQueryClient();
 
   const value = {
     range,
@@ -29,6 +32,9 @@ export function MetricsProvider({ children }: { children: React.ReactNode }) {
     refreshInterval,
     setRefreshInterval: (v: string) => {
       void setRefreshInterval(v);
+    },
+    refresh: () => {
+      void queryClient.invalidateQueries({ queryKey: ['prometheus-api'] });
     },
   };
 

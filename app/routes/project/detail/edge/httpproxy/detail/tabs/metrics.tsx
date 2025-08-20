@@ -2,11 +2,12 @@ import { HttpProxyUpstreamLatency } from '@/features/edge/httpproxy/metrics/upst
 import { HttpProxyUpstreamResponse } from '@/features/edge/httpproxy/metrics/upstream-response';
 import { HttpProxyUpstreamRps } from '@/features/edge/httpproxy/metrics/upstream-rps';
 import { MetricsControls, MetricsProvider } from '@/modules/metrics';
+import { useParams } from 'react-router';
 
 export default function HttpProxyMetrics() {
-  // const { projectId, proxyId } = useParams();
-  const projectId = 'jreese-test-5d2p7z';
-  const proxyId = 'httpproxy-sample-example-com';
+  const { projectId, proxyId } = useParams();
+  // const projectId = 'jreese-test-5d2p7z';
+  // const proxyId = 'httpproxy-sample-example-com';
   return (
     <MetricsProvider>
       <div className="flex flex-col gap-6">

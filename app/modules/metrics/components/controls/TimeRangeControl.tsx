@@ -3,11 +3,11 @@
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PRESET_RANGES } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context';
+import { getPresetDateRange } from '@/modules/metrics/utils';
 import { cn } from '@/utils/common';
-import { endOfDay, format, parseISO, startOfDay } from 'date-fns';
+import { endOfDay, format, parseISO, startOfDay, subHours } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import React from 'react';
 import type { DateRange } from 'react-day-picker';
@@ -18,6 +18,7 @@ import type { DateRange } from 'react-day-picker';
 export function TimeRangeControl(): React.ReactElement {
   const { range, setRange } = useMetrics();
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
+  const [pendingDate, setPendingDate] = React.useState<DateRange | undefined>(undefined);
   const date: DateRange | undefined = React.useMemo<DateRange | undefined>(() => {
     if (range.includes('_')) {
       const [startStr, endStr] = range.split('_');
@@ -31,13 +32,23 @@ export function TimeRangeControl(): React.ReactElement {
   }, [range]);
 
   const handleDateSelect = (newDate: DateRange | undefined): void => {
-    if (newDate?.from && newDate?.to) {
-      const start = startOfDay(newDate.from);
-      const end = endOfDay(newDate.to);
+    // Store the pending date selection without applying it immediately
+    setPendingDate(newDate);
+  };
+
+  const handleApply = (): void => {
+    if (pendingDate?.from && pendingDate?.to) {
+      const start = startOfDay(pendingDate.from);
+      const end = endOfDay(pendingDate.to);
       const rangeString = `${start.toISOString()}_${end.toISOString()}`;
       setRange(rangeString);
       setIsOpen(false);
+      setPendingDate(undefined);
     }
+  };
+
+  const handleReset = (): void => {
+    setPendingDate(date); // Reset to current applied date
   };
 
   const handlePresetSelect = (preset: { value: string }): void => {
@@ -46,9 +57,27 @@ export function TimeRangeControl(): React.ReactElement {
   };
 
   const isPreset: boolean = range.startsWith('now-');
-  const displayLabel: string = isPreset
-    ? (PRESET_RANGES.find((p) => p.value === range)?.label ?? 'Custom')
-    : `${format(date?.from ?? new Date(), 'LLL dd, y')} - ${format(date?.to ?? new Date(), 'LLL dd, y')}`;
+
+  const displayLabel: string = React.useMemo(() => {
+    let dateRange: { from: Date; to: Date };
+
+    if (isPreset) {
+      dateRange = getPresetDateRange(range);
+    } else if (date?.from && date?.to) {
+      dateRange = { from: date.from, to: date.to };
+    } else {
+      // Fallback to current preset or default
+      const currentPreset = PRESET_RANGES.find((p) => p.value === range);
+      if (currentPreset) {
+        dateRange = getPresetDateRange(range);
+      } else {
+        const now = new Date();
+        dateRange = { from: subHours(now, 1), to: now };
+      }
+    }
+
+    return `${format(dateRange.from, 'MMM dd, yyyy HH:mm')} - ${format(dateRange.to, 'MMM dd, yyyy HH:mm')}`;
+  }, [range, date, isPreset]);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -57,7 +86,7 @@ export function TimeRangeControl(): React.ReactElement {
           id="date"
           variant={'outline'}
           className={cn(
-            'w-[200px] justify-start text-left font-normal',
+            'min-w-60 justify-start text-left font-normal',
             !date && 'text-muted-foreground'
           )}>
           <CalendarIcon className="mr-2 h-4 w-4" />
@@ -65,34 +94,53 @@ export function TimeRangeControl(): React.ReactElement {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
-        <Tabs defaultValue={isPreset ? 'presets' : 'custom'}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="presets">Relative</TabsTrigger>
-            <TabsTrigger value="custom">Absolute</TabsTrigger>
-          </TabsList>
-          <TabsContent value="presets">
-            <div className="grid grid-cols-2 gap-2 p-4">
+        <div className="flex">
+          {/* Presets Section */}
+          <div className="border-border border-r p-4 pr-6">
+            <div className="mb-3">
+              <h4 className="text-sm font-medium">Quick Ranges</h4>
+            </div>
+            <div className="grid min-w-[120px] grid-cols-1 gap-2">
               {PRESET_RANGES.map((preset) => (
                 <Button
                   key={preset.value}
+                  size="sm"
                   variant={range === preset.value ? 'default' : 'ghost'}
+                  className="justify-start"
                   onClick={(): void => handlePresetSelect(preset)}>
                   {preset.label}
                 </Button>
               ))}
             </div>
-          </TabsContent>
-          <TabsContent value="custom">
+          </div>
+
+          {/* Calendar Section */}
+          <div className="p-4">
+            <div className="mb-3">
+              <h4 className="text-sm font-medium">Custom Range</h4>
+            </div>
             <Calendar
-              initialFocus
+              animate
               mode="range"
               defaultMonth={date?.from}
-              selected={date}
+              selected={pendingDate || date}
               onSelect={handleDateSelect}
               numberOfMonths={2}
+              className="rounded-md border-0"
             />
-          </TabsContent>
-        </Tabs>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button size="sm" variant="outline" onClick={handleReset}>
+                Reset
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleApply}
+                disabled={!pendingDate?.from || !pendingDate?.to}>
+                Apply
+              </Button>
+            </div>
+          </div>
+        </div>
       </PopoverContent>
     </Popover>
   );

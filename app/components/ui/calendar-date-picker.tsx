@@ -62,6 +62,13 @@ const multiSelectVariants = cva(
   }
 );
 
+export interface DateRangePreset {
+  key: string;
+  label: string;
+  start: Date;
+  end: Date;
+}
+
 interface CalendarDatePickerProps
   extends React.HTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof multiSelectVariants> {
@@ -74,6 +81,7 @@ interface CalendarDatePickerProps
   onDateSelect: (range: { from: Date; to: Date } | undefined) => void;
   placeholder?: string;
   excludePresets?: string[];
+  customPresets?: DateRangePreset[]; // Custom presets to use instead of default ones
   // Date range constraints
   minDate?: Date;
   maxDate?: Date;
@@ -95,6 +103,7 @@ export const CalendarDatePicker = React.forwardRef<HTMLButtonElement, CalendarDa
       variant,
       placeholder,
       excludePresets,
+      customPresets,
       minDate,
       maxDate,
       disableFuture = false,
@@ -408,13 +417,8 @@ export const CalendarDatePicker = React.forwardRef<HTMLButtonElement, CalendarDa
       (_, i) => today.getFullYear() - yearsRange / 2 + i
     );
 
-    // All available date range presets
-    const allDateRangePresets: Array<{
-      key: string;
-      label: string;
-      start: Date;
-      end: Date;
-    }> = [
+    // Default date range presets
+    const defaultDateRangePresets: DateRangePreset[] = [
       { key: 'today', label: 'Today', start: today, end: today },
       { key: 'yesterday', label: 'Yesterday', start: subDays(today, 1), end: subDays(today, 1) },
       {
@@ -460,6 +464,9 @@ export const CalendarDatePicker = React.forwardRef<HTMLButtonElement, CalendarDa
         end: endOfYear(subDays(today, 365)),
       },
     ];
+
+    // Use custom presets if provided, otherwise use default presets
+    const allDateRangePresets = customPresets || defaultDateRangePresets;
 
     // Filter presets based on date constraints and excludePresets
     const dateRanges = React.useMemo(() => {

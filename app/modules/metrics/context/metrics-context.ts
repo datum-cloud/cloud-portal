@@ -19,4 +19,5 @@ export interface MetricsContextType {
   // Refresh state
   refreshInterval: string;
   setRefreshInterval: (value: string) => void;
+  refresh: () => void;
 }
