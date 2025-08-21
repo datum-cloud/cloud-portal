@@ -1,65 +1,37 @@
-# Metrics Integration Module
+# MetricsPanel Module
 
-This module provides the project-specific UI components and React hooks for displaying Prometheus metrics within the Cloud Portal application. It acts as the client-side consumer for the backend-for-frontend (BFF) API route located at `/api/prometheus`.
+A modern, flexible, and reusable metrics dashboard system with dynamic filter state management and auto-integrated charts.
 
-## Purpose
-
-This module's primary responsibility is to separate the application-specific integration logic from the core, reusable Prometheus library (`/app/modules/prometheus`). It should not contain any direct calls to the Prometheus server. Instead, all data fetching is handled through hooks that query our internal API.
-
-This approach provides several benefits:
-
-- **Security**: The Prometheus endpoint is not exposed to the client.
-- **Centralization**: Query logic and authentication are managed in one place (the API route).
-- **Reusability**: The core `prometheus` library remains generic and can be used in other projects.
-
-## Usage
-
-Prefer imports from the top-level barrel `@/modules/metrics`. All data access goes through the `/api/prometheus` route (BFF), not directly to Prometheus.
-
-### Quick start
+## 🚀 Quick Start
 
 ```tsx
-import {
-  MetricsProvider,
-  MetricsControls,
-  MetricChart,
-  MetricCard,
-  useMetrics,
-} from '@/modules/metrics';
-import React from 'react';
+import { MetricsPanel } from '@/modules/metrics';
 
-export default function MetricsDashboard(): React.ReactElement {
+function Dashboard() {
   return (
-    <MetricsProvider>
-      <div className="space-y-4">
-        <ControlsAndCharts />
-      </div>
-    </MetricsProvider>
-  );
-}
+    <MetricsPanel onFiltersChange={(filters) => console.log(filters)}>
+      <MetricsPanel.Controls>
+        <MetricsPanel.TimeRange />
+        <MetricsPanel.Step />
+        <MetricsPanel.Refresh />
+      </MetricsPanel.Controls>
 
-function ControlsAndCharts(): React.ReactElement {
-  const { timeRange, step } = useMetrics();
-  return (
-    <>
-      <MetricsControls />
-      <MetricChart
-        title="CPU Usage Over Time"
-        query="rate(cpu_usage_total[5m])"
-        timeRange={timeRange}
-        step={step}
-        chartType="area"
-        height={300}
-      />
-      <MetricCard
-        title="Average CPU Load"
-        query="avg(cpu_usage_percent)"
-        metricFormat="percentage"
-      />
-    </>
+      <MetricsPanel.Chart query="cpu_usage" title="CPU Usage" />
+    </MetricsPanel>
   );
 }
 ```
+
+## ✨ Key Features
+
+- **🧩 Compound Component Pattern** - Clean, intuitive API with subcomponents
+- **🔄 Dynamic Filter State** - Flexible filter system supporting custom controls
+- **🔗 Auto-Integration** - Charts automatically consume filter state
+- **📊 URL Persistence** - All filter state persists in URL using nuqs
+- **⚡ Performance Optimized** - Throttled updates and efficient re-renders
+- **🎨 Flexible Layouts** - Multiple control variants and grid systems
+- **🔧 Extensible** - Easy to add custom controls and queries
+- **📱 Responsive** - Works on all screen sizes
 
 ### Hooks
 

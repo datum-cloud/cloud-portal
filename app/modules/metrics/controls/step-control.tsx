@@ -1,5 +1,6 @@
 'use client';
 
+import { useMetricsControl } from '../panel/hooks';
 import {
   Select,
   SelectContent,
@@ -8,16 +9,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { STEP_OPTIONS } from '@/modules/metrics/constants';
-import { useMetrics } from '@/modules/metrics/context';
 import React from 'react';
 
 /**
- * Dropdown to select query step resolution for charts.
+ * Step control for selecting query resolution
  */
 export function StepControl(): React.ReactElement {
-  const { step, setStep } = useMetrics();
+  const { value: step, setValue: setStep } = useMetricsControl<string>('step');
+
+  const currentStep = step || '1m';
+
   return (
-    <Select value={step} onValueChange={setStep}>
+    <Select value={currentStep} onValueChange={setStep}>
       <SelectTrigger className="w-[180px]">
         <SelectValue placeholder="Select step" />
       </SelectTrigger>

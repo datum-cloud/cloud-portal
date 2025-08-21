@@ -1,10 +1,10 @@
 'use client';
 
+import { useMetricsControl } from '../panel/hooks';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PRESET_RANGES } from '@/modules/metrics/constants';
-import { useMetrics } from '@/modules/metrics/context';
 import { getPresetDateRange } from '@/modules/metrics/utils';
 import { cn } from '@/utils/common';
 import { endOfDay, format, parseISO, startOfDay, subHours } from 'date-fns';
@@ -13,15 +13,18 @@ import React from 'react';
 import type { DateRange } from 'react-day-picker';
 
 /**
- * Control to pick a time range using relative presets or absolute dates.
+ * Time range control with preset options and custom date picker
  */
 export function TimeRangeControl(): React.ReactElement {
-  const { range, setRange } = useMetrics();
+  const { value: range, setValue: setRange } = useMetricsControl<string>('range');
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
   const [pendingDate, setPendingDate] = React.useState<DateRange | undefined>(undefined);
+
+  const currentRange = range || 'now-6h';
+
   const date: DateRange | undefined = React.useMemo<DateRange | undefined>(() => {
-    if (range.includes('_')) {
-      const [startStr, endStr] = range.split('_');
+    if (currentRange.includes('_')) {
+      const [startStr, endStr] = currentRange.split('_');
       const start = parseISO(startStr);
       const end = parseISO(endStr);
       if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
@@ -29,10 +32,9 @@ export function TimeRangeControl(): React.ReactElement {
       }
     }
     return undefined;
-  }, [range]);
+  }, [currentRange]);
 
   const handleDateSelect = (newDate: DateRange | undefined): void => {
-    // Store the pending date selection without applying it immediately
     setPendingDate(newDate);
   };
 
@@ -48,7 +50,7 @@ export function TimeRangeControl(): React.ReactElement {
   };
 
   const handleReset = (): void => {
-    setPendingDate(date); // Reset to current applied date
+    setPendingDate(date);
   };
 
   const handlePresetSelect = (preset: { value: string }): void => {
@@ -56,34 +58,33 @@ export function TimeRangeControl(): React.ReactElement {
     setIsOpen(false);
   };
 
-  const isPreset: boolean = range.startsWith('now-');
+  const isPreset: boolean = currentRange.startsWith('now-');
 
   const displayLabel: string = React.useMemo(() => {
     let dateRange: { from: Date; to: Date };
 
     if (isPreset) {
-      dateRange = getPresetDateRange(range);
+      dateRange = getPresetDateRange(currentRange);
     } else if (date?.from && date?.to) {
       dateRange = { from: date.from, to: date.to };
     } else {
-      // Fallback to current preset or default
-      const currentPreset = PRESET_RANGES.find((p) => p.value === range);
+      const currentPreset = PRESET_RANGES.find((p) => p.value === currentRange);
       if (currentPreset) {
-        dateRange = getPresetDateRange(range);
+        dateRange = getPresetDateRange(currentRange);
       } else {
         const now = new Date();
-        dateRange = { from: subHours(now, 1), to: now };
+        dateRange = { from: subHours(now, 6), to: now };
       }
     }
 
     return `${format(dateRange.from, 'MMM dd, yyyy HH:mm')} - ${format(dateRange.to, 'MMM dd, yyyy HH:mm')}`;
-  }, [range, date, isPreset]);
+  }, [currentRange, date, isPreset]);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
-          id="date"
+          id="time-range"
           variant={'outline'}
           className={cn(
             'min-w-60 justify-start text-left font-normal',
@@ -105,7 +106,7 @@ export function TimeRangeControl(): React.ReactElement {
                 <Button
                   key={preset.value}
                   size="sm"
-                  variant={range === preset.value ? 'default' : 'ghost'}
+                  variant={currentRange === preset.value ? 'default' : 'ghost'}
                   className="justify-start"
                   onClick={(): void => handlePresetSelect(preset)}>
                   {preset.label}

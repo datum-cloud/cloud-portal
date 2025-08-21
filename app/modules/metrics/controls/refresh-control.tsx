@@ -1,7 +1,7 @@
 'use client';
 
-import { useMetrics } from '../../context';
-import { parseDurationToMs } from '../../utils';
+import { useMetricsControl } from '../panel/hooks';
+import { useMetricsPanel } from '../panel/hooks';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -12,19 +12,24 @@ import {
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { REFRESH_OPTIONS } from '@/modules/metrics/constants';
+import { parseDurationToMs } from '@/modules/metrics/utils';
 import { RefreshCw } from 'lucide-react';
 import React from 'react';
 
 /**
- * Control for manual refresh and automatic refresh interval.
+ * Refresh control for manual refresh and auto-refresh intervals
  */
 export function RefreshControl(): React.JSX.Element {
-  const { refreshInterval, setRefreshInterval, refresh } = useMetrics();
+  const { value: refreshInterval, setValue: setRefreshInterval } =
+    useMetricsControl<string>('refreshInterval');
+  const { refresh } = useMetricsPanel();
   const [isManualRefreshing, setIsManualRefreshing] = React.useState(false);
   const [isAutoRefreshing, setIsAutoRefreshing] = React.useState(false);
 
+  const currentRefreshInterval = refreshInterval || 'off';
+
   React.useEffect(() => {
-    if (refreshInterval === 'off') {
+    if (currentRefreshInterval === 'off') {
       setIsAutoRefreshing(false);
       return;
     }
@@ -33,13 +38,14 @@ export function RefreshControl(): React.JSX.Element {
     const interval = setInterval(
       () => {
         setIsAutoRefreshing(false);
+        refresh();
         setTimeout(() => setIsAutoRefreshing(true), 100);
       },
-      parseDurationToMs(refreshInterval) ?? 30000
+      parseDurationToMs(currentRefreshInterval) ?? 30000
     );
 
     return () => clearInterval(interval);
-  }, [refreshInterval]);
+  }, [currentRefreshInterval, refresh]);
 
   const handleManualRefresh = (): void => {
     setIsManualRefreshing(true);
@@ -51,8 +57,8 @@ export function RefreshControl(): React.JSX.Element {
     if (isManualRefreshing) {
       return 'Refreshing metrics...';
     }
-    if (isAutoRefreshing && refreshInterval !== 'off') {
-      return `Auto-refreshing every ${refreshInterval}`;
+    if (isAutoRefreshing && currentRefreshInterval !== 'off') {
+      return `Auto-refreshing every ${currentRefreshInterval}`;
     }
     return 'Refresh metrics manually';
   };
@@ -81,7 +87,7 @@ export function RefreshControl(): React.JSX.Element {
       </TooltipProvider>
 
       {/* Auto Refresh Interval Dropdown */}
-      <Select value={refreshInterval} onValueChange={setRefreshInterval}>
+      <Select value={currentRefreshInterval} onValueChange={setRefreshInterval}>
         <SelectTrigger className="min-w-20 rounded-l-none border-0 focus:ring-0">
           <SelectValue placeholder="Auto refresh" />
         </SelectTrigger>
