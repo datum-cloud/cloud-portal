@@ -12,6 +12,9 @@ export default [
   layout('layouts/private.layout.tsx', [
     index('routes/index.tsx'),
 
+    // Dashboard Playground
+    route('dashboard', 'routes/dashboard.tsx'),
+
     // Account
     route('account', 'routes/account/layout.tsx', [
       index('routes/account/index.tsx'),
@@ -88,9 +91,14 @@ export default [
             { id: 'httpproxy-detail' },
             [
               index('routes/project/detail/edge/httpproxy/detail/index.tsx'),
-              route('overview', 'routes/project/detail/edge/httpproxy/detail/overview.tsx'),
-              route('edit', 'routes/project/detail/edge/httpproxy/detail/edit.tsx'),
               route('grafana', 'routes/project/detail/edge/httpproxy/detail/grafana.tsx'),
+              route('edit', 'routes/project/detail/edge/httpproxy/detail/edit.tsx'),
+
+              route('', 'routes/project/detail/edge/httpproxy/detail/tabs/layout.tsx', [
+                // Tabs Layout
+                route('overview', 'routes/project/detail/edge/httpproxy/detail/tabs/overview.tsx'),
+                route('metrics', 'routes/project/detail/edge/httpproxy/detail/tabs/metrics.tsx'),
+              ]),
             ]
           ),
         ]),
@@ -169,11 +177,15 @@ export default [
       // Activities
       route('activity', 'routes/api/activity/index.ts'),
 
+      // Third-party APIs
       // Cloud Validations
       route('cloudvalid/dns', 'routes/api/cloudvalid/dns.ts'),
 
       // Telemetry
       route('telemetry/grafana', 'routes/api/telemetry/grafana.ts'),
+
+      // Prometheus
+      route('prometheus', 'routes/api/prometheus/index.ts'),
     ]),
   ]),
 

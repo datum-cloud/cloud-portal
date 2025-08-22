@@ -46,6 +46,8 @@ spec:
               value: https://cloud.datum.net
             - name: TELEMETRY_URL
               value: https://loki-single-binary.telemetry-system.svc.cluster.local:3100
+            - name: PROMETHEUS_URL
+              value: http://vmsingle-datum-resource-metrics.datum-system.svc.cluster.local:8429
           envFrom:
             - secretRef:
                 name: cloud-portal

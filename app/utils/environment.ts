@@ -23,6 +23,7 @@ const schema = z.object({
   FATHOM_ID: z.string().optional(),
 
   TELEMETRY_URL: z.string().optional(),
+  PROMETHEUS_URL: z.string().optional(),
 });
 
 declare global {
@@ -67,6 +68,7 @@ export function getSharedEnvs() {
     API_URL: process.env.API_URL,
     FATHOM_ID: process.env.FATHOM_ID,
     TELEMETRY_URL: process.env.TELEMETRY_URL,
+    PROMETHEUS_URL: process.env.PROMETHEUS_URL,
   };
 }
 
