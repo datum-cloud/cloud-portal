@@ -8,7 +8,7 @@ import { useLocation } from 'react-router';
 export default function TabsLayout({
   children,
   className,
-  containerClassName = 'w-full max-w-5xl',
+  containerClassName = '',
   tabsTitle,
   navItems,
 }: TabsProps) {
@@ -25,7 +25,7 @@ export default function TabsLayout({
         className
       )}>
       {tabsTitle && (
-        <div className={cn('mx-auto px-5', containerClassName)}>
+        <div className={cn('mx-auto w-full max-w-5xl px-5', containerClassName)}>
           <PageTitle
             title={tabsTitle.title}
             description={tabsTitle.description}
@@ -37,7 +37,7 @@ export default function TabsLayout({
 
       <div className="relative">
         <div className="absolute inset-x-0 bottom-0 z-10 border-b" />
-        <div className={cn('mx-auto px-5', containerClassName)}>
+        <div className={cn('mx-auto w-full max-w-5xl px-5', containerClassName)}>
           <Tabs value={activeTab}>
             <TabsList className="bg-background flex w-full justify-start rounded-none p-0">
               {(navItems ?? []).map((nav) => (
@@ -60,7 +60,7 @@ export default function TabsLayout({
         </div>
       </div>
 
-      <div className={cn('mx-auto h-full px-5 pt-2', containerClassName)}>
+      <div className={cn('mx-auto h-full w-full max-w-5xl px-5 pt-2', containerClassName)}>
         <div className="flex h-full flex-1 flex-col">{children}</div>
       </div>
     </div>

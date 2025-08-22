@@ -1,4 +1,5 @@
 import { Field } from '@/components/field/field';
+import { InputName } from '@/components/input-name/input-name';
 import { SelectOrganization } from '@/components/select-organization/select-organization';
 import { Button } from '@/components/ui/button';
 import {
@@ -110,28 +111,11 @@ export const CreateProjectForm = () => {
               {...getInputProps(description, { type: 'text' })}
             />
           </Field>
-          <Field
-            isRequired
-            label="Name"
-            description="A namespace-unique stable identifier for your project. This cannot be changed once the project is created"
-            errors={name.errors}>
-            <Input
-              placeholder="e.g. my-project-343j33"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const value = (e.target as HTMLInputElement).value;
-                nameControl.change(value);
-              }}
-              onBlur={(e: React.FormEvent<HTMLInputElement>) => {
-                const value = (e.target as HTMLInputElement).value;
-                if (value.length === 0) {
-                  nameControl.change(
-                    generateId(description.value ?? '', { randomText: randomSuffix })
-                  );
-                }
-              }}
-              {...getInputProps(name, { type: 'text' })}
-            />
-          </Field>
+          <InputName
+            required
+            description="This unique resource name will be used to identify your project and cannot be changed."
+            field={name}
+          />
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
           <Button

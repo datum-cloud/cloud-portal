@@ -40,7 +40,7 @@ export const FieldLabel = ({
           <TooltipTrigger asChild>
             <CircleHelp
               className={cn(
-                'text-foreground fill-background absolute -top-0 -right-3 size-3.5 cursor-pointer transition-opacity duration-400',
+                'text-muted-foreground absolute -top-0 -right-3 size-3.5 cursor-pointer transition-opacity duration-400',
                 isHovering || isTooltipVisible ? 'opacity-100' : 'opacity-0'
               )}
             />

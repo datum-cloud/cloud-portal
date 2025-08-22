@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const createNameSchema = (fieldName = 'Name') =>
+export const createNameSchema = (fieldName = 'Resource name') =>
   z
     .string({ required_error: `${fieldName} is required.` })
     .min(1, { message: `${fieldName} is required.` })

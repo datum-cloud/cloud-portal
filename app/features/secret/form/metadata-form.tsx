@@ -1,5 +1,5 @@
 import { Field } from '@/components/field/field';
-import { Input } from '@/components/ui/input';
+import { InputName } from '@/components/input-name/input-name';
 import {
   Select,
   SelectContent,
@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/select';
 import { SECRET_TYPES } from '@/features/secret/constants';
 import { SecretBaseSchema } from '@/resources/schemas/secret.schema';
-import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { getSelectProps, useForm, useInputControl } from '@conform-to/react';
 import { useEffect, useRef } from 'react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 
@@ -47,24 +47,15 @@ export const SecretMetadataForm = ({
   return (
     <div className="space-y-4">
       <div className="flex items-start gap-4">
-        <Field
+        <InputName
+          required
+          description="This unique resource name will be used to identify your secret and cannot be changed."
+          readOnly={isEdit}
+          field={fields.name}
+          autoGenerate={false}
+          inputRef={isEdit ? undefined : inputRef}
           className="w-1/2"
-          isRequired
-          label="Name"
-          description="A namespace-unique stable identifier for your secret. This cannot be changed once the secret is created"
-          errors={fields.name.errors}>
-          <Input
-            {...getInputProps(fields.name, { type: 'text' })}
-            readOnly={isEdit}
-            key={fields.name.id}
-            ref={isEdit ? undefined : inputRef}
-            placeholder="e.g. my-secret-3sd122"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value;
-              nameControl.change(value);
-            }}
-          />
-        </Field>
+        />
         <Field isRequired label="Type" errors={fields.type.errors} className="w-1/2">
           <Select
             {...getSelectProps(fields.type)}
