@@ -1,5 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
+import { InputName } from '@/components/input-name/input-name';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -120,19 +121,14 @@ export const HttpProxyForm = ({
           className="flex flex-col gap-6">
           <AuthenticityTokenInput />
           <CardContent className="space-y-4">
-            <Field
-              isRequired
-              label="Proxy Name"
-              description="This name will be used to identify your HTTPProxy resource"
-              errors={fields.name.errors}>
-              <Input
-                {...getInputProps(fields.name, { type: 'text' })}
-                readOnly={isEdit}
-                ref={isEdit ? undefined : inputRef}
-                key={fields.name.id}
-                placeholder="e.g. api-example-com-3sd122"
-              />
-            </Field>
+            <InputName
+              description="This unique resource name will be used to identify your HTTPProxy resource and cannot be changed."
+              readOnly={isEdit}
+              required={true}
+              field={fields.name}
+              autoGenerate={false}
+              inputRef={isEdit ? undefined : inputRef}
+            />
             <Field
               isRequired
               label="Backend Endpoint"

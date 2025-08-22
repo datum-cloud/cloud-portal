@@ -1,5 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
+import { InputName } from '@/components/input-name/input-name';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -123,29 +124,23 @@ export const DomainForm = ({
           <CardContent className="space-y-4">
             <Field
               isRequired
-              label="Name"
-              description="This name will be used to identify your Domain resource"
-              errors={fields.name.errors}>
-              <Input
-                {...getInputProps(fields.name, { type: 'text' })}
-                readOnly={isEdit}
-                ref={isEdit ? undefined : inputRef}
-                key={fields.name.id}
-                placeholder="e.g. example-com-3sd122"
-              />
-            </Field>
-            <Field
-              isRequired
               label="Domain"
               description="Enter the domain where your service is running"
               errors={fields.domain.errors}>
               <Input
                 {...getInputProps(fields.domain, { type: 'text' })}
                 key={fields.domain.id}
-                ref={isEdit ? inputRef : undefined}
+                ref={inputRef}
                 placeholder="e.g. example.com"
               />
             </Field>
+            <InputName
+              description="This unique resource name will be used to identify your domain resource and cannot be changed."
+              readOnly={isEdit}
+              required={true}
+              field={fields.name}
+              baseName={fields.domain.value}
+            />
           </CardContent>
           <CardFooter className="flex justify-between gap-2">
             {isEdit ? (

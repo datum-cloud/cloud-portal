@@ -66,7 +66,7 @@ export const ProjectGeneralCard = ({ project }: { project: IProjectControlRespon
                   {...getInputProps(fields.description, { type: 'text' })}
                 />
               </Field>
-              <Field label="Name">
+              <Field label="Resource Name">
                 <TextCopyBox value={project?.name ?? ''} />
               </Field>
             </div>

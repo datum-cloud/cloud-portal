@@ -1,9 +1,9 @@
 import { Field } from '@/components/field/field';
+import { InputName } from '@/components/input-name/input-name';
 import { SelectAnnotations } from '@/components/select-annotations/select-annotations';
 import { SelectLabels } from '@/components/select-labels/select-labels';
-import { Input } from '@/components/ui/input';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
-import { getInputProps, useForm, useInputControl } from '@conform-to/react';
+import { useForm, useInputControl } from '@conform-to/react';
 import { useEffect, useRef } from 'react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 
@@ -37,23 +37,14 @@ export const MetadataForm = ({
 
   return (
     <div className="space-y-4">
-      <Field
-        isRequired
-        label="Name"
-        description="A namespace-unique stable identifier for your resource. This cannot be changed once the resource is created"
-        errors={fields.name.errors}>
-        <Input
-          {...getInputProps(fields.name, { type: 'text' })}
-          readOnly={isEdit}
-          key={fields.name.id}
-          ref={isEdit ? undefined : inputRef}
-          placeholder="e.g. my-name-3sd122"
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = (e.target as HTMLInputElement).value;
-            nameControl.change(value);
-          }}
-        />
-      </Field>
+      <InputName
+        required
+        description="This unique resource name will be used to identify your resource and cannot be changed."
+        readOnly={isEdit}
+        field={fields.name}
+        autoGenerate={false}
+        inputRef={isEdit ? undefined : inputRef}
+      />
       <Field
         label="Labels"
         errors={fields.labels.errors}
