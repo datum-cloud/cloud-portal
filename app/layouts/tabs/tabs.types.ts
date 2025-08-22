@@ -3,7 +3,7 @@ import { LucideIcon } from 'lucide-react';
 export interface TabsProps {
   children: React.ReactNode;
   className?: string;
-  widthClassName?: string;
+  containerClassName?: string;
   tabsTitle?: TabsTitleProps;
   navItems?: TabsNavProps[];
 }

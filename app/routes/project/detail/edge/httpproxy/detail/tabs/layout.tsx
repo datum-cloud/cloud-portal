@@ -71,6 +71,7 @@ export default function HttpProxyDetailLayout() {
 
   return (
     <TabsLayout
+      containerClassName="max-w-6xl"
       tabsTitle={{
         title: (httpProxy as IHttpProxyControlResponse)?.name ?? 'HTTPProxy',
         description: (
