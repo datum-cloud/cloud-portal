@@ -92,7 +92,7 @@
         "zod": "^3.25.36",
       },
       "devDependencies": {
-        "@hey-api/openapi-ts": "^0.80.2",
+        "@hey-api/openapi-ts": "^0.81.0",
         "@react-router/dev": "^7.7.1",
         "@react-router/remix-routes-option-adapter": "^7.7.1",
         "@testing-library/cypress": "^10.0.3",
@@ -309,7 +309,7 @@
 
     "@hey-api/json-schema-ref-parser": ["@hey-api/json-schema-ref-parser@1.0.6", "", { "dependencies": { "@jsdevtools/ono": "^7.1.3", "@types/json-schema": "^7.0.15", "js-yaml": "^4.1.0", "lodash": "^4.17.21" } }, "sha512-yktiFZoWPtEW8QKS65eqKwA5MTKp88CyiL8q72WynrBs/73SAaxlSWlA2zW/DZlywZ5hX1OYzrCC0wFdvO9c2w=="],
 
-    "@hey-api/openapi-ts": ["@hey-api/openapi-ts@0.80.2", "", { "dependencies": { "@hey-api/json-schema-ref-parser": "1.0.6", "ansi-colors": "4.1.3", "c12": "2.0.1", "color-support": "1.1.3", "commander": "13.0.0", "handlebars": "4.7.8", "open": "10.1.2", "semver": "7.7.2" }, "peerDependencies": { "typescript": "^5.5.3" }, "bin": { "openapi-ts": "bin/index.cjs" } }, "sha512-8Hjk6a4A9VZzi1jEj3TQ5QFuIuUXI9JNyayXH/+BwdDzivVRzJuGQ0bi9TQXQMDxfBEvl6U8K9FBxB4yJn/RIQ=="],
+    "@hey-api/openapi-ts": ["@hey-api/openapi-ts@0.81.1", "", { "dependencies": { "@hey-api/json-schema-ref-parser": "1.0.6", "ansi-colors": "4.1.3", "c12": "2.0.1", "color-support": "1.1.3", "commander": "13.0.0", "handlebars": "4.7.8", "js-yaml": "4.1.0", "open": "10.1.2", "semver": "7.7.2" }, "peerDependencies": { "typescript": "^5.5.3" }, "bin": { "openapi-ts": "bin/index.cjs" } }, "sha512-DdLEMbfQRMRDd+cOxG91G7Ro7vUUtt/zYlBGiYTahVO/4rn1HHnYl/WHL+to5I7CTX3sVVsVrxHWcJd0Fue7wg=="],
 
     "@humanfs/core": ["@humanfs/core@0.19.1", "", {}, "sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA=="],
 
