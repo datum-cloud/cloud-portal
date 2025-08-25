@@ -76,7 +76,7 @@ export default function OrgPreferencesPage() {
   const organization = useRouteLoaderData('org-detail');
 
   return (
-    <div className="mx-auto flex w-full flex-col gap-4">
+    <div className="mx-auto flex w-full flex-col gap-6">
       {/* General Settings */}
       <OrganizationGeneralCard organization={organization ?? {}} />
 

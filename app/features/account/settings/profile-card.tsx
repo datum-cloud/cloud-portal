@@ -1,22 +1,25 @@
 import { Field } from '@/components/field/field';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
 import { userSchema } from '@/resources/schemas/user.schema';
+import { ROUTE_PATH as USER_UPDATE_ACTION } from '@/routes/api/user';
 import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect } from 'react';
-import { useFetcher } from 'react-router';
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
+import { Form, useFetcher } from 'react-router';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { toast } from 'sonner';
 
 /**
- * Account General Settings Card Component
+ * Account Profile Settings Card Component
  * Displays and allows editing of general account settings
  */
-export const AccountGeneralCard = () => {
-  const { user } = useApp();
+export const AccountProfileSettingsCard = () => {
+  const { user, setUser } = useApp();
+  const csrf = useAuthenticityToken();
   const formId = 'account-form';
   const fetcher = useFetcher({ key: formId });
   const isPending = useIsPending({ formId, fetcherKey: formId });
@@ -28,6 +31,28 @@ export const AccountGeneralCard = () => {
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: userSchema });
+    },
+    onSubmit(event, { submission }) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      console.log(submission);
+
+      if (submission?.status === 'success') {
+        const value = submission.value;
+        const payload = {
+          firstName: value.firstName,
+          lastName: value.lastName,
+          email: value.email,
+          csrf: csrf as string,
+        };
+
+        fetcher.submit(payload, {
+          method: 'PATCH',
+          action: USER_UPDATE_ACTION,
+          encType: 'application/json',
+        });
+      }
     },
   });
 
@@ -44,17 +69,28 @@ export const AccountGeneralCard = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      if (fetcher.data?.success) {
+        toast.success('Your profile has been updated successfully.');
+        setUser(fetcher?.data?.data);
+      }
+    }
+  }, [fetcher.data, fetcher.state]);
+
   return (
     <Card>
+      <CardHeader>
+        <CardTitle>Profile Information</CardTitle>
+      </CardHeader>
       <FormProvider context={form.context}>
-        <fetcher.Form
+        <Form
+          {...getFormProps(form)}
+          id={formId}
           method="POST"
           autoComplete="off"
-          {...getFormProps(form)}
           className="flex flex-col gap-6">
           <CardContent>
-            <AuthenticityTokenInput />
-
             <div className="flex items-center gap-6">
               <Field
                 isRequired
@@ -76,14 +112,8 @@ export const AccountGeneralCard = () => {
                   {...getInputProps(fields.lastName, { type: 'text' })}
                 />
               </Field>
+              <input hidden {...getInputProps(fields.email, { type: 'text' })} />
             </div>
-            <Field label="Email" className="mt-6 w-full">
-              <Input
-                readOnly
-                placeholder="e.g. john.doe@example.com"
-                {...getInputProps(fields.email, { type: 'email' })}
-              />
-            </Field>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             <Button
@@ -94,7 +124,7 @@ export const AccountGeneralCard = () => {
               {isPending ? 'Saving' : 'Save'}
             </Button>
           </CardFooter>
-        </fetcher.Form>
+        </Form>
       </FormProvider>
     </Card>
   );

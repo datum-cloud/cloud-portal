@@ -1,5 +1,9 @@
 import { paths } from '@/config/paths';
-import { AccountGeneralCard } from '@/features/account/settings/general-card';
+import { AccountDangerSettingsCard } from '@/features/account/settings/danger-card';
+import { AccountIdentitySettingsCard } from '@/features/account/settings/indetity-card';
+import { AccountNewsletterSettingsCard } from '@/features/account/settings/newsletter-card';
+import { AccountPortalSettingsCard } from '@/features/account/settings/portal-card';
+import { AccountProfileSettingsCard } from '@/features/account/settings/profile-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { getSession } from '@/modules/cookie/session.server';
 import { dataWithToast } from '@/modules/cookie/toast.server';
@@ -23,7 +27,7 @@ export const handle = {
 };
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('AccountPreferences');
+  return metaObject('Account Preferences');
 });
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
@@ -75,5 +79,17 @@ export default function AccountPreferencesPage() {
     }
   }, [user]);
 
-  return <AccountGeneralCard />;
+  return (
+    <div className="mx-auto flex w-full flex-col gap-6">
+      <AccountProfileSettingsCard />
+
+      <AccountIdentitySettingsCard />
+
+      <AccountPortalSettingsCard />
+
+      <AccountNewsletterSettingsCard />
+
+      <AccountDangerSettingsCard />
+    </div>
+  );
 }
