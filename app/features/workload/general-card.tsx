@@ -2,11 +2,11 @@ import { WorkloadStatus } from './status';
 import { DateFormat } from '@/components/date-format/date-format';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
+import { TimeDistance } from '@/components/time-distance/time-distance';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
 import { getShortId } from '@/utils/text';
-import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
 
 export const WorkloadGeneralCard = ({ workload }: { workload: IWorkloadControlResponse }) => {
@@ -53,13 +53,7 @@ export const WorkloadGeneralCard = ({ workload }: { workload: IWorkloadControlRe
         content: (
           <div className="flex items-center gap-1">
             <DateFormat className="text-sm" date={workload?.createdAt ?? ''} />
-            <span className="text-sm">
-              (
-              {formatDistanceToNow(new Date(workload?.createdAt ?? ''), {
-                addSuffix: true,
-              })}
-              )
-            </span>
+            <TimeDistance date={workload?.createdAt ?? ''} className="text-sm" />
           </div>
         ),
       },

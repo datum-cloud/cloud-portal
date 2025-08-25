@@ -1,10 +1,11 @@
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
-import { IUser } from '@/resources/interfaces/user.interface';
+import { IUser, IUserPreferences } from '@/resources/interfaces/user.interface';
 import { ReactNode, createContext, useContext, useEffect, useState, useMemo } from 'react';
 
 interface AppContextType {
   user: IUser | undefined;
+  userPreferences: IUserPreferences | undefined;
   organization: IOrganization | undefined;
   project: IProjectControlResponse | undefined;
   orgId: string | undefined;
@@ -15,6 +16,7 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType>({
   user: undefined,
+  userPreferences: undefined,
   organization: undefined,
   project: undefined,
   orgId: undefined,
@@ -42,10 +44,13 @@ export function AppProvider({ children, initialUser, initialOrganization }: AppP
     }
   }, [initialUser]);
 
+  const userPreferences = useMemo(() => user?.preferences, [user]);
+
   return (
     <AppContext.Provider
       value={{
         user,
+        userPreferences,
         organization,
         project,
         orgId: currentOrgId,

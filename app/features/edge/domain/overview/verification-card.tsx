@@ -1,8 +1,8 @@
 import { TextCopy } from '@/components/text-copy/text-copy';
+import { TimeDistance } from '@/components/time-distance/time-distance';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
-import { formatDistanceToNowStrict } from 'date-fns';
 
 export const DomainVerificationCard = ({ domain }: { domain: IDomainControlResponse }) => {
   const dnsRecord = domain.status?.verification?.dnsRecord;
@@ -18,11 +18,12 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
           {domain.status?.verification?.nextVerificationAttempt && (
             <>
               Next verification attempt{' '}
-              <span className="text-foreground font-semibold">
-                {formatDistanceToNowStrict(domain.status.verification.nextVerificationAttempt, {
-                  addSuffix: true,
-                })}
-              </span>
+              <TimeDistance
+                addSuffix
+                disableTimezone
+                date={domain.status.verification.nextVerificationAttempt}
+                className="text-foreground font-semibold"
+              />
             </>
           )}
           .

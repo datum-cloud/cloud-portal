@@ -2,11 +2,11 @@ import { ExportPolicyStatus } from './status';
 import { DateFormat } from '@/components/date-format/date-format';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
+import { TimeDistance } from '@/components/time-distance/time-distance';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { getShortId } from '@/utils/text';
-import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
 
 export const ExportPolicyGeneralCard = ({
@@ -59,13 +59,7 @@ export const ExportPolicyGeneralCard = ({
         content: (
           <div className="flex items-center gap-1">
             <DateFormat className="text-sm" date={exportPolicy?.createdAt ?? ''} />
-            <span className="text-sm">
-              (
-              {formatDistanceToNow(new Date(exportPolicy?.createdAt ?? ''), {
-                addSuffix: true,
-              })}
-              )
-            </span>
+            <TimeDistance date={exportPolicy?.createdAt ?? ''} className="text-sm" />
           </div>
         ),
       },

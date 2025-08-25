@@ -1,7 +1,6 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { ClientHintCheck } from '@/components/misc/ClientHints';
 import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary';
-import { ThemeSwitcher } from '@/components/theme-switcher/theme-switcher';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { getHints } from '@/hooks/useHints';
@@ -136,7 +135,7 @@ function Document({
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />
-        <ThemeSwitcher />
+        {/* <ThemeSwitcher /> */}
       </body>
     </html>
   );

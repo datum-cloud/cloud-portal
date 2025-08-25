@@ -1,3 +1,11 @@
+export type ThemeValue = 'dark' | 'light' | 'system';
+
+export interface IUserPreferences {
+  theme: ThemeValue;
+  timezone: string;
+  newsletter: boolean;
+}
+
 export interface IUser {
   sub?: string;
   email?: string;
@@ -7,4 +15,5 @@ export interface IUser {
   uid?: string;
   resourceVersion?: string;
   fullName?: string;
+  preferences?: IUserPreferences;
 }

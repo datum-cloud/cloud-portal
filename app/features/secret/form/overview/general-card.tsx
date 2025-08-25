@@ -1,9 +1,9 @@
 import { DateFormat } from '@/components/date-format/date-format';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
+import { TimeDistance } from '@/components/time-distance/time-distance';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
-import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
 
 export const SecretGeneralCard = ({ secret }: { secret: ISecretControlResponse }) => {
@@ -27,13 +27,7 @@ export const SecretGeneralCard = ({ secret }: { secret: ISecretControlResponse }
         content: (
           <div className="flex items-center gap-1">
             <DateFormat className="text-sm" date={secret?.createdAt ?? ''} />
-            <span className="text-sm">
-              (
-              {formatDistanceToNow(new Date(secret?.createdAt ?? ''), {
-                addSuffix: true,
-              })}
-              )
-            </span>
+            <TimeDistance date={secret?.createdAt ?? ''} className="text-sm" />
           </div>
         ),
       },

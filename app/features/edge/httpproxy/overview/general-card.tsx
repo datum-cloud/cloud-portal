@@ -2,10 +2,10 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { List, ListItem } from '@/components/list/list';
 import { StatusBadge } from '@/components/status-badge/status-badge';
 import { TextCopy } from '@/components/text-copy/text-copy';
+import { TimeDistance } from '@/components/time-distance/time-distance';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 
@@ -52,13 +52,7 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: IHttpProxyContr
         content: (
           <div className="flex items-center gap-1">
             <DateFormat className="text-sm" date={httpProxy?.createdAt ?? ''} />
-            <span className="text-sm">
-              (
-              {formatDistanceToNow(new Date(httpProxy?.createdAt ?? ''), {
-                addSuffix: true,
-              })}
-              )
-            </span>
+            <TimeDistance date={httpProxy?.createdAt ?? ''} className="text-sm" />
           </div>
         ),
       },

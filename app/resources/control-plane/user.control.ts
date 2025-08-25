@@ -1,6 +1,7 @@
-import { IUser } from '@/resources/interfaces/user.interface';
-import { UserSchema } from '@/resources/schemas/user.schema';
+import { IUser, IUserPreferences, ThemeValue } from '@/resources/interfaces/user.interface';
+import { UserPreferencesSchema, UserSchema } from '@/resources/schemas/user.schema';
 import { CustomError } from '@/utils/error';
+import { toBoolean } from '@/utils/text';
 import { Client } from '@hey-api/client-axios';
 
 export interface ComMiloapisIamV1Alpha1User {
@@ -12,6 +13,7 @@ export interface ComMiloapisIamV1Alpha1User {
     name: string;
     resourceVersion: string;
     uid: string;
+    annotations: Record<string, string>;
   };
   spec: {
     email: string;
@@ -24,6 +26,13 @@ export const createUserControl = (client: Client) => {
   const transform = (user: ComMiloapisIamV1Alpha1User): IUser => {
     const { metadata, spec } = user;
 
+    // TODO: temporary solution until the user preferences API can be accessed
+    const preferences: IUserPreferences = {
+      theme: (metadata?.annotations?.['preferences/theme'] ?? 'system') as ThemeValue,
+      timezone: metadata?.annotations?.['preferences/timezone'] ?? 'Etc/GMT',
+      newsletter: toBoolean(metadata?.annotations?.['preferences/newsletter']),
+    };
+
     return {
       sub: metadata?.name,
       email: spec?.email,
@@ -33,6 +42,7 @@ export const createUserControl = (client: Client) => {
       uid: metadata?.uid ?? '',
       resourceVersion: metadata?.resourceVersion ?? '',
       fullName: `${spec?.givenName} ${spec?.familyName}`,
+      preferences,
     };
   };
 
@@ -51,9 +61,12 @@ export const createUserControl = (client: Client) => {
     },
     update: async (userId: string, user: UserSchema): Promise<IUser> => {
       const response = await client.patch({
-        url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}?fieldManager=datum-cloud-portal`,
+        url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}`,
         headers: {
           'Content-Type': 'application/merge-patch+json',
+        },
+        query: {
+          fieldManager: 'datum-cloud-portal',
         },
         body: {
           apiVersion: 'iam.miloapis.com/v1alpha1',
@@ -63,6 +76,59 @@ export const createUserControl = (client: Client) => {
             givenName: user.firstName,
           },
         },
+        responseType: 'json',
+      });
+
+      if (!response.data) {
+        throw new CustomError(`User with ID ${userId} not found`, 404);
+      }
+
+      return transform(response.data as ComMiloapisIamV1Alpha1User);
+    },
+    delete: async (userId: string): Promise<IUser> => {
+      const response = await client.delete({
+        url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}`,
+        responseType: 'json',
+      });
+
+      if (!response.data) {
+        throw new CustomError(`User with ID ${userId} not found`, 404);
+      }
+
+      return transform(response.data as ComMiloapisIamV1Alpha1User);
+    },
+    updatePreferences: async (
+      userId: string,
+      preferences: UserPreferencesSchema
+    ): Promise<IUser> => {
+      const annotations: Record<string, string> = {};
+      if (preferences.theme) {
+        annotations['preferences/theme'] = preferences.theme;
+      }
+      if (preferences.timezone) {
+        annotations['preferences/timezone'] = preferences.timezone;
+      }
+      if (typeof preferences.newsletter === 'boolean') {
+        annotations['preferences/newsletter'] = String(preferences.newsletter);
+      }
+
+      const metadata = Object.keys(annotations).length > 0 ? { annotations } : undefined;
+
+      const body = {
+        apiVersion: 'iam.miloapis.com/v1alpha1',
+        kind: 'User',
+        ...(metadata ? { metadata } : {}),
+      };
+
+      const response = await client.patch({
+        url: `/apis/iam.miloapis.com/v1alpha1/users/${userId}`,
+        headers: {
+          'Content-Type': 'application/merge-patch+json',
+        },
+        query: {
+          fieldManager: 'datum-cloud-portal',
+        },
+        body,
         responseType: 'json',
       });
 
