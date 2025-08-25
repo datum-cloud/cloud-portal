@@ -142,7 +142,7 @@
     "prettier-plugin-tailwindcss": "^0.6.14",
     "remix-flat-routes": "^0.8.5",
     "start-server-and-test": "^2.0.13",
-    "tailwind-variants": "^2.1.0",
+    "tailwind-variants": "^3.0.0",
     "tailwindcss": "^4.1.11",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5.9.2",
