@@ -23,7 +23,10 @@ export default function OrgSettingsLayout() {
     [orgId]
   );
   return (
-    <TabsLayout tabsTitle={{ title: 'Organization Settings' }} navItems={navItems}>
+    <TabsLayout
+      tabsTitle={{ title: 'Organization Settings' }}
+      navItems={navItems}
+      containerClassName="max-w-3xl">
       <Outlet />
     </TabsLayout>
   );

@@ -1,9 +1,9 @@
 import { DateFormat } from '@/components/date-format/date-format';
+import { TimeDistance } from '@/components/time-distance/time-distance';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { ActivityLogEntry } from '@/modules/loki/types';
 import { cn, isPrivateIP } from '@/utils/common';
-import { formatDistanceToNowStrict } from 'date-fns';
 import { CheckCircle, Info, AlertTriangle, XCircle } from 'lucide-react';
 
 interface ActivityLogItemProps {
@@ -42,10 +42,14 @@ export const ActivityLogItem = ({ log, index }: ActivityLogItemProps) => {
           <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-xs">
             <Tooltip>
               <TooltipTrigger>
-                {formatDistanceToNowStrict(new Date(log.timestamp), { addSuffix: true })}
+                <TimeDistance date={log.timestamp} />
               </TooltipTrigger>
               <TooltipContent>
-                <DateFormat date={log.timestamp} />
+                <DateFormat
+                  date={log.timestamp}
+                  showTooltip={false}
+                  format="MMMM d, yyyy hh:mmaaa (zzz)"
+                />
               </TooltipContent>
             </Tooltip>
             {(log.sourceIPs ?? []).length > 0 && (

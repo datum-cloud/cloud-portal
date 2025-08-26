@@ -2,6 +2,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateFormat } from '@/components/date-format/date-format';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { PageTitle } from '@/components/page-title/page-title';
+import { TimeDistance } from '@/components/time-distance/time-distance';
 import { paths } from '@/config/paths';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
@@ -13,7 +14,6 @@ import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interfa
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
 import { getPathWithParams } from '@/utils/path';
-import { formatDistanceToNow } from 'date-fns';
 import { ClockIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useMemo, useRef } from 'react';
@@ -152,16 +152,10 @@ export default function DomainOverviewPage() {
                 className="text-muted-foreground text-sm"
                 date={(domain as IDomainControlResponse)?.createdAt ?? ''}
               />
-              <span className="text-muted-foreground text-sm">
-                (
-                {formatDistanceToNow(
-                  new Date((domain as IDomainControlResponse)?.createdAt ?? ''),
-                  {
-                    addSuffix: true,
-                  }
-                )}
-                )
-              </span>
+              <TimeDistance
+                date={(domain as IDomainControlResponse)?.createdAt ?? ''}
+                className="text-muted-foreground text-sm"
+              />
             </div>
           }
           actions={

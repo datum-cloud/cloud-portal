@@ -17,7 +17,10 @@ export default function AccountSettingsLayout() {
     },
   ];
   return (
-    <TabsLayout tabsTitle={{ title: 'Account Settings' }} navItems={navItems}>
+    <TabsLayout
+      tabsTitle={{ title: 'Account Settings' }}
+      navItems={navItems}
+      containerClassName="max-w-3xl">
       <Outlet />
     </TabsLayout>
   );

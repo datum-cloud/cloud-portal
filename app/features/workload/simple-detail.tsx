@@ -2,9 +2,9 @@ import { WorkloadStatus } from './status';
 import { DateFormat } from '@/components/date-format/date-format';
 import { Field } from '@/components/field/field';
 import { TextCopy } from '@/components/text-copy/text-copy';
+import { TimeDistance } from '@/components/time-distance/time-distance';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
-import { formatDistanceToNow } from 'date-fns';
 
 export const SimpleWorkloadDetail = ({
   projectId,
@@ -39,13 +39,10 @@ export const SimpleWorkloadDetail = ({
         <Field label="Created At">
           <div className="flex items-center gap-1">
             <DateFormat className="text-muted-foreground text-sm" date={workload?.createdAt} />
-            <span className="text-muted-foreground text-sm">
-              (
-              {formatDistanceToNow(new Date(workload?.createdAt), {
-                addSuffix: true,
-              })}
-              )
-            </span>
+            <TimeDistance
+              date={workload?.createdAt ?? ''}
+              className="text-muted-foreground text-sm"
+            />
           </div>
         </Field>
       )}

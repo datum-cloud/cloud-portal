@@ -151,6 +151,10 @@ export default [
 
     // Private APIs (with auth middleware)
     layout('layouts/private.layout.tsx', { id: 'private-api' }, [
+      // User
+      route('user', 'routes/api/user/index.ts'),
+      route('user/preferences', 'routes/api/user/preferences.ts'),
+
       // Organizations
       route('organizations', 'routes/api/organizations/index.ts'),
       route('organizations/:id', 'routes/api/organizations/$id.ts'),

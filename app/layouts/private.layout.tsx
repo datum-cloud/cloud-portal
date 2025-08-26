@@ -4,6 +4,8 @@ import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { AppProvider } from '@/providers/app.provider';
 import { createUserControl } from '@/resources/control-plane/user.control';
+import { IUser } from '@/resources/interfaces/user.interface';
+import { useEffect } from 'react';
 import {
   AppLoadContext,
   LoaderFunctionArgs,
@@ -12,6 +14,7 @@ import {
   redirect,
   useLoaderData,
 } from 'react-router';
+import { Theme, useTheme } from 'remix-themes';
 
 export const loader = withMiddleware(async ({ request, context }: LoaderFunctionArgs) => {
   try {
@@ -32,7 +35,18 @@ export const loader = withMiddleware(async ({ request, context }: LoaderFunction
 }, authMiddleware);
 
 export default function PrivateLayout() {
-  const user = useLoaderData<typeof loader>();
+  const user: IUser = useLoaderData<typeof loader>();
+
+  const [_, setTheme] = useTheme();
+
+  useEffect(() => {
+    if (user) {
+      const userTheme = user?.preferences?.theme;
+      const nextTheme =
+        userTheme === 'light' ? Theme.LIGHT : userTheme === 'dark' ? Theme.DARK : null;
+      setTheme(nextTheme);
+    }
+  }, [user]);
 
   return (
     <AppProvider initialUser={user}>

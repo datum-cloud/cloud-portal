@@ -1,12 +1,13 @@
 import { useMetrics } from '../../context/metrics.context';
 import { createMetricsParser } from '../../utils/url-parsers';
+import { DateFormat } from '@/components/date-format/date-format';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PRESET_RANGES } from '@/modules/metrics/constants';
 import { getPresetDateRange, parseRange } from '@/modules/metrics/utils/date-parsers';
 import { cn } from '@/utils/common';
-import { endOfDay, format, startOfDay } from 'date-fns';
+import { endOfDay, startOfDay } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -99,10 +100,6 @@ export const TimeRangeControl = ({
     setIsOpen(false);
   };
 
-  const displayLabel: string = useMemo(() => {
-    return `${format(timeRange.start, 'MMM dd, yyyy HH:mm')} - ${format(timeRange.end, 'MMM dd, yyyy HH:mm')}`;
-  }, [timeRange]);
-
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -114,7 +111,11 @@ export const TimeRangeControl = ({
             !date && 'text-muted-foreground'
           )}>
           <CalendarIcon className="mr-1 size-4" />
-          <span>{displayLabel}</span>
+          <div className="flex items-center gap-1">
+            <DateFormat date={timeRange.start} />
+            <span className="text-muted-foreground">-</span>
+            <DateFormat date={timeRange.end} />
+          </div>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
