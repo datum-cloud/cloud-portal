@@ -1,5 +1,6 @@
-import { IUser } from '@/resources/interfaces/user.interface';
+import { IUser, IUserPreferences, ThemeValue } from '@/resources/interfaces/user.interface';
 import { UserPreferencesSchema, UserSchema } from '@/resources/schemas/user.schema';
+import { toBoolean } from '@/utils/text';
 import { Client } from '@hey-api/client-axios';
 
 export interface ComMiloapisIamV1Alpha1User {
