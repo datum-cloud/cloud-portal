@@ -129,7 +129,7 @@
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "cypress": "^14.5.3",
+    "cypress": "^15.0.0",
     "eslint": "^9.32.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
@@ -151,6 +151,6 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.0.0"
   }
 }
