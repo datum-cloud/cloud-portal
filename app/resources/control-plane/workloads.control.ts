@@ -16,7 +16,6 @@ import {
 } from '@/resources/interfaces/workload.interface';
 import { NewWorkloadSchema, RuntimeEnvSchema } from '@/resources/schemas/workload.schema';
 import { convertLabelsToObject } from '@/utils/data';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createWorkloadsControl = (client: Client) => {
@@ -206,9 +205,9 @@ export const createWorkloadsControl = (client: Client) => {
         },
       });
 
-      const workloads = response.data as ComDatumapisComputeV1AlphaWorkloadList;
+      const workloads = response?.data as ComDatumapisComputeV1AlphaWorkloadList;
 
-      return workloads.items.map(transformWorkload);
+      return workloads?.items?.map(transformWorkload) ?? [];
     },
     detail: async (projectId: string, workloadId: string) => {
       const response = await readComputeDatumapisComV1AlphaNamespacedWorkload({
@@ -216,10 +215,6 @@ export const createWorkloadsControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: workloadId },
       });
-
-      if (!response.data) {
-        throw new CustomError(`Workload ${workloadId} not found`, 404);
-      }
 
       const workload = response.data as ComDatumapisComputeV1AlphaWorkload;
 
@@ -242,10 +237,6 @@ export const createWorkloadsControl = (client: Client) => {
           kind: 'Workload',
         },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to create workload', 500);
-      }
 
       const workload = response.data as ComDatumapisComputeV1AlphaWorkload;
 
@@ -273,10 +264,6 @@ export const createWorkloadsControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update workload', 500);
-      }
-
       const workload = response.data as ComDatumapisComputeV1AlphaWorkload;
 
       return dryRun ? workload : transformWorkload(workload);
@@ -288,10 +275,6 @@ export const createWorkloadsControl = (client: Client) => {
         path: { namespace: 'default', name: workloadId },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to delete workload', 500);
-      }
-
       return response.data;
     },
     getStatus: async (projectId: string, workloadId: string) => {
@@ -300,10 +283,6 @@ export const createWorkloadsControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: workloadId },
       });
-
-      if (!response.data) {
-        throw new CustomError(`Workload ${workloadId} not found`, 404);
-      }
 
       const workload = response.data as ComDatumapisComputeV1AlphaWorkload;
 

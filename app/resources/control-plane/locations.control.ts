@@ -10,7 +10,6 @@ import {
 import { ILocationControlResponse, LocationClass } from '@/resources/interfaces/location.interface';
 import { NewLocationSchema } from '@/resources/schemas/location.schema';
 import { convertLabelsToObject, filterLabels } from '@/utils/data';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createLocationsControl = (client: Client) => {
@@ -61,10 +60,6 @@ export const createLocationsControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError(`Location ${locationName} not found`, 404);
-      }
-
       const location = response.data as ComDatumapisNetworkingV1AlphaLocation;
 
       return transformLocation(location);
@@ -98,10 +93,6 @@ export const createLocationsControl = (client: Client) => {
           },
         },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to create location', 500);
-      }
 
       const location = response.data as ComDatumapisNetworkingV1AlphaLocation;
 
@@ -146,10 +137,6 @@ export const createLocationsControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update location', 500);
-      }
-
       const location = response.data as ComDatumapisNetworkingV1AlphaLocation;
 
       return dryRun ? location : transformLocation(location);
@@ -163,10 +150,6 @@ export const createLocationsControl = (client: Client) => {
           name: locationName,
         },
       });
-
-      if (!response.data) {
-        throw new CustomError(`Location ${locationName} not found`, 404);
-      }
 
       return response.data;
     },

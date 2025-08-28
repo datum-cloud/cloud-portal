@@ -9,7 +9,6 @@ import {
 } from '@/modules/control-plane/networking';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { HttpProxySchema } from '@/resources/schemas/http-proxy.schema';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createHttpProxiesControl = (client: Client) => {
@@ -73,10 +72,6 @@ export const createHttpProxiesControl = (client: Client) => {
         path: { namespace: 'default', name: uid },
       });
 
-      if (!response.data) {
-        throw new CustomError('HTTPProxy not found', 404);
-      }
-
       const httpProxy = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
 
       return transformHttpProxy(httpProxy);
@@ -99,10 +94,6 @@ export const createHttpProxiesControl = (client: Client) => {
           apiVersion: 'networking.datumapis.com/v1alpha',
         },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to create HTTPProxy', 500);
-      }
 
       const httpProxy = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
 
@@ -143,10 +134,6 @@ export const createHttpProxiesControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update HTTPProxy', 500);
-      }
-
       const httpProxy = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
 
       return dryRun ? httpProxy : transformHttpProxy(httpProxy);
@@ -157,10 +144,6 @@ export const createHttpProxiesControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: uid },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to delete HTTPProxy', 500);
-      }
 
       return response.data;
     },

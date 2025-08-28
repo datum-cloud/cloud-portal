@@ -10,7 +10,6 @@ import {
 import { ISecretControlResponse, SecretType } from '@/resources/interfaces/secret.interface';
 import { SecretNewSchema, SecretEditSchema } from '@/resources/schemas/secret.schema';
 import { convertLabelsToObject } from '@/utils/data';
-import { CustomError } from '@/utils/error';
 import { isBase64, toBase64 } from '@/utils/text';
 import { Client } from '@hey-api/client-axios';
 
@@ -79,10 +78,6 @@ export const createSecretsControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to create secret', 500);
-      }
-
       const secret = response.data as IoK8sApiCoreV1Secret;
 
       return dryRun ? secret : transformSecret(secret);
@@ -98,10 +93,6 @@ export const createSecretsControl = (client: Client) => {
             'as=PartialObjectMetadata;g=meta.k8s.io;v=v1,application/json;as=PartialObjectMetadata;g=meta.k8s.io;v=v1,application/jso',
         }, */
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to get secret', 500);
-      }
 
       const secret = response.data as IoK8sApiCoreV1Secret;
 
@@ -131,10 +122,6 @@ export const createSecretsControl = (client: Client) => {
         },
       });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update secret', 500);
-      }
-
       const secret = response.data as IoK8sApiCoreV1Secret;
 
       return dryRun ? secret : transformSecret(secret);
@@ -145,10 +132,6 @@ export const createSecretsControl = (client: Client) => {
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
         path: { namespace: 'default', name: secretId },
       });
-
-      if (!response.data) {
-        throw new CustomError('Failed to delete secret', 500);
-      }
 
       return response.data;
     },
