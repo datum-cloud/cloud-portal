@@ -298,11 +298,5 @@ export const generateUniqueId = (
   return id;
 };
 
-export function toBoolean(value: string | boolean | undefined | null): boolean {
-  if (typeof value === 'boolean') return value;
-  if (!value) return false;
-  return value.toLowerCase() === 'true';
-}
-
 // Export the IdGeneratorOptions type for external use
 export type { IdGeneratorOptions };
