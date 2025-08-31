@@ -112,7 +112,7 @@
     "zod": "^3.25.36"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.81.0",
+    "@hey-api/openapi-ts": "^0.82.0",
     "@react-router/dev": "^7.7.1",
     "@react-router/remix-routes-option-adapter": "^7.7.1",
     "@testing-library/cypress": "^10.0.3",
