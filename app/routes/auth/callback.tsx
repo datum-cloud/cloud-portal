@@ -3,7 +3,6 @@ import { paths } from '@/config/paths';
 import { authenticator } from '@/modules/auth/auth.server';
 import { setIdTokenSession } from '@/modules/cookie/id-token.server';
 import { getSession, setSession } from '@/modules/cookie/session.server';
-import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { IAuthSession } from '@/resources/interfaces/auth.interface';
 import { CustomError } from '@/utils/error';
 import { combineHeaders } from '@/utils/path';
@@ -55,16 +54,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     // Redirect to organizations
     return redirect(paths.account.organizations.root, { headers: headers });
   } catch (error) {
-    const errMessage =
-      error instanceof CustomError
-        ? error.message
-        : 'Something went wrong with callback from provider';
-
-    return redirectWithToast(paths.auth.logIn, {
-      title: 'Authentication failed',
-      description: errMessage,
-      type: 'error',
-    });
+    return redirect(paths.auth.logIn);
   }
 }
 

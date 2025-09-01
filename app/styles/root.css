@@ -171,7 +171,12 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: FTRegolaNeue, system-ui, sans-serif;
+  /* FT Regola Neue Font Family */
+  /* --font-sans: FTRegolaNeue, system-ui, sans-serif; */
+  /* Alliance No1 Font Family */
+  --font-sans:
+    'Alliance No1', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
 
   --color-border: var(--border);
   --color-input: var(--input);
