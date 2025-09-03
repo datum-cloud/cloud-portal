@@ -20,7 +20,7 @@ export const OrganizationItem = ({
     <div className={cn('flex w-full items-center gap-2', className)}>
       {!hideAvatar && (
         <Avatar className={cn('size-6 rounded-md', avatarClassName)}>
-          <AvatarFallback className="text-primary-foreground rounded-md bg-slate-400">
+          <AvatarFallback className="bg-warm-white dark:bg-cream dark:text-navy rounded-md">
             {getInitials((org?.displayName ?? org?.name) as string)}
           </AvatarFallback>
         </Avatar>

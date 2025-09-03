@@ -292,6 +292,7 @@
   --color-indigo: var(--color-indigo);
   --color-pearl-gray: var(--color-pearl-gray);
   --color-green-dark: var(--color-green-dark);
+  --color-warm-white: var(--color-warm-white);
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);

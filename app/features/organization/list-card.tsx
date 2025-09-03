@@ -36,7 +36,7 @@ export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
                 {org?.displayName ?? org?.name ?? ''}
               </h3>
               {org.type === OrganizationType.Personal && (
-                <Badge variant="butter" className="rounded-full text-xs font-normal">
+                <Badge variant="secondary" className="rounded-full text-xs font-normal">
                   Personal
                 </Badge>
               )}
