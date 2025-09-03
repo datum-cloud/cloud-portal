@@ -14,6 +14,7 @@ export default [
 
     // Test Playground
     route('test/metrics', 'routes/test/metrics.tsx'),
+    route('test/sentry', 'routes/test/sentry.tsx'),
 
     // Account
     route('account', 'routes/account/layout.tsx', [

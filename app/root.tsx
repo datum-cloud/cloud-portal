@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/useToast';
 import { csrf } from '@/modules/cookie/csrf.server';
 import { themeSessionResolver } from '@/modules/cookie/theme.server';
 import { getToastSession } from '@/modules/cookie/toast.server';
+import { FathomAnalytics } from '@/modules/fathom/fathom';
 import MarkerIoEmbed from '@/modules/markerio';
 import { configureProgress, startProgress, stopProgress } from '@/modules/nprogress';
 import { queryClient } from '@/modules/tanstack/query';
@@ -17,6 +18,7 @@ import RootCSS from '@/styles/root.css?url';
 import { getSharedEnvs } from '@/utils/environment';
 import { metaObject } from '@/utils/meta';
 import { combineHeaders } from '@/utils/path';
+import * as Sentry from '@sentry/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { useEffect, useMemo } from 'react';
@@ -69,7 +71,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const sharedEnv = getSharedEnvs();
   const { getTheme } = await themeSessionResolver(request);
 
-  console.log(sharedEnv);
   return data(
     {
       toast,
@@ -120,6 +121,9 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
       </head>
       <body className="h-auto w-full">
         {children}
+        {data?.ENV.FATHOM_ID && data?.ENV.PROD && (
+          <FathomAnalytics privateKey={data?.ENV.FATHOM_ID} />
+        )}
         <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />
         <MarkerIoEmbed nonce={nonce} />
         <ScrollRestoration nonce={nonce} />
@@ -237,6 +241,8 @@ export function ErrorBoundary() {
       message = `${error.status} ${error.statusText}`;
     }
   } else if (error instanceof Error) {
+    // you only want to capture non 404-errors that reach the boundary
+    Sentry.captureException(error);
     message = error.message;
   }
 
