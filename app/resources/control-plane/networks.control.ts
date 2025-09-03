@@ -34,59 +34,71 @@ export const createNetworksControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listNetworkingDatumapisComV1AlphaNamespacedNetwork({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-      });
+      try {
+        const response = await listNetworkingDatumapisComV1AlphaNamespacedNetwork({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+        });
 
-      const networks = response.data as ComDatumapisNetworkingV1AlphaNetworkList;
+        const networks = response.data as ComDatumapisNetworkingV1AlphaNetworkList;
 
-      return networks.items.map(transformNetwork);
+        return networks.items.map(transformNetwork);
+      } catch (e) {
+        throw e;
+      }
     },
     detail: async (projectId: string, networkId: string) => {
-      const response = await readNetworkingDatumapisComV1AlphaNamespacedNetwork({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: networkId },
-      });
+      try {
+        const response = await readNetworkingDatumapisComV1AlphaNamespacedNetwork({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: networkId },
+        });
 
-      const network = response.data as ComDatumapisNetworkingV1AlphaNetwork;
+        const network = response.data as ComDatumapisNetworkingV1AlphaNetwork;
 
-      return transformNetwork(network);
+        return transformNetwork(network);
+      } catch (e) {
+        throw e;
+      }
     },
     create: async (projectId: string, payload: NewNetworkSchema, dryRun: boolean) => {
-      const response = await createNetworkingDatumapisComV1AlphaNamespacedNetwork({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        body: {
-          apiVersion: 'networking.datumapis.com/v1alpha',
-          kind: 'Network',
-          metadata: {
-            name: payload.name,
-            /* annotations: {
-              'app.kubernetes.io/name': payload.displayName,
-            }, */
+      try {
+        const response = await createNetworkingDatumapisComV1AlphaNamespacedNetwork({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
           },
-          spec: {
-            ipFamilies: [payload.ipFamily],
-            ipam: {
-              mode: payload.ipam,
+          body: {
+            apiVersion: 'networking.datumapis.com/v1alpha',
+            kind: 'Network',
+            metadata: {
+              name: payload.name,
+              /* annotations: {
+                'app.kubernetes.io/name': payload.displayName,
+              }, */
             },
-            mtu: payload.mtu,
+            spec: {
+              ipFamilies: [payload.ipFamily],
+              ipam: {
+                mode: payload.ipam,
+              },
+              mtu: payload.mtu,
+            },
           },
-        },
-      });
+        });
 
-      const network = response.data as ComDatumapisNetworkingV1AlphaNetwork;
+        const network = response.data as ComDatumapisNetworkingV1AlphaNetwork;
 
-      return dryRun ? network : transformNetwork(network);
+        return dryRun ? network : transformNetwork(network);
+      } catch (e) {
+        throw e;
+      }
     },
     update: async (
       projectId: string,
@@ -94,45 +106,53 @@ export const createNetworksControl = (client: Client) => {
       payload: UpdateNetworkSchema,
       dryRun: boolean
     ) => {
-      const response = await replaceNetworkingDatumapisComV1AlphaNamespacedNetwork({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: networkId },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        body: {
-          apiVersion: 'networking.datumapis.com/v1alpha',
-          kind: 'Network',
-          metadata: {
-            name: payload.name,
-            /* annotations: {
-              'app.kubernetes.io/name': payload.displayName,
-            }, */
-            resourceVersion: payload.resourceVersion,
+      try {
+        const response = await replaceNetworkingDatumapisComV1AlphaNamespacedNetwork({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: networkId },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
           },
-          spec: {
-            ipFamilies: [payload.ipFamily],
-            ipam: {
-              mode: payload.ipam,
+          body: {
+            apiVersion: 'networking.datumapis.com/v1alpha',
+            kind: 'Network',
+            metadata: {
+              name: payload.name,
+              /* annotations: {
+                'app.kubernetes.io/name': payload.displayName,
+              }, */
+              resourceVersion: payload.resourceVersion,
             },
-            mtu: payload.mtu,
+            spec: {
+              ipFamilies: [payload.ipFamily],
+              ipam: {
+                mode: payload.ipam,
+              },
+              mtu: payload.mtu,
+            },
           },
-        },
-      });
+        });
 
-      const network = response.data as ComDatumapisNetworkingV1AlphaNetwork;
+        const network = response.data as ComDatumapisNetworkingV1AlphaNetwork;
 
-      return dryRun ? network : transformNetwork(network);
+        return dryRun ? network : transformNetwork(network);
+      } catch (e) {
+        throw e;
+      }
     },
     delete: async (projectId: string, networkId: string) => {
-      const response = await deleteNetworkingDatumapisComV1AlphaNamespacedNetwork({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: networkId },
-      });
+      try {
+        const response = await deleteNetworkingDatumapisComV1AlphaNamespacedNetwork({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: networkId },
+        });
 
-      return response.data;
+        return response.data;
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };

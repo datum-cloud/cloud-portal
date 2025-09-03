@@ -4,7 +4,7 @@ import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
-import { CustomError } from '@/utils/error';
+import { HttpError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/path';
 import { FoldersIcon, SettingsIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
@@ -27,7 +27,7 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     const org = await res.json();
 
     if (!org.success) {
-      throw new CustomError(org.error, org.status);
+      throw new HttpError(org.error, org.status);
     }
 
     return data(org.data);

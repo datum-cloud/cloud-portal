@@ -37,115 +37,123 @@ export const createProjectsControl = (client: Client) => {
 
   return {
     list: async (orgEntityId: string) => {
-      const response = await listResourcemanagerMiloapisComV1Alpha1Project({
-        client,
-        baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
-      });
-
-      // Type guard to check if data is a valid project list
-      const projectList = response?.data as ComMiloapisResourcemanagerV1Alpha1ProjectList;
-
-      return (
-        projectList?.items?.map((project: ComMiloapisResourcemanagerV1Alpha1Project) =>
-          transform(project)
-        ) ?? []
-      );
+      try {
+        const response = await listResourcemanagerMiloapisComV1Alpha1Project({
+          client,
+          baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
+        });
+        const projectList = response?.data as ComMiloapisResourcemanagerV1Alpha1ProjectList;
+        return (
+          projectList?.items?.map((project: ComMiloapisResourcemanagerV1Alpha1Project) =>
+            transform(project)
+          ) ?? []
+        );
+      } catch (e) {
+        throw e;
+      }
     },
     detail: async (projectName: string) => {
-      const response = await readResourcemanagerMiloapisComV1Alpha1Project({
-        client,
-        path: {
-          name: projectName,
-        },
-      });
-
-      const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
-
-      return transform(project);
+      try {
+        const response = await readResourcemanagerMiloapisComV1Alpha1Project({
+          client,
+          path: {
+            name: projectName,
+          },
+        });
+        const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
+        return transform(project);
+      } catch (e) {
+        throw e;
+      }
     },
     create: async (payload: ProjectSchema, dryRun: boolean = false) => {
-      const response = await createResourcemanagerMiloapisComV1Alpha1Project({
-        client,
-        baseURL: `${baseUrl}/organizations/${payload.orgEntityId}/control-plane`,
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        body: {
-          apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
-          kind: 'Project',
-          metadata: {
-            name: payload.name,
-            annotations: {
-              'kubernetes.io/description': payload.description,
-            },
-            labels: convertLabelsToObject(payload.labels ?? []),
+      try {
+        const response = await createResourcemanagerMiloapisComV1Alpha1Project({
+          client,
+          baseURL: `${baseUrl}/organizations/${payload.orgEntityId}/control-plane`,
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
           },
-          spec: {
-            ownerRef: {
-              kind: 'Organization',
-              name: payload.orgEntityId,
+          body: {
+            apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
+            kind: 'Project',
+            metadata: {
+              name: payload.name,
+              annotations: {
+                'kubernetes.io/description': payload.description,
+              },
+              labels: convertLabelsToObject(payload.labels ?? []),
+            },
+            spec: {
+              ownerRef: {
+                kind: 'Organization',
+                name: payload.orgEntityId,
+              },
             },
           },
-        },
-      });
-
-      const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
-
-      return dryRun ? response.data : transform(project);
+        });
+        const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
+        return dryRun ? response.data : transform(project);
+      } catch (e) {
+        throw e;
+      }
     },
     update: async (projectName: string, payload: UpdateProjectSchema, dryRun: boolean = false) => {
-      const metadata: Record<string, any> = {};
-
-      if (payload.description) {
-        metadata.annotations = {
-          'kubernetes.io/description': payload.description,
-        };
+      try {
+        const metadata: Record<string, any> = {};
+        if (payload.description) {
+          metadata.annotations = {
+            'kubernetes.io/description': payload.description,
+          };
+        }
+        if ('labels' in payload && payload.labels && payload.labels.length > 0) {
+          metadata.labels = convertLabelsToObject(payload.labels);
+        }
+        const response = await patchResourcemanagerMiloapisComV1Alpha1Project({
+          client,
+          path: { name: projectName },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+            fieldManager: 'datum-cloud-portal',
+          },
+          headers: {
+            'Content-Type': 'application/merge-patch+json',
+          },
+          body: {
+            apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
+            kind: 'Project',
+            metadata,
+          },
+        });
+        const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
+        return dryRun ? response.data : transform(project);
+      } catch (e) {
+        throw e;
       }
-
-      if ('labels' in payload && payload.labels && payload.labels.length > 0) {
-        metadata.labels = convertLabelsToObject(payload.labels);
-      }
-
-      const response = await patchResourcemanagerMiloapisComV1Alpha1Project({
-        client,
-        path: { name: projectName },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-          fieldManager: 'datum-cloud-portal',
-        },
-        headers: {
-          'Content-Type': 'application/merge-patch+json',
-        },
-        body: {
-          apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
-          kind: 'Project',
-          metadata,
-        },
-      });
-
-      const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
-
-      return dryRun ? response.data : transform(project);
     },
-    delete: async (orgEntityId: string, projectName: string) => {
-      const response = await deleteResourcemanagerMiloapisComV1Alpha1Project({
-        client,
-        path: { name: projectName },
-      });
-
-      const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
-
-      return project;
+    delete: async (_orgEntityId: string, projectName: string) => {
+      try {
+        const response = await deleteResourcemanagerMiloapisComV1Alpha1Project({
+          client,
+          path: { name: projectName },
+        });
+        const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
+        return project;
+      } catch (e) {
+        throw e;
+      }
     },
     getStatus: async (projectName: string) => {
-      const response = await readResourcemanagerMiloapisComV1Alpha1ProjectStatus({
-        client,
-        path: { name: projectName },
-      });
-
-      const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
-
-      return transformControlPlaneStatus(project.status);
+      try {
+        const response = await readResourcemanagerMiloapisComV1Alpha1ProjectStatus({
+          client,
+          path: { name: projectName },
+        });
+        const project = response.data as ComMiloapisResourcemanagerV1Alpha1Project;
+        return transformControlPlaneStatus(project.status);
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };

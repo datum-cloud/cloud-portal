@@ -9,7 +9,7 @@ import { SECRET_TYPES } from '@/features/secret/constants';
 import { createSecretsControl } from '@/resources/control-plane/secrets.control';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
-import { CustomError } from '@/utils/error';
+import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
@@ -32,7 +32,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const secretControl = createSecretsControl(controlPlaneClient as Client);
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400);
+    throw new BadRequestError('Project ID is required');
   }
 
   const secrets = await secretControl.list(projectId);

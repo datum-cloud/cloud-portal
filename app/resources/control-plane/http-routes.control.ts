@@ -141,58 +141,74 @@ export const createHttpRoutesControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listGatewayNetworkingV1NamespacedHttpRoute({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-      });
+      try {
+        const response = await listGatewayNetworkingV1NamespacedHttpRoute({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+        });
 
-      const httpRoutes = response.data as IoK8sNetworkingGatewayV1HttpRouteList;
+        const httpRoutes = response.data as IoK8sNetworkingGatewayV1HttpRouteList;
 
-      return httpRoutes.items.map(transformHttpRouteLite);
+        return httpRoutes.items.map(transformHttpRouteLite);
+      } catch (e) {
+        throw e;
+      }
     },
     create: async (projectId: string, payload: HttpRouteSchema, dryRun: boolean = false) => {
-      const formatted = formatHttpRoute(payload);
-      const response = await createGatewayNetworkingV1NamespacedHttpRoute({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: {
-          ...formatted,
-          kind: 'HTTPRoute',
-          apiVersion: 'gateway.networking.k8s.io/v1',
-        },
-      });
+      try {
+        const formatted = formatHttpRoute(payload);
+        const response = await createGatewayNetworkingV1NamespacedHttpRoute({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: {
+            ...formatted,
+            kind: 'HTTPRoute',
+            apiVersion: 'gateway.networking.k8s.io/v1',
+          },
+        });
 
-      const httpRoute = response.data as IoK8sNetworkingGatewayV1HttpRoute;
+        const httpRoute = response.data as IoK8sNetworkingGatewayV1HttpRoute;
 
-      return dryRun ? httpRoute : transformHttpRouteLite(httpRoute);
+        return dryRun ? httpRoute : transformHttpRouteLite(httpRoute);
+      } catch (e) {
+        throw e;
+      }
     },
     detail: async (projectId: string, uid: string) => {
-      const response = await readGatewayNetworkingV1NamespacedHttpRoute({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: uid },
-      });
+      try {
+        const response = await readGatewayNetworkingV1NamespacedHttpRoute({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: uid },
+        });
 
-      const httpRoute = response.data as IoK8sNetworkingGatewayV1HttpRoute;
+        const httpRoute = response.data as IoK8sNetworkingGatewayV1HttpRoute;
 
-      return transformHttpRoute(httpRoute);
+        return transformHttpRoute(httpRoute);
+      } catch (e) {
+        throw e;
+      }
     },
     delete: async (projectId: string, uid: string) => {
-      const response = await deleteGatewayNetworkingV1NamespacedHttpRoute({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: uid },
-      });
+      try {
+        const response = await deleteGatewayNetworkingV1NamespacedHttpRoute({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: uid },
+        });
 
-      return response.data;
+        return response.data;
+      } catch (e) {
+        throw e;
+      }
     },
     update: async (
       projectId: string,
@@ -200,27 +216,31 @@ export const createHttpRoutesControl = (client: Client) => {
       payload: HttpRouteSchema,
       dryRun: boolean = false
     ) => {
-      const formatted = formatHttpRoute(payload);
-      const response = await replaceGatewayNetworkingV1NamespacedHttpRoute({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: uid },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: {
-          ...formatted,
-          kind: 'HTTPRoute',
-          apiVersion: 'gateway.networking.k8s.io/v1',
-        },
-      });
+      try {
+        const formatted = formatHttpRoute(payload);
+        const response = await replaceGatewayNetworkingV1NamespacedHttpRoute({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: uid },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: {
+            ...formatted,
+            kind: 'HTTPRoute',
+            apiVersion: 'gateway.networking.k8s.io/v1',
+          },
+        });
 
-      const httpRoute = response.data as IoK8sNetworkingGatewayV1HttpRoute;
+        const httpRoute = response.data as IoK8sNetworkingGatewayV1HttpRoute;
 
-      return dryRun ? httpRoute : transformHttpRouteLite(httpRoute);
+        return dryRun ? httpRoute : transformHttpRouteLite(httpRoute);
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };

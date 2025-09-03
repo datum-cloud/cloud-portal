@@ -3,7 +3,7 @@
  * @see https://github.com/sergiodxa/remix-utils?tab=readme-ov-file#csrf
  */
 import { isProduction } from '@/utils/environment';
-import { CustomError } from '@/utils/error';
+import { HttpError } from '@/utils/errors';
 import { createCookie } from 'react-router';
 import { CSRF, CSRFError } from 'remix-utils/csrf/server';
 
@@ -25,7 +25,7 @@ export async function validateCSRF(formData: FormData, headers: Headers) {
     await csrf.validate(formData, headers);
   } catch (err: unknown) {
     if (err instanceof CSRFError) {
-      throw new CustomError('Invalid CSRF token - please refresh the page and try again', 403);
+      throw new HttpError('Invalid CSRF token - please refresh the page and try again', 403);
     }
     throw err;
   }

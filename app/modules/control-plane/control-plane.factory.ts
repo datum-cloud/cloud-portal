@@ -1,23 +1,9 @@
-import { AxiosCurlLibrary } from '@/modules/axios/axios-curl';
-import { env } from '@/utils/configs/env.server';
-import {
-  AuthenticationError,
-  AuthorizationError,
-  NotFoundError,
-  ValidationError,
-  HttpError,
-} from '@/utils/errors';
+import { AxiosCurlLibrary } from './axios-curl';
+import { isDevelopment } from '@/utils/environment';
+import { AppError } from '@/utils/errors';
+import { mapAxiosErrorToAppError } from '@/utils/errors/axios';
 import { Client, ClientOptions, createClient, createConfig } from '@hey-api/client-axios';
-import { AsyncLocalStorage } from 'async_hooks';
 import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-
-// AsyncLocalStorage to store request context
-const requestContext = new AsyncLocalStorage<{ requestId?: string }>();
-
-// Helper to get current request ID
-function getCurrentRequestId(): string | undefined {
-  return requestContext.getStore()?.requestId;
-}
 
 function defaultLogCallback(curlResult: any, err: any) {
   const { command } = curlResult;
@@ -26,26 +12,12 @@ function defaultLogCallback(curlResult: any, err: any) {
   } else {
     console.debug('Axios curl command', { command });
   }
-  /* if (err) {
-    logger.error('Axios curl error', { error: err instanceof Error ? err.message : String(err) });
-  } else {
-    logger.debug('Axios curl command', { command });
-  } */
 }
 
 const onRequest = (
   config: InternalAxiosRequestConfig,
   authToken?: string
 ): InternalAxiosRequestConfig => {
-  // console.info(`[request] [${JSON.stringify(config)}]`);
-
-  // Automatically add request ID to headers if available in current context
-  const requestId = getCurrentRequestId();
-  if (requestId) {
-    config.headers = config.headers || {};
-    config.headers['X-Request-ID'] = requestId;
-  }
-
   // Add authorization header if available
   if (authToken) {
     config.headers = config.headers || {};
@@ -53,7 +25,7 @@ const onRequest = (
   }
 
   // Only log the curl command in development mode
-  if (env.isDev) {
+  if (isDevelopment()) {
     try {
       const curl = new AxiosCurlLibrary(config);
       (config as any).curlObject = curl;
@@ -88,78 +60,40 @@ const onRequestError = (error: AxiosError): Promise<AxiosError> => {
 };
 
 const onResponse = (response: AxiosResponse): AxiosResponse => {
-  // console.info(`[response] [${JSON.stringify(response)}]`);
+  if (isDevelopment()) {
+    const path = response.config?.url || 'unknown';
+    console.debug('API Request Success', {
+      url: path,
+      method: response.config?.method,
+      status: response.status,
+    });
+  }
   return response;
 };
 
-const onResponseError = (error: AxiosError): Promise<AxiosError> => {
-  // console.error(`[response error] [${JSON.stringify(error)}]`);
+const onResponseError = (error: AxiosError): Promise<AppError> => {
+  const path = error.config?.url || 'unknown';
+  const status = error.response?.status || 500;
 
-  // Get requestId from AsyncLocalStorage
-  const requestId = getCurrentRequestId();
-
-  // Log the API request error with consistent format
-  if (requestId) {
-    console.error('API Request Error', {
-      requestId,
-      url: error.config?.url,
+  if (isDevelopment()) {
+    console.debug('API Request Error', {
+      url: path,
       method: error.config?.method,
-      status: error.response?.status,
+      status,
       error: error.message,
+      curl: (error.config as any)?.curlCommand,
     });
-    /* logger.error('API Request Error', {
-      requestId,
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      error: error.message,
-    }); */
   }
 
-  // this error mostly comes from API server
-  switch (error.response?.status) {
-    case 401: {
-      const data = error.response?.data as {
-        error: string;
-        error_description: string;
-      };
-      if (data.error === 'access_denied' && data.error_description === 'access token invalid') {
-        const authError = new AuthenticationError('Session expired', requestId);
-        throw authError.toResponse();
-      }
-    }
-    case 403: {
-      const data = error.response?.data as { message: string; reason: string };
-      const authError = new AuthorizationError(
-        data?.message ?? 'Not authorized to perform this action',
-        requestId
-      );
-      throw authError.toResponse();
-    }
-    case 404: {
-      const notFoundError = new NotFoundError('Resource not found', requestId);
-      throw notFoundError.toResponse();
-    }
-    case 422: {
-      const data = error.response?.data as { message: string; reason: string };
-      const validationError = new ValidationError(data.message, requestId);
-      throw validationError.toResponse();
-    }
-    default: {
-      const httpError = new HttpError(
-        'An unexpected error occurred',
-        error.response?.status,
-        requestId
-      );
-      throw httpError.toResponse();
-    }
-  }
+  // Map to AppError and throw
+  const appError = mapAxiosErrorToAppError(error);
+  return Promise.reject(appError);
 };
 
-export const createControlPlaneFactory = (authToken: string, baseUrl?: string): Client => {
+export const createControlPlaneClient = (authToken: string, baseUrl?: string): Client => {
   const httpControlPlane = createClient(
     createConfig<ClientOptions>({
-      baseURL: baseUrl || env.API_URL,
+      baseURL: baseUrl || process.env.API_URL,
       withCredentials: false,
       throwOnError: true,
     })
@@ -174,4 +108,4 @@ export const createControlPlaneFactory = (authToken: string, baseUrl?: string): 
   return httpControlPlane;
 };
 
-export type ControlPlaneFactory = ReturnType<typeof createControlPlaneFactory>;
+export type ControlPlaneClient = ReturnType<typeof createControlPlaneClient>;

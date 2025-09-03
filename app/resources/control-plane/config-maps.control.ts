@@ -27,46 +27,58 @@ export const createConfigMapsControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listCoreV1NamespacedConfigMap({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-      });
+      try {
+        const response = await listCoreV1NamespacedConfigMap({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+        });
 
-      const configMaps = response.data as IoK8sApiCoreV1ConfigMapList;
+        const configMaps = response.data as IoK8sApiCoreV1ConfigMapList;
 
-      return configMaps.items.map(transformConfigMap);
+        return configMaps.items.map(transformConfigMap);
+      } catch (e) {
+        throw e;
+      }
     },
     detail: async (projectId: string, configId: string) => {
-      const response = await readCoreV1NamespacedConfigMap({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: configId },
-      });
+      try {
+        const response = await readCoreV1NamespacedConfigMap({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: configId },
+        });
 
-      const configMap = response.data as IoK8sApiCoreV1ConfigMap;
+        const configMap = response.data as IoK8sApiCoreV1ConfigMap;
 
-      return transformConfigMap(configMap);
+        return transformConfigMap(configMap);
+      } catch (e) {
+        throw e;
+      }
     },
     create: async (projectId: string, payload: ConfigMapSchema, dryRun: boolean = false) => {
-      const response = await createCoreV1NamespacedConfigMap({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        headers: {
-          'Content-Type': payload.format === 'yaml' ? 'application/yaml' : 'application/json',
-        },
-        body: payload.configuration as IoK8sApiCoreV1ConfigMap,
-      });
+      try {
+        const response = await createCoreV1NamespacedConfigMap({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          headers: {
+            'Content-Type': payload.format === 'yaml' ? 'application/yaml' : 'application/json',
+          },
+          body: payload.configuration as IoK8sApiCoreV1ConfigMap,
+        });
 
-      const configMap = response.data as IoK8sApiCoreV1ConfigMap;
+        const configMap = response.data as IoK8sApiCoreV1ConfigMap;
 
-      return dryRun ? configMap : transformConfigMap(configMap);
+        return dryRun ? configMap : transformConfigMap(configMap);
+      } catch (e) {
+        throw e;
+      }
     },
     update: async (
       projectId: string,
@@ -74,39 +86,47 @@ export const createConfigMapsControl = (client: Client) => {
       payload: { data: Record<string, string>; resourceVersion: string },
       dryRun: boolean = false
     ) => {
-      const response = await replaceCoreV1NamespacedConfigMap({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: configId },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: {
-          apiVersion: 'v1',
-          kind: 'ConfigMap',
-          metadata: {
-            name: configId,
-            resourceVersion: payload.resourceVersion,
+      try {
+        const response = await replaceCoreV1NamespacedConfigMap({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: configId },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
           },
-          data: payload.data,
-        },
-      });
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: {
+            apiVersion: 'v1',
+            kind: 'ConfigMap',
+            metadata: {
+              name: configId,
+              resourceVersion: payload.resourceVersion,
+            },
+            data: payload.data,
+          },
+        });
 
-      const configMap = response.data as IoK8sApiCoreV1ConfigMap;
+        const configMap = response.data as IoK8sApiCoreV1ConfigMap;
 
-      return dryRun ? configMap : transformConfigMap(configMap);
+        return dryRun ? configMap : transformConfigMap(configMap);
+      } catch (e) {
+        throw e;
+      }
     },
     delete: async (projectId: string, configId: string) => {
-      const response = await deleteCoreV1NamespacedConfigMap({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: configId },
-      });
+      try {
+        const response = await deleteCoreV1NamespacedConfigMap({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: configId },
+        });
 
-      return response.data;
+        return response.data;
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };

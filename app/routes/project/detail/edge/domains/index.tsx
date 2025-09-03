@@ -8,7 +8,7 @@ import { DomainStatus } from '@/features/edge/domain/status';
 import { createDomainsControl } from '@/resources/control-plane/domains.control';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
-import { CustomError } from '@/utils/error';
+import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
@@ -37,7 +37,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const domainsControl = createDomainsControl(controlPlaneClient as Client);
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400);
+    throw new BadRequestError('Project ID is required');
   }
 
   const domains = await domainsControl.list(projectId);

@@ -26,21 +26,25 @@ export const createNetworkBindingsControl = (client: Client) => {
 
   return {
     list: async (projectId: string, networkId?: string) => {
-      const response = await listNetworkingDatumapisComV1AlphaNamespacedNetworkBinding({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-      });
+      try {
+        const response = await listNetworkingDatumapisComV1AlphaNamespacedNetworkBinding({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+        });
 
-      const networkBindings = response.data as ComDatumapisNetworkingV1AlphaNetworkBindingList;
+        const networkBindings = response.data as ComDatumapisNetworkingV1AlphaNetworkBindingList;
 
-      return networkBindings.items
-        .filter((networkBinding) => {
-          return networkBinding.spec?.network?.name === networkId;
-        })
-        .map(transformNetworkBinding);
+        return networkBindings.items
+          .filter((networkBinding) => {
+            return networkBinding.spec?.network?.name === networkId;
+          })
+          .map(transformNetworkBinding);
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };

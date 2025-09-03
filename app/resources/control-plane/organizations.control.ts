@@ -55,110 +55,130 @@ export const createOrganizationsControl = (client: Client) => {
 
   return {
     list: async () => {
-      const response =
-        await listResourcemanagerMiloapisComV1Alpha1OrganizationMembershipForAllNamespaces({
-          client,
-        });
+      try {
+        const response =
+          await listResourcemanagerMiloapisComV1Alpha1OrganizationMembershipForAllNamespaces({
+            client,
+          });
 
-      // Type guard to check if data is a valid project list
-      const orgList =
-        response?.data as ComMiloapisResourcemanagerV1Alpha1OrganizationMembershipList;
+        // Type guard to check if data is a valid project list
+        const orgList =
+          response?.data as ComMiloapisResourcemanagerV1Alpha1OrganizationMembershipList;
 
-      return (
-        orgList?.items?.map((org: ComMiloapisResourcemanagerV1Alpha1OrganizationMembership) =>
-          transformOrgMembership(org)
-        ) ?? []
-      );
+        return (
+          orgList?.items?.map((org: ComMiloapisResourcemanagerV1Alpha1OrganizationMembership) =>
+            transformOrgMembership(org)
+          ) ?? []
+        );
+      } catch (e) {
+        throw e;
+      }
     },
     detail: async (orgId: string) => {
-      const response = await readResourcemanagerMiloapisComV1Alpha1Organization({
-        client,
-        path: {
-          name: orgId,
-        },
-      });
+      try {
+        const response = await readResourcemanagerMiloapisComV1Alpha1Organization({
+          client,
+          path: {
+            name: orgId,
+          },
+        });
 
-      // Type guard to check if data is a valid project list
-      const org = response?.data as ComMiloapisResourcemanagerV1Alpha1Organization;
+        // Type guard to check if data is a valid project list
+        const org = response?.data as ComMiloapisResourcemanagerV1Alpha1Organization;
 
-      return transform(org);
+        return transform(org);
+      } catch (e) {
+        throw e;
+      }
     },
     create: async (payload: OrganizationSchema, dryRun: boolean = false) => {
-      const response = await createResourcemanagerMiloapisComV1Alpha1Organization({
-        client,
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        body: {
-          apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
-          kind: 'Organization',
-          metadata: {
-            name: payload.name,
-            annotations: {
-              'kubernetes.io/display-name': payload.description,
-              ...convertLabelsToObject(payload.annotations ?? []),
+      try {
+        const response = await createResourcemanagerMiloapisComV1Alpha1Organization({
+          client,
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          body: {
+            apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
+            kind: 'Organization',
+            metadata: {
+              name: payload.name,
+              annotations: {
+                'kubernetes.io/display-name': payload.description,
+                ...convertLabelsToObject(payload.annotations ?? []),
+              },
+              labels: convertLabelsToObject(payload.labels ?? []),
             },
-            labels: convertLabelsToObject(payload.labels ?? []),
+            spec: {
+              type: OrganizationType.Standard,
+            },
           },
-          spec: {
-            type: OrganizationType.Standard,
-          },
-        },
-      });
+        });
 
-      const org = response.data as ComMiloapisResourcemanagerV1Alpha1Organization;
+        const org = response.data as ComMiloapisResourcemanagerV1Alpha1Organization;
 
-      return dryRun ? response.data : transform(org);
+        return dryRun ? response.data : transform(org);
+      } catch (e) {
+        throw e;
+      }
     },
     update: async (orgId: string, payload: UpdateOrganizationSchema, dryRun: boolean = false) => {
-      // Build metadata object conditionally based on available payload properties
-      const metadata: Record<string, any> = {};
+      try {
+        // Build metadata object conditionally based on available payload properties
+        const metadata: Record<string, any> = {};
 
-      // Only add annotations if description is provided
-      if (payload.description) {
-        metadata.annotations = {
-          'kubernetes.io/display-name': payload.description,
-        };
+        // Only add annotations if description is provided
+        if (payload.description) {
+          metadata.annotations = {
+            'kubernetes.io/display-name': payload.description,
+          };
+        }
+
+        // Only add labels if they are provided
+        if ('labels' in payload && payload.labels && payload.labels.length > 0) {
+          metadata.labels = convertLabelsToObject(payload.labels);
+        }
+
+        const response = await patchResourcemanagerMiloapisComV1Alpha1Organization({
+          client,
+          path: {
+            name: orgId,
+          },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+            fieldManager: 'datum-cloud-portal',
+          },
+          headers: {
+            'Content-Type': 'application/merge-patch+json',
+          },
+          body: {
+            apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
+            kind: 'Organization',
+            metadata,
+          },
+        });
+
+        const org = response.data as ComMiloapisResourcemanagerV1Alpha1Organization;
+
+        return dryRun ? response.data : transform(org);
+      } catch (e) {
+        throw e;
       }
-
-      // Only add labels if they are provided
-      if ('labels' in payload && payload.labels && payload.labels.length > 0) {
-        metadata.labels = convertLabelsToObject(payload.labels);
-      }
-
-      const response = await patchResourcemanagerMiloapisComV1Alpha1Organization({
-        client,
-        path: {
-          name: orgId,
-        },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-          fieldManager: 'datum-cloud-portal',
-        },
-        headers: {
-          'Content-Type': 'application/merge-patch+json',
-        },
-        body: {
-          apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
-          kind: 'Organization',
-          metadata,
-        },
-      });
-
-      const org = response.data as ComMiloapisResourcemanagerV1Alpha1Organization;
-
-      return dryRun ? response.data : transform(org);
     },
 
     delete: async (orgId: string) => {
-      const response = await deleteResourcemanagerMiloapisComV1Alpha1Organization({
-        client,
-        path: {
-          name: orgId,
-        },
-      });
+      try {
+        const response = await deleteResourcemanagerMiloapisComV1Alpha1Organization({
+          client,
+          path: {
+            name: orgId,
+          },
+        });
 
-      return response.data;
+        return response.data;
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };

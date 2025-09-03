@@ -1,6 +1,6 @@
 import { getOrgSession } from '@/modules/cookie/org.server';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
-import { CustomError } from '@/utils/error';
+import { NotFoundError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
@@ -14,7 +14,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     const { orgId } = await getOrgSession(request);
 
     if (!orgId) {
-      throw new CustomError('Organization not found', 404);
+      throw new NotFoundError('Organization not found');
     }
 
     const key = `projects:${orgId}`;

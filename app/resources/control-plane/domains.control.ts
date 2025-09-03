@@ -31,64 +31,80 @@ export const createDomainsControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listNetworkingDatumapisComV1AlphaNamespacedDomain({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-      });
+      try {
+        const response = await listNetworkingDatumapisComV1AlphaNamespacedDomain({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+        });
 
-      const domains = response.data as ComDatumapisNetworkingV1AlphaDomainList;
+        const domains = response.data as ComDatumapisNetworkingV1AlphaDomainList;
 
-      return domains.items.map(transformDomain);
+        return domains.items.map(transformDomain);
+      } catch (e) {
+        throw e;
+      }
     },
     detail: async (projectId: string, uid: string) => {
-      const response = await readNetworkingDatumapisComV1AlphaNamespacedDomain({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: uid },
-      });
+      try {
+        const response = await readNetworkingDatumapisComV1AlphaNamespacedDomain({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: uid },
+        });
 
-      const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
+        const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
 
-      return transformDomain(domain);
+        return transformDomain(domain);
+      } catch (e) {
+        throw e;
+      }
     },
     delete: async (projectId: string, uid: string) => {
-      const response = await deleteNetworkingDatumapisComV1AlphaNamespacedDomain({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: uid },
-      });
+      try {
+        const response = await deleteNetworkingDatumapisComV1AlphaNamespacedDomain({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: uid },
+        });
 
-      return response.data;
+        return response.data;
+      } catch (e) {
+        throw e;
+      }
     },
     create: async (projectId: string, payload: DomainSchema, dryRun: boolean = false) => {
-      const response = await createNetworkingDatumapisComV1AlphaNamespacedDomain({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: {
-          kind: 'Domain',
-          apiVersion: 'networking.datumapis.com/v1alpha',
-          metadata: {
-            name: payload.name,
+      try {
+        const response = await createNetworkingDatumapisComV1AlphaNamespacedDomain({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
           },
-          spec: {
-            domainName: payload.domain,
+          headers: {
+            'Content-Type': 'application/json',
           },
-        },
-      });
+          body: {
+            kind: 'Domain',
+            apiVersion: 'networking.datumapis.com/v1alpha',
+            metadata: {
+              name: payload.name,
+            },
+            spec: {
+              domainName: payload.domain,
+            },
+          },
+        });
 
-      const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
+        const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
 
-      return dryRun ? domain : transformDomain(domain);
+        return dryRun ? domain : transformDomain(domain);
+      } catch (e) {
+        throw e;
+      }
     },
     update: async (
       projectId: string,
@@ -96,40 +112,48 @@ export const createDomainsControl = (client: Client) => {
       payload: DomainSchema,
       dryRun: boolean = false
     ) => {
-      const response = await patchNetworkingDatumapisComV1AlphaNamespacedDomain({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: uid },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-          fieldManager: 'datum-cloud-portal',
-        },
-        headers: {
-          'Content-Type': 'application/merge-patch+json',
-        },
-        body: {
-          kind: 'Domain',
-          apiVersion: 'networking.datumapis.com/v1alpha',
-          spec: {
-            domainName: payload.domain,
+      try {
+        const response = await patchNetworkingDatumapisComV1AlphaNamespacedDomain({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: uid },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+            fieldManager: 'datum-cloud-portal',
           },
-        },
-      });
+          headers: {
+            'Content-Type': 'application/merge-patch+json',
+          },
+          body: {
+            kind: 'Domain',
+            apiVersion: 'networking.datumapis.com/v1alpha',
+            spec: {
+              domainName: payload.domain,
+            },
+          },
+        });
 
-      const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
+        const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
 
-      return dryRun ? domain : transformDomain(domain);
+        return dryRun ? domain : transformDomain(domain);
+      } catch (e) {
+        throw e;
+      }
     },
     getStatus: async (projectId: string, uid: string) => {
-      const response = await readNetworkingDatumapisComV1AlphaNamespacedDomainStatus({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: uid },
-      });
+      try {
+        const response = await readNetworkingDatumapisComV1AlphaNamespacedDomainStatus({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: uid },
+        });
 
-      const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
+        const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
 
-      return transformControlPlaneStatus(domain.status);
+        return transformControlPlaneStatus(domain.status);
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };

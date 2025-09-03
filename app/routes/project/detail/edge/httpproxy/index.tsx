@@ -9,7 +9,7 @@ import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
-import { CustomError } from '@/utils/error';
+import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
@@ -38,7 +38,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const httpProxiesControl = createHttpProxiesControl(controlPlaneClient as Client);
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400);
+    throw new BadRequestError('Project ID is required');
   }
 
   const httpProxies = await httpProxiesControl.list(projectId);

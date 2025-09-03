@@ -28,33 +28,41 @@ export const createInstancesControl = (client: Client) => {
 
   return {
     list: async (projectId: string, workloadUid?: string) => {
-      const response = await listComputeDatumapisComV1AlphaNamespacedInstance({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-        query: {
-          labelSelector: workloadUid
-            ? `compute.datumapis.com/workload-uid=${workloadUid}`
-            : undefined,
-        },
-      });
+      try {
+        const response = await listComputeDatumapisComV1AlphaNamespacedInstance({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+          query: {
+            labelSelector: workloadUid
+              ? `compute.datumapis.com/workload-uid=${workloadUid}`
+              : undefined,
+          },
+        });
 
-      const instances = response.data as ComDatumapisComputeV1AlphaInstanceList;
+        const instances = response.data as ComDatumapisComputeV1AlphaInstanceList;
 
-      return instances.items.map(transform);
+        return instances.items.map(transform);
+      } catch (e) {
+        throw e;
+      }
     },
     getStatus: async (projectId: string, instanceId: string) => {
-      const response = await readComputeDatumapisComV1AlphaNamespacedInstanceStatus({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: instanceId },
-      });
+      try {
+        const response = await readComputeDatumapisComV1AlphaNamespacedInstanceStatus({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: instanceId },
+        });
 
-      const instance = response.data as ComDatumapisComputeV1AlphaInstance;
+        const instance = response.data as ComDatumapisComputeV1AlphaInstance;
 
-      return transformControlPlaneStatus(instance.status);
+        return transformControlPlaneStatus(instance.status);
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };

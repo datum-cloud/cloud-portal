@@ -12,8 +12,8 @@ export default [
   layout('layouts/private.layout.tsx', [
     index('routes/index.tsx'),
 
-    // Dashboard Playground
-    route('dashboard', 'routes/dashboard.tsx'),
+    // Test Playground
+    route('test/metrics', 'routes/test/metrics.tsx'),
 
     // Account
     route('account', 'routes/account/layout.tsx', [

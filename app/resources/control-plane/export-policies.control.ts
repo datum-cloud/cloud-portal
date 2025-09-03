@@ -96,46 +96,58 @@ export const createExportPoliciesControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-      });
+      try {
+        const response = await listTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+        });
 
-      const exportPolicies = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicyList;
+        const exportPolicies = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicyList;
 
-      return exportPolicies.items.map(transformPolicy);
+        return exportPolicies.items.map(transformPolicy);
+      } catch (e) {
+        throw e;
+      }
     },
     create: async (projectId: string, policy: NewExportPolicySchema, dryRun: boolean = false) => {
-      const formatted = formatPolicy(policy);
-      const response = await createTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        body: {
-          ...formatted,
-          apiVersion: 'telemetry.miloapis.com/v1alpha1',
-          kind: 'ExportPolicy',
-        },
-      });
+      try {
+        const formatted = formatPolicy(policy);
+        const response = await createTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          body: {
+            ...formatted,
+            apiVersion: 'telemetry.miloapis.com/v1alpha1',
+            kind: 'ExportPolicy',
+          },
+        });
 
-      const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
+        const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
 
-      return dryRun ? exportPolicy : transformPolicy(exportPolicy);
+        return dryRun ? exportPolicy : transformPolicy(exportPolicy);
+      } catch (e) {
+        throw e;
+      }
     },
     detail: async (projectId: string, exportPolicyId: string) => {
-      const response = await readTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: exportPolicyId },
-      });
+      try {
+        const response = await readTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: exportPolicyId },
+        });
 
-      const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
+        const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
 
-      return transformPolicy(exportPolicy);
+        return transformPolicy(exportPolicy);
+      } catch (e) {
+        throw e;
+      }
     },
     update: async (
       projectId: string,
@@ -144,44 +156,56 @@ export const createExportPoliciesControl = (client: Client) => {
       resourceVersion: string,
       dryRun: boolean = false
     ) => {
-      const formatted = formatPolicy(policy, resourceVersion);
-      const response = await replaceTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: exportPolicyId },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        body: {
-          ...formatted,
-          apiVersion: 'telemetry.miloapis.com/v1alpha1',
-          kind: 'ExportPolicy',
-        },
-      });
+      try {
+        const formatted = formatPolicy(policy, resourceVersion);
+        const response = await replaceTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: exportPolicyId },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          body: {
+            ...formatted,
+            apiVersion: 'telemetry.miloapis.com/v1alpha1',
+            kind: 'ExportPolicy',
+          },
+        });
 
-      const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
+        const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
 
-      return dryRun ? exportPolicy : transformPolicy(exportPolicy);
+        return dryRun ? exportPolicy : transformPolicy(exportPolicy);
+      } catch (e) {
+        throw e;
+      }
     },
     delete: async (projectId: string, exportPolicyId: string) => {
-      const response = await deleteTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { name: exportPolicyId, namespace: 'default' },
-      });
+      try {
+        const response = await deleteTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { name: exportPolicyId, namespace: 'default' },
+        });
 
-      return response.data;
+        return response.data;
+      } catch (e) {
+        throw e;
+      }
     },
     getStatus: async (projectId: string, exportPolicyId: string) => {
-      const response = await readTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatus({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { name: exportPolicyId, namespace: 'default' },
-      });
+      try {
+        const response = await readTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatus({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { name: exportPolicyId, namespace: 'default' },
+        });
 
-      const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
+        const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
 
-      return transformControlPlaneStatus(exportPolicy.status);
+        return transformControlPlaneStatus(exportPolicy.status);
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };

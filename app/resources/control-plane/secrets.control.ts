@@ -33,70 +33,82 @@ export const createSecretsControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listCoreV1NamespacedSecret({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-      });
+      try {
+        const response = await listCoreV1NamespacedSecret({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+        });
 
-      const secrets = response.data as IoK8sApiCoreV1SecretList;
+        const secrets = response.data as IoK8sApiCoreV1SecretList;
 
-      return secrets.items.map(transformSecret);
+        return secrets.items.map(transformSecret);
+      } catch (e) {
+        throw e;
+      }
     },
     create: async (projectId: string, payload: SecretNewSchema, dryRun: boolean = false) => {
-      const formatted = {
-        metadata: {
-          name: payload?.name,
-          labels: convertLabelsToObject(payload?.labels ?? []),
-          annotations: convertLabelsToObject(payload?.annotations ?? []),
-        },
-        data: (payload?.variables ?? []).reduce(
-          (acc, vars) => {
-            acc[vars.key] = isBase64(vars.value) ? vars.value : toBase64(vars.value);
-            return acc;
+      try {
+        const formatted = {
+          metadata: {
+            name: payload?.name,
+            labels: convertLabelsToObject(payload?.labels ?? []),
+            annotations: convertLabelsToObject(payload?.annotations ?? []),
           },
-          {} as Record<string, string>
-        ),
-        type: payload?.type,
-      };
-      const response = await createCoreV1NamespacedSecret({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: {
-          ...formatted,
-          apiVersion: 'v1',
-          kind: 'Secret',
-        },
-      });
+          data: (payload?.variables ?? []).reduce(
+            (acc, vars) => {
+              acc[vars.key] = isBase64(vars.value) ? vars.value : toBase64(vars.value);
+              return acc;
+            },
+            {} as Record<string, string>
+          ),
+          type: payload?.type,
+        };
+        const response = await createCoreV1NamespacedSecret({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: {
+            ...formatted,
+            apiVersion: 'v1',
+            kind: 'Secret',
+          },
+        });
 
-      const secret = response.data as IoK8sApiCoreV1Secret;
+        const secret = response.data as IoK8sApiCoreV1Secret;
 
-      return dryRun ? secret : transformSecret(secret);
+        return dryRun ? secret : transformSecret(secret);
+      } catch (e) {
+        throw e;
+      }
     },
     detail: async (projectId: string, secretId: string) => {
-      const response = await readCoreV1NamespacedSecret({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: secretId },
-        // Enable this when you want to get the partial object metadata
-        /* headers: {
-          Accept:
-            'as=PartialObjectMetadata;g=meta.k8s.io;v=v1,application/json;as=PartialObjectMetadata;g=meta.k8s.io;v=v1,application/jso',
-        }, */
-      });
+      try {
+        const response = await readCoreV1NamespacedSecret({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: secretId },
+          // Enable this when you want to get the partial object metadata
+          /* headers: {
+            Accept:
+              'as=PartialObjectMetadata;g=meta.k8s.io;v=v1,application/json;as=PartialObjectMetadata;g=meta.k8s.io;v=v1,application/jso',
+          }, */
+        });
 
-      const secret = response.data as IoK8sApiCoreV1Secret;
+        const secret = response.data as IoK8sApiCoreV1Secret;
 
-      return transformSecret(secret);
+        return transformSecret(secret);
+      } catch (e) {
+        throw e;
+      }
     },
     update: async (
       projectId: string,
@@ -104,36 +116,44 @@ export const createSecretsControl = (client: Client) => {
       payload: SecretEditSchema,
       dryRun: boolean = false
     ) => {
-      const response = await patchCoreV1NamespacedSecret({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: secretId },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-          fieldManager: 'datum-cloud-portal',
-        },
-        headers: {
-          'Content-Type': 'application/merge-patch+json',
-        },
-        body: {
-          ...payload,
-          apiVersion: 'v1',
-          kind: 'Secret',
-        },
-      });
+      try {
+        const response = await patchCoreV1NamespacedSecret({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: secretId },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+            fieldManager: 'datum-cloud-portal',
+          },
+          headers: {
+            'Content-Type': 'application/merge-patch+json',
+          },
+          body: {
+            ...payload,
+            apiVersion: 'v1',
+            kind: 'Secret',
+          },
+        });
 
-      const secret = response.data as IoK8sApiCoreV1Secret;
+        const secret = response.data as IoK8sApiCoreV1Secret;
 
-      return dryRun ? secret : transformSecret(secret);
+        return dryRun ? secret : transformSecret(secret);
+      } catch (e) {
+        throw e;
+      }
     },
     delete: async (projectId: string, secretId: string) => {
-      const response = await deleteCoreV1NamespacedSecret({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: secretId },
-      });
+      try {
+        const response = await deleteCoreV1NamespacedSecret({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: secretId },
+        });
 
-      return response.data;
+        return response.data;
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };

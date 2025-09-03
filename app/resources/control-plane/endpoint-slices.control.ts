@@ -92,58 +92,74 @@ export const createEndpointSlicesControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listDiscoveryV1NamespacedEndpointSlice({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-      });
+      try {
+        const response = await listDiscoveryV1NamespacedEndpointSlice({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+        });
 
-      const endpointSlices = response.data as IoK8sApiDiscoveryV1EndpointSliceList;
+        const endpointSlices = response.data as IoK8sApiDiscoveryV1EndpointSliceList;
 
-      return endpointSlices.items.map(transformEndpointSliceLite);
+        return endpointSlices.items.map(transformEndpointSliceLite);
+      } catch (e) {
+        throw e;
+      }
     },
     detail: async (projectId: string, id: string) => {
-      const response = await readDiscoveryV1NamespacedEndpointSlice({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: id },
-      });
+      try {
+        const response = await readDiscoveryV1NamespacedEndpointSlice({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: id },
+        });
 
-      const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
+        const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
 
-      return transformEndpointSlice(endpointSlice);
+        return transformEndpointSlice(endpointSlice);
+      } catch (e) {
+        throw e;
+      }
     },
     create: async (projectId: string, payload: EndpointSliceSchema, dryRun: boolean = false) => {
-      const formatted = formatEndpointSlice(payload);
-      const response = await createDiscoveryV1NamespacedEndpointSlice({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: {
-          ...formatted,
-          kind: 'EndpointSlice',
-          apiVersion: 'discovery.k8s.io/v1',
-        },
-      });
+      try {
+        const formatted = formatEndpointSlice(payload);
+        const response = await createDiscoveryV1NamespacedEndpointSlice({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: {
+            ...formatted,
+            kind: 'EndpointSlice',
+            apiVersion: 'discovery.k8s.io/v1',
+          },
+        });
 
-      const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
+        const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
 
-      return dryRun ? endpointSlice : transformEndpointSliceLite(endpointSlice);
+        return dryRun ? endpointSlice : transformEndpointSliceLite(endpointSlice);
+      } catch (e) {
+        throw e;
+      }
     },
     delete: async (projectId: string, id: string) => {
-      const response = await deleteDiscoveryV1NamespacedEndpointSlice({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: id },
-      });
+      try {
+        const response = await deleteDiscoveryV1NamespacedEndpointSlice({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: id },
+        });
 
-      return response.data;
+        return response.data;
+      } catch (e) {
+        throw e;
+      }
     },
     update: async (
       projectId: string,
@@ -151,27 +167,31 @@ export const createEndpointSlicesControl = (client: Client) => {
       payload: EndpointSliceSchema,
       dryRun: boolean = false
     ) => {
-      const formatted = formatEndpointSlice(payload);
-      const response = await replaceDiscoveryV1NamespacedEndpointSlice({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: id },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: {
-          ...formatted,
-          kind: 'EndpointSlice',
-          apiVersion: 'discovery.k8s.io/v1',
-        },
-      });
+      try {
+        const formatted = formatEndpointSlice(payload);
+        const response = await replaceDiscoveryV1NamespacedEndpointSlice({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: id },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: {
+            ...formatted,
+            kind: 'EndpointSlice',
+            apiVersion: 'discovery.k8s.io/v1',
+          },
+        });
 
-      const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
+        const endpointSlice = response.data as IoK8sApiDiscoveryV1EndpointSlice;
 
-      return dryRun ? endpointSlice : transformEndpointSliceLite(endpointSlice);
+        return dryRun ? endpointSlice : transformEndpointSliceLite(endpointSlice);
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };
