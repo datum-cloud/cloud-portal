@@ -19,8 +19,8 @@ export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
               className={cn(
                 'rounded-md',
                 org.type === OrganizationType.Personal
-                  ? 'bg-accent-foreground text-background'
-                  : 'bg-sunglow-300 text-sunglow-foreground'
+                  ? 'bg-navy text-cream'
+                  : 'bg-orange text-cream'
               )}>
               {org.type === OrganizationType.Personal ? (
                 <Building2 size={24} />

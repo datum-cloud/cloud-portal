@@ -53,7 +53,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     // Redirect to organizations
     return redirect(paths.account.organizations.root, { headers: headers });
-  } catch (error) {
+  } catch {
     return redirect(paths.auth.logIn);
   }
 }
