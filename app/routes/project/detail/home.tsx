@@ -83,40 +83,64 @@ export default function ProjectDashboardPage() {
 
   return (
     <div className="mx-auto my-4 w-full max-w-7xl md:my-6">
-      <div className="mx-6 flex flex-col gap-12 space-y-4">
+      <div className="mx-6 flex flex-col gap-8">
         {/* Project Information */}
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-1">
+        <motion.div
+          className="flex flex-col gap-5"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}>
+          <motion.div
+            className="flex flex-col gap-1"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}>
             <div className="flex items-center gap-4">
               <p className="text-4xl leading-none font-semibold">{project.description}</p>
               {status?.status === ControlPlaneStatus.Pending && (
-                <StatusBadge
-                  status={status}
-                  type="badge"
-                  showTooltip={false}
-                  readyText="Active"
-                  badgeClassName="bg-secondary text-secondary-foreground font-medium border border-input"
-                />
+                <motion.div
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}>
+                  <StatusBadge
+                    status={status}
+                    type="badge"
+                    showTooltip={false}
+                    readyText="Active"
+                    badgeClassName="bg-secondary text-secondary-foreground font-medium border border-input"
+                  />
+                </motion.div>
               )}
             </div>
-            <p className="text-muted-foreground text-xl">{project.name}</p>
-          </div>
+            <motion.p
+              className="text-muted-foreground text-xl"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}>
+              {project.name}
+            </motion.p>
+          </motion.div>
           {status?.status === ControlPlaneStatus.Pending && (
-            <SectionDescription>
-              {status.message}
-              <span className="ml-1 inline-flex after:animate-[ellipsis_1s_steps(4,end)_infinite] after:content-['.']"></span>
-            </SectionDescription>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}>
+              <SectionDescription>
+                {status.message}
+                <span className="ml-1 inline-flex after:animate-[ellipsis_1s_steps(4,end)_infinite] after:content-['.']"></span>
+              </SectionDescription>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
         {status?.status === ControlPlaneStatus.Success ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col gap-12 space-y-4">
+            className="flex flex-col gap-8">
             <div className="flex flex-col items-center gap-12 md:flex-row md:justify-between">
-              <div className="flex flex-col gap-12 space-y-4">
+              <div className="flex w-1/2 flex-col gap-12 space-y-4">
                 {isNewProject && (
                   <motion.div
                     className="flex flex-col gap-3"
@@ -135,10 +159,11 @@ export default function ProjectDashboardPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 }}>
-                  <SectionTitle>Get started by configuring your first location</SectionTitle>
+                  <SectionTitle>Get started with HTTPProxy configuration</SectionTitle>
                   <SectionDescription>
-                    Setup a Datum managed Location backed by{' '}
-                    <strong className="font-bold">Google Cloud Platform</strong>.
+                    Set up and manage your first HTTPProxy resource to route traffic to your
+                    services with{' '}
+                    <strong className="font-bold">Datum&apos;s powerful proxy capabilities</strong>.
                   </SectionDescription>
 
                   <div className="flex gap-3">
@@ -168,9 +193,9 @@ export default function ProjectDashboardPage() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.6 }}
-                src="/images/providers/gcp.webp"
-                alt="Google Cloud Platform"
-                className="mx-auto h-auto max-w-[300px]"
+                src="/images/project-placeholder.png"
+                alt={project.name}
+                className="mx-auto h-auto max-w-[350px]"
               />
             </div>
 

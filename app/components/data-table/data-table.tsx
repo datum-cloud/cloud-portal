@@ -183,7 +183,7 @@ export const DataTable = <TData, TValue>({
                                   <div
                                     key={cell.id}
                                     className={cn(
-                                      'text-foreground text-sm',
+                                      'text-foreground dark:text-cream text-sm',
                                       cell.column.columnDef.meta?.className
                                     )}>
                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

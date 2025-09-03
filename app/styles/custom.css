@@ -1,17 +1,33 @@
 #nprogress .bar {
-  background: #f27a67;
-  height: 3px;
+  background: var(--color-tuscany);
+  height: 4px;
 }
 
 #nprogress .spinner-icon {
-  border-top-color: #f27a67;
-  border-left-color: #f27a67;
+  border-top-color: var(--color-tuscany);
+  border-left-color: var(--color-tuscany);
 }
 
 #nprogress .peg {
   box-shadow:
-    0 0 10px #fabcb1,
-    0 0 5px #fabcb1;
+    0 0 10px var(--color-light-pink),
+    0 0 5px var(--color-light-pink);
+}
+
+/* Dark mode overrides */
+.dark #nprogress .bar {
+  background: var(--color-cream);
+}
+
+.dark #nprogress .spinner-icon {
+  border-top-color: var(--color-cream);
+  border-left-color: var(--color-cream);
+}
+
+.dark #nprogress .peg {
+  box-shadow:
+    0 0 10px var(--color-cream),
+    0 0 5px var(--color-cream);
 }
 
 .popover-content-width-full {

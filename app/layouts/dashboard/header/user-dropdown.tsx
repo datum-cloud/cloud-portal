@@ -32,7 +32,7 @@ const UserItem = ({
     <div className={cn('flex items-center gap-2 px-1 py-1.5 text-left text-sm', className)}>
       <Avatar className="size-8 rounded-lg">
         {/* <AvatarImage src={user?.avatarRemoteURL} alt={fullName} /> */}
-        <AvatarFallback className="bg-secondary font-semibold">
+        <AvatarFallback className="bg-warm-white dark:bg-secondary font-semibold">
           {getInitials(fullName)}
         </AvatarFallback>
       </Avatar>
