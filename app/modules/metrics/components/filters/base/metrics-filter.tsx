@@ -1,9 +1,9 @@
 /**
  * MetricsFilter - Compound component for filter components
  */
-import { MetricsFilterRadio } from './MetricsFilterRadio';
-import { MetricsFilterSearch } from './MetricsFilterSearch';
-import { MetricsFilterSelect } from './MetricsFilterSelect';
+import { MetricsFilterRadio } from './metrics-filter-radio';
+import { MetricsFilterSearch } from './metrics-filter-search';
+import { MetricsFilterSelect } from './metrics-filter-select';
 
 // Compound component structure
 const MetricsFilter = {

@@ -8,6 +8,8 @@ import { PrometheusError } from '@/modules/prometheus/errors';
 import { getSharedEnvs } from '@/utils/environment';
 import { data, type ActionFunctionArgs } from 'react-router';
 
+export const ROUTE_PATH = '/api/prometheus' as const;
+
 /**
  * POST /api/prometheus
  * Handles Prometheus queries with server-side configuration

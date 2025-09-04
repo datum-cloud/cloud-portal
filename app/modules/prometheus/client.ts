@@ -182,3 +182,21 @@ export async function getBuildInfo(client: AxiosInstance): Promise<Record<string
     return {};
   }
 }
+
+/**
+ * Get Prometheus labels information
+ */
+export async function getLabels(client: AxiosInstance, label: string): Promise<string[]> {
+  try {
+    const response = await client.get(`/api/v1/label/${label}/values`);
+
+    if (response.data?.status === 'success') {
+      return response.data.data || [];
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Failed to get Prometheus labels info:', error);
+    return [];
+  }
+}

@@ -8,6 +8,7 @@ import {
   testConnection,
   getBuildInfo,
   PROMETHEUS_CONFIG,
+  getLabels,
 } from './client';
 import { PrometheusError } from './errors';
 import { formatForChart, formatForCard } from './formatter';
@@ -54,6 +55,9 @@ export class PrometheusService {
       }
       case 'buildinfo': {
         return this.getBuildInfo();
+      }
+      case 'labels': {
+        return this.getLabels(params.label);
       }
       default:
         throw new PrometheusError(`Unsupported query type: ${type}`, 'query');
@@ -175,6 +179,13 @@ export class PrometheusService {
    */
   async getBuildInfo(): Promise<Record<string, string>> {
     return await getBuildInfo(this.client);
+  }
+
+  /**
+   * Get Prometheus labels information
+   */
+  async getLabels(label: string): Promise<string[]> {
+    return await getLabels(this.client, label);
   }
 
   /**

@@ -1,11 +1,6 @@
 /**
  * Generic metric chart component using Shadcn UI Chart components
  */
-import { useMetrics } from '../context/metrics.context';
-import type { QueryBuilderFunction } from '../types/url.type';
-import type { CustomApiParams } from '../types/url.type';
-import { BaseMetric } from './BaseMetric';
-import { AreaSeries, BarSeries, LineSeries } from './series';
 import { DateFormat } from '@/components/date-format/date-format';
 import {
   ChartContainer,
@@ -15,7 +10,12 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from '@/components/ui/chart';
+import { BaseMetric } from '@/modules/metrics/components/base-metric';
+import { AreaSeries, BarSeries, LineSeries } from '@/modules/metrics/components/series';
+import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { usePrometheusChart } from '@/modules/metrics/hooks';
+import type { QueryBuilderFunction } from '@/modules/metrics/types/url.type';
+import type { CustomApiParams } from '@/modules/metrics/types/url.type';
 import {
   formatValue,
   transformForRecharts,

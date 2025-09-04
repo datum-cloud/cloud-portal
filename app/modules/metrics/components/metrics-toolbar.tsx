@@ -1,15 +1,13 @@
 /**
  * MetricsToolbar - Compound component for organizing core controls and filters
  */
-import { useMetrics } from '../context/metrics.context';
-import { RefreshControl } from './controls/RefreshControl';
-import { StepControl } from './controls/StepControl';
-// Import existing controls (will be updated to use new context)
-import { TimeRangeControl } from './controls/TimeRangeControl';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { RefreshControl } from '@/modules/metrics/components/controls/refresh-control';
+import { StepControl } from '@/modules/metrics/components/controls/step-control';
+// Import existing controls (will be updated to use new context)
+import { TimeRangeControl } from '@/modules/metrics/components/controls/time-range-control';
+import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { cn } from '@/utils/common';
-import { RotateCcw } from 'lucide-react';
 import { ReactNode } from 'react';
 
 // Main toolbar props
@@ -48,7 +46,7 @@ function Filters({
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <div className="flex items-center gap-2">{children}</div>
-      {showResetButton && hasFilters && (
+      {/* {showResetButton && hasFilters && (
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground text-xs">
             {filterCount} filter{filterCount !== 1 ? 's' : ''}
@@ -62,7 +60,7 @@ function Filters({
             Clear
           </Button>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

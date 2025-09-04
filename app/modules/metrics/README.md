@@ -4,13 +4,15 @@ A comprehensive TypeScript-first module for Prometheus metrics visualization wit
 
 ## 🚀 Key Features
 
-- **Dynamic Filtering**: Add region, environment, service filters with URL synchronization
+- **Dynamic Label Fetching**: Automatically fetch filter options from Prometheus labels API
+- **Enhanced Filter Components**: Unified `MetricsFilterSelect` with MultiSelect/SelectBox integration
+- **Centralized Query Building**: Utility functions for building Prometheus queries with consistent patterns
 - **Flexible Query Building**: Support for both static strings and dynamic query builder functions
 - **Unified State Management**: Single MetricsProvider manages core controls + custom filters
-- **Compound Components**: Clean API with MetricsToolbar and MetricsFilter namespaces
 - **URL State Synchronization**: Automatic bidirectional sync between UI state and URL parameters
 - **Enhanced TypeScript**: Full type safety for filters, query builders, and API parameters
 - **Custom API Parameters**: Support for both object and function-based API parameter customization
+- **Built-in Transforms & Filters**: Predefined functions for common label transformations
 
 ## Architecture Benefits
 
@@ -50,64 +52,85 @@ function Dashboard() {
 }
 ```
 
-### Advanced Usage with Dynamic Filters and Custom API Parameters
+### Advanced Usage with Dynamic Filters and Labels
 
 ```tsx
 import {
   MetricsProvider,
   MetricsToolbar,
-  MetricsFilter,
+  MetricsFilterSelect,
   MetricCard,
   MetricChart,
+  usePrometheusLabels,
+  labelFilters,
+  buildRateQuery,
+  createRegionFilter,
   type QueryBuilderFunction,
 } from '@/modules/metrics';
-import { Server, Globe } from 'lucide-react';
 
 function AdvancedDashboard() {
-  const regionOptions = [
-    { label: 'US East 1', value: 'us-east-1', icon: <Globe className="h-4 w-4" /> },
-    { label: 'US West 2', value: 'us-west-2', icon: <Globe className="h-4 w-4" /> },
-    { label: 'EU West 1', value: 'eu-west-1', icon: <Globe className="h-4 w-4" /> },
-  ];
+  // Fetch region options dynamically from Prometheus
+  const { options: regionOptions, isLoading: regionsLoading } = usePrometheusLabels({
+    label: 'region',
+    filter: labelFilters.excludeTest,
+  });
 
-  const environmentOptions = [
-    { label: 'Production', value: 'prod', icon: <Server className="h-4 w-4" /> },
-    { label: 'Staging', value: 'staging', icon: <Server className="h-4 w-4" /> },
-  ];
+  // Fetch environment options
+  const { options: environmentOptions, isLoading: environmentsLoading } = usePrometheusLabels({
+    label: 'environment',
+    filter: labelFilters.productionOnly,
+  });
 
-  // Dynamic query that uses filter values
-  const dynamicQuery: QueryBuilderFunction = ({ filters }) => {
-    let query = 'http_requests_total';
-    if (filters.region || filters.environment) {
-      const labels = [];
-      if (filters.region) labels.push(`region="${filters.region}"`);
-      if (filters.environment) labels.push(`env="${filters.environment}"`);
-      query += `{${labels.join(', ')}}`;
+  // Legacy approach: Manual query building
+  const legacyQuery: QueryBuilderFunction = ({ filters, get }) => {
+    const baseLabels = [`project="${projectId}"`, `service="${serviceId}"`, `region!=""`];
+
+    const regionFilter = get('regions');
+    if (regionFilter && Array.isArray(regionFilter) && regionFilter.length > 0) {
+      const regionPattern = regionFilter.join('|');
+      baseLabels.push(`region=~"${regionPattern}"`);
     }
-    return query;
+
+    return `rate(http_requests_total{${baseLabels.join(',')}}[5m])`;
+  };
+
+  // Modern approach: Using query builder utilities
+  const modernQuery: QueryBuilderFunction = ({ get }) => {
+    return buildRateQuery({
+      metric: 'http_requests_total',
+      timeWindow: '5m',
+      baseLabels: {
+        project: projectId,
+        service: serviceId,
+      },
+      customLabels: {
+        region: '!=""',
+      },
+      filters: [createRegionFilter(get('regions'))],
+      groupBy: ['region'],
+    });
   };
 
   return (
     <MetricsProvider>
       <MetricsToolbar variant="card">
         <MetricsToolbar.Filters>
-          <MetricsFilter.Select
+          <MetricsFilterSelect
             filterKey="region"
             label="Region"
             options={regionOptions}
-            placeholder="Select region..."
+            placeholder="Select regions..."
+            multiple
             searchable
+            disabled={regionsLoading}
+            showSelectAll
           />
-          <MetricsFilter.Radio
+          <MetricsFilterSelect
             filterKey="environment"
             label="Environment"
             options={environmentOptions}
-            orientation="horizontal"
-          />
-          <MetricsFilter.Search
-            filterKey="service"
-            label="Service"
-            placeholder="Search services..."
+            placeholder="Select environment..."
+            disabled={environmentsLoading}
           />
         </MetricsToolbar.Filters>
         <MetricsToolbar.CoreControls />
@@ -116,7 +139,7 @@ function AdvancedDashboard() {
       <div className="grid grid-cols-2 gap-4">
         <MetricCard
           title="Regional Requests"
-          query={dynamicQuery}
+          query={modernQuery}
           metricFormat="number"
           showTrend
           customApiParams={{
@@ -127,7 +150,7 @@ function AdvancedDashboard() {
 
         <MetricChart
           title="Request Rate by Region"
-          query={dynamicQuery}
+          query={modernQuery}
           chartType="area"
           customApiParams={(context) => ({
             resolution: context.get('environment') === 'prod' ? 'high' : 'medium',
@@ -178,37 +201,42 @@ Compound component for organizing controls and filters.
 </MetricsToolbar>
 ```
 
-#### `MetricsFilter`
+#### `MetricsFilterSelect`
 
-Namespace for filter components with automatic URL state management.
+Enhanced filter component with automatic URL state management and MultiSelect/SelectBox integration.
 
 ```tsx
-{
-  /* Select dropdown with single/multiple selection */
-}
-<MetricsFilter.Select
+// Basic select filter
+<MetricsFilterSelect
   filterKey="region"
   label="Region"
+  options={regionOptions}
+  placeholder="Select region..."
+  searchable
+/>
+
+// Multiple selection with dynamic labels
+<MetricsFilterSelect
+  filterKey="regions"
+  label="Regions"
+  options={regionOptions}
+  placeholder="Select regions..."
+  multiple
+  showSelectAll
+  maxCount={5}
+/>
+
+// With Prometheus labels hook
+const { options, isLoading } = usePrometheusLabels({ label: 'instance' });
+
+<MetricsFilterSelect
+  filterKey="instances"
+  label="Instances"
   options={options}
+  disabled={isLoading}
   multiple
   searchable
-  placeholder="Select..."
-/>;
-
-{
-  /* Radio button group */
-}
-<MetricsFilter.Radio
-  filterKey="environment"
-  label="Environment"
-  options={options}
-  orientation="horizontal"
-/>;
-
-{
-  /* Search input */
-}
-<MetricsFilter.Search filterKey="service" label="Service" placeholder="Search..." />;
+/>
 ```
 
 #### `MetricCard` & `MetricChart`
@@ -287,6 +315,115 @@ const { data, isLoading, error } = usePrometheusCard({
 });
 ```
 
+#### `usePrometheusLabels`
+
+Hook for fetching Prometheus label values with automatic formatting for MultiSelect components.
+
+```tsx
+import { usePrometheusLabels, labelTransforms, labelFilters } from '@/modules/metrics';
+
+// Basic usage
+const { options, isLoading } = usePrometheusLabels({
+  label: 'region'
+});
+
+// Advanced usage with transforms and filters
+const { options, isLoading, error, refetch } = usePrometheusLabels({
+  label: 'instance',
+  transform: labelTransforms.removePort,     // host:9090 → host
+  filter: labelFilters.excludeTest,          // Remove test instances
+  sort: (a, b) => a.label.localeCompare(b.label)
+});
+
+// Use with MetricsFilterSelect
+<MetricsFilterSelect
+  filterKey="regions"
+  placeholder="Select regions..."
+  multiple
+  options={options}
+  disabled={isLoading}
+/>
+```
+
+**Built-in Transform Functions:**
+
+- `labelTransforms.removePort` - Remove port from instance labels
+- `labelTransforms.capitalize` - Capitalize first letter
+- `labelTransforms.humanize` - Replace underscores with spaces and capitalize
+- `labelTransforms.extractRegion` - Extract AWS regions from complex strings
+
+**Built-in Filter Functions:**
+
+- `labelFilters.excludeTest` - Remove test environments
+- `labelFilters.excludeDev` - Remove dev environments
+- `labelFilters.productionOnly` - Only production values
+- `labelFilters.excludeEmpty` - Remove empty/invalid values
+
+### Query Builder Utilities
+
+Centralized utilities for building Prometheus queries with consistent patterns and region filtering.
+
+```tsx
+import {
+  buildRateQuery,
+  buildHistogramQuantileQuery,
+  buildPrometheusLabelSelector,
+  createRegionFilter,
+  type PrometheusLabelFilter,
+} from '@/modules/metrics';
+
+// Simple rate query with region filtering
+const query = buildRateQuery({
+  metric: 'envoy_vhost_vcluster_upstream_rq',
+  timeWindow: '15m',
+  baseLabels: {
+    resourcemanager_datumapis_com_project_name: projectId,
+    gateway_name: proxyId,
+    gateway_namespace: 'default',
+  },
+  customLabels: {
+    label_topology_kubernetes_io_region: '!=""', // Raw operator
+  },
+  filters: [createRegionFilter(get('regions'))],
+  groupBy: ['label_topology_kubernetes_io_region'],
+});
+
+// Histogram quantile for latency metrics
+const latencyQuery = buildHistogramQuantileQuery({
+  quantile: 0.99,
+  metric: 'http_request_duration_seconds_bucket',
+  timeWindow: '5m',
+  baseLabels: { service: 'api' },
+  filters: [
+    createRegionFilter(get('regions')),
+    { label: 'environment', value: get('environment') },
+  ],
+  groupBy: ['le', 'namespace'],
+});
+
+// Manual label selector building
+const selector = buildPrometheusLabelSelector({
+  baseLabels: { project: 'myproject' },
+  customLabels: {
+    region: '!=""', // Raw operator
+    environment: 'production', // Auto-quoted
+  },
+  filters: [
+    { label: 'instance', value: ['host1', 'host2'] }, // Multiple values
+    { label: 'service', value: 'api' }, // Single value
+  ],
+});
+// Result: {project="myproject",region!="",environment="production",instance=~"host1|host2",service="api"}
+```
+
+**Query Builder Features:**
+
+- ✅ **Automatic quoting**: Base labels are automatically quoted
+- ✅ **Raw operators**: Custom labels support `!=`, `=~`, `!~` operators
+- ✅ **Array handling**: Multiple filter values use regex OR patterns
+- ✅ **Type safety**: Full TypeScript support with interfaces
+- ✅ **Consistent patterns**: Standardized across all metric components
+
 ### Query Builder Functions
 
 Dynamic queries that adapt based on current filter state.
@@ -326,6 +463,20 @@ const advancedQuery: QueryBuilderFunction = (context) => {
   if (service) labels.push(`service=~".*${service}.*"`);
 
   return `http_requests_total{${labels.join(', ')}}`;
+};
+
+// Modern approach using query builder utilities
+const modernQuery: QueryBuilderFunction = ({ get }) => {
+  return buildRateQuery({
+    metric: 'http_requests_total',
+    timeWindow: '5m',
+    baseLabels: { service: 'api' },
+    filters: [
+      createRegionFilter(get('regions')),
+      { label: 'environment', value: get('environment') },
+    ],
+    groupBy: ['region', 'environment'],
+  });
 };
 ```
 
@@ -406,9 +557,11 @@ app/modules/metrics/
 │  │  └─ TimeRangeControl.tsx   # Time range picker
 │  ├─ filters/                  # Filter components with URL sync
 │  │  ├─ index.ts
-│  │  ├─ MetricsFilterSelect.tsx   # Dropdown selection
-│  │  ├─ MetricsFilterRadio.tsx    # Radio button group
-│  │  └─ MetricsFilterSearch.tsx   # Search input
+│  │  ├─ base/
+│  │  │  ├─ metrics-filter-select.tsx  # Enhanced select with MultiSelect/SelectBox
+│  │  │  ├─ metrics-filter-radio.tsx   # Radio button group
+│  │  │  └─ metrics-filter-search.tsx  # Search input
+│  │  └─ regions-filter.tsx      # Example region filter implementation
 │  └─ series/                   # Chart series components
 │     ├─ index.ts
 │     ├─ AreaSeries.tsx
@@ -419,14 +572,16 @@ app/modules/metrics/
 │  └─ metrics.context.tsx       # Unified context provider
 ├─ hooks/
 │  ├─ index.ts
-│  └─ usePrometheusApi.ts     # API integration hooks
+│  ├─ usePrometheusApi.ts        # Core API integration hooks
+│  └─ usePrometheusLabels.ts     # Label fetching with transforms/filters
 ├─ types/
 │  ├─ metrics.type.ts          # Core type definitions
 │  └─ url.type.ts              # URL state management types
 └─ utils/
    ├─ index.ts
    ├─ date-parsers.ts           # Date/time parsing utilities
-   └─ url-parsers.ts            # URL parameter parsing
+   ├─ url-parsers.ts            # URL parameter parsing
+   └─ query-builders.ts         # Prometheus query building utilities
 ```
 
 ## Dependencies

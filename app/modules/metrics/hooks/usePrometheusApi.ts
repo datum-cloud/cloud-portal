@@ -2,8 +2,11 @@
  * Enhanced hook for making Prometheus queries through the API middleware
  * Supports dynamic query building with filters and enhanced metrics context
  */
-import { useMetrics } from '../context/metrics.context';
-import type { QueryBuilderFunction, QueryBuilderContext } from '../types/metrics.type';
+import { useMetrics } from '@/modules/metrics/context/metrics.context';
+import type {
+  QueryBuilderFunction,
+  QueryBuilderContext,
+} from '@/modules/metrics/types/metrics.type';
 import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import {
   type FormattedMetricData,
@@ -13,6 +16,7 @@ import {
   type TimeRange,
   PrometheusError,
 } from '@/modules/prometheus';
+import { ROUTE_PATH as PROMETHEUS_ROUTE_PATH } from '@/routes/api/prometheus';
 import { useQuery, type QueryKey, type UseQueryResult } from '@tanstack/react-query';
 import { useQueryState } from 'nuqs';
 import React from 'react';
@@ -39,17 +43,20 @@ const prometheusQueryKeys = {
     ] as const,
   connections: () => [...prometheusQueryKeys.all, 'connections'] as const,
   buildInfo: () => [...prometheusQueryKeys.all, 'build-info'] as const,
+  labels: () => [...prometheusQueryKeys.all, 'labels'] as const,
+  label: (labelName: string) => [...prometheusQueryKeys.labels(), labelName] as const,
 };
 
 // #region API Layer
 // =======================================================================================
 
 interface PrometheusAPIRequest {
-  type: 'chart' | 'card' | 'connection' | 'buildinfo';
+  type: 'chart' | 'card' | 'connection' | 'buildinfo' | 'labels';
   query?: string;
   timeRange?: TimeRange;
   step?: string;
   metricFormat?: MetricFormat;
+  label?: string; // For labels API calls
   // Additional API parameters for custom configurations
   [key: string]: any;
 }
@@ -63,7 +70,7 @@ interface PrometheusAPIResponse<T> {
 }
 
 async function makePrometheusAPIRequest<T>(request: PrometheusAPIRequest): Promise<T> {
-  const response = await fetch('/api/prometheus', {
+  const response = await fetch(PROMETHEUS_ROUTE_PATH, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
@@ -91,7 +98,7 @@ async function makePrometheusAPIRequest<T>(request: PrometheusAPIRequest): Promi
 /**
  * Generic hook for all Prometheus API queries to consolidate TanStack Query options.
  */
-function usePrometheusAPIQuery<T>(
+export function usePrometheusAPIQuery<T>(
   queryKey: QueryKey,
   request: PrometheusAPIRequest,
   options: { enabled?: boolean; refetchInterval?: number | false }

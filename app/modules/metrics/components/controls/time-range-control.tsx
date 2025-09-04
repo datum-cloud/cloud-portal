@@ -1,14 +1,14 @@
-import { useMetrics } from '../../context/metrics.context';
-import { createMetricsParser } from '../../utils/url-parsers';
 import { DateFormat } from '@/components/date-format/date-format';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PRESET_RANGES } from '@/modules/metrics/constants';
+import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { getPresetDateRange, parseRange } from '@/modules/metrics/utils/date-parsers';
+import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { cn } from '@/utils/common';
 import { endOfDay, startOfDay } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronDownIcon } from 'lucide-react';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { DateRange } from 'react-day-picker';
@@ -107,15 +107,16 @@ export const TimeRangeControl = ({
           id="date"
           variant={'outline'}
           className={cn(
-            'h-[36px] min-w-60 justify-start px-3 text-left font-normal',
+            'h-[36px] justify-start px-3 text-left font-normal hover:bg-transparent',
             !date && 'text-muted-foreground'
           )}>
           <CalendarIcon className="mr-1 size-4" />
           <div className="flex items-center gap-1">
-            <DateFormat date={timeRange.start} />
+            <DateFormat date={timeRange.start} format="MMM d, yyyy" showTooltip={false} />
             <span className="text-muted-foreground">-</span>
-            <DateFormat date={timeRange.end} />
+            <DateFormat date={timeRange.end} format="MMM d, yyyy" showTooltip={false} />
           </div>
+          <ChevronDownIcon className="size-4 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">

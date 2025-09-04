@@ -1,11 +1,11 @@
 /**
  * Single metric display card component
  */
-import { useMetrics } from '../context/metrics.context';
-import type { QueryBuilderFunction } from '../types/url.type';
-import type { CustomApiParams } from '../types/url.type';
-import { BaseMetric } from './BaseMetric';
+import { BaseMetric } from '@/modules/metrics/components/base-metric';
+import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { usePrometheusCard } from '@/modules/metrics/hooks';
+import type { QueryBuilderFunction } from '@/modules/metrics/types/url.type';
+import type { CustomApiParams } from '@/modules/metrics/types/url.type';
 import {
   formatValue,
   type MetricCardData,

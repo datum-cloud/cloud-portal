@@ -1,10 +1,10 @@
 /**
  * MetricsFilterSearch - Search filter component for metrics with URL state support
  */
-import { useMetrics } from '../../context/metrics.context';
-import { createMetricsParser } from '../../utils/url-parsers';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useMetrics } from '@/modules/metrics/context/metrics.context';
+import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { cn } from '@/utils/common';
 import { Search, X } from 'lucide-react';
 import { useQueryState } from 'nuqs';

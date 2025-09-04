@@ -1,11 +1,11 @@
 /**
  * MetricsFilterRadio - Radio filter component for metrics with URL state support
  */
-import { useMetrics } from '../../context/metrics.context';
-import type { FilterOption } from '../../types/metrics.type';
-import { createMetricsParser } from '../../utils/url-parsers';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useMetrics } from '@/modules/metrics/context/metrics.context';
+import type { FilterOption } from '@/modules/metrics/types/metrics.type';
+import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { cn } from '@/utils/common';
 import { useQueryState } from 'nuqs';
 import { useEffect } from 'react';

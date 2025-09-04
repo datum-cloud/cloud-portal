@@ -1,4 +1,4 @@
-export * from './MetricChart';
-export * from './MetricCard';
+export * from './metric-chart';
+export * from './metric-card';
 
 export { ChartTooltipContent as MetricChartTooltipContent } from '@/components/ui/chart';

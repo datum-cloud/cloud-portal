@@ -6,18 +6,12 @@
 export * from './constants';
 
 // Export components
-export { MetricCard } from './components/MetricCard';
-export { MetricChart } from './components/MetricChart';
-export { MetricsToolbar } from './components/MetricsToolbar';
-export { MetricsToolbar as MetricsControls } from './components/MetricsToolbar'; // Alias for backward compatibility
-export { MetricsFilter } from './components/filters/MetricsFilter';
+export { MetricCard } from './components/metric-card';
+export { MetricChart } from './components/metric-chart';
+export { MetricsToolbar } from './components/metrics-toolbar';
+export { MetricsToolbar as MetricsControls } from './components/metrics-toolbar'; // Alias for backward compatibility
 export { MetricChartTooltipContent } from './components';
-
-// Export individual filter components
-export { MetricsFilterSelect } from './components/filters/MetricsFilterSelect';
-export { MetricsFilterRadio } from './components/filters/MetricsFilterRadio';
-export { MetricsFilterSearch } from './components/filters/MetricsFilterSearch';
-
+export * from './components/filters';
 // Export provider and hooks
 export { MetricsProvider, useMetrics } from './context/metrics.context';
 
@@ -30,4 +24,18 @@ export type {
 } from './types/metrics.type';
 
 // Export enhanced hooks
-export { usePrometheusChart, usePrometheusCard } from './hooks';
+export {
+  usePrometheusChart,
+  usePrometheusCard,
+  usePrometheusAPIQuery,
+  usePrometheusLabels,
+} from './hooks';
+
+// Export query builder utilities
+export {
+  buildPrometheusLabelSelector,
+  buildRateQuery,
+  buildHistogramQuantileQuery,
+  createRegionFilter,
+} from './utils/query-builders';
+export type { PrometheusLabelFilter, PrometheusQueryBuilderOptions } from './utils/query-builders';
