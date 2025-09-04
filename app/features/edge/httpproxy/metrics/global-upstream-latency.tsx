@@ -3,7 +3,6 @@ import {
   MetricChart,
   MetricChartTooltipContent,
   buildHistogramQuantileQuery,
-  createRegionFilter,
 } from '@/modules/metrics';
 import { formatValue } from '@/modules/prometheus';
 
@@ -29,7 +28,7 @@ export const HttpProxyGlobalUpstreamLatency = ({
           customLabels: {
             label_topology_kubernetes_io_region: '!=""',
           },
-          filters: [createRegionFilter(get('regions'))],
+          // filters: [createRegionFilter(get('regions'))],
           groupBy: ['le', 'namespace'],
         });
       }}
