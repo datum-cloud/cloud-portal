@@ -1,5 +1,5 @@
 import { createGatewaysControl } from '@/resources/control-plane/gateways.control';
-import { CustomError } from '@/utils/error';
+import { BadRequestError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
@@ -10,7 +10,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     const { id, projectId } = params;
 
     if (!id || !projectId) {
-      throw new CustomError('Project ID and Gateway ID are required', 400);
+      throw new BadRequestError('Project ID and Gateway ID are required');
     }
 
     const { controlPlaneClient } = context as AppLoadContext;

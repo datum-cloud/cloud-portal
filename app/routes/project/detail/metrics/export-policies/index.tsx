@@ -10,7 +10,7 @@ import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/export-policies';
-import { CustomError } from '@/utils/error';
+import { AppError, BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
@@ -35,7 +35,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     const exportPoliciesControl = createExportPoliciesControl(controlPlaneClient as Client);
 
     if (!projectId) {
-      throw new CustomError('Project ID is required', 400);
+      throw new BadRequestError('Project ID is required');
     }
 
     const policies = await exportPoliciesControl.list(projectId);
@@ -43,7 +43,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   } catch (error) {
     return dataWithToast([], {
       title: 'Something went wrong',
-      description: (error as CustomError).message,
+      description: (error as AppError).message,
       type: 'error',
     });
   }

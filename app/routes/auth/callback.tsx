@@ -4,7 +4,7 @@ import { authenticator } from '@/modules/auth/auth.server';
 import { setIdTokenSession } from '@/modules/cookie/id-token.server';
 import { getSession, setSession } from '@/modules/cookie/session.server';
 import { IAuthSession } from '@/resources/interfaces/auth.interface';
-import { CustomError } from '@/utils/error';
+import { AuthenticationError } from '@/utils/errors';
 import { combineHeaders } from '@/utils/path';
 import { jwtDecode } from 'jwt-decode';
 import { Loader2 } from 'lucide-react';
@@ -25,7 +25,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       request
     );
     if (!credentials) {
-      throw new CustomError('Authentication failed', 401);
+      throw new AuthenticationError('Authentication failed');
     }
 
     const { idToken, ...rest } = credentials;

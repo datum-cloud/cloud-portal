@@ -5,7 +5,7 @@ import { paths } from '@/config/paths';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
-import { CustomError } from '@/utils/error';
+import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
@@ -28,7 +28,7 @@ export const loader = async ({ request, params, context }: LoaderFunctionArgs) =
     const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
     if (!orgId) {
-      throw new CustomError('Organization ID is required', 400);
+      throw new BadRequestError('Organization ID is required');
     }
 
     const projects = await projectsControl.list(orgId);

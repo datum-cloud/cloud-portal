@@ -8,7 +8,7 @@ import {
   UpdateNetworkSchema,
   updateNetworkSchema,
 } from '@/resources/schemas/network.schema';
-import { CustomError } from '@/utils/error';
+import { AppError, BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
@@ -23,7 +23,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const noCache = url.searchParams.get('noCache');
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400);
+    throw new BadRequestError('Project ID is required');
   }
 
   const key = `networks:${projectId}`;
@@ -57,7 +57,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         const { projectId } = payload;
 
         if (!projectId) {
-          throw new CustomError('Project ID is required', 400);
+          throw new BadRequestError('Project ID is required');
         }
 
         const csrfToken = payload?.csrf;
@@ -67,7 +67,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
 
         const parsed = newNetworkSchema.safeParse(payload);
         if (!parsed.success) {
-          throw new CustomError('Invalid form data', 400);
+          throw new BadRequestError('Invalid form data');
         }
 
         const formattedPayload = parsed.data as NewNetworkSchema;
@@ -90,7 +90,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         const { projectId, networkId } = payload;
 
         if (!projectId || !networkId) {
-          throw new CustomError('Project ID and Network ID are required', 400);
+          throw new BadRequestError('Project ID and Network ID are required');
         }
 
         const csrfToken = payload?.csrf;
@@ -100,7 +100,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
 
         const parsed = updateNetworkSchema.safeParse(payload);
         if (!parsed.success) {
-          throw new CustomError('Invalid form data', 400);
+          throw new BadRequestError('Invalid form data');
         }
 
         const formattedPayload = parsed.data as UpdateNetworkSchema;
@@ -145,9 +145,12 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         return data({ success: true, message: 'Network deleted successfully' }, { status: 200 });
       }
       default:
-        throw new CustomError('Method not allowed', 405);
+        throw new HttpError('Method not allowed', 405);
     }
-  } catch (error: any) {
-    return data({ success: false, error: error.message }, { status: error.status });
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return error.toResponse();
+    }
+    return new HttpError('An unexpected error occurred').toResponse();
   }
 };

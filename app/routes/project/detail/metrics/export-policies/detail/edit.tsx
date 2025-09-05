@@ -5,7 +5,7 @@ import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server'
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { newExportPolicySchema } from '@/resources/schemas/export-policy.schema';
-import { CustomError } from '@/utils/error';
+import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { Client } from '@hey-api/client-axios';
@@ -34,7 +34,7 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
   const exportPoliciesControl = createExportPoliciesControl(controlPlaneClient as Client);
 
   if (!projectId || !exportPolicyId) {
-    throw new CustomError('Project ID and export policy ID are required', 400);
+    throw new BadRequestError('Project ID and export policy ID are required');
   }
 
   const clonedRequest = request.clone();

@@ -6,7 +6,7 @@ import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
 import { projectSchema, ProjectSchema } from '@/resources/schemas/project.schema';
-import { CustomError } from '@/utils/error';
+import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { getPathWithParams } from '@/utils/path';
 import { parseWithZod } from '@conform-to/zod';
@@ -35,7 +35,7 @@ export const action = withMiddleware(async ({ request, params, context }: Action
     const parsed = parseWithZod(formData, { schema: projectSchema });
 
     if (parsed.status !== 'success') {
-      throw new CustomError('Invalid form data', 400);
+      throw new BadRequestError('Invalid form data');
     }
 
     const payload = parsed.value as ProjectSchema;

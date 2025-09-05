@@ -1,5 +1,5 @@
 import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control';
-import { CustomError } from '@/utils/error';
+import { BadRequestError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
@@ -14,7 +14,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const noCache = false;
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400);
+    throw new BadRequestError('Project ID is required');
   }
 
   const key = `config-maps:${projectId}`;

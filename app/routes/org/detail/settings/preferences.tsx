@@ -8,7 +8,7 @@ import {
   UpdateOrganizationSchema,
   updateOrganizationSchema,
 } from '@/resources/schemas/organization.schema';
-import { CustomError } from '@/utils/error';
+import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/meta';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
@@ -28,7 +28,7 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
 
   try {
     if (!orgId) {
-      throw new CustomError('Organization ID is required', 400);
+      throw new BadRequestError('Organization ID is required');
     }
 
     const orgAPI = createOrganizationsControl(controlPlaneClient as Client);
@@ -42,7 +42,7 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
     const parsed = parseWithZod(formData, { schema: updateOrganizationSchema });
 
     if (parsed.status !== 'success') {
-      throw new CustomError('Invalid form data', 400);
+      throw new BadRequestError('Invalid form data');
     }
 
     const payload = parsed.value as UpdateOrganizationSchema;

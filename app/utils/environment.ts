@@ -2,6 +2,7 @@
  * Environment, runtime, and Node.js utilities
  * Environment variable validation, Node.js environment checks, and singleton pattern
  */
+import { toBoolean } from '@/utils/text';
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
@@ -10,6 +11,7 @@ const schema = z.object({
   SESSION_SECRET: z.string().optional(),
   APP_URL: z.string().optional(),
   API_URL: z.string().optional(),
+  VERSION: z.string().optional(),
 
   // Cloud Valid providers
   CLOUDVALID_API_URL: z.string().optional(),
@@ -20,10 +22,13 @@ const schema = z.object({
   AUTH_OIDC_ISSUER: z.string().optional(),
   AUTH_OIDC_CLIENT_ID: z.string().optional(),
 
-  FATHOM_ID: z.string().optional(),
-
+  // Loki & Prometheus
   TELEMETRY_URL: z.string().optional(),
   PROMETHEUS_URL: z.string().optional(),
+
+  // Sentry
+
+  FATHOM_ID: z.string().optional(),
 });
 
 declare global {
@@ -66,9 +71,23 @@ export function getSharedEnvs() {
   return {
     APP_URL: process.env.APP_URL,
     API_URL: process.env.API_URL,
+    VERSION: process.env.VERSION,
     FATHOM_ID: process.env.FATHOM_ID,
     TELEMETRY_URL: process.env.TELEMETRY_URL,
     PROMETHEUS_URL: process.env.PROMETHEUS_URL,
+
+    // Sentry configuration
+    SENTRY_ENV: process.env.SENTRY_ENV,
+    SENTRY_DSN: process.env.SENTRY_DSN,
+    SENTRY_ORG: process.env.SENTRY_ORG,
+    SENTRY_PROJECT: process.env.SENTRY_PROJECT,
+    SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
+
+    isDebug: toBoolean(process.env.DEBUG),
+    isDev: process.env.NODE_ENV === 'development',
+    isProd: process.env.NODE_ENV === 'production',
+    isTest: process.env.NODE_ENV === 'test',
+    isSentryEnabled: !!process.env.SENTRY_DSN,
   };
 }
 

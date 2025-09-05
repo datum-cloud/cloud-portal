@@ -9,7 +9,6 @@ import {
 } from '@/modules/control-plane/networking';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { HttpProxySchema } from '@/resources/schemas/http-proxy.schema';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createHttpProxiesControl = (client: Client) => {
@@ -54,59 +53,63 @@ export const createHttpProxiesControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-      });
+      try {
+        const response = await listNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+        });
 
-      const httpProxies = response.data as ComDatumapisNetworkingV1AlphaHttpProxyList;
+        const httpProxies = response.data as ComDatumapisNetworkingV1AlphaHttpProxyList;
 
-      return httpProxies.items.map(transformHttpProxy);
+        return httpProxies.items.map(transformHttpProxy);
+      } catch (e) {
+        throw e;
+      }
     },
     detail: async (projectId: string, uid: string) => {
-      const response = await readNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: uid },
-      });
+      try {
+        const response = await readNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: uid },
+        });
 
-      if (!response.data) {
-        throw new CustomError('HTTPProxy not found', 404);
+        const httpProxy = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
+
+        return transformHttpProxy(httpProxy);
+      } catch (e) {
+        throw e;
       }
-
-      const httpProxy = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
-
-      return transformHttpProxy(httpProxy);
     },
     create: async (projectId: string, payload: HttpProxySchema, dryRun: boolean = false) => {
-      const formatted = formatHttpProxy(payload);
-      const response = await createNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default' },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: {
-          ...formatted,
-          kind: 'HTTPProxy',
-          apiVersion: 'networking.datumapis.com/v1alpha',
-        },
-      });
+      try {
+        const formatted = formatHttpProxy(payload);
+        const response = await createNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default' },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: {
+            ...formatted,
+            kind: 'HTTPProxy',
+            apiVersion: 'networking.datumapis.com/v1alpha',
+          },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to create HTTPProxy', 500);
+        const httpProxy = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
+
+        return dryRun ? httpProxy : transformHttpProxy(httpProxy);
+      } catch (e) {
+        throw e;
       }
-
-      const httpProxy = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
-
-      return dryRun ? httpProxy : transformHttpProxy(httpProxy);
     },
     update: async (
       projectId: string,
@@ -114,55 +117,55 @@ export const createHttpProxiesControl = (client: Client) => {
       payload: HttpProxySchema,
       dryRun: boolean = false
     ) => {
-      const response = await patchNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: uid },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-          fieldManager: 'datum-cloud-portal',
-        },
-        headers: {
-          'Content-Type': 'application/merge-patch+json',
-        },
-        body: {
-          kind: 'HTTPProxy',
-          apiVersion: 'networking.datumapis.com/v1alpha',
-          spec: {
-            hostnames: payload.hostnames ?? [],
-            rules: [
-              {
-                backends: [
-                  {
-                    endpoint: payload.endpoint,
-                  },
-                ],
-              },
-            ],
+      try {
+        const response = await patchNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: uid },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+            fieldManager: 'datum-cloud-portal',
           },
-        },
-      });
+          headers: {
+            'Content-Type': 'application/merge-patch+json',
+          },
+          body: {
+            kind: 'HTTPProxy',
+            apiVersion: 'networking.datumapis.com/v1alpha',
+            spec: {
+              hostnames: payload.hostnames ?? [],
+              rules: [
+                {
+                  backends: [
+                    {
+                      endpoint: payload.endpoint,
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update HTTPProxy', 500);
+        const httpProxy = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
+
+        return dryRun ? httpProxy : transformHttpProxy(httpProxy);
+      } catch (e) {
+        throw e;
       }
-
-      const httpProxy = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
-
-      return dryRun ? httpProxy : transformHttpProxy(httpProxy);
     },
     delete: async (projectId: string, uid: string) => {
-      const response = await deleteNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: uid },
-      });
+      try {
+        const response = await deleteNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: uid },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to delete HTTPProxy', 500);
+        return response.data;
+      } catch (e) {
+        throw e;
       }
-
-      return response.data;
     },
   };
 };

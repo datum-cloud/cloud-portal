@@ -1,6 +1,6 @@
 import { getSession } from '@/modules/cookie/session.server';
 import { LokiActivityLogsService, type QueryParams } from '@/modules/loki';
-import { CustomError } from '@/utils/error';
+import { AuthenticationError, AppError } from '@/utils/errors';
 import { data, type LoaderFunctionArgs } from 'react-router';
 
 /**
@@ -55,7 +55,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const session = sessionResponse.session;
 
     if (!session?.accessToken) {
-      throw new CustomError('Unauthorized', 401);
+      throw new AuthenticationError('Unauthorized');
     }
 
     // Parse and validate query parameters
@@ -70,8 +70,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       data: activityLogsResponse,
     });
   } catch (error) {
-    const isCustomError = error instanceof CustomError;
-    const message = isCustomError ? error.message : 'Internal Server Error';
+    const isAppError = error instanceof AppError;
+    const message = isAppError ? (error as AppError).message : 'Internal Server Error';
 
     return data({ success: false, error: message });
   }

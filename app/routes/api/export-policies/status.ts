@@ -1,5 +1,5 @@
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
-import { CustomError } from '@/utils/error';
+import { BadRequestError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
@@ -10,14 +10,14 @@ export const loader = async ({ params, context, request }: LoaderFunctionArgs) =
     const { id } = params;
 
     if (!id) {
-      throw new CustomError('Export policy ID is required', 400);
+      throw new BadRequestError('Project ID and Export Policy ID are required');
     }
 
     const url = new URL(request.url);
     const projectId = url.searchParams.get('projectId');
 
     if (!projectId) {
-      throw new CustomError('Project ID is required', 400);
+      throw new BadRequestError('Project ID is required');
     }
 
     const { controlPlaneClient } = context as AppLoadContext;
