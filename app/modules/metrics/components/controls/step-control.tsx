@@ -1,4 +1,3 @@
-import { createMetricsParser } from '../../utils/url-parsers';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -9,6 +8,7 @@ import {
 } from '@/components/ui/select';
 import { STEP_OPTIONS } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context';
+import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { useQueryState } from 'nuqs';
 import { useEffect } from 'react';
 

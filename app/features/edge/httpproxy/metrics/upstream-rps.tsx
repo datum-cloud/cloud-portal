@@ -1,6 +1,11 @@
 import { DateFormat } from '@/components/date-format/date-format';
 import { HttpProxyUpstreamTable } from '@/features/edge/httpproxy/metrics/upstream-table';
-import { MetricChart, MetricChartTooltipContent } from '@/modules/metrics';
+import {
+  MetricChart,
+  MetricChartTooltipContent,
+  buildRateQuery,
+  createRegionFilter,
+} from '@/modules/metrics';
 import { ChartSeries } from '@/modules/prometheus';
 import { useState } from 'react';
 
@@ -16,8 +21,21 @@ export const HttpProxyUpstreamRps = ({
   return (
     <div className="flex flex-col gap-4">
       <MetricChart
-        query={({ filters }) => {
-          return `sum(rate(envoy_vhost_vcluster_upstream_rq{resourcemanager_datumapis_com_project_name="${projectId}",gateway_name="${proxyId}",gateway_namespace="default",label_topology_kubernetes_io_region!=""}[${filters.step}])) by (label_topology_kubernetes_io_region)`;
+        query={({ filters, get }) => {
+          return buildRateQuery({
+            metric: 'envoy_vhost_vcluster_upstream_rq',
+            timeWindow: filters.step ?? '15m',
+            baseLabels: {
+              resourcemanager_datumapis_com_project_name: projectId,
+              gateway_name: proxyId,
+              gateway_namespace: 'default',
+            },
+            customLabels: {
+              label_topology_kubernetes_io_region: '!=""',
+            },
+            filters: [createRegionFilter(get('regions'))],
+            groupBy: ['label_topology_kubernetes_io_region'],
+          });
         }}
         title="Regional Upstream RPS"
         chartType="line"

@@ -47,6 +47,7 @@ export {
   executeRangeQuery,
   testConnection,
   getBuildInfo,
+  getLabels,
   PROMETHEUS_CONFIG,
 } from './client';
 

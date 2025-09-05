@@ -3,3 +3,4 @@
  */
 
 export * from './usePrometheusApi';
+export * from './usePrometheusLabels';

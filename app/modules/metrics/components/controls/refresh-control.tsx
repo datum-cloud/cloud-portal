@@ -1,6 +1,3 @@
-import { useMetrics } from '../../context';
-import { parseDurationToMs } from '../../utils/date-parsers';
-import { createMetricsParser } from '../../utils/url-parsers';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -11,6 +8,9 @@ import {
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { REFRESH_OPTIONS } from '@/modules/metrics/constants';
+import { useMetrics } from '@/modules/metrics/context';
+import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
+import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { useQueryState } from 'nuqs';

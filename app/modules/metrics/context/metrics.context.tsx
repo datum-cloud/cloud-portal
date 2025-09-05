@@ -2,10 +2,14 @@
  * Enhanced MetricsProvider with unified URL state management
  * All controls and filters use the same centralized URL registry pattern
  */
-import type { FilterState, FilterValue, QueryBuilderContext } from '../types/metrics.type';
-import type { URLStateRegistry } from '../types/url.type';
-import { parseRange } from '../utils/date-parsers';
-import { createMetricsParser } from '../utils/url-parsers';
+import type {
+  FilterState,
+  FilterValue,
+  QueryBuilderContext,
+} from '@/modules/metrics/types/metrics.type';
+import type { URLStateRegistry } from '@/modules/metrics/types/url.type';
+import { parseRange } from '@/modules/metrics/utils/date-parsers';
+import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import type { TimeRange } from '@/modules/prometheus';
 import { useQueryStates } from 'nuqs';
 import React, { createContext, useContext, useMemo, useCallback, useState, useRef } from 'react';

@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/utils/common';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { CheckIcon, XCircle, ChevronDown, XIcon, WandSparkles } from 'lucide-react';
+import { CheckIcon, XCircle, ChevronDown, XIcon, WandSparkles, Loader2 } from 'lucide-react';
 import * as React from 'react';
 import { useEffect } from 'react';
 
@@ -67,6 +67,9 @@ interface MultiSelectProps
 
   /** The default selected values when the component mounts. */
   defaultValue?: string[];
+
+  /** The controlled selected values. When provided, component becomes controlled. */
+  value?: string[];
 
   /**
    * Placeholder text to be displayed when no values are selected.
@@ -164,6 +167,13 @@ interface MultiSelectProps
    * Optional, defaults to false.
    */
   showSelectAll?: boolean;
+
+  /**
+   * Controls whether the component is loading.
+   * When true, the component will show a loading indicator.
+   * Optional, defaults to false.
+   */
+  isLoading?: boolean;
 }
 
 export const MultiSelect = ({
@@ -171,6 +181,7 @@ export const MultiSelect = ({
   onValueChange,
   variant,
   defaultValue = [],
+  value,
   placeholder = 'Select options',
   animation = 0,
   maxCount = 3,
@@ -188,21 +199,31 @@ export const MultiSelect = ({
   disabled = false,
   id,
   name,
+  isLoading = false,
 }: MultiSelectProps) => {
   const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
+
+  // Use controlled value if provided, otherwise use internal state
+  const currentSelectedValues = value !== undefined ? value : selectedValues;
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const [isAnimating, setIsAnimating] = React.useState(false);
 
   const toggleOption = (option: string) => {
-    const newSelectedValues = selectedValues.includes(option)
-      ? selectedValues.filter((value) => value !== option)
-      : [...selectedValues, option];
-    setSelectedValues(newSelectedValues);
+    const newSelectedValues = currentSelectedValues.includes(option)
+      ? currentSelectedValues.filter((value) => value !== option)
+      : [...currentSelectedValues, option];
+
+    // Only update internal state if not controlled
+    if (value === undefined) {
+      setSelectedValues(newSelectedValues);
+    }
     onValueChange(newSelectedValues);
   };
 
   const handleClear = () => {
-    setSelectedValues([]);
+    if (value === undefined) {
+      setSelectedValues([]);
+    }
     onValueChange([]);
   };
 
@@ -211,76 +232,83 @@ export const MultiSelect = ({
   };
 
   const clearExtraOptions = () => {
-    const newSelectedValues = selectedValues.slice(0, maxCount);
-    setSelectedValues(newSelectedValues);
+    const newSelectedValues = currentSelectedValues.slice(0, maxCount);
+    if (value === undefined) {
+      setSelectedValues(newSelectedValues);
+    }
     onValueChange(newSelectedValues);
   };
 
   const toggleAll = () => {
-    if (selectedValues.length === options.length) {
+    if (currentSelectedValues.length === options.length) {
       handleClear();
     } else {
       const allValues = options.map((option) => option.value);
-      setSelectedValues(allValues);
+      if (value === undefined) {
+        setSelectedValues(allValues);
+      }
       onValueChange(allValues);
     }
   };
 
+  // Only sync defaultValue to internal state when uncontrolled
   useEffect(() => {
-    if (defaultValue) {
+    if (value === undefined && defaultValue) {
       setSelectedValues(defaultValue);
     }
-  }, [defaultValue]);
+  }, [defaultValue, value]);
 
   return (
     <>
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen} modal={modalPopover}>
         <PopoverTrigger asChild>
           <Button
-            disabled={disabled}
+            disabled={disabled || isLoading}
             data-slot="multi-select-trigger"
             onClick={handleTogglePopover}
             className={cn(
-              'flex h-auto min-h-10 w-full items-center justify-between rounded-md border bg-inherit p-1 hover:bg-inherit [&_svg]:pointer-events-auto',
+              'relative flex h-auto min-h-10 w-full items-center justify-between rounded-md border bg-inherit p-1 hover:bg-inherit [&_svg]:pointer-events-auto',
               className
             )}>
-            {selectedValues.length > 0 ? (
+            {currentSelectedValues.length > 0 && !isLoading && options.length > 0 ? (
               <div className="flex w-full items-center justify-between">
                 <div className="flex flex-wrap items-center">
-                  {selectedValues.slice(0, maxCount === -1 ? undefined : maxCount).map((value) => {
-                    const option = options.find((o) => o.value === value);
-                    const IconComponent = option?.icon;
-                    return (
-                      <Badge
-                        key={value}
-                        className={cn(
-                          isAnimating ? 'animate-bounce' : '',
-                          multiSelectVariants({ variant }),
-                          clickableBadges && 'cursor-pointer',
-                          badgeClassName ?? ''
-                        )}
-                        style={{ animationDuration: `${animation}s` }}
-                        onClick={(event) => {
-                          if (clickableBadges) {
-                            event.stopPropagation();
-                            event.preventDefault();
-                            onBadgeClick?.(option ?? { label: '', value: '' });
-                          }
-                        }}>
-                        {IconComponent && <IconComponent className="mr-2 size-4" />}
-                        {option?.label}
-                        <XCircle
-                          className="ml-2 size-4 cursor-pointer"
+                  {currentSelectedValues
+                    .slice(0, maxCount === -1 ? undefined : maxCount)
+                    .map((value) => {
+                      const option = options.find((o) => o.value === value);
+                      const IconComponent = option?.icon;
+                      return (
+                        <Badge
+                          key={value}
+                          className={cn(
+                            isAnimating ? 'animate-bounce' : '',
+                            multiSelectVariants({ variant }),
+                            clickableBadges && 'cursor-pointer',
+                            badgeClassName ?? ''
+                          )}
+                          style={{ animationDuration: `${animation}s` }}
                           onClick={(event) => {
-                            event.stopPropagation();
-                            event.preventDefault();
-                            toggleOption(value);
-                          }}
-                        />
-                      </Badge>
-                    );
-                  })}
-                  {selectedValues.length > maxCount && maxCount !== -1 && (
+                            if (clickableBadges) {
+                              event.stopPropagation();
+                              event.preventDefault();
+                              onBadgeClick?.(option ?? { label: '', value: '' });
+                            }
+                          }}>
+                          {IconComponent && <IconComponent className="mr-2 size-4" />}
+                          {option?.label}
+                          <XCircle
+                            className="ml-2 size-4 cursor-pointer"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              event.preventDefault();
+                              toggleOption(value);
+                            }}
+                          />
+                        </Badge>
+                      );
+                    })}
+                  {currentSelectedValues.length > maxCount && maxCount !== -1 && (
                     <Badge
                       className={cn(
                         'border-foreground/1 text-foreground bg-transparent hover:bg-transparent',
@@ -288,7 +316,7 @@ export const MultiSelect = ({
                         multiSelectVariants({ variant })
                       )}
                       style={{ animationDuration: `${animation}s` }}>
-                      {`+ ${selectedValues.length - maxCount} more`}
+                      {`+ ${currentSelectedValues.length - maxCount} more`}
                       <XCircle
                         className="ml-2 size-4 cursor-pointer"
                         onClick={(event) => {
@@ -317,6 +345,12 @@ export const MultiSelect = ({
                 <ChevronDown className="text-muted-foreground mx-2 h-4 cursor-pointer" />
               </div>
             )}
+
+            {isLoading && (
+              <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-md backdrop-blur-xs">
+                <Loader2 className="text-muted-foreground size-4 animate-spin" />
+              </div>
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -333,7 +367,7 @@ export const MultiSelect = ({
                       <div
                         className={cn(
                           'border-primary mr-2 flex size-4 items-center justify-center rounded-sm border',
-                          selectedValues.length === options.length
+                          currentSelectedValues.length === options.length
                             ? 'bg-primary text-primary-foreground'
                             : 'opacity-50 [&_svg]:invisible'
                         )}>
@@ -343,7 +377,7 @@ export const MultiSelect = ({
                     </CommandItem>
                   )}
                   {options.map((option) => {
-                    const isSelected = selectedValues.includes(option.value);
+                    const isSelected = currentSelectedValues.includes(option.value);
                     return (
                       <CommandItem
                         key={option.value}
@@ -385,12 +419,12 @@ export const MultiSelect = ({
                   </CommandGroup>
                 </>
               )}
-              {showCloseButton || (showClearButton && selectedValues.length > 0) ? (
+              {showCloseButton || (showClearButton && currentSelectedValues.length > 0) ? (
                 <>
                   <CommandSeparator />
                   <CommandGroup>
                     <div className="flex items-center justify-between">
-                      {showClearButton && selectedValues.length > 0 && (
+                      {showClearButton && currentSelectedValues.length > 0 && (
                         <>
                           <CommandItem
                             onSelect={handleClear}
@@ -418,7 +452,7 @@ export const MultiSelect = ({
             </CommandList>
           </Command>
         </PopoverContent>
-        {animation > 0 && selectedValues.length > 0 && (
+        {animation > 0 && currentSelectedValues.length > 0 && (
           <WandSparkles
             className={cn(
               'bg-background text-foreground my-2 h-3 w-3 cursor-pointer',
@@ -433,7 +467,7 @@ export const MultiSelect = ({
         name={name}
         id={id}
         multiple
-        value={selectedValues ?? []}
+        value={currentSelectedValues ?? []}
         defaultValue={undefined}
         className="absolute top-0 left-0 h-0 w-0"
         onChange={() => undefined}>

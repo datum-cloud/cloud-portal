@@ -38,7 +38,8 @@ export const DateFormat = ({
   return (
     <Tooltip>
       <TooltipTrigger
-        className={cn(showTooltip ? 'cursor-pointer' : 'pointer-events-none cursor-default')}>
+        className={cn(showTooltip ? 'cursor-pointer' : 'pointer-events-none cursor-default')}
+        asChild>
         <span className={cn(className)}>
           {formatInTimeZone(parsedDate, timeZone, format, { locale: enUS })}
         </span>
