@@ -17,7 +17,7 @@ export function setSentryUser(user: IUser): void {
   Sentry.setTag('user.id', user.uid);
   Sentry.setTag('user.email', user.email);
   Sentry.setTag('user.name', `${user.givenName} ${user.familyName}`);
-  Sentry.setTag('user.creation_date', user.createdAt?.toISOString() || 'unknown');
+  Sentry.setTag('user.creation_date', user.createdAt?.toString() || 'unknown');
   Sentry.setTag('user.theme', user.preferences?.theme || 'light');
   Sentry.setTag('user.timezone', user.preferences?.timezone || 'Etc/GMT');
 
@@ -27,7 +27,7 @@ export function setSentryUser(user: IUser): void {
     email: user.email,
     fullName: `${user.givenName} ${user.familyName}`,
     username: user.sub,
-    creationDate: user.createdAt?.toISOString() || 'unknown',
+    creationDate: user.createdAt?.toString() || 'unknown',
     theme: user.preferences?.theme,
     timezone: user.preferences?.timezone,
     resourceVersion: user.resourceVersion,
