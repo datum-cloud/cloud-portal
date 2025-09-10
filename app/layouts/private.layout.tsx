@@ -1,4 +1,5 @@
-import { paths } from '@/config/paths';
+import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { getSession } from '@/modules/cookie/session.server';
 import { helpScoutAPI } from '@/modules/helpscout';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
@@ -6,7 +7,8 @@ import { withMiddleware } from '@/modules/middleware/middleware';
 import { AppProvider } from '@/providers/app.provider';
 import { createUserControl } from '@/resources/control-plane/user.control';
 import { IUser } from '@/resources/interfaces/user.interface';
-import { getSharedEnvs } from '@/utils/environment';
+import { getSharedEnvs } from '@/utils/config/env.config';
+import { paths } from '@/utils/config/paths.config';
 import { createHmac } from 'crypto';
 import { useEffect } from 'react';
 import {
@@ -36,7 +38,12 @@ export const loader = withMiddleware(async ({ request, context }: LoaderFunction
      * Generate Help Scout signature for secure mode
      */
     let helpscoutSignature = null;
-    if (user?.email && sharedEnv.HELPSCOUT_SECRET_KEY) {
+    if (
+      sharedEnv.isProd &&
+      sharedEnv.HELPSCOUT_SECRET_KEY &&
+      sharedEnv.HELPSCOUT_BEACON_ID &&
+      user?.email
+    ) {
       helpscoutSignature = createHmac('sha256', sharedEnv.HELPSCOUT_SECRET_KEY)
         .update(user?.email)
         .digest('hex');
@@ -71,8 +78,12 @@ export default function PrivateLayout() {
   }, [user]);
 
   return (
-    <AppProvider initialUser={user}>
-      <Outlet />
-    </AppProvider>
+    <TooltipProvider>
+      <ConfirmationDialogProvider>
+        <AppProvider initialUser={user}>
+          <Outlet />
+        </AppProvider>
+      </ConfirmationDialogProvider>
+    </TooltipProvider>
   );
 }

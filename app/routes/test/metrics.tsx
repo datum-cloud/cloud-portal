@@ -17,7 +17,7 @@ import {
 import { Activity, Server, Globe, Database } from 'lucide-react';
 import { useCallback } from 'react';
 
-function DashboardContent() {
+const MetricsContent = () => {
   // Sample filter options
   const regionOptions = [
     { label: 'US East 1', value: 'us-east-1', icon: <Globe className="h-4 w-4" /> },
@@ -222,12 +222,12 @@ function DashboardContent() {
       </div>
     </div>
   );
-}
+};
 
-export default function DashboardPlayground() {
+export default function MetricsPlayground() {
   return (
     <MetricsProvider>
-      <DashboardContent />
+      <MetricsContent />
     </MetricsProvider>
   );
 }

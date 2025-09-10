@@ -3,7 +3,7 @@ import { deletedWorkloadIdsCookie } from '@/modules/cookie/workload.server';
 import { createInstancesControl } from '@/resources/control-plane/instances.control';
 import { createWorkloadDeploymentsControl } from '@/resources/control-plane/workload-deployments.control';
 import { createWorkloadsControl } from '@/resources/control-plane/workloads.control';
-import { CustomError } from '@/utils/error';
+import { BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
@@ -21,7 +21,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const type = url.searchParams.get('type');
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400);
+    throw new BadRequestError('Project ID is required');
   }
 
   // Handle status fetching
@@ -35,7 +35,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       } else if (type === 'instance') {
         status = await instancesControl.getStatus(projectId, id);
       } else {
-        throw new CustomError('Invalid workload type', 400);
+        throw new BadRequestError('Invalid workload type');
       }
       return data({ success: true, data: status }, { status: 200 });
     } catch (error: any) {
@@ -79,7 +79,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         const { workloadId, projectId, redirectUri } = formData;
 
         if (typeof workloadId !== 'string' || typeof projectId !== 'string') {
-          throw new CustomError('Invalid request body', 400);
+          throw new BadRequestError('Invalid request body');
         }
 
         await workloadsControl.delete(projectId, workloadId);
@@ -110,7 +110,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         );
       }
       default:
-        throw new CustomError('Method not allowed', 405);
+        throw new HttpError('Method not allowed', 405);
     }
   } catch (error: any) {
     return data({ success: false, error: error.message }, { status: error.status || 500 });

@@ -3,14 +3,14 @@ import { DataTable } from '@/components/data-table/data-table';
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
 import { DateFormat } from '@/components/date-format/date-format';
 import { Button } from '@/components/ui/button';
-import { paths } from '@/config/paths';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { createDomainsControl } from '@/resources/control-plane/domains.control';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
-import { CustomError } from '@/utils/error';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { BadRequestError } from '@/utils/errors';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
@@ -37,7 +37,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const domainsControl = createDomainsControl(controlPlaneClient as Client);
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400);
+    throw new BadRequestError('Project ID is required');
   }
 
   const domains = await domainsControl.list(projectId);

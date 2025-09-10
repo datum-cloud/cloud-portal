@@ -1,4 +1,4 @@
-import { createNameSchema } from '@/utils/validation';
+import { createNameSchema } from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
 
 export const nameSchema = z.object({

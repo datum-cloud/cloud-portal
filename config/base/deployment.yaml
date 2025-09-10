@@ -48,6 +48,8 @@ spec:
               value: https://loki-single-binary.telemetry-system.svc.cluster.local:3100
             - name: PROMETHEUS_URL
               value: http://vmsingle-datum-resource-metrics.datum-system.svc.cluster.local:8429
+            - name: SENTRY_DSN
+              value: https://4d5f4f8662ce4fc06c4ab38ca694bd1f@sentry.staging.env.datum.net/3
           envFrom:
             - secretRef:
                 name: cloud-portal

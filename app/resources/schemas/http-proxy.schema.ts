@@ -1,5 +1,5 @@
 import { nameSchema } from '@/resources/schemas/metadata.schema';
-import { createHostnameSchema } from '@/utils/validation';
+import { createHostnameSchema } from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
 
 export const httpProxyHostnameSchema = z.object({

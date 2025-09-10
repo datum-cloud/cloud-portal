@@ -5,7 +5,7 @@ import { TimeDistance } from '@/components/time-distance/time-distance';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
-import { getShortId } from '@/utils/text';
+import { getShortId } from '@/utils/helpers/text.helper';
 import { useMemo } from 'react';
 
 export const NetworkGeneralCard = ({ network }: { network: INetworkControlResponse }) => {

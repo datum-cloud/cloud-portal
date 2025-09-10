@@ -1,6 +1,6 @@
-import { paths } from '@/config/paths';
 import { getOrgSession } from '@/modules/cookie/org.server';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { LoaderFunctionArgs, redirect } from 'react-router';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {

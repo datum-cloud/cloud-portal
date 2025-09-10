@@ -1,8 +1,8 @@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { paths } from '@/config/paths';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { ExternalLinkIcon, SignalHighIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
 

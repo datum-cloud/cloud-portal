@@ -1,9 +1,9 @@
 import { SelectOrganization } from '@/components/select-organization/select-organization';
 import { Badge } from '@/components/ui/badge';
-import { paths } from '@/config/paths';
 import { useApp } from '@/providers/app.provider';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Link, useNavigate } from 'react-router';
 
 export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: IOrganization }) => {

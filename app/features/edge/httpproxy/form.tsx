@@ -11,13 +11,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { paths } from '@/config/paths';
 import { HostnamesForm } from '@/features/edge/httpproxy/form/hostnames-form';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   FormProvider,
   getFormProps,

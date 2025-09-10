@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { cn } from '@/utils/common';
-import { getInitials } from '@/utils/text';
+import { getInitials } from '@/utils/helpers/text.helper';
 import { Building2, ChevronRight } from 'lucide-react';
 
 export const OrganizationListCard = ({ org }: { org: IOrganization }) => {

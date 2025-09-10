@@ -15,8 +15,7 @@ import {
   RuntimeType,
 } from '@/resources/interfaces/workload.interface';
 import { NewWorkloadSchema, RuntimeEnvSchema } from '@/resources/schemas/workload.schema';
-import { convertLabelsToObject } from '@/utils/data';
-import { CustomError } from '@/utils/error';
+import { convertLabelsToObject } from '@/utils/helpers/object.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createWorkloadsControl = (client: Client) => {
@@ -198,58 +197,62 @@ export const createWorkloadsControl = (client: Client) => {
 
   return {
     list: async (projectId: string) => {
-      const response = await listComputeDatumapisComV1AlphaNamespacedWorkload({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-      });
+      try {
+        const response = await listComputeDatumapisComV1AlphaNamespacedWorkload({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+        });
 
-      const workloads = response.data as ComDatumapisComputeV1AlphaWorkloadList;
+        const workloads = response?.data as ComDatumapisComputeV1AlphaWorkloadList;
 
-      return workloads.items.map(transformWorkload);
+        return workloads?.items?.map(transformWorkload) ?? [];
+      } catch (e) {
+        throw e;
+      }
     },
     detail: async (projectId: string, workloadId: string) => {
-      const response = await readComputeDatumapisComV1AlphaNamespacedWorkload({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: workloadId },
-      });
+      try {
+        const response = await readComputeDatumapisComV1AlphaNamespacedWorkload({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: workloadId },
+        });
 
-      if (!response.data) {
-        throw new CustomError(`Workload ${workloadId} not found`, 404);
+        const workload = response.data as ComDatumapisComputeV1AlphaWorkload;
+
+        return transformWorkload(workload);
+      } catch (e) {
+        throw e;
       }
-
-      const workload = response.data as ComDatumapisComputeV1AlphaWorkload;
-
-      return transformWorkload(workload);
     },
     create: async (projectId: string, payload: NewWorkloadSchema, dryRun: boolean = false) => {
-      const formatted = formatWorkload(payload);
-      const response = await createComputeDatumapisComV1AlphaNamespacedWorkload({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        body: {
-          ...formatted,
-          apiVersion: 'compute.datumapis.com/v1alpha',
-          kind: 'Workload',
-        },
-      });
+      try {
+        const formatted = formatWorkload(payload);
+        const response = await createComputeDatumapisComV1AlphaNamespacedWorkload({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          body: {
+            ...formatted,
+            apiVersion: 'compute.datumapis.com/v1alpha',
+            kind: 'Workload',
+          },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to create workload', 500);
+        const workload = response.data as ComDatumapisComputeV1AlphaWorkload;
+
+        return dryRun ? workload : transformWorkload(workload);
+      } catch (e) {
+        throw e;
       }
-
-      const workload = response.data as ComDatumapisComputeV1AlphaWorkload;
-
-      return dryRun ? workload : transformWorkload(workload);
     },
     update: async (
       projectId: string,
@@ -258,56 +261,56 @@ export const createWorkloadsControl = (client: Client) => {
       resourceVersion: string,
       dryRun: boolean = false
     ) => {
-      const formatted = formatWorkload(payload, resourceVersion);
-      const response = await replaceComputeDatumapisComV1AlphaNamespacedWorkload({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: workloadId },
-        query: {
-          dryRun: dryRun ? 'All' : undefined,
-        },
-        body: {
-          ...formatted,
-          apiVersion: 'compute.datumapis.com/v1alpha',
-          kind: 'Workload',
-        },
-      });
+      try {
+        const formatted = formatWorkload(payload, resourceVersion);
+        const response = await replaceComputeDatumapisComV1AlphaNamespacedWorkload({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: workloadId },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          body: {
+            ...formatted,
+            apiVersion: 'compute.datumapis.com/v1alpha',
+            kind: 'Workload',
+          },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to update workload', 500);
+        const workload = response.data as ComDatumapisComputeV1AlphaWorkload;
+
+        return dryRun ? workload : transformWorkload(workload);
+      } catch (e) {
+        throw e;
       }
-
-      const workload = response.data as ComDatumapisComputeV1AlphaWorkload;
-
-      return dryRun ? workload : transformWorkload(workload);
     },
     delete: async (projectId: string, workloadId: string) => {
-      const response = await deleteComputeDatumapisComV1AlphaNamespacedWorkload({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: workloadId },
-      });
+      try {
+        const response = await deleteComputeDatumapisComV1AlphaNamespacedWorkload({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: workloadId },
+        });
 
-      if (!response.data) {
-        throw new CustomError('Failed to delete workload', 500);
+        return response.data;
+      } catch (e) {
+        throw e;
       }
-
-      return response.data;
     },
     getStatus: async (projectId: string, workloadId: string) => {
-      const response = await readComputeDatumapisComV1AlphaNamespacedWorkloadStatus({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: workloadId },
-      });
+      try {
+        const response = await readComputeDatumapisComV1AlphaNamespacedWorkloadStatus({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: workloadId },
+        });
 
-      if (!response.data) {
-        throw new CustomError(`Workload ${workloadId} not found`, 404);
+        const workload = response.data as ComDatumapisComputeV1AlphaWorkload;
+
+        return transformControlPlaneStatus(workload.status);
+      } catch (e) {
+        throw e;
       }
-
-      const workload = response.data as ComDatumapisComputeV1AlphaWorkload;
-
-      return transformControlPlaneStatus(workload.status);
     },
   };
 };

@@ -8,14 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { paths } from '@/config/paths';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { GrafanaTutorialCard } from '@/features/edge/httpproxy/overview/grafana-tutorial-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/httpproxy/overview/hostnames-card';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXY_DETAIL_PATH } from '@/routes/api/httpproxy/$id';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { InfoIcon, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';

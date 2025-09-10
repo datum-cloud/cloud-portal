@@ -1,6 +1,5 @@
 import { StatusBadge } from '@/components/status-badge/status-badge';
 import { Button } from '@/components/ui/button';
-import { paths } from '@/config/paths';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import {
   ArrowListItem,
@@ -9,7 +8,8 @@ import {
   SectionTitle,
 } from '@/features/project/dashboard';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { differenceInMinutes } from 'date-fns';
 import { ArrowRight, Binoculars, Mail, Waypoints } from 'lucide-react';
 import { motion } from 'motion/react';

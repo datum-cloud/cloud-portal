@@ -1,7 +1,7 @@
 import { createSecretsControl } from '@/resources/control-plane/secrets.control';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
-import { CustomError } from '@/utils/error';
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { BadRequestError } from '@/utils/errors';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Client } from '@hey-api/client-axios';
 import { LoaderFunctionArgs, AppLoadContext, MetaFunction, Outlet } from 'react-router';
 
@@ -20,7 +20,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const secretControl = createSecretsControl(controlPlaneClient as Client);
 
   if (!projectId || !secretId) {
-    throw new CustomError('Project ID and secret ID are required', 400);
+    throw new BadRequestError('Project ID and secret ID are required');
   }
 
   const secret = await secretControl.detail(projectId, secretId);

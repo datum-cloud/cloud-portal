@@ -1,7 +1,7 @@
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
-import { CustomError } from '@/utils/error';
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { BadRequestError, NotFoundError } from '@/utils/errors';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Client } from '@hey-api/client-axios';
 import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction, Outlet } from 'react-router';
 
@@ -19,7 +19,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext;
 
   if (!projectId || !exportPolicyId) {
-    throw new CustomError('Project ID and export policy ID are required', 400);
+    throw new BadRequestError('Project ID and export policy ID are required');
   }
 
   const exportPoliciesControl = createExportPoliciesControl(controlPlaneClient as Client);
@@ -27,7 +27,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const exportPolicy = await exportPoliciesControl.detail(projectId, exportPolicyId);
 
   if (!exportPolicy) {
-    throw new CustomError('ExportPolicy not found', 404);
+    throw new NotFoundError('ExportPolicy not found');
   }
 
   return data(exportPolicy);

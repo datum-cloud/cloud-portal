@@ -22,7 +22,7 @@ import {
 } from '@/resources/schemas/http-route.schema';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
 import { ROUTE_PATH as HTTP_ROUTES_ACTIONS_PATH } from '@/routes/api/http-routes';
-import { convertObjectToLabels } from '@/utils/data';
+import { convertObjectToLabels } from '@/utils/helpers/object.helper';
 import {
   FieldMetadata,
   FormProvider,

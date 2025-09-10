@@ -5,7 +5,7 @@ import {
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
 import { ROUTE_PATH as PROJECT_STATUS_ROUTE_PATH } from '@/routes/api/projects/status';
-import { getPathWithParams } from '@/utils/path';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';
 

@@ -9,10 +9,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown';
-import { paths } from '@/config/paths';
 import { useApp } from '@/providers/app.provider';
 import { cn } from '@/utils/common';
-import { getInitials } from '@/utils/text';
+import { paths } from '@/utils/config/paths.config';
+import { getInitials } from '@/utils/helpers/text.helper';
 import { LogOut, UserCogIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSubmit } from 'react-router';

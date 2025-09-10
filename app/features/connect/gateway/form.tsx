@@ -26,7 +26,7 @@ import {
 } from '@/resources/schemas/gateway.schema';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
 import { ROUTE_PATH as GATEWAYS_ACTIONS_PATH } from '@/routes/api/gateways';
-import { convertObjectToLabels } from '@/utils/data';
+import { convertObjectToLabels } from '@/utils/helpers/object.helper';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { get } from 'es-toolkit/compat';

@@ -11,13 +11,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { paths } from '@/config/paths';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { organizationSchema } from '@/resources/schemas/organization.schema';
 import { cn } from '@/utils/common';
-import { convertObjectToLabels } from '@/utils/data';
-import { generateId, generateRandomString } from '@/utils/text';
+import { paths } from '@/utils/config/paths.config';
+import { convertObjectToLabels } from '@/utils/helpers/object.helper';
+import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import {
   FormProvider,
   getFormProps,

@@ -1,9 +1,7 @@
-import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { ClientHintCheck } from '@/components/misc/ClientHints';
-import { GenericErrorBoundary } from '@/components/misc/ErrorBoundary';
+import { AuthError } from '@/components/error/auth';
+import { GenericError } from '@/components/error/generic';
+import { ClientHintCheck } from '@/components/misc/client-hints';
 import { Toaster } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { getHints } from '@/hooks/useHints';
 import { useNonce } from '@/hooks/useNonce';
 import { useToast } from '@/hooks/useToast';
 import { csrf } from '@/modules/cookie/csrf.server';
@@ -12,17 +10,17 @@ import { getToastSession } from '@/modules/cookie/toast.server';
 import { FathomAnalytics } from '@/modules/fathom/fathom';
 import { HelpScoutBeacon } from '@/modules/helpscout';
 import MarkerIoEmbed from '@/modules/markerio';
+import { configureProgress, startProgress, stopProgress } from '@/modules/nprogress';
 import { queryClient } from '@/modules/tanstack/query';
 import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api/action/set-cache';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
 import RootCSS from '@/styles/root.css?url';
-import { getSharedEnvs } from '@/utils/environment';
-import { isProduction } from '@/utils/environment';
-import { metaObject } from '@/utils/meta';
-import { combineHeaders, getDomainUrl } from '@/utils/path';
+import { getSharedEnvs } from '@/utils/config/env.config';
+import { metaObject } from '@/utils/helpers/meta.helper';
+import { combineHeaders } from '@/utils/helpers/path.helper';
+import * as Sentry from '@sentry/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
-import NProgress from 'nprogress';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import { useEffect, useMemo } from 'react';
 import {
@@ -33,18 +31,17 @@ import {
   Scripts,
   ScrollRestoration,
   data,
+  isRouteErrorResponse,
   useBeforeUnload,
   useFetchers,
   useLoaderData,
   useNavigation,
+  useRouteError,
   useRouteLoaderData,
 } from 'react-router';
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router';
 import { ThemeProvider, useTheme, PreventFlashOnWrongTheme, Theme } from 'remix-themes';
 import { AuthenticityTokenProvider } from 'remix-utils/csrf/react';
-
-// NProgress configuration
-NProgress.configure({ showSpinner: false });
 
 export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
   // Get the current page title from the pathname
@@ -79,13 +76,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
     {
       toast,
       csrfToken,
-      sharedEnv,
-      theme: getTheme(),
-      requestInfo: {
-        hints: getHints(request),
-        origin: getDomainUrl(request),
-        path: new URL(request.url).pathname,
+      ENV: {
+        FATHOM_ID: sharedEnv.FATHOM_ID,
+        HELPSCOUT_BEACON_ID: sharedEnv.HELPSCOUT_BEACON_ID,
+        DEBUG: sharedEnv.isDebug,
+        DEV: sharedEnv.isDev,
+        PROD: sharedEnv.isProd,
+        SENTRY_ENV: sharedEnv.SENTRY_ENV,
+        SENTRY_DSN: sharedEnv.SENTRY_DSN,
+        VERSION: sharedEnv.VERSION,
       },
+      theme: getTheme(),
     } as const,
     {
       headers: combineHeaders(
@@ -106,44 +107,47 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Document({
-  children,
-  nonce,
-  lang = 'en',
-  dir = 'ltr',
-}: {
-  children: React.ReactNode;
-  nonce: string;
-  lang?: string;
-  dir?: 'ltr' | 'rtl';
-}) {
+function Document({ children, nonce }: { children: React.ReactNode; nonce: string }) {
   const data = useLoaderData<typeof loader>();
   const [theme] = useTheme();
 
   return (
-    <html lang={lang} dir={dir} className={`${theme} overflow-x-hidden`} data-theme={theme ?? ''}>
+    <html lang="en" className={`${theme} overflow-x-hidden`} data-theme={theme ?? ''}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <ClientHintCheck nonce={nonce} />
         <Meta />
-        <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} />
+        <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} nonce={nonce} />
         <Links />
       </head>
       <body className="h-auto w-full">
         {children}
+
+        {data?.ENV.FATHOM_ID && data?.ENV.PROD && (
+          <FathomAnalytics privateKey={data?.ENV.FATHOM_ID} />
+        )}
+
+        {data?.ENV.HELPSCOUT_BEACON_ID && data?.ENV.PROD && (
+          <HelpScoutBeacon beaconId={data?.ENV.HELPSCOUT_BEACON_ID} />
+        )}
+        <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />
         <MarkerIoEmbed nonce={nonce} />
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
-        <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />
-        {/* <ThemeSwitcher /> */}
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(data?.ENV)}`,
+          }}
+        />
       </body>
     </html>
   );
 }
 
 export default function AppWithProviders() {
-  const { toast, csrfToken, sharedEnv } = useLoaderData<typeof loader>();
+  const { toast, csrfToken } = useLoaderData<typeof loader>();
 
   const nonce = useNonce();
   const navigation = useNavigation();
@@ -168,11 +172,15 @@ export default function AppWithProviders() {
   );
 
   useEffect(() => {
-    // and when it's something else it means it's either submitting a form or
-    // waiting for the loaders of the next location so we start it
-    if (state === 'loading') NProgress.start();
-    // when the state is idle then we can to complete the progress bar
-    if (state === 'idle') NProgress.done();
+    configureProgress();
+  }, []);
+
+  useEffect(() => {
+    if (navigation.state === 'loading') {
+      startProgress();
+    } else {
+      stopProgress();
+    }
   }, [state]);
 
   /**
@@ -187,21 +195,11 @@ export default function AppWithProviders() {
   });
 
   return (
-    <Document nonce={nonce} lang="en">
+    <Document nonce={nonce}>
       <AuthenticityTokenProvider token={csrfToken}>
         <QueryClientProvider client={queryClient}>
           <NuqsAdapter>
-            <TooltipProvider>
-              <ConfirmationDialogProvider>
-                {sharedEnv.FATHOM_ID && isProduction() && (
-                  <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />
-                )}
-                {sharedEnv.HELPSCOUT_BEACON_ID && isProduction() && (
-                  <HelpScoutBeacon beaconId={sharedEnv.HELPSCOUT_BEACON_ID} />
-                )}
-                <Outlet />
-              </ConfirmationDialogProvider>
-            </TooltipProvider>
+            <Outlet />
           </NuqsAdapter>
         </QueryClientProvider>
       </AuthenticityTokenProvider>
@@ -209,12 +207,55 @@ export default function AppWithProviders() {
   );
 }
 
-export function ErrorBoundary() {
+function ErrorLayout({ children }: { children: React.ReactNode }) {
   const nonce = useNonce();
+  const [theme] = useTheme();
 
   return (
-    <Document nonce={nonce}>
-      <GenericErrorBoundary />
-    </Document>
+    <html lang="en" className={`${theme} overflow-x-hidden`} data-theme={theme ?? ''}>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <Meta />
+        <PreventFlashOnWrongTheme ssrTheme={Boolean(theme)} nonce={nonce} />
+        <Links />
+      </head>
+      <body className="h-auto w-full">
+        <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
+          <div className="w-full max-w-sm md:max-w-3xl">{children}</div>
+        </div>
+        <ScrollRestoration nonce={nonce} />
+        <Scripts nonce={nonce} />
+      </body>
+    </html>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+  let message = "We've encountered a problem, please try again. Sorry!";
+
+  if (isRouteErrorResponse(error)) {
+    if (error.statusText === 'AUTH_ERROR') {
+      return (
+        <ErrorLayout>
+          <AuthError />
+        </ErrorLayout>
+      );
+    } else if (error?.data?.message) {
+      message = error.data.message;
+    } else {
+      message = `${error.status} ${error.statusText}`;
+    }
+  } else if (error instanceof Error) {
+    // you only want to capture non 404-errors that reach the boundary
+    Sentry.captureException(error);
+    message = error.message;
+  }
+
+  return (
+    <ErrorLayout>
+      <GenericError message={message} />
+    </ErrorLayout>
   );
 }

@@ -1,5 +1,5 @@
 import { CloudValidService } from '@/modules/cloudvalid';
-import { CustomError } from '@/utils/error';
+import { BadRequestError, HttpError } from '@/utils/errors';
 import { ActionFunctionArgs, data } from 'react-router';
 
 export const ROUTE_PATH = '/api/cloudvalid/dns' as const;
@@ -12,7 +12,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         const { domain, dnsName, dnsContent, redirectUri } = formData;
 
         if (!domain || !dnsName || !dnsContent) {
-          throw new CustomError('Missing required fields', 400);
+          throw new BadRequestError('Missing required fields');
         }
 
         const cloudValidService = new CloudValidService(process.env.CLOUDVALID_API_KEY ?? '');
@@ -29,7 +29,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         return data({ success: true, data: dnsSetup.result }, { status: 200 });
       }
       default:
-        throw new CustomError('Method not allowed', 405);
+        throw new HttpError('Method not allowed', 405);
     }
   } catch (error: any) {
     return data({ success: false, error: error.message }, { status: error.status });

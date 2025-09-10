@@ -7,10 +7,10 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { paths } from '@/config/paths';
 import { useOs } from '@/hooks/useOs';
 import { cn } from '@/utils/common';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';

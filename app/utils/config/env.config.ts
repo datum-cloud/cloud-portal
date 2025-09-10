@@ -2,6 +2,7 @@
  * Environment, runtime, and Node.js utilities
  * Environment variable validation, Node.js environment checks, and singleton pattern
  */
+import { toBoolean } from '@/utils/helpers/text.helper';
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
@@ -10,6 +11,7 @@ const schema = z.object({
   SESSION_SECRET: z.string().optional(),
   APP_URL: z.string().optional(),
   API_URL: z.string().optional(),
+  VERSION: z.string().optional(),
 
   // Cloud Valid providers
   CLOUDVALID_API_URL: z.string().optional(),
@@ -26,6 +28,11 @@ const schema = z.object({
   HELPSCOUT_BEACON_ID: z.string().optional(),
   HELPSCOUT_SECRET_KEY: z.string().optional(),
 
+  // Sentry
+  SENTRY_ENV: z.string().optional(),
+  SENTRY_DSN: z.string().optional(),
+
+  // Loki & Prometheus
   TELEMETRY_URL: z.string().optional(),
   PROMETHEUS_URL: z.string().optional(),
 });
@@ -70,11 +77,22 @@ export function getSharedEnvs() {
   return {
     APP_URL: process.env.APP_URL,
     API_URL: process.env.API_URL,
+    VERSION: process.env.VERSION,
     FATHOM_ID: process.env.FATHOM_ID,
     HELPSCOUT_BEACON_ID: process.env.HELPSCOUT_BEACON_ID,
     HELPSCOUT_SECRET_KEY: process.env.HELPSCOUT_SECRET_KEY,
     TELEMETRY_URL: process.env.TELEMETRY_URL,
     PROMETHEUS_URL: process.env.PROMETHEUS_URL,
+
+    // Sentry configuration
+    SENTRY_ENV: process.env.SENTRY_ENV,
+    SENTRY_DSN: process.env.SENTRY_DSN,
+
+    isDebug: toBoolean(process.env.DEBUG),
+    isDev: process.env.NODE_ENV === 'development',
+    isProd: process.env.NODE_ENV === 'production',
+    isTest: process.env.NODE_ENV === 'test',
+    isSentryEnabled: !!process.env.SENTRY_DSN,
   };
 }
 

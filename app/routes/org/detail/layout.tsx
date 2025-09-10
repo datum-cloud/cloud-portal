@@ -1,11 +1,11 @@
-import { paths } from '@/config/paths';
 import { DashboardLayout } from '@/layouts/dashboard/dashboard';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
-import { CustomError } from '@/utils/error';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { HttpError } from '@/utils/errors';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { FoldersIcon, SettingsIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
@@ -27,7 +27,7 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     const org = await res.json();
 
     if (!org.success) {
-      throw new CustomError(org.error, org.status);
+      throw new HttpError(org.error, org.status);
     }
 
     return data(org.data);

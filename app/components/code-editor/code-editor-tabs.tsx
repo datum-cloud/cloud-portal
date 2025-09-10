@@ -1,7 +1,7 @@
 import { CodeEditor } from './code-editor';
 import { EditorLanguage, CodeEditorTabsProps } from './code-editor.types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { isValidJson, isValidYaml, jsonToYaml, yamlToJson } from '@/utils/format';
+import { isValidJson, isValidYaml, jsonToYaml, yamlToJson } from '@/utils/helpers/format.helper';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 

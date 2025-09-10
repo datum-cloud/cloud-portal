@@ -6,7 +6,6 @@ import {
   readComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatus,
 } from '@/modules/control-plane/compute';
 import { IWorkloadDeploymentControlResponse } from '@/resources/interfaces/workload.interface';
-import { CustomError } from '@/utils/error';
 import { Client } from '@hey-api/client-axios';
 
 export const createWorkloadDeploymentsControl = (client: Client) => {
@@ -32,37 +31,41 @@ export const createWorkloadDeploymentsControl = (client: Client) => {
 
   return {
     list: async (projectId: string, workloadUid?: string) => {
-      const response = await listComputeDatumapisComV1AlphaNamespacedWorkloadDeployment({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-        query: {
-          labelSelector: workloadUid
-            ? `compute.datumapis.com/workload-uid=${workloadUid}`
-            : undefined,
-        },
-      });
+      try {
+        const response = await listComputeDatumapisComV1AlphaNamespacedWorkloadDeployment({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+          query: {
+            labelSelector: workloadUid
+              ? `compute.datumapis.com/workload-uid=${workloadUid}`
+              : undefined,
+          },
+        });
 
-      const deployments = response.data as ComDatumapisComputeV1AlphaWorkloadDeploymentList;
+        const deployments = response?.data as ComDatumapisComputeV1AlphaWorkloadDeploymentList;
 
-      return deployments.items.map(transform);
+        return deployments?.items?.map(transform) ?? [];
+      } catch (e) {
+        throw e;
+      }
     },
     getStatus: async (projectId: string, deploymentId: string) => {
-      const response = await readComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatus({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: { namespace: 'default', name: deploymentId },
-      });
+      try {
+        const response = await readComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatus({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: deploymentId },
+        });
 
-      if (!response.data) {
-        throw new CustomError(`Workload deployment ${deploymentId} not found`, 404);
+        const deployment = response.data as ComDatumapisComputeV1AlphaWorkloadDeployment;
+
+        return transformControlPlaneStatus(deployment.status);
+      } catch (e) {
+        throw e;
       }
-
-      const deployment = response.data as ComDatumapisComputeV1AlphaWorkloadDeployment;
-
-      return transformControlPlaneStatus(deployment.status);
     },
   };
 };

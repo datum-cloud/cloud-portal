@@ -4,14 +4,14 @@ import { DataTableRowActionsProps } from '@/components/data-table/data-table.typ
 import { DateFormat } from '@/components/date-format/date-format';
 import { StatusBadge } from '@/components/status-badge/status-badge';
 import { Button } from '@/components/ui/button';
-import { paths } from '@/config/paths';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
-import { CustomError } from '@/utils/error';
-import { mergeMeta, metaObject } from '@/utils/meta';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { BadRequestError } from '@/utils/errors';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
@@ -38,7 +38,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const httpProxiesControl = createHttpProxiesControl(controlPlaneClient as Client);
 
   if (!projectId) {
-    throw new CustomError('Project ID is required', 400);
+    throw new BadRequestError('Project ID is required');
   }
 
   const httpProxies = await httpProxiesControl.list(projectId);

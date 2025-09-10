@@ -3,15 +3,15 @@ import { DataTable } from '@/components/data-table/data-table';
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
 import { DateFormat } from '@/components/date-format/date-format';
 import { Button } from '@/components/ui/button';
-import { paths } from '@/config/paths';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { ExportPolicyStatus } from '@/features/observe/export-policies/status';
 import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/export-policies';
-import { CustomError } from '@/utils/error';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { AppError, BadRequestError } from '@/utils/errors';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
@@ -35,7 +35,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     const exportPoliciesControl = createExportPoliciesControl(controlPlaneClient as Client);
 
     if (!projectId) {
-      throw new CustomError('Project ID is required', 400);
+      throw new BadRequestError('Project ID is required');
     }
 
     const policies = await exportPoliciesControl.list(projectId);
@@ -43,7 +43,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   } catch (error) {
     return dataWithToast([], {
       title: 'Something went wrong',
-      description: (error as CustomError).message,
+      description: (error as AppError).message,
       type: 'error',
     });
   }

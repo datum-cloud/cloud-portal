@@ -20,7 +20,7 @@ import {
   convertLabelsToObject,
   convertObjectToLabels,
   generateMergePatchPayloadMap,
-} from '@/utils/data';
+} from '@/utils/helpers/object.helper';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { useEffect, useMemo } from 'react';

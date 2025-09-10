@@ -15,7 +15,7 @@ import {
 import { useIsPending } from '@/hooks/useIsPending';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
 import { configMapSchema, updateConfigMapSchema } from '@/resources/schemas/config-map.schema';
-import { jsonToYaml } from '@/utils/format';
+import { jsonToYaml } from '@/utils/helpers/format.helper';
 import { getFormProps, useForm, useInputControl } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod';
 import { InfoIcon } from 'lucide-react';

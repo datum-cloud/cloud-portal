@@ -2,7 +2,7 @@ import { destroyLocalSessions } from '@/features/auth/utils';
 import { zitadelIssuer, zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
 import { getIdTokenSession } from '@/modules/cookie/id-token.server';
 import { getSession } from '@/modules/cookie/session.server';
-import { CustomError } from '@/utils/error';
+import { BadRequestError } from '@/utils/errors';
 import type { ActionFunctionArgs } from 'react-router';
 import { LoaderFunctionArgs, AppLoadContext } from 'react-router';
 
@@ -18,7 +18,7 @@ const signOut = async (request: Request, context: AppLoadContext) => {
     const { idToken } = await getIdTokenSession(request);
 
     if (!idToken) {
-      throw new CustomError('No id_token in request', 400);
+      throw new BadRequestError('No id_token in request');
     }
 
     const body = new URLSearchParams();

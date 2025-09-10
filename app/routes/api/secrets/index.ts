@@ -2,8 +2,8 @@ import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { createSecretsControl } from '@/resources/control-plane/secrets.control';
 import { secretEditSchema } from '@/resources/schemas/secret.schema';
-import { convertLabelsToObject } from '@/utils/data';
-import { CustomError } from '@/utils/error';
+import { BadRequestError, HttpError } from '@/utils/errors';
+import { convertLabelsToObject } from '@/utils/helpers/object.helper';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
@@ -19,7 +19,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     const noCache = false;
 
     if (!projectId) {
-      throw new CustomError('Project ID is required', 400);
+      throw new BadRequestError('Project ID is required');
     }
 
     const key = `secrets:${projectId}`;
@@ -65,7 +65,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         const { projectId, secretId, csrf, action } = payload;
 
         if (!projectId || !secretId) {
-          throw new CustomError('Project ID and secret ID are required', 400);
+          throw new BadRequestError('Project ID and secret ID are required');
         }
 
         // Create FormData to validate CSRF token
@@ -79,7 +79,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         const parsed = secretEditSchema.safeParse(payload);
 
         if (!parsed.success) {
-          throw new CustomError('Invalid form data', 400);
+          throw new BadRequestError('Invalid form data');
         }
 
         let body: any = parsed.data;
@@ -119,7 +119,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         return data({ success: true, message: 'Secret deleted successfully' }, { status: 200 });
       }
       default:
-        throw new CustomError('Method not allowed', 405);
+        throw new HttpError('Method not allowed', 405);
     }
   } catch (error: any) {
     return data({ success: false, error: error.message }, { status: error.status });

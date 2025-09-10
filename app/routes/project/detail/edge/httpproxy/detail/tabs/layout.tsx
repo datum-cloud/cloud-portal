@@ -2,12 +2,12 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateFormat } from '@/components/date-format/date-format';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { Button } from '@/components/ui/button';
-import { paths } from '@/config/paths';
 import TabsLayout from '@/layouts/tabs/tabs';
 import { TabsNavProps } from '@/layouts/tabs/tabs.types';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
-import { getPathWithParams } from '@/utils/path';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { Outlet, Link, useParams, useFetcher, useRouteLoaderData } from 'react-router';

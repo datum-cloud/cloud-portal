@@ -1,6 +1,6 @@
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';
-import { CustomError } from '@/utils/error';
+import { HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 
@@ -29,7 +29,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         return data({ success: true, message: 'HTTPProxy deleted successfully' }, { status: 200 });
       }
       default:
-        throw new CustomError('Method not allowed', 405);
+        throw new HttpError('Method not allowed', 405);
     }
   } catch (error: any) {
     return data({ success: false, error: error.message }, { status: error.status });

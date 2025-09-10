@@ -1,6 +1,6 @@
-import { paths } from '@/config/paths';
 import { DashboardLayout } from '@/layouts/dashboard/dashboard';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
+import { paths } from '@/utils/config/paths.config';
 import { Building2Icon, SettingsIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { Outlet } from 'react-router';

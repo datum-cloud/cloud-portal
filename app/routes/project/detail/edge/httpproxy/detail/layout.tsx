@@ -1,7 +1,7 @@
 import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { CustomError } from '@/utils/error';
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { BadRequestError, NotFoundError } from '@/utils/errors';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs, MetaFunction, Outlet, data } from 'react-router';
 
@@ -19,7 +19,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext;
 
   if (!projectId || !proxyId) {
-    throw new CustomError('Project ID and proxy ID are required', 400);
+    throw new BadRequestError('Project ID and proxy ID are required');
   }
 
   const httpProxiesControl = createHttpProxiesControl(controlPlaneClient as Client);
@@ -27,7 +27,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const httpProxy = await httpProxiesControl.detail(projectId, proxyId);
 
   if (!httpProxy) {
-    throw new CustomError('HTTPProxy not found', 404);
+    throw new NotFoundError('HTTPProxy not found');
   }
 
   return data(httpProxy);

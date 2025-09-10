@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { cn } from '@/utils/common';
-import { getInitials } from '@/utils/text';
+import { getInitials } from '@/utils/helpers/text.helper';
 
 export const OrganizationItem = ({
   org,

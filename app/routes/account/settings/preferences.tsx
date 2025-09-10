@@ -1,4 +1,3 @@
-import { paths } from '@/config/paths';
 import { AccountDangerSettingsCard } from '@/features/account/settings/danger-card';
 import { AccountIdentitySettingsCard } from '@/features/account/settings/indetity-card';
 import { AccountNewsletterSettingsCard } from '@/features/account/settings/newsletter-card';
@@ -10,7 +9,8 @@ import { dataWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
 import { createUserControl } from '@/resources/control-plane/user.control';
 import { userSchema } from '@/resources/schemas/user.schema';
-import { mergeMeta, metaObject } from '@/utils/meta';
+import { paths } from '@/utils/config/paths.config';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
 import { useEffect } from 'react';

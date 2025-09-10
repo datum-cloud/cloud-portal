@@ -26,25 +26,29 @@ export const createSubnetClaimsControl = (client: Client) => {
 
   return {
     list: async (projectId: string, networkContexts?: string[]) => {
-      const response = await listNetworkingDatumapisComV1AlphaNamespacedSubnetClaim({
-        client,
-        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-        path: {
-          namespace: 'default',
-        },
-      });
+      try {
+        const response = await listNetworkingDatumapisComV1AlphaNamespacedSubnetClaim({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+        });
 
-      const subnetClaims = response.data as ComDatumapisNetworkingV1AlphaSubnetClaimList;
+        const subnetClaims = response.data as ComDatumapisNetworkingV1AlphaSubnetClaimList;
 
-      // Note: Subnets are directly related to NetworkContext resources rather than Network resources
-      return subnetClaims.items
-        .filter((subnetClaim) => {
-          return (
-            subnetClaim.spec?.networkContext?.name &&
-            (networkContexts ?? []).includes(subnetClaim.spec?.networkContext?.name)
-          );
-        })
-        .map(transformSubnetClaim);
+        // Note: Subnets are directly related to NetworkContext resources rather than Network resources
+        return subnetClaims.items
+          .filter((subnetClaim) => {
+            return (
+              subnetClaim.spec?.networkContext?.name &&
+              (networkContexts ?? []).includes(subnetClaim.spec?.networkContext?.name)
+            );
+          })
+          .map(transformSubnetClaim);
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };
