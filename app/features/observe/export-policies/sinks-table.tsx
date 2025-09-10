@@ -24,7 +24,7 @@ export const WorkloadSinksTable = ({
     const sinkStatus = status?.sinks;
     return [
       {
-        header: 'Name',
+        header: 'Resource Name',
         accessorKey: 'name',
         enableSorting: false,
         cell: ({ row }: any) => {

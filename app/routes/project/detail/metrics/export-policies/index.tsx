@@ -88,7 +88,7 @@ export default function ExportPoliciesPage() {
   const columns: ColumnDef<IExportPolicyControlResponse>[] = useMemo(
     () => [
       {
-        header: 'Name',
+        header: 'Resource Name',
         accessorKey: 'name',
         cell: ({ row }) => {
           return <span className="text-primary font-semibold">{row.original.name}</span>;

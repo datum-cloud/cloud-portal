@@ -11,7 +11,7 @@ export const NetworkContextsCard = ({ data }: { data: INetworkContextControlResp
   const columns: ColumnDef<INetworkContextControlResponse>[] = useMemo(
     () => [
       {
-        header: 'Name',
+        header: 'Resource Name',
         accessorKey: 'name',
         enableSorting: false,
         cell: ({ row }) => {

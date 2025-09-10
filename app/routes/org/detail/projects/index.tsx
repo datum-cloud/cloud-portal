@@ -76,7 +76,7 @@ export default function OrgProjectsPage() {
         },
       },
       {
-        header: 'Name',
+        header: 'Resource Name',
         accessorKey: 'name',
       },
       {

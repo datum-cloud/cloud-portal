@@ -16,7 +16,7 @@ export const WorkloadSourcesTable = ({
   const columns = useMemo(
     () => [
       {
-        header: 'Name',
+        header: 'Resource Name',
         accessorKey: 'name',
         enableSorting: false,
         cell: ({ row }: any) => {
