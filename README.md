@@ -1,5 +1,9 @@
 <p align="center">
-  <img width="60px" src="docs/assets/logo.png">
+  <img
+    width="64px"
+    src="docs/assets/logo.png"
+    style="border: 1px solid #e5e7eb; border-radius: 0.5rem;"
+  />
   
   <h1 align="center">Datum Cloud Portal</h1>
   

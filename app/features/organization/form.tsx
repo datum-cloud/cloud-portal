@@ -1,4 +1,5 @@
 import { Field } from '@/components/field/field';
+import { InputName } from '@/components/input-name/input-name';
 import { SelectLabels } from '@/components/select-labels/select-labels';
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
 import { Button } from '@/components/ui/button';
@@ -115,33 +116,12 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
                   {...getInputProps(description, { type: 'text' })}
                 />
               </Field>
-              <Field
-                isRequired
-                label="Name"
-                description="A namespace-unique stable identifier for your organization. This cannot be changed once the organization is created"
-                errors={name.errors}>
-                {isEdit ? (
-                  <TextCopyBox value={defaultValue?.name ?? ''} />
-                ) : (
-                  <Input
-                    readOnly={isEdit}
-                    placeholder="e.g. my-organization-343j33"
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const value = (e.target as HTMLInputElement).value;
-                      nameControl.change(value);
-                    }}
-                    onBlur={(e: React.FormEvent<HTMLInputElement>) => {
-                      const value = (e.target as HTMLInputElement).value;
-                      if (value.length === 0) {
-                        nameControl.change(
-                          generateId(description.value ?? '', { randomText: randomSuffix })
-                        );
-                      }
-                    }}
-                    {...getInputProps(name, { type: 'text' })}
-                  />
-                )}
-              </Field>
+              <InputName
+                required
+                description="This unique resource name will be used to identify your organization and cannot be changed."
+                field={name}
+                baseName={description.value}
+              />
               {isEdit && (
                 <Field label="ID">
                   <TextCopyBox value={defaultValue?.uid ?? ''} />
