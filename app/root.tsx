@@ -78,6 +78,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       csrfToken,
       ENV: {
         FATHOM_ID: sharedEnv.FATHOM_ID,
+        HELPSCOUT_BEACON_ID: sharedEnv.HELPSCOUT_BEACON_ID,
         DEBUG: sharedEnv.isDebug,
         DEV: sharedEnv.isDev,
         PROD: sharedEnv.isProd,
@@ -122,8 +123,13 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
       </head>
       <body className="h-auto w-full">
         {children}
+
         {data?.ENV.FATHOM_ID && data?.ENV.PROD && (
           <FathomAnalytics privateKey={data?.ENV.FATHOM_ID} />
+        )}
+
+        {data?.ENV.HELPSCOUT_BEACON_ID && data?.ENV.PROD && (
+          <HelpScoutBeacon beaconId={data?.ENV.HELPSCOUT_BEACON_ID} />
         )}
         <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />
         <MarkerIoEmbed nonce={nonce} />

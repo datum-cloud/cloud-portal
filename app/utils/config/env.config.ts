@@ -28,6 +28,11 @@ const schema = z.object({
   HELPSCOUT_BEACON_ID: z.string().optional(),
   HELPSCOUT_SECRET_KEY: z.string().optional(),
 
+  // Sentry
+  SENTRY_ENV: z.string().optional(),
+  SENTRY_DSN: z.string().optional(),
+
+  // Loki & Prometheus
   TELEMETRY_URL: z.string().optional(),
   PROMETHEUS_URL: z.string().optional(),
 });

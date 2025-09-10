@@ -38,7 +38,12 @@ export const loader = withMiddleware(async ({ request, context }: LoaderFunction
      * Generate Help Scout signature for secure mode
      */
     let helpscoutSignature = null;
-    if (user?.email && sharedEnv.HELPSCOUT_SECRET_KEY) {
+    if (
+      sharedEnv.isProd &&
+      sharedEnv.HELPSCOUT_SECRET_KEY &&
+      sharedEnv.HELPSCOUT_BEACON_ID &&
+      user?.email
+    ) {
       helpscoutSignature = createHmac('sha256', sharedEnv.HELPSCOUT_SECRET_KEY)
         .update(user?.email)
         .digest('hex');
