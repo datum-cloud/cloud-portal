@@ -11,7 +11,7 @@ export const SubnetClaimsCard = ({ data }: { data: ISubnetClaimControlResponse[]
   const columns: ColumnDef<ISubnetClaimControlResponse>[] = useMemo(
     () => [
       {
-        header: 'Name',
+        header: 'Resource Name',
         accessorKey: 'name',
         enableSorting: false,
         cell: ({ row }) => {

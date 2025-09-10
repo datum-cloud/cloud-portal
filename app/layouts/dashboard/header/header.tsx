@@ -21,7 +21,7 @@ export const Header = ({
   title?: string;
 }) => {
   return (
-    <header className="bg-background fixed top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between gap-4 border-b px-4">
+    <header className="bg-background sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between gap-4 border-b px-4">
       {/* Left Section */}
       <div className="flex flex-1 items-center">
         {!hideSidebar && <SidebarTrigger className="-ml-1 cursor-pointer" />}

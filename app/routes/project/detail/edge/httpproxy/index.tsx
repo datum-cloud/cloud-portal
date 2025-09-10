@@ -84,7 +84,7 @@ export default function HttpProxyPage() {
   const columns: ColumnDef<IHttpProxyControlResponse>[] = useMemo(
     () => [
       {
-        header: 'Name',
+        header: 'Resource Name',
         accessorKey: 'name',
         cell: ({ row }) => {
           return <span className="text-primary font-semibold">{row.original.name}</span>;

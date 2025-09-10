@@ -1,10 +1,13 @@
 import { paths } from '@/config/paths';
 import { getSession } from '@/modules/cookie/session.server';
+import { helpScoutAPI } from '@/modules/helpscout';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { AppProvider } from '@/providers/app.provider';
 import { createUserControl } from '@/resources/control-plane/user.control';
 import { IUser } from '@/resources/interfaces/user.interface';
+import { getSharedEnvs } from '@/utils/environment';
+import { createHmac } from 'crypto';
 import { useEffect } from 'react';
 import {
   AppLoadContext,
@@ -20,6 +23,7 @@ export const loader = withMiddleware(async ({ request, context }: LoaderFunction
   try {
     const { controlPlaneClient } = context as AppLoadContext;
     const { session } = await getSession(request);
+    const sharedEnv = getSharedEnvs();
 
     if (!session || !session?.sub) {
       return redirect(paths.auth.logOut);
@@ -28,14 +32,24 @@ export const loader = withMiddleware(async ({ request, context }: LoaderFunction
     const userControl = createUserControl(controlPlaneClient);
     const user = await userControl.detail(session?.sub);
 
-    return data(user);
+    /**
+     * Generate Help Scout signature for secure mode
+     */
+    let helpscoutSignature = null;
+    if (user?.email && sharedEnv.HELPSCOUT_SECRET_KEY) {
+      helpscoutSignature = createHmac('sha256', sharedEnv.HELPSCOUT_SECRET_KEY)
+        .update(user?.email)
+        .digest('hex');
+    }
+
+    return data({ ...user, helpscoutSignature });
   } catch {
     return redirect(paths.auth.logOut);
   }
 }, authMiddleware);
 
 export default function PrivateLayout() {
-  const user: IUser = useLoaderData<typeof loader>();
+  const user: IUser & { helpscoutSignature: string | null } = useLoaderData<typeof loader>();
 
   const [_, setTheme] = useTheme();
 
@@ -45,6 +59,14 @@ export default function PrivateLayout() {
       const nextTheme =
         userTheme === 'light' ? Theme.LIGHT : userTheme === 'dark' ? Theme.DARK : null;
       setTheme(nextTheme);
+
+      if (user.helpscoutSignature) {
+        helpScoutAPI.identify({
+          name: `${user.givenName} ${user.familyName}`,
+          email: user.email,
+          signature: user.helpscoutSignature,
+        });
+      }
     }
   }, [user]);
 

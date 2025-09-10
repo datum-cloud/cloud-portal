@@ -11,7 +11,7 @@ export const SubnetsCard = ({ data }: { data: ISubnetControlResponse[] }) => {
   const columns: ColumnDef<ISubnetControlResponse>[] = useMemo(
     () => [
       {
-        header: 'Name',
+        header: 'Resource Name',
         accessorKey: 'name',
         enableSorting: false,
         cell: ({ row }) => {

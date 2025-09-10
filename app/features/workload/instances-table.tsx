@@ -12,7 +12,7 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
   const columns: ColumnDef<IInstanceControlResponse>[] = useMemo(
     () => [
       {
-        header: 'Name',
+        header: 'Resource Name',
         accessorKey: 'name',
         enableSorting: false,
         cell: ({ row }) => {

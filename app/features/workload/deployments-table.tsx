@@ -12,7 +12,7 @@ export const DeploymentsTable = ({ data }: { data: IWorkloadDeploymentControlRes
   const columns: ColumnDef<IWorkloadDeploymentControlResponse>[] = useMemo(
     () => [
       {
-        header: 'Name',
+        header: 'Resource Name',
         accessorKey: 'name',
         enableSorting: false,
         cell: ({ row }) => {

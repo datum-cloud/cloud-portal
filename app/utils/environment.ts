@@ -22,6 +22,10 @@ const schema = z.object({
 
   FATHOM_ID: z.string().optional(),
 
+  // Help Scout
+  HELPSCOUT_BEACON_ID: z.string().optional(),
+  HELPSCOUT_SECRET_KEY: z.string().optional(),
+
   TELEMETRY_URL: z.string().optional(),
   PROMETHEUS_URL: z.string().optional(),
 });
@@ -67,6 +71,8 @@ export function getSharedEnvs() {
     APP_URL: process.env.APP_URL,
     API_URL: process.env.API_URL,
     FATHOM_ID: process.env.FATHOM_ID,
+    HELPSCOUT_BEACON_ID: process.env.HELPSCOUT_BEACON_ID,
+    HELPSCOUT_SECRET_KEY: process.env.HELPSCOUT_SECRET_KEY,
     TELEMETRY_URL: process.env.TELEMETRY_URL,
     PROMETHEUS_URL: process.env.PROMETHEUS_URL,
   };

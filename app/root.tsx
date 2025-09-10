@@ -10,6 +10,7 @@ import { csrf } from '@/modules/cookie/csrf.server';
 import { themeSessionResolver } from '@/modules/cookie/theme.server';
 import { getToastSession } from '@/modules/cookie/toast.server';
 import { FathomAnalytics } from '@/modules/fathom/fathom';
+import { HelpScoutBeacon } from '@/modules/helpscout';
 import MarkerIoEmbed from '@/modules/markerio';
 import { queryClient } from '@/modules/tanstack/query';
 import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api/action/set-cache';
@@ -194,6 +195,9 @@ export default function AppWithProviders() {
               <ConfirmationDialogProvider>
                 {sharedEnv.FATHOM_ID && isProduction() && (
                   <FathomAnalytics privateKey={sharedEnv.FATHOM_ID} />
+                )}
+                {sharedEnv.HELPSCOUT_BEACON_ID && isProduction() && (
+                  <HelpScoutBeacon beaconId={sharedEnv.HELPSCOUT_BEACON_ID} />
                 )}
                 <Outlet />
               </ConfirmationDialogProvider>

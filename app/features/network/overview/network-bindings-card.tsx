@@ -13,7 +13,7 @@ export const NetworkBindingsCard = ({ data }: { data: INetworkBindingControlResp
   const columns: ColumnDef<INetworkBindingControlResponse>[] = useMemo(
     () => [
       {
-        header: 'Name',
+        header: 'Resource Name',
         accessorKey: 'name',
         enableSorting: false,
         cell: ({ row }) => {
