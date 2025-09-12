@@ -251,10 +251,6 @@ export default function PolicyBindingsPage() {
       columns={columns}
       data={data ?? []}
       emptyContent={{ title: 'No Policy Binding found.' }}
-      tableTitle={{
-        title: 'Policy Bindings',
-        description: 'Manage Policy Bindings for your organization resources',
-      }}
     />
   );
 }

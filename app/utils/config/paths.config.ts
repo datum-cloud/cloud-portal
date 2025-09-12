@@ -29,20 +29,9 @@ export const paths = {
         root: '/org/[orgId]/projects',
         new: '/org/[orgId]/projects/new',
       },
-      access: {
-        root: '/org/[orgId]/policy-bindings',
-        policyBindings: {
-          root: '/org/[orgId]/policy-bindings',
-          new: '/org/[orgId]/policy-bindings/new',
-          detail: {
-            root: '/org/[orgId]/policy-bindings/[policyBindingId]',
-            overview: '/org/[orgId]/policy-bindings/[policyBindingId]/overview',
-            edit: '/org/[orgId]/policy-bindings/[policyBindingId]/edit',
-          },
-        },
-      },
       settings: {
         preferences: '/org/[orgId]/preferences',
+        policyBindings: '/org/[orgId]/policy-bindings',
         activity: '/org/[orgId]/activity',
       },
     },
