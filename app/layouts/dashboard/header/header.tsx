@@ -43,7 +43,7 @@ export const Header = ({
           </Button> */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Link to="https://docs.datum.net/" target="_blank" rel="noreferrer">
+              <Link to="https://datum.net/docs/" target="_blank" rel="noreferrer">
                 <Button variant="ghost" size="sm" className="cursor-pointer">
                   <CircleHelp />
                 </Button>

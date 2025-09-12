@@ -22,7 +22,7 @@ import { combineHeaders } from '@/utils/helpers/path.helper';
 import * as Sentry from '@sentry/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
-import { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   Links,
   Meta,
@@ -101,9 +101,70 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const data = useRouteLoaderData<typeof loader>('root');
 
   return (
-    <ThemeProvider specifiedTheme={data?.theme ?? Theme.LIGHT} themeAction="/api/set-theme">
+    <ThemeProvider
+      specifiedTheme={data?.theme ?? Theme.LIGHT}
+      themeAction="/api/set-theme"
+      disableTransitionOnThemeChange={false}>
       {children}
     </ThemeProvider>
+  );
+}
+
+// Favicon configuration for responsive theme support
+const FAVICON_CONFIGS = [
+  {
+    rel: 'apple-touch-icon' as const,
+    sizes: '180x180',
+    filename: 'apple-touch-icon.png',
+  },
+  {
+    rel: 'icon' as const,
+    type: 'image/png',
+    sizes: '32x32',
+    filename: 'favicon-32x32.png',
+  },
+  {
+    rel: 'icon' as const,
+    type: 'image/png',
+    sizes: '16x16',
+    filename: 'favicon-16x16.png',
+  },
+  {
+    rel: 'manifest' as const,
+    filename: 'site.webmanifest',
+  },
+] as const;
+
+/**
+ * Generates favicon link elements that respond to system theme changes
+ */
+function FaviconLinks() {
+  return (
+    <>
+      {FAVICON_CONFIGS.map((config) => {
+        const linkProps = {
+          rel: config.rel,
+          ...('type' in config && { type: config.type }),
+          ...('sizes' in config && { sizes: config.sizes }),
+        };
+        return (
+          <React.Fragment key={`${config.rel}-${config.filename}`}>
+            {/* Dark favicon for light theme */}
+            <link
+              {...linkProps}
+              href={`/favicons/dark/${config.filename}`}
+              media="(prefers-color-scheme: light)"
+            />
+            {/* Light favicon for dark theme */}
+            <link
+              {...linkProps}
+              href={`/favicons/light/${config.filename}`}
+              media="(prefers-color-scheme: dark)"
+            />
+          </React.Fragment>
+        );
+      })}
+    </>
   );
 }
 
@@ -116,6 +177,9 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <FaviconLinks />
+
         <ClientHintCheck nonce={nonce} />
         <Meta />
         <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} nonce={nonce} />
