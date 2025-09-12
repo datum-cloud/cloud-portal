@@ -47,6 +47,11 @@ export default [
           route('new', 'routes/org/detail/projects/new.tsx'),
         ]),
 
+        // Policy Bindings of an organization
+        route('policy-bindings', 'routes/org/detail/access/policy-bindings/layout.tsx', [
+          index('routes/org/detail/access/policy-bindings/index.tsx'),
+        ]),
+
         // Settings of an organization
         layout('routes/org/detail/settings/layout.tsx', [
           route('preferences', 'routes/org/detail/settings/preferences.tsx'),
