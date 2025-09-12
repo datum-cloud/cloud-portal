@@ -31,6 +31,7 @@ export const paths = {
       },
       settings: {
         preferences: '/org/[orgId]/preferences',
+        policyBindings: '/org/[orgId]/policy-bindings',
         activity: '/org/[orgId]/activity',
       },
     },

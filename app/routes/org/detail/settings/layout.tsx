@@ -15,6 +15,11 @@ export default function OrgSettingsLayout() {
         to: getPathWithParams(paths.org.detail.settings.preferences, { orgId }),
       },
       {
+        value: 'policy-bindings',
+        label: 'Policy Bindings',
+        to: getPathWithParams(paths.org.detail.settings.policyBindings, { orgId }),
+      },
+      {
         value: 'activity',
         label: 'Activity',
         to: getPathWithParams(paths.org.detail.settings.activity, { orgId }),
@@ -23,10 +28,7 @@ export default function OrgSettingsLayout() {
     [orgId]
   );
   return (
-    <TabsLayout
-      tabsTitle={{ title: 'Organization Settings' }}
-      navItems={navItems}
-      containerClassName="max-w-3xl">
+    <TabsLayout tabsTitle={{ title: 'Organization Settings' }} navItems={navItems}>
       <Outlet />
     </TabsLayout>
   );
