@@ -62,14 +62,26 @@ export const createOrganizationsControl = (client: Client) => {
           });
 
         // Type guard to check if data is a valid project list
-        const orgList =
-          response?.data as ComMiloapisResourcemanagerV1Alpha1OrganizationMembershipList;
+        const data = response?.data as ComMiloapisResourcemanagerV1Alpha1OrganizationMembershipList;
 
-        return (
-          orgList?.items?.map((org: ComMiloapisResourcemanagerV1Alpha1OrganizationMembership) =>
+        const orgs = (
+          data?.items?.map((org: ComMiloapisResourcemanagerV1Alpha1OrganizationMembership) =>
             transformOrgMembership(org)
           ) ?? []
-        );
+        ).sort((a, b) => {
+          // First, sort by type - Personal organizations first
+          if (a.type === OrganizationType.Personal && b.type !== OrganizationType.Personal)
+            return -1;
+          if (b.type === OrganizationType.Personal && a.type !== OrganizationType.Personal)
+            return 1;
+
+          // Then sort alphabetically by displayName or name
+          const aName = a?.displayName ?? a?.name ?? '';
+          const bName = b?.displayName ?? b?.name ?? '';
+          return aName.localeCompare(bName);
+        });
+
+        return orgs;
       } catch (e) {
         throw e;
       }

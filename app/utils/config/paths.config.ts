@@ -7,6 +7,7 @@ export const paths = {
     callback: '/auth/callback',
   },
   home: '/',
+  gettingStarted: '/getting-started',
   account: {
     root: '/account',
     organizations: {

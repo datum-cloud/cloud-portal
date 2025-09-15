@@ -9,8 +9,8 @@ import {
 } from '@/components/ui/card';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { CheckCircle2, Shield, Settings, Activity } from 'lucide-react';
+import { AnimatePresence, motion, Variants } from 'motion/react';
 import { useNavigate } from 'react-router';
 
 const containerVariants: Variants = {

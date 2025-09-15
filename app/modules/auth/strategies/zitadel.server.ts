@@ -31,6 +31,8 @@ export const zitadelStrategy = await OAuth2.discover<IAuthSession>(
         throw new AuthenticationError('No access_token in response');
       }
 
+      // Get User
+
       return {
         idToken: tokens.idToken(),
         accessToken: tokens.accessToken(),

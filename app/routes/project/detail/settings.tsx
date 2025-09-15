@@ -94,10 +94,11 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
       await cache.removeItem(`projects:${orgEntityId}`);
 
       await projectsControl.delete(orgEntityId as string, projectName as string);
+
       return redirectWithToast(
-        getPathWithParams(paths.org.detail.projects.root, {
+        `${getPathWithParams(paths.org.detail.projects.root, {
           orgId: orgEntityId as string,
-        }),
+        })}?deletedId=${encodeURIComponent(projectName as string)}`,
         {
           title: 'Project deleted successfully',
           description: 'The project has been deleted successfully',

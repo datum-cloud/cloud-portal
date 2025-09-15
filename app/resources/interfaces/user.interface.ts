@@ -16,4 +16,5 @@ export interface IUser {
   resourceVersion?: string;
   fullName?: string;
   preferences?: IUserPreferences;
+  onboardedAt?: string;
 }

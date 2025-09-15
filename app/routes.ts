@@ -16,6 +16,9 @@ export default [
     route('test/metrics', 'routes/test/metrics.tsx'),
     route('test/sentry', 'routes/test/sentry.tsx'),
 
+    // Getting Started
+    route('getting-started', 'routes/getting-started/index.tsx'),
+
     // Account
     route('account', 'routes/account/layout.tsx', [
       index('routes/account/index.tsx'),

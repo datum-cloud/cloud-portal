@@ -1,9 +1,8 @@
-import { LogoProps } from './logo';
 import { logoStyles } from './logo.styles';
 import { cn } from '@/utils/common';
 import { useTheme, Theme } from 'remix-themes';
 
-export const LogoText = ({ className }: LogoProps) => {
+export const LogoText = ({ className }: { className?: string }) => {
   const [theme] = useTheme();
   const { base, text } = logoStyles({ theme: theme ?? Theme.LIGHT });
 

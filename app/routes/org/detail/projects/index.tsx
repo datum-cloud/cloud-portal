@@ -45,7 +45,8 @@ export const loader = async ({ request, params, context }: LoaderFunctionArgs) =
       }
     }
 
-    return data({ projects, deletedId: lastDeletedId });
+    const filteredProjects = projects.filter((project) => project.name !== lastDeletedId);
+    return data({ projects: filteredProjects, deletedId: lastDeletedId });
   } catch {
     return data({ projects: [], deletedId: null });
   }

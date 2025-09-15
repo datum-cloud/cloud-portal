@@ -1,9 +1,8 @@
-import { LogoProps } from './logo';
 import { logoStyles } from './logo.styles';
 import { cn } from '@/utils/common';
 import { useTheme, Theme } from 'remix-themes';
 
-export const LogoIcon = ({ width = 385, className }: LogoProps) => {
+export const LogoIcon = ({ width = 385, className }: { width?: number; className?: string }) => {
   const [theme] = useTheme();
   const { base, icon } = logoStyles({ theme: theme ?? Theme.LIGHT });
 
