@@ -1,6 +1,7 @@
 import { AuthError } from '@/components/error/auth';
 import { GenericError } from '@/components/error/generic';
 import { ClientHintCheck } from '@/components/misc/client-hints';
+import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
 import { Toaster } from '@/components/ui/sonner';
 import { useNonce } from '@/hooks/useNonce';
 import { useToast } from '@/hooks/useToast';
@@ -110,64 +111,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Favicon configuration for responsive theme support
-const FAVICON_CONFIGS = [
-  {
-    rel: 'apple-touch-icon' as const,
-    sizes: '180x180',
-    filename: 'apple-touch-icon.png',
-  },
-  {
-    rel: 'icon' as const,
-    type: 'image/png',
-    sizes: '32x32',
-    filename: 'favicon-32x32.png',
-  },
-  {
-    rel: 'icon' as const,
-    type: 'image/png',
-    sizes: '16x16',
-    filename: 'favicon-16x16.png',
-  },
-  {
-    rel: 'manifest' as const,
-    filename: 'site.webmanifest',
-  },
-] as const;
-
-/**
- * Generates favicon link elements that respond to system theme changes
- */
-function FaviconLinks() {
-  return (
-    <>
-      {FAVICON_CONFIGS.map((config) => {
-        const linkProps = {
-          rel: config.rel,
-          ...('type' in config && { type: config.type }),
-          ...('sizes' in config && { sizes: config.sizes }),
-        };
-        return (
-          <React.Fragment key={`${config.rel}-${config.filename}`}>
-            {/* Dark favicon for light theme */}
-            <link
-              {...linkProps}
-              href={`/favicons/dark/${config.filename}`}
-              media="(prefers-color-scheme: light)"
-            />
-            {/* Light favicon for dark theme */}
-            <link
-              {...linkProps}
-              href={`/favicons/light/${config.filename}`}
-              media="(prefers-color-scheme: dark)"
-            />
-          </React.Fragment>
-        );
-      })}
-    </>
-  );
-}
-
 function Document({ children, nonce }: { children: React.ReactNode; nonce: string }) {
   const data = useLoaderData<typeof loader>();
   const [theme] = useTheme();
@@ -178,7 +121,7 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        <FaviconLinks />
+        <DynamicFaviconLinks />
 
         <ClientHintCheck nonce={nonce} />
         <Meta />
