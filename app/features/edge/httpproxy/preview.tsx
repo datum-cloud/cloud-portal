@@ -16,8 +16,8 @@ import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.int
 import { ROUTE_PATH as HTTP_PROXY_DETAIL_PATH } from '@/routes/api/httpproxy/$id';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { AnimatePresence, motion, Variants } from 'framer-motion';
 import { InfoIcon, Loader2 } from 'lucide-react';
+import { AnimatePresence, motion, Variants } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFetcher, useNavigate } from 'react-router';
 

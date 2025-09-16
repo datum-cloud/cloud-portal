@@ -1,10 +1,10 @@
-import { DataTableEmptyContent } from './data-table-empty-content';
 import { DataTableHeader } from './data-table-header';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableRowActions } from './data-table-row-actions';
 import { DataTableProvider } from './data-table.context';
 import { DataTableProps } from './data-table.types';
 import { DataTableLoadingContent } from '@/components/data-table/data-table-loading';
+import { EmptyContent } from '@/components/empty-content/empty-content';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { cn } from '@/utils/common';
@@ -209,7 +209,7 @@ export const DataTable = <TData, TValue>({
             {(data ?? [])?.length > 10 && <DataTablePagination table={table} />}
           </>
         ) : (
-          <DataTableEmptyContent {...emptyContent} />
+          <EmptyContent variant="dashed" {...emptyContent} />
         )}
       </div>
     </DataTableProvider>

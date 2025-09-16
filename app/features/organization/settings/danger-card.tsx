@@ -53,6 +53,10 @@ export const OrganizationDangerCard = ({ organization }: { organization: IOrgani
         toast.success('Organization deleted successfully', {
           description: 'The organization has been deleted successfully',
         });
+      } else {
+        toast.error('Failed to delete organization', {
+          description: fetcher.data?.error,
+        });
       }
     }
   }, [fetcher.data, fetcher.state]);

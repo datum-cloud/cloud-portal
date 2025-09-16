@@ -42,6 +42,7 @@ export const createUserControl = (client: Client) => {
       resourceVersion: metadata?.resourceVersion ?? '',
       fullName: `${spec?.givenName} ${spec?.familyName}`,
       preferences,
+      onboardedAt: metadata?.annotations?.['onboarding/completedAt'],
     };
   };
 
@@ -110,6 +111,11 @@ export const createUserControl = (client: Client) => {
         }
         if (typeof preferences.newsletter === 'boolean') {
           annotations['preferences/newsletter'] = String(preferences.newsletter);
+        }
+
+        // for onboarding
+        if (preferences.onboardedAt) {
+          annotations['onboarding/completedAt'] = preferences.onboardedAt;
         }
 
         const metadata = Object.keys(annotations).length > 0 ? { annotations } : undefined;

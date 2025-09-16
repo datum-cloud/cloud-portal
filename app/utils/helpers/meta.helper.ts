@@ -153,7 +153,7 @@ function isMetaEqual(meta1: MetaDescriptor, meta2: MetaDescriptor): boolean {
 export function metaObject(title?: string, description?: string): MetaDescriptor[] {
   const formattedTitle = title ? `${SITE_CONFIG.siteTitle} - ${title}` : SITE_CONFIG.siteTitle;
   const formattedDescription = description ?? SITE_CONFIG.siteDescription;
-  const ogImage = `${SITE_CONFIG.siteUrl}/og-image.jpg`;
+  const ogImage = `${SITE_CONFIG.siteUrl}/images/og-image.png`;
 
   return [
     { title: formattedTitle },

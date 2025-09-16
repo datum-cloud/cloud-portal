@@ -1,11 +1,9 @@
+import { OrganizationAvatar } from './avatar';
 import { DateFormat } from '@/components/date-format/date-format';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
-import { cn } from '@/utils/common';
-import { getInitials } from '@/utils/helpers/text.helper';
-import { Building2, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 
 export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
   return (
@@ -14,21 +12,7 @@ export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
         {/* Left Side */}
         <div className="flex flex-row items-center gap-4">
           {/* Avatar */}
-          <Avatar className="size-12 !rounded-md">
-            <AvatarFallback
-              className={cn(
-                'rounded-md',
-                org.type === OrganizationType.Personal
-                  ? 'bg-navy text-cream'
-                  : 'bg-orange text-cream'
-              )}>
-              {org.type === OrganizationType.Personal ? (
-                <Building2 size={24} />
-              ) : (
-                <span className="text-lg">{getInitials(org?.displayName ?? org?.name ?? '')}</span>
-              )}
-            </AvatarFallback>
-          </Avatar>
+          <OrganizationAvatar organization={org} size="lg" />
           {/* Organization Info */}
           <div className="flex flex-col gap-1">
             <div className="flex flex-row items-center gap-2">

@@ -16,7 +16,6 @@ export { DataTableProvider } from './data-table.context';
 export { DataTableHeader } from './data-table-header';
 export { DataTablePagination } from './data-table-pagination';
 export { DataTableRowActions } from './data-table-row-actions';
-export { DataTableEmptyContent } from './data-table-empty-content';
 export { DataTableLoadingContent } from './data-table-loading';
 
 // =============================================================================

@@ -78,11 +78,11 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEdit ? 'Edit organization' : 'Create a new organization'}</CardTitle>
+        <CardTitle>{isEdit ? 'Edit organization' : 'Create new organization'}</CardTitle>
         <CardDescription>
           {isEdit
             ? 'Update the organization details to manage projects in Datum Cloud.'
-            : 'Create a new organization to manage projects in Datum Cloud.'}
+            : 'Ideal teams and production use cases with features like groups, RBAC, etc. Same free cost!'}
         </CardDescription>
       </CardHeader>
       <FormProvider context={form.context}>

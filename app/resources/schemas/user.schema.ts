@@ -10,6 +10,7 @@ export const userPreferencesSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']).optional(),
   timezone: z.string().optional(),
   newsletter: z.boolean().optional(),
+  onboardedAt: z.string().optional(),
 });
 
 export type UserSchema = z.infer<typeof userSchema>;

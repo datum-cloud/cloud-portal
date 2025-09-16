@@ -27,12 +27,8 @@ export const loader = withMiddleware(async ({ request, context }: LoaderFunction
     const { session } = await getSession(request);
     const sharedEnv = getSharedEnvs();
 
-    if (!session || !session?.sub) {
-      return redirect(paths.auth.logOut);
-    }
-
     const userControl = createUserControl(controlPlaneClient);
-    const user = await userControl.detail(session?.sub);
+    const user = await userControl.detail(session?.sub ?? '');
 
     /**
      * Generate Help Scout signature for secure mode
@@ -78,12 +74,12 @@ export default function PrivateLayout() {
   }, [user]);
 
   return (
-    <TooltipProvider>
-      <ConfirmationDialogProvider>
-        <AppProvider initialUser={user}>
+    <AppProvider initialUser={user}>
+      <TooltipProvider>
+        <ConfirmationDialogProvider>
           <Outlet />
-        </AppProvider>
-      </ConfirmationDialogProvider>
-    </TooltipProvider>
+        </ConfirmationDialogProvider>
+      </TooltipProvider>
+    </AppProvider>
   );
 }
