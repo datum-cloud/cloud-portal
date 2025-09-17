@@ -1,13 +1,14 @@
 import { OrganizationForm } from '@/features/organization/form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
+import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createOrganizationsControl } from '@/resources/control-plane/organizations.control';
 import { OrganizationSchema, organizationSchema } from '@/resources/schemas/organization.schema';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
-import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router';
+import { ActionFunctionArgs, AppLoadContext, MetaFunction, redirect } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>New</span>,
@@ -45,11 +46,11 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     // Invalidate the organizations cache
     await cache.removeItem('organizations');
 
-    return redirectWithToast(paths.account.organizations.root, {
-      title: 'Organization created successfully',
-      description: 'You have successfully created an organization.',
-      type: 'success',
-    });
+    return redirect(
+      getPathWithParams(paths.org.detail.root, {
+        orgId: payload.name,
+      })
+    );
   } catch (error) {
     return dataWithToast(
       {},

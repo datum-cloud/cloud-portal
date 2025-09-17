@@ -1,6 +1,6 @@
 import { CreateProjectForm } from '@/features/project/create-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
+import { dataWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { createProjectsControl } from '@/resources/control-plane/projects.control';
@@ -11,7 +11,7 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
-import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router';
+import { ActionFunctionArgs, AppLoadContext, MetaFunction, redirect } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>New</span>,
@@ -21,7 +21,7 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('New Project');
 });
 
-export const action = withMiddleware(async ({ request, params, context }: ActionFunctionArgs) => {
+export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
   const { controlPlaneClient, cache } = context as AppLoadContext;
   const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
@@ -51,16 +51,10 @@ export const action = withMiddleware(async ({ request, params, context }: Action
     // Invalidate the projects cache
     await cache.removeItem(`projects:${payload.orgEntityId}`);
 
-    return redirectWithToast(
-      getPathWithParams(paths.projects.detail, {
-        orgId: params.orgId,
+    return redirect(
+      getPathWithParams(paths.project.detail.root, {
         projectId: payload.name,
-      }),
-      {
-        title: 'Project created successfully!',
-        description: 'You have successfully created a project.',
-        type: 'success',
-      }
+      })
     );
   } catch (error) {
     return dataWithToast(null, {

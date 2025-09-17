@@ -1,13 +1,19 @@
 import { ExportPolicyStepperForm } from '@/features/observe/export-policies/form/stepper-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
+import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
 import { newExportPolicySchema } from '@/resources/schemas/export-policy.schema';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
-import { ActionFunctionArgs, AppLoadContext, MetaFunction, useParams } from 'react-router';
+import {
+  ActionFunctionArgs,
+  AppLoadContext,
+  MetaFunction,
+  redirect,
+  useParams,
+} from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('New Export Policy');
@@ -50,15 +56,11 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
       await exportPoliciesControl.create(projectId, parsed.data, false);
     }
 
-    return redirectWithToast(
-      getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
+    return redirect(
+      getPathWithParams(paths.project.detail.metrics.exportPolicies.detail.root, {
         projectId,
-      }),
-      {
-        title: 'Export policy created successfully',
-        description: 'You have successfully created an export policy.',
-        type: 'success',
-      }
+        exportPolicyId: parsed.data.metadata.name,
+      })
     );
   } catch (error) {
     return dataWithToast(null, {
