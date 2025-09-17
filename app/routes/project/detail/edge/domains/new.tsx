@@ -1,6 +1,6 @@
 import { DomainForm } from '@/features/edge/domain/form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
+import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createDomainsControl } from '@/resources/control-plane/domains.control';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { domainSchema } from '@/resources/schemas/domain.schema';
@@ -9,7 +9,13 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
-import { ActionFunctionArgs, AppLoadContext, MetaFunction, useParams } from 'react-router';
+import {
+  ActionFunctionArgs,
+  AppLoadContext,
+  MetaFunction,
+  redirect,
+  useParams,
+} from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>New</span>,
@@ -48,16 +54,11 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
       res = await domainsControl.create(projectId, parsed.value, false);
     }
 
-    return redirectWithToast(
+    return redirect(
       getPathWithParams(paths.project.detail.domains.detail.root, {
         projectId,
         domainId: res.name,
-      }),
-      {
-        title: 'Domain created successfully',
-        description: 'You have successfully created a domain.',
-        type: 'success',
-      }
+      })
     );
   } catch (error) {
     return dataWithToast(null, {

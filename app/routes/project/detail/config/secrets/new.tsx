@@ -1,6 +1,6 @@
 import { SecretForm } from '@/features/secret/form/form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { redirectWithToast, dataWithToast } from '@/modules/cookie/toast.server';
+import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createSecretsControl } from '@/resources/control-plane/secrets.control';
 import { SecretNewSchema, secretNewSchema } from '@/resources/schemas/secret.schema';
 import { paths } from '@/utils/config/paths.config';
@@ -8,7 +8,7 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod';
 import { Client } from '@hey-api/client-axios';
-import { ActionFunctionArgs, AppLoadContext, MetaFunction } from 'react-router';
+import { ActionFunctionArgs, AppLoadContext, MetaFunction, redirect } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>New</span>,
@@ -45,15 +45,11 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
       await secretControl.create(projectId, payload, false);
     }
 
-    return redirectWithToast(
-      getPathWithParams(paths.project.detail.config.secrets.root, {
+    return redirect(
+      getPathWithParams(paths.project.detail.config.secrets.detail.root, {
         projectId,
-      }),
-      {
-        title: 'Secret created successfully',
-        description: 'You have successfully created a secret.',
-        type: 'success',
-      }
+        secretId: payload.name,
+      })
     );
   } catch (error) {
     return dataWithToast(null, {
