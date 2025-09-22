@@ -13,6 +13,7 @@ export interface TabsNavProps {
   label: string;
   to: string;
   icon?: LucideIcon;
+  hidden?: boolean;
 }
 
 export interface TabsTitleProps {

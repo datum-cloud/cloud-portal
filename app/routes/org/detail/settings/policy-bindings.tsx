@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
+import { withMiddleware, standardOrgMiddleware } from '@/modules/middleware/';
 import { createPolicyBindingsControl } from '@/resources/control-plane/policy-bindings.control';
 import { IPolicyBindingControlResponse } from '@/resources/interfaces/policy-binding.interface';
 import { BadRequestError } from '@/utils/errors';
@@ -14,30 +15,27 @@ import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { Users } from 'lucide-react';
 import { useMemo } from 'react';
-import {
-  AppLoadContext,
-  LoaderFunctionArgs,
-  MetaFunction,
-  useLoaderData,
-  useParams,
-} from 'react-router';
+import { AppLoadContext, LoaderFunctionArgs, MetaFunction, useLoaderData } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Policy Bindings');
 });
 
-export const loader = async ({ context, params }: LoaderFunctionArgs) => {
-  const { orgId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
-  const policyBindingsControl = createPolicyBindingsControl(controlPlaneClient as Client);
+export const loader = withMiddleware(
+  async ({ context, params }: LoaderFunctionArgs) => {
+    const { orgId } = params;
+    const { controlPlaneClient } = context as AppLoadContext;
+    const policyBindingsControl = createPolicyBindingsControl(controlPlaneClient as Client);
 
-  if (!orgId) {
-    throw new BadRequestError('Project ID is required');
-  }
+    if (!orgId) {
+      throw new BadRequestError('Project ID is required');
+    }
 
-  const bindings = await policyBindingsControl.list({ type: 'organization', id: orgId });
-  return bindings;
-};
+    const bindings = await policyBindingsControl.list({ type: 'organization', id: orgId });
+    return bindings;
+  },
+  standardOrgMiddleware // Ensure only Standard organizations can access
+);
 
 // Helper component for resource reference tooltip
 const ResourceRefTooltip = ({
@@ -111,11 +109,10 @@ const renderResourceCell = (
 };
 
 export default function PolicyBindingsPage() {
-  const { orgId } = useParams();
   const data = useLoaderData<typeof loader>();
 
-  const columns: ColumnDef<IPolicyBindingControlResponse>[] = useMemo(
-    () => [
+  const columns: ColumnDef<IPolicyBindingControlResponse>[] = useMemo(() => {
+    return [
       {
         header: 'Resource Name',
         accessorKey: 'name',
@@ -242,9 +239,8 @@ export default function PolicyBindingsPage() {
           return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
         },
       },
-    ],
-    [orgId]
-  );
+    ];
+  }, []);
 
   return (
     <DataTable

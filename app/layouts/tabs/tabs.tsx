@@ -40,21 +40,23 @@ export default function TabsLayout({
         <div className={cn('mx-auto w-full max-w-5xl px-5', containerClassName)}>
           <Tabs value={activeTab}>
             <TabsList className="bg-background flex w-full justify-start rounded-none p-0">
-              {(navItems ?? []).map((nav) => (
-                <TabsLinkTrigger
-                  key={nav.value}
-                  value={nav.value}
-                  to={nav.to}
-                  className={cn(
-                    'flex h-full w-fit items-center gap-2 rounded-none border-b-2 border-transparent',
-                    'bg-background focus-visible:ring-0 focus-visible:outline-hidden',
-                    'data-[state=active]:border-primary data-[state=active]:shadow-none',
-                    'hover:text-foreground !flex-none transition-all'
-                  )}>
-                  {nav.icon && <nav.icon className="size-4" />}
-                  {nav.label}
-                </TabsLinkTrigger>
-              ))}
+              {(navItems ?? [])
+                .filter((nav) => !nav.hidden)
+                .map((nav) => (
+                  <TabsLinkTrigger
+                    key={nav.value}
+                    value={nav.value}
+                    to={nav.to}
+                    className={cn(
+                      'flex h-full w-fit items-center gap-2 rounded-none border-b-2 border-transparent',
+                      'bg-background focus-visible:ring-0 focus-visible:outline-hidden',
+                      'data-[state=active]:border-primary data-[state=active]:shadow-none',
+                      'hover:text-foreground !flex-none transition-all'
+                    )}>
+                    {nav.icon && <nav.icon className="size-4" />}
+                    {nav.label}
+                  </TabsLinkTrigger>
+                ))}
             </TabsList>
           </Tabs>
         </div>
