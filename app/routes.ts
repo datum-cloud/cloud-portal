@@ -69,6 +69,7 @@ export default [
 
         route('home', 'routes/project/detail/home.tsx'),
         route('activity', 'routes/project/detail/activity.tsx'),
+        route('policy-bindings', 'routes/project/detail/policy-bindings.tsx'),
         route('settings', 'routes/project/detail/settings.tsx'),
 
         // Config

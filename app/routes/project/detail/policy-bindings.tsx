@@ -1,5 +1,4 @@
 import { PolicyBindingsTable } from '@/features/policy-binding/policy-bindings-table';
-import { withMiddleware, standardOrgMiddleware } from '@/modules/middleware/';
 import { createPolicyBindingsControl } from '@/resources/control-plane/policy-bindings.control';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -10,21 +9,18 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Policy Bindings');
 });
 
-export const loader = withMiddleware(
-  async ({ context, params }: LoaderFunctionArgs) => {
-    const { orgId } = params;
-    const { controlPlaneClient } = context as AppLoadContext;
-    const policyBindingsControl = createPolicyBindingsControl(controlPlaneClient as Client);
+export const loader = async ({ context, params }: LoaderFunctionArgs) => {
+  const { projectId } = params;
+  const { controlPlaneClient } = context as AppLoadContext;
+  const policyBindingsControl = createPolicyBindingsControl(controlPlaneClient as Client);
 
-    if (!orgId) {
-      throw new BadRequestError('Organization ID is required');
-    }
+  if (!projectId) {
+    throw new BadRequestError('Project ID is required');
+  }
 
-    const bindings = await policyBindingsControl.list({ type: 'organization', id: orgId });
-    return bindings;
-  },
-  standardOrgMiddleware // Ensure only Standard organizations can access
-);
+  const bindings = await policyBindingsControl.list({ type: 'project', id: projectId });
+  return bindings;
+};
 
 export default function PolicyBindingsPage() {
   const data = useLoaderData<typeof loader>();

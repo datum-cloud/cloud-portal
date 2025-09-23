@@ -87,6 +87,7 @@ export const paths = {
         },
       },
       activity: '/project/[projectId]/activity',
+      policyBindings: '/project/[projectId]/policy-bindings',
       settings: '/project/[projectId]/settings',
     },
   },

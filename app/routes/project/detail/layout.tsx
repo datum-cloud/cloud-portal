@@ -19,6 +19,7 @@ import {
   HomeIcon,
   NetworkIcon,
   SettingsIcon,
+  Shield,
   SquareActivity,
 } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
@@ -143,6 +144,13 @@ export default function ProjectLayout() {
         type: 'link',
         disabled: !isReady,
         icon: SquareActivity,
+      },
+      {
+        title: 'Policy Bindings',
+        href: getPathWithParams(paths.project.detail.policyBindings, { projectId }),
+        type: 'link',
+        disabled: !isReady,
+        icon: Shield,
       },
       {
         title: 'Config',
