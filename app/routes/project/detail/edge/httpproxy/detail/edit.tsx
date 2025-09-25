@@ -5,7 +5,7 @@ import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { parseWithZod } from '@conform-to/zod';
+import { parseWithZod } from '@conform-to/zod/v4';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, useRouteLoaderData, useParams, ActionFunctionArgs } from 'react-router';
 

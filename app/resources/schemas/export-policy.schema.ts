@@ -10,7 +10,7 @@ import { z } from 'zod';
 export const sourceFieldSchema = z
   .object({
     type: z.enum(Object.values(ExportPolicySourceType) as [string, ...string[]], {
-      required_error: 'Source type is required.',
+      error: 'Source type is required.',
     }),
     metricQuery: z.string().optional(),
   })
@@ -80,19 +80,19 @@ export const sinkAuthenticationSchema = z
   );
 
 export const sinkPrometheusSchema = z.object({
-  endpoint: z.string({ required_error: 'Endpoint URL is required.' }).url({
+  endpoint: z.string({ error: 'Endpoint URL is required.' }).url({
     message: 'Please enter a valid URL',
   }),
   authentication: sinkAuthenticationSchema.optional(),
   batch: z.object({
     maxSize: z.coerce
-      .number({ required_error: 'Max size is required.' })
+      .number({ error: 'Max size is required.' })
       .min(1, {
         message: 'Max size must be at least 1.',
       })
       .transform((val) => Number(val)),
     timeout: z.coerce
-      .number({ required_error: 'Timeout is required.' })
+      .number({ error: 'Timeout is required.' })
       .min(5, {
         message: 'Timeout must be at least 5s.',
       })
@@ -100,13 +100,13 @@ export const sinkPrometheusSchema = z.object({
   }),
   retry: z.object({
     backoffDuration: z.coerce
-      .number({ required_error: 'Backoff duration is required.' })
+      .number({ error: 'Backoff duration is required.' })
       .min(5, {
         message: 'Backoff duration must be at least 5s.',
       })
       .transform((val) => Number(val)),
     maxAttempts: z.coerce
-      .number({ required_error: 'Max attempts is required.' })
+      .number({ error: 'Max attempts is required.' })
       .min(1, {
         message: 'Max attempts must be at least 1.',
       })
@@ -116,7 +116,7 @@ export const sinkPrometheusSchema = z.object({
 export const sinkFieldSchema = z
   .object({
     type: z.enum(Object.values(ExportPolicySinkType) as [string, ...string[]], {
-      required_error: 'Sink type is required.',
+      error: 'Sink type is required.',
     }),
     sources: z.array(z.string()).min(1, {
       message: 'At least one source must be selected.',
@@ -163,7 +163,7 @@ export const newExportPolicySchema = z
 
 export const updateExportPolicySchema = z
   .object({
-    resourceVersion: z.string({ required_error: 'Resource version is required.' }),
+    resourceVersion: z.string({ error: 'Resource version is required.' }),
   })
   .and(metadataSchema)
   .and(exportPolicySourcesSchema)

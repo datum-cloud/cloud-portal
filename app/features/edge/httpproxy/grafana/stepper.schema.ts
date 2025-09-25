@@ -3,12 +3,12 @@ import { createNameSchema } from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
 
 export const instanceSchema = z.object({
-  instanceUrl: z.string({ required_error: 'Instance URL is required' }).url(),
+  instanceUrl: z.string({ error: 'Instance URL is required' }).url(),
 });
 
 export const deploySchema = z.object({
   prometheusConfig: z
-    .string({ required_error: 'YAML content is required' })
+    .string({ error: 'YAML content is required' })
     .refine(isValidYaml, { message: 'Invalid YAML format' })
     .refine(
       (value) => {

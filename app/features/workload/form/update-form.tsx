@@ -30,7 +30,7 @@ import { ROUTE_PATH as WORKLOADS_ACTIONS_ROUTE_PATH } from '@/routes/api/workloa
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Cpu, HardDrive, Layers, Network, Server } from 'lucide-react';
 import { Fragment, cloneElement, useEffect, useState } from 'react';
 import { Form, useNavigate, useSubmit } from 'react-router';

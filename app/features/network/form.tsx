@@ -22,7 +22,7 @@ import {
   useForm,
   useInputControl,
 } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Form, useFetcher, useNavigate } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';

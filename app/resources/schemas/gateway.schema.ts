@@ -8,18 +8,18 @@ import { z } from 'zod';
 
 export const gatewayTlsSchema = z.object({
   mode: z.enum(Object.values(GatewayTlsMode) as [string, ...string[]], {
-    required_error: 'TLS mode is required.',
+    error: 'TLS mode is required.',
   }),
 });
 
 export const gatewayListenerFieldSchema = z
   .object({
     protocol: z.enum(Object.values(GatewayProtocol) as [string, ...string[]], {
-      required_error: 'Protocol is required.',
+      error: 'Protocol is required.',
     }),
     tlsConfiguration: gatewayTlsSchema.optional(),
     allowedRoutes: z.enum(Object.values(GatewayAllowedRoutes) as [string, ...string[]], {
-      required_error: 'Allowed routes is required.',
+      error: 'Allowed routes is required.',
     }),
     // matchLabels: z.array(z.string()).optional(),
   })

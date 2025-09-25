@@ -24,7 +24,7 @@ import {
 import { MetadataSchema, metadataSchema } from '@/resources/schemas/metadata.schema';
 import { cn } from '@/utils/common';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { defineStepper } from '@stepperize/react';
 import { FileIcon, Layers, Loader2, Terminal } from 'lucide-react';
 import React, { useMemo } from 'react';

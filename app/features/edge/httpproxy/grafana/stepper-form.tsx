@@ -21,7 +21,7 @@ import { SecretNewSchema } from '@/resources/schemas/secret.schema';
 import { ROUTE_PATH as TELEMETRY_GRAFANA_ACTION } from '@/routes/api/telemetry/grafana';
 import { yamlToJson } from '@/utils/helpers/format.helper';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { useEffect } from 'react';
 import { Form, useFetcher, useNavigate } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';

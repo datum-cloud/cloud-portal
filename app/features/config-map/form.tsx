@@ -17,7 +17,7 @@ import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.int
 import { configMapSchema, updateConfigMapSchema } from '@/resources/schemas/config-map.schema';
 import { jsonToYaml } from '@/utils/helpers/format.helper';
 import { getFormProps, useForm, useInputControl } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { InfoIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Form, useNavigate } from 'react-router';

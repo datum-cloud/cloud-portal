@@ -18,7 +18,7 @@ import { projectSchema } from '@/resources/schemas/project.schema';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { RocketIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Form, useNavigate } from 'react-router';

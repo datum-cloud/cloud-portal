@@ -7,7 +7,7 @@ import { useApp } from '@/providers/app.provider';
 import { userSchema } from '@/resources/schemas/user.schema';
 import { ROUTE_PATH as USER_UPDATE_ACTION } from '@/routes/api/user';
 import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { useEffect } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';

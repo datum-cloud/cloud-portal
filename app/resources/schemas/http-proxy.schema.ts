@@ -8,7 +8,7 @@ export const httpProxyHostnameSchema = z.object({
 
 export const httpProxySchema = z
   .object({
-    endpoint: z.string({ required_error: 'Endpoint is required' }).refine(
+    endpoint: z.string({ error: 'Endpoint is required' }).refine(
       (value) => {
         try {
           // Must have http:// or https:// protocol

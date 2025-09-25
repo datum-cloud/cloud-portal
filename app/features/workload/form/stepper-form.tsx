@@ -25,7 +25,7 @@ import {
 } from '@/resources/schemas/workload.schema';
 import { cn } from '@/utils/common';
 import { getFormProps, useForm, FormProvider } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { defineStepper } from '@stepperize/react';
 import { Cpu, HardDrive, Layers, Loader2, Network, Server } from 'lucide-react';
 import React, { useEffect, useMemo } from 'react';

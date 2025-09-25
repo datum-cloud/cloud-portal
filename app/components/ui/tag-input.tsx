@@ -124,7 +124,7 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
           } catch (error) {
             if (error instanceof z.ZodError) {
               // Use Zod's error message directly
-              setError(error.errors[0]?.message || 'Invalid input');
+              setError((error as z.ZodError).issues[0]?.message || 'Invalid input');
             } else {
               setError('Validation failed');
             }

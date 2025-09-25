@@ -14,7 +14,7 @@ import { useIsPending } from '@/hooks/useIsPending';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
 import { getFormProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
@@ -33,7 +33,7 @@ export interface EditKeyValueDialogRef {
 }
 
 const keyValueSchema = z.object({
-  value: z.string({ required_error: 'Value is required' }).min(1, { message: 'Value is required' }),
+  value: z.string({ error: 'Value is required' }).min(1, { message: 'Value is required' }),
 });
 
 export const EditKeyValueDialog = ({

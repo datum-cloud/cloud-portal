@@ -11,7 +11,7 @@ import { z } from 'zod';
 export const runtimePortSchema = z.object({
   // Port has different name validation rules than default nameSchema
   name: z
-    .string({ required_error: 'Name is required.' })
+    .string({ error: 'Name is required.' })
     .min(1, { message: 'Name must not be empty.' })
     .max(15, { message: 'Name must be no more than 15 characters long.' })
     .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
@@ -25,7 +25,7 @@ export const runtimePortSchema = z.object({
       message: 'Name must not contain adjacent hyphens.',
     }),
   port: z.coerce
-    .number({ required_error: 'Port is required.' })
+    .number({ error: 'Port is required.' })
     .min(1, {
       message: 'Port must be at least 1.',
     })
@@ -34,15 +34,15 @@ export const runtimePortSchema = z.object({
     })
     .transform((val) => Number(val)),
   protocol: z.enum(Object.values(PortProtocol) as [string, ...string[]], {
-    required_error: 'Protocol is required.',
+    error: 'Protocol is required.',
   }),
 });
 
 export const runtimeVMSchema = z
   .object({
-    bootImage: z.string({ required_error: 'Boot image is required for VM.' }).optional(),
+    bootImage: z.string({ error: 'Boot image is required for VM.' }).optional(),
     sshKey: z
-      .string({ required_error: 'SSH key is required for VM.' })
+      .string({ error: 'SSH key is required for VM.' })
       .regex(
         /^([a-zA-Z0-9_.-]+):(?:ssh-rsa AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ssh-ed25519 AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ssh-dss AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$|ecdsa-sha2-nistp(?:256|384|521) AAAA[0-9A-Za-z+/]+[=]{0,3}( [^@]+@[^@]+)?$)/,
         {
@@ -78,14 +78,14 @@ export const runtimeVMSchema = z
 export const runtimeEnvSchema = z
   .object({
     name: z
-      .string({ required_error: 'Name is required.' })
+      .string({ error: 'Name is required.' })
       .min(1, { message: 'Key is required' })
       .max(63, { message: 'Key must be at most 63 characters long.' })
       .regex(/^[a-zA-Z0-9._-]+$/, {
         message: 'Key must only contain letters, numbers, dots, underscores, or hyphens',
       }),
     type: z.enum(Object.values(ContainerEnvType) as [string, ...string[]], {
-      required_error: 'Value Source is required.',
+      error: 'Value Source is required.',
     }),
     value: z.string().optional(), // For text
     refName: z.string().optional(), // For secret and config map
@@ -115,23 +115,24 @@ export const runtimeEnvSchema = z
       path: ['key'],
     }
   )
-  .refine(
-    (data) => {
-      if (data?.type === ContainerEnvType.SECRET || data?.type === ContainerEnvType.CONFIG_MAP) {
-        return !!data?.refName;
+  .superRefine((data, ctx) => {
+    if (data?.type === ContainerEnvType.SECRET || data?.type === ContainerEnvType.CONFIG_MAP) {
+      if (!data?.refName) {
+        ctx.addIssue({
+          code: 'custom',
+          message:
+            data?.type === ContainerEnvType.SECRET
+              ? 'Secret is required'
+              : 'Config Map is required',
+          path: ['refName'],
+        });
       }
-      return true;
-    },
-    (data) => ({
-      message:
-        data?.type === ContainerEnvType.SECRET ? 'Secret is required' : 'Config Map is required',
-      path: ['refName'],
-    })
-  );
+    }
+  });
 
 export const runtimeContainerSchema = z
   .object({
-    image: z.string({ required_error: 'Image is required.' }),
+    image: z.string({ error: 'Image is required.' }),
     ports: z.array(runtimePortSchema).optional(),
     envs: z.array(runtimeEnvSchema).optional(),
   })
@@ -182,9 +183,9 @@ export const runtimeContainerSchema = z
   });
 
 export const runtimeSchema = z.object({
-  instanceType: z.string({ required_error: 'Instance type is required.' }),
+  instanceType: z.string({ error: 'Instance type is required.' }),
   runtimeType: z.enum(Object.values(RuntimeType) as [string, ...string[]], {
-    required_error: 'Runtime type is required.',
+    error: 'Runtime type is required.',
   }),
   virtualMachine: runtimeVMSchema.optional(),
   containers: z.array(runtimeContainerSchema).optional(),
@@ -194,9 +195,9 @@ export const runtimeSchema = z.object({
 
 // Network Section
 export const networkFieldSchema = z.object({
-  name: z.string({ required_error: 'Network is required.' }),
+  name: z.string({ error: 'Network is required.' }),
   ipFamilies: z
-    .array(z.string({ required_error: 'IP family selection is required.' }))
+    .array(z.string({ error: 'IP family selection is required.' }))
     .min(1, { message: 'At least one IP family must be selected.' }),
 });
 
@@ -212,18 +213,18 @@ export const networksSchema = z.object({
 export const storageFieldSchema = z
   .object({
     name: z
-      .string({ required_error: 'Name is required.' })
+      .string({ error: 'Name is required.' })
       .min(1, { message: 'Name is required.' })
       .max(63, { message: 'Name must be at most 63 characters long.' })
       .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
         message: 'Name must be kebab-case, start with a letter, and end with a letter or number',
       }),
     type: z.enum(Object.values(StorageType) as [string, ...string[]], {
-      required_error: 'Storage type is required.',
+      error: 'Storage type is required.',
     }),
     bootImage: z.string().optional(),
     size: z.coerce
-      .number({ required_error: 'Size is required.' })
+      .number({ error: 'Size is required.' })
       .min(10, {
         message: 'Size must be at least 10Gi.',
       })
@@ -278,9 +279,9 @@ export const storagesSchema = z
 // Placements
 export const placementFieldSchema = z
   .object({
-    cityCode: z.string({ required_error: 'City code is required.' }),
+    cityCode: z.string({ error: 'City code is required.' }),
     minimumReplicas: z.coerce
-      .number({ required_error: 'Minimum replicas is required.' })
+      .number({ error: 'Minimum replicas is required.' })
       .min(1, {
         message: 'Minimum replicas must be at least 1.',
       })
@@ -331,7 +332,7 @@ export const newWorkloadSchema = z
 
 export const updateWorkloadSchema = z
   .object({
-    resourceVersion: z.string({ required_error: 'Resource version is required.' }),
+    resourceVersion: z.string({ error: 'Resource version is required.' }),
   })
   .and(metadataSchema)
   .and(runtimeSchema)

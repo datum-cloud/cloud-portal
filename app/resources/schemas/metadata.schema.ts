@@ -7,24 +7,24 @@ export const nameSchema = z.object({
 
 export const labelFormSchema = z.object({
   key: z
-    .string({ required_error: 'Key is required' })
+    .string({ error: 'Key is required' })
     .min(1, { message: 'Key is required' })
     .regex(
       /^[a-zA-Z0-9_.-]+$/,
       'Key must contain only letters, numbers, underscores, dots, or hyphens'
     ),
-  value: z.string({ required_error: 'Value is required' }).min(1, { message: 'Value is required' }),
+  value: z.string({ error: 'Value is required' }).min(1, { message: 'Value is required' }),
 });
 
 export const annotationFormSchema = z.object({
   key: z
-    .string({ required_error: 'Key is required' })
+    .string({ error: 'Key is required' })
     .min(1, { message: 'Key is required' })
     .regex(
       /^([a-z0-9A-Z][-a-z0-9A-Z_.]*)?[a-z0-9A-Z]\/([a-z0-9A-Z][-a-z0-9A-Z_.]*)?[a-z0-9A-Z]$|^([a-z0-9A-Z][-a-z0-9A-Z_.]*)?[a-z0-9A-Z]$/,
       'Key must be a valid Kubernetes annotation key (e.g., example.com/key or simple-key)'
     ),
-  value: z.string({ required_error: 'Value is required' }).min(1, { message: 'Value is required' }),
+  value: z.string({ error: 'Value is required' }).min(1, { message: 'Value is required' }),
 });
 
 export const metadataSchema = z
