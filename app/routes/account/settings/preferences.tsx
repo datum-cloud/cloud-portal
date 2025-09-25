@@ -1,6 +1,5 @@
 import { AccountDangerSettingsCard } from '@/features/account/settings/danger-card';
 import { AccountIdentitySettingsCard } from '@/features/account/settings/indetity-card';
-import { AccountNewsletterSettingsCard } from '@/features/account/settings/newsletter-card';
 import { AccountPortalSettingsCard } from '@/features/account/settings/portal-card';
 import { AccountProfileSettingsCard } from '@/features/account/settings/profile-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
@@ -87,7 +86,7 @@ export default function AccountPreferencesPage() {
 
       <AccountPortalSettingsCard />
 
-      <AccountNewsletterSettingsCard />
+      {/* <AccountNewsletterSettingsCard /> */}
 
       <AccountDangerSettingsCard />
     </div>
