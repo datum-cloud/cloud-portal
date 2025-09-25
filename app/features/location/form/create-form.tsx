@@ -23,7 +23,7 @@ import {
 import { newLocationSchema } from '@/resources/schemas/location.schema';
 import { convertObjectToLabels } from '@/utils/helpers/object.helper';
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { useEffect, useMemo, useRef } from 'react';
 import { Form, useNavigate } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

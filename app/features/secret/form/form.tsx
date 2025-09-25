@@ -17,7 +17,7 @@ import {
   secretNewSchema,
 } from '@/resources/schemas/secret.schema';
 import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { useMemo } from 'react';
 import { Form } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

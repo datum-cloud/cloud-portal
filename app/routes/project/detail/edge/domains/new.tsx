@@ -7,7 +7,7 @@ import { domainSchema } from '@/resources/schemas/domain.schema';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { parseWithZod } from '@conform-to/zod';
+import { parseWithZod } from '@conform-to/zod/v4';
 import { Client } from '@hey-api/client-axios';
 import {
   ActionFunctionArgs,

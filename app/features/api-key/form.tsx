@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { useIsPending } from '@/hooks/useIsPending';
 import { newApiKeySchema } from '@/resources/schemas/api-key.schema';
 import { FieldMetadata, getFormProps, getInputProps, useForm } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { useEffect, useRef } from 'react';
 import { Form, useNavigate } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

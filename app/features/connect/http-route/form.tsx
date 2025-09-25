@@ -31,7 +31,7 @@ import {
   useForm,
   useInputControl,
 } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { useEffect, useMemo, useState } from 'react';
 import { Form, useNavigate, useSubmit } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

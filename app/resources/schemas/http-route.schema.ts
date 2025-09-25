@@ -11,10 +11,10 @@ import { z } from 'zod';
 // Schema for HTTP path match
 export const httpPathMatchSchema = z.object({
   type: z.enum(Object.values(HTTPPathMatchType) as [string, ...string[]], {
-    required_error: 'Path match type is required',
+    error: 'Path match type is required',
   }),
   value: z
-    .string({ required_error: 'Path value is required' })
+    .string({ error: 'Path value is required' })
     .min(1, { message: 'Path value is required' }),
 });
 
@@ -29,7 +29,7 @@ export const httpRouteMatchSchema = z.object({
 export const httpRouteBackendRefSchema = z
   .object({
     port: z
-      .number({ required_error: 'Port is required' })
+      .number({ error: 'Port is required' })
       .int()
       .min(1, { message: 'Port must be at least 1' })
       .max(65535, { message: 'Port must be at most 65535' }),
@@ -43,7 +43,7 @@ export const httpRouteBackendRefSchema = z
 export const httpPathRewriteSchema = z.object({
   type: z.enum(Object.values(HTTPPathRewriteType) as [string, ...string[]]),
   value: z
-    .string({ required_error: 'Path value is required' })
+    .string({ error: 'Path value is required' })
     .min(1, { message: 'Path value is required' }),
 });
 // Schema for request header modifier filter
@@ -52,7 +52,7 @@ export const httpRequestHeaderModifierSchema = z.object({
     .array(
       z.object({
         name: z
-          .string({ required_error: 'Name is required' })
+          .string({ error: 'Name is required' })
           .min(1, { message: 'Name is required' })
           .max(256, { message: 'Name must be at most 256 characters' })
           .regex(/^[A-Za-z0-9!#$%&'*+\-.^_`|~]+$/, {
@@ -66,7 +66,7 @@ export const httpRequestHeaderModifierSchema = z.object({
     .array(
       z.object({
         name: z
-          .string({ required_error: 'Name is required' })
+          .string({ error: 'Name is required' })
           .min(1, { message: 'Name is required' })
           .max(256, { message: 'Name must be at most 256 characters' })
           .regex(/^[A-Za-z0-9!#$%&'*+\-.^_`|~]+$/, {
@@ -96,7 +96,7 @@ export const httpURLRewriteSchema = z.object({
 export const httpRouteFilterSchema = z
   .object({
     type: z.enum(Object.values(HTTPFilterType) as [string, ...string[]], {
-      required_error: 'Filter type is required',
+      error: 'Filter type is required',
     }),
     requestHeaderModifier: httpRequestHeaderModifierSchema.optional(),
     requestRedirect: httpRequestRedirectSchema.optional(),
@@ -142,7 +142,7 @@ export const httpRouteSchema = z
   .object({
     resourceVersion: z.string().optional(),
     parentRefs: z
-      .array(z.string({ required_error: 'Gateway reference is required' }))
+      .array(z.string({ error: 'Gateway reference is required' }))
       .min(1, { message: 'At least one Gateway reference is required' }),
     rules: z.array(httpRouteRuleSchema).min(1, { message: 'At least one rule is required' }),
   })

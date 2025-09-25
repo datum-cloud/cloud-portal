@@ -22,7 +22,7 @@ import {
   generateMergePatchPayloadMap,
 } from '@/utils/helpers/object.helper';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { useEffect, useMemo } from 'react';
 import { useNavigate, Form, useFetcher } from 'react-router';
 import { AuthenticityTokenInput, useAuthenticityToken } from 'remix-utils/csrf/react';

@@ -10,7 +10,7 @@ export const configMapSchema = createCodeEditorSchema('Configuration').transform
 
 export const updateConfigMapSchema = z
   .object({
-    resourceVersion: z.string({ required_error: 'Resource version is required.' }),
+    resourceVersion: z.string({ error: 'Resource version is required.' }),
   })
   .and(configMapSchema)
   .transform((data) => {

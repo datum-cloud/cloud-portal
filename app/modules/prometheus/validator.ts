@@ -91,7 +91,7 @@ export const rangeQueryParamsSchema = z
  */
 export const queryBuilderOptionsSchema = z.object({
   metric: z.string().min(1, 'Metric name is required'),
-  filters: z.record(z.string()).optional(),
+  filters: z.record(z.string(), z.string()).optional(),
   functions: z.array(z.string()).optional(),
   groupBy: z.array(z.string()).optional(),
   aggregation: z.enum(['sum', 'avg', 'max', 'min', 'count']).optional(),
@@ -105,7 +105,7 @@ export function validateQueryOptions(options: unknown): PrometheusQueryOptions {
     return prometheusQueryOptionsSchema.parse(options);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.errors[0];
+      const firstError = (error as z.ZodError).issues[0];
       throw new QueryValidationError(
         firstError.message,
         firstError.path.join('.'),
@@ -124,7 +124,7 @@ export function validateInstantQueryParams(params: unknown): PrometheusInstantQu
     return instantQueryParamsSchema.parse(params);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.errors[0];
+      const firstError = (error as z.ZodError).issues[0];
       throw new QueryValidationError(
         firstError.message,
         firstError.path.join('.'),
@@ -143,7 +143,7 @@ export function validateRangeQueryParams(params: unknown): PrometheusRangeQueryP
     return rangeQueryParamsSchema.parse(params);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.errors[0];
+      const firstError = (error as z.ZodError).issues[0];
       throw new QueryValidationError(
         firstError.message,
         firstError.path.join('.'),
@@ -162,7 +162,7 @@ export function validateQueryBuilderOptions(options: unknown): QueryBuilderOptio
     return queryBuilderOptionsSchema.parse(options);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.errors[0];
+      const firstError = (error as z.ZodError).issues[0];
       throw new QueryValidationError(
         firstError.message,
         firstError.path.join('.'),
@@ -192,7 +192,7 @@ export function validateTimeRange(timeRange: unknown): TimeRange {
     return timeRangeSchema.parse(timeRange);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const firstError = error.errors[0];
+      const firstError = (error as z.ZodError).issues[0];
       throw new QueryValidationError(
         firstError.message,
         firstError.path.join('.'),

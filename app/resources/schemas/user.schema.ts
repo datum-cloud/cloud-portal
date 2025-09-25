@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export const userSchema = z.object({
-  firstName: z.string({ required_error: 'First name is required.' }).min(3).max(50),
-  lastName: z.string({ required_error: 'Last name is required.' }).min(3).max(50),
-  email: z.string({ required_error: 'Email is required.' }).email(),
+  firstName: z.string({ error: 'First name is required.' }).min(3).max(50),
+  lastName: z.string({ error: 'Last name is required.' }).min(3).max(50),
+  email: z.string({ error: 'Email is required.' }).email(),
 });
 
 export const userPreferencesSchema = z.object({

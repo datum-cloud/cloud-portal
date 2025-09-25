@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const createNameSchema = (fieldName = 'Resource name') =>
   z
-    .string({ required_error: `${fieldName} is required.` })
+    .string({ error: `${fieldName} is required.` })
     .min(1, { message: `${fieldName} is required.` })
     .max(63, { message: `${fieldName} must be at most 63 characters long.` })
     .regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
@@ -25,8 +25,12 @@ export const createNameSchema = (fieldName = 'Resource name') =>
 export const createFqdnSchema = (fieldName = 'Domain') =>
   z
     .string({
-      required_error: `${fieldName} is required.`,
-      invalid_type_error: `${fieldName} must be a string.`,
+      error: (issue) => {
+        if (issue.code === 'invalid_type') {
+          return `${fieldName} must be a string.`;
+        }
+        return `${fieldName} is required.`;
+      },
     })
     .trim()
     .min(1, { message: `${fieldName} cannot be empty.` })
@@ -79,7 +83,7 @@ export const createFqdnSchema = (fieldName = 'Domain') =>
  */
 export const createHostnameSchema = (fieldName = 'Hostname') =>
   z
-    .string({ required_error: `${fieldName} is required` })
+    .string({ error: `${fieldName} is required` })
     .trim()
     .min(1, { message: `${fieldName} cannot be empty` })
     .max(253, { message: `${fieldName} must not exceed 253 characters` })

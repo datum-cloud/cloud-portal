@@ -4,13 +4,13 @@ import { z } from 'zod';
 
 export const secretEnvSchema = z.object({
   key: z
-    .string({ required_error: 'Key is required' })
+    .string({ error: 'Key is required' })
     .min(1, { message: 'Key is required' })
     .max(63, { message: 'Key must be at most 63 characters long.' })
     .regex(/^[a-zA-Z0-9._-]+$/, {
       message: 'Key must only contain letters, numbers, dots, underscores, or hyphens',
     }),
-  value: z.string({ required_error: 'Value is required' }).min(1, { message: 'Value is required' }),
+  value: z.string({ error: 'Value is required' }).min(1, { message: 'Value is required' }),
 });
 
 export const secretVariablesSchema = z.object({
@@ -21,7 +21,7 @@ export const secretVariablesSchema = z.object({
 export const secretBaseSchema = z
   .object({
     type: z.enum(Object.values(SecretType) as [string, ...string[]], {
-      required_error: 'Type is required.',
+      error: 'Type is required.',
     }),
   })
   .and(metadataSchema);
