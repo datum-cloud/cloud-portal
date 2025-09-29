@@ -6,7 +6,7 @@ import {
   replaceCoreV1NamespacedConfigMap,
   deleteCoreV1NamespacedConfigMap,
   IoK8sApiCoreV1ConfigMapList,
-} from '@/modules/control-plane/api-v1';
+} from '@/modules/control-plane/k8s-core';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
 import { ConfigMapSchema } from '@/resources/schemas/config-map.schema';
 import { Client } from '@hey-api/client-axios';

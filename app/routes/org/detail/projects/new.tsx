@@ -3,7 +3,7 @@ import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast } from '@/modules/cookie/toast.server';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
-import { createProjectsControl } from '@/resources/control-plane/projects.control';
+import { createProjectsControl } from '@/resources/control-plane';
 import { projectSchema, ProjectSchema } from '@/resources/schemas/project.schema';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';

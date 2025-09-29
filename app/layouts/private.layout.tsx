@@ -5,7 +5,7 @@ import { helpScoutAPI } from '@/modules/helpscout';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { AppProvider } from '@/providers/app.provider';
-import { createUserControl } from '@/resources/control-plane/user.control';
+import { createUserControl } from '@/resources/control-plane';
 import { IUser } from '@/resources/interfaces/user.interface';
 import { getSharedEnvs } from '@/utils/config/env.config';
 import { paths } from '@/utils/config/paths.config';

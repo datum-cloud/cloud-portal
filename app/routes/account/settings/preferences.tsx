@@ -6,7 +6,7 @@ import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { getSession } from '@/modules/cookie/session.server';
 import { dataWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
-import { createUserControl } from '@/resources/control-plane/user.control';
+import { createUserControl } from '@/resources/control-plane';
 import { userSchema } from '@/resources/schemas/user.schema';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';

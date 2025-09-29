@@ -1,6 +1,6 @@
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
-import { createNetworksControl } from '@/resources/control-plane/networks.control';
+import { createNetworksControl } from '@/resources/control-plane';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import {
   NewNetworkSchema,

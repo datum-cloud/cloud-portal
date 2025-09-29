@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { withMiddleware, standardOrgMiddleware } from '@/modules/middleware/';
-import { createPolicyBindingsControl } from '@/resources/control-plane/policy-bindings.control';
+import { createPolicyBindingsControl } from '@/resources/control-plane';
 import { IPolicyBindingControlResponse } from '@/resources/interfaces/policy-binding.interface';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';

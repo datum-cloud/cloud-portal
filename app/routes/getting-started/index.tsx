@@ -1,7 +1,7 @@
 import { LogoFlat } from '@/components/logo/logo-flat';
 import { OrganizationCard, CreateOrganizationCard } from '@/features/organization';
 import { getSession } from '@/modules/cookie/session.server';
-import { createUserControl } from '@/resources/control-plane/user.control';
+import { createUserControl } from '@/resources/control-plane';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';

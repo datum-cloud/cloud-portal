@@ -1,7 +1,7 @@
 import { ExportPolicyStepperForm } from '@/features/observe/export-policies/form/stepper-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast } from '@/modules/cookie/toast.server';
-import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
+import { createExportPoliciesControl } from '@/resources/control-plane';
 import { newExportPolicySchema } from '@/resources/schemas/export-policy.schema';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';

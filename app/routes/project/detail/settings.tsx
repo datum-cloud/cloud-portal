@@ -3,7 +3,7 @@ import { ProjectDangerCard } from '@/features/project/settings/danger-card';
 import { ProjectGeneralCard } from '@/features/project/settings/general-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { redirectWithToast, dataWithToast } from '@/modules/cookie/toast.server';
-import { createProjectsControl } from '@/resources/control-plane/projects.control';
+import { createProjectsControl } from '@/resources/control-plane';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
 import { paths } from '@/utils/config/paths.config';

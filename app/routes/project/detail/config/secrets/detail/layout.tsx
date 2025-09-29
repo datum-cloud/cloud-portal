@@ -1,4 +1,4 @@
-import { createSecretsControl } from '@/resources/control-plane/secrets.control';
+import { createSecretsControl } from '@/resources/control-plane';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';

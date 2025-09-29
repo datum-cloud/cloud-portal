@@ -2,7 +2,7 @@ import { DataTable } from '@/components/data-table/data-table';
 import { DateFormat } from '@/components/date-format/date-format';
 import { Button } from '@/components/ui/button';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
-import { createProjectsControl } from '@/resources/control-plane/projects.control';
+import { createProjectsControl } from '@/resources/control-plane';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';

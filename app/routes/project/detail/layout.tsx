@@ -4,7 +4,7 @@ import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { getOrgSession, setOrgSession } from '@/modules/cookie/org.server';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
-import { createProjectsControl } from '@/resources/control-plane/projects.control';
+import { createProjectsControl } from '@/resources/control-plane';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';

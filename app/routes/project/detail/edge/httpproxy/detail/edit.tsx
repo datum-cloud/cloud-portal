@@ -1,7 +1,7 @@
 import { HttpProxyForm } from '@/features/edge/httpproxy/form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
-import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';
+import { createHttpProxiesControl } from '@/resources/control-plane';
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';

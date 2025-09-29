@@ -1,7 +1,6 @@
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast } from '@/modules/cookie/toast.server';
-import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
-import { createSecretsControl } from '@/resources/control-plane/secrets.control';
+import { createExportPoliciesControl, createSecretsControl } from '@/resources/control-plane';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import {

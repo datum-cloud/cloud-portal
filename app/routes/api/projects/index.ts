@@ -1,5 +1,5 @@
 import { getOrgSession } from '@/modules/cookie/org.server';
-import { createProjectsControl } from '@/resources/control-plane/projects.control';
+import { createProjectsControl } from '@/resources/control-plane';
 import { NotFoundError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';

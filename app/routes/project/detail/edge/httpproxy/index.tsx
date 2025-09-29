@@ -5,7 +5,7 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { StatusBadge } from '@/components/status-badge/status-badge';
 import { Button } from '@/components/ui/button';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
-import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';
+import { createHttpProxiesControl } from '@/resources/control-plane';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
 import { paths } from '@/utils/config/paths.config';

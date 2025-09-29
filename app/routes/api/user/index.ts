@@ -1,6 +1,6 @@
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { getSession } from '@/modules/cookie/session.server';
-import { createUserControl } from '@/resources/control-plane/user.control';
+import { createUserControl } from '@/resources/control-plane';
 import { userSchema } from '@/resources/schemas/user.schema';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, HttpError } from '@/utils/errors';

@@ -6,7 +6,7 @@ import {
   listCoreV1NamespacedSecret,
   patchCoreV1NamespacedSecret,
   readCoreV1NamespacedSecret,
-} from '@/modules/control-plane/api-v1';
+} from '@/modules/control-plane/k8s-core';
 import { ISecretControlResponse, SecretType } from '@/resources/interfaces/secret.interface';
 import { SecretNewSchema, SecretEditSchema } from '@/resources/schemas/secret.schema';
 import { convertLabelsToObject } from '@/utils/helpers/object.helper';
