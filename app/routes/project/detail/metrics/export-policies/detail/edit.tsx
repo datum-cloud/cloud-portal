@@ -1,7 +1,7 @@
 import { ExportPolicyUpdateForm } from '@/features/observe/export-policies/form/update-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
-import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
+import { createExportPoliciesControl } from '@/resources/control-plane';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { newExportPolicySchema } from '@/resources/schemas/export-policy.schema';
 import { paths } from '@/utils/config/paths.config';

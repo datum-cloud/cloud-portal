@@ -1,4 +1,4 @@
-import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
+import { createExportPoliciesControl } from '@/resources/control-plane';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';

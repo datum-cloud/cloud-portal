@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { ExportPolicyStatus } from '@/features/observe/export-policies/status';
 import { dataWithToast } from '@/modules/cookie/toast.server';
-import { createExportPoliciesControl } from '@/resources/control-plane/export-policies.control';
+import { createExportPoliciesControl } from '@/resources/control-plane';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/export-policies';
 import { paths } from '@/utils/config/paths.config';

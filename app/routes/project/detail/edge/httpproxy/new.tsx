@@ -2,7 +2,7 @@ import { HttpProxyForm } from '@/features/edge/httpproxy/form';
 import { HttpProxyPreview } from '@/features/edge/httpproxy/preview';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast } from '@/modules/cookie/toast.server';
-import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';
+import { createHttpProxiesControl } from '@/resources/control-plane';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';

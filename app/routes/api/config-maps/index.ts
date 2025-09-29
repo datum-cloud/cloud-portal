@@ -1,4 +1,4 @@
-import { createConfigMapsControl } from '@/resources/control-plane/config-maps.control';
+import { createConfigMapsControl } from '@/resources/control-plane';
 import { BadRequestError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';

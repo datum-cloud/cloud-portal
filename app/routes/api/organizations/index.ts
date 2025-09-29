@@ -1,4 +1,4 @@
-import { createOrganizationsControl } from '@/resources/control-plane/organizations.control';
+import { createOrganizationsControl } from '@/resources/control-plane';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 

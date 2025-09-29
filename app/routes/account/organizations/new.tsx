@@ -1,7 +1,7 @@
 import { OrganizationForm } from '@/features/organization/form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { dataWithToast } from '@/modules/cookie/toast.server';
-import { createOrganizationsControl } from '@/resources/control-plane/organizations.control';
+import { createOrganizationsControl } from '@/resources/control-plane';
 import { OrganizationSchema, organizationSchema } from '@/resources/schemas/organization.schema';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';

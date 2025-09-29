@@ -1,4 +1,4 @@
-import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';
+import { createHttpProxiesControl } from '@/resources/control-plane';
 import { BadRequestError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs } from 'react-router';

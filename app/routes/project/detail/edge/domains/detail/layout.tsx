@@ -1,4 +1,4 @@
-import { createDomainsControl } from '@/resources/control-plane/domains.control';
+import { createDomainsControl } from '@/resources/control-plane';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';

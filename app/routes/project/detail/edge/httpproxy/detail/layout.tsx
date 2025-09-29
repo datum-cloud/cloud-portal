@@ -1,4 +1,4 @@
-import { createHttpProxiesControl } from '@/resources/control-plane/http-proxies.control';
+import { createHttpProxiesControl } from '@/resources/control-plane';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';

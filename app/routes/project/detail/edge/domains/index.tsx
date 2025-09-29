@@ -4,7 +4,7 @@ import { DataTableRowActionsProps } from '@/components/data-table/data-table.typ
 import { DateFormat } from '@/components/date-format/date-format';
 import { Button } from '@/components/ui/button';
 import { DomainStatus } from '@/features/edge/domain/status';
-import { createDomainsControl } from '@/resources/control-plane/domains.control';
+import { createDomainsControl } from '@/resources/control-plane';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
 import { paths } from '@/utils/config/paths.config';
