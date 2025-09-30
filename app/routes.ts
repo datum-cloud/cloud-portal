@@ -50,6 +50,12 @@ export default [
           route('new', 'routes/org/detail/projects/new.tsx'),
         ]),
 
+        // Team of an organization
+        route('team', 'routes/org/detail/team/layout.tsx', [
+          index('routes/org/detail/team/index.tsx'),
+          route('invite', 'routes/org/detail/team/invite.tsx'),
+        ]),
+
         // Settings of an organization
         layout('routes/org/detail/settings/layout.tsx', [
           route('preferences', 'routes/org/detail/settings/preferences.tsx'),
@@ -168,6 +174,9 @@ export default [
       // Projects
       route('projects', 'routes/api/projects/index.ts'),
       route('projects/:id/status', 'routes/api/projects/status.ts'),
+
+      // Team
+      route('team/invitations/cancel', 'routes/api/team/invitations/cancel.ts'),
 
       // Domains
       route('domains', 'routes/api/domains/index.ts'),
