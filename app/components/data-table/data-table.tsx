@@ -38,6 +38,8 @@ export const DataTable = <TData, TValue>({
   hideHeader = false,
   className,
   rowActions = [],
+  hideRowActions,
+  disableRowActions,
   onRowClick,
   rowClassName,
   tableTitle,
@@ -157,7 +159,12 @@ export const DataTable = <TData, TValue>({
                           ))}
                           {rowActions && rowActions.length > 0 && (
                             <TableCell className="p-2">
-                              <DataTableRowActions row={row.original} actions={rowActions} />
+                              <DataTableRowActions
+                                row={row.original}
+                                actions={rowActions}
+                                hideRowActions={hideRowActions}
+                                disableRowActions={disableRowActions}
+                              />
                             </TableCell>
                           )}
                         </TableRow>
@@ -194,7 +201,12 @@ export const DataTable = <TData, TValue>({
                               {/* Card Actions */}
                               {rowActions && rowActions.length > 0 && (
                                 <div className="absolute top-2 right-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                                  <DataTableRowActions row={row.original} actions={rowActions} />
+                                  <DataTableRowActions
+                                    row={row.original}
+                                    actions={rowActions}
+                                    hideRowActions={hideRowActions}
+                                    disableRowActions={disableRowActions}
+                                  />
                                 </div>
                               )}
                             </div>

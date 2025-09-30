@@ -1,18 +1,27 @@
-import { OrganizationAvatar } from './avatar';
 import { DateFormat } from '@/components/date-format/date-format';
+import { ProfileIdentity } from '@/components/profile-identity';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
-import { ChevronRight } from 'lucide-react';
+import { getInitials } from '@/utils/helpers/text.helper';
+import { Building2, ChevronRight, UserRound } from 'lucide-react';
 
 export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
+  const displayName = org?.displayName ?? org?.name ?? '';
+  const initials = getInitials(displayName);
+  const fallbackIcon = org?.type === OrganizationType.Personal ? UserRound : Building2;
   return (
     <Card className="hover:bg-accent/50 cursor-pointer py-4 transition-all">
       <CardContent className="flex flex-row items-center justify-between gap-4 px-4">
         {/* Left Side */}
         <div className="flex flex-row items-center gap-4">
           {/* Avatar */}
-          <OrganizationAvatar organization={org} size="lg" />
+          <ProfileIdentity
+            name={displayName}
+            fallbackText={initials}
+            fallbackIcon={!initials ? fallbackIcon : undefined}
+            size="lg"
+          />
           {/* Organization Info */}
           <div className="flex flex-col gap-1">
             <div className="flex flex-row items-center gap-2">

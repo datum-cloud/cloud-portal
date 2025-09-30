@@ -2,11 +2,12 @@ import { DashboardLayout } from '@/layouts/dashboard/dashboard';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
+import { OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
 import { paths } from '@/utils/config/paths.config';
 import { HttpError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { FoldersIcon, SettingsIcon } from 'lucide-react';
+import { FoldersIcon, SettingsIcon, UsersIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
 
@@ -56,6 +57,13 @@ export default function OrgLayout() {
         href: getPathWithParams(paths.org.detail.projects.root, { orgId }),
         type: 'link',
         icon: FoldersIcon,
+      },
+      {
+        title: 'Team',
+        href: getPathWithParams(paths.org.detail.team.root, { orgId }),
+        type: 'link',
+        icon: UsersIcon,
+        hidden: org?.type === OrganizationType.Personal,
       },
       {
         title: 'Organization settings',
