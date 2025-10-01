@@ -92,7 +92,7 @@ export const InvitationForm = () => {
               label="Emails"
               errors={fields.emails.errors}
               className="w-full"
-              description="Enter one or more emails (e.g example@example.com)">
+              description="Enter one or more emails (e.g., example@example.com). Use comma or press Enter to add each email as a tag.">
               <TagsInput
                 {...getSelectProps(fields.emails, { value: false })}
                 showValidationErrors={false}

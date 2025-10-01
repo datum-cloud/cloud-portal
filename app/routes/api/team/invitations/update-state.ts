@@ -43,19 +43,19 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
       invitationId as string
     );
 
-    // Validate invitation state
-    if (currentInvitation.state !== 'Pending') {
-      throw new BadRequestError(`Invitation is already ${currentInvitation.state}`);
-    }
-
     // Check if invitation is expired
     if (currentInvitation.expirationDate) {
       const expirationDate = new Date(currentInvitation.expirationDate);
       const now = new Date();
 
       if (isBefore(expirationDate, now)) {
-        throw new BadRequestError('Invitation has expired');
+        throw new BadRequestError('This invitation link is no longer valid.');
       }
+    }
+
+    // Validate invitation state
+    if (currentInvitation.state !== 'Pending') {
+      throw new BadRequestError('This invitation link is no longer valid.');
     }
 
     // Update invitation state

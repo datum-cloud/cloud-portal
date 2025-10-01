@@ -1,6 +1,13 @@
 import { LogoFlat } from '@/components/logo/logo-flat';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationsControl } from '@/resources/control-plane';
@@ -9,7 +16,7 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Check, Loader2 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AppLoadContext,
   Link,
@@ -45,12 +52,12 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 
     // Throw error if invitation is expired
     if (invitation.expirationDate && new Date(invitation.expirationDate) < new Date()) {
-      throw new BadRequestError('Invitation expired');
+      throw new BadRequestError('This invitation link is no longer valid.');
     }
 
     // Throw error if invitation is not pending
     if (invitation.state !== 'Pending') {
-      throw new BadRequestError(`Invitation already ${invitation.state}`);
+      throw new BadRequestError('This invitation link is no longer valid.');
     }
 
     return data(invitation);
@@ -68,6 +75,8 @@ export default function GettingStartedPage() {
   const { user: currentUser } = useApp();
   const fetcher = useFetcher();
 
+  const [action, setAction] = useState<'Accepted' | 'Declined'>();
+
   // Check if invitation email matches current user's email
   const isEmailMatch = useMemo(() => {
     if (!currentUser?.email || !invitation?.email) {
@@ -77,6 +86,7 @@ export default function GettingStartedPage() {
   }, [currentUser?.email, invitation?.email]);
 
   const handleStateUpdate = async (state: 'Accepted' | 'Declined') => {
+    setAction(state);
     await fetcher.submit(
       {
         orgId: invitation.organizationName,
@@ -91,21 +101,41 @@ export default function GettingStartedPage() {
     );
   };
 
+  const isLoading = useMemo(() => {
+    return fetcher.state === 'submitting' || fetcher.state === 'loading';
+  }, [fetcher.state]);
+
   return (
-    <div className="m-auto flex min-h-screen w-full max-w-md flex-col items-center justify-center gap-10">
-      {/* Logo Section */}
-      <LogoFlat height={32} />
+    <div className="m-auto flex h-screen w-full max-w-md flex-col items-center justify-center">
+      <Card className="w-full border-0 shadow-xl">
+        <CardHeader className="space-y-3 pb-6">
+          <div className="flex items-center justify-center">
+            <LogoFlat height={32} />
+          </div>
 
-      {/* Invitation Card */}
-      <div className="bg-card border-border w-full rounded-md border shadow-sm">
-        <div className="space-y-2 px-8 py-6 text-center">
-          <p className="text-muted-foreground text-sm">You have been invited to join</p>
-          <h1 className="text-foreground text-2xl font-semibold">{invitation.organizationName}</h1>
-        </div>
+          <div className="space-y-2 text-center">
+            <CardTitle className="text-2xl font-bold text-balance">
+              You&apos;ve been invited!
+            </CardTitle>
+            <CardDescription className="text-base text-pretty">
+              Join your team and start collaborating
+            </CardDescription>
+          </div>
+        </CardHeader>
 
-        <Separator />
-        {/* Action Buttons */}
-        <div className="flex items-center justify-center gap-3 px-8 py-4">
+        <CardContent className="space-y-6">
+          {/* Organization Name Display */}
+          <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+            <p className="mb-2 text-xs font-medium tracking-wide text-gray-500 uppercase">
+              Organization
+            </p>
+            <p className="text-lg font-semibold break-words text-gray-900">
+              {invitation.organizationName}
+            </p>
+            {/* <p className="text-sm text-gray-500 font-mono mt-1">{organizationSlug}</p> */}
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-3 pt-6">
           {!isEmailMatch ? (
             <div className="text-center text-sm leading-relaxed">
               <p className="font-semibold">
@@ -124,33 +154,50 @@ export default function GettingStartedPage() {
               </p>
             </div>
           ) : (
-            <div className="flex items-center justify-center gap-3">
-              {fetcher.state === 'submitting' || fetcher.state === 'loading' ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    className="border-border text-foreground hover:bg-secondary flex-1 bg-transparent"
-                    onClick={() => handleStateUpdate('Declined')}>
-                    Decline
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1"
-                    onClick={() => handleStateUpdate('Accepted')}>
-                    <Check className="size-4" />
-                    Join organization
-                  </Button>
-                </>
-              )}
-            </div>
+            <>
+              <Button
+                onClick={() => handleStateUpdate('Accepted')}
+                disabled={isLoading}
+                className="bg-primary h-11 w-full text-base font-semibold shadow-lg transition-all hover:shadow-xl">
+                {isLoading && action === 'Accepted' ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Joining...
+                  </>
+                ) : (
+                  <>
+                    <Check className="mr-2 h-5 w-5" />
+                    Join Organization
+                  </>
+                )}
+              </Button>
+
+              <Button
+                onClick={() => handleStateUpdate('Declined')}
+                disabled={isLoading}
+                variant="ghost"
+                className="h-11 w-full text-base font-medium">
+                {isLoading && action === 'Declined' ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Declining...
+                  </>
+                ) : (
+                  <>Decline</>
+                )}
+              </Button>
+            </>
           )}
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
+
+      {/* Footer Text */}
+      <p className="text-muted-foreground mt-6 text-center text-sm">
+        Need help? Contact{' '}
+        <Link to={`mailto:support@datum.net`} className="text-primary underline">
+          support@datum.net
+        </Link>
+      </p>
     </div>
   );
 }
