@@ -4,6 +4,7 @@ import {
   createIamMiloapisComV1Alpha1NamespacedUserInvitation,
   deleteIamMiloapisComV1Alpha1NamespacedUserInvitation,
   listIamMiloapisComV1Alpha1NamespacedUserInvitation,
+  readIamMiloapisComV1Alpha1NamespacedUserInvitation,
 } from '@/modules/control-plane/iam';
 import { IInvitationControlResponse } from '@/resources/interfaces/invitation.interface';
 import { NewInvitationSchema } from '@/resources/schemas/invitation.schema';
@@ -109,6 +110,24 @@ export const createInvitationsControl = (client: Client) => {
         });
 
         return response.data;
+      } catch (e) {
+        throw e;
+      }
+    },
+    detail: async (organizationId: string, invitationId: string) => {
+      try {
+        const response = await readIamMiloapisComV1Alpha1NamespacedUserInvitation({
+          client,
+          baseURL: buildBaseUrl(client, organizationId),
+          path: {
+            namespace: buildNamespace(organizationId),
+            name: invitationId,
+          },
+        });
+
+        const invitation = response.data as ComMiloapisIamV1Alpha1UserInvitation;
+
+        return transformInvitation(invitation);
       } catch (e) {
         throw e;
       }

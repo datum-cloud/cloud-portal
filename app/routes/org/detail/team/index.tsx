@@ -15,7 +15,7 @@ import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
+import { Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   AppLoadContext,
@@ -86,7 +86,6 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 export default function OrgTeamPage() {
   const teamMembers = useLoaderData<typeof loader>() as ITeamMember[];
 
-  console.log(teamMembers);
   const { orgId } = useParams();
   const { user } = useApp();
   const fetcher = useFetcher();
@@ -122,12 +121,11 @@ export default function OrgTeamPage() {
     });
   };
 
-  const resendInvitation = async (row: ITeamMember) => {
+  const resendInvitation = async (id: string) => {
     await fetcher.submit(
       {
-        id: row?.id ?? '',
+        id,
         orgId: orgId ?? '',
-        email: row?.email ?? '',
       },
       {
         action: TEAM_INVITATIONS_RESEND_ROUTE_PATH,
@@ -199,9 +197,7 @@ export default function OrgTeamPage() {
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
       if (fetcher.data.success) {
-        if (fetcher.formMethod === 'DELETE') {
-          toast.success('Invitation cancelled successfully');
-        }
+        toast.success(fetcher.data.message);
       } else {
         toast.error(fetcher.data.error);
       }
@@ -228,13 +224,13 @@ export default function OrgTeamPage() {
         ),
       }}
       rowActions={[
-        /* {
+        {
           key: 'resend',
           label: 'Resend invitation',
           icon: <Redo2Icon className="size-4" />,
-          hidden: (row) => row.type !== 'invitation',
-          action: (row) => resendInvitation(row),
-        }, */
+          hidden: (row) => row.type !== 'invitation' || row.invitationState !== 'Pending',
+          action: (row) => resendInvitation(row.id),
+        },
         {
           key: 'cancel',
           label: 'Cancel invitation',

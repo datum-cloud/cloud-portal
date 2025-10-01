@@ -42,7 +42,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     // Validate export policy
     const exportPolicyParsed = newExportPolicySchema.safeParse(payload.exportPolicy);
 
-    console.log({ exportPolicyParsed: exportPolicyParsed.error });
     if (!exportPolicyParsed.success) {
       throw new Error('Invalid export policy');
     }

@@ -1,6 +1,8 @@
 import { createInvitationsControl } from '@/resources/control-plane';
+import { IInvitationControlResponse } from '@/resources/interfaces/invitation.interface';
 import { BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
+import { differenceInMinutes } from 'date-fns';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 
 export const ROUTE_PATH = '/api/team/invitations/resend' as const;
@@ -11,42 +13,67 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   }
 
   try {
-    const { orgId, invitationId } = await request.json();
+    const formData = Object.fromEntries(await request.formData());
+
+    const { orgId, id } = formData;
 
     if (!orgId) {
       throw new BadRequestError('Organization ID is required');
     }
 
-    if (!invitationId) {
+    if (!id) {
       throw new BadRequestError('Invitation ID is required');
     }
 
     const { controlPlaneClient } = context as AppLoadContext;
     const invitationsControl = createInvitationsControl(controlPlaneClient as Client);
 
-    // TODO: Check if invitation is still valid (not expired)
-    // TODO: Add rate limiting for resend operations
-    // TODO: Add audit logging for resend actions
-    // TODO: Update invitation timestamp/expiration
-    // TODO: Send notification email
+    const currentInvitation: IInvitationControlResponse = await invitationsControl.detail(
+      orgId as string,
+      id as string
+    );
 
-    // For now, we'll use the existing invitation detail as a placeholder
-    // In a real implementation, this would trigger the resend logic
-    // const invitation = await invitationsControl.detail(orgId, invitationId);
+    // Throw error if invitation is not pending
+    if (currentInvitation.state !== 'Pending') {
+      throw new BadRequestError(`Invitation already ${currentInvitation.state}`);
+    }
 
-    return data({
-      success: true,
-      message: 'Invitation resent successfully',
+    // Check rate limiting - invitation must be older than 30 minutes to resend
+    if (currentInvitation.createdAt) {
+      const createdAt = new Date(currentInvitation.createdAt);
+      const now = new Date();
+      const minutesSinceCreation = differenceInMinutes(now, createdAt);
+
+      if (minutesSinceCreation < 30) {
+        const remainingMinutes = 30 - minutesSinceCreation;
+        throw new BadRequestError(
+          `Please wait ${remainingMinutes} more minute${remainingMinutes !== 1 ? 's' : ''} before resending this invitation`
+        );
+      }
+    }
+
+    // Delete the invitation
+    await invitationsControl.delete(orgId as string, id as string);
+
+    // Create a new invitation
+    const newInvitation = await invitationsControl.create(orgId as string, {
+      email: currentInvitation.email,
+      role: currentInvitation.role,
     });
-    // return data({
-    //   success: true,
-    //   message: 'Invitation resent successfully',
-    //   data: invitation,
-    // });
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-    const status = error instanceof HttpError ? error.statusCode : 500;
 
-    return data({ success: false, error: errorMessage }, { status });
+    // Return the new invitation
+    return data(
+      {
+        success: true,
+        message: 'Invitation resent successfully',
+        data: newInvitation,
+      },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    return data(
+      { success: false, error: error?.message ?? 'An unexpected error occurred' },
+      { status: 500 }
+    );
   }
 };

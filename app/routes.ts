@@ -177,6 +177,7 @@ export default [
 
       // Team
       route('team/invitations/cancel', 'routes/api/team/invitations/cancel.ts'),
+      route('team/invitations/resend', 'routes/api/team/invitations/resend.ts'),
 
       // Domains
       route('domains', 'routes/api/domains/index.ts'),

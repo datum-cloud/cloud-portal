@@ -3,9 +3,11 @@ import { z } from 'zod';
 
 export const newInvitationSchema = z.object({
   email: z.email(),
-  role: z.enum(Object.values(Roles) as [string, ...string[]], {
-    error: 'Role is required.',
-  }),
+  role: z
+    .enum(Object.values(Roles) as [string, ...string[]], {
+      error: 'Role is required.',
+    })
+    .optional(),
 });
 
 export const invitationFormSchema = z.object({

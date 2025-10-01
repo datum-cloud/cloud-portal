@@ -33,7 +33,6 @@ export const MoreActions = <TData,>({
   // Filter visible actions
   const visibleActions = actions.filter((action) => !action.hidden?.(row));
 
-  console.log(visibleActions);
   // Hide if no visible actions remain
   if (visibleActions.length === 0) {
     return null;
@@ -57,7 +56,7 @@ export const MoreActions = <TData,>({
         {visibleActions.map((action) => (
           <DropdownMenuItem
             key={action.key}
-            onClick={(event) => {
+            onSelect={(event) => {
               event.preventDefault();
               event.stopPropagation();
               action.action(row);
