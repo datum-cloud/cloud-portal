@@ -2,6 +2,7 @@ import { DashboardLayout } from '@/layouts/dashboard/dashboard';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
+import { OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
 import { paths } from '@/utils/config/paths.config';
 import { HttpError } from '@/utils/errors';
@@ -62,6 +63,7 @@ export default function OrgLayout() {
         href: getPathWithParams(paths.org.detail.team.root, { orgId }),
         type: 'link',
         icon: UsersIcon,
+        hidden: org?.type === OrganizationType.Personal,
       },
       {
         title: 'Organization settings',
