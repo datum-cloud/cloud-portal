@@ -38,14 +38,14 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
       throw new BadRequestError(`Invitation already ${currentInvitation.state}`);
     }
 
-    // Check rate limiting - invitation must be older than 30 minutes to resend
+    // Check rate limiting - invitation must be older than 10 minutes to resend
     if (currentInvitation.createdAt) {
       const createdAt = new Date(currentInvitation.createdAt);
       const now = new Date();
       const minutesSinceCreation = differenceInMinutes(now, createdAt);
 
-      if (minutesSinceCreation < 30) {
-        const remainingMinutes = 30 - minutesSinceCreation;
+      if (minutesSinceCreation < 10) {
+        const remainingMinutes = 10 - minutesSinceCreation;
         throw new BadRequestError(
           `Please wait ${remainingMinutes} more minute${remainingMinutes !== 1 ? 's' : ''} before resending this invitation`
         );

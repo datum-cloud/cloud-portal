@@ -4,19 +4,21 @@ import {
   createIamMiloapisComV1Alpha1NamespacedUserInvitation,
   deleteIamMiloapisComV1Alpha1NamespacedUserInvitation,
   listIamMiloapisComV1Alpha1NamespacedUserInvitation,
+  patchIamMiloapisComV1Alpha1NamespacedUserInvitation,
   readIamMiloapisComV1Alpha1NamespacedUserInvitation,
 } from '@/modules/control-plane/iam';
 import { IInvitationControlResponse } from '@/resources/interfaces/invitation.interface';
 import { NewInvitationSchema } from '@/resources/schemas/invitation.schema';
 import { generateRandomString } from '@/utils/helpers/text.helper';
 import { Client } from '@hey-api/client-axios';
+import { addHours, formatRFC3339 } from 'date-fns';
 
 const buildNamespace = (organizationId: string) => `organization-${organizationId}`;
 
 const buildBaseUrl = (client: Client, organizationId: string) =>
   `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${organizationId}/control-plane`;
 
-const transformInvitation = (
+const transform = (
   invitation: ComMiloapisIamV1Alpha1UserInvitation
 ): IInvitationControlResponse => {
   const { metadata, spec, status } = invitation;
@@ -53,7 +55,7 @@ export const createInvitationsControl = (client: Client) => {
 
         const invitations = response.data as ComMiloapisIamV1Alpha1UserInvitationList;
 
-        return invitations.items?.map(transformInvitation) ?? [];
+        return invitations.items?.map(transform) ?? [];
       } catch (error) {
         throw error;
       }
@@ -84,6 +86,7 @@ export const createInvitationsControl = (client: Client) => {
             },
             spec: {
               email: payload.email,
+              expirationDate: formatRFC3339(addHours(new Date(), 24)), // 24 hours (RFC3339 format)
               organizationRef: { name: organizationId },
               roles,
               state: 'Pending',
@@ -93,7 +96,7 @@ export const createInvitationsControl = (client: Client) => {
 
         const invitation = response.data as ComMiloapisIamV1Alpha1UserInvitation;
 
-        return dryRun ? invitation : transformInvitation(invitation);
+        return dryRun ? invitation : transform(invitation);
       } catch (error) {
         throw error;
       }
@@ -127,7 +130,42 @@ export const createInvitationsControl = (client: Client) => {
 
         const invitation = response.data as ComMiloapisIamV1Alpha1UserInvitation;
 
-        return transformInvitation(invitation);
+        return transform(invitation);
+      } catch (e) {
+        throw e;
+      }
+    },
+    updateState: async (
+      organizationId: string,
+      invitationId: string,
+      state: 'Accepted' | 'Declined'
+    ) => {
+      try {
+        const response = await patchIamMiloapisComV1Alpha1NamespacedUserInvitation({
+          client,
+          baseURL: buildBaseUrl(client, organizationId),
+          path: {
+            namespace: buildNamespace(organizationId),
+            name: invitationId,
+          },
+          headers: {
+            'Content-Type': 'application/merge-patch+json',
+          },
+          query: {
+            fieldManager: 'datum-cloud-portal',
+          },
+          body: {
+            apiVersion: 'iam.miloapis.com/v1alpha1',
+            kind: 'UserInvitation',
+            spec: {
+              state,
+            },
+          },
+        });
+
+        const invitation = response.data as ComMiloapisIamV1Alpha1UserInvitation;
+
+        return transform(invitation);
       } catch (e) {
         throw e;
       }

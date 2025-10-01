@@ -19,6 +19,9 @@ export default [
     // Getting Started
     route('getting-started', 'routes/getting-started/index.tsx'),
 
+    // Invitation
+    route('invitation/:invitationId/accept', 'routes/invitation/index.tsx'),
+
     // Account
     route('account', 'routes/account/layout.tsx', [
       index('routes/account/index.tsx'),
@@ -178,6 +181,7 @@ export default [
       // Team
       route('team/invitations/cancel', 'routes/api/team/invitations/cancel.ts'),
       route('team/invitations/resend', 'routes/api/team/invitations/resend.ts'),
+      route('team/invitations/update-state', 'routes/api/team/invitations/update-state.ts'),
 
       // Domains
       route('domains', 'routes/api/domains/index.ts'),
@@ -209,12 +213,14 @@ export default [
     ]),
   ]),
 
-  // Global Routes
-  route('logout', 'routes/auth/logout.tsx', { id: 'logout' }),
+  // Auth
   ...prefix('auth', [
     index('routes/auth/index.tsx'),
     route('callback', 'routes/auth/callback.tsx'),
   ]),
+
+  // Global Routes
+  route('logout', 'routes/auth/logout.tsx', { id: 'logout' }),
 
   // Catch-all route for 404 errors - must be last
   route('*', 'routes/not-found.tsx'),
