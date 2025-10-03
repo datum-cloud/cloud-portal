@@ -15,6 +15,7 @@ import { ROUTE_PATH as INVITATION_UPDATE_STATE_ACTION } from '@/routes/api/team/
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Check, Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -92,7 +93,9 @@ export default function GettingStartedPage() {
         orgId: invitation.organizationName,
         invitationId: invitation.name,
         state,
-        redirectUri: paths.account.organizations.root,
+        redirectUri: getPathWithParams(paths.org.detail.root, {
+          orgId: invitation.organizationName,
+        }),
       },
       {
         method: 'PATCH',
