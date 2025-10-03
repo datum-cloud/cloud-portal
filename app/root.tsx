@@ -9,7 +9,6 @@ import { csrf } from '@/modules/cookie/csrf.server';
 import { themeSessionResolver } from '@/modules/cookie/theme.server';
 import { getToastSession } from '@/modules/cookie/toast.server';
 import { FathomAnalytics } from '@/modules/fathom/fathom';
-import { HelpScoutBeacon } from '@/modules/helpscout';
 import MarkerIoEmbed from '@/modules/markerio';
 import { configureProgress, startProgress, stopProgress } from '@/modules/nprogress';
 import { queryClient } from '@/modules/tanstack/query';
@@ -133,10 +132,6 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
 
         {data?.ENV.FATHOM_ID && data?.ENV.PROD && (
           <FathomAnalytics privateKey={data?.ENV.FATHOM_ID} />
-        )}
-
-        {data?.ENV.HELPSCOUT_BEACON_ID && data?.ENV.PROD && (
-          <HelpScoutBeacon beaconId={data?.ENV.HELPSCOUT_BEACON_ID} />
         )}
         <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />
         <MarkerIoEmbed nonce={nonce} />

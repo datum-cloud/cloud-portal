@@ -1,7 +1,7 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { getSession } from '@/modules/cookie/session.server';
-import { helpScoutAPI } from '@/modules/helpscout';
+import { HelpScoutBeacon } from '@/modules/helpscout';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { AppProvider } from '@/providers/app.provider';
@@ -45,41 +45,47 @@ export const loader = withMiddleware(async ({ request, context }: LoaderFunction
         .digest('hex');
     }
 
-    return data({ ...user, helpscoutSignature });
+    return data({ user, helpscoutSignature, ENV: sharedEnv });
   } catch {
     return redirect(paths.auth.logOut);
   }
 }, authMiddleware);
 
 export default function PrivateLayout() {
-  const user: IUser & { helpscoutSignature: string | null } = useLoaderData<typeof loader>();
+  const data: { user: IUser; helpscoutSignature: string | null; ENV: any } =
+    useLoaderData<typeof loader>();
 
   const [_, setTheme] = useTheme();
 
   useEffect(() => {
-    if (user) {
-      const userTheme = user?.preferences?.theme;
+    if (data?.user) {
+      const userTheme = data?.user?.preferences?.theme;
       const nextTheme =
         userTheme === 'light' ? Theme.LIGHT : userTheme === 'dark' ? Theme.DARK : null;
-      setTheme(nextTheme);
 
-      if (user.helpscoutSignature) {
-        helpScoutAPI.identify({
-          name: `${user.givenName} ${user.familyName}`,
-          email: user.email,
-          signature: user.helpscoutSignature,
-        });
-      }
+      // Set app theme
+      setTheme(nextTheme);
     }
-  }, [user]);
+  }, [data?.user]);
 
   return (
-    <AppProvider initialUser={user}>
+    <AppProvider initialUser={data?.user}>
       <TooltipProvider>
         <ConfirmationDialogProvider>
           <Outlet />
         </ConfirmationDialogProvider>
       </TooltipProvider>
+
+      {data?.ENV.HELPSCOUT_BEACON_ID && data?.ENV.PROD && (
+        <HelpScoutBeacon
+          beaconId={data?.ENV.HELPSCOUT_BEACON_ID}
+          user={{
+            name: `${data?.user?.givenName} ${data?.user?.familyName}`,
+            email: data?.user?.email,
+            signature: data?.helpscoutSignature ?? '',
+          }}
+        />
+      )}
     </AppProvider>
   );
 }
