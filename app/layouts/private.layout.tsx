@@ -10,7 +10,7 @@ import { IUser } from '@/resources/interfaces/user.interface';
 import { getSharedEnvs } from '@/utils/config/env.config';
 import { paths } from '@/utils/config/paths.config';
 import { createHmac } from 'crypto';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AppLoadContext,
   LoaderFunctionArgs,
@@ -45,7 +45,10 @@ export const loader = withMiddleware(async ({ request, context }: LoaderFunction
         .digest('hex');
     }
 
-    return data({ user, helpscoutSignature, ENV: sharedEnv });
+    return data({
+      user,
+      helpscoutSignature,
+    });
   } catch {
     return redirect(paths.auth.logOut);
   }
@@ -54,6 +57,16 @@ export const loader = withMiddleware(async ({ request, context }: LoaderFunction
 export default function PrivateLayout() {
   const data: { user: IUser; helpscoutSignature: string | null; ENV: any } =
     useLoaderData<typeof loader>();
+
+  const [helpscoutEnv, setHelpscoutEnv] = useState<{
+    HELPSCOUT_BEACON_ID: string;
+    isProd: boolean;
+    userSignature: string;
+  }>({
+    HELPSCOUT_BEACON_ID: '',
+    isProd: false,
+    userSignature: '',
+  });
 
   const [_, setTheme] = useTheme();
 
@@ -66,7 +79,13 @@ export default function PrivateLayout() {
       // Set app theme
       setTheme(nextTheme);
     }
-  }, [data?.user]);
+
+    setHelpscoutEnv({
+      HELPSCOUT_BEACON_ID: window.ENV.HELPSCOUT_BEACON_ID,
+      isProd: window.ENV.isProd,
+      userSignature: data?.helpscoutSignature ?? '',
+    });
+  }, [data]);
 
   return (
     <AppProvider initialUser={data?.user}>
@@ -76,13 +95,13 @@ export default function PrivateLayout() {
         </ConfirmationDialogProvider>
       </TooltipProvider>
 
-      {data?.ENV.HELPSCOUT_BEACON_ID && data?.ENV.PROD && (
+      {helpscoutEnv.HELPSCOUT_BEACON_ID && helpscoutEnv.isProd && (
         <HelpScoutBeacon
-          beaconId={data?.ENV.HELPSCOUT_BEACON_ID}
+          beaconId={helpscoutEnv.HELPSCOUT_BEACON_ID}
           user={{
             name: `${data?.user?.givenName} ${data?.user?.familyName}`,
             email: data?.user?.email,
-            signature: data?.helpscoutSignature ?? '',
+            signature: helpscoutEnv.userSignature ?? '',
           }}
         />
       )}
