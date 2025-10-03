@@ -1,7 +1,7 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { getSession } from '@/modules/cookie/session.server';
-import { helpScoutAPI } from '@/modules/helpscout';
+import { HelpScoutBeacon } from '@/modules/helpscout';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { AppProvider } from '@/providers/app.provider';
@@ -10,7 +10,7 @@ import { IUser } from '@/resources/interfaces/user.interface';
 import { getSharedEnvs } from '@/utils/config/env.config';
 import { paths } from '@/utils/config/paths.config';
 import { createHmac } from 'crypto';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AppLoadContext,
   LoaderFunctionArgs,
@@ -45,41 +45,66 @@ export const loader = withMiddleware(async ({ request, context }: LoaderFunction
         .digest('hex');
     }
 
-    return data({ ...user, helpscoutSignature });
+    return data({
+      user,
+      helpscoutSignature,
+    });
   } catch {
     return redirect(paths.auth.logOut);
   }
 }, authMiddleware);
 
 export default function PrivateLayout() {
-  const user: IUser & { helpscoutSignature: string | null } = useLoaderData<typeof loader>();
+  const data: { user: IUser; helpscoutSignature: string | null; ENV: any } =
+    useLoaderData<typeof loader>();
+
+  const [helpscoutEnv, setHelpscoutEnv] = useState<{
+    HELPSCOUT_BEACON_ID: string;
+    isProd: boolean;
+    userSignature: string;
+  }>({
+    HELPSCOUT_BEACON_ID: '',
+    isProd: false,
+    userSignature: '',
+  });
 
   const [_, setTheme] = useTheme();
 
   useEffect(() => {
-    if (user) {
-      const userTheme = user?.preferences?.theme;
+    if (data?.user) {
+      const userTheme = data?.user?.preferences?.theme;
       const nextTheme =
         userTheme === 'light' ? Theme.LIGHT : userTheme === 'dark' ? Theme.DARK : null;
-      setTheme(nextTheme);
 
-      if (user.helpscoutSignature) {
-        helpScoutAPI.identify({
-          name: `${user.givenName} ${user.familyName}`,
-          email: user.email,
-          signature: user.helpscoutSignature,
-        });
-      }
+      // Set app theme
+      setTheme(nextTheme);
     }
-  }, [user]);
+
+    setHelpscoutEnv({
+      HELPSCOUT_BEACON_ID: window.ENV.HELPSCOUT_BEACON_ID,
+      isProd: window.ENV.isProd,
+      userSignature: data?.helpscoutSignature ?? '',
+    });
+  }, [data]);
 
   return (
-    <AppProvider initialUser={user}>
+    <AppProvider initialUser={data?.user}>
       <TooltipProvider>
         <ConfirmationDialogProvider>
           <Outlet />
         </ConfirmationDialogProvider>
       </TooltipProvider>
+
+      {helpscoutEnv.HELPSCOUT_BEACON_ID && helpscoutEnv.isProd && (
+        <HelpScoutBeacon
+          beaconId={helpscoutEnv.HELPSCOUT_BEACON_ID}
+          user={{
+            name: `${data?.user?.givenName} ${data?.user?.familyName}`,
+            email: data?.user?.email,
+            signature: helpscoutEnv.userSignature ?? '',
+          }}
+        />
+      )}
     </AppProvider>
   );
 }
