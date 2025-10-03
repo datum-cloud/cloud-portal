@@ -9,8 +9,8 @@ export interface CreateOrganizationCardProps {
 }
 
 // Create motion components
-const MotionCard = motion(Card);
-const MotionCardContent = motion(CardContent);
+const MotionCard = motion.create(Card);
+const MotionCardContent = motion.create(CardContent);
 
 export const CreateOrganizationCard = ({ onClick, className }: CreateOrganizationCardProps) => {
   return (

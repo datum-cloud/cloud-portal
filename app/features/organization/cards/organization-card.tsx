@@ -1,10 +1,11 @@
-import { OrganizationAvatar } from '../avatar';
 import { DateFormat } from '@/components/date-format/date-format';
+import { ProfileIdentity } from '@/components/profile-identity';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { cn } from '@/utils/common';
-import { ChevronRight } from 'lucide-react';
+import { getInitials } from '@/utils/helpers/text.helper';
+import { Building2, ChevronRight, UserRound } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export interface OrganizationCardProps {
@@ -16,9 +17,9 @@ export interface OrganizationCardProps {
 }
 
 // Create motion variants for card transitions
-const MotionCard = motion(Card);
-const MotionCardContent = motion(CardContent);
-const MotionCardHeader = motion(CardHeader);
+const MotionCard = motion.create(Card);
+const MotionCardContent = motion.create(CardContent);
+const MotionCardHeader = motion.create(CardHeader);
 
 // Animation variants for different card layouts
 const cardLayoutVariants = {
@@ -75,6 +76,10 @@ export const OrganizationCard = ({
   showCreatedDate = true,
 }: OrganizationCardProps) => {
   const isPersonal = organization.type === OrganizationType.Personal;
+  const displayName = organization.displayName || organization.name || '';
+  const initials = !isPersonal ? getInitials(displayName) : undefined;
+
+  const fallbackIcon = isPersonal ? UserRound : Building2;
 
   const handleClick = () => {
     onClick?.(organization);
@@ -98,7 +103,13 @@ export const OrganizationCard = ({
           <div className="flex flex-row items-center gap-4">
             {/* Avatar */}
             <motion.div>
-              <OrganizationAvatar organization={organization} size="lg" />
+              <ProfileIdentity
+                avatarOnly
+                fallbackText={initials}
+                fallbackIcon={fallbackIcon}
+                size="lg"
+                fallbackClassName={cn(!isPersonal && 'bg-orange-500 text-white')}
+              />
             </motion.div>
             {/* Organization Info */}
             <div className="flex flex-col gap-1">
@@ -160,7 +171,16 @@ export const OrganizationCard = ({
         <MotionCardContent className="relative p-4" variants={contentVariants} animate="compact">
           <div className="flex items-center gap-3">
             <motion.div>
-              <OrganizationAvatar organization={organization} size="sm" />
+              <ProfileIdentity
+                avatarOnly
+                fallbackText={initials}
+                fallbackIcon={fallbackIcon}
+                size="sm"
+                fallbackClassName={cn(
+                  'text-sm font-medium',
+                  !isPersonal && 'bg-orange-500 text-white'
+                )}
+              />
             </motion.div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
@@ -220,7 +240,13 @@ export const OrganizationCard = ({
         )}
         <div className={cn('flex items-center space-x-3', isPersonal && 'pr-16')}>
           <motion.div whileHover={{ rotate: 5 }} transition={{ duration: 0.2 }}>
-            <OrganizationAvatar organization={organization} size="md" />
+            <ProfileIdentity
+              avatarOnly
+              fallbackText={initials}
+              fallbackIcon={fallbackIcon}
+              size="md"
+              fallbackClassName={cn(!isPersonal && 'bg-orange-500 text-white')}
+            />
           </motion.div>
           <div className="min-w-0 flex-1">
             <motion.div layout>

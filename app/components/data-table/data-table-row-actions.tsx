@@ -4,9 +4,22 @@ import { MoreActions, MoreActionsProps } from '@/components/more-actions/more-ac
 export const DataTableRowActions = <TData,>({
   row,
   actions,
+  hideRowActions,
+  disableRowActions,
 }: {
   row: TData;
   actions: DataTableRowActionsProps<TData>[];
+  hideRowActions?: (row: TData) => boolean;
+  disableRowActions?: (row: TData) => boolean;
 }) => {
-  return <MoreActions row={row} actions={actions as MoreActionsProps<TData>[]} />;
+  // Hide entire component if hideRowActions returns true
+  if (hideRowActions?.(row)) {
+    return null;
+  }
+
+  const isDisabled = disableRowActions?.(row) ?? false;
+
+  return (
+    <MoreActions row={row} actions={actions as MoreActionsProps<TData>[]} disabled={isDisabled} />
+  );
 };
