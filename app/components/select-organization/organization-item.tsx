@@ -1,7 +1,8 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ProfileIdentity } from '@/components/profile-identity';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { cn } from '@/utils/common';
 import { getInitials } from '@/utils/helpers/text.helper';
+import { Building2, UserRound } from 'lucide-react';
 
 export const OrganizationItem = ({
   org,
@@ -19,11 +20,14 @@ export const OrganizationItem = ({
   return (
     <div className={cn('flex w-full items-center gap-2', className)}>
       {!hideAvatar && (
-        <Avatar className={cn('size-6 rounded-md', avatarClassName)}>
-          <AvatarFallback className="bg-warm-white dark:bg-cream dark:text-navy rounded-md">
-            {getInitials((org?.displayName ?? org?.name) as string)}
-          </AvatarFallback>
-        </Avatar>
+        <ProfileIdentity
+          avatarOnly
+          fallbackText={getInitials(org?.displayName ?? org?.name ?? 'Datum')}
+          fallbackIcon={org?.type === OrganizationType.Personal ? UserRound : Building2}
+          size="xs"
+          className={avatarClassName}
+          fallbackClassName="text-xs font-medium"
+        />
       )}
 
       <div className={cn('grid flex-1 text-left text-sm leading-tight', labelClassName)}>

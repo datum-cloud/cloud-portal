@@ -15,24 +15,36 @@ export interface MoreActionsProps<TData> {
   icon?: React.ReactNode;
   className?: string;
   action: (row?: TData) => void | Promise<void>;
-  isDisabled?: (row?: TData) => boolean;
+  disabled?: (row?: TData) => boolean;
+  hidden?: (row?: TData) => boolean;
 }
 
 export const MoreActions = <TData,>({
   row,
   actions,
   className,
+  disabled = false,
 }: {
   row?: TData;
   actions: MoreActionsProps<TData>[];
   className?: string;
+  disabled?: boolean;
 }) => {
+  // Filter visible actions
+  const visibleActions = actions.filter((action) => !action.hidden?.(row));
+
+  // Hide if no visible actions remain
+  if (visibleActions.length === 0) {
+    return null;
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
+          disabled={disabled}
           className={cn(
             'data-[state=open]:bg-accent size-7 p-0 focus-visible:ring-0 focus-visible:ring-offset-0',
             className
@@ -41,10 +53,10 @@ export const MoreActions = <TData,>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {actions.map((action) => (
+        {visibleActions.map((action) => (
           <DropdownMenuItem
             key={action.key}
-            onClick={(event) => {
+            onSelect={(event) => {
               event.preventDefault();
               event.stopPropagation();
               action.action(row);
@@ -55,7 +67,7 @@ export const MoreActions = <TData,>({
                 'text-destructive [&_svg]:!text-destructive hover:!text-destructive hover:[&_svg]:!text-destructive',
               action.className
             )}
-            disabled={action.isDisabled?.(row) ?? false}>
+            disabled={action.disabled?.(row) ?? false}>
             {action.icon}
             {action.label}
           </DropdownMenuItem>

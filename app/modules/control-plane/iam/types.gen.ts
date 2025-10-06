@@ -1060,75 +1060,105 @@ export type ComMiloapisIamV1Alpha1UserInvitation = {
   /**
    * UserInvitationSpec defines the desired state of UserInvitation
    */
-  spec?: {
-    /**
-     * The email of the user being invited.
-     */
-    email: string;
-    /**
-     * The last name of the user being invited.
-     */
-    familyName?: string;
-    /**
-     * The first name of the user being invited.
-     */
-    givenName?: string;
-    /**
-     * The roles that will be assigned to the user when they accept the invitation.
-     */
-    roles?: Array<{
-      /**
-       * Name is the name of resource being referenced
-       */
-      name: string;
-      /**
-       * Namespace of the referenced Role. If empty, it is assumed to be in the PolicyBinding's namespace.
-       */
-      namespace?: string;
-    }>;
-  };
+  spec?: ComMiloapisIamV1Alpha1UserInvitationSpec;
   /**
    * UserInvitationStatus defines the observed state of UserInvitation
    */
-  status?: {
+  status?: ComMiloapisIamV1Alpha1UserInvitationStatus;
+};
+
+export type ComMiloapisIamV1Alpha1UserInvitationSpec = {
+  /**
+   * The email of the user being invited.
+   */
+  email: string;
+  /**
+   * ExpirationDate is the date and time when the UserInvitation will expire. If not specified, the UserInvitation will never expire.
+   */
+  expirationDate?: string;
+  /**
+   * The last name of the user being invited.
+   */
+  familyName?: string;
+  /**
+   * The first name of the user being invited.
+   */
+  givenName?: string;
+  /**
+   * InvitedBy is the user who invited the user. A mutation webhook will default this field to the user who made the request.
+   */
+  invitedBy?: {
     /**
-     * Conditions provide conditions that represent the current status of the UserInvitation.
+     * Name is the name of the User being referenced.
      */
-    conditions?: Array<{
-      /**
-       * lastTransitionTime is the last time the condition transitioned from one status to another.
-       * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
-       */
-      lastTransitionTime: string;
-      /**
-       * message is a human readable message indicating details about the transition.
-       * This may be an empty string.
-       */
-      message: string;
-      /**
-       * observedGeneration represents the .metadata.generation that the condition was set based upon.
-       * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-       * with respect to the current state of the instance.
-       */
-      observedGeneration?: number;
-      /**
-       * reason contains a programmatic identifier indicating the reason for the condition's last transition.
-       * Producers of specific condition types may define expected values and meanings for this field,
-       * and whether the values are considered a guaranteed API.
-       * The value should be a CamelCase string.
-       * This field may not be empty.
-       */
-      reason: string;
-      /**
-       * status of the condition, one of True, False, Unknown.
-       */
-      status: 'True' | 'False' | 'Unknown';
-      /**
-       * type of condition in CamelCase or in foo.example.com/CamelCase.
-       */
-      type: string;
-    }>;
+    name: string;
   };
+  /**
+   * OrganizationRef is a reference to the Organization that the user is invoted to.
+   */
+  organizationRef: {
+    /**
+     * Name is the name of resource being referenced
+     */
+    name: string;
+  };
+  /**
+   * The roles that will be assigned to the user when they accept the invitation.
+   */
+  roles?: Array<{
+    /**
+     * Name is the name of resource being referenced
+     */
+    name: string;
+    /**
+     * Namespace of the referenced Role. If empty, it is assumed to be in the PolicyBinding's namespace.
+     */
+    namespace?: string;
+  }>;
+  /**
+   * State is the state of the UserInvitation. In order to accept the invitation, the invited user must set the state to Accepted.
+   */
+  state: 'Pending' | 'Accepted' | 'Declined';
+};
+
+export type ComMiloapisIamV1Alpha1UserInvitationStatus = {
+  /**
+   * Conditions provide conditions that represent the current status of the UserInvitation.
+   */
+  conditions?: Array<{
+    /**
+     * lastTransitionTime is the last time the condition transitioned from one status to another.
+     * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+     */
+    lastTransitionTime: string;
+    /**
+     * message is a human readable message indicating details about the transition.
+     * This may be an empty string.
+     */
+    message: string;
+    /**
+     * observedGeneration represents the .metadata.generation that the condition was set based upon.
+     * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+     * with respect to the current state of the instance.
+     */
+    observedGeneration?: number;
+    /**
+     * reason contains a programmatic identifier indicating the reason for the condition's last transition.
+     * Producers of specific condition types may define expected values and meanings for this field,
+     * and whether the values are considered a guaranteed API.
+     * The value should be a CamelCase string.
+     * This field may not be empty.
+     */
+    reason: string;
+    /**
+     * status of the condition, one of True, False, Unknown.
+     */
+    status: 'True' | 'False' | 'Unknown';
+    /**
+     * type of condition in CamelCase or in foo.example.com/CamelCase.
+     */
+    type: string;
+  }>;
 };
 
 /**

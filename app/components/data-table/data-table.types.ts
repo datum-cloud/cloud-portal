@@ -36,6 +36,8 @@ export interface DataTableProps<TData, TValue> {
 
   // Actions and behavior props
   rowActions?: DataTableRowActionsProps<TData>[];
+  hideRowActions?: (row: TData) => boolean;
+  disableRowActions?: (row: TData) => boolean;
   onRowClick?: (row: TData) => void;
   rowClassName?: (row: TData) => string;
   tableTitle?: DataTableTitleProps;
@@ -55,7 +57,8 @@ export interface DataTableRowActionsProps<TData> {
   icon?: React.ReactNode;
   className?: string;
   action: (row: TData) => void | Promise<void>;
-  isDisabled?: (row: TData) => boolean;
+  disabled?: (row: TData) => boolean;
+  hidden?: (row: TData) => boolean;
 }
 
 export interface DataTableTitleProps {

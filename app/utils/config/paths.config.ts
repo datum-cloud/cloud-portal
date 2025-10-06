@@ -26,6 +26,10 @@ export const paths = {
     root: '/org',
     detail: {
       root: '/org/[orgId]',
+      team: {
+        root: '/org/[orgId]/team',
+        invite: '/org/[orgId]/team/invite',
+      },
       projects: {
         root: '/org/[orgId]/projects',
         new: '/org/[orgId]/projects/new',

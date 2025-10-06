@@ -36,8 +36,6 @@ export const AccountProfileSettingsCard = () => {
       event.preventDefault();
       event.stopPropagation();
 
-      console.log(submission);
-
       if (submission?.status === 'success') {
         const value = submission.value;
         const payload = {
