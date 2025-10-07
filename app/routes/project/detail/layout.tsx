@@ -16,6 +16,7 @@ import { Client } from '@hey-api/client-axios';
 import {
   AreaChartIcon,
   FolderDot,
+  Gauge,
   HomeIcon,
   NetworkIcon,
   SettingsIcon,
@@ -143,6 +144,13 @@ export default function ProjectLayout() {
         type: 'link',
         disabled: !isReady,
         icon: SquareActivity,
+      },
+      {
+        title: 'Quotas',
+        href: getPathWithParams(paths.project.detail.quotas, { projectId }),
+        type: 'link',
+        disabled: !isReady,
+        icon: Gauge,
       },
       {
         title: 'Config',

@@ -18,9 +18,9 @@ export default function OrgSettingsLayout() {
         to: getPathWithParams(paths.org.detail.settings.preferences, { orgId }),
       },
       {
-        value: 'usage',
-        label: 'Usage',
-        to: getPathWithParams(paths.org.detail.settings.usage, { orgId }),
+        value: 'quotas',
+        label: 'Quotas',
+        to: getPathWithParams(paths.org.detail.settings.quotas, { orgId }),
       },
       {
         value: 'policy-bindings',
