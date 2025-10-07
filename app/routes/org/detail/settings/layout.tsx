@@ -18,6 +18,11 @@ export default function OrgSettingsLayout() {
         to: getPathWithParams(paths.org.detail.settings.preferences, { orgId }),
       },
       {
+        value: 'usage',
+        label: 'Usage',
+        to: getPathWithParams(paths.org.detail.settings.usage, { orgId }),
+      },
+      {
         value: 'policy-bindings',
         label: 'Policy Bindings',
         to: getPathWithParams(paths.org.detail.settings.policyBindings, { orgId }),
