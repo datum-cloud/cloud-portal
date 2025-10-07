@@ -4,11 +4,10 @@ import {
   listIamMiloapisComV1Alpha1NamespacedPolicyBinding,
 } from '@/modules/control-plane/iam';
 import { IPolicyBindingControlResponse } from '@/resources/interfaces/policy-binding.interface';
+import { buildNamespace } from '@/utils/common';
 import { Client } from '@hey-api/client-axios';
 
 export const createPolicyBindingsControl = (client: Client) => {
-  const buildNamespace = (organizationId: string) => `organization-${organizationId}`;
-
   const buildBaseUrl = (client: Client, organizationId: string) =>
     `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${organizationId}/control-plane`;
 
@@ -39,7 +38,7 @@ export const createPolicyBindingsControl = (client: Client) => {
           client,
           baseURL: buildBaseUrl(client, organizationId),
           path: {
-            namespace: buildNamespace(organizationId),
+            namespace: buildNamespace('organization', organizationId),
           },
         });
 

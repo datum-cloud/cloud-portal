@@ -37,6 +37,7 @@ export const paths = {
       settings: {
         preferences: '/org/[orgId]/preferences',
         policyBindings: '/org/[orgId]/policy-bindings',
+        quotas: '/org/[orgId]/quotas',
         activity: '/org/[orgId]/activity',
       },
     },
@@ -91,7 +92,12 @@ export const paths = {
         },
       },
       activity: '/project/[projectId]/activity',
-      settings: '/project/[projectId]/settings',
+      quotas: '/project/[projectId]/quotas',
+      settings: {
+        preferences: '/project/[projectId]/preferences',
+        quotas: '/project/[projectId]/quotas',
+        activity: '/project/[projectId]/activity',
+      },
     },
   },
 

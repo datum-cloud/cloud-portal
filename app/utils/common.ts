@@ -95,3 +95,7 @@ export function removeUndefined<T extends Record<string, any>>(obj: T): Partial<
 
   return result;
 }
+
+export function buildNamespace(type: 'organization' | 'project', id: string): string {
+  return `${type}-${id}`;
+}

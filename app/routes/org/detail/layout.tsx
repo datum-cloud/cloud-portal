@@ -50,6 +50,7 @@ export default function OrgLayout() {
     const orgId = org?.name;
     const settingsPreferences = getPathWithParams(paths.org.detail.settings.preferences, { orgId });
     const settingsActivity = getPathWithParams(paths.org.detail.settings.activity, { orgId });
+    const settingsQuotas = getPathWithParams(paths.org.detail.settings.quotas, { orgId });
 
     return [
       {
@@ -70,7 +71,7 @@ export default function OrgLayout() {
         href: settingsPreferences,
         type: 'link',
         icon: SettingsIcon,
-        tabChildLinks: [settingsPreferences, settingsActivity],
+        tabChildLinks: [settingsPreferences, settingsActivity, settingsQuotas],
       },
     ];
   }, [org]);

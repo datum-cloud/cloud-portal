@@ -1,4 +1,3 @@
-import { PageTitle } from '@/components/page-title/page-title';
 import { ProjectDangerCard } from '@/features/project/settings/danger-card';
 import { ProjectGeneralCard } from '@/features/project/settings/general-card';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
@@ -15,11 +14,11 @@ import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, useRouteLoaderData } from 'react-router';
 
 export const handle = {
-  breadcrumb: () => <span>Project Settings</span>,
+  breadcrumb: () => <span>Project Preferences</span>,
 };
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Project Settings');
+  return metaObject('Project Preferences');
 });
 
 export const action = async ({ request, context, params }: ActionFunctionArgs) => {
@@ -115,9 +114,7 @@ export default function ProjectSettingsPage() {
   const { project } = useRouteLoaderData('project-detail');
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <PageTitle title="Project Settings" />
-      {/* Project Name Section */}
+    <div className="mx-auto flex w-full flex-col gap-6">
       <ProjectGeneralCard project={project} />
       {/* Labels */}
       {/* <ProjectLabelCard labels={project?.labels ?? {}} /> */}

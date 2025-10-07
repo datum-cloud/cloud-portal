@@ -13,14 +13,7 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, ValidationError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
-import {
-  AreaChartIcon,
-  FolderDot,
-  HomeIcon,
-  NetworkIcon,
-  SettingsIcon,
-  SquareActivity,
-} from 'lucide-react';
+import { AreaChartIcon, FolderDot, HomeIcon, NetworkIcon, SettingsIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { AppLoadContext, LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
 
@@ -89,6 +82,14 @@ export default function ProjectLayout() {
     const isReady = currentStatus.status === ControlPlaneStatus.Success;
     const projectId = project.name;
 
+    const settingsPreferences = getPathWithParams(paths.project.detail.settings.preferences, {
+      projectId,
+    });
+    const settingsActivity = getPathWithParams(paths.project.detail.settings.activity, {
+      projectId,
+    });
+    const settingsQuotas = getPathWithParams(paths.project.detail.settings.quotas, { projectId });
+
     return [
       {
         title: 'Home',
@@ -138,13 +139,6 @@ export default function ProjectLayout() {
         ],
       },
       {
-        title: 'Activity',
-        href: getPathWithParams(paths.project.detail.activity, { projectId }),
-        type: 'link',
-        disabled: !isReady,
-        icon: SquareActivity,
-      },
-      {
         title: 'Config',
         href: getPathWithParams(paths.project.detail.config.root, {
           projectId,
@@ -164,10 +158,11 @@ export default function ProjectLayout() {
       },
       {
         title: 'Project settings',
-        href: getPathWithParams(paths.project.detail.settings, { projectId }),
+        href: getPathWithParams(paths.project.detail.settings.preferences, { projectId }),
         type: 'link',
         disabled: !isReady,
         icon: SettingsIcon,
+        tabChildLinks: [settingsPreferences, settingsActivity, settingsQuotas],
       },
     ];
   }, [project]);
