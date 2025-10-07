@@ -20,11 +20,5 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 export default function ProjectQuotasPage() {
   const allowanceBuckets = useLoaderData<typeof loader>() as IAllowanceBucketControlResponse[];
 
-  return (
-    <QuotasTable
-      data={allowanceBuckets}
-      title="Quotas"
-      description="View usage against quotas for each resource in your project."
-    />
-  );
+  return <QuotasTable data={allowanceBuckets} />;
 }

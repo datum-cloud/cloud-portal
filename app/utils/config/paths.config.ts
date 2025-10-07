@@ -93,7 +93,11 @@ export const paths = {
       },
       activity: '/project/[projectId]/activity',
       quotas: '/project/[projectId]/quotas',
-      settings: '/project/[projectId]/settings',
+      settings: {
+        preferences: '/project/[projectId]/preferences',
+        quotas: '/project/[projectId]/quotas',
+        activity: '/project/[projectId]/activity',
+      },
     },
   },
 

@@ -4,5 +4,5 @@ import { useParams } from 'react-router';
 export default function ProjectActivityLogsPage() {
   const { projectId } = useParams();
 
-  return <ActivityLogList params={{ project: projectId }} title="Activity" className="max-w-3xl" />;
+  return <ActivityLogList params={{ project: projectId }} />;
 }

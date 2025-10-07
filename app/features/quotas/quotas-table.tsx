@@ -3,15 +3,7 @@ import { IAllowanceBucketControlResponse } from '@/resources/interfaces/allowanc
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 
-export const QuotasTable = ({
-  data,
-  title,
-  description,
-}: {
-  data: IAllowanceBucketControlResponse[];
-  title?: string;
-  description?: string;
-}) => {
+export const QuotasTable = ({ data }: { data: IAllowanceBucketControlResponse[] }) => {
   const columns: ColumnDef<IAllowanceBucketControlResponse>[] = useMemo(() => {
     return [
       {
@@ -67,14 +59,5 @@ export const QuotasTable = ({
     ];
   }, [data]);
 
-  return (
-    <DataTable
-      columns={columns}
-      data={data}
-      tableTitle={{
-        title: title ?? 'Quotas',
-        description: description ?? 'View usage against quotas for each resource.',
-      }}
-    />
-  );
+  return <DataTable columns={columns} data={data} />;
 };
