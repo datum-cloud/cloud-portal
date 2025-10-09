@@ -1,4 +1,4 @@
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -112,9 +112,9 @@ export const TimeRangeControl = ({
           )}>
           <CalendarIcon className="mr-1 size-4" />
           <div className="flex items-center gap-1">
-            <DateFormat date={timeRange.start} format="MMM d, yyyy" showTooltip={false} />
+            <DateTime date={timeRange.start} format="MMM d, yyyy" showTooltip={false} />
             <span className="text-muted-foreground">-</span>
-            <DateFormat date={timeRange.end} format="MMM d, yyyy" showTooltip={false} />
+            <DateTime date={timeRange.end} format="MMM d, yyyy" showTooltip={false} />
           </div>
           <ChevronDownIcon className="size-4 opacity-50" />
         </Button>

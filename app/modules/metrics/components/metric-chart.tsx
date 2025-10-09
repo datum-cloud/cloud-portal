@@ -1,7 +1,7 @@
 /**
  * Generic metric chart component using Shadcn UI Chart components
  */
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import {
   ChartContainer,
   ChartLegend,
@@ -206,7 +206,7 @@ export function MetricChart({
 
   const tooltipLabelFormatter: any = useCallback((label: string) => {
     if (!label) return '';
-    return <DateFormat date={label} />;
+    return <DateTime date={label} />;
   }, []);
 
   const renderChartSeries = () => {

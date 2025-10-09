@@ -2,7 +2,7 @@
  * Dashboard Playground - Enhanced Metrics Module Demo
  * Showcases the new MetricsToolbar with CoreControls and dynamic Filters
  */
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartTooltipContent } from '@/components/ui/chart';
@@ -149,7 +149,7 @@ const MetricsContent = () => {
                     active={active}
                     payload={filteredPayload}
                     label={label}
-                    labelFormatter={(value) => <DateFormat date={value} />}
+                    labelFormatter={(value) => <DateTime date={value} />}
                     formatter={(value, name, item) => {
                       const indicatorColor = item.payload.fill || item.color;
                       return (

@@ -1,5 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { Button } from '@/components/ui/button';
 import TabsLayout from '@/layouts/tabs/tabs';
@@ -8,7 +8,6 @@ import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.int
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { Outlet, Link, useParams, useFetcher, useRouteLoaderData } from 'react-router';
 
@@ -77,20 +76,11 @@ export default function HttpProxyDetailLayout() {
         description: (
           <div className="flex items-center gap-1">
             <ClockIcon className="text-muted-foreground h-4 w-4" />
-            <DateFormat
+            <DateTime
               className="text-muted-foreground text-sm"
               date={(httpProxy as IHttpProxyControlResponse)?.createdAt ?? ''}
+              variant="both"
             />
-            <span className="text-muted-foreground text-sm">
-              (
-              {formatDistanceToNow(
-                new Date((httpProxy as IHttpProxyControlResponse)?.createdAt ?? ''),
-                {
-                  addSuffix: true,
-                }
-              )}
-              )
-            </span>
           </div>
         ),
         actions: (

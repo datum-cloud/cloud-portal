@@ -1,5 +1,5 @@
 import { PolicyBinding } from './policy-bindings.types';
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { StatusBadge } from '@/components/status-badge/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -154,5 +154,5 @@ export const renderCreatedAtCell = (createdAt: PolicyBinding['createdAt']) => {
     return '-';
   }
 
-  return <DateFormat date={createdAt} />;
+  return <DateTime date={createdAt} />;
 };

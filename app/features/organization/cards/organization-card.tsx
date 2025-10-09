@@ -1,4 +1,4 @@
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { ProfileIdentity } from '@/components/profile-identity';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -138,7 +138,7 @@ export const OrganizationCard = ({
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}>
                   <span>Created on</span>{' '}
-                  <DateFormat date={organization?.createdAt} format="MMM do, yyyy" />
+                  <DateTime date={organization?.createdAt} format="MMM do, yyyy" />
                 </motion.div>
               )}
             </div>

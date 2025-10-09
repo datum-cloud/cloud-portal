@@ -1,5 +1,5 @@
 import { DataTable } from '@/components/data-table/data-table';
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { Button } from '@/components/ui/button';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { createProjectsControl } from '@/resources/control-plane';
@@ -106,7 +106,7 @@ export default function OrgProjectsPage() {
         header: 'Creation Date',
         accessorKey: 'createdAt',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
+          return row.original.createdAt && <DateTime date={row.original.createdAt} />;
         },
       },
     ],

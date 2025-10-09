@@ -1,5 +1,5 @@
 import { DataTable } from '@/components/data-table/data-table';
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { StatusBadge } from '@/components/status-badge/status-badge';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -68,7 +68,7 @@ export const NetworkBindingsCard = ({ data }: { data: INetworkBindingControlResp
         accessorKey: 'createdAt',
         enableSorting: false,
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
+          return row.original.createdAt && <DateTime date={row.original.createdAt} />;
         },
       },
     ],

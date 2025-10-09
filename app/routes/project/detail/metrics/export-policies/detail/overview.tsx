@@ -1,5 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,6 @@ import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/e
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link, MetaFunction, useFetcher, useParams, useRouteLoaderData } from 'react-router';
@@ -88,20 +87,11 @@ export default function ExportPolicyOverview() {
           description={
             <div className="flex items-center gap-1">
               <ClockIcon className="text-muted-foreground h-4 w-4" />
-              <DateFormat
+              <DateTime
                 className="text-muted-foreground text-sm"
                 date={(exportPolicy as IExportPolicyControlResponse)?.createdAt ?? ''}
+                variant="both"
               />
-              <span className="text-muted-foreground text-sm">
-                (
-                {formatDistanceToNow(
-                  new Date((exportPolicy as IExportPolicyControlResponse)?.createdAt ?? ''),
-                  {
-                    addSuffix: true,
-                  }
-                )}
-                )
-              </span>
             </div>
           }
           actions={
