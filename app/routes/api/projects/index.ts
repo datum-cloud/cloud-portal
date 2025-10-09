@@ -1,5 +1,6 @@
 import { getOrgSession } from '@/modules/cookie/org.server';
 import { createProjectsControl } from '@/resources/control-plane';
+import { ICachedProject } from '@/resources/interfaces/project.interface';
 import { NotFoundError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
@@ -18,18 +19,43 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     }
 
     const key = `projects:${orgId}`;
-    const isCached = await cache.hasItem(key);
+    const cachedProjects = (await cache.getItem(key)) as ICachedProject[] | null;
 
-    if (isCached) {
-      const projects = await cache.getItem(key);
-      return data(projects);
+    // Fetch fresh data from API
+    const freshProjects = await projectsControl.list(orgId ?? '');
+
+    // Merge cached metadata with fresh data
+    let mergedProjects: ICachedProject[] = freshProjects;
+
+    if (cachedProjects && Array.isArray(cachedProjects)) {
+      mergedProjects = freshProjects.map((freshProject) => {
+        const cachedProject = cachedProjects.find((cp) => cp.name === freshProject.name);
+
+        // If cached project has "deleting" status and still exists in API, keep the metadata
+        if (cachedProject?._meta?.status === 'deleting') {
+          return { ...freshProject, _meta: cachedProject._meta };
+        }
+
+        return freshProject;
+      });
+
+      // Remove projects from cache that are no longer returned by API (fully deleted)
+      const freshProjectNames = new Set(freshProjects.map((p) => p.name));
+      const stillDeleting = cachedProjects.filter(
+        (cp) => cp._meta?.status === 'deleting' && !freshProjectNames.has(cp.name)
+      );
+
+      // If there were deleting projects that are now gone, they're fully deleted
+      if (stillDeleting.length > 0) {
+        // Update cache to remove fully deleted projects
+        await cache.setItem(key, mergedProjects);
+      }
+    } else {
+      // No cache exists, save fresh data
+      await cache.setItem(key, mergedProjects);
     }
 
-    const projects = await projectsControl.list(orgId ?? '');
-
-    await cache.setItem(key, projects);
-
-    return data({ success: true, data: projects }, { status: 200 });
+    return data({ success: true, data: mergedProjects }, { status: 200 });
   } catch (error: any) {
     return data(
       { success: false, error: error?.message ?? 'An unexpected error occurred' },

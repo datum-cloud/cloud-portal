@@ -3,7 +3,7 @@ import { DateFormat } from '@/components/date-format/date-format';
 import { Button } from '@/components/ui/button';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { createProjectsControl } from '@/resources/control-plane';
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { ICachedProject } from '@/resources/interfaces/project.interface';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -21,49 +21,71 @@ import {
   useParams,
 } from 'react-router';
 
-export const loader = async ({ request, params, context }: LoaderFunctionArgs) => {
+export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   try {
     const { orgId } = params;
-    const { controlPlaneClient } = context as AppLoadContext;
+    const { controlPlaneClient, cache } = context as AppLoadContext;
     const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
     if (!orgId) {
       throw new BadRequestError('Organization ID is required');
     }
 
-    const projects = await projectsControl.list(orgId);
+    const key = `projects:${orgId}`;
+    const cachedProjects = (await cache.getItem(key)) as ICachedProject[] | null;
 
-    // this is for handle the delete flow, since the delete action has deprovisioning process
-    const url = new URL(request.url);
-    let lastDeletedId = url.searchParams.get('deletedId');
+    // Fetch fresh data from API
+    const freshProjects = await projectsControl.list(orgId);
 
-    if (lastDeletedId) {
-      // Check if the deleted project still exists in the project list
-      const deletedProjectExists = projects.some((project) => project.name === lastDeletedId);
-      if (!deletedProjectExists) {
-        lastDeletedId = null;
-      }
+    // Merge cached metadata with fresh data
+    let mergedProjects: ICachedProject[] = freshProjects;
+
+    if (cachedProjects && Array.isArray(cachedProjects)) {
+      mergedProjects = freshProjects.map((freshProject) => {
+        const cachedProject = cachedProjects.find((cp) => cp.name === freshProject.name);
+
+        // If cached project has "deleting" status and still exists in API, keep the metadata
+        if (cachedProject?._meta?.status === 'deleting') {
+          return { ...freshProject, _meta: cachedProject._meta };
+        }
+
+        return freshProject;
+      });
+
+      // Update cache with merged data
+      await cache.setItem(key, mergedProjects);
+    } else {
+      // No cache exists, save fresh data
+      await cache.setItem(key, mergedProjects);
     }
 
-    const filteredProjects = projects.filter((project) => project.name !== lastDeletedId);
-    return data({ projects: filteredProjects, deletedId: lastDeletedId });
+    // Check if any projects are in "deleting" state for polling
+    const hasDeleting = mergedProjects.some((p) => p._meta?.status === 'deleting');
+
+    return data({ projects: mergedProjects, shouldPoll: hasDeleting });
   } catch {
-    return data({ projects: [], deletedId: null });
+    return data({ projects: [], shouldPoll: false });
   }
 };
 
 export default function OrgProjectsPage() {
-  // revalidate every 10 seconds to keep workload list fresh
+  // revalidate every 10 seconds to keep project list fresh
   const { start: startRevalidator, clear: clearRevalidator } = useRevalidateOnInterval({
     interval: 10000,
   });
 
   const { orgId } = useParams();
-  const { projects, deletedId } = useLoaderData<typeof loader>();
+  const { projects, shouldPoll } = useLoaderData<typeof loader>();
 
   const navigate = useNavigate();
 
-  const columns: ColumnDef<IProjectControlResponse>[] = useMemo(
+  // Filter out projects that are being deleted
+  const visibleProjects = useMemo(
+    () => projects.filter((project) => project._meta?.status !== 'deleting'),
+    [projects]
+  );
+
+  const columns: ColumnDef<ICachedProject>[] = useMemo(
     () => [
       {
         header: 'Description',
@@ -92,38 +114,23 @@ export default function OrgProjectsPage() {
   );
 
   useEffect(() => {
-    if (deletedId) {
-      // If deletedId exists, we're already handling it in the loader
+    if (shouldPoll) {
       startRevalidator();
     } else {
       clearRevalidator();
-
-      // If deletedId is null, remove it from URL params
-      const url = new URL(window.location.href);
-      if (url.searchParams.has('deletedId')) {
-        url.searchParams.delete('deletedId');
-        navigate(url.pathname + url.search);
-      }
     }
-  }, [deletedId]);
+  }, [shouldPoll, startRevalidator, clearRevalidator]);
 
   return (
     <DataTable
       columns={columns}
-      data={projects ?? []}
+      data={visibleProjects ?? []}
       onRowClick={(row) => {
-        if (row.name && row.name !== deletedId) {
+        if (row.name) {
           return navigate(getPathWithParams(paths.project.detail.root, { projectId: row.name }));
         }
 
         return undefined;
-      }}
-      rowClassName={(row) => {
-        if (row.name && row.name === deletedId) {
-          return 'pointer-events-none opacity-50';
-        }
-
-        return '';
       }}
       emptyContent={{
         title: 'No projects found.',
@@ -142,7 +149,7 @@ export default function OrgProjectsPage() {
         title: 'Projects',
         description: 'Use projects to organize resources deployed to Datum Cloud',
         actions:
-          ((projects ?? []) as IProjectControlResponse[]).length > 0 ? (
+          visibleProjects.length > 0 ? (
             <Link to={getPathWithParams(paths.org.detail.projects.new, { orgId })}>
               <Button>
                 <PlusIcon className="size-4" />
