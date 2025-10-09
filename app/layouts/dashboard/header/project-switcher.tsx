@@ -9,7 +9,7 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { IProjectControlResponse, ICachedProject } from '@/resources/interfaces/project.interface';
 import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api/projects';
 import { cn } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
@@ -57,10 +57,13 @@ export const ProjectSwitcher = ({
     };
   }, []);
 
-  const projects: IProjectControlResponse[] = useMemo(() => {
+  const projects: ICachedProject[] = useMemo(() => {
     if (fetcher.state === 'idle' && fetcher.data) {
       if (fetcher.data.success) {
-        return fetcher.data.data;
+        // Filter out projects that are being deleted
+        return (fetcher.data.data as ICachedProject[]).filter(
+          (project) => project._meta?.status !== 'deleting'
+        );
       }
     }
     return [];
@@ -104,10 +107,10 @@ export const ProjectSwitcher = ({
               {projects.length > 0 && (
                 <CommandGroup className="max-h-[300px] overflow-y-auto">
                   {(projects ?? [])
-                    .sort((a: IProjectControlResponse, b: IProjectControlResponse) =>
+                    .sort((a: ICachedProject, b: ICachedProject) =>
                       (a?.description ?? '').localeCompare(b?.description ?? '')
                     )
-                    .map((project: IProjectControlResponse) => {
+                    .map((project: ICachedProject) => {
                       const isSelected = project.uid === currentProject.uid;
                       return (
                         <CommandItem

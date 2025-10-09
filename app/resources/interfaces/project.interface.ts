@@ -11,3 +11,12 @@ export interface IProjectControlResponse {
   status?: ComMiloapisResourcemanagerV1Alpha1Project['status'];
   labels?: ILabel;
 }
+
+export interface IProjectMetadata {
+  status: 'active' | 'deleting' | 'deleted';
+  deletedAt?: string;
+}
+
+export interface ICachedProject extends IProjectControlResponse {
+  _meta?: IProjectMetadata;
+}
