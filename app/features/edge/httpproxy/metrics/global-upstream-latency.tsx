@@ -1,4 +1,4 @@
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import {
   MetricChart,
   MetricChartTooltipContent,
@@ -47,7 +47,7 @@ export const HttpProxyGlobalUpstreamLatency = ({
               active={active}
               payload={filteredPayload}
               label={label}
-              labelFormatter={(value) => <DateFormat date={value} />}
+              labelFormatter={(value) => <DateTime date={value} />}
               formatter={(value, name, item) => {
                 const indicatorColor = item.payload.fill || item.color;
                 return (

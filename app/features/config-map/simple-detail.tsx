@@ -1,4 +1,4 @@
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { Field } from '@/components/field/field';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
 import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
@@ -15,7 +15,7 @@ export const SimpleConfigMapDetail = ({ configMap }: { configMap: IConfigMapCont
       {configMap?.createdAt && (
         <Field label="Created At">
           <div className="flex items-center gap-1">
-            <DateFormat className="text-muted-foreground text-sm" date={configMap?.createdAt} />
+            <DateTime className="text-muted-foreground text-sm" date={configMap?.createdAt} />
             <span className="text-muted-foreground text-sm">
               (
               {formatDistanceToNow(new Date(configMap?.createdAt), {

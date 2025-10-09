@@ -1,8 +1,7 @@
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { StatusBadge } from '@/components/status-badge/status-badge';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { TimeDistance } from '@/components/time-distance/time-distance';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
@@ -49,12 +48,7 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: IHttpProxyContr
       {
         label: 'Created At',
         className: 'px-2',
-        content: (
-          <div className="flex items-center gap-1">
-            <DateFormat className="text-sm" date={httpProxy?.createdAt ?? ''} />
-            <TimeDistance date={httpProxy?.createdAt ?? ''} className="text-sm" />
-          </div>
-        ),
+        content: <DateTime className="text-sm" date={httpProxy?.createdAt ?? ''} variant="both" />,
       },
     ];
   }, [httpProxy]);

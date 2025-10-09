@@ -1,5 +1,5 @@
 import { DataTable } from '@/components/data-table/data-table';
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { INetworkContextControlResponse } from '@/resources/interfaces/network.interface';
@@ -50,7 +50,7 @@ export const NetworkContextsCard = ({ data }: { data: INetworkContextControlResp
         accessorKey: 'createdAt',
         enableSorting: false,
         cell: ({ row }) => {
-          return row.original.createdAt && <DateFormat date={row.original.createdAt} />;
+          return row.original.createdAt && <DateTime date={row.original.createdAt} />;
         },
       },
     ],

@@ -1,4 +1,4 @@
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { ProfileIdentity } from '@/components/profile-identity';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -37,7 +37,7 @@ export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
             <p className="text-muted-foreground text-sm">{org?.name}</p>
             {org?.createdAt && (
               <div className="text-muted-foreground flex items-center gap-1 text-xs">
-                <span>Created on</span> <DateFormat date={org?.createdAt} format="MMM do, yyyy" />
+                <span>Created on</span> <DateTime date={org?.createdAt} format="MMM do, yyyy" />
               </div>
             )}
           </div>

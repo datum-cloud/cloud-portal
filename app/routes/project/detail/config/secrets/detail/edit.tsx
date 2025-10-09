@@ -1,5 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -9,7 +9,6 @@ import { ISecretControlResponse } from '@/resources/interfaces/secret.interface'
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { formatDistanceToNow } from 'date-fns/formatDistanceToNow';
 import { ClockIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useFetcher, useParams, useRouteLoaderData } from 'react-router';
@@ -72,20 +71,11 @@ export default function EditSecret() {
           description={
             <div className="flex items-center gap-1">
               <ClockIcon className="text-muted-foreground h-4 w-4" />
-              <DateFormat
+              <DateTime
                 className="text-muted-foreground text-sm"
                 date={(secret as ISecretControlResponse)?.createdAt ?? ''}
+                variant="both"
               />
-              <span className="text-muted-foreground text-sm">
-                (
-                {formatDistanceToNow(
-                  new Date((secret as ISecretControlResponse)?.createdAt ?? ''),
-                  {
-                    addSuffix: true,
-                  }
-                )}
-                )
-              </span>
             </div>
           }
           actions={

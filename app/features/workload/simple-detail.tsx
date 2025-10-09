@@ -1,8 +1,7 @@
 import { WorkloadStatus } from './status';
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { Field } from '@/components/field/field';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { TimeDistance } from '@/components/time-distance/time-distance';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
 
@@ -37,13 +36,11 @@ export const SimpleWorkloadDetail = ({
       </Field>
       {workload?.createdAt && (
         <Field label="Created At">
-          <div className="flex items-center gap-1">
-            <DateFormat className="text-muted-foreground text-sm" date={workload?.createdAt} />
-            <TimeDistance
-              date={workload?.createdAt ?? ''}
-              className="text-muted-foreground text-sm"
-            />
-          </div>
+          <DateTime
+            className="text-muted-foreground text-sm"
+            date={workload?.createdAt}
+            variant="both"
+          />
         </Field>
       )}
     </div>

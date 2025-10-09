@@ -1,8 +1,7 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { PageTitle } from '@/components/page-title/page-title';
-import { TimeDistance } from '@/components/time-distance/time-distance';
 import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
 import { QuickSetupCard } from '@/features/edge/domain/overview/quick-setup-card';
@@ -148,13 +147,10 @@ export default function DomainOverviewPage() {
           description={
             <div className="flex items-center gap-1">
               <ClockIcon className="text-muted-foreground h-4 w-4" />
-              <DateFormat
+              <DateTime
                 className="text-muted-foreground text-sm"
                 date={(domain as IDomainControlResponse)?.createdAt ?? ''}
-              />
-              <TimeDistance
-                date={(domain as IDomainControlResponse)?.createdAt ?? ''}
-                className="text-muted-foreground text-sm"
+                variant="both"
               />
             </div>
           }

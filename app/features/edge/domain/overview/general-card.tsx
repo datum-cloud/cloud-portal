@@ -1,7 +1,6 @@
-import { DateFormat } from '@/components/date-format/date-format';
+import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { TimeDistance } from '@/components/time-distance/time-distance';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
@@ -40,12 +39,7 @@ export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }
       {
         label: 'Created At',
         className: 'px-2',
-        content: (
-          <div className="flex items-center gap-1">
-            <DateFormat className="text-sm" date={domain?.createdAt ?? ''} />
-            <TimeDistance date={domain?.createdAt ?? ''} className="text-sm" />
-          </div>
-        ),
+        content: <DateTime className="text-sm" date={domain?.createdAt ?? ''} variant="both" />,
       },
     ];
   }, [domain]);
