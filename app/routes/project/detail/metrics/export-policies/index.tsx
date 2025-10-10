@@ -3,7 +3,6 @@ import { DataTable } from '@/components/data-table/data-table';
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
 import { DateTime } from '@/components/date-time';
 import { Button } from '@/components/ui/button';
-import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { ExportPolicyStatus } from '@/features/observe/export-policies/status';
 import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createExportPoliciesControl } from '@/resources/control-plane';
@@ -11,6 +10,7 @@ import { IExportPolicyControlResponse } from '@/resources/interfaces/export-poli
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/export-policies';
 import { paths } from '@/utils/config/paths.config';
 import { AppError, BadRequestError } from '@/utils/errors';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';

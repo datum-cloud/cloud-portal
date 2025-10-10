@@ -9,6 +9,7 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useApp } from '@/providers/app.provider';
 import { IProjectControlResponse, ICachedProject } from '@/resources/interfaces/project.interface';
 import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api/projects';
 import { cn } from '@/utils/common';
@@ -35,6 +36,7 @@ export const ProjectSwitcher = ({
   currentProject: IProjectControlResponse;
   triggerClassName?: string;
 }) => {
+  const { orgId } = useApp();
   const navigate = useNavigate();
   const fetcher = useFetcher({ key: 'project-list' });
   const [open, setOpen] = useState(false);
@@ -46,10 +48,10 @@ export const ProjectSwitcher = ({
 
   useEffect(() => {
     if (open && !loaded) {
-      fetcher.load(PROJECT_LIST_PATH);
+      fetcher.load(`${PROJECT_LIST_PATH}?orgId=${orgId}`);
       setLoaded(true);
     }
-  }, [open, loaded]);
+  }, [open, loaded, orgId]);
 
   useEffect(() => {
     return () => {

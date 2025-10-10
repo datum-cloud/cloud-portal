@@ -1,5 +1,10 @@
 import { ComMiloapisIamV1Alpha1PolicyBinding } from '@/modules/control-plane/iam';
 
+export enum PolicyBindingSubjectKind {
+  User = 'User',
+  Group = 'Group',
+}
+
 export interface IPolicyBindingControlResponse {
   name: string;
   createdAt: string;

@@ -1,4 +1,3 @@
-import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import {
   ComDatumapisComputeV1AlphaWorkload,
   ComDatumapisComputeV1AlphaWorkloadList,
@@ -15,6 +14,7 @@ import {
   RuntimeType,
 } from '@/resources/interfaces/workload.interface';
 import { NewWorkloadSchema, RuntimeEnvSchema } from '@/resources/schemas/workload.schema';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { convertLabelsToObject } from '@/utils/helpers/object.helper';
 import { Client } from '@hey-api/client-axios';
 

@@ -59,11 +59,17 @@ export default [
           route('invite', 'routes/org/detail/team/invite.tsx'),
         ]),
 
+        // Policy Bindings of an organization
+        route('policy-bindings', 'routes/org/detail/policy-bindings/layout.tsx', [
+          index('routes/org/detail/policy-bindings/index.tsx'),
+          route('new', 'routes/org/detail/policy-bindings/new.tsx'),
+          route(':policyBindingId/edit', 'routes/org/detail/policy-bindings/edit.tsx'),
+        ]),
+
         // Settings of an organization
         layout('routes/org/detail/settings/layout.tsx', [
           route('preferences', 'routes/org/detail/settings/preferences.tsx'),
           route('quotas', 'routes/org/detail/settings/quotas.tsx'),
-          route('policy-bindings', 'routes/org/detail/settings/policy-bindings.tsx'),
           route('activity', 'routes/org/detail/settings/activity.tsx'),
         ]),
       ]),
@@ -189,6 +195,9 @@ export default [
       route('team/invitations/resend', 'routes/api/team/invitations/resend.ts'),
       route('team/invitations/update-state', 'routes/api/team/invitations/update-state.ts'),
 
+      // Members
+      route('members', 'routes/api/members/index.ts'),
+
       // Domains
       route('domains', 'routes/api/domains/index.ts'),
       route('domains/:id/status', 'routes/api/domains/status.ts'),
@@ -206,6 +215,9 @@ export default [
 
       // Activities
       route('activity', 'routes/api/activity/index.ts'),
+
+      // Policy Bindings
+      route('policy-bindings', 'routes/api/policy-bindings/index.ts'),
 
       // Third-party APIs
       // Cloud Validations

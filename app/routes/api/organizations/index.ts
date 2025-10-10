@@ -18,7 +18,7 @@ export const loader = async ({ context, request }: LoaderFunctionArgs) => {
 
   // Return cached networks if available and caching is enabled
   if (isCached && cachedOrganizations) {
-    return data({ success: true, data: cachedOrganizations });
+    return data({ success: true, data: cachedOrganizations }, { status: 200 });
   }
 
   try {

@@ -9,9 +9,9 @@ export const handle = {
   breadcrumb: (data: IHttpProxyControlResponse) => <span>{data?.name}</span>,
 };
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
-  const { httpProxy } = data as any;
-  return metaObject((httpProxy as IHttpProxyControlResponse)?.name || 'HTTPProxy');
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
+  const httpProxy = loaderData as IHttpProxyControlResponse;
+  return metaObject(httpProxy?.name || 'HTTPProxy');
 });
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {

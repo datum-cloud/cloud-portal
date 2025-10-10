@@ -9,9 +9,9 @@ export const handle = {
   breadcrumb: (data: IExportPolicyControlResponse) => <span>{data?.name}</span>,
 };
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
-  const { exportPolicy } = data as any;
-  return metaObject((exportPolicy as IExportPolicyControlResponse)?.name || 'ExportPolicy');
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
+  const exportPolicy = loaderData as IExportPolicyControlResponse;
+  return metaObject(exportPolicy?.name || 'ExportPolicy');
 });
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {

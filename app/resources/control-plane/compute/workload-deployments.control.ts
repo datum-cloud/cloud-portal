@@ -1,4 +1,3 @@
-import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import {
   ComDatumapisComputeV1AlphaWorkloadDeployment,
   ComDatumapisComputeV1AlphaWorkloadDeploymentList,
@@ -6,6 +5,7 @@ import {
   readComputeDatumapisComV1AlphaNamespacedWorkloadDeploymentStatus,
 } from '@/modules/control-plane/compute';
 import { IWorkloadDeploymentControlResponse } from '@/resources/interfaces/workload.interface';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createWorkloadDeploymentsControl = (client: Client) => {

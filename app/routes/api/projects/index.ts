@@ -1,7 +1,6 @@
-import { getOrgSession } from '@/modules/cookie/org.server';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ICachedProject } from '@/resources/interfaces/project.interface';
-import { NotFoundError } from '@/utils/errors';
+import { BadRequestError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
@@ -12,10 +11,11 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     const { controlPlaneClient, cache } = context as AppLoadContext;
     const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
-    const { orgId } = await getOrgSession(request);
+    const url = new URL(request.url);
+    const orgId = url.searchParams.get('orgId');
 
     if (!orgId) {
-      throw new NotFoundError('Organization not found');
+      throw new BadRequestError('Organization ID is required');
     }
 
     const key = `projects:${orgId}`;

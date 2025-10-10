@@ -1,4 +1,3 @@
-import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { DashboardLayout } from '@/layouts/dashboard/dashboard';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { getOrgSession, setOrgSession } from '@/modules/cookie/org.server';
@@ -11,6 +10,7 @@ import { IProjectControlResponse, ICachedProject } from '@/resources/interfaces/
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, ValidationError } from '@/utils/errors';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { AreaChartIcon, FolderDot, HomeIcon, NetworkIcon, SettingsIcon } from 'lucide-react';

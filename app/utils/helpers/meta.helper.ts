@@ -28,7 +28,7 @@ type CreateMetaArgs<RouteData = any> = {
  *
  * import { mergeMeta } from '~/utils/web';
  *
- * export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
+ * export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
  *   return [
  *     { title: "My Leaf Route" },
  *   ];
@@ -37,7 +37,7 @@ type CreateMetaArgs<RouteData = any> = {
  * // In a parent route:
  * import type { MetaFunction } from 'react-router';
  *
- * export const meta: MetaFunction<typeof loader> = ({ data }) => {
+ * export const meta: MetaFunction<typeof loader> = ({ loaderData }) => {
  *   return [
  *     { title: "My Parent Route" },
  *     { name: 'description', content: "This is the parent route" },

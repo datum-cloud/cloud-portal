@@ -1,11 +1,11 @@
-import { PolicyBinding } from './policy-bindings.types';
+import { PolicyBinding } from './policy-binding.types';
 import { DateTime } from '@/components/date-time';
 import { StatusBadge } from '@/components/status-badge/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { transformControlPlaneStatus } from '@/features/control-plane/utils';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Users } from 'lucide-react';
 
 export type ResourceTooltipProps = {
@@ -86,8 +86,15 @@ export const renderSubjectsCell = (subjects: PolicyBinding['subjects']) => {
     <Popover>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           size="icon"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+          }}
           className="flex size-8 items-center gap-1 focus:ring-0">
           <Users className="size-3" />
         </Button>

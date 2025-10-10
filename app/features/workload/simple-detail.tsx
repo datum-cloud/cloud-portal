@@ -2,8 +2,8 @@ import { WorkloadStatus } from './status';
 import { DateTime } from '@/components/date-time';
 import { Field } from '@/components/field/field';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 
 export const SimpleWorkloadDetail = ({
   projectId,

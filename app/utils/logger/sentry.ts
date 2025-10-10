@@ -1,5 +1,5 @@
 import { IUser } from '@/resources/interfaces/user.interface';
-import { getBrowserTimezone } from '@/utils/helpers/timezone';
+import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 import * as Sentry from '@sentry/react';
 
 /**

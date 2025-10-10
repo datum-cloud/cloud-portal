@@ -74,6 +74,7 @@ export const SelectBox = ({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
+            type="button"
             disabled={disabled || isLoading}
             variant="outline"
             role="combobox"
@@ -87,7 +88,7 @@ export const SelectBox = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className={cn('popover-content-width-full min-w-[300px] p-0', className)}
+          className={cn('popover-content-width-full p-0', className)}
           align="center"
           onEscapeKeyDown={() => setOpen(false)}>
           <Command>
@@ -100,16 +101,18 @@ export const SelectBox = ({
                     const isSelected = selectedValue?.value === option.value;
                     return (
                       <CommandItem
+                        asChild
                         value={option.value}
                         key={option.value}
                         onSelect={() => {
                           setInitValue(option.value);
                           setOpen(false);
                         }}
-                        disabled={option.disabled}
-                        className="flex cursor-pointer items-center justify-between">
-                        {previewHandler(option)}
-                        {isSelected && <CheckIcon className="text-primary size-4" />}
+                        disabled={option.disabled}>
+                        <div className="flex w-full cursor-pointer items-center justify-between">
+                          {previewHandler(option)}
+                          {isSelected && <CheckIcon className="text-primary size-4" />}
+                        </div>
                       </CommandItem>
                     );
                   })}

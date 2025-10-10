@@ -3,8 +3,8 @@ import { List, ListItem } from '@/components/list/list';
 import { StatusBadge } from '@/components/status-badge/status-badge';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 

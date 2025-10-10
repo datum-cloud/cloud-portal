@@ -1,7 +1,7 @@
 import { IUser, IUserPreferences, ThemeValue } from '@/resources/interfaces/user.interface';
 import { UserPreferencesSchema, UserSchema } from '@/resources/schemas/user.schema';
 import { toBoolean } from '@/utils/helpers/text.helper';
-import { getBrowserTimezone } from '@/utils/helpers/timezone';
+import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 import { Client } from '@hey-api/client-axios';
 
 export interface ComMiloapisIamV1Alpha1User {

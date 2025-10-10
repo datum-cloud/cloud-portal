@@ -9,9 +9,9 @@ export const handle = {
   breadcrumb: (data: IDomainControlResponse) => <span>{data?.name}</span>,
 };
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
-  const { domain } = data as any;
-  return metaObject((domain as IDomainControlResponse)?.name || 'Domain');
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
+  const domain = loaderData as IDomainControlResponse;
+  return metaObject(domain?.name || 'Domain');
 });
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {

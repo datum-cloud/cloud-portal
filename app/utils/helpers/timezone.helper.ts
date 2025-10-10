@@ -17,7 +17,7 @@ import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 export function getBrowserTimezone(): string {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
-  } catch (error) {
+  } catch {
     // Fallback to UTC if timezone detection fails
     return 'Etc/GMT';
   }
@@ -32,7 +32,7 @@ export function isValidTimezone(timezone: string): boolean {
   try {
     Intl.DateTimeFormat(undefined, { timeZone: timezone });
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }

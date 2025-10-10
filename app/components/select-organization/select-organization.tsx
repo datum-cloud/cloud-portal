@@ -25,6 +25,7 @@ export const SelectOrganization = ({
   triggerClassName,
   hideContent = false,
   hideNewOrganization = false,
+  disabled = false,
 }: {
   currentOrg: Partial<IOrganization>;
   onSelect?: (org: IOrganization) => void;
@@ -32,6 +33,7 @@ export const SelectOrganization = ({
   triggerClassName?: string;
   hideContent?: boolean;
   hideNewOrganization?: boolean;
+  disabled?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
   const fetcher = useFetcher({ key: 'org-list' });
@@ -60,6 +62,7 @@ export const SelectOrganization = ({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          disabled={disabled}
           variant="outline"
           size="sm"
           className={cn(
