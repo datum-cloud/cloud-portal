@@ -21,17 +21,37 @@ const createParser = (type: 'string' | 'array' | 'date' | 'dateRange', defaultVa
   }
 };
 
-// Helper to serialize/deserialize date ranges
+// Helper to serialize/deserialize date ranges using compact timestamp format
+// Format: timestamp_timestamp (e.g., "1728172800_1728345599")
 const serializeDateRange = (value: { from?: Date; to?: Date } | null): string => {
   if (!value || (!value.from && !value.to)) return '';
-  return JSON.stringify({
-    from: value.from?.toISOString() || null,
-    to: value.to?.toISOString() || null,
-  });
+
+  // Convert dates to Unix timestamps (seconds)
+  const startTs = value.from ? Math.floor(value.from.getTime() / 1000) : '';
+  const endTs = value.to ? Math.floor(value.to.getTime() / 1000) : '';
+
+  // If both timestamps exist, use compact format
+  if (startTs && endTs) {
+    return `${startTs}_${endTs}`;
+  }
+
+  // If only one exists, still use underscore format
+  return `${startTs}_${endTs}`;
 };
 
 const deserializeDateRange = (value: string): { from?: Date; to?: Date } | null => {
   if (!value) return null;
+
+  // Try new compact timestamp format (number_number)
+  if (/^\d*_\d*$/.test(value)) {
+    const [startStr, endStr] = value.split('_');
+    return {
+      from: startStr ? new Date(parseInt(startStr, 10) * 1000) : undefined,
+      to: endStr ? new Date(parseInt(endStr, 10) * 1000) : undefined,
+    };
+  }
+
+  // Backward compatibility: try JSON format
   try {
     const parsed = JSON.parse(value);
     return {

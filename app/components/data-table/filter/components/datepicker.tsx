@@ -4,7 +4,9 @@ import {
 } from '@/components/data-table/hooks/useFilterQueryState';
 import { CalendarDatePicker } from '@/components/ui/calendar-date-picker';
 import { Label } from '@/components/ui/label';
+import { useApp } from '@/providers/app.provider';
 import { cn } from '@/utils/common';
+import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone';
 import { useCallback, useMemo } from 'react';
 import { DateRange } from 'react-day-picker';
 
@@ -25,6 +27,9 @@ export interface DatePickerFilterProps {
   disableFuture?: boolean;
   disablePast?: boolean;
   maxRange?: number; // Maximum number of days between start and end date
+  // Timezone-aware options
+  applyDayBoundaries?: boolean; // Apply start/end of day in user's timezone
+  useUserTimezone?: boolean; // Use user's timezone preference for day boundary calculation
 }
 
 export function DatePickerFilter({
@@ -43,12 +48,21 @@ export function DatePickerFilter({
   disableFuture = false,
   disablePast = false,
   maxRange,
+  applyDayBoundaries = false,
+  useUserTimezone = false,
 }: DatePickerFilterProps) {
   // Use appropriate hook based on mode
   const singleFilter = useDateFilter(filterKey);
   const rangeFilter = useDateRangeFilter(filterKey);
 
   const { value, setValue } = mode === 'range' ? rangeFilter : singleFilter;
+
+  // Get user's timezone preference if needed
+  const { userPreferences } = useApp();
+  const timezone = useMemo(() => {
+    if (!useUserTimezone) return undefined;
+    return userPreferences?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }, [useUserTimezone, userPreferences]);
 
   const isRange = mode === 'range';
   const dateValue = value;
@@ -103,22 +117,43 @@ export function DatePickerFilter({
         const validTo =
           range.to && range.to instanceof Date && !isNaN(range.to.getTime()) ? range.to : undefined;
 
-        setValue({
-          from: validFrom,
-          to: validTo,
-        } as any);
+        // Apply timezone-aware day boundaries if enabled
+        if (applyDayBoundaries && useUserTimezone && timezone && validFrom && validTo) {
+          const startTimestamp = toUTCTimestampStartOfDay(validFrom, timezone);
+          const endTimestamp = toUTCTimestampEndOfDay(validTo, timezone);
+
+          // Create Date objects from UTC timestamps
+          const start = new Date(startTimestamp * 1000);
+          const end = new Date(endTimestamp * 1000);
+
+          setValue({
+            from: start,
+            to: end,
+          } as any);
+        } else {
+          setValue({
+            from: validFrom,
+            to: validTo,
+          } as any);
+        }
       } else {
         // Single mode: use only the from date
         // Ensure we have a valid date before setting
         if (range.from && range.from instanceof Date && !isNaN(range.from.getTime())) {
-          setValue(range.from as any);
+          // Apply timezone-aware start of day if enabled
+          if (applyDayBoundaries && useUserTimezone && timezone) {
+            const startTimestamp = toUTCTimestampStartOfDay(range.from, timezone);
+            setValue(new Date(startTimestamp * 1000) as any);
+          } else {
+            setValue(range.from as any);
+          }
         } else {
           // If invalid date, reset to null
           setValue(null as any);
         }
       }
     },
-    [setValue, isRange, filterKey]
+    [setValue, isRange, filterKey, applyDayBoundaries, useUserTimezone, timezone]
   );
 
   return (

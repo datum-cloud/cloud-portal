@@ -9,13 +9,10 @@ import {
   parseRange,
   serializeTimeRange,
 } from '@/modules/metrics/utils/date-parsers';
-import {
-  toUTCTimestampStartOfDay,
-  toUTCTimestampEndOfDay,
-} from '@/modules/metrics/utils/timezone-converters';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { useApp } from '@/providers/app.provider';
 import { cn } from '@/utils/common';
+import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone';
 import { Calendar as CalendarIcon, ChevronDownIcon } from 'lucide-react';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -136,14 +133,14 @@ export const TimeRangeControl = ({
           <div className="flex items-center gap-1">
             <DateTime
               date={timeRange.start}
-              format="MMM d, yyyy"
+              format="MMM d, yyyy hh:mmaaa"
               showTooltip={false}
               disableTimezone
             />
             <span className="text-muted-foreground">-</span>
             <DateTime
               date={timeRange.end}
-              format="MMM d, yyyy"
+              format="MMM d, yyyy hh:mmaaa"
               showTooltip={false}
               disableTimezone
             />

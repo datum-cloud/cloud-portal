@@ -39,12 +39,3 @@ export {
   createRegionFilter,
 } from './utils/query-builders';
 export type { PrometheusLabelFilter, PrometheusQueryBuilderOptions } from './utils/query-builders';
-
-// Export timezone utilities
-export {
-  toUTCTimestampStartOfDay,
-  toUTCTimestampEndOfDay,
-  toUTCTimestamp,
-  createTimezoneAwareRange,
-  fromUTCTimestamp,
-} from './utils/timezone-converters';
