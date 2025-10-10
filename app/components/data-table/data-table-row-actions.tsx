@@ -20,6 +20,11 @@ export const DataTableRowActions = <TData,>({
   const isDisabled = disableRowActions?.(row) ?? false;
 
   return (
-    <MoreActions row={row} actions={actions as MoreActionsProps<TData>[]} disabled={isDisabled} />
+    <MoreActions
+      row={row}
+      actions={actions as MoreActionsProps<TData>[]}
+      disabled={isDisabled}
+      className="border"
+    />
   );
 };

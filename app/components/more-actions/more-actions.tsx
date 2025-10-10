@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dropdown';
 import { cn } from '@/utils/common';
 import { Ellipsis } from 'lucide-react';
+import { useState } from 'react';
 
 export interface MoreActionsProps<TData> {
   key: string;
@@ -30,6 +31,7 @@ export const MoreActions = <TData,>({
   className?: string;
   disabled?: boolean;
 }) => {
+  const [open, setOpen] = useState<boolean>(false);
   // Filter visible actions
   const visibleActions = actions.filter((action) => !action.hidden?.(row));
 
@@ -39,9 +41,10 @@ export const MoreActions = <TData,>({
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
+          onClick={() => setOpen(!open)}
           variant="ghost"
           size="icon"
           disabled={disabled}
@@ -56,9 +59,10 @@ export const MoreActions = <TData,>({
         {visibleActions.map((action) => (
           <DropdownMenuItem
             key={action.key}
-            onSelect={(event) => {
+            onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
+              setOpen(false);
               action.action(row);
             }}
             className={cn(
