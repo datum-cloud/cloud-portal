@@ -1,4 +1,5 @@
 import { IUser } from '@/resources/interfaces/user.interface';
+import { getBrowserTimezone } from '@/utils/helpers/timezone';
 import * as Sentry from '@sentry/react';
 
 /**
@@ -19,7 +20,7 @@ export function setSentryUser(user: IUser): void {
   Sentry.setTag('user.name', `${user.givenName} ${user.familyName}`);
   Sentry.setTag('user.creation_date', user.createdAt?.toString() || 'unknown');
   Sentry.setTag('user.theme', user.preferences?.theme || 'light');
-  Sentry.setTag('user.timezone', user.preferences?.timezone || 'Etc/GMT');
+  Sentry.setTag('user.timezone', user.preferences?.timezone || getBrowserTimezone());
 
   // Add user context as extra data for more detailed debugging
   Sentry.setContext('user', {
