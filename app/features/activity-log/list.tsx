@@ -4,7 +4,6 @@ import { DataTable } from '@/components/data-table/data-table';
 import type { ActivityLogEntry, QueryParams } from '@/modules/loki/types';
 import { ROUTE_PATH as ACTIVITY_ROUTE_PATH } from '@/routes/api/activity';
 import { ColumnDef } from '@tanstack/react-table';
-import { getUnixTime } from 'date-fns';
 import { useMemo, useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { useFetcher } from 'react-router';
@@ -33,9 +32,11 @@ export const ActivityLogList = ({
     let start: string | number = '7d';
     let end: string | number = '';
 
+    // Dates are already in UTC timestamps from the timezone-aware DatePicker
     if (filters?.date) {
-      start = filters.date.from ? getUnixTime(filters.date.from) : start;
-      end = filters.date.to ? getUnixTime(filters.date.to) : end;
+      // Convert Date objects to Unix timestamps (seconds)
+      start = filters.date.from ? Math.floor(filters.date.from.getTime() / 1000) : start;
+      end = filters.date.to ? Math.floor(filters.date.to.getTime() / 1000) : end;
     }
 
     return {
@@ -129,6 +130,8 @@ export const ActivityLogList = ({
             excludePresets={['thisYear', 'lastYear']}
             closeOnSelect={false}
             disableFuture
+            applyDayBoundaries={true}
+            useUserTimezone={true}
           />
         </DataTableFilter>
       }

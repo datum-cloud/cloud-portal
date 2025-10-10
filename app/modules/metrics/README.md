@@ -537,6 +537,59 @@ All filter components automatically sync with URL parameters:
 - ✅ Type-safe parameter parsing
 - ✅ Default value support
 
+### Time Range Format
+
+Time ranges in URLs use Unix timestamp format (seconds) for clean, compact URLs:
+
+```
+# Relative ranges (presets)
+?timeRange=now-24h  # Last 24 hours (day boundaries)
+?timeRange=now-6h   # Last 6 hours (exact time)
+?timeRange=now-7d   # Last 7 days (day boundaries)
+
+# Absolute ranges (custom dates)
+?timeRange=1704067200_1706745599  # Unix timestamps in seconds
+```
+
+**Smart Day Boundaries:**
+
+The time range control intelligently applies day boundaries based on the range duration:
+
+| Range Type   | Example             | Start Time   | End Time     | Use Case             |
+| ------------ | ------------------- | ------------ | ------------ | -------------------- |
+| Minutes      | `now-5m`, `now-30m` | Exact time   | Current time | Real-time monitoring |
+| Hours (<24h) | `now-1h`, `now-12h` | Exact time   | Current time | Real-time monitoring |
+| Hours (≥24h) | `now-24h`           | **00:00:00** | **23:59:59** | Daily reporting      |
+| Days         | `now-2d`, `now-7d`  | **00:00:00** | **23:59:59** | Historical analysis  |
+| Custom dates | Calendar selection  | **00:00:00** | **23:59:59** | Custom reporting     |
+
+This behavior ensures:
+
+- ✅ **Real-time precision** for short ranges (monitoring)
+- ✅ **Full day coverage** for daily/weekly ranges (reporting)
+- ✅ **Consistent timestamps** on day boundaries
+- ✅ **Intuitive user experience** matching mental models
+
+**Timezone-Aware Conversion:**
+
+The time range control automatically handles timezone conversion:
+
+1. **User Selection**: Dates are interpreted in the user's timezone preference (`userPreferences.timezone`)
+2. **UTC Conversion**: Start/end of day applied in user's timezone, then converted to UTC
+3. **API Format**: Sent as Unix timestamps (seconds) to the Prometheus API
+4. **Display**: Results displayed back in user's timezone
+
+Example for a user in PST (UTC-7) selecting "Oct 9, 2025":
+
+```
+User sees: Oct 9, 2025 (PST)
+Start: Oct 9, 2025 00:00:00 PST → 1728464400 UTC
+End:   Oct 9, 2025 23:59:59 PST → 1728550799 UTC
+API receives: { start: 1728464400, end: 1728550799 }
+```
+
+This ensures accurate time range queries regardless of user timezone.
+
 ## Module Structure
 
 ```text

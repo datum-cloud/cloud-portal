@@ -8,7 +8,7 @@ import type {
   QueryBuilderContext,
 } from '@/modules/metrics/types/metrics.type';
 import type { URLStateRegistry } from '@/modules/metrics/types/url.type';
-import { parseRange } from '@/modules/metrics/utils/date-parsers';
+import { parseRange, serializeTimeRange } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import type { TimeRange } from '@/modules/prometheus';
 import { useQueryStates } from 'nuqs';
@@ -163,7 +163,8 @@ export function MetricsProvider({
   // Legacy setters for backward compatibility
   const setTimeRange = useCallback(
     (newTimeRange: TimeRange) => {
-      const rangeString = `${newTimeRange.start.toISOString()}_${newTimeRange.end.toISOString()}`;
+      // Serialize as Unix timestamps (seconds)
+      const rangeString = serializeTimeRange(newTimeRange);
       setUrlState('timeRange', rangeString);
       onCoreControlsChange?.({
         timeRange: newTimeRange,

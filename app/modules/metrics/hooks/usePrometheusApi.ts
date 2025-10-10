@@ -53,7 +53,7 @@ const prometheusQueryKeys = {
 interface PrometheusAPIRequest {
   type: 'chart' | 'card' | 'connection' | 'buildinfo' | 'labels';
   query?: string;
-  timeRange?: TimeRange;
+  timeRange?: TimeRange | { start: number; end: number }; // Accept both Date objects and timestamps
   step?: string;
   metricFormat?: MetricFormat;
   label?: string; // For labels API calls
@@ -70,10 +70,25 @@ interface PrometheusAPIResponse<T> {
 }
 
 async function makePrometheusAPIRequest<T>(request: PrometheusAPIRequest): Promise<T> {
+  // Convert TimeRange Date objects to Unix timestamps before sending
+  const requestBody: any = { ...request };
+
+  if (requestBody.timeRange) {
+    const { timeRange } = requestBody;
+    // Check if timeRange contains Date objects (has getTime method)
+    if ('start' in timeRange && timeRange.start instanceof Date) {
+      requestBody.timeRange = {
+        start: Math.floor(timeRange.start.getTime() / 1000),
+        end: Math.floor(timeRange.end.getTime() / 1000),
+      };
+    }
+    // If already timestamps (numbers), use as-is
+  }
+
   const response = await fetch(PROMETHEUS_ROUTE_PATH, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(request),
+    body: JSON.stringify(requestBody),
   });
 
   const data: PrometheusAPIResponse<T> = await response.json();
