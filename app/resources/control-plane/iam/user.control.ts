@@ -1,6 +1,7 @@
 import { IUser, IUserPreferences, ThemeValue } from '@/resources/interfaces/user.interface';
 import { UserPreferencesSchema, UserSchema } from '@/resources/schemas/user.schema';
 import { toBoolean } from '@/utils/helpers/text.helper';
+import { getBrowserTimezone } from '@/utils/helpers/timezone';
 import { Client } from '@hey-api/client-axios';
 
 export interface ComMiloapisIamV1Alpha1User {
@@ -25,10 +26,9 @@ export const createUserControl = (client: Client) => {
   const transform = (user: ComMiloapisIamV1Alpha1User): IUser => {
     const { metadata, spec } = user;
 
-    // TODO: temporary solution until the user preferences API can be accessed
     const preferences: IUserPreferences = {
       theme: (metadata?.annotations?.['preferences/theme'] ?? 'system') as ThemeValue,
-      timezone: metadata?.annotations?.['preferences/timezone'] ?? 'Etc/GMT',
+      timezone: metadata?.annotations?.['preferences/timezone'] ?? getBrowserTimezone(),
       newsletter: toBoolean(metadata?.annotations?.['preferences/newsletter']),
     };
 

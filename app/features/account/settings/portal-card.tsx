@@ -103,7 +103,7 @@ export const AccountPortalSettingsCard = () => {
   const csrf = useAuthenticityToken();
 
   const [currentTheme, setCurrentTheme] = useState<ThemeValue>(theme as ThemeValue);
-  const [timezone, setTimezone] = useState<string>('Etc/GMT'); // Default is GMT UTC
+  const [timezone, setTimezone] = useState<string>();
 
   const updatePreferences = (payload: { theme?: ThemeValue; timezone?: string }) => {
     fetcher.submit(

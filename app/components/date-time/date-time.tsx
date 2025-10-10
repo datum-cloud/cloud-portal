@@ -9,6 +9,7 @@ import type { DateTimeProps, FormatterOptions } from './types';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useApp } from '@/providers/app.provider';
 import { cn } from '@/utils/common';
+import { getBrowserTimezone } from '@/utils/helpers/timezone';
 import { useEffect, useState } from 'react';
 
 /**
@@ -65,7 +66,7 @@ export const DateTime = ({
   }
 
   // Prepare formatter options
-  const timeZone = timezone ?? userPreferences?.timezone ?? 'Etc/GMT';
+  const timeZone = timezone ?? userPreferences?.timezone ?? getBrowserTimezone();
   const formatterOptions: FormatterOptions = {
     timezone: timeZone,
     disableTimezone,
