@@ -199,7 +199,7 @@ export function MetricChart({
       if (xAxisFormatter) {
         return xAxisFormatter(tickItem);
       }
-      return format(new Date(tickItem), 'HH:mm');
+      return format(new Date(tickItem), 'hh:mmaaa');
     },
     [xAxisFormatter]
   );

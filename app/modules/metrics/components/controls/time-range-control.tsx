@@ -4,10 +4,18 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { PRESET_RANGES } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
-import { getPresetDateRange, parseRange } from '@/modules/metrics/utils/date-parsers';
+import {
+  getPresetDateRange,
+  parseRange,
+  serializeTimeRange,
+} from '@/modules/metrics/utils/date-parsers';
+import {
+  toUTCTimestampStartOfDay,
+  toUTCTimestampEndOfDay,
+} from '@/modules/metrics/utils/timezone-converters';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
+import { useApp } from '@/providers/app.provider';
 import { cn } from '@/utils/common';
-import { endOfDay, startOfDay } from 'date-fns';
 import { Calendar as CalendarIcon, ChevronDownIcon } from 'lucide-react';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -35,6 +43,12 @@ export const TimeRangeControl = ({
   defaultValue = 'now-24h',
 }: TimeRangeControlProps) => {
   const { registerUrlState, updateUrlStateEntry } = useMetrics();
+  const { userPreferences } = useApp();
+
+  // Get user's timezone with fallback to browser timezone
+  const timezone = useMemo(() => {
+    return userPreferences?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }, [userPreferences]);
 
   // Register URL state for this control
   useEffect(() => {
@@ -59,7 +73,8 @@ export const TimeRangeControl = ({
 
   const setTimeRange = useCallback(
     (newTimeRange: { start: Date; end: Date }) => {
-      const rangeString = `${newTimeRange.start.toISOString()}_${newTimeRange.end.toISOString()}`;
+      // Serialize as Unix timestamps (seconds)
+      const rangeString = serializeTimeRange(newTimeRange);
       setUrlValue(rangeString);
     },
     [setUrlValue]
@@ -82,8 +97,14 @@ export const TimeRangeControl = ({
 
   const handleApply = (): void => {
     if (pendingDate?.from && pendingDate?.to) {
-      const start = startOfDay(pendingDate.from);
-      const end = endOfDay(pendingDate.to);
+      // Convert to UTC timestamps using user's timezone
+      const startTimestamp = toUTCTimestampStartOfDay(pendingDate.from, timezone);
+      const endTimestamp = toUTCTimestampEndOfDay(pendingDate.to, timezone);
+
+      // Create Date objects from UTC timestamps for internal representation
+      const start = new Date(startTimestamp * 1000);
+      const end = new Date(endTimestamp * 1000);
+
       setTimeRange({ start, end });
       setIsOpen(false);
       setPendingDate(undefined);
@@ -95,7 +116,8 @@ export const TimeRangeControl = ({
   };
 
   const handlePresetSelect = (preset: { value: string }): void => {
-    const presetRange = getPresetDateRange(preset.value);
+    // Pass user's timezone to get timezone-aware preset ranges
+    const presetRange = getPresetDateRange(preset.value, timezone);
     setTimeRange({ start: presetRange.from, end: presetRange.to });
     setIsOpen(false);
   };
@@ -112,9 +134,19 @@ export const TimeRangeControl = ({
           )}>
           <CalendarIcon className="mr-1 size-4" />
           <div className="flex items-center gap-1">
-            <DateTime date={timeRange.start} format="MMM d, yyyy" showTooltip={false} />
+            <DateTime
+              date={timeRange.start}
+              format="MMM d, yyyy"
+              showTooltip={false}
+              disableTimezone
+            />
             <span className="text-muted-foreground">-</span>
-            <DateTime date={timeRange.end} format="MMM d, yyyy" showTooltip={false} />
+            <DateTime
+              date={timeRange.end}
+              format="MMM d, yyyy"
+              showTooltip={false}
+              disableTimezone
+            />
           </div>
           <ChevronDownIcon className="size-4 opacity-50" />
         </Button>

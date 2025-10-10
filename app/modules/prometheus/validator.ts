@@ -13,23 +13,39 @@ import { z } from 'zod';
 
 /**
  * Time range validation schema
- * Accepts Date objects, ISO strings, or Unix timestamps
+ * Primarily accepts Unix timestamps (seconds), with backward compatibility for Date objects and ISO strings
  */
 export const timeRangeSchema = z
   .object({
     start: z
-      .union([z.date(), z.string().datetime(), z.number().int().positive()])
+      .union([
+        z.number().int().positive(), // Primary: Unix timestamp in seconds
+        z.date(), // Backward compatibility
+        z.string().datetime(), // Backward compatibility
+      ])
       .transform((val) => {
+        if (typeof val === 'number') {
+          // Unix timestamp (seconds) - convert to Date
+          return new Date(val * 1000);
+        }
         if (val instanceof Date) return val;
         if (typeof val === 'string') return new Date(val);
-        return new Date(val * 1000); // Unix timestamp to Date
+        return new Date(); // Fallback
       }),
     end: z
-      .union([z.date(), z.string().datetime(), z.number().int().positive()])
+      .union([
+        z.number().int().positive(), // Primary: Unix timestamp in seconds
+        z.date(), // Backward compatibility
+        z.string().datetime(), // Backward compatibility
+      ])
       .transform((val) => {
+        if (typeof val === 'number') {
+          // Unix timestamp (seconds) - convert to Date
+          return new Date(val * 1000);
+        }
         if (val instanceof Date) return val;
         if (typeof val === 'string') return new Date(val);
-        return new Date(val * 1000); // Unix timestamp to Date
+        return new Date(); // Fallback
       }),
   })
   .refine((data) => data.start < data.end, {
@@ -61,23 +77,40 @@ export const instantQueryParamsSchema = z.object({
 
 /**
  * Range query parameters validation schema
+ * Primarily accepts Unix timestamps (seconds), with backward compatibility
  */
 export const rangeQueryParamsSchema = z
   .object({
     query: z.string().min(1, 'Query cannot be empty'),
     start: z
-      .union([z.string().min(1, 'Start time is required'), z.date(), z.number().int().positive()])
+      .union([
+        z.number().int().positive(), // Primary: Unix timestamp in seconds
+        z.string().min(1, 'Start time is required'), // Backward compatibility
+        z.date(), // Backward compatibility
+      ])
       .transform((val) => {
+        if (typeof val === 'number') {
+          // Unix timestamp (seconds) - convert to Date
+          return new Date(val * 1000);
+        }
         if (val instanceof Date) return val;
         if (typeof val === 'string') return new Date(val);
-        return new Date(val * 1000); // Unix timestamp to Date
+        return new Date(); // Fallback
       }),
     end: z
-      .union([z.string().min(1, 'End time is required'), z.date(), z.number().int().positive()])
+      .union([
+        z.number().int().positive(), // Primary: Unix timestamp in seconds
+        z.string().min(1, 'End time is required'), // Backward compatibility
+        z.date(), // Backward compatibility
+      ])
       .transform((val) => {
+        if (typeof val === 'number') {
+          // Unix timestamp (seconds) - convert to Date
+          return new Date(val * 1000);
+        }
         if (val instanceof Date) return val;
         if (typeof val === 'string') return new Date(val);
-        return new Date(val * 1000); // Unix timestamp to Date
+        return new Date(); // Fallback
       }),
     step: z.string().regex(/^\d+[smhd]$/, "Invalid step format (e.g., '15s', '1m')"),
   })
