@@ -32,7 +32,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
     // Return cached secrets if available and caching is enabled
     if (isCached && cachedSecrets) {
-      return data(cachedSecrets);
+      return data({ success: true, data: cachedSecrets }, { status: 200 });
     }
 
     // Fetch fresh secrets from control plane
@@ -42,7 +42,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     await cache.setItem(key, secrets).catch((error) => {
       console.error('Failed to cache secrets:', error);
     });
-    return data({ success: true, data: secrets });
+    return data({ success: true, data: secrets }, { status: 200 });
   } catch (error: any) {
     return data(
       { success: false, error: error?.message ?? 'An unexpected error occurred' },

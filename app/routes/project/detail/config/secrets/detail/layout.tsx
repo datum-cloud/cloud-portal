@@ -9,9 +9,9 @@ export const handle = {
   breadcrumb: (data: ISecretControlResponse) => <span>{data?.name}</span>,
 };
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
-  const { secret } = data as any;
-  return metaObject((secret as ISecretControlResponse)?.name || 'Secret');
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
+  const secret = loaderData as ISecretControlResponse;
+  return metaObject(secret?.name || 'Secret');
 });
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {

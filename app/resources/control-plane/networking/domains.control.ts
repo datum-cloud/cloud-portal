@@ -1,4 +1,3 @@
-import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import {
   ComDatumapisNetworkingV1AlphaDomain,
   ComDatumapisNetworkingV1AlphaDomainList,
@@ -11,6 +10,7 @@ import {
 } from '@/modules/control-plane/networking';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { DomainSchema } from '@/resources/schemas/domain.schema';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createDomainsControl = (client: Client) => {

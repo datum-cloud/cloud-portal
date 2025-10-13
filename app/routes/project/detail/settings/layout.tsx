@@ -10,7 +10,6 @@ export default function OrgSettingsLayout() {
 
   const navItems: TabsNavProps[] = useMemo(() => {
     const projectId = project?.name;
-    console.log(project);
     return [
       {
         value: 'preferences',

@@ -69,7 +69,7 @@ export default function HttpProxyNewPage() {
   const res = useActionData<typeof action>();
 
   return (
-    <div className="mx-auto w-full max-w-2xl py-8">
+    <div className="mx-auto w-full max-w-3xl py-8">
       {res && res?.uid ? (
         <HttpProxyPreview data={res} projectId={projectId} />
       ) : (

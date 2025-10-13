@@ -1,5 +1,4 @@
-import { Option } from '@/components/select-autocomplete/select-autocomplete.types';
-import { SelectBox } from '@/components/select-box/select-box';
+import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
 import { useMemo } from 'react';
 
 const iataOptions = [
@@ -28,7 +27,7 @@ export const SelectIATA = ({
 }: {
   defaultValue?: string;
   className?: string;
-  onValueChange: (value: Option) => void;
+  onValueChange: (value: SelectBoxOption) => void;
   placeholder?: string;
   name?: string;
   id?: string;

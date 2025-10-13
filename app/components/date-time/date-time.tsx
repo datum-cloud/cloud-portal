@@ -9,7 +9,7 @@ import type { DateTimeProps, FormatterOptions } from './types';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useApp } from '@/providers/app.provider';
 import { cn } from '@/utils/common';
-import { getBrowserTimezone } from '@/utils/helpers/timezone';
+import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 import { useEffect, useState } from 'react';
 
 /**

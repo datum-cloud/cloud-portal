@@ -45,7 +45,7 @@ export const exportPolicySourcesSchema = z
         if (usedNames.has(name)) {
           // If name already exists, add validation error
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             message: `Name "${name}" is already used`,
             path: ['sources', index, 'name'],
           });

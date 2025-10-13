@@ -34,9 +34,13 @@ export const paths = {
         root: '/org/[orgId]/projects',
         new: '/org/[orgId]/projects/new',
       },
+      policyBindings: {
+        root: '/org/[orgId]/policy-bindings',
+        new: '/org/[orgId]/policy-bindings/new',
+        edit: '/org/[orgId]/policy-bindings/[policyBindingId]/edit',
+      },
       settings: {
         preferences: '/org/[orgId]/preferences',
-        policyBindings: '/org/[orgId]/policy-bindings',
         quotas: '/org/[orgId]/quotas',
         activity: '/org/[orgId]/activity',
       },

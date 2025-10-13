@@ -3,8 +3,8 @@ import {
   renderResourceCell,
   renderStatusCell,
   renderSubjectsCell,
-} from './policy-bindings.helpers';
-import { PolicyBindingColumn } from './policy-bindings.types';
+} from './policy-binding.helpers';
+import { PolicyBindingColumn } from './policy-binding.types';
 
 export const getPolicyBindingColumns = (): PolicyBindingColumn[] => [
   {

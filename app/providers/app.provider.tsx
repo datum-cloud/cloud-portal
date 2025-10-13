@@ -1,7 +1,7 @@
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { IUser, IUserPreferences } from '@/resources/interfaces/user.interface';
-import { getBrowserTimezone } from '@/utils/helpers/timezone';
+import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 import { clearSentryUser, setSentryUser } from '@/utils/logger';
 import { ReactNode, createContext, useContext, useEffect, useState, useMemo } from 'react';
 

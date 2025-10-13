@@ -14,7 +14,6 @@ export const createAllowanceBucketsControl = (client: Client) => {
   const transform = (
     resourceGrant: ComMiloapisQuotaV1Alpha1AllowanceBucket
   ): IAllowanceBucketControlResponse => {
-    console.log('resourceGrant', JSON.stringify(resourceGrant, null, 2));
     const { metadata, spec, status } = resourceGrant;
     return {
       name: metadata?.name ?? '',

@@ -10,6 +10,7 @@ export interface IProjectControlResponse {
   uid?: string;
   status?: ComMiloapisResourcemanagerV1Alpha1Project['status'];
   labels?: ILabel;
+  namespace?: string;
 }
 
 export interface IProjectMetadata {

@@ -6,7 +6,7 @@ import { CalendarDatePicker } from '@/components/ui/calendar-date-picker';
 import { Label } from '@/components/ui/label';
 import { useApp } from '@/providers/app.provider';
 import { cn } from '@/utils/common';
-import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone';
+import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone.helper';
 import { useCallback, useMemo } from 'react';
 import { DateRange } from 'react-day-picker';
 

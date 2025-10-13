@@ -1,4 +1,3 @@
-import { transformControlPlaneStatus } from '@/features/control-plane/utils';
 import {
   createGatewayNetworkingV1NamespacedGateway,
   deleteGatewayNetworkingV1NamespacedGateway,
@@ -20,6 +19,7 @@ import {
   IGatewayControlResponseLite,
 } from '@/resources/interfaces/gateway.interface';
 import { GatewaySchema } from '@/resources/schemas/gateway.schema';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { convertLabelsToObject } from '@/utils/helpers/object.helper';
 import { Client } from '@hey-api/client-axios';
 import { omit } from 'es-toolkit/compat';

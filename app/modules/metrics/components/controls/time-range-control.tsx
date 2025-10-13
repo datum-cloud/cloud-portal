@@ -12,7 +12,7 @@ import {
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { useApp } from '@/providers/app.provider';
 import { cn } from '@/utils/common';
-import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone';
+import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone.helper';
 import { Calendar as CalendarIcon, ChevronDownIcon } from 'lucide-react';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
