@@ -66,8 +66,9 @@ export const createPolicyBindingsControl = (client: Client) => {
     };
 
     if (!isEdit) {
+      const name = `${resource.kind}-${payload.resource.name}-${payload.role}-${generateRandomString(6)}`;
       formatted.metadata = {
-        name: `${resource.kind}-${payload.resource.name}-${payload.role}-${generateRandomString(6)}`,
+        name: name.toLowerCase(),
       };
     }
 

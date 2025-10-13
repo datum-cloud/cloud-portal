@@ -7,7 +7,7 @@ import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
 import { paths } from '@/utils/config/paths.config';
 import { HttpError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { FoldersIcon, SettingsIcon, ShieldIcon, UsersIcon } from 'lucide-react';
+import { FoldersIcon, SettingsIcon, UsersIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
 
@@ -51,6 +51,9 @@ export default function OrgLayout() {
     const settingsPreferences = getPathWithParams(paths.org.detail.settings.preferences, { orgId });
     const settingsActivity = getPathWithParams(paths.org.detail.settings.activity, { orgId });
     const settingsQuotas = getPathWithParams(paths.org.detail.settings.quotas, { orgId });
+    const settingsPolicyBindings = getPathWithParams(paths.org.detail.policyBindings.root, {
+      orgId,
+    });
 
     return [
       {
@@ -67,18 +70,16 @@ export default function OrgLayout() {
         hidden: org?.type === OrganizationType.Personal,
       },
       {
-        title: 'Policy bindings',
-        href: getPathWithParams(paths.org.detail.policyBindings.root, { orgId }),
-        type: 'link',
-        icon: ShieldIcon,
-        hidden: org?.type === OrganizationType.Personal,
-      },
-      {
         title: 'Organization settings',
         href: settingsPreferences,
         type: 'link',
         icon: SettingsIcon,
-        tabChildLinks: [settingsPreferences, settingsActivity, settingsQuotas],
+        tabChildLinks: [
+          settingsPreferences,
+          settingsActivity,
+          settingsQuotas,
+          settingsPolicyBindings,
+        ],
       },
     ];
   }, [org]);
