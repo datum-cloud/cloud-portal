@@ -6,7 +6,7 @@ export const policyBindingSubjectSchema = z.object({
   kind: z.enum(Object.values(PolicyBindingSubjectKind) as [string, ...string[]], {
     error: 'Kind is required.',
   }),
-  name: z.string({ error: 'User is required.' }),
+  name: z.string({ error: 'Subject is required.' }),
   uid: z.string().optional(),
 });
 

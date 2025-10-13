@@ -1,5 +1,6 @@
 import { Field } from '@/components/field/field';
 import { SelectBox } from '@/components/select-box/select-box';
+import { SelectGroup } from '@/components/select-group/select-group';
 import { SelectMember } from '@/components/select-member/select-member';
 import { Input } from '@/components/ui/input';
 import { useApp } from '@/providers/app.provider';
@@ -52,7 +53,6 @@ export const SubjectField = ({
             name={fields.kind.name}
             id={fields.kind.id}
             key={fields.kind.id}
-            disabled
             value={kindControl.value}
             onChange={(value) => {
               kindControl.change(value.value);
@@ -64,7 +64,7 @@ export const SubjectField = ({
           />
         </Field>
 
-        <Field isRequired label="User" errors={fields.name.errors} className="w-2/3">
+        <Field isRequired label="Subject" errors={fields.name.errors} className="w-2/3">
           {fields.kind.value === PolicyBindingSubjectKind.User && (
             <SelectMember
               {...getSelectProps(fields.name, { value: false })}
@@ -78,6 +78,21 @@ export const SubjectField = ({
                 uidControl.change(value.uid);
               }}
               exceptItems={exceptItems ?? []}
+            />
+          )}
+
+          {fields.kind.value === PolicyBindingSubjectKind.Group && (
+            <SelectGroup
+              {...getSelectProps(fields.name, { value: false })}
+              name={fields.name.name}
+              id={fields.name.id}
+              key={fields.name.id}
+              orgId={orgId ?? ''}
+              defaultValue={defaultValue?.name}
+              onSelect={(value) => {
+                nameControl.change(value.value);
+                uidControl.change(value.uid);
+              }}
             />
           )}
         </Field>
