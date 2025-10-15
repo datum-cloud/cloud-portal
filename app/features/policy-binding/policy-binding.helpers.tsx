@@ -15,7 +15,7 @@ export type ResourceTooltipProps = {
 export const ResourceRefTooltip = ({ resourceRef }: ResourceTooltipProps) => (
   <Tooltip>
     <TooltipTrigger asChild>
-      <span className="cursor-help">{resourceRef?.name}</span>
+      <span className="cursor-help break-words whitespace-normal">{resourceRef?.name}</span>
     </TooltipTrigger>
     <TooltipContent>
       <div className="space-y-1">
@@ -44,7 +44,7 @@ export type ResourceKindTooltipProps = {
 export const ResourceKindTooltip = ({ resourceKind }: ResourceKindTooltipProps) => (
   <Tooltip>
     <TooltipTrigger asChild>
-      <span className="cursor-help">{resourceKind?.kind}</span>
+      <span className="cursor-help break-words whitespace-normal">{resourceKind?.kind}</span>
     </TooltipTrigger>
     <TooltipContent>
       <div className="space-y-1">

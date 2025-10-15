@@ -55,7 +55,7 @@ export const createPolicyBindingsControl = (client: Client) => {
         },
         roleRef: {
           name: payload.role,
-          namespace: 'milo-system',
+          namespace: payload.roleNamespace ?? 'datum-cloud',
         },
         subjects: payload.subjects.map((subject) => ({
           kind: subject.kind as 'User' | 'Group',
