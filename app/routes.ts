@@ -223,6 +223,9 @@ export default [
       // Groups
       route('groups', 'routes/api/groups/index.ts'),
 
+      // Roles
+      route('roles', 'routes/api/roles/index.ts'),
+
       // Third-party APIs
       // Cloud Validations
       route('cloudvalid/dns', 'routes/api/cloudvalid/dns.ts'),
