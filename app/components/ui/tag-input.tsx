@@ -6,14 +6,17 @@ import React from 'react';
 import { z } from 'zod';
 
 /**
- * used for identifying the split char and use will pasting
+ * Used for identifying split characters when pasting
+ * Splits on: newlines, tabs, semicolons, commas, and pipes
+ * Does NOT split on dots (.) or slashes (/) to preserve email addresses and URLs
  */
-const SPLITTER_REGEX = /[\n#?=&\t,./-]+/;
+const SPLITTER_REGEX = /[\n\t;,|]+/;
 
 /**
- * used for formatting the pasted element for the correct value format to be added
+ * Used for trimming leading/trailing whitespace and special characters
+ * Preserves alphanumeric characters, dots, @, hyphens, and underscores
  */
-const FORMATTING_REGEX = /^[^a-zA-Z0-9]*|[^a-zA-Z0-9]*$/g;
+const FORMATTING_REGEX = /^[\s"'<>]+|[\s"'<>]+$/g;
 
 interface TagsInputProps extends React.HTMLAttributes<HTMLDivElement> {
   value: string[];
@@ -153,6 +156,7 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
 
         if (!pastedText) return;
 
+        // Split and clean the pasted values
         const values = pastedText
           .split(SPLITTER_REGEX)
           .map((val) => val.trim())
@@ -161,22 +165,63 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
 
         if (values.length === 0) return;
 
-        // If there's only one value, treat it as a normal input
+        // If there's only one value, treat it as a normal input with validation
         if (values.length === 1) {
           onValueChangeHandler(values[0]);
           return;
         }
 
-        // For multiple values, add them all if possible
-        const newValues = values.filter(
-          (val) => !value.includes(val) && value.length < parseMaxItems
-        );
+        // For multiple values, validate and add each one
+        const validValues: string[] = [];
+        let hasError = false;
 
-        if (newValues.length > 0) {
-          onValueChange([...value, ...newValues]);
+        for (const val of values) {
+          // Skip if already exists
+          if (value.includes(val) || validValues.includes(val)) {
+            continue;
+          }
+
+          // Check max items limit
+          if (value.length + validValues.length >= parseMaxItems) {
+            break;
+          }
+
+          // Validate with Zod schema if provided
+          if (validator) {
+            try {
+              validator.parse(val);
+              validValues.push(val);
+            } catch {
+              // Skip invalid values when pasting multiple items
+              hasError = true;
+              continue;
+            }
+          } else {
+            validValues.push(val);
+          }
+        }
+
+        // Add all valid values at once
+        if (validValues.length > 0) {
+          onValueChange([...value, ...validValues]);
+        }
+
+        // Show error if some values were invalid
+        if (hasError && validator) {
+          setValidationError('Some pasted values were invalid and skipped');
+          if (onValidationError) {
+            onValidationError('Some pasted values were invalid and skipped');
+          }
+          // Clear error after 3 seconds
+          setTimeout(() => {
+            setValidationError(null);
+            if (onValidationError) {
+              onValidationError(null);
+            }
+          }, 3000);
         }
       },
-      [value, onValueChangeHandler]
+      [value, onValueChangeHandler, validator, parseMaxItems, onValidationError]
     );
 
     const handleSelect = React.useCallback(
@@ -312,6 +357,14 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
       setInputValue(e.currentTarget.value);
     }, []);
 
+    const handleBlur = React.useCallback(() => {
+      // Add the current input value as a tag when input loses focus
+      if (inputValue.trim() !== '') {
+        onValueChangeHandler(inputValue);
+        setInputValue('');
+      }
+    }, [inputValue, onValueChangeHandler]);
+
     const contextValue = React.useMemo(
       () => ({
         value,
@@ -378,6 +431,7 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
             disabled={disableInput}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
+            onBlur={handleBlur}
             value={inputValue}
             onSelect={handleSelect}
             onChange={activeIndex === -1 ? handleChange : undefined}

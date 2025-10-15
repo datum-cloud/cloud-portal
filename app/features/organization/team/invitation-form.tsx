@@ -27,12 +27,20 @@ import {
   useInputControl,
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { useState } from 'react';
 import { Form, useNavigate } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
+import { z } from 'zod';
+
+// Email validator for individual email tags
+const emailValidator = z.email({ error: 'Please enter a valid email address' });
 
 export const InvitationForm = () => {
   const isPending = useIsPending();
   const navigate = useNavigate();
+
+  // State to track real-time validation errors from TagsInput
+  const [tagsInputError, setTagsInputError] = useState<string | null>(null);
 
   const [form, fields] = useForm({
     id: 'invitation-form',
@@ -90,15 +98,31 @@ export const InvitationForm = () => {
             <Field
               isRequired
               label="Emails"
-              errors={fields.emails.errors}
+              errors={
+                // Combine conform errors with TagsInput real-time validation errors
+                tagsInputError
+                  ? [...(fields.emails.errors || []), tagsInputError]
+                  : fields.emails.errors
+              }
               className="w-full"
               description="Enter one or more emails (e.g., example@example.com). Use comma or press Enter to add each email as a tag.">
               <TagsInput
                 {...getSelectProps(fields.emails, { value: false })}
+                validator={emailValidator}
                 showValidationErrors={false}
                 value={(emailsControl.value as string[]) || []}
-                onValueChange={(newValue) => emailsControl.change(newValue)}
+                onValueChange={(newValue) => {
+                  emailsControl.change(newValue);
+                  // Clear TagsInput error when value changes successfully
+                  if (tagsInputError) {
+                    setTagsInputError(null);
+                  }
+                }}
                 placeholder="Enter email"
+                onValidationError={(error) => {
+                  // Set the error in component state to display in Field component
+                  setTagsInputError(error);
+                }}
               />
             </Field>
           </CardContent>

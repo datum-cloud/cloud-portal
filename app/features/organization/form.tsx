@@ -1,6 +1,5 @@
 import { Field } from '@/components/field/field';
 import { InputName } from '@/components/input-name/input-name';
-import { SelectLabels } from '@/components/select-labels/select-labels';
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,7 +37,7 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
   const isPending = useIsPending();
   const navigate = useNavigate();
 
-  const [form, { name, description, labels }] = useForm({
+  const [form, { name, description }] = useForm({
     constraint: getZodConstraint(organizationSchema),
     shouldValidate: 'onInput',
     shouldRevalidate: 'onInput',
@@ -48,7 +47,6 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
     defaultValue: {
       name: '',
       description: '',
-      labels: [] as string[],
     },
   });
 
@@ -59,7 +57,6 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
   const randomSuffix = useMemo(() => generateRandomString(6), []);
 
   const nameControl = useInputControl(name);
-  const labelsControl = useInputControl(labels);
 
   const isEdit = useMemo(() => defaultValue?.name !== undefined, [defaultValue]);
 
@@ -78,11 +75,11 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEdit ? 'Edit organization' : 'Create new organization'}</CardTitle>
+        <CardTitle>{isEdit ? 'Edit organization' : 'Create a new Standard organization'}</CardTitle>
         <CardDescription>
           {isEdit
             ? 'Update the organization details to manage projects in Datum Cloud.'
-            : 'Ideal teams and production use cases with features like groups, RBAC, etc. Same free cost!'}
+            : 'Ideal for teams with features likes groups, RBAC, etc.'}
         </CardDescription>
       </CardHeader>
       <FormProvider context={form.context}>
@@ -128,17 +125,6 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
                 </Field>
               )}
             </div>
-            <Field
-              label="Labels"
-              errors={labels.errors}
-              description="Add labels to help identify, organize, and filter your projects.">
-              <SelectLabels
-                defaultValue={labels.value as string[]}
-                onChange={(value) => {
-                  labelsControl.change(value);
-                }}
-              />
-            </Field>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             {!isEdit && (
