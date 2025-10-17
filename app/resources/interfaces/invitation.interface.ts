@@ -15,4 +15,11 @@ export interface IInvitationControlResponse {
   role?: string;
   state: NonNullable<ComMiloapisIamV1Alpha1UserInvitation['spec']>['state'];
   status: ComMiloapisIamV1Alpha1UserInvitation['status'];
+
+  inviterUser?: {
+    displayName: string;
+  };
+  organization?: {
+    displayName: string;
+  };
 }

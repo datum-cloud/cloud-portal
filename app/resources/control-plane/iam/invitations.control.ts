@@ -38,6 +38,8 @@ const transform = (
     role: spec?.roles?.[0]?.name,
     state: spec?.state ?? 'Pending',
     status: status ?? {},
+    inviterUser: status?.inviterUser,
+    organization: status?.organization,
   };
 };
 

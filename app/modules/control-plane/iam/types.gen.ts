@@ -1122,6 +1122,12 @@ export type ComMiloapisIamV1Alpha1UserInvitationSpec = {
 };
 
 export type ComMiloapisIamV1Alpha1UserInvitationStatus = {
+  inviterUser?: {
+    displayName: string;
+  };
+  organization?: {
+    displayName: string;
+  };
   /**
    * Conditions provide conditions that represent the current status of the UserInvitation.
    */
