@@ -122,3 +122,15 @@ export const isValidPrometheusConfig = (json: string): boolean => {
   const { username, password } = basic_auth;
   return !!username && typeof password === 'string' && !!password;
 };
+
+// Sanitize resource kind and name to follow Kubernetes naming conventions
+// Names must contain only lowercase alphanumeric characters, '-', and '.'
+// Must start and end with alphanumeric characters, be unique within namespace
+export const sanitizeForK8s = (str: string): string => {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9.-]/g, '-') // Replace invalid chars with hyphens
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .slice(0, 200); // Conservative limit to ensure total name < 253 chars
+};
