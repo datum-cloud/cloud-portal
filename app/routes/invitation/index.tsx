@@ -127,16 +127,14 @@ export default function GettingStartedPage() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Organization Name Display */}
-          <div className="rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 p-4">
-            <p className="mb-2 text-xs font-medium tracking-wide text-gray-500 uppercase">
-              Organization
-            </p>
-            <p className="text-lg font-semibold break-words text-gray-900">
-              {invitation.organizationName}
-            </p>
-            {/* <p className="text-sm text-gray-500 font-mono mt-1">{organizationSlug}</p> */}
-          </div>
+          <p className="text-center text-base font-normal break-words">
+            <strong>
+              {invitation.inviterUser?.displayName || invitation.invitedBy || 'Someone'}
+            </strong>{' '}
+            has invited you to join{' '}
+            <strong>{invitation.organization?.displayName || invitation.organizationName}</strong>{' '}
+            organization
+          </p>
         </CardContent>
         <CardFooter className="flex flex-col gap-3 pt-6">
           {!isEmailMatch ? (

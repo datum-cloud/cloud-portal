@@ -101,7 +101,7 @@ export default function OrgTeamPage() {
         </span>
       ),
       submitText: 'Cancel',
-      cancelText: 'Cancel',
+      cancelText: 'Close',
       confirmValue: 'CANCEL',
       confirmInputLabel: 'Type "CANCEL" to confirm.',
       variant: 'destructive',
