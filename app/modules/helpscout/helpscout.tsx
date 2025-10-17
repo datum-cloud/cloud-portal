@@ -196,7 +196,7 @@ export const helpScoutAPI = {
    */
   open: () => {
     if (window.Beacon && window.BeaconLoaded) {
-      window.Beacon('open');
+      window.Beacon('open', { view: 'chat' });
     }
   },
 
@@ -318,5 +318,11 @@ export const helpScoutAPI = {
       typeof window.Beacon === 'function' &&
       window.BeaconLoaded === true
     );
+  },
+
+  navigate: (view: string) => {
+    if (window.Beacon && window.BeaconLoaded) {
+      window.Beacon('navigate', view ?? '/');
+    }
   },
 };
