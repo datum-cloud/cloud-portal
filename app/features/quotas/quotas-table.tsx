@@ -1,9 +1,61 @@
 import { DataTable } from '@/components/data-table';
+import { Button } from '@/components/ui/button';
+import { helpScoutAPI } from '@/modules/helpscout';
 import { IAllowanceBucketControlResponse } from '@/resources/interfaces/allowance-bucket';
+import { IOrganization } from '@/resources/interfaces/organization.interface';
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { ColumnDef } from '@tanstack/react-table';
+import { ArrowUpIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
-export const QuotasTable = ({ data }: { data: IAllowanceBucketControlResponse[] }) => {
+export const QuotasTable = ({
+  data,
+  resourceType,
+  resource,
+}: {
+  data: IAllowanceBucketControlResponse[];
+  resourceType: 'organization' | 'project';
+  resource: IOrganization | IProjectControlResponse;
+}) => {
+  const calculateUsage = (usage: { allocated: bigint; limit: bigint }) => {
+    const used =
+      typeof usage.allocated === 'bigint' ? Number(usage.allocated) : (usage.allocated ?? 0);
+    const total = typeof usage.limit === 'bigint' ? Number(usage.limit) : (usage.limit ?? 0);
+    const percentage = total > 0 ? Math.round((used / total) * 100) : 0;
+    return { used, total, percentage };
+  };
+
+  const getProgressBarColor = (percentage: number, limit: number) => {
+    if (limit === 0) {
+      return 'bg-gray-400'; // Gray for no limit set
+    }
+    if (percentage <= 70) {
+      return 'bg-green-500'; // Green for healthy usage (0-70%)
+    }
+    if (percentage <= 90) {
+      return 'bg-yellow-500'; // Yellow for warning (70-90%)
+    }
+    return 'bg-red-500'; // Red for critical (90-100%)
+  };
+
+  const handleRequestIncrease = (quota: IAllowanceBucketControlResponse) => {
+    helpScoutAPI.open();
+    helpScoutAPI.navigate('/ask/message/');
+
+    helpScoutAPI.prefill({
+      subject: `Quota increase request: ${quota.resourceType}`,
+      text:
+        `Hello team,\n\n` +
+        `I'd like to request an increase for the "${quota.resourceType}" quota.\n\n` +
+        `Details:\n` +
+        (resourceType === 'organization'
+          ? `- Organization: ${(resource as IOrganization)?.displayName} (${(resource as IOrganization)?.name})\n`
+          : `- Project: ${(resource as IProjectControlResponse)?.description} (${(resource as IProjectControlResponse)?.name})\n`) +
+        `- Requested new limit: [please specify]\n` +
+        `- Reason/justification: [brief context, e.g., upcoming workload/traffic]\n\n` +
+        `Thank you!`,
+    });
+  };
   const columns: ColumnDef<IAllowanceBucketControlResponse>[] = useMemo(() => {
     return [
       {
@@ -18,40 +70,35 @@ export const QuotasTable = ({ data }: { data: IAllowanceBucketControlResponse[] 
           if (!row.original.status) {
             return <div>-</div>;
           }
-          const { allocated = 0, limit = 0 } = row.original.status;
-          // Ensure both used and total are numbers for safe division, and handle bigint if present
-          const used = typeof allocated === 'bigint' ? Number(allocated) : (allocated ?? 0);
-          const total = typeof limit === 'bigint' ? Number(limit) : (limit ?? 0);
-          const percentage = total > 0 ? Math.round((used / total) * 100) : 0;
-
-          // Determine progress bar color based on thresholds
-          const getProgressBarColor = (percentage: number, limit: number) => {
-            if (limit === 0) {
-              return 'bg-gray-400'; // Gray for no limit set
-            }
-            if (percentage <= 70) {
-              return 'bg-green-500'; // Green for healthy usage (0-70%)
-            }
-            if (percentage <= 90) {
-              return 'bg-yellow-500'; // Yellow for warning (70-90%)
-            }
-            return 'bg-red-500'; // Red for critical (90-100%)
-          };
+          const { used, total, percentage } = calculateUsage(row.original.status);
 
           return (
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold">
-                  {used} / {total}
-                </span>
-                <span className="text-muted-foreground text-xs font-medium">({percentage}%)</span>
+            <div className="flex items-center gap-4">
+              <div className="flex flex-1 flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold">
+                    {used} / {total}
+                  </span>
+                  <span className="text-muted-foreground text-xs font-medium">({percentage}%)</span>
+                </div>
+                <div className="bg-muted h-2 w-full rounded-full">
+                  <div
+                    className={`${getProgressBarColor(percentage, total)} h-2 rounded-full transition-all`}
+                    style={{ width: `${Math.min(percentage, 100)}%` }}
+                  />
+                </div>
               </div>
-              <div className="bg-muted h-2 w-full rounded-full">
-                <div
-                  className={`${getProgressBarColor(percentage, total)} h-2 rounded-full transition-all`}
-                  style={{ width: `${Math.min(percentage, 100)}%` }}
-                />
-              </div>
+              {percentage > 90 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 gap-1 px-2 text-xs"
+                  onClick={() => handleRequestIncrease(row.original)}>
+                  <ArrowUpIcon className="h-4 w-4" />
+                  Request Limit
+                </Button>
+              )}
             </div>
           );
         },
