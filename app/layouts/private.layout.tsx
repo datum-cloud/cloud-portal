@@ -95,16 +95,16 @@ export default function PrivateLayout() {
         </ConfirmationDialogProvider>
       </TooltipProvider>
 
-      {/* {helpscoutEnv.HELPSCOUT_BEACON_ID && helpscoutEnv.isProd && ( */}
-      <HelpScoutBeacon
-        beaconId={helpscoutEnv.HELPSCOUT_BEACON_ID}
-        user={{
-          name: `${data?.user?.givenName} ${data?.user?.familyName}`,
-          email: data?.user?.email,
-          signature: helpscoutEnv.userSignature ?? '',
-        }}
-      />
-      {/* )} */}
+      {helpscoutEnv.HELPSCOUT_BEACON_ID && helpscoutEnv.isProd && (
+        <HelpScoutBeacon
+          beaconId={helpscoutEnv.HELPSCOUT_BEACON_ID}
+          user={{
+            name: `${data?.user?.givenName} ${data?.user?.familyName}`,
+            email: data?.user?.email,
+            signature: helpscoutEnv.userSignature ?? '',
+          }}
+        />
+      )}
     </AppProvider>
   );
 }
