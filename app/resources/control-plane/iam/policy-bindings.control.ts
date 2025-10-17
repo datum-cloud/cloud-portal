@@ -11,6 +11,7 @@ import {
 import { IPolicyBindingControlResponse } from '@/resources/interfaces/policy-binding.interface';
 import { NewPolicyBindingSchema } from '@/resources/schemas/policy-binding.schema';
 import { buildNamespace } from '@/utils/common';
+import { sanitizeForK8s } from '@/utils/helpers/format.helper';
 import { generateRandomString } from '@/utils/helpers/text.helper';
 import { Client } from '@hey-api/client-axios';
 
@@ -55,7 +56,7 @@ export const createPolicyBindingsControl = (client: Client) => {
         },
         roleRef: {
           name: payload.role,
-          namespace: 'milo-system',
+          namespace: payload.roleNamespace ?? 'datum-cloud',
         },
         subjects: payload.subjects.map((subject) => ({
           kind: subject.kind as 'User' | 'Group',
@@ -66,9 +67,14 @@ export const createPolicyBindingsControl = (client: Client) => {
     };
 
     if (!isEdit) {
-      const name = `${resource.kind}-${payload.resource.name}-${payload.role}-${generateRandomString(6)}`;
+      const sanitizedKind = sanitizeForK8s(resource.kind);
+      const sanitizedResourceName = sanitizeForK8s(payload.resource.name);
+      const randomSuffix = generateRandomString(6);
+
+      const name = `${sanitizedKind}-${sanitizedResourceName}-${randomSuffix}`;
+
       formatted.metadata = {
-        name: name.toLowerCase(),
+        name,
       };
     }
 

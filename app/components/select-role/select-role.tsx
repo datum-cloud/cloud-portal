@@ -1,40 +1,70 @@
-import { SelectBox } from '@/components/select-box/select-box';
-import { RoleLabels, Roles } from '@/resources/interfaces/role.interface';
-
-// Generate options dynamically from enum
-const options = Object.values(Roles).map((role) => ({
-  value: role,
-  label: RoleLabels[role],
-}));
+import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
+import { IRoleControlResponse } from '@/resources/interfaces/role.interface';
+import { ROUTE_PATH as ROLES_LIST_PATH } from '@/routes/api/roles';
+import { useEffect, useMemo, useState } from 'react';
+import { useFetcher } from 'react-router';
+import { toast } from 'sonner';
 
 export const SelectRole = ({
   defaultValue,
   className,
-  onChange,
-  disabled,
-  id,
+  onSelect,
   name,
-  key,
+  id,
+  disabled,
 }: {
   defaultValue?: string;
   className?: string;
-  onChange: (value: string) => void;
-  disabled?: boolean;
-  id?: string;
+  onSelect: (value: SelectBoxOption) => void;
   name?: string;
-  key?: string;
+  id?: string;
+  disabled?: boolean;
 }) => {
+  const fetcher = useFetcher({ key: 'role-list' });
+
+  const [roles, setRoles] = useState<IRoleControlResponse[]>([]);
+
+  useEffect(() => {
+    fetcher.load(`${ROLES_LIST_PATH}`);
+  }, []);
+
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      const { success, error, data } = fetcher.data;
+      if (!success) {
+        toast.error(error);
+        return;
+      }
+
+      setRoles(data);
+    }
+  }, [fetcher.data, fetcher.state]);
+
+  const options = useMemo(() => {
+    return roles.map((role) => {
+      return {
+        value: role.name,
+        label: role.name,
+        ...role,
+      };
+    });
+  }, [roles]);
+
   return (
     <SelectBox
-      value={defaultValue}
-      className={className}
-      onChange={(value) => onChange(value.value)}
-      options={options}
-      placeholder="Select a role"
       disabled={disabled}
       name={name}
       id={id}
-      key={key}
+      value={defaultValue}
+      className={className}
+      onChange={(value: SelectBoxOption) => {
+        if (value) {
+          onSelect(value);
+        }
+      }}
+      options={options}
+      placeholder="Select a Role"
+      isLoading={fetcher.state === 'loading'}
     />
   );
 };

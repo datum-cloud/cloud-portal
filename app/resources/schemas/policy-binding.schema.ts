@@ -1,5 +1,4 @@
 import { PolicyBindingSubjectKind } from '@/resources/interfaces/policy-binding.interface';
-import { Roles } from '@/resources/interfaces/role.interface';
 import { z } from 'zod';
 
 export const policyBindingSubjectSchema = z.object({
@@ -19,9 +18,8 @@ export const policyBindingResourceSchema = z.object({
 
 export const newPolicyBindingSchema = z.object({
   resource: policyBindingResourceSchema,
-  role: z.enum(Object.values(Roles) as [string, ...string[]], {
-    error: 'Role is required.',
-  }),
+  role: z.string({ error: 'Role is required.' }),
+  roleNamespace: z.string().optional(),
   subjects: z
     .array(policyBindingSubjectSchema)
     .min(1, { message: 'At least one subject is required' }),
