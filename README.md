@@ -19,6 +19,7 @@
     <a href="#">
         <img alt="Tailwind" src="https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white" />
     </a>
+<a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fdatum-cloud%2Fcloud-portal?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdatum-cloud%2Fcloud-portal.svg?type=shield"/></a>
     <a href="#">
         <img alt="Typescript" src="https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white" />
     </a>
@@ -54,3 +55,7 @@ Key Features
 - [Development guide](docs/development.md)
 - [Design guide](docs/design.md)
 - [Deployment guide](docs//deployment.md)
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdatum-cloud%2Fcloud-portal.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdatum-cloud%2Fcloud-portal?ref=badge_large)
