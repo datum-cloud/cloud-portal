@@ -56,8 +56,11 @@ export class LokiActivityLogsService {
     });
 
     // Process logs
+    const showNamespace = !queryParams.organization; // Hide namespace for org-level queries
     let logs =
-      response.logs && Array.isArray(response.logs) ? processLogEntries(response.logs) : [];
+      response.logs && Array.isArray(response.logs)
+        ? processLogEntries(response.logs, { showNamespace })
+        : [];
 
     // Apply flexible search (q parameter) on server side
     if (queryParams.q) {

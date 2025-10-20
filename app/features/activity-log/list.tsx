@@ -21,6 +21,7 @@ export const ActivityLogList = ({
   const fetcher = useFetcher<{
     success: boolean;
     message?: string;
+    error?: string;
     data: { logs: ActivityLogEntry[] };
   }>({ key: 'activity-logs' });
   const [logs, setLogs] = useState<ActivityLogEntry[]>([]);
@@ -96,7 +97,7 @@ export const ActivityLogList = ({
       if (fetcher.data?.success) {
         setLogs(fetcher.data?.data?.logs ?? []);
       } else {
-        toast.error(fetcher.data?.message);
+        toast.error(fetcher.data?.error);
       }
 
       setIsLoading(false);

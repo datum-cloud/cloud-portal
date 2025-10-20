@@ -100,47 +100,16 @@ export function formatAuditMessage(auditLog: any, options: FormatAuditMessageOpt
     message += `/${resourceName}`;
   }
 
-  if (namespace && namespace !== 'default') {
+  const { showNamespace = true } = options;
+  if (showNamespace && namespace && namespace !== 'default') {
     message += ` in namespace ${namespace}`;
-  }
-
-  /* if (stage && stage !== 'ResponseComplete') {
-    message += ` (${stage})`;
-  } */
-
-  /* if (statusCode) {
-    message += ` → ${statusCode}`;
-    
-    const description = STATUS_DESCRIPTIONS[statusCode];
-    if (description) {
-      message += ` ${description}`;
-    }
-  } */
-
-  // Add error message if present and it's an error
-  if (
-    auditLog.responseStatus?.message &&
-    auditLog.responseStatus?.code &&
-    auditLog.responseStatus.code >= 400
-  ) {
-    const errorMsg = auditLog.responseStatus.message;
-
-    // Apply truncation if enabled
-    const { truncate = true, maxLength = 100, truncateSuffix = '...' } = options;
-
-    const processedMsg =
-      truncate && errorMsg.length > maxLength
-        ? `${errorMsg.substring(0, maxLength)}${truncateSuffix}`
-        : errorMsg;
-
-    message += ` - ${processedMsg}`;
   }
 
   return message;
 }
 
 /**
- * Formats a status message with code and description
+ * Formats a simplified status message for audit logs
  */
 export function formatStatusMessage(auditLog: any): string | undefined {
   if (!auditLog.responseStatus?.code) {
@@ -148,10 +117,30 @@ export function formatStatusMessage(auditLog: any): string | undefined {
   }
 
   const statusCode = auditLog.responseStatus.code;
-  const description = STATUS_DESCRIPTIONS[statusCode] || '';
-  let statusMessage = `${statusCode} ${description}`;
 
-  return statusMessage;
+  // Return simplified category instead of detailed status
+  if (statusCode >= 200 && statusCode < 300) {
+    return 'Success';
+  } else if (statusCode >= 400 && statusCode < 500) {
+    return 'Client Error';
+  } else if (statusCode >= 500 && statusCode < 600) {
+    return 'Server Error';
+  }
+
+  return undefined;
+}
+
+/**
+ * Formats a detailed status message for tooltips
+ */
+export function formatDetailedStatusMessage(auditLog: any): string | undefined {
+  if (!auditLog.responseStatus?.code) {
+    return undefined;
+  }
+
+  const statusCode = auditLog.responseStatus.code;
+  const description = STATUS_DESCRIPTIONS[statusCode] || '';
+  return `${statusCode} ${description}`;
 }
 
 /**
@@ -181,34 +170,17 @@ export function formatAuditMessageHtml(
   if (action === 'Watch') actionDescription = 'Watched';
 
   let message = `<span class="activity-log-user">${user}</span> <span class="activity-log-event">${actionDescription.toLowerCase()}</span> `;
-  message += `<span class="activity-log-resource">${resource}`;
+  message += `<span class="activity-log-resource">${resource}</span> `;
 
   if (resourceName) {
-    message += `/${resourceName}`;
+    message += `<span class="activity-log-resource-name">${resourceName}</span>`;
   }
-  message += '</span>';
 
-  if (namespace && namespace !== 'default') {
+  const { showNamespace = true } = options;
+
+  // && namespace !== 'default'
+  if (showNamespace && namespace) {
     message += ` in <span class="activity-log-namespace">${namespace}</span>`;
-  }
-
-  // Add error message if present and it's an error
-  if (
-    auditLog.responseStatus?.message &&
-    auditLog.responseStatus?.code &&
-    auditLog.responseStatus.code >= 400
-  ) {
-    const errorMsg = auditLog.responseStatus.message;
-
-    // Apply truncation if enabled
-    const { truncate = true, maxLength = 100, truncateSuffix = '...' } = options;
-
-    const processedMsg =
-      truncate && errorMsg.length > maxLength
-        ? `${errorMsg.substring(0, maxLength)}${truncateSuffix}`
-        : errorMsg;
-
-    message += ` - <span class="activity-log-error-message">${processedMsg}</span>`;
   }
 
   return message;
