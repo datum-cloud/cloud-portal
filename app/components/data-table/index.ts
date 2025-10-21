@@ -99,3 +99,16 @@ export type { CheckboxFilterProps, CheckboxOption } from './filter/components/ch
 // Re-export everything from filter for backward compatibility
 // This ensures existing imports from '@/components/data-table/filter' continue to work
 export * from './filter';
+
+// =============================================================================
+// Utilities
+// =============================================================================
+
+// Date serialization utilities for filter state management
+export {
+  serializeDateRange,
+  deserializeDateRange,
+  serializeDate,
+  deserializeDate,
+  isDateRangeFormat,
+} from './utils/date-serialization';

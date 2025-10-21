@@ -154,6 +154,7 @@ export function formatAuditMessageHtml(
   const action = auditLog.verb
     ? auditLog.verb.charAt(0).toUpperCase() + auditLog.verb.slice(1).toLowerCase()
     : 'Unknown';
+
   const resource = auditLog.objectRef?.resource || auditLog.resource?.resource || 'resource';
   const resourceName = auditLog.objectRef?.name || auditLog.resource?.name;
   const namespace = auditLog.objectRef?.namespace || auditLog.resource?.namespace;

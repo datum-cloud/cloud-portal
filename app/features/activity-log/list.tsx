@@ -26,19 +26,37 @@ export const ActivityLogList = ({
   }>({ key: 'activity-logs' });
   const [logs, setLogs] = useState<ActivityLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filters, setFilters] = useState<{ q?: string; date?: DateRange }>();
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [filters, setFilters] = useState<{ q?: string; date?: DateRange }>({});
+
+  // Calculate default date range (last 7 days) to match the default query
+  const defaultDateRange = useMemo(() => {
+    const today = new Date();
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    return {
+      from: sevenDaysAgo,
+      to: today,
+    };
+  }, []);
 
   // Memoize the query parameters to prevent infinite re-renders
   const queryParams = useMemo(() => {
-    let start: string | number = '7d';
+    let start: string | number = '';
     let end: string | number = '';
 
-    // Dates are already in UTC timestamps from the timezone-aware DatePicker
+    // Use filter dates if available, otherwise use default date range
     if (filters?.date) {
       // Convert Date objects to Unix timestamps (seconds)
       start = filters.date.from ? Math.floor(filters.date.from.getTime() / 1000) : start;
       end = filters.date.to ? Math.floor(filters.date.to.getTime() / 1000) : end;
+    } else if (filters !== undefined) {
+      // Only use default when filters state is initialized but no date filter exists
+      // This prevents using default when URL has date parameter (filters will be undefined initially)
+      start = Math.floor(defaultDateRange.from.getTime() / 1000);
+      end = Math.floor(defaultDateRange.to.getTime() / 1000);
     }
+    // If filters is undefined, skip this render (waiting for URL params to load)
 
     return {
       start,
@@ -59,10 +77,16 @@ export const ActivityLogList = ({
     params?.actions,
     filters?.q,
     filters?.date,
+    defaultDateRange,
   ]);
 
   // Fetch activity logs when query parameters change
   useEffect(() => {
+    // Don't fetch if we don't have start/end dates (waiting for URL params or default)
+    if (!queryParams.start || !queryParams.end) {
+      return;
+    }
+
     // Convert QueryParams to string record for URLSearchParams
     const stringParams: Record<string, string> = {};
     Object.entries(queryParams).forEach(([key, value]) => {
@@ -101,6 +125,7 @@ export const ActivityLogList = ({
       }
 
       setIsLoading(false);
+      setIsFiltering(false); // End filtering when data is loaded
     }
   }, [fetcher.data, fetcher.state]);
 
@@ -115,12 +140,13 @@ export const ActivityLogList = ({
       }}
       tableTitle={title ? { title } : undefined}
       tableClassName="table-fixed"
-      isLoading={isLoading}
-      loadingText="Loading activity..."
+      isLoading={isLoading || isFiltering}
+      loadingText={isFiltering ? 'Filtering activity...' : 'Loading activity...'}
       tableCardClassName="px-3 py-2"
       className={className}
       serverSideFiltering
       onFiltersChange={setFilters}
+      onFilteringStart={() => setIsFiltering(true)}
       filterComponent={
         <DataTableFilter>
           <DataTableFilter.Search filterKey="q" placeholder="Search activity..." />
@@ -133,6 +159,7 @@ export const ActivityLogList = ({
             disableFuture
             applyDayBoundaries={true}
             useUserTimezone={true}
+            defaultValue={defaultDateRange}
           />
         </DataTableFilter>
       }
