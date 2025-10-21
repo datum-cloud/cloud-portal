@@ -58,7 +58,9 @@ export interface ActivityLogEntry {
   timestamp: string;
   message: string;
   formattedMessage?: string; // HTML formatted message with class names
-  statusMessage?: string; // Status code and description
+  statusMessage?: string; // Simplified status (Success/Client Error/Server Error)
+  detailedStatusMessage?: string; // Detailed status for tooltips (200 OK, 403 Forbidden, etc.)
+  errorMessage?: string; // Error message from responseStatus.message
   level: string;
   labels?: Record<string, string>;
   raw?: string;
@@ -125,6 +127,7 @@ export interface FormatAuditMessageOptions {
   truncate?: boolean;
   maxLength?: number;
   truncateSuffix?: string;
+  showNamespace?: boolean; // Control namespace display in formatted messages
 }
 
 export interface ActivityCategory {

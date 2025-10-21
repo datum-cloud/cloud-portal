@@ -20,6 +20,8 @@ export interface DataTableProps<TData, TValue> {
   filterComponent?: React.ReactNode;
   defaultFilters?: Record<string, any>;
   onFiltersChange?: (filters: Record<string, any>) => void;
+  onFilteringStart?: () => void; // Callback when filtering starts (for loading states)
+  onFilteringEnd?: () => void; // Callback when filtering completes
 
   // Filter strategy
   serverSideFiltering?: boolean; // true = API/server filtering, false = client/table filtering (default: false)

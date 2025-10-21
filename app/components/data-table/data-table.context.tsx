@@ -1,3 +1,4 @@
+import { deserializeDateRange, isDateRangeFormat } from './utils/date-serialization';
 import type {
   ColumnDef,
   ColumnFiltersState,
@@ -91,6 +92,8 @@ export interface DataTableProviderProps<TData, TValue> {
 
   // Filter props
   onFiltersChange?: (filters: FilterState) => void;
+  onFilteringStart?: () => void;
+  onFilteringEnd?: () => void;
   defaultFilters?: FilterState;
   serverSideFiltering?: boolean;
 }
@@ -109,6 +112,8 @@ export function DataTableProvider<TData, TValue>({
   getFacetedUniqueValues,
   getFacetedMinMaxValues,
   onFiltersChange,
+  onFilteringStart,
+  onFilteringEnd: _onFilteringEnd, // Prefix with _ to indicate intentionally unused (reserved for future use)
   defaultFilters = {},
   serverSideFiltering = false,
 }: DataTableProviderProps<TData, TValue>) {
@@ -149,17 +154,22 @@ export function DataTableProvider<TData, TValue>({
         // Parse URL parameters into filter object
         for (const [key, value] of urlParams.entries()) {
           if (value && value.trim() !== '') {
-            // Try to parse as JSON for complex values, otherwise use as string
-            try {
-              // Check if it looks like a JSON array or object
-              if (value.startsWith('[') || value.startsWith('{')) {
-                urlFilters[key] = JSON.parse(value);
-              } else {
+            // Check if it's a date range format (timestamp_timestamp)
+            if (isDateRangeFormat(value)) {
+              urlFilters[key] = deserializeDateRange(value);
+            } else {
+              // Try to parse as JSON for complex values, otherwise use as string
+              try {
+                // Check if it looks like a JSON array or object
+                if (value.startsWith('[') || value.startsWith('{')) {
+                  urlFilters[key] = JSON.parse(value);
+                } else {
+                  urlFilters[key] = value;
+                }
+              } catch {
+                // If JSON parsing fails, use as string
                 urlFilters[key] = value;
               }
-            } catch {
-              // If JSON parsing fails, use as string
-              urlFilters[key] = value;
             }
           }
         }
@@ -192,10 +202,15 @@ export function DataTableProvider<TData, TValue>({
         table.getColumn(key)?.setFilterValue(value);
       }
 
+      // Call filtering start callback for server-side filtering
+      if (serverSideFiltering && onFilteringStart) {
+        onFilteringStart();
+      }
+
       // Always call onChange callback for API filtering or external handling
       onFiltersChange?.(updatedFilterState);
     },
-    [table, onFiltersChange, mergedFilterState, serverSideFiltering]
+    [table, onFiltersChange, onFilteringStart, mergedFilterState, serverSideFiltering]
   );
 
   const resetFilter = useCallback(

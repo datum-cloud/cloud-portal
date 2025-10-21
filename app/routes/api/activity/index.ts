@@ -1,6 +1,6 @@
 import { getSession } from '@/modules/cookie/session.server';
 import { LokiActivityLogsService, type QueryParams } from '@/modules/loki';
-import { AuthenticationError, AppError } from '@/utils/errors';
+import { AuthenticationError } from '@/utils/errors';
 import { data, type LoaderFunctionArgs } from 'react-router';
 
 /**
@@ -70,8 +70,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       data: activityLogsResponse,
     });
   } catch (error) {
-    const isAppError = error instanceof AppError;
-    const message = isAppError ? (error as AppError).message : 'Internal Server Error';
+    const message = (error as any).message ?? 'Internal Server Error';
 
     return data({ success: false, error: message });
   }

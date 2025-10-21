@@ -21,6 +21,7 @@ export interface DatePickerFilterProps {
   yearsRange?: number; // Range of years to show in selector
   placeholder?: string;
   excludePresets?: string[];
+  defaultValue?: Date | { from?: Date; to?: Date } | null; // Default value for the filter
   // Date range constraints
   minDate?: Date;
   maxDate?: Date;
@@ -43,6 +44,7 @@ export function DatePickerFilter({
   yearsRange = 10,
   placeholder,
   excludePresets,
+  defaultValue,
   minDate,
   maxDate,
   disableFuture = false,
@@ -52,8 +54,14 @@ export function DatePickerFilter({
   useUserTimezone = false,
 }: DatePickerFilterProps) {
   // Use appropriate hook based on mode
-  const singleFilter = useDateFilter(filterKey);
-  const rangeFilter = useDateRangeFilter(filterKey);
+  const singleFilter = useDateFilter(
+    filterKey,
+    mode === 'single' ? (defaultValue as Date | null) : null
+  );
+  const rangeFilter = useDateRangeFilter(
+    filterKey,
+    mode === 'range' ? (defaultValue as { from?: Date; to?: Date } | null) : null
+  );
 
   const { value, setValue } = mode === 'range' ? rangeFilter : singleFilter;
 

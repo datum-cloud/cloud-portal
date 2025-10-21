@@ -1,4 +1,10 @@
 import { useDataTableFilter, FilterValue } from '../data-table.context';
+import {
+  serializeDateRange,
+  deserializeDateRange,
+  serializeDate,
+  deserializeDate,
+} from '../utils/date-serialization';
 import { useQueryState } from 'nuqs';
 import { parseAsString, parseAsArrayOf } from 'nuqs';
 import { useEffect, useMemo } from 'react';
@@ -18,48 +24,6 @@ const createParser = (type: 'string' | 'array' | 'date' | 'dateRange', defaultVa
       return parseAsString.withDefault(defaultValue || '');
     default:
       return parseAsString.withDefault('');
-  }
-};
-
-// Helper to serialize/deserialize date ranges using compact timestamp format
-// Format: timestamp_timestamp (e.g., "1728172800_1728345599")
-const serializeDateRange = (value: { from?: Date; to?: Date } | null): string => {
-  if (!value || (!value.from && !value.to)) return '';
-
-  // Convert dates to Unix timestamps (seconds)
-  const startTs = value.from ? Math.floor(value.from.getTime() / 1000) : '';
-  const endTs = value.to ? Math.floor(value.to.getTime() / 1000) : '';
-
-  // If both timestamps exist, use compact format
-  if (startTs && endTs) {
-    return `${startTs}_${endTs}`;
-  }
-
-  // If only one exists, still use underscore format
-  return `${startTs}_${endTs}`;
-};
-
-const deserializeDateRange = (value: string): { from?: Date; to?: Date } | null => {
-  if (!value) return null;
-
-  // Try new compact timestamp format (number_number)
-  if (/^\d*_\d*$/.test(value)) {
-    const [startStr, endStr] = value.split('_');
-    return {
-      from: startStr ? new Date(parseInt(startStr, 10) * 1000) : undefined,
-      to: endStr ? new Date(parseInt(endStr, 10) * 1000) : undefined,
-    };
-  }
-
-  // Backward compatibility: try JSON format
-  try {
-    const parsed = JSON.parse(value);
-    return {
-      from: parsed.from ? new Date(parsed.from) : undefined,
-      to: parsed.to ? new Date(parsed.to) : undefined,
-    };
-  } catch {
-    return null;
   }
 };
 
@@ -103,16 +67,7 @@ export function useFilterQueryState<T = FilterValue>({
       return deserializeDateRange(urlValue) as T;
     }
     if (type === 'date' && typeof urlValue === 'string') {
-      // Convert string back to Date for date type
-      if (!urlValue || urlValue === '' || urlValue === 'null') {
-        return null as T;
-      }
-      try {
-        const date = new Date(urlValue);
-        return (!isNaN(date.getTime()) ? date : null) as T;
-      } catch {
-        return null as T;
-      }
+      return deserializeDate(urlValue) as T;
     }
     return urlValue as T;
   }, [contextValue, urlValue, type]);
@@ -129,13 +84,9 @@ export function useFilterQueryState<T = FilterValue>({
           const serialized = serializeDateRange(newValue as any);
           setUrlValue(serialized);
         } else if (type === 'date') {
-          // Single date: serialize to ISO string or empty string (not null to avoid nuqs issues)
-          if (newValue instanceof Date && !isNaN(newValue.getTime())) {
-            const isoString = newValue.toISOString();
-            setUrlValue(isoString);
-          } else {
-            setUrlValue(''); // Use empty string instead of null
-          }
+          // Single date: serialize to ISO string or empty string
+          const serialized = serializeDate(newValue as Date | null);
+          setUrlValue(serialized);
         } else if (newValue === null || newValue === undefined) {
           setUrlValue(null);
         } else {

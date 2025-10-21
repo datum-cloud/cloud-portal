@@ -84,12 +84,17 @@
   animation: spin-pause 1.2s linear infinite;
 }
 
-.activity-log-event {
+.activity-log-user {
+  font-weight: 600;
+}
+
+.activity-log-resource {
   text-transform: capitalize;
 }
-.activity-log-event,
-.activity-log-resource,
-.activity-log-error-message {
+
+.activity-log-resource-name,
+.activity-log-error-message,
+.activity-log-namespace {
   font-weight: 600;
 }
 

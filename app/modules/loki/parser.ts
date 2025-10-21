@@ -5,10 +5,11 @@ import {
   formatAuditMessage,
   formatAuditMessageHtml,
   formatStatusMessage,
+  formatDetailedStatusMessage,
   categorizeAuditActivity,
   mapAuditLogLevel,
 } from './formatter';
-import type { ParsedLogLine, ActivityLogEntry } from './types';
+import type { ParsedLogLine, ActivityLogEntry, FormatAuditMessageOptions } from './types';
 
 /**
  * Safely parses a log line that might be JSON
@@ -59,7 +60,10 @@ export function parseLokiTimestamp(timestamp: string): string {
 /**
  * Processes a single log entry and converts it to ActivityLogEntry
  */
-export function processLogEntry(logLine: string): ActivityLogEntry {
+export function processLogEntry(
+  logLine: string,
+  options: FormatAuditMessageOptions = {}
+): ActivityLogEntry {
   const { parsed } = parseLogLine(logLine);
 
   // Extract audit log information
@@ -78,7 +82,7 @@ export function processLogEntry(logLine: string): ActivityLogEntry {
 
   if (isAuditLog) {
     // Use the formatted audit message
-    message = formatAuditMessage(auditLog, { truncate: false });
+    message = formatAuditMessage(auditLog, { truncate: false, ...options });
 
     // Get activity category and icon
     const activityInfo = categorizeAuditActivity(
@@ -93,14 +97,23 @@ export function processLogEntry(logLine: string): ActivityLogEntry {
 
   // Create status message if available
   const statusMessage = isAuditLog ? formatStatusMessage(auditLog) : undefined;
+  const detailedStatusMessage = isAuditLog ? formatDetailedStatusMessage(auditLog) : undefined;
+
+  // Extract error message separately
+  const errorMessage =
+    isAuditLog && auditLog.responseStatus?.message && auditLog.responseStatus?.code >= 400
+      ? auditLog.responseStatus.message
+      : undefined;
 
   const activityEntry: ActivityLogEntry = {
     timestamp: formattedTimestamp,
     message,
     formattedMessage: isAuditLog
-      ? formatAuditMessageHtml(auditLog, { truncate: false })
+      ? formatAuditMessageHtml(auditLog, { truncate: false, ...options })
       : undefined,
     statusMessage,
+    detailedStatusMessage,
+    errorMessage,
     level: isAuditLog ? mapAuditLogLevel(auditLog.level || 'Metadata') : auditLog.level || 'info',
     // labels: {}, // No stream labels in this response format
     raw: logLine,
@@ -151,12 +164,15 @@ export function processLogEntry(logLine: string): ActivityLogEntry {
 /**
  * Processes multiple log entries with error handling
  */
-export function processLogEntries(logs: string[]): ActivityLogEntry[] {
+export function processLogEntries(
+  logs: string[],
+  options: FormatAuditMessageOptions = {}
+): ActivityLogEntry[] {
   const processedLogs: ActivityLogEntry[] = [];
 
   for (const logLine of logs) {
     try {
-      const entry = processLogEntry(logLine);
+      const entry = processLogEntry(logLine, options);
       processedLogs.push(entry);
     } catch (error) {
       console.error('Error parsing log entry:', error);

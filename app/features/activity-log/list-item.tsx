@@ -1,5 +1,6 @@
 import { DateTime } from '@/components/date-time';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { ActivityLogEntry } from '@/modules/loki/types';
 import { cn, isPrivateIP } from '@/utils/common';
 import { CheckCircle, Info, AlertTriangle, XCircle } from 'lucide-react';
@@ -35,6 +36,9 @@ export const ActivityLogItem = ({ log, index }: ActivityLogItemProps) => {
             ) : (
               <p className="text-sm">{log.message}</p>
             )}
+
+            {/* Add error message on new line */}
+            {log.errorMessage && <p className="mt-1 text-sm text-red-600">{log.errorMessage}</p>}
           </div>
 
           <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-xs">
@@ -51,19 +55,30 @@ export const ActivityLogItem = ({ log, index }: ActivityLogItemProps) => {
         </div>
       </div>
 
-      {/* Status badge with relevant colors */}
+      {/* Status badge with relevant colors and tooltip */}
       {(log.statusMessage || log.category) && (
-        <Badge
-          variant="outline"
-          className={cn(
-            'w-fit capitalize',
-            log.category === 'success' && 'border-green-200 bg-green-50 text-green-600',
-            log.category === 'info' && 'border-blue-200 bg-blue-50 text-blue-600',
-            log.category === 'warning' && 'border-yellow-200 bg-yellow-50 text-yellow-600',
-            log.category === 'error' && 'border-red-200 bg-red-50 text-red-600'
-          )}>
-          {log.statusMessage || log.category}
-        </Badge>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="outline"
+                className={cn(
+                  'w-fit cursor-pointer capitalize',
+                  log.category === 'success' && 'border-green-200 bg-green-50 text-green-600',
+                  log.category === 'info' && 'border-blue-200 bg-blue-50 text-blue-600',
+                  log.category === 'warning' && 'border-yellow-200 bg-yellow-50 text-yellow-600',
+                  log.category === 'error' && 'border-red-200 bg-red-50 text-red-600'
+                )}>
+                {log.statusMessage || log.category}
+              </Badge>
+            </TooltipTrigger>
+            {log.detailedStatusMessage && (
+              <TooltipContent>
+                <p>{log.detailedStatusMessage}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       )}
     </div>
   );

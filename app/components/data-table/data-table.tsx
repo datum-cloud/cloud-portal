@@ -33,6 +33,8 @@ export const DataTable = <TData, TValue>({
   filterComponent,
   defaultFilters,
   onFiltersChange,
+  onFilteringStart,
+  onFilteringEnd,
   serverSideFiltering = false,
   mode = 'table',
   hideHeader = false,
@@ -104,6 +106,8 @@ export const DataTable = <TData, TValue>({
       isLoading={isLoading}
       defaultFilters={defaultFilters}
       onFiltersChange={onFiltersChange}
+      onFilteringStart={onFilteringStart}
+      onFilteringEnd={onFilteringEnd}
       serverSideFiltering={serverSideFiltering}>
       <div
         className={cn(
