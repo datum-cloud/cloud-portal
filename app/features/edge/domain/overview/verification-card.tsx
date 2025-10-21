@@ -8,6 +8,10 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
   const dnsRecord = domain.status?.verification?.dnsRecord;
   const httpToken = domain.status?.verification?.httpToken;
 
+  if (!dnsRecord && !httpToken) {
+    return null;
+  }
+
   return (
     <Card>
       <CardHeader>

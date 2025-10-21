@@ -65,8 +65,14 @@ export const SelectBox = ({
     }
   }, [selectedValue]);
 
-  const previewHandler = (option: SelectBoxOption): React.ReactNode => {
-    return itemPreview ? itemPreview(option) : <span>{option.label}</span>;
+  const previewHandler = (option: SelectBoxOption, className?: string): React.ReactNode => {
+    return itemPreview ? (
+      itemPreview(option)
+    ) : (
+      <span className={className} title={option.label}>
+        {option.label}
+      </span>
+    );
   };
 
   return (
@@ -80,7 +86,9 @@ export const SelectBox = ({
             role="combobox"
             aria-expanded={open}
             className="relative w-full justify-between">
-            {selectedValue ? previewHandler(selectedValue) : placeholder}
+            {selectedValue
+              ? previewHandler(selectedValue, 'line-clamp-1 text-ellipsis')
+              : placeholder}
             <ChevronDown className="size-4 opacity-50" />
             {isLoading && (
               <Loader2 className="absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2 animate-spin" />

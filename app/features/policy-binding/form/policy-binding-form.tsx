@@ -18,7 +18,6 @@ import {
   IPolicyBindingControlResponse,
   PolicyBindingSubjectKind,
 } from '@/resources/interfaces/policy-binding.interface';
-import { Roles } from '@/resources/interfaces/role.interface';
 import {
   NewPolicyBindingSchema,
   newPolicyBindingSchema,
@@ -93,6 +92,7 @@ export const PolicyBindingForm = ({
   });
 
   const roleControl = useInputControl(fields.role);
+  const roleNamespaceControl = useInputControl(fields.roleNamespace);
 
   const isEdit = useMemo(() => {
     return defaultValue?.uid !== undefined;
@@ -107,7 +107,8 @@ export const PolicyBindingForm = ({
           namespace: defaultValue.resourceSelector?.resourceRef?.namespace ?? '',
           uid: defaultValue.resourceSelector?.resourceRef?.uid ?? '',
         },
-        role: defaultValue.roleRef?.name ?? Roles.Owner,
+        role: defaultValue.roleRef?.name ?? '',
+        roleNamespace: defaultValue.roleRef?.namespace ?? '',
         subjects: defaultValue.subjects.map((subject) => ({
           kind: subject.kind,
           name: subject.name ?? '',
@@ -123,7 +124,8 @@ export const PolicyBindingForm = ({
           namespace: '',
           uid: '',
         },
-        role: Roles.Owner,
+        role: '',
+        roleNamespace: '',
         subjects: [
           {
             kind: PolicyBindingSubjectKind.User,
@@ -173,8 +175,9 @@ export const PolicyBindingForm = ({
                   id={fields.role.id}
                   key={fields.role.id}
                   defaultValue={formattedValues?.role}
-                  onChange={(value) => {
-                    roleControl.change(value);
+                  onSelect={(value) => {
+                    roleControl.change(value.value);
+                    roleNamespaceControl.change(value.namespace);
                   }}
                 />
               </Field>
