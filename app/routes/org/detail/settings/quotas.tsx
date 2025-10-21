@@ -1,8 +1,14 @@
 import { QuotasTable } from '@/features/quotas/quotas-table';
 import { createAllowanceBucketsControl } from '@/resources/control-plane/quota/allowancebuckets.control';
 import { IAllowanceBucketControlResponse } from '@/resources/interfaces/allowance-bucket';
+import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { Client } from '@hey-api/client-axios';
-import { LoaderFunctionArgs, AppLoadContext, useLoaderData } from 'react-router';
+import {
+  LoaderFunctionArgs,
+  AppLoadContext,
+  useLoaderData,
+  useRouteLoaderData,
+} from 'react-router';
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { orgId } = params;
@@ -18,7 +24,8 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 };
 
 export default function OrgSettingsUsagePage() {
+  const org = useRouteLoaderData<IOrganization>('org-detail');
   const allowanceBuckets = useLoaderData<typeof loader>() as IAllowanceBucketControlResponse[];
 
-  return <QuotasTable data={allowanceBuckets} />;
+  return <QuotasTable data={allowanceBuckets} resourceType="organization" resource={org!} />;
 }

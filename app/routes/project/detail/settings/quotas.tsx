@@ -2,7 +2,12 @@ import { QuotasTable } from '@/features/quotas/quotas-table';
 import { createAllowanceBucketsControl } from '@/resources/control-plane/quota/allowancebuckets.control';
 import { IAllowanceBucketControlResponse } from '@/resources/interfaces/allowance-bucket';
 import { Client } from '@hey-api/client-axios';
-import { LoaderFunctionArgs, AppLoadContext, useLoaderData } from 'react-router';
+import {
+  LoaderFunctionArgs,
+  AppLoadContext,
+  useLoaderData,
+  useRouteLoaderData,
+} from 'react-router';
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params;
@@ -18,7 +23,8 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 };
 
 export default function ProjectQuotasPage() {
+  const { project } = useRouteLoaderData('project-detail');
   const allowanceBuckets = useLoaderData<typeof loader>() as IAllowanceBucketControlResponse[];
 
-  return <QuotasTable data={allowanceBuckets} />;
+  return <QuotasTable data={allowanceBuckets} resourceType="project" resource={project!} />;
 }
