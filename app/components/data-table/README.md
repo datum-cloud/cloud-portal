@@ -142,6 +142,7 @@ function ServerDataTable() {
 | `serverSideFiltering`  | `boolean`                                | `false` | Enable server-side filtering mode          |
 | `defaultColumnFilters` | `ColumnFiltersState`                     | `[]`    | Initial column filter state                |
 | `defaultSorting`       | `SortingState`                           | `[]`    | Initial sorting state                      |
+| `pageSize`             | `number`                                 | `20`    | Number of rows per page                    |
 
 ## 🎨 Display Modes
 
@@ -293,6 +294,18 @@ Set initial sorting when the table loads:
       desc: true, // Sort by newest first
     },
   ]}
+/>
+```
+
+### Custom Page Size
+
+Set the number of rows displayed per page:
+
+```tsx
+<DataTable
+  columns={columns}
+  data={data}
+  pageSize={50} // Show 50 rows per page instead of default 20
 />
 ```
 

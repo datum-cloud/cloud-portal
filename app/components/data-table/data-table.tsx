@@ -32,6 +32,7 @@ export const DataTable = <TData, TValue>({
   data,
   defaultColumnFilters = [],
   defaultSorting = [],
+  pageSize = 20,
   filterComponent,
   defaultFilters,
   onFiltersChange,
@@ -60,7 +61,7 @@ export const DataTable = <TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>(defaultSorting);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 20,
+    pageSize: pageSize,
   });
 
   // Enhance columns with smart sorting based on meta configuration
@@ -261,7 +262,7 @@ export const DataTable = <TData, TValue>({
             </div>
 
             {/* Pagination Section */}
-            {(data ?? [])?.length > 10 && <DataTablePagination table={table} />}
+            <DataTablePagination table={table} />
           </>
         ) : (
           <EmptyContent variant="dashed" {...emptyContent} />

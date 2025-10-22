@@ -188,6 +188,7 @@ export default function DomainsPage() {
   return (
     <DataTable
       className="max-w-(--breakpoint-2xl)"
+      pageSize={50}
       columns={columns}
       data={data ?? []}
       onRowClick={(row) => {

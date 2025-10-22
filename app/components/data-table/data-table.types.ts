@@ -15,6 +15,7 @@ export interface DataTableProps<TData, TValue> {
   // Filter and sorting props
   defaultColumnFilters?: ColumnFiltersState;
   defaultSorting?: SortingState;
+  pageSize?: number; // Custom page size (default: 20)
 
   // Filter system (compound components)
   filterComponent?: React.ReactNode;
