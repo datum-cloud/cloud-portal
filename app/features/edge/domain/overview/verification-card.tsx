@@ -47,14 +47,18 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
                 <span className="font-semibold">Type:</span>
                 <span>{dnsRecord.type}</span>
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="font-semibold">Name:</span>
-                <TextCopy value={dnsRecord.name} text={dnsRecord.name} />
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="font-semibold">Value:</span>
-                <TextCopy value={dnsRecord.content} text={dnsRecord.content} />
-              </div>
+              {dnsRecord.name && (
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold">Name:</span>
+                  <TextCopy value={dnsRecord.name} text={dnsRecord.name} />
+                </div>
+              )}
+              {dnsRecord.content && (
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold">Value:</span>
+                  <TextCopy value={dnsRecord.content} text={dnsRecord.content} />
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -70,14 +74,18 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
               </span>
             </div>
             <div className="bg-muted flex flex-col gap-3 rounded-md border p-3 font-mono text-sm">
-              <div className="flex flex-col gap-1">
-                <span className="font-semibold">URL:</span>
-                <TextCopy value={httpToken.url} text={httpToken.url} className="break-all" />
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="font-semibold">Body:</span>
-                <TextCopy value={httpToken.body} text={httpToken.body} />
-              </div>
+              {httpToken.url && (
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold">URL:</span>
+                  <TextCopy value={httpToken.url} text={httpToken.url} className="break-all" />
+                </div>
+              )}
+              {httpToken.body && (
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold">Body:</span>
+                  <TextCopy value={httpToken.body} text={httpToken.body} />
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -1,8 +1,9 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DataTable } from '@/components/data-table/data-table';
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
-import { DateTime } from '@/components/date-time';
 import { Button } from '@/components/ui/button';
+import { DomainDnsProviders } from '@/features/edge/domain/dns-providers';
+import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { createDomainsControl } from '@/resources/control-plane';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
@@ -88,12 +89,43 @@ export default function DomainsPage() {
         cell: ({ row }) => {
           return <span className="text-primary font-semibold">{row.original.name}</span>;
         },
+        meta: {
+          sortPath: 'name',
+          sortType: 'text',
+        },
       },
       {
         header: 'Domain',
         accessorKey: 'domainName',
         cell: ({ row }) => {
           return row.original.domainName;
+        },
+        meta: {
+          sortPath: 'domainName',
+          sortType: 'text',
+        },
+      },
+      {
+        header: 'Registrar',
+        accessorKey: 'status.registration.registrar.name',
+        cell: ({ row }) => row.original?.status?.registration?.registrar?.name ?? '-',
+        meta: {
+          sortPath: 'status.registration.registrar.name',
+          sortType: 'text',
+        },
+      },
+      {
+        header: 'DNS Providers',
+        accessorKey: 'status.nameservers',
+        cell: ({ row }) => {
+          return (
+            <DomainDnsProviders nameservers={row.original?.status?.nameservers} maxVisible={2} />
+          );
+        },
+        meta: {
+          sortPath: 'status.nameservers',
+          sortType: 'array',
+          sortArrayBy: 'ips.registrantName',
         },
       },
       {
@@ -110,12 +142,19 @@ export default function DomainsPage() {
             )
           );
         },
+        meta: {
+          sortable: false,
+        },
       },
       {
-        header: 'Created At',
-        accessorKey: 'createdAt',
+        header: 'Expiration Date',
+        accessorKey: 'status.registration.expiresAt',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateTime date={row.original.createdAt} />;
+          return <DomainExpiration expiresAt={row.original.status?.registration?.expiresAt} />;
+        },
+        meta: {
+          sortPath: 'status.registration.expiresAt',
+          sortType: 'date',
         },
       },
     ],
@@ -148,6 +187,7 @@ export default function DomainsPage() {
 
   return (
     <DataTable
+      className="max-w-(--breakpoint-2xl)"
       columns={columns}
       data={data ?? []}
       onRowClick={(row) => {

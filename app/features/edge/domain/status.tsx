@@ -100,7 +100,7 @@ export const DomainStatus = ({
   }, [fetcher.data, fetcher.state]);
 
   const conditions = useMemo(() => {
-    return (domainStatus?.conditions || []) as Condition[];
+    return (domainStatus?.conditions || []) as unknown as Condition[];
   }, [domainStatus?.conditions]);
 
   const priorityConditions = useMemo(() => {

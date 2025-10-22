@@ -2,6 +2,8 @@ import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { DomainDnsProviders } from '@/features/edge/domain/dns-providers';
+import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { useMemo } from 'react';
@@ -32,9 +34,19 @@ export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }
         ),
       },
       {
+        label: 'DNS Providers',
+        className: 'px-2',
+        content: <DomainDnsProviders nameservers={domain?.status?.nameservers} maxVisible={2} />,
+      },
+      {
         label: 'Status',
         className: 'px-2',
         content: <DomainStatus domainStatus={domain.status} />,
+      },
+      {
+        label: 'Expiration Date',
+        className: 'px-2',
+        content: <DomainExpiration expiresAt={domain?.status?.registration?.expiresAt} />,
       },
       {
         label: 'Created At',

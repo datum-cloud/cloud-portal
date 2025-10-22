@@ -7,18 +7,5 @@ export interface IDomainControlResponse {
   resourceVersion?: string;
   namespace?: string;
   domainName?: string;
-  status?: ComDatumapisNetworkingV1AlphaDomain['status'] & {
-    verification?: {
-      nextVerificationAttempt?: string;
-      dnsRecord?: {
-        name: string;
-        type: string;
-        content: string;
-      };
-      httpToken?: {
-        body: string;
-        url: string;
-      };
-    };
-  };
+  status?: ComDatumapisNetworkingV1AlphaDomain['status'];
 }

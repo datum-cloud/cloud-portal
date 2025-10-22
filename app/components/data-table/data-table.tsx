@@ -1,14 +1,16 @@
 import { DataTableHeader } from './data-table-header';
+import { DataTableLoadingContent } from './data-table-loading';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableRowActions } from './data-table-row-actions';
 import { DataTableProvider } from './data-table.context';
 import { DataTableProps } from './data-table.types';
-import { DataTableLoadingContent } from '@/components/data-table/data-table-loading';
+import { createNestedAccessor, getSortingFnByType } from './utils/sorting.helpers';
 import { EmptyContent } from '@/components/empty-content/empty-content';
 import { PageTitle } from '@/components/page-title/page-title';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { cn } from '@/utils/common';
 import {
+  ColumnDef,
   ColumnFiltersState,
   PaginationState,
   SortingState,
@@ -23,7 +25,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export const DataTable = <TData, TValue>({
   columns,
@@ -61,9 +63,46 @@ export const DataTable = <TData, TValue>({
     pageSize: 20,
   });
 
+  // Enhance columns with smart sorting based on meta configuration
+  const enhancedColumns = useMemo<ColumnDef<TData, TValue>[]>(() => {
+    return columns.map((col): ColumnDef<TData, TValue> => {
+      const meta = col.meta;
+
+      // Skip if sorting is explicitly disabled
+      if (meta?.sortable === false || col.enableSorting === false) {
+        return { ...col, enableSorting: false };
+      }
+
+      // If sortPath is provided, create accessorFn and sortingFn
+      if (meta?.sortPath) {
+        const baseCol = col as any;
+        return {
+          ...col,
+          accessorFn: baseCol.accessorFn || createNestedAccessor<TData>(meta.sortPath),
+          sortingFn: meta.sortType
+            ? getSortingFnByType(meta.sortType, { sortArrayBy: meta.sortArrayBy })
+            : undefined,
+          enableSorting: true,
+        } as ColumnDef<TData, TValue>;
+      }
+
+      // If sortType is provided without sortPath, just apply the sorting function
+      if (meta?.sortType) {
+        return {
+          ...col,
+          sortingFn: getSortingFnByType(meta.sortType, { sortArrayBy: meta.sortArrayBy }),
+          enableSorting: true,
+        };
+      }
+
+      // Return column as-is if no meta sorting config
+      return col;
+    });
+  }, [columns]);
+
   const table: TTable<TData> = useReactTable({
     data,
-    columns,
+    columns: enhancedColumns,
     state: { columnFilters, sorting, pagination },
     onColumnFiltersChange: setColumnFilters,
     onSortingChange: setSorting,

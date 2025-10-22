@@ -29,12 +29,16 @@ export type ComDatumapisNetworkingV1AlphaDomain = {
    * DomainStatus defines the observed state of Domain
    */
   status?: {
+    /**
+     * Apex indicates if this is an apex domain
+     */
+    apex?: boolean;
     conditions?: Array<{
       /**
        * lastTransitionTime is the last time the condition transitioned from one status to another.
        * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
        */
-      lastTransitionTime: Date;
+      lastTransitionTime: string;
       /**
        * message is a human readable message indicating details about the transition.
        * This may be an empty string.
@@ -45,7 +49,7 @@ export type ComDatumapisNetworkingV1AlphaDomain = {
        * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
        * with respect to the current state of the instance.
        */
-      observedGeneration?: bigint;
+      observedGeneration?: number;
       /**
        * reason contains a programmatic identifier indicating the reason for the condition's last transition.
        * Producers of specific condition types may define expected values and meanings for this field,
@@ -63,6 +67,47 @@ export type ComDatumapisNetworkingV1AlphaDomain = {
        */
       type: string;
     }>;
+    /**
+     * Nameservers represents the nameservers for the domain
+     */
+    nameservers?: Array<{
+      hostname?: string;
+      ips?: Array<{
+        address?: string;
+        registrantName?: string;
+      }>;
+    }>;
+    /**
+     * Registration represents the domain registration information
+     */
+    registration?: {
+      createdAt?: string;
+      dnssec?: {
+        ds?: Array<{
+          algorithm?: number;
+          digest?: string;
+          digestType?: number;
+          keyTag?: number;
+        }>;
+        enabled?: boolean;
+      };
+      domain?: string;
+      expiresAt?: string;
+      handle?: string;
+      nextRefreshAttempt?: string;
+      registrar?: {
+        ianaID?: string;
+        name?: string;
+        url?: string;
+      };
+      registry?: {
+        name?: string;
+        url?: string;
+      };
+      source?: string;
+      statuses?: Array<string>;
+      updatedAt?: string;
+    };
     /**
      * DomainRegistrarStatus represents the registrar information for a domain
      */
@@ -86,10 +131,20 @@ export type ComDatumapisNetworkingV1AlphaDomain = {
      * DomainVerificationStatus represents the verification status of a domain
      */
     verification?: {
+      dnsRecord?: {
+        content?: string;
+        name?: string;
+        type?: string;
+      };
+      httpToken?: {
+        body?: string;
+        url?: string;
+      };
+      nextVerificationAttempt?: string;
       requiredDNSRecords?: Array<{
-        content: string;
-        name: string;
-        type: string;
+        content?: string;
+        name?: string;
+        type?: string;
       }>;
     };
   };

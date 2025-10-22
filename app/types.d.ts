@@ -23,6 +23,11 @@ declare module 'react-router' {
 declare module '@tanstack/table-core' {
   interface ColumnMeta<TData extends RowData, TValue> {
     className?: string;
+    sortable?: boolean | 'auto'; // false = disable, true/auto = enable with auto-detection
+    sortPath?: string; // dot-notation path for nested fields (e.g., 'status.registration.registrar.name')
+    sortType?: 'text' | 'number' | 'date' | 'boolean' | 'array'; // explicit sort type
+    sortArrayBy?: 'length' | string; // 'length' = count items, or property path within array items (e.g., 'registrantName')
+    sortLabels?: { asc?: string; desc?: string }; // custom labels for sort menu (e.g., { asc: 'Oldest', desc: 'Newest' })
   }
 }
 

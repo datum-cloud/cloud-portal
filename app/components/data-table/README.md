@@ -9,6 +9,7 @@ A powerful, feature-rich data table component built with React, TypeScript, and 
 - **🔍 Advanced Filtering**: Debounced search, popover filters, and clean default layouts
 - **📊 Rich Data Display**: Support for table and card view modes
 - **🔗 URL State Management**: Automatic synchronization with browser URL using nuqs
+- **🔀 Smart Sorting**: Context-aware sort labels with popover menu interface
 - **📱 Responsive Design**: Mobile-friendly with adaptive layouts
 - **♿ Accessibility**: Full keyboard navigation and screen reader support
 - **🎨 Highly Customizable**: Flexible styling and component composition
@@ -164,6 +165,144 @@ Card-based layout for better mobile experience.
   tableCardClassName="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
 />
 ```
+
+## 🔀 Sorting System
+
+The DataTable includes a powerful sorting system with context-aware labels and an intuitive popover menu interface.
+
+### Basic Sorting
+
+Sorting is automatically enabled for columns with `accessorKey`. Click any column header to open the sort menu.
+
+```tsx
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: 'name',
+    header: 'Name',
+    // Automatic text sorting with "A → Z" / "Z → A" labels
+  },
+  {
+    accessorKey: 'createdAt',
+    header: 'Created',
+    meta: {
+      sortType: 'date', // Shows "Oldest First" / "Newest First"
+    },
+  },
+];
+```
+
+### Sort Types & Context-Aware Labels
+
+The sorting system automatically provides appropriate labels based on the data type:
+
+| Sort Type | Ascending Label | Descending Label |
+| --------- | --------------- | ---------------- |
+| `text`    | A → Z           | Z → A            |
+| `number`  | Low → High      | High → Low       |
+| `date`    | Oldest First    | Newest First     |
+| `array`   | Fewest First    | Most First       |
+| `boolean` | False → True    | True → False     |
+| default   | Ascending       | Descending       |
+
+### Custom Sort Labels
+
+Override the default labels for any column:
+
+```tsx
+{
+  header: 'Priority',
+  accessorKey: 'priority',
+  meta: {
+    sortType: 'number',
+    sortLabels: {
+      asc: 'Low Priority First',
+      desc: 'High Priority First',
+    },
+  },
+}
+```
+
+### Nested Field Sorting
+
+Sort by nested object properties using dot notation:
+
+```tsx
+{
+  header: 'Company Name',
+  accessorKey: 'company.name',
+  meta: {
+    sortPath: 'company.name',
+    sortType: 'text',
+  },
+}
+```
+
+### Array Sorting
+
+Sort by array length or unique values within arrays:
+
+```tsx
+// Sort by number of tags
+{
+  header: 'Tags',
+  accessorKey: 'tags',
+  meta: {
+    sortType: 'array',
+    sortArrayBy: 'length', // Sort by array length
+  },
+}
+
+// Sort by unique nested values in arrays
+{
+  header: 'DNS Providers',
+  accessorKey: 'status.nameservers',
+  meta: {
+    sortPath: 'status.nameservers',
+    sortType: 'array',
+    sortArrayBy: 'ips.registrantName', // Unique provider names
+  },
+}
+```
+
+### Disable Sorting
+
+Disable sorting for specific columns:
+
+```tsx
+{
+  header: 'Actions',
+  id: 'actions',
+  meta: {
+    sortable: false, // Disable sorting
+  },
+  cell: ({ row }) => <RowActions row={row} />,
+}
+```
+
+### Default Sort State
+
+Set initial sorting when the table loads:
+
+```tsx
+<DataTable
+  columns={columns}
+  data={data}
+  defaultSorting={[
+    {
+      id: 'createdAt',
+      desc: true, // Sort by newest first
+    },
+  ]}
+/>
+```
+
+### Sort Menu Features
+
+- **Visual Indicators**: Icons show current sort direction
+- **Active Highlight**: Current sort is highlighted with checkmark
+- **Clear Sort**: Option to remove sorting and return to default order
+- **Accessible**: Full keyboard navigation and ARIA labels
+- **Click to Open**: Click any sortable column header to open menu
 
 ## 🔍 Filtering System
 
@@ -573,12 +712,16 @@ data-table/
 ├── data-table.tsx               # Main DataTable component
 ├── data-table.types.ts          # TypeScript interfaces
 ├── data-table.context.tsx       # Unified provider and hooks
+├── data-table-sort.tsx          # Sort button and menu component
 ├── filter/                      # Filter system
 │   ├── README.md               # Filter documentation
 │   ├── data-table-filter.tsx  # Main filter component
 │   ├── components/             # Individual filter types
 │   └── ...                     # Filter utilities and tests
 ├── hooks/                       # Custom hooks
+├── utils/                       # Utility functions
+│   ├── sorting.helpers.ts      # Sorting utilities
+│   └── sort-labels.ts          # Context-aware sort labels
 ├── data-table-header.tsx       # Table header component
 ├── data-table-pagination.tsx   # Pagination component
 ├── data-table-loading.tsx      # Loading state component
