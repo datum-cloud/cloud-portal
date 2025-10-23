@@ -2,6 +2,7 @@ import { useDataTableFilter } from '../data-table.context';
 import { CheckboxFilter } from './components/checkbox';
 import { CheckboxPopoverFilter } from './components/checkbox-popover';
 import { DatePickerFilter } from './components/datepicker';
+import { GlobalSearchFilter } from './components/global-search';
 import { RadioFilter } from './components/radio';
 import { RadioPopoverFilter } from './components/radio-popover';
 import { SearchFilter } from './components/search';
@@ -168,6 +169,7 @@ function DataTableFilterBase({
 // Compound component structure
 const DataTableFilter = Object.assign(DataTableFilterBase, {
   Search: SearchFilter,
+  GlobalSearch: GlobalSearchFilter, // 🎯 New: Multi-column search
   DatePicker: DatePickerFilter,
   Select: SelectFilter,
   Radio: RadioPopoverFilter, // 🎯 Popover version by default
@@ -183,6 +185,7 @@ export { DataTableFilter };
 // Export individual components for advanced usage
 export {
   SearchFilter,
+  GlobalSearchFilter,
   DatePickerFilter,
   SelectFilter,
   RadioFilter,

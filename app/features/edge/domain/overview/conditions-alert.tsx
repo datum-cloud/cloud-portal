@@ -27,7 +27,7 @@ const getConditionTitle = (condition: Condition) => {
 
 export const ConditionsAlert = ({ status }: { status: IDomainControlResponse['status'] }) => {
   const conditions = useMemo(() => {
-    return (status?.conditions || []) as Condition[];
+    return (status?.conditions || []) as unknown as Condition[];
   }, [status?.conditions]);
 
   const priorityConditions = useMemo(() => {

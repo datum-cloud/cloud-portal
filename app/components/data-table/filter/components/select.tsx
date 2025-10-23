@@ -29,6 +29,7 @@ export interface SelectFilterProps {
   description?: string;
   placeholder?: string;
   className?: string;
+  triggerClassName?: string;
   disabled?: boolean;
   multiple?: boolean;
   searchable?: boolean;
@@ -41,6 +42,7 @@ export function SelectFilter({
   description,
   placeholder = 'Select...',
   className,
+  triggerClassName,
   disabled = false,
   multiple = false,
   searchable = false,
@@ -114,12 +116,15 @@ export function SelectFilter({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
+            type="button"
+            size="sm"
+            variant="dashed"
             role="combobox"
             aria-expanded={open}
             className={cn(
               'w-full justify-between font-normal',
-              !hasValues && 'text-muted-foreground'
+              !hasValues && 'text-muted-foreground',
+              triggerClassName
             )}
             disabled={disabled}>
             <div className="flex flex-1 items-center gap-1 overflow-hidden">
@@ -132,13 +137,15 @@ export function SelectFilter({
                         <Badge key={val} variant="secondary" className="text-xs">
                           {option.icon && <span className="mr-1">{option.icon}</span>}
                           {option.label}
-                          <X
-                            className="hover:text-destructive ml-1 h-3 w-3 cursor-pointer"
+                          <button
+                            type="button"
+                            className="hover:text-destructive ml-1 rounded-sm p-0.5 transition-all"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleRemove(val);
-                            }}
-                          />
+                            }}>
+                            <X className="hover:text-destructive cursor-pointer" size={12} />
+                          </button>
                         </Badge>
                       ) : null;
                     })}
@@ -169,19 +176,21 @@ export function SelectFilter({
             </div>
             <div className="flex items-center gap-1">
               {hasValues && (
-                <X
-                  className="hover:text-destructive h-4 w-4 cursor-pointer"
+                <div
+                  className="text-muted-foreground hover:text-destructive rounded-sm p-1 transition-all"
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
                     handleClear();
-                  }}
-                />
+                  }}>
+                  <X className="size-3 cursor-pointer" size={12} />
+                </div>
               )}
-              <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+              <ChevronDown className="size-4 shrink-0 opacity-50" />
             </div>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0" align="start">
+        <PopoverContent className="popover-content-width-full w-full p-0" align="start">
           <Command>
             {searchable && (
               <CommandInput
@@ -201,15 +210,24 @@ export function SelectFilter({
                       value={option.value}
                       onSelect={() => handleSelect(option.value)}
                       disabled={option.disabled}
-                      className="flex items-center gap-2">
-                      <Check className={cn('h-4 w-4', isSelected ? 'opacity-100' : 'opacity-0')} />
-                      {option.icon && <span>{option.icon}</span>}
-                      <div className="flex-1">
-                        <div className="font-medium">{option.label}</div>
-                        {option.description && (
-                          <div className="text-muted-foreground text-sm">{option.description}</div>
-                        )}
+                      className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        {option.icon && <span>{option.icon}</span>}
+                        <div className="flex-1">
+                          <div className="font-medium">{option.label}</div>
+                          {option.description && (
+                            <div className="text-muted-foreground text-sm">
+                              {option.description}
+                            </div>
+                          )}
+                        </div>
                       </div>
+
+                      {isSelected && (
+                        <Check
+                          className={cn('h-4 w-4', isSelected ? 'opacity-100' : 'opacity-0')}
+                        />
+                      )}
                     </CommandItem>
                   );
                 })}
@@ -228,10 +246,12 @@ export function SelectFilter({
               <Badge key={val} variant="outline" className="text-xs">
                 {option.icon && <span className="mr-1">{option.icon}</span>}
                 {option.label}
-                <X
-                  className="hover:text-destructive ml-1 h-3 w-3 cursor-pointer"
-                  onClick={() => handleRemove(val)}
-                />
+                <button
+                  type="button"
+                  className="hover:text-destructive ml-1 rounded-sm p-0.5 transition-all"
+                  onClick={() => handleRemove(val)}>
+                  <X className="cursor-pointer" size={12} />
+                </button>
               </Badge>
             ) : null;
           })}

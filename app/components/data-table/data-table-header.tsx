@@ -1,7 +1,7 @@
 import { TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/utils/common';
 import { Table as TTable, flexRender } from '@tanstack/react-table';
-import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
+import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
 
 export const DataTableHeader = <TData,>({
   table,
@@ -18,12 +18,15 @@ export const DataTableHeader = <TData,>({
             return (
               <TableHead
                 key={header.id}
-                className={cn('h-10', header.column.columnDef.meta?.className)}>
+                className={cn(
+                  'hover:text-primary h-10 transition-colors',
+                  header.column.columnDef.meta?.className
+                )}>
                 {header.isPlaceholder ? null : header.column.getCanSort() ? (
                   <div
                     className={cn(
                       header.column.getCanSort() &&
-                        'flex h-full cursor-pointer items-center gap-2 select-none'
+                        'flex h-full cursor-pointer items-center justify-between gap-1 select-none'
                     )}
                     onClick={header.column.getToggleSortingHandler()}
                     onKeyDown={(e) => {
@@ -37,30 +40,11 @@ export const DataTableHeader = <TData,>({
                     {flexRender(header.column.columnDef.header, header.getContext())}
                     {header.column.getIsSorted() ? (
                       {
-                        asc: (
-                          <ChevronUp
-                            className="shrink-0 opacity-60"
-                            size={16}
-                            strokeWidth={2}
-                            aria-hidden="true"
-                          />
-                        ),
-                        desc: (
-                          <ChevronDown
-                            className="shrink-0 opacity-60"
-                            size={16}
-                            strokeWidth={2}
-                            aria-hidden="true"
-                          />
-                        ),
+                        asc: <ChevronUp size={16} aria-hidden="true" />,
+                        desc: <ChevronDown size={16} aria-hidden="true" />,
                       }[header.column.getIsSorted() as string]
                     ) : (
-                      <ChevronsUpDown
-                        className="shrink-0 opacity-40"
-                        size={16}
-                        strokeWidth={2}
-                        aria-hidden="true"
-                      />
+                      <ChevronsUpDown className="opacity-60" size={16} aria-hidden="true" />
                     )}
                   </div>
                 ) : (

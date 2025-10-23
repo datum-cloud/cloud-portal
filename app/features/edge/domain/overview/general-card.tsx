@@ -2,10 +2,11 @@ import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { DomainDnsProviders } from '@/features/edge/domain/dns-providers';
+import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { useMemo } from 'react';
-import { Link } from 'react-router';
 
 export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }) => {
   const listItems: ListItem[] = useMemo(() => {
@@ -13,7 +14,7 @@ export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }
 
     return [
       {
-        label: 'Name',
+        label: 'Resource Name',
         className: 'px-2',
         content: <TextCopy className="text-sm" value={domain.name ?? ''} text={domain.name} />,
       },
@@ -23,18 +24,21 @@ export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }
         content: <span>{domain.namespace}</span>,
       },
       {
-        label: 'Domain',
+        label: 'DNS Providers',
         className: 'px-2',
         content: (
-          <Link to={domain.domainName ?? ''} target="_blank">
-            {domain.domainName}
-          </Link>
+          <DomainDnsProviders nameservers={domain?.status?.nameservers} maxVisible={99} wrap />
         ),
       },
       {
         label: 'Status',
         className: 'px-2',
         content: <DomainStatus domainStatus={domain.status} />,
+      },
+      {
+        label: 'Expiration Date',
+        className: 'px-2',
+        content: <DomainExpiration expiresAt={domain?.status?.registration?.expiresAt} />,
       },
       {
         label: 'Created At',
