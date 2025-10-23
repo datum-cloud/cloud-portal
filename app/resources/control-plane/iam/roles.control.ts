@@ -20,6 +20,8 @@ export const createRolesControl = (client: Client) => {
       uid: metadata?.uid ?? '',
       resourceVersion: metadata?.resourceVersion ?? '',
       namespace: metadata?.namespace ?? '',
+      displayName: metadata?.annotations?.['kubernetes.io/display-name'],
+      description: metadata?.annotations?.['kubernetes.io/description'],
     };
   };
 
@@ -35,7 +37,6 @@ export const createRolesControl = (client: Client) => {
 
         const res = response.data as ComMiloapisIamV1Alpha1RoleList;
 
-        console.log('molly', res.items);
         return (
           res.items
             ?.filter((item) => {

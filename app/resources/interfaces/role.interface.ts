@@ -14,4 +14,6 @@ export interface IRoleControlResponse {
   uid: string;
   resourceVersion: string;
   namespace: string;
+  displayName?: string;
+  description?: string;
 }
