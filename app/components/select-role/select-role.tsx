@@ -1,5 +1,5 @@
 import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
-import { IRoleControlResponse, Roles } from '@/resources/interfaces/role.interface';
+import { IRoleControlResponse } from '@/resources/interfaces/role.interface';
 import { ROUTE_PATH as ROLES_LIST_PATH } from '@/routes/api/roles';
 import { useEffect, useMemo, useState } from 'react';
 import { useFetcher } from 'react-router';
@@ -45,26 +45,12 @@ export const SelectRole = ({
     const apiRoleOptions = roles.map((role) => {
       return {
         value: role.name,
-        label: role.name,
+        label: role.displayName ?? role.name,
         ...role,
       };
     });
 
-    // Create options from enum roles
-    const enumRoleOptions = [{ value: Roles.Owner, label: 'owner' }];
-
-    // Combine both sets of options, avoiding duplicates
-    const allOptions = [...enumRoleOptions];
-
-    // Add API roles that don't already exist in enum roles
-    apiRoleOptions.forEach((apiRole) => {
-      const exists = enumRoleOptions.some((enumRole) => enumRole.value === apiRole.value);
-      if (!exists) {
-        allOptions.push(apiRole as any);
-      }
-    });
-
-    return allOptions;
+    return apiRoleOptions;
   }, [roles]);
 
   return (
