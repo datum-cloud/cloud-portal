@@ -130,7 +130,7 @@ export function ChipsOverflow({
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-2',
+        'inline-flex items-center gap-1',
         wrap ? 'flex-wrap' : 'flex-nowrap',
         className
       )}>

@@ -21,11 +21,9 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
           the record from your DNS system.{' '}
           {domain.status?.verification?.nextVerificationAttempt && (
             <>
-              Next verification attempt{' '}
+              Next verification{' '}
               <DateTime
-                variant="relative"
-                addSuffix
-                disableTimezone
+                variant="absolute"
                 date={domain.status.verification.nextVerificationAttempt}
                 className="text-foreground font-semibold"
               />

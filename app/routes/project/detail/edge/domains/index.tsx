@@ -84,17 +84,6 @@ export default function DomainsPage() {
   const columns: ColumnDef<IDomainControlResponse>[] = useMemo(
     () => [
       {
-        header: 'Resource Name',
-        accessorKey: 'name',
-        cell: ({ row }) => {
-          return <span className="text-primary font-semibold">{row.original.name}</span>;
-        },
-        meta: {
-          sortPath: 'name',
-          sortType: 'text',
-        },
-      },
-      {
         header: 'Domain',
         accessorKey: 'domainName',
         cell: ({ row }) => {
@@ -129,6 +118,17 @@ export default function DomainsPage() {
         },
       },
       {
+        header: 'Expiration Date',
+        accessorKey: 'status.registration.expiresAt',
+        cell: ({ row }) => {
+          return <DomainExpiration expiresAt={row.original.status?.registration?.expiresAt} />;
+        },
+        meta: {
+          sortPath: 'status.registration.expiresAt',
+          sortType: 'date',
+        },
+      },
+      {
         header: 'Status',
         accessorKey: 'status',
         cell: ({ row }) => {
@@ -144,17 +144,6 @@ export default function DomainsPage() {
         },
         meta: {
           sortable: false,
-        },
-      },
-      {
-        header: 'Expiration Date',
-        accessorKey: 'status.registration.expiresAt',
-        cell: ({ row }) => {
-          return <DomainExpiration expiresAt={row.original.status?.registration?.expiresAt} />;
-        },
-        meta: {
-          sortPath: 'status.registration.expiresAt',
-          sortType: 'date',
         },
       },
     ],

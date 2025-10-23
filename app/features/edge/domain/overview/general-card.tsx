@@ -7,7 +7,6 @@ import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { useMemo } from 'react';
-import { Link } from 'react-router';
 
 export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }) => {
   const listItems: ListItem[] = useMemo(() => {
@@ -15,7 +14,7 @@ export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }
 
     return [
       {
-        label: 'Name',
+        label: 'Resource Name',
         className: 'px-2',
         content: <TextCopy className="text-sm" value={domain.name ?? ''} text={domain.name} />,
       },
@@ -25,18 +24,11 @@ export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }
         content: <span>{domain.namespace}</span>,
       },
       {
-        label: 'Domain',
-        className: 'px-2',
-        content: (
-          <Link to={domain.domainName ?? ''} target="_blank">
-            {domain.domainName}
-          </Link>
-        ),
-      },
-      {
         label: 'DNS Providers',
         className: 'px-2',
-        content: <DomainDnsProviders nameservers={domain?.status?.nameservers} maxVisible={2} />,
+        content: (
+          <DomainDnsProviders nameservers={domain?.status?.nameservers} maxVisible={99} wrap />
+        ),
       },
       {
         label: 'Status',

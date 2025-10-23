@@ -122,7 +122,7 @@ export const DomainStatus = ({
         <StatusDot status={currentStatus?.status} />
         <StatusText
           status={currentStatus?.status}
-          pendingText="Verification in progress..."
+          pendingText="Verifying..."
           readyText="Verified"
         />
       </HoverCardTrigger>

@@ -51,8 +51,8 @@ export default function DomainOverviewPage() {
   const { confirm } = useConfirmationDialog();
   const { projectId } = useParams();
 
-  // revalidate every 10 seconds to keep deployment list fresh
-  const revalidator = useRevalidateOnInterval({ enabled: false, interval: 10000 });
+  // revalidate every 5 seconds to keep deployment list fresh
+  const revalidator = useRevalidateOnInterval({ enabled: false, interval: 3000 });
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Track previous status for transition detection
@@ -143,7 +143,7 @@ export default function DomainOverviewPage() {
         transition={{ delay: 0.2, duration: 0.4 }}
         className="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <PageTitle
-          title={(domain as IDomainControlResponse)?.name ?? 'Domain'}
+          title={(domain as IDomainControlResponse)?.domainName ?? 'Domain'}
           description={
             <div className="flex items-center gap-1">
               <ClockIcon className="text-muted-foreground h-4 w-4" />

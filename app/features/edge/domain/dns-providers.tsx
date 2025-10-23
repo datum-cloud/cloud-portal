@@ -4,9 +4,14 @@ import { IDomainControlResponse } from '@/resources/interfaces/domain.interface'
 export interface DomainDnsProvidersProps {
   nameservers?: NonNullable<IDomainControlResponse['status']>['nameservers'];
   maxVisible?: number;
+  wrap?: boolean;
 }
 
-export const DomainDnsProviders = ({ nameservers, maxVisible = 2 }: DomainDnsProvidersProps) => {
+export const DomainDnsProviders = ({
+  nameservers,
+  maxVisible = 2,
+  wrap = false,
+}: DomainDnsProvidersProps) => {
   if (!nameservers?.length) return <>-</>;
 
   const registrantNames = Array.from(
@@ -23,5 +28,7 @@ export const DomainDnsProviders = ({ nameservers, maxVisible = 2 }: DomainDnsPro
 
   if (registrantNames.length === 0) return <>-</>;
 
-  return <ChipsOverflow items={registrantNames} maxVisible={maxVisible} variant="outline" />;
+  return (
+    <ChipsOverflow items={registrantNames} maxVisible={maxVisible} variant="outline" wrap={wrap} />
+  );
 };
