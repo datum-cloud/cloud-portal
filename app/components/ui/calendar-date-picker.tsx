@@ -74,6 +74,7 @@ interface CalendarDatePickerProps
     VariantProps<typeof multiSelectVariants> {
   id?: string;
   className?: string;
+  triggerClassName?: string;
   date: DateRange;
   closeOnSelect?: boolean;
   numberOfMonths?: 1 | 2;
@@ -95,6 +96,7 @@ export const CalendarDatePicker = React.forwardRef<HTMLButtonElement, CalendarDa
     {
       id = 'calendar-date-picker',
       className,
+      triggerClassName,
       date,
       closeOnSelect = false,
       numberOfMonths = 2,
@@ -587,7 +589,11 @@ export const CalendarDatePicker = React.forwardRef<HTMLButtonElement, CalendarDa
               id="date"
               ref={ref}
               {...props}
-              className={cn('w-full', multiSelectVariants({ variant, className }))}
+              className={cn(
+                'w-full',
+                triggerClassName,
+                multiSelectVariants({ variant, className })
+              )}
               onClick={handleTogglePopover}
               suppressHydrationWarning>
               <div className="flex w-full items-center justify-between gap-2">

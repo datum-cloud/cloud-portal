@@ -65,6 +65,19 @@ interface DataTableContextType<TData = unknown, TValue = unknown> {
 
   // Parser registration
   registerFilterParser: (key: string, parser: FilterParser) => void;
+
+  // Global search
+  globalFilter: string;
+  setGlobalFilter: (value: string) => void;
+  resetGlobalFilter: () => void;
+  globalSearchOptions: {
+    searchableColumns?: string[];
+    excludeColumns?: string[];
+  };
+  setGlobalSearchOptions: (options: {
+    searchableColumns?: string[];
+    excludeColumns?: string[];
+  }) => void;
 }
 
 export const DataTableContext = createContext<DataTableContextType<any, any> | null>(null);
@@ -85,6 +98,7 @@ export interface DataTableProviderProps<TData, TValue> {
   rowSelection: RowSelectionState;
   columnOrder: string[];
   columnVisibility: VisibilityState;
+  globalFilter: string;
 
   // Table utilities
   getFacetedUniqueValues?: (table: Table<TData>, columnId: string) => Map<string, number>;
@@ -96,6 +110,12 @@ export interface DataTableProviderProps<TData, TValue> {
   onFilteringEnd?: () => void;
   defaultFilters?: FilterState;
   serverSideFiltering?: boolean;
+
+  // Global search options ref
+  globalSearchOptionsRef?: React.MutableRefObject<{
+    searchableColumns?: string[];
+    excludeColumns?: string[];
+  }>;
 }
 
 export function DataTableProvider<TData, TValue>({
@@ -109,6 +129,7 @@ export function DataTableProvider<TData, TValue>({
   rowSelection,
   columnOrder,
   columnVisibility,
+  globalFilter,
   getFacetedUniqueValues,
   getFacetedMinMaxValues,
   onFiltersChange,
@@ -116,9 +137,23 @@ export function DataTableProvider<TData, TValue>({
   onFilteringEnd: _onFilteringEnd, // Prefix with _ to indicate intentionally unused (reserved for future use)
   defaultFilters = {},
   serverSideFiltering = false,
+  globalSearchOptionsRef,
 }: DataTableProviderProps<TData, TValue>) {
   // Registry for dynamic parser registration
   const parsersRef = useRef<FilterParserRegistry>({});
+
+  // Global search options state
+  const [globalSearchOptions, setGlobalSearchOptions] = useState<{
+    searchableColumns?: string[];
+    excludeColumns?: string[];
+  }>({});
+
+  // Update the ref when options change
+  useEffect(() => {
+    if (globalSearchOptionsRef) {
+      globalSearchOptionsRef.current = globalSearchOptions;
+    }
+  }, [globalSearchOptions, globalSearchOptionsRef]);
 
   // Initialize common parsers
   useEffect(() => {
@@ -227,10 +262,23 @@ export function DataTableProvider<TData, TValue>({
     // Reset table filters only for client-side filtering
     if (!serverSideFiltering) {
       table.resetColumnFilters();
+      table.setGlobalFilter(''); // Reset global filter too
     }
 
     onFiltersChange?.(resetState);
   }, [table, onFiltersChange, serverSideFiltering]);
+
+  // Global filter actions
+  const setGlobalFilter = useCallback(
+    (value: string) => {
+      table.setGlobalFilter(value);
+    },
+    [table]
+  );
+
+  const resetGlobalFilter = useCallback(() => {
+    table.setGlobalFilter('');
+  }, [table]);
 
   // Filter utilities
   const getFilterValue = useCallback(
@@ -297,6 +345,13 @@ export function DataTableProvider<TData, TValue>({
 
       // Parser registration
       registerFilterParser,
+
+      // Global search
+      globalFilter,
+      setGlobalFilter,
+      resetGlobalFilter,
+      globalSearchOptions,
+      setGlobalSearchOptions,
     }),
     [
       // Table props
@@ -329,6 +384,13 @@ export function DataTableProvider<TData, TValue>({
 
       // Parser registration
       registerFilterParser,
+
+      // Global search
+      globalFilter,
+      setGlobalFilter,
+      resetGlobalFilter,
+      globalSearchOptions,
+      setGlobalSearchOptions,
     ]
   );
 

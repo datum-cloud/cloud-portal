@@ -321,6 +321,21 @@ Set the number of rows displayed per page:
 
 The DataTable integrates seamlessly with the advanced filtering system. See the [Filter Documentation](./filter/README.md) for detailed information.
 
+### Filter Architecture Overview
+
+The filtering system uses a **unified context-based architecture** with automatic URL synchronization:
+
+```
+User Input → Filter Component → URL State Hook → Context Update → URL Update → Table Re-render
+```
+
+**Key Components:**
+
+- **Context Layer**: `DataTableProvider` manages filter state and syncs with URL
+- **Filter Components**: Search, Select, DatePicker, Radio, Checkbox
+- **URL State**: Automatic synchronization using `nuqs` library
+- **Type-Safe**: Full TypeScript support with proper typing
+
 ### Client-Side Filtering (Default)
 
 Filters data locally using @tanstack/react-table's built-in filtering.
@@ -339,25 +354,63 @@ Filters data locally using @tanstack/react-table's built-in filtering.
 />
 ```
 
+**How it works:**
+
+1. Filter updates → Context updates
+2. Context calls `table.getColumn(key)?.setFilterValue(value)`
+3. TanStack Table filters rows locally
+4. Table re-renders with filtered data
+5. URL updates automatically (shareable links!)
+
+**Important:** For client-side filtering, `filterKey` must match column `accessorKey`.
+
 ### Server-Side Filtering
 
 Sends filter changes to your API for server-side processing.
 
 ```tsx
-<DataTable
-  columns={columns}
-  data={filteredData} // Filtered data from API
-  isLoading={isLoading}
-  serverSideFiltering={true}
-  onFiltersChange={handleApiFiltering}
-  filterComponent={
-    <DataTableFilter>
-      <DataTableFilter.Search filterKey="search" debounceMs={500} />
-      <DataTableFilter.Select filterKey="category" options={categoryOptions} />
-    </DataTableFilter>
-  }
-/>
+function ServerDataTable() {
+  const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleFiltersChange = async (filters: Record<string, any>) => {
+    setIsLoading(true);
+    try {
+      const response = await fetchUsers(filters);
+      setData(response.data);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <DataTable
+      columns={columns}
+      data={data} // Filtered data from API
+      isLoading={isLoading}
+      serverSideFiltering={true}
+      onFiltersChange={handleFiltersChange} // Required!
+      filterComponent={
+        <DataTableFilter>
+          <DataTableFilter.Search filterKey="search" debounceMs={500} />
+          <DataTableFilter.Select filterKey="category" options={categoryOptions} />
+        </DataTableFilter>
+      }
+    />
+  );
+}
 ```
+
+**How it works:**
+
+1. Filter updates → Context updates
+2. Context calls `onFiltersChange(filters)`
+3. Parent component fetches data from API
+4. New data passed to DataTable
+5. Table re-renders with server-filtered data
+6. URL updates automatically
+
+**URL State on Load:** When the page loads with URL parameters (e.g., `?search=example&category=tech`), the system automatically calls `onFiltersChange` with those values to fetch the correct data.
 
 ### Hybrid Filtering
 
@@ -381,6 +434,497 @@ Combine server-side and client-side filtering for optimal performance.
     </DataTableFilter>
   }
 />
+```
+
+### Available Filter Components
+
+#### 1. Global Search Filter 🆕
+
+Multi-column search that searches across all or specified columns simultaneously.
+
+```tsx
+<DataTableFilter.GlobalSearch placeholder="Search everything..." />
+```
+
+**Features:**
+
+- ✅ Searches multiple columns at once
+- ✅ Auto-detects searchable columns
+- ✅ Explicit column control
+- ✅ Nested field support
+- ✅ Debounced input (configurable)
+- ✅ Type-aware searching (strings, numbers, dates, arrays, objects)
+- ✅ Performance optimized
+
+**Basic Usage:**
+
+```tsx
+// Auto-detect all searchable columns
+<DataTableFilter.GlobalSearch placeholder="Search across all columns..." />
+
+// Explicit columns
+<DataTableFilter.GlobalSearch
+  searchableColumns={['name', 'email', 'company.name']}
+  placeholder="Search name, email, or company..."
+/>
+
+// Exclude specific columns
+<DataTableFilter.GlobalSearch
+  excludeColumns={['id', 'createdAt', 'actions']}
+  placeholder="Search all except ID and dates..."
+/>
+
+// Advanced options
+<DataTableFilter.GlobalSearch
+  searchableColumns={['name', 'email']}
+  placeholder="Search..."
+  label="Global Search"
+  description="Search across multiple fields"
+  debounceMs={500}
+  showSearchingColumns={true}
+/>
+```
+
+**Column-Level Control:**
+
+Control which columns are searchable using column meta:
+
+```tsx
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: 'name',
+    header: 'Name',
+    meta: {
+      searchable: true, // ✅ Include in global search
+    },
+  },
+  {
+    accessorKey: 'email',
+    header: 'Email',
+    meta: {
+      searchable: true,
+      searchTransform: (value) => value.toLowerCase(), // Custom transform
+    },
+  },
+  {
+    accessorKey: 'company.name',
+    header: 'Company',
+    meta: {
+      searchable: true,
+      searchPath: 'company.name', // Nested field
+    },
+  },
+  {
+    accessorKey: 'id',
+    header: 'ID',
+    meta: {
+      searchable: false, // ❌ Exclude from global search (highest priority)
+    },
+  },
+  {
+    accessorKey: 'tags',
+    header: 'Tags',
+    meta: {
+      searchable: true, // Searches array values
+    },
+  },
+];
+```
+
+**Priority Order:**
+
+1. **`meta.searchable: false`** - Always excluded (highest priority)
+2. **`excludeColumns` prop** - Explicitly excluded columns
+3. **`searchableColumns` prop** - Explicitly included columns (if provided)
+4. **Auto-detection** - Columns with `accessorKey` or `accessorFn` (if no explicit list)
+
+**Props:**
+
+| Prop                   | Type       | Default     | Description                           |
+| ---------------------- | ---------- | ----------- | ------------------------------------- |
+| `searchableColumns`    | `string[]` | auto-detect | Explicit columns to search            |
+| `excludeColumns`       | `string[]` | `[]`        | Columns to exclude from search        |
+| `placeholder`          | `string`   | "Search..." | Input placeholder                     |
+| `label`                | `string`   | -           | Label above input                     |
+| `description`          | `string`   | -           | Description text                      |
+| `debounceMs`           | `number`   | `300`       | Debounce delay in milliseconds        |
+| `immediate`            | `boolean`  | `false`     | Skip debouncing                       |
+| `showSearchingColumns` | `boolean`  | `false`     | Show which columns are being searched |
+| `disabled`             | `boolean`  | `false`     | Disable input                         |
+| `className`            | `string`   | -           | Custom CSS classes                    |
+| `inputClassName`       | `string`   | -           | Custom CSS classes for input          |
+
+**How It Works:**
+
+1. Extracts values from all searchable columns for each row
+2. Converts values to searchable strings (handles arrays, objects, dates)
+3. Normalizes search term and values (case-insensitive, trim)
+4. Checks if any column value contains the search term
+5. Returns rows that have at least one matching column
+
+**Search Behavior:**
+
+- **Case-insensitive** - Searches ignore case by default
+- **Contains match** - Finds partial matches anywhere in the text
+- **Nested fields** - Automatically searches nested objects and arrays
+- **Type-aware** - Handles strings, numbers, dates, arrays, and objects
+
+**Performance:**
+
+- ✅ Memoized filter function
+- ✅ Early exit on first match
+- ✅ Debounced input (300ms default)
+- ✅ Optimized value extraction
+
+#### 2. Search Filter
+
+Single-column search with debouncing. Use this when you need to search a specific column.
+
+```tsx
+<DataTableFilter.Search
+  filterKey="domainName"
+  placeholder="Search domains..."
+  label="Search"
+  description="Search by domain name"
+  debounceMs={300} // Default: 300ms
+  immediate={false} // Skip debounce if true
+  disabled={false}
+/>
+```
+
+**Features:**
+
+- ✅ Searches single column only
+- ✅ Debounced input (configurable delay)
+- ✅ Clear button (X icon)
+- ✅ Search icon
+- ✅ Syncs with URL (`?domainName=example`)
+- ✅ Local state for immediate UI feedback
+
+**URL Format:** `?filterKey=searchTerm`
+
+**When to Use:**
+
+- ✅ Filtering specific column (e.g., email, phone number)
+- ✅ Column has special format or validation
+- ✅ Combined with other filters for precision
+- ✅ Need column-specific search behavior
+
+**Important:** For client-side filtering, `filterKey` must match column `accessorKey`.
+
+### Global Search vs Single-Column Search
+
+| Feature              | Global Search                   | Single-Column Search        |
+| -------------------- | ------------------------------- | --------------------------- |
+| **Scope**            | Multiple columns                | One column                  |
+| **Use Case**         | Quick, Google-like search       | Precise, targeted filtering |
+| **Configuration**    | Auto-detect or explicit columns | Requires `filterKey`        |
+| **Performance**      | Optimized with early exit       | Fast (single column)        |
+| **User Experience**  | Intuitive, broad search         | Specific, controlled        |
+| **URL Param**        | Not synced (table state only)   | Synced with URL             |
+| **Nested Fields**    | ✅ Supported                    | ✅ Supported (via column)   |
+| **Arrays/Objects**   | ✅ Searches all values          | ✅ Depends on column config |
+| **Custom Transform** | ✅ Via column meta              | ✅ Via column meta          |
+
+**Recommendation:** Use `GlobalSearch` for primary search, `Search` for specific column filtering.
+
+```tsx
+<DataTableFilter>
+  {/* Primary: Quick search across everything */}
+  <DataTableFilter.GlobalSearch placeholder="Search..." />
+
+  {/* Secondary: Specific filters */}
+  <DataTableFilter.Search filterKey="email" placeholder="Email..." />
+  <DataTableFilter.Select filterKey="status" options={statusOptions} />
+</DataTableFilter>
+```
+
+#### 3. Select Filter
+
+Single or multi-select dropdown with search.
+
+```tsx
+<DataTableFilter.Select
+  filterKey="status"
+  label="Status"
+  description="Filter by status"
+  placeholder="Select status..."
+  multiple={false} // Enable multi-select
+  searchable={true} // Enable search in options
+  options={[
+    { label: 'Active', value: 'active', icon: <CheckIcon /> },
+    { label: 'Inactive', value: 'inactive', disabled: true },
+  ]}
+/>
+```
+
+**Features:**
+
+- ✅ Single or multi-select mode
+- ✅ Searchable dropdown
+- ✅ Badge display for selected items
+- ✅ Clear all button
+- ✅ Option icons and descriptions
+- ✅ Disabled options support
+
+**URL Format:**
+
+- Single: `?status=active`
+- Multiple: `?status=active&status=inactive`
+
+#### 3. DatePicker Filter
+
+Single date or date range picker with timezone support.
+
+```tsx
+<DataTableFilter.DatePicker
+  filterKey="createdAt"
+  mode="range" // 'single' or 'range'
+  label="Created Date"
+  description="Filter by creation date"
+  placeholder="Select date range..."
+  closeOnSelect={true}
+  yearsRange={10}
+  // Timezone-aware options
+  applyDayBoundaries={true} // Apply start/end of day
+  useUserTimezone={true} // Use user's timezone preference
+  // Date constraints
+  minDate={new Date('2020-01-01')}
+  maxDate={new Date()}
+  disableFuture={true}
+  disablePast={false}
+  maxRange={90} // Maximum 90 days range
+  // Preset customization
+  excludePresets={['today', 'yesterday']}
+/>
+```
+
+**Features:**
+
+- ✅ Single date or date range
+- ✅ Timezone-aware (uses user preference)
+- ✅ Presets (Today, Last 7 days, Last 30 days, etc.)
+- ✅ Custom date constraints
+- ✅ Compact URL serialization
+
+**URL Format:**
+
+- Single: `?createdAt=2024-10-23T00:00:00.000Z`
+- Range: `?createdAt=1728172800_1728345599` (Unix timestamps)
+
+#### 4. Radio Filter (Popover)
+
+Single selection with popover interface.
+
+```tsx
+<DataTableFilter.Radio
+  filterKey="priority"
+  label="Priority"
+  options={[
+    { label: 'High', value: 'high', description: 'Urgent items' },
+    { label: 'Medium', value: 'medium' },
+    { label: 'Low', value: 'low' },
+  ]}
+/>
+```
+
+**Features:**
+
+- ✅ Single selection only
+- ✅ Popover interface (clean UI)
+- ✅ Option descriptions
+- ✅ Clear selection button
+
+#### 5. Checkbox Filter (Popover)
+
+Multiple selection with popover interface.
+
+```tsx
+<DataTableFilter.Checkbox
+  filterKey="tags"
+  label="Tags"
+  options={[
+    { label: 'React', value: 'react' },
+    { label: 'TypeScript', value: 'typescript' },
+    { label: 'Node.js', value: 'nodejs' },
+  ]}
+/>
+```
+
+**Features:**
+
+- ✅ Multiple selection
+- ✅ Popover interface
+- ✅ Select all / Clear all
+- ✅ Badge display for selected items
+
+### Filter UI Variants
+
+#### Default Variant (Inline)
+
+Horizontal layout without card wrapper.
+
+```tsx
+<DataTableFilter variant="default">
+  <DataTableFilter.Search filterKey="name" />
+  <DataTableFilter.Select filterKey="status" options={options} />
+</DataTableFilter>
+```
+
+#### Card Variant (Collapsible)
+
+Card with border, collapsible content, and filter management.
+
+```tsx
+<DataTableFilter variant="card" collapsible={true} defaultExpanded={false} showHeader={true}>
+  <DataTableFilter.Search filterKey="name" />
+  <DataTableFilter.Select filterKey="status" options={options} />
+  <DataTableFilter.DatePicker filterKey="createdAt" mode="range" />
+</DataTableFilter>
+```
+
+**Features:**
+
+- ✅ Card with border and shadow
+- ✅ Collapsible content
+- ✅ Filter count badge
+- ✅ "Reset all" button
+- ✅ Responsive grid layout
+
+### URL State Management
+
+All filters automatically sync with URL parameters for shareable links.
+
+**Example URL:**
+
+```
+/domains?domainName=example&status=active&createdAt=1728172800_1728345599
+```
+
+**Serialization Examples:**
+
+| Filter Type | State                                | URL Parameter                      |
+| ----------- | ------------------------------------ | ---------------------------------- |
+| String      | `"example"`                          | `?search=example`                  |
+| Array       | `["tag1", "tag2"]`                   | `?tags=tag1&tags=tag2`             |
+| Date        | `Date(2024-10-23)`                   | `?date=2024-10-23T00:00:00.000Z`   |
+| Date Range  | `{ from: Date(...), to: Date(...) }` | `?dateRange=1728172800_1728345599` |
+
+**Initial Load from URL:**
+When a page loads with URL parameters, the system automatically:
+
+1. Parses URL parameters
+2. Deserializes complex types (dates, arrays)
+3. Calls `onFiltersChange` with parsed values (for server-side filtering)
+4. Initializes filter UI with URL values
+
+### Filter Performance Optimizations
+
+#### 1. Debouncing
+
+```tsx
+// Search input debounced by 300ms (default)
+<DataTableFilter.Search filterKey="search" debounceMs={300} />
+
+// Immediate updates (no debounce)
+<DataTableFilter.Search filterKey="search" immediate={true} />
+```
+
+#### 2. Local State for UI Responsiveness
+
+Filter components maintain local state for immediate UI feedback, then sync with context/URL after debounce.
+
+#### 3. Memoization
+
+Context values and filter hooks are memoized to prevent unnecessary re-renders.
+
+#### 4. Selective Updates
+
+Individual filters use `useFilter` hook for isolated updates - only re-render when their specific value changes.
+
+### Advanced Filter Usage
+
+#### Custom Filter Hooks
+
+Access filter state programmatically:
+
+```tsx
+import { useFilter, useDataTableFilter } from '@/components/data-table';
+
+function CustomFilterComponent() {
+  // Access specific filter
+  const { value, setValue, reset } = useFilter<string>('search');
+
+  // Access all filter state
+  const { filterState, hasActiveFilters, getActiveFilterCount, resetAllFilters } =
+    useDataTableFilter();
+
+  return (
+    <div>
+      <input value={value || ''} onChange={(e) => setValue(e.target.value)} />
+      {hasActiveFilters() && (
+        <button onClick={resetAllFilters}>Clear {getActiveFilterCount()} filters</button>
+      )}
+    </div>
+  );
+}
+```
+
+#### Filter State Lifecycle
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     User Types in Search                     │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│         SearchFilter: setLocalValue (immediate UI)           │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│              useDebounce (300ms delay)                       │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│      useStringFilter: setValue (context + URL update)        │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+          ┌───────────┴───────────┐
+          │                       │
+          ▼                       ▼
+┌──────────────────┐    ┌──────────────────┐
+│  Context Update  │    │    URL Update    │
+│  setFilter()     │    │  setUrlValue()   │
+└────────┬─────────┘    └──────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Client-Side or Server-Side?                     │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+          ┌───────────┴───────────┐
+          │                       │
+          ▼                       ▼
+┌──────────────────┐    ┌──────────────────┐
+│   Client-Side    │    │   Server-Side    │
+│ table.setFilter()│    │ onFiltersChange()│
+└────────┬─────────┘    └────────┬─────────┘
+         │                       │
+         ▼                       ▼
+┌──────────────────┐    ┌──────────────────┐
+│ TanStack filters │    │   API Call       │
+│ rows locally     │    │   Fetch new data │
+└────────┬─────────┘    └────────┬─────────┘
+         │                       │
+         └───────────┬───────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Table Re-renders                           │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ## ⚡ Performance Features

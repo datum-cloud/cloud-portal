@@ -78,6 +78,7 @@ export {
 export {
   DataTableFilter,
   SearchFilter,
+  GlobalSearchFilter,
   DatePickerFilter,
   SelectFilter,
   RadioFilter,
@@ -87,6 +88,7 @@ export {
 // Filter component types
 export type { DataTableFilterProps } from './filter/data-table-filter';
 export type { SearchFilterProps } from './filter/components/search';
+export type { GlobalSearchFilterProps } from './filter/components/global-search';
 export type { DatePickerFilterProps } from './filter/components/datepicker';
 export type { SelectFilterProps, SelectOption } from './filter/components/select';
 export type { RadioFilterProps, RadioOption } from './filter/components/radio';
@@ -112,3 +114,16 @@ export {
   deserializeDate,
   isDateRangeFormat,
 } from './utils/date-serialization';
+
+// Global search utilities
+export {
+  createGlobalSearchFilter,
+  getSearchableColumns,
+  getSearchableColumnIds,
+  getSearchableColumnNames,
+  isColumnSearchable,
+  extractSearchableValue,
+  valueToSearchableString,
+  type GlobalSearchOptions,
+  type MatchMode,
+} from './utils/global-search.helpers';

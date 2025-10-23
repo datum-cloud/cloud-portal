@@ -183,6 +183,7 @@ export function DatePickerFilter({
         yearsRange={yearsRange}
         variant="outline"
         className={cn('w-full justify-start', disabled && 'pointer-events-none opacity-50')}
+        triggerClassName="h-9"
         placeholder={placeholder}
         excludePresets={excludePresets}
         minDate={minDate}
