@@ -1,4 +1,5 @@
 import { Field } from '@/components/field/field';
+import { SelectRole } from '@/components/select-role/select-role';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -8,16 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { TagsInput } from '@/components/ui/tag-input';
 import { useIsPending } from '@/hooks/useIsPending';
-import { Roles } from '@/resources/interfaces/role.interface';
 import { invitationFormSchema } from '@/resources/schemas/invitation.schema';
 import {
   FormProvider,
@@ -51,11 +44,13 @@ export const InvitationForm = () => {
       return parseWithZod(formData, { schema: invitationFormSchema });
     },
     defaultValue: {
-      role: Roles.Owner,
+      role: '',
+      roleNamespace: '',
     },
   });
 
   const roleControl = useInputControl(fields.role);
+  const roleNamespaceControl = useInputControl(fields.roleNamespace);
   const emailsControl = useInputControl(fields.emails);
 
   return (
@@ -74,25 +69,17 @@ export const InvitationForm = () => {
           <AuthenticityTokenInput />
           <CardContent className="space-y-4">
             <Field isRequired label="Role" errors={fields.role.errors}>
-              <Select
+              <SelectRole
                 {...getSelectProps(fields.role)}
+                name={fields.role.name}
+                id={fields.role.id}
                 key={fields.role.id}
-                defaultValue={fields.role.value}
-                value={fields.role.value}
-                onValueChange={(value) => {
-                  roleControl.change(value);
-                }}>
-                <SelectTrigger className="capitalize">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(Roles).map((mode) => (
-                    <SelectItem key={mode} value={mode} className="capitalize">
-                      {mode}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                defaultValue={roleControl.value}
+                onSelect={(value) => {
+                  roleControl.change(value.value);
+                  roleNamespaceControl.change(value.namespace ?? '');
+                }}
+              />
             </Field>
 
             <Field
