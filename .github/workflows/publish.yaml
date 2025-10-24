@@ -22,7 +22,7 @@ jobs:
       contents: read
       packages: write
       attestations: write
-    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@v1.7.2
+    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@v1.7.3
     with:
       image-name: cloud-portal
     secrets: inherit
@@ -32,7 +32,7 @@ jobs:
       id-token: write
       contents: read
       packages: write
-    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@v1.7.2
+    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@v1.7.3
     with:
       bundle-name: ghcr.io/datum-cloud/cloud-portal-kustomize
       bundle-path: config
