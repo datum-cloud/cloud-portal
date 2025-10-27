@@ -1,8 +1,7 @@
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { getSession } from '@/modules/cookie/session.server';
 import { createUserControl } from '@/resources/control-plane';
 import { userSchema } from '@/resources/schemas/user.schema';
 import { paths } from '@/utils/config/paths.config';
+import { getSession, validateCSRF } from '@/utils/cookies';
 import { BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import {

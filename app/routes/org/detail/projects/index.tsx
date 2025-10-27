@@ -1,12 +1,12 @@
 import { DataTable } from '@/components/data-table/data-table';
 import { DateTime } from '@/components/date-time';
-import { Button } from '@/components/ui/button';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ICachedProject } from '@/resources/interfaces/project.interface';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Button } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';

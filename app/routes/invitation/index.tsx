@@ -1,4 +1,13 @@
-import { Button } from '@/components/ui/button';
+import BlankLayout from '@/layouts/blank/blank.layout';
+import { useApp } from '@/providers/app.provider';
+import { createInvitationsControl } from '@/resources/control-plane';
+import { ROUTE_PATH as INVITATION_UPDATE_STATE_ACTION } from '@/routes/api/team/invitations/update-state';
+import { paths } from '@/utils/config/paths.config';
+import { redirectWithToast } from '@/utils/cookies';
+import { BadRequestError } from '@/utils/errors';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Button } from '@datum-ui/components';
 import {
   Card,
   CardContent,
@@ -6,16 +15,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import BlankLayout from '@/layouts/blank/blank.layout';
-import { redirectWithToast } from '@/modules/cookie/toast.server';
-import { useApp } from '@/providers/app.provider';
-import { createInvitationsControl } from '@/resources/control-plane';
-import { ROUTE_PATH as INVITATION_UPDATE_STATE_ACTION } from '@/routes/api/team/invitations/update-state';
-import { paths } from '@/utils/config/paths.config';
-import { BadRequestError } from '@/utils/errors';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+} from '@shadcn/ui/card';
 import { Check, Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {

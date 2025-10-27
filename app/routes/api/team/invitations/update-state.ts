@@ -1,5 +1,5 @@
-import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { createInvitationsControl } from '@/resources/control-plane';
+import { redirectWithToast } from '@/utils/cookies';
 import { BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { isBefore } from 'date-fns';

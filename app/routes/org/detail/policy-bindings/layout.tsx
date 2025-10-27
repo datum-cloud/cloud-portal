@@ -1,5 +1,5 @@
-import { standardOrgMiddleware, withMiddleware } from '@/modules/middleware';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { standardOrgMiddleware, withMiddleware } from '@/utils/middlewares';
 import { MetaFunction, data } from 'react-router';
 import { Outlet } from 'react-router';
 

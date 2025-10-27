@@ -1,10 +1,10 @@
 import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
 import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
-import { Input } from '@/components/ui/input';
 import GCP_REGIONS from '@/features/location/data/gcp-regions.json';
 import { LocationProvider } from '@/resources/interfaces/location.interface';
 import { FieldMetadata, getInputProps, getSelectProps, useInputControl } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
 import { Slash } from 'lucide-react';
 import { useMemo } from 'react';
 

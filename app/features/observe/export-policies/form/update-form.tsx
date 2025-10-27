@@ -2,15 +2,6 @@ import { SinksForm } from './sink/sinks-form';
 import { SourcesForm } from './source/sources-form';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { MetadataForm } from '@/components/metadata/metadata-form';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-} from '@/components/ui/card';
 import { useIsPending } from '@/hooks/useIsPending';
 import {
   ExportPolicyAuthenticationType,
@@ -32,6 +23,15 @@ import { convertObjectToLabels } from '@/utils/helpers/object.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useForm, FormProvider, getFormProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { Button } from '@datum-ui/components';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+} from '@shadcn/ui/card';
 import { has } from 'es-toolkit/compat';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import { Fragment, cloneElement, useMemo } from 'react';

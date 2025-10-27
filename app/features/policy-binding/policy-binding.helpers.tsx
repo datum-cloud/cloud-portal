@@ -1,11 +1,11 @@
 import { PolicyBinding } from './policy-binding.types';
 import { DateTime } from '@/components/date-time';
 import { StatusBadge } from '@/components/status-badge/status-badge';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { Badge } from '@datum-ui/components';
+import { Button } from '@datum-ui/components';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { Users } from 'lucide-react';
 
 export type ResourceTooltipProps = {

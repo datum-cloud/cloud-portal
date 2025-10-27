@@ -1,9 +1,9 @@
 import { DataTable } from '@/components/data-table';
-import { Button } from '@/components/ui/button';
 import { helpScoutAPI } from '@/modules/helpscout';
 import { IAllowanceBucketControlResponse } from '@/resources/interfaces/allowance-bucket.interface';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { Button } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpIcon } from 'lucide-react';
 import { useMemo } from 'react';

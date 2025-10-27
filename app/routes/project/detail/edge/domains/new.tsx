@@ -1,10 +1,9 @@
 import { DomainForm } from '@/features/edge/domain/form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createDomainsControl } from '@/resources/control-plane';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { domainSchema } from '@/resources/schemas/domain.schema';
 import { paths } from '@/utils/config/paths.config';
+import { dataWithToast, validateCSRF } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod/v4';

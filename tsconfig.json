@@ -29,6 +29,8 @@
     "allowImportingTsExtensions": true,
     "baseUrl": ".",
     "paths": {
+      "@datum-ui/*": ["./app/modules/datum-ui/*"],
+      "@shadcn/*": ["./app/modules/shadcn/*"],
       "@/*": ["./app/*"]
     },
     "rootDirs": [".", "./.react-router/types"],

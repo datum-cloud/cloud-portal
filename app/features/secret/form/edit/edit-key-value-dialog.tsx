@@ -1,5 +1,11 @@
 import { Field } from '@/components/field/field';
-import { Button } from '@/components/ui/button';
+import useAutosizeTextArea from '@/hooks/useAutosizeTextArea';
+import { useIsPending } from '@/hooks/useIsPending';
+import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
+import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
+import { getFormProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { Button } from '@datum-ui/components';
 import {
   DialogContent,
   Dialog,
@@ -7,14 +13,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import useAutosizeTextArea from '@/hooks/useAutosizeTextArea';
-import { useIsPending } from '@/hooks/useIsPending';
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
-import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
-import { getFormProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+} from '@shadcn/ui/dialog';
+import { Textarea } from '@shadcn/ui/textarea';
 import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';

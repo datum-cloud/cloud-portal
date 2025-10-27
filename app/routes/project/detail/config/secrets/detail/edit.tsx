@@ -2,13 +2,13 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { PageTitle } from '@/components/page-title/page-title';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { EditSecretKeys } from '@/features/secret/form/edit/edit-keys';
 import { SecretGeneralCard } from '@/features/secret/form/overview/general-card';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@datum-ui/components';
 import { ClockIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useFetcher, useParams, useRouteLoaderData } from 'react-router';

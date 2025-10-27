@@ -1,4 +1,3 @@
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,7 +6,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown';
+} from '@datum-ui/components';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -18,8 +17,9 @@ import {
   SidebarMenuSub,
   SidebarSeparator,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { cn } from '@/utils/common';
+} from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronRight, ExternalLinkIcon, LucideIcon } from 'lucide-react';
 import { ComponentProps, Fragment, forwardRef, useCallback, useState } from 'react';
 import { Link, useLocation } from 'react-router';

@@ -3,7 +3,7 @@
  * Server-side route protection based on permissions
  * Uses server-side RbacService for permission checks
  */
-import type { NextFunction } from '../middleware/middleware';
+import type { NextFunction } from '../../utils/middlewares/middleware';
 import { extractOrgIdFromPath, resolveDynamicValue } from './permission-checker';
 import { RbacService } from './service/rbac.service';
 import type { IRbacMiddlewareConfig } from './types';

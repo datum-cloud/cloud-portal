@@ -1,10 +1,9 @@
 import { PolicyBindingForm } from '@/features/policy-binding';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createPolicyBindingsControl } from '@/resources/control-plane/iam/policy-bindings.control';
 import { IPolicyBindingControlResponse } from '@/resources/interfaces/policy-binding.interface';
 import { newPolicyBindingSchema } from '@/resources/schemas/policy-binding.schema';
 import { paths } from '@/utils/config/paths.config';
+import { dataWithToast, redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';

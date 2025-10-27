@@ -2,14 +2,6 @@
  * Generic metric chart component using Shadcn UI Chart components
  */
 import { DateTime } from '@/components/date-time';
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@/components/ui/chart';
 import { BaseMetric } from '@/modules/metrics/components/base-metric';
 import { AreaSeries, BarSeries, LineSeries } from '@/modules/metrics/components/series';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
@@ -24,6 +16,14 @@ import {
   type PrometheusQueryOptions,
   ChartSeries,
 } from '@/modules/prometheus';
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@shadcn/ui/chart';
 import { format } from 'date-fns';
 import { ReactNode, useCallback, useEffect, useMemo } from 'react';
 import { CartesianGrid, AreaChart, BarChart, LineChart, XAxis, YAxis, YAxisProps } from 'recharts';

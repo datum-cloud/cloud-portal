@@ -1,9 +1,8 @@
 import { PolicyBindingForm } from '@/features/policy-binding';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createPolicyBindingsControl } from '@/resources/control-plane';
 import { newPolicyBindingSchema } from '@/resources/schemas/policy-binding.schema';
 import { paths } from '@/utils/config/paths.config';
+import { dataWithToast, redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod/v4';

@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@datum-ui/components';
 
 export interface GuideStep {
   id: string;

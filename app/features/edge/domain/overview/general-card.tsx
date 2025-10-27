@@ -1,11 +1,11 @@
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { DomainDnsHost } from '@/features/edge/domain/dns-host';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';
 import { useMemo } from 'react';
 
 export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }) => {

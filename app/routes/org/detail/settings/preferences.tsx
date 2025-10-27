@@ -1,11 +1,10 @@
 import { OrganizationGeneralCard } from '@/features/organization/settings/general-card';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createOrganizationsControl } from '@/resources/control-plane';
 import {
   UpdateOrganizationSchema,
   updateOrganizationSchema,
 } from '@/resources/schemas/organization.schema';
+import { dataWithToast, validateCSRF } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { parseWithZod } from '@conform-to/zod/v4';

@@ -1,6 +1,6 @@
-import { setOrgSession } from '@/modules/cookie/org.server';
 import { createOrganizationsControl } from '@/resources/control-plane';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
+import { setOrgSession } from '@/utils/cookies';
 import { AppError, BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, LoaderFunctionArgs, data } from 'react-router';

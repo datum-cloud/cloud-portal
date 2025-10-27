@@ -1,0 +1,75 @@
+/**
+ * Custom animations for shadcn/ui components
+ */
+
+/* Popover animations */
+.popover-content-width-full {
+  width: var(--radix-popover-trigger-width) !important;
+  max-height: var(--radix-popover-content-available-height) !important;
+}
+
+/* Tooltip animations */
+.tooltip-content {
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tooltip-content[data-side='top'] {
+  animation-name: slideUp;
+}
+.tooltip-content[data-side='bottom'] {
+  animation-name: slideDown;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin-pause {
+  0% {
+    transform: rotate(0deg);
+  }
+  80% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-pause {
+  animation: spin-pause 1.2s linear infinite;
+}
+
+@layer utilities {
+  @keyframes ellipsis {
+    0% {
+      content: '.';
+    }
+    33% {
+      content: '..';
+    }
+    66% {
+      content: '...';
+    }
+    100% {
+      content: '.';
+    }
+  }
+}

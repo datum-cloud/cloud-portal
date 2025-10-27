@@ -1,89 +1,9 @@
-#nprogress .bar {
-  background: var(--color-tuscany);
-  height: 4px;
-}
+/**
+ * Application-specific custom styles
+ * UI component styles are now in datum-ui/styles/animations.css
+ */
 
-#nprogress .spinner-icon {
-  border-top-color: var(--color-tuscany);
-  border-left-color: var(--color-tuscany);
-}
-
-#nprogress .peg {
-  box-shadow:
-    0 0 10px var(--color-light-pink),
-    0 0 5px var(--color-light-pink);
-}
-
-/* Dark mode overrides */
-.dark #nprogress .bar {
-  background: var(--color-cream);
-}
-
-.dark #nprogress .spinner-icon {
-  border-top-color: var(--color-cream);
-  border-left-color: var(--color-cream);
-}
-
-.dark #nprogress .peg {
-  box-shadow:
-    0 0 10px var(--color-cream),
-    0 0 5px var(--color-cream);
-}
-
-.popover-content-width-full {
-  width: var(--radix-popover-trigger-width) !important;
-  max-height: var(--radix-popover-content-available-height) !important;
-}
-
-/* styles.css */
-.tooltip-content {
-  animation-duration: 0.6s;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-}
-.tooltip-content[data-side='top'] {
-  animation-name: slideUp;
-}
-.tooltip-content[data-side='bottom'] {
-  animation-name: slideDown;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes spin-pause {
-  0% {
-    transform: rotate(0deg);
-  }
-  80% {
-    transform: rotate(360deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-.animate-spin-pause {
-  animation: spin-pause 1.2s linear infinite;
-}
-
+/* Activity Log Styles */
 .activity-log-user {
   font-weight: 600;
 }

@@ -1,11 +1,10 @@
 import { ProjectDangerCard } from '@/features/project/settings/danger-card';
 import { ProjectGeneralCard } from '@/features/project/settings/general-card';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { redirectWithToast, dataWithToast } from '@/modules/cookie/toast.server';
 import { createProjectsControl } from '@/resources/control-plane';
 import { IProjectControlResponse, ICachedProject } from '@/resources/interfaces/project.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
 import { paths } from '@/utils/config/paths.config';
+import { dataWithToast, redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { HttpError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';

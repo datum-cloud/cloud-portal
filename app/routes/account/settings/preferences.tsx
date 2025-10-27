@@ -2,13 +2,11 @@ import { AccountDangerSettingsCard } from '@/features/account/settings/danger-ca
 import { AccountIdentitySettingsCard } from '@/features/account/settings/indetity-card';
 import { AccountPortalSettingsCard } from '@/features/account/settings/portal-card';
 import { AccountProfileSettingsCard } from '@/features/account/settings/profile-card';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { getSession } from '@/modules/cookie/session.server';
-import { dataWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
 import { createUserControl } from '@/resources/control-plane';
 import { userSchema } from '@/resources/schemas/user.schema';
 import { paths } from '@/utils/config/paths.config';
+import { dataWithToast, getSession, validateCSRF } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { parseWithZod } from '@conform-to/zod/v4';
 import { Client } from '@hey-api/client-axios';

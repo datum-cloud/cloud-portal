@@ -1,7 +1,6 @@
 import { destroyLocalSessions } from '@/features/auth/utils';
 import { zitadelIssuer, zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
-import { getIdTokenSession } from '@/modules/cookie/id-token.server';
-import { getSession } from '@/modules/cookie/session.server';
+import { getIdTokenSession, getSession } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
 import type { ActionFunctionArgs } from 'react-router';
 import { LoaderFunctionArgs, AppLoadContext } from 'react-router';

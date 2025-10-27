@@ -1,9 +1,8 @@
 import { OrganizationForm } from '@/features/organization/form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createOrganizationsControl } from '@/resources/control-plane';
 import { OrganizationSchema, organizationSchema } from '@/resources/schemas/organization.schema';
 import { paths } from '@/utils/config/paths.config';
+import { dataWithToast, validateCSRF } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod/v4';

@@ -1,4 +1,4 @@
-import { themeSessionResolver } from '@/modules/cookie/theme.server';
+import { themeSessionResolver } from '@/utils/cookies';
 import { createThemeAction } from 'remix-themes';
 
 export const ROUTE_PATH = '/api/set-theme' as const;

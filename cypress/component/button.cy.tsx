@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Button } from '@datum-ui/components';
 
 describe('Button', () => {
   it('renders with correct text', () => {

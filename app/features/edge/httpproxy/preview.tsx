@@ -1,13 +1,3 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { GrafanaTutorialCard } from '@/features/edge/httpproxy/overview/grafana-tutorial-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/httpproxy/overview/hostnames-card';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
@@ -16,6 +6,16 @@ import { ROUTE_PATH as HTTP_PROXY_DETAIL_PATH } from '@/routes/api/httpproxy/$id
 import { paths } from '@/utils/config/paths.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
+import { Button } from '@datum-ui/components';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@shadcn/ui/card';
 import { InfoIcon, Loader2 } from 'lucide-react';
 import { AnimatePresence, motion, Variants } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';

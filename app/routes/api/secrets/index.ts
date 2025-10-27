@@ -1,7 +1,6 @@
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { createSecretsControl } from '@/resources/control-plane';
 import { secretEditSchema } from '@/resources/schemas/secret.schema';
+import { redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { BadRequestError, HttpError } from '@/utils/errors';
 import { convertLabelsToObject } from '@/utils/helpers/object.helper';
 import { Client } from '@hey-api/client-axios';

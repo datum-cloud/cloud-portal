@@ -1,19 +1,13 @@
 import { Field } from '@/components/field/field';
 import { SelectConfigMap } from '@/components/select-configmap/select-configmap';
 import { SelectSecret } from '@/components/select-secret/select-secret';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { ENV_TYPES } from '@/features/workload/constants';
 import { ContainerEnvType } from '@/resources/interfaces/workload.interface';
 import { RuntimeEnvSchema } from '@/resources/schemas/workload.schema';
-import { cn } from '@/utils/common';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
+import { Input } from '@shadcn/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { useEffect, useRef, useState } from 'react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 
