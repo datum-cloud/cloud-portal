@@ -2,7 +2,7 @@ import { Field } from '@/components/field/field';
 import { SelectBox } from '@/components/select-box/select-box';
 import { SelectGroup } from '@/components/select-group/select-group';
 import { SelectMember } from '@/components/select-member/select-member';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { useApp } from '@/providers/app.provider';
 import { PolicyBindingSubjectKind } from '@/resources/interfaces/policy-binding.interface';
 import { PolicyBindingSubjectSchema } from '@/resources/schemas/policy-binding.schema';

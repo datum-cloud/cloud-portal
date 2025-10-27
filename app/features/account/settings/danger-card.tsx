@@ -1,7 +1,13 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/modules/datum-ui/components/alert.tsx';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/modules/shadcn/ui/components/card';
 import { ROUTE_PATH as USER_DELETE_ACTION } from '@/routes/api/user';
 import { CircleAlertIcon } from 'lucide-react';
 import { useEffect } from 'react';

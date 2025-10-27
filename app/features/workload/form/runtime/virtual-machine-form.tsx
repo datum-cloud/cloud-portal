@@ -1,14 +1,14 @@
 import { PortsForm } from './ports-form';
 import { Field } from '@/components/field/field';
+import { BOOT_IMAGES } from '@/features/workload/constants';
 import {
   SelectValue,
   SelectTrigger,
   SelectItem,
   SelectContent,
   Select,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { BOOT_IMAGES } from '@/features/workload/constants';
+} from '@/modules/shadcn/ui/components/select';
+import { Textarea } from '@/modules/shadcn/ui/components/textarea';
 import { RuntimePortSchema, RuntimeVMSchema } from '@/resources/schemas/workload.schema';
 import { getSelectProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';
 import { useEffect, useRef } from 'react';

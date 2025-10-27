@@ -1,7 +1,7 @@
 import { DataTable } from '@/components/data-table/data-table';
 import { DateTime } from '@/components/date-time';
-import { Button } from '@/components/ui/button';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ICachedProject } from '@/resources/interfaces/project.interface';
 import { paths } from '@/utils/config/paths.config';

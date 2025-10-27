@@ -1,5 +1,7 @@
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types';
-import { Button } from '@/components/ui/button';
+import { NetworkDialogForm, NetworkDialogFormRef } from '@/features/network/dialog-form';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { cn } from '@/modules/shadcn';
 import {
   Command,
   CommandEmpty,
@@ -7,12 +9,10 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { NetworkDialogForm, NetworkDialogFormRef } from '@/features/network/dialog-form';
+} from '@/modules/shadcn/ui/components/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/modules/shadcn/ui/components/popover';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { ROUTE_PATH as NETWORKS_LIST_ROUTE_PATH } from '@/routes/api/networks';
-import { cn } from '@/utils/common';
 import { CheckIcon, ChevronDown, Loader2, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';

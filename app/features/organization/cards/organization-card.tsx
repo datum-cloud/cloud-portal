@@ -1,9 +1,15 @@
 import { DateTime } from '@/components/date-time';
 import { ProfileIdentity } from '@/components/profile-identity';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
+import { cn } from '@/modules/shadcn';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/modules/shadcn/ui/components/card';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
-import { cn } from '@/utils/common';
 import { getInitials } from '@/utils/helpers/text.helper';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';
 import { motion } from 'motion/react';

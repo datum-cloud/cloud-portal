@@ -7,8 +7,8 @@ import {
   SidebarHeader,
   SidebarRail,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { cn } from '@/utils/common';
+} from '@/modules/datum-ui/components/sidebar.tsx';
+import { cn } from '@/modules/shadcn';
 import { paths } from '@/utils/config/paths.config';
 import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';

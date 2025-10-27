@@ -1,4 +1,4 @@
-import { cn } from '@/utils/common';
+import { cn } from '@/modules/shadcn';
 
 export const PageTitle = ({
   title,

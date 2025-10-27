@@ -1,6 +1,7 @@
 import { SelectExpires } from './select-expires';
 import { Field } from '@/components/field/field';
-import { Button } from '@/components/ui/button';
+import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   Card,
   CardContent,
@@ -8,9 +9,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { useIsPending } from '@/hooks/useIsPending';
+} from '@/modules/shadcn/ui/components/card';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { newApiKeySchema } from '@/resources/schemas/api-key.schema';
 import { FieldMetadata, getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';

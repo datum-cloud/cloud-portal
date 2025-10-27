@@ -1,5 +1,6 @@
 import { KeysForm } from './keys-form';
-import { Button } from '@/components/ui/button';
+import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   DialogContent,
   Dialog,
@@ -7,8 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { useIsPending } from '@/hooks/useIsPending';
+} from '@/modules/shadcn/ui/components/dialog';
 import { SecretVariablesSchema, secretVariablesSchema } from '@/resources/schemas/secret.schema';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import { isBase64, toBase64 } from '@/utils/helpers/text.helper';

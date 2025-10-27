@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
 
 export interface GuideStep {
   id: string;

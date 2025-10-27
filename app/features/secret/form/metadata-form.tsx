@@ -1,13 +1,13 @@
 import { Field } from '@/components/field/field';
 import { InputName } from '@/components/input-name/input-name';
+import { SECRET_TYPES } from '@/features/secret/constants';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { SECRET_TYPES } from '@/features/secret/constants';
+} from '@/modules/shadcn/ui/components/select';
 import { SecretBaseSchema } from '@/resources/schemas/secret.schema';
 import { getSelectProps, useForm, useInputControl } from '@conform-to/react';
 import { useEffect, useRef } from 'react';

@@ -1,7 +1,17 @@
 import { EditKeyValueDialog, EditKeyValueDialogRef } from './edit-key-value-dialog';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  KeysFormDialog,
+  VariablesFormDialogRef,
+} from '@/features/secret/form/keys/keys-form-dialog';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/modules/shadcn/ui/components/card';
 import {
   Table,
   TableBody,
@@ -9,11 +19,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import {
-  KeysFormDialog,
-  VariablesFormDialogRef,
-} from '@/features/secret/form/keys/keys-form-dialog';
+} from '@/modules/shadcn/ui/components/table';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import { PencilIcon, PlusIcon, Trash2 } from 'lucide-react';

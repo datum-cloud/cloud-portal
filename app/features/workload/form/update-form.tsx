@@ -4,7 +4,10 @@ import { RuntimeForm } from './runtime/runtime-form';
 import { StoragesForm } from './storage/storages-form';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { MetadataForm } from '@/components/metadata/metadata-form';
-import { Button } from '@/components/ui/button';
+import { BOOT_IMAGES } from '@/features/workload/constants';
+import { WorkloadHelper } from '@/features/workload/helper';
+import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   CardDescription,
   CardHeader,
@@ -12,10 +15,7 @@ import {
   Card,
   CardContent,
   CardFooter,
-} from '@/components/ui/card';
-import { BOOT_IMAGES } from '@/features/workload/constants';
-import { WorkloadHelper } from '@/features/workload/helper';
-import { useIsPending } from '@/hooks/useIsPending';
+} from '@/modules/shadcn/ui/components/card';
 import { useApp } from '@/providers/app.provider';
 import { IWorkloadControlResponse } from '@/resources/interfaces/workload.interface';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';

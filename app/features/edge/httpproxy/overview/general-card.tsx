@@ -2,7 +2,7 @@ import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { StatusBadge } from '@/components/status-badge/status-badge';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/modules/shadcn/ui/components/card';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { useMemo } from 'react';

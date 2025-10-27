@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from '@/modules/shadcn/ui/components/dialog';
 import { AnnotationFormSchema } from '@/resources/schemas/metadata.schema';
 import { useImperativeHandle, useRef, useState } from 'react';
 

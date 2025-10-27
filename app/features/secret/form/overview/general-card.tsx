@@ -1,7 +1,7 @@
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/modules/shadcn/ui/components/card';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import { useMemo } from 'react';
 

@@ -1,6 +1,6 @@
 import { SelectEndpointSlice } from '../../select-endpoint-slices';
 import { Field } from '@/components/field/field';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { HttpRouteBackendRefSchema } from '@/resources/schemas/http-route.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
 import { useEffect } from 'react';

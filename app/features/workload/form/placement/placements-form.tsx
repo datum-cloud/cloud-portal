@@ -1,12 +1,12 @@
 import { PlacementField } from './placement-field';
 import { List, ListItem } from '@/components/list/list';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { cn } from '@/modules/shadcn';
+import { Separator } from '@/modules/shadcn/ui/components/separator';
 import { ILocationControlResponse } from '@/resources/interfaces/location.interface';
 import { PlacementFieldSchema, PlacementsSchema } from '@/resources/schemas/workload.schema';
 import { ROUTE_PATH as LOCATION_LIST_ROUTE_PATH } from '@/routes/api/locations';
-import { cn } from '@/utils/common';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';

@@ -1,7 +1,7 @@
 import { Field } from '@/components/field/field';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import useAutosizeTextArea from '@/hooks/useAutosizeTextArea';
+import { Input } from '@/modules/shadcn/ui/components/input';
+import { Textarea } from '@/modules/shadcn/ui/components/textarea';
 import { SecretEnvSchema } from '@/resources/schemas/secret.schema';
 import { getInputProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';
 import { useEffect, useRef } from 'react';

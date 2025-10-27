@@ -1,11 +1,11 @@
+import { LOCATION_PROVIDERS } from '@/features/location/constants';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { LOCATION_PROVIDERS } from '@/features/location/constants';
+} from '@/modules/shadcn/ui/components/select';
 import { LocationProvider } from '@/resources/interfaces/location.interface';
 import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react';
 import { useMemo } from 'react';

@@ -1,5 +1,5 @@
 import { EmptyContentProps } from '@/components/empty-content/empty-content';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { ColumnDef, ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 export type SearchParams = {

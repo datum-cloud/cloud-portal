@@ -1,11 +1,11 @@
 import { StatusBadge } from '@/components/status-badge/status-badge';
-import { Button } from '@/components/ui/button';
 import {
   ArrowListItem,
   ExplorerCard,
   SectionDescription,
   SectionTitle,
 } from '@/features/project/dashboard';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { paths } from '@/utils/config/paths.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';

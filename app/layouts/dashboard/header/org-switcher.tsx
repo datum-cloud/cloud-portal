@@ -1,5 +1,5 @@
 import { SelectOrganization } from '@/components/select-organization/select-organization';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
 import { useApp } from '@/providers/app.provider';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { paths } from '@/utils/config/paths.config';

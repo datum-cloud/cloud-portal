@@ -1,6 +1,7 @@
 import { KeysForm } from './keys/keys-form';
 import { SecretMetadataForm } from './metadata-form';
-import { Button } from '@/components/ui/button';
+import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   Card,
   CardContent,
@@ -8,8 +9,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { useIsPending } from '@/hooks/useIsPending';
+} from '@/modules/shadcn/ui/components/card';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import {
   SecretBaseSchema,

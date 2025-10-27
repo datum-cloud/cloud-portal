@@ -1,7 +1,13 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/modules/datum-ui/components/alert.tsx';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/modules/shadcn/ui/components/card';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { CircleAlertIcon } from 'lucide-react';
 import { useFetcher } from 'react-router';

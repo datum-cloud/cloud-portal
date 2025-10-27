@@ -1,17 +1,17 @@
 import { BootField } from './boot-field';
 import { StorageField } from './storage-field';
 import { List, ListItem } from '@/components/list/list';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { STORAGE_TYPES } from '@/features/workload/constants';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { cn } from '@/modules/shadcn';
+import { Separator } from '@/modules/shadcn/ui/components/separator';
 import { StorageType } from '@/resources/interfaces/workload.interface';
 import {
   StorageFieldSchema,
   StoragesSchema,
   UpdateWorkloadSchema,
 } from '@/resources/schemas/workload.schema';
-import { cn } from '@/utils/common';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';

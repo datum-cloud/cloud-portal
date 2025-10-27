@@ -11,7 +11,9 @@ export interface DataTableEmptyContentProps {
     label: string;
     onClick?: () => void;
     to?: string;
-    variant?: React.ComponentProps<typeof import('@/components/ui/button').Button>['variant'];
+    variant?: React.ComponentProps<
+      typeof import('@/modules/datum-ui/components/button.tsx').Button
+    >['variant'];
     icon?: React.ReactNode;
   }>;
 }

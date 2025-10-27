@@ -1,8 +1,14 @@
 import { Field } from '@/components/field/field';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/modules/shadcn/ui/components/card';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { useApp } from '@/providers/app.provider';
 import { userSchema } from '@/resources/schemas/user.schema';
 import { ROUTE_PATH as USER_UPDATE_ACTION } from '@/routes/api/user';

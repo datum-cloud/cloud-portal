@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/modules/shadcn/ui/components/card';
 import { useApp } from '@/providers/app.provider';
 import { MailIcon } from 'lucide-react';
 

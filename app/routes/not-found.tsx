@@ -1,6 +1,6 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { Card, CardContent } from '@/modules/shadcn/ui/components/card';
 import { paths } from '@/utils/config/paths.config';
 import { ArrowLeft, HomeIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';

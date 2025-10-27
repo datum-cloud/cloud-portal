@@ -3,16 +3,16 @@ import { VirtualMachineForm } from './virtual-machine-form';
 import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
 import { List, ListItem } from '@/components/list/list';
-import { Badge } from '@/components/ui/badge';
+import { RUNTIME_TYPES } from '@/features/workload/constants';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { RUNTIME_TYPES } from '@/features/workload/constants';
+} from '@/modules/shadcn/ui/components/select';
+import { Separator } from '@/modules/shadcn/ui/components/separator';
 import { RuntimeType } from '@/resources/interfaces/workload.interface';
 import {
   RuntimeContainerSchema,

@@ -4,11 +4,18 @@ import { RuntimeForm, RuntimePreview } from './runtime/runtime-form';
 import { StoragesForm, StoragesPreview } from './storage/storages-form';
 import { MetadataForm } from '@/components/metadata/metadata-form';
 import { MetadataPreview } from '@/components/metadata/metadata-preview';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BOOT_IMAGES } from '@/features/workload/constants';
 import { WorkloadHelper } from '@/features/workload/helper';
 import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { cn } from '@/modules/shadcn';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/modules/shadcn/ui/components/card';
 import { IWorkloadControlResponse, RuntimeType } from '@/resources/interfaces/workload.interface';
 import { MetadataSchema, metadataSchema } from '@/resources/schemas/metadata.schema';
 import {
@@ -23,7 +30,6 @@ import {
   storagesSchema,
   UpdateWorkloadSchema,
 } from '@/resources/schemas/workload.schema';
-import { cn } from '@/utils/common';
 import { getFormProps, useForm, FormProvider } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { defineStepper } from '@stepperize/react';

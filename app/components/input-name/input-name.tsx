@@ -1,10 +1,10 @@
 import { Field } from '../field/field';
-import { Input } from '../ui/input';
 import { FieldLabel } from '@/components/field/field-label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/utils/common';
+import { cn } from '@/modules/shadcn';
+import { Checkbox } from '@/modules/shadcn/ui/components/checkbox';
+import { Input } from '@/modules/shadcn/ui/components/input';
+import { Label } from '@/modules/shadcn/ui/components/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/modules/shadcn/ui/components/tooltip';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { FieldMetadata, useInputControl } from '@conform-to/react';
 import { getInputProps } from '@conform-to/react';

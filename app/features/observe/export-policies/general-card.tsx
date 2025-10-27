@@ -2,7 +2,7 @@ import { ExportPolicyStatus } from './status';
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/modules/shadcn/ui/components/card';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getShortId } from '@/utils/helpers/text.helper';

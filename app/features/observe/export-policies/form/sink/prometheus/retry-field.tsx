@@ -1,7 +1,7 @@
 import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
-import { Input } from '@/components/ui/input';
-import { InputWithAddons } from '@/components/ui/input-with-addons';
+import { InputWithAddons } from '@/modules/datum-ui/components/input-with-addons.tsx';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { ExportPolicySinkPrometheusFieldSchema } from '@/resources/schemas/export-policy.schema';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { useEffect } from 'react';

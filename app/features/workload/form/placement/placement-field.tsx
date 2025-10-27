@@ -1,6 +1,6 @@
 import { Field } from '@/components/field/field';
-import { Input } from '@/components/ui/input';
 import { SelectIATA } from '@/features/location/form/select-iata';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { PlacementFieldSchema } from '@/resources/schemas/workload.schema';
 import { useForm, useInputControl, getInputProps } from '@conform-to/react';
 import { useEffect, useRef } from 'react';

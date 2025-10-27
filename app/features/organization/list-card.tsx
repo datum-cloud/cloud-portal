@@ -1,7 +1,7 @@
 import { DateTime } from '@/components/date-time';
 import { ProfileIdentity } from '@/components/profile-identity';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
+import { Card, CardContent } from '@/modules/shadcn/ui/components/card';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { getInitials } from '@/utils/helpers/text.helper';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';

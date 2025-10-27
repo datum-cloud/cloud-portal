@@ -1,7 +1,6 @@
 import { DateTime } from '@/components/date-time';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { Calendar } from '@/modules/datum-ui/components/calendar.tsx';
 import { PRESET_RANGES } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import {
@@ -10,8 +9,9 @@ import {
   serializeTimeRange,
 } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
+import { cn } from '@/modules/shadcn';
+import { Popover, PopoverContent, PopoverTrigger } from '@/modules/shadcn/ui/components/popover';
 import { useApp } from '@/providers/app.provider';
-import { cn } from '@/utils/common';
 import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone.helper';
 import { Calendar as CalendarIcon, ChevronDownIcon } from 'lucide-react';
 import { useQueryState } from 'nuqs';

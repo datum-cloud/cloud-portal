@@ -3,8 +3,8 @@ import { BatchField } from './batch-field';
 import { RetryField } from './retry-field';
 import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
+import { Input } from '@/modules/shadcn/ui/components/input';
+import { Separator } from '@/modules/shadcn/ui/components/separator';
 import {
   ExportPolicySinkAuthenticationSchema,
   ExportPolicySinkPrometheusFieldSchema,

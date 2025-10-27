@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/button';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { OrganizationSwitcher } from '@/layouts/dashboard/header/org-switcher';
 import { ProjectSwitcher } from '@/layouts/dashboard/header/project-switcher';
 import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { SidebarTrigger } from '@/modules/datum-ui/components/sidebar.tsx';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/modules/shadcn/ui/components/tooltip';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { CircleHelp, SlashIcon } from 'lucide-react';

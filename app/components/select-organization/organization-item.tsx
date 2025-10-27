@@ -1,6 +1,6 @@
 import { ProfileIdentity } from '@/components/profile-identity';
+import { cn } from '@/modules/shadcn';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
-import { cn } from '@/utils/common';
 import { getInitials } from '@/utils/helpers/text.helper';
 import { Building2, UserRound } from 'lucide-react';
 

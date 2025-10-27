@@ -1,8 +1,9 @@
 import { NetworkFieldForm } from './network-field';
 import { List, ListItem } from '@/components/list/list';
 import { Option } from '@/components/select-autocomplete/select-autocomplete.types';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { cn } from '@/modules/shadcn';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import {
   NetworkFieldSchema,
@@ -10,7 +11,6 @@ import {
   UpdateWorkloadSchema,
 } from '@/resources/schemas/workload.schema';
 import { ROUTE_PATH as NETWORKS_LIST_ROUTE_PATH } from '@/routes/api/networks';
-import { cn } from '@/utils/common';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { Loader2, PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';

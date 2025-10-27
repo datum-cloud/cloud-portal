@@ -1,6 +1,12 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/modules/datum-ui/components/alert.tsx';
 import { type PrometheusError } from '@/modules/prometheus';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/modules/shadcn/ui/components/card';
 import { AlertCircle, Loader2, Minus } from 'lucide-react';
 import React from 'react';
 

@@ -1,3 +1,4 @@
+import { ChartDataPoint, ChartSeries } from '@/modules/prometheus';
 import {
   Table,
   TableBody,
@@ -5,8 +6,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { ChartDataPoint, ChartSeries } from '@/modules/prometheus';
+} from '@/modules/shadcn/ui/components/table';
 import { useMemo } from 'react';
 
 export const HttpProxyUpstreamTable = ({ series }: { series: ChartSeries[] }) => {

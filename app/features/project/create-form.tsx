@@ -1,7 +1,8 @@
 import { Field } from '@/components/field/field';
 import { InputName } from '@/components/input-name/input-name';
 import { SelectOrganization } from '@/components/select-organization/select-organization';
-import { Button } from '@/components/ui/button';
+import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   Card,
   CardContent,
@@ -9,9 +10,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { useIsPending } from '@/hooks/useIsPending';
+} from '@/modules/shadcn/ui/components/card';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { useApp } from '@/providers/app.provider';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { projectSchema } from '@/resources/schemas/project.schema';

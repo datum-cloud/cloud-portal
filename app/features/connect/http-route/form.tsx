@@ -2,7 +2,9 @@ import { RulesForm } from './rule/rules-form';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
 import { MetadataForm } from '@/components/metadata/metadata-form';
-import { Button } from '@/components/ui/button';
+import { SelectGateways } from '@/features/connect/http-route/select-gateways';
+import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   Card,
   CardContent,
@@ -10,9 +12,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { SelectGateways } from '@/features/connect/http-route/select-gateways';
-import { useIsPending } from '@/hooks/useIsPending';
+} from '@/modules/shadcn/ui/components/card';
 import { useApp } from '@/providers/app.provider';
 import { IHttpRouteControlResponse } from '@/resources/interfaces/http-route.interface';
 import {

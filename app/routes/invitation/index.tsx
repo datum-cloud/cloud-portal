@@ -1,4 +1,7 @@
-import { Button } from '@/components/ui/button';
+import { LogoFlat } from '@/components/logo/logo-flat';
+import BlankLayout from '@/layouts/blank/blank.layout';
+import { redirectWithToast } from '@/modules/cookie/toast.server';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   Card,
   CardContent,
@@ -6,9 +9,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import BlankLayout from '@/layouts/blank/blank.layout';
-import { redirectWithToast } from '@/modules/cookie/toast.server';
+} from '@/modules/shadcn/ui/components/card';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationsControl } from '@/resources/control-plane';
 import { ROUTE_PATH as INVITATION_UPDATE_STATE_ACTION } from '@/routes/api/team/invitations/update-state';

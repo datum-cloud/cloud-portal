@@ -1,5 +1,5 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn } from '@/utils/common';
+import { cn } from '@/modules/shadcn';
+import { Avatar, AvatarFallback, AvatarImage } from '@/modules/shadcn/ui/components/avatar';
 import { getInitials } from '@/utils/helpers/text.helper';
 import { UserRound } from 'lucide-react';
 

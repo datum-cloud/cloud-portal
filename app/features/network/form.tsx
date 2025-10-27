@@ -1,7 +1,8 @@
 import { SelectIPFamily } from './select-ip-family';
 import { SelectIPAM } from './select-ipam';
 import { Field } from '@/components/field/field';
-import { Button } from '@/components/ui/button';
+import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   Card,
   CardContent,
@@ -9,9 +10,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { useIsPending } from '@/hooks/useIsPending';
+} from '@/modules/shadcn/ui/components/card';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { newNetworkSchema, updateNetworkSchema } from '@/resources/schemas/network.schema';
 import { ROUTE_PATH as NETWORK_ACTIONS_ROUTE_PATH } from '@/routes/api/networks';

@@ -1,10 +1,10 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { getSession } from '@/modules/cookie/session.server';
 import { HelpScoutBeacon } from '@/modules/helpscout';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { registrationApprovalMiddleware } from '@/modules/middleware/registration-approval.middleware';
+import { TooltipProvider } from '@/modules/shadcn/ui/components/tooltip';
 import { AppProvider } from '@/providers/app.provider';
 import { createUserControl } from '@/resources/control-plane';
 import { IUser } from '@/resources/interfaces/user.interface';

@@ -1,12 +1,18 @@
 import { CodeEditor } from '@/components/code-editor/code-editor';
 import { Field } from '@/components/field/field';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { GuideStepItem } from '@/features/edge/httpproxy/grafana/step-item';
 import { DeployFormValues } from '@/features/edge/httpproxy/grafana/stepper.schema';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { Alert, AlertDescription } from '@/modules/datum-ui/components/alert.tsx';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/modules/shadcn/ui/components/card';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { CopyIcon, ExternalLinkIcon, LightbulbIcon, TriangleAlertIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';

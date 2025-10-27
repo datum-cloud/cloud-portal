@@ -1,8 +1,8 @@
 import { SelectLabels } from '@/components/select-labels/select-labels';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { Card, CardContent, CardFooter } from '@/modules/shadcn/ui/components/card';
+import { Label } from '@/modules/shadcn/ui/components/label';
 import { ILabel } from '@/resources/interfaces/label.interface';
 import { updateOrganizationSchema } from '@/resources/schemas/organization.schema';
 import { convertObjectToLabels } from '@/utils/helpers/object.helper';

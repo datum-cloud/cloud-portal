@@ -1,6 +1,7 @@
 // src/components/multi-select.tsx
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { cn } from '@/modules/shadcn';
 import {
   Command,
   CommandEmpty,
@@ -8,10 +9,9 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
-import { cn } from '@/utils/common';
+} from '@/modules/shadcn/ui/components/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/modules/shadcn/ui/components/popover';
+import { Separator } from '@/modules/shadcn/ui/components/separator';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { CheckIcon, XCircle, ChevronDown, XIcon, WandSparkles, Loader2 } from 'lucide-react';
 import * as React from 'react';

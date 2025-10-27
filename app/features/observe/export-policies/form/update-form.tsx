@@ -2,7 +2,8 @@ import { SinksForm } from './sink/sinks-form';
 import { SourcesForm } from './source/sources-form';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { MetadataForm } from '@/components/metadata/metadata-form';
-import { Button } from '@/components/ui/button';
+import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   Card,
   CardContent,
@@ -10,8 +11,7 @@ import {
   CardHeader,
   CardFooter,
   CardTitle,
-} from '@/components/ui/card';
-import { useIsPending } from '@/hooks/useIsPending';
+} from '@/modules/shadcn/ui/components/card';
 import {
   ExportPolicyAuthenticationType,
   ExportPolicySinkType,

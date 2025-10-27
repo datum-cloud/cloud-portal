@@ -5,7 +5,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/modules/shadcn/ui/components/select';
 import { GatewayTlsMode } from '@/resources/interfaces/gateway.interface';
 import { GatewayTlsSchema } from '@/resources/schemas/gateway.schema';
 import { useForm, getSelectProps, useInputControl } from '@conform-to/react';

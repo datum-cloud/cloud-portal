@@ -2,7 +2,7 @@ import { EnvsForm } from './envs-form';
 import { PortsForm } from './ports-form';
 import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import {
   RuntimeContainerSchema,
   RuntimeEnvSchema,

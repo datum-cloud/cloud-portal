@@ -4,7 +4,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/modules/shadcn/ui/components/select';
 import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react';
 import { addDays, addYears, format } from 'date-fns';
 import { useMemo } from 'react';

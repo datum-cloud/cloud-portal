@@ -2,15 +2,15 @@ import { AuthError } from '@/components/error/auth';
 import { GenericError } from '@/components/error/generic';
 import { ClientHintCheck } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
-import { Toaster } from '@/components/ui/sonner';
 import { useNonce } from '@/hooks/useNonce';
-import { useToast } from '@/hooks/useToast';
 import { csrf } from '@/modules/cookie/csrf.server';
 import { themeSessionResolver } from '@/modules/cookie/theme.server';
 import { getToastSession } from '@/modules/cookie/toast.server';
 import { FathomAnalytics } from '@/modules/fathom/fathom';
 import MarkerIoEmbed from '@/modules/markerio';
 import { configureProgress, startProgress, stopProgress } from '@/modules/nprogress';
+import { Toaster } from '@/modules/shadcn/ui/components/sonner';
+import { useToast } from '@/modules/shadcn/ui/hooks';
 import { queryClient } from '@/modules/tanstack/query';
 import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api/action/set-cache';
 // Import global CSS styles for the application

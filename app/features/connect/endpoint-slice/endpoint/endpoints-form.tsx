@@ -1,11 +1,11 @@
 import { EndpointField } from './endpoint-field';
 import { FieldLabel } from '@/components/field/field-label';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { cn } from '@/modules/shadcn';
 import {
   EndpointSliceEndpointSchema,
   EndpointSliceSchema,
 } from '@/resources/schemas/endpoint-slice.schema';
-import { cn } from '@/utils/common';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect } from 'react';

@@ -1,6 +1,6 @@
 import { IGroupNode } from '../types';
 import { List } from '@/components/list/list';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { Handle, Position } from '@xyflow/react';
 import { SquareMinusIcon, SquarePlusIcon } from 'lucide-react';
 import { useMemo } from 'react';

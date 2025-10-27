@@ -1,8 +1,8 @@
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
+import { Card, CardHeader, CardTitle, CardContent } from '@/modules/shadcn/ui/components/card';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { getShortId } from '@/utils/helpers/text.helper';
 import { useMemo } from 'react';

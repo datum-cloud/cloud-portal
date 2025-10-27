@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardHeader, CardTitle } from '@/modules/shadcn/ui/components/card';
+import { Label } from '@/modules/shadcn/ui/components/label';
+import { Switch } from '@/modules/shadcn/ui/components/switch';
 import { useApp } from '@/providers/app.provider';
 import { ROUTE_PATH as USER_PREFERENCES_UPDATE_ACTION } from '@/routes/api/user/preferences';
 import { useEffect, useState } from 'react';

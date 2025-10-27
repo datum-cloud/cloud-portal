@@ -1,6 +1,8 @@
 import { Field } from '@/components/field/field';
 import { SelectRole } from '@/components/select-role/select-role';
-import { Button } from '@/components/ui/button';
+import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { TagsInput } from '@/modules/datum-ui/components/tag-input.tsx';
 import {
   Card,
   CardContent,
@@ -8,9 +10,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { TagsInput } from '@/components/ui/tag-input';
-import { useIsPending } from '@/hooks/useIsPending';
+} from '@/modules/shadcn/ui/components/card';
 import { invitationFormSchema } from '@/resources/schemas/invitation.schema';
 import {
   FormProvider,

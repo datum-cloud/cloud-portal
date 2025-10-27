@@ -1,8 +1,8 @@
 import { Option, SelectAutocompleteProps } from './select-autocomplete.types';
 import { VirtualizedList } from './virtualized-list';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/utils/common';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { cn } from '@/modules/shadcn';
+import { Popover, PopoverContent, PopoverTrigger } from '@/modules/shadcn/ui/components/popover';
 import { ChevronDown, Loader2 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 

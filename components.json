@@ -5,14 +5,14 @@
   "tsx": true,
   "tailwind": {
     "config": "tailwind.config.ts",
-    "css": "app/root.css",
+    "css": "app/modules/shadcn/styles/shadcn.css",
     "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""
   },
   "aliases": {
-    "components": "@/components",
-    "utils": "@/utils/common"
+    "components": "@/modules/shadcn/ui/components",
+    "utils": "@/modules/shadcn"
   },
   "iconLibrary": "lucide"
 }

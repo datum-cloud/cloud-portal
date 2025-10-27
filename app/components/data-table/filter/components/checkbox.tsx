@@ -1,8 +1,8 @@
 import { useArrayFilter } from '../../hooks/useFilterQueryState';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/utils/common';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { cn } from '@/modules/shadcn';
+import { Checkbox } from '@/modules/shadcn/ui/components/checkbox';
+import { Label } from '@/modules/shadcn/ui/components/label';
 import { ReactNode, useCallback } from 'react';
 
 export interface CheckboxOption {

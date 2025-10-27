@@ -1,15 +1,15 @@
 import { PrometheusField } from './prometheus/prometheus-field';
 import { Field } from '@/components/field/field';
 import { MultiSelect } from '@/components/multi-select/multi-select';
-import { Input } from '@/components/ui/input';
+import { POLICY_SINK_TYPES } from '@/features/observe/constants';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from '@/components/ui/select';
-import { POLICY_SINK_TYPES } from '@/features/observe/constants';
+} from '@/modules/shadcn/ui/components/select';
 import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.interface';
 import {
   ExportPolicySinkFieldSchema,

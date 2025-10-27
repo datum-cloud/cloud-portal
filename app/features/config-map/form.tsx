@@ -2,8 +2,9 @@ import { SimpleConfigMapDetail } from './simple-detail';
 import { CodeEditorTabs } from '@/components/code-editor/code-editor-tabs';
 import { EditorLanguage } from '@/components/code-editor/code-editor.types';
 import { Field } from '@/components/field/field';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { useIsPending } from '@/hooks/useIsPending';
+import { Alert, AlertDescription, AlertTitle } from '@/modules/datum-ui/components/alert.tsx';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   Card,
   CardContent,
@@ -11,8 +12,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { useIsPending } from '@/hooks/useIsPending';
+} from '@/modules/shadcn/ui/components/card';
 import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
 import { configMapSchema, updateConfigMapSchema } from '@/resources/schemas/config-map.schema';
 import { jsonToYaml } from '@/utils/helpers/format.helper';

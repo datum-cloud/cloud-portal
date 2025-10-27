@@ -1,7 +1,10 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
 import { SelectRole } from '@/components/select-role/select-role';
-import { Button } from '@/components/ui/button';
+import { ResourceForm } from '@/features/policy-binding/form/resource-form';
+import { SubjectsForm } from '@/features/policy-binding/form/subjects-form';
+import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   Card,
   CardContent,
@@ -9,10 +12,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { ResourceForm } from '@/features/policy-binding/form/resource-form';
-import { SubjectsForm } from '@/features/policy-binding/form/subjects-form';
-import { useIsPending } from '@/hooks/useIsPending';
+} from '@/modules/shadcn/ui/components/card';
 import { useApp } from '@/providers/app.provider';
 import {
   IPolicyBindingControlResponse,

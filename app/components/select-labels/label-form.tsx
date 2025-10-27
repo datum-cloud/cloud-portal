@@ -1,6 +1,6 @@
 import { Field } from '@/components/field/field';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { labelFormSchema, LabelFormSchema } from '@/resources/schemas/metadata.schema';
 import { getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';

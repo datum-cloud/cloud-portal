@@ -1,13 +1,13 @@
 import { TlsConfiguration } from './tls-configuration';
 import { Field } from '@/components/field/field';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/modules/shadcn/ui/components/select';
 import {
   GatewayAllowedRoutes,
   GatewayPort,

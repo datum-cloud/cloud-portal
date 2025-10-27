@@ -1,12 +1,12 @@
 import { Field } from '@/components/field/field';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/modules/shadcn/ui/components/select';
 import { HTTPPathMatchType } from '@/resources/interfaces/http-route.interface';
 import { HttpPathMatchSchema } from '@/resources/schemas/http-route.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';

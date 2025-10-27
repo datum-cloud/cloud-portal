@@ -1,8 +1,8 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DataTable } from '@/components/data-table';
 import { ProfileIdentity } from '@/components/profile-identity';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationsControl } from '@/resources/control-plane';

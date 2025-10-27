@@ -1,9 +1,9 @@
 import { Field } from '@/components/field/field';
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { Card, CardContent, CardFooter } from '@/modules/shadcn/ui/components/card';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { updateOrganizationSchema } from '@/resources/schemas/organization.schema';
 import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';

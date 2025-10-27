@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/modules/shadcn/ui/components/select';
 import { HTTPFilterType } from '@/resources/interfaces/http-route.interface';
 import { HttpURLRewriteSchema, HttpRouteFilterSchema } from '@/resources/schemas/http-route.schema';
 import { getSelectProps, useForm, useInputControl } from '@conform-to/react';

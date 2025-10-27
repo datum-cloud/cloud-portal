@@ -1,5 +1,7 @@
 import { Field } from '@/components/field/field';
-import { Button } from '@/components/ui/button';
+import useAutosizeTextArea from '@/hooks/useAutosizeTextArea';
+import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   DialogContent,
   Dialog,
@@ -7,10 +9,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import useAutosizeTextArea from '@/hooks/useAutosizeTextArea';
-import { useIsPending } from '@/hooks/useIsPending';
+} from '@/modules/shadcn/ui/components/dialog';
+import { Textarea } from '@/modules/shadcn/ui/components/textarea';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
 import { getFormProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';

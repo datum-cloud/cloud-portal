@@ -1,7 +1,13 @@
 import { DateTime } from '@/components/date-time';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/modules/shadcn/ui/components/card';
+import { Separator } from '@/modules/shadcn/ui/components/separator';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 
 export const DomainVerificationCard = ({ domain }: { domain: IDomainControlResponse }) => {

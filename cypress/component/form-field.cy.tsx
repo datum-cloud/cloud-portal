@@ -1,5 +1,5 @@
 import { Field } from '@/components/field/field';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/modules/shadcn/ui/components/input';
 
 describe('Form Field', () => {
   it('renders with correct label', () => {

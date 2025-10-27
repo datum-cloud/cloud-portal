@@ -1,7 +1,7 @@
 import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { HttpProxyHostnameSchema, HttpProxySchema } from '@/resources/schemas/http-proxy.schema';
 import { FormMetadata, getInputProps, useForm } from '@conform-to/react';
 import { PlusIcon, TrashIcon } from 'lucide-react';

@@ -1,5 +1,5 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/modules/shadcn/ui/components/card';
 import { paths } from '@/utils/config/paths.config';
 import { Loader2Icon } from 'lucide-react';
 import { useEffect } from 'react';

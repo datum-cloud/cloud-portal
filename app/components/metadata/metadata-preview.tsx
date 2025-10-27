@@ -1,5 +1,5 @@
 import { List, ListItem } from '@/components/list/list';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
 import { MetadataSchema } from '@/resources/schemas/metadata.schema';
 import { useMemo } from 'react';
 

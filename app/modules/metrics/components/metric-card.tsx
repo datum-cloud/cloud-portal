@@ -12,7 +12,7 @@ import {
   type MetricFormat,
   type PrometheusQueryOptions,
 } from '@/modules/prometheus';
-import { cn } from '@/utils/common';
+import { cn } from '@/modules/shadcn';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import React, { useMemo } from 'react';
 

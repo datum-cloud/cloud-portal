@@ -1,8 +1,8 @@
 import { Field } from '@/components/field/field';
 import { SelectProject } from '@/components/select-project/select-project';
-import { Input } from '@/components/ui/input';
 import { POLICY_RESOURCES } from '@/features/policy-binding/form/constants';
 import { SelectResource } from '@/features/policy-binding/form/select-resource';
+import { Input } from '@/modules/shadcn/ui/components/input';
 import { useApp } from '@/providers/app.provider';
 import {
   NewPolicyBindingSchema,
