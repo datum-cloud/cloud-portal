@@ -14,8 +14,8 @@ import {
   AppLoadContext,
   data,
   MetaFunction,
-  redirect,
   useActionData,
+  useNavigate,
   useParams,
 } from 'react-router';
 import { toast } from 'sonner';
@@ -74,12 +74,18 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
             roleNamespace: parsed.value.roleNamespace,
           };
 
-          // Dry run
-          const dryRunRes = await invitationsControl.create(orgId, payload, true);
+          try {
+            // Dry run
+            const dryRunRes = await invitationsControl.create(orgId, payload, true);
 
-          // Actual creation
-          if (dryRunRes) {
-            return await invitationsControl.create(orgId, payload, false);
+            // Actual creation
+            if (dryRunRes) {
+              return await invitationsControl.create(orgId, payload, false);
+            } else {
+              throw new Error('Failed to create invitation');
+            }
+          } catch (error) {
+            throw error instanceof Error ? error : new Error('Failed to create invitation');
           }
         })
       );
@@ -123,6 +129,7 @@ interface ActionData {
 export default function OrgTeamInvitePage() {
   const { orgId } = useParams();
   const data = useActionData<ActionData>();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (data) {
@@ -146,12 +153,13 @@ export default function OrgTeamInvitePage() {
 
         if (successCount > 0 && failedResults.length === 0) {
           toast.success(`Invitations sent successfully!`);
-          redirect(getPathWithParams(paths.org.detail.team.root, { orgId }));
+          navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
+          return;
         } else if (successCount > 0 && failedResults.length > 0) {
           toast.warning(`${successCount} invitations sent, ${failedResults.length} failed`, {
             description: ErrorList(failedResults),
           });
-          redirect(getPathWithParams(paths.org.detail.team.root, { orgId }));
+          navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
         } else if (failedResults.length > 0) {
           toast.error('Invitations failed', {
             description: ErrorList(failedResults),
@@ -161,7 +169,7 @@ export default function OrgTeamInvitePage() {
         toast.error(data?.error ?? 'An unexpected error occurred');
       }
     }
-  }, [data]);
+  }, [data, navigate, orgId]);
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
