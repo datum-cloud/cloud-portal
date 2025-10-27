@@ -198,7 +198,7 @@ export default [
 
       // Members
       route('members', 'routes/api/members/index.ts'),
-
+      route('members/remove', 'routes/api/members/remove.ts'),
       // Domains
       route('domains', 'routes/api/domains/index.ts'),
       route('domains/:id/status', 'routes/api/domains/status.ts'),

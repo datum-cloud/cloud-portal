@@ -1,6 +1,7 @@
 import {
   ComMiloapisResourcemanagerV1Alpha1OrganizationMembership,
   ComMiloapisResourcemanagerV1Alpha1OrganizationMembershipList,
+  deleteResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership,
   listResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership,
 } from '@/modules/control-plane/resource-manager';
 import { IMemberControlResponse } from '@/resources/interfaces/member.interface';
@@ -47,6 +48,23 @@ export const createMembersControl = (client: Client) => {
           response.data as ComMiloapisResourcemanagerV1Alpha1OrganizationMembershipList;
 
         return members.items?.map((item) => transform(item)) ?? [];
+      } catch (error) {
+        throw error;
+      }
+    },
+    delete: async (organizationId: string, memberId: string) => {
+      try {
+        const response =
+          await deleteResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership({
+            client,
+            baseURL: buildBaseUrl(client, organizationId),
+            path: {
+              namespace: buildNamespace(organizationId),
+              name: memberId,
+            },
+          });
+
+        return response.data;
       } catch (error) {
         throw error;
       }

@@ -8,6 +8,7 @@ import { createInvitationsControl } from '@/resources/control-plane';
 import { createMembersControl } from '@/resources/control-plane/resource-manager/members.control';
 import { IInvitationControlResponse } from '@/resources/interfaces/invitation.interface';
 import { IMemberControlResponse } from '@/resources/interfaces/member.interface';
+import { ROUTE_PATH as MEMBERS_REMOVE_ROUTE_PATH } from '@/routes/api/members/remove';
 import { ROUTE_PATH as TEAM_INVITATIONS_CANCEL_ROUTE_PATH } from '@/routes/api/team/invitations/cancel';
 import { ROUTE_PATH as TEAM_INVITATIONS_RESEND_ROUTE_PATH } from '@/routes/api/team/invitations/resend';
 import { paths } from '@/utils/config/paths.config';
@@ -37,6 +38,7 @@ interface ITeamMember {
   role?: string;
   invitationState?: 'Pending' | 'Accepted' | 'Declined';
   type: 'member' | 'invitation';
+  name?: string;
 }
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
@@ -65,6 +67,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     role: invitation.role,
     invitationState: invitation.state,
     type: 'invitation' as const,
+    name: invitation.name,
   }));
 
   // Transform members to generic format
@@ -75,6 +78,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     email: member.user.email || '',
     role: undefined, // TODO: Extract role from member data when available
     type: 'member' as const,
+    name: member.name,
   }));
 
   // Combine both arrays
@@ -194,6 +198,39 @@ export default function OrgTeamPage() {
     ];
   }, []);
 
+  const removeMember = async (row: ITeamMember) => {
+    await confirm({
+      title: 'Remove Member',
+      description: (
+        <span>
+          Are you sure you want to remove&nbsp;
+          <strong>
+            {row.givenName} {row.familyName} ({row.email})
+          </strong>{' '}
+          from the organization?
+        </span>
+      ),
+      submitText: 'Remove',
+      cancelText: 'Cancel',
+      confirmValue: 'REMOVE',
+      confirmInputLabel: 'Type "REMOVE" to confirm.',
+      variant: 'destructive',
+      showConfirmInput: true,
+      onSubmit: async () => {
+        await fetcher.submit(
+          {
+            id: row?.name ?? '',
+            orgId: orgId ?? '',
+          },
+          {
+            action: MEMBERS_REMOVE_ROUTE_PATH,
+            method: 'DELETE',
+          }
+        );
+      },
+    });
+  };
+
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
       if (fetcher.data.success) {
@@ -238,6 +275,14 @@ export default function OrgTeamPage() {
           icon: <TrashIcon className="size-4" />,
           hidden: (row) => row.type !== 'invitation',
           action: (row) => cancelInvitation(row),
+        },
+        {
+          key: 'remove',
+          label: 'Remove member',
+          variant: 'destructive',
+          icon: <TrashIcon className="size-4" />,
+          hidden: (row) => row.type !== 'member' || row.email === user?.email,
+          action: (row) => removeMember(row),
         },
       ]}
     />
