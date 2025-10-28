@@ -1,6 +1,11 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { authenticator } from '@/modules/auth/auth.server';
 import { setIdTokenSession } from '@/modules/cookie/id-token.server';
+import {
+  clearRedirectIntent,
+  getRedirectIntent,
+  isValidRedirectPath,
+} from '@/modules/cookie/redirect-intent.server';
 import { getSession, setSession } from '@/modules/cookie/session.server';
 import { IAuthSession } from '@/resources/interfaces/auth.interface';
 import { paths } from '@/utils/config/paths.config';
@@ -49,10 +54,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     // Combine headers
-    const headers = combineHeaders(sessionHeaders, idTokenHeaders);
+    let headers = combineHeaders(sessionHeaders, idTokenHeaders);
 
-    // Redirect to organizations
-    return redirect(paths.account.organizations.root, { headers: headers });
+    // Get the intended redirect destination
+    const redirectIntent = await getRedirectIntent(request);
+    let destination = paths.account.organizations.root; // default fallback
+
+    if (redirectIntent?.path) {
+      // Validate it's a safe internal path
+      const isValid = isValidRedirectPath(redirectIntent.path);
+      if (isValid) {
+        destination = redirectIntent.path;
+      }
+
+      // Clear the redirect intent (one-time use)
+      const clearHeaders = await clearRedirectIntent(request);
+      headers = combineHeaders(headers, clearHeaders.headers);
+    }
+
+    // Redirect to the intended destination
+    return redirect(destination, { headers });
   } catch {
     return redirect(paths.auth.logIn);
   }
