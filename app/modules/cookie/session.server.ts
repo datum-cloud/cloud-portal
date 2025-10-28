@@ -1,5 +1,6 @@
 import { authenticator } from '@/modules/auth/auth.server';
 import { zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
+import { setRedirectIntent } from '@/modules/cookie/redirect-intent.server';
 import { IAuthSession } from '@/resources/interfaces/auth.interface';
 import { isProduction } from '@/utils/config/env.config';
 import { paths } from '@/utils/config/paths.config';
@@ -118,12 +119,34 @@ export async function isAuthenticated(
       });
     }
 
-    // Generate a new request without search params
+    // Save the current URL (path + search + hash) for post-login redirect
     const url = new URL(request.url);
+    const redirectPath = url.pathname + url.search + url.hash;
+    const { headers: redirectIntentHeaders } = await setRedirectIntent(request, redirectPath);
+
+    // Generate a new request without search params
     url.search = '';
 
-    // Redirect to OIDC Page
-    return authenticator.authenticate('zitadel', new Request(url.toString(), request));
+    // Redirect to OIDC Page and include the redirect intent cookie in the response
+    // The authenticator throws a redirect Response, so we need to catch it
+    try {
+      const authResponse = await authenticator.authenticate(
+        'zitadel',
+        new Request(url.toString(), request)
+      );
+      return authResponse;
+    } catch (error) {
+      // If the authenticator throws a Response (redirect), add our cookie to it
+      if (error instanceof Response) {
+        const setCookieHeader = redirectIntentHeaders.get('Set-Cookie');
+        if (setCookieHeader) {
+          error.headers.append('Set-Cookie', setCookieHeader);
+        }
+        throw error; // Re-throw the modified response
+      }
+      // If it's not a Response, re-throw the error
+      throw error;
+    }
   } else {
     // Convert expiredAt to timestamp
     const tokenExpiryTime = new Date(session.expiredAt).getTime();
