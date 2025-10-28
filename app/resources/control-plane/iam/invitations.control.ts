@@ -69,8 +69,9 @@ export const createInvitationsControl = (client: Client) => {
     ) => {
       try {
         const orgNamespace = buildNamespace(organizationId);
-        // @TODO: make it dynamic if we add more roles
-        const roles = payload.role ? [{ name: payload.role, namespace: 'milo-system' }] : [];
+        const roles = payload.role
+          ? [{ name: payload.role, namespace: payload.roleNamespace ?? 'milo-system' }]
+          : [];
 
         const response = await createIamMiloapisComV1Alpha1NamespacedUserInvitation({
           client,
