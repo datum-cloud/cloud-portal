@@ -201,7 +201,7 @@ export default function OrgTeamPage() {
         accessorKey: 'role',
         enableSorting: false,
         cell: ({ row }) => {
-          return <span className="capitalize">{row.original.role ?? '-'}</span>;
+          return <span>{row.original.role ?? '-'}</span>;
         },
       },
     ];
