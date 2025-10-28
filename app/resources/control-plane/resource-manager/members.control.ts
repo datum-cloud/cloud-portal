@@ -1,13 +1,14 @@
 import {
   ComMiloapisResourcemanagerV1Alpha1OrganizationMembership,
   ComMiloapisResourcemanagerV1Alpha1OrganizationMembershipList,
+  deleteResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership,
   listResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership,
 } from '@/modules/control-plane/resource-manager';
 import { IMemberControlResponse } from '@/resources/interfaces/member.interface';
+import { buildNamespace } from '@/utils/common';
 import { Client } from '@hey-api/client-axios';
 
 export const createMembersControl = (client: Client) => {
-  const buildNamespace = (organizationId: string) => `organization-${organizationId}`;
   const buildBaseUrl = (client: Client, organizationId: string) =>
     `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${organizationId}/control-plane`;
 
@@ -39,7 +40,7 @@ export const createMembersControl = (client: Client) => {
             client,
             baseURL: buildBaseUrl(client, organizationId),
             path: {
-              namespace: buildNamespace(organizationId),
+              namespace: buildNamespace('organization', organizationId),
             },
           });
 
@@ -47,6 +48,23 @@ export const createMembersControl = (client: Client) => {
           response.data as ComMiloapisResourcemanagerV1Alpha1OrganizationMembershipList;
 
         return members.items?.map((item) => transform(item)) ?? [];
+      } catch (error) {
+        throw error;
+      }
+    },
+    delete: async (organizationId: string, memberId: string) => {
+      try {
+        const response =
+          await deleteResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership({
+            client,
+            baseURL: buildBaseUrl(client, organizationId),
+            path: {
+              namespace: buildNamespace('organization', organizationId),
+              name: memberId,
+            },
+          });
+
+        return response.data;
       } catch (error) {
         throw error;
       }
