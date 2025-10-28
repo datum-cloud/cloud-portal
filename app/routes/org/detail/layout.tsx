@@ -1,6 +1,7 @@
 import { DashboardLayout } from '@/layouts/dashboard/dashboard';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
+import { RbacProvider } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
@@ -92,7 +93,9 @@ export default function OrgLayout() {
 
   return (
     <DashboardLayout navItems={navItems} sidebarCollapsible="icon" currentOrg={org}>
-      <Outlet />
+      <RbacProvider organizationId={org?.name}>
+        <Outlet />
+      </RbacProvider>
     </DashboardLayout>
   );
 }

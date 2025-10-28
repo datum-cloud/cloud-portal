@@ -15,6 +15,7 @@ export default [
     // Test Playground
     route('test/metrics', 'routes/test/metrics.tsx'),
     route('test/sentry', 'routes/test/sentry.tsx'),
+    route('test/permissions', 'routes/test/permissions.tsx'),
 
     // Getting Started
     route('getting-started', 'routes/getting-started/index.tsx'),
@@ -235,6 +236,10 @@ export default [
 
       // Prometheus
       route('prometheus', 'routes/api/prometheus/index.ts'),
+
+      // Permissions
+      route('permissions/check', 'routes/api/permissions/check.ts'),
+      route('permissions/bulk-check', 'routes/api/permissions/bulk-check.ts'),
     ]),
   ]),
 

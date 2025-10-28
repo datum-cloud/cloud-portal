@@ -3,7 +3,7 @@ import {
   ComMiloapisQuotaV1Alpha1AllowanceBucketList,
   listQuotaMiloapisComV1Alpha1NamespacedAllowanceBucket,
 } from '@/modules/control-plane/quota';
-import { IAllowanceBucketControlResponse } from '@/resources/interfaces/allowance-bucket';
+import { IAllowanceBucketControlResponse } from '@/resources/interfaces/allowance-bucket.interface';
 import { buildNamespace } from '@/utils/common';
 import { Client } from '@hey-api/client-axios';
 

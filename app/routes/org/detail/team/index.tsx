@@ -3,6 +3,7 @@ import { DataTable } from '@/components/data-table';
 import { ProfileIdentity } from '@/components/profile-identity';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationsControl } from '@/resources/control-plane';
 import { createMembersControl } from '@/resources/control-plane/resource-manager/members.control';
@@ -11,6 +12,7 @@ import { IMemberControlResponse } from '@/resources/interfaces/member.interface'
 import { ROUTE_PATH as MEMBERS_REMOVE_ROUTE_PATH } from '@/routes/api/members/remove';
 import { ROUTE_PATH as TEAM_INVITATIONS_CANCEL_ROUTE_PATH } from '@/routes/api/team/invitations/cancel';
 import { ROUTE_PATH as TEAM_INVITATIONS_RESEND_ROUTE_PATH } from '@/routes/api/team/invitations/resend';
+import { buildNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -95,6 +97,15 @@ export default function OrgTeamPage() {
   const fetcher = useFetcher();
   const { confirm } = useConfirmationDialog();
 
+  const {
+    hasPermission: hasRemoveMemberPermission,
+    isError,
+    error,
+  } = useHasPermission('organizationmemberships', 'delete', {
+    namespace: buildNamespace('organization', orgId ?? ''),
+    group: 'resourcemanager.miloapis.com',
+  });
+
   const cancelInvitation = async (row: ITeamMember) => {
     await confirm({
       title: 'Cancel Invitation',
@@ -106,10 +117,8 @@ export default function OrgTeamPage() {
       ),
       submitText: 'Cancel',
       cancelText: 'Close',
-      confirmValue: 'CANCEL',
-      confirmInputLabel: 'Type "CANCEL" to confirm.',
       variant: 'destructive',
-      showConfirmInput: true,
+      showConfirmInput: false,
       onSubmit: async () => {
         await fetcher.submit(
           {
@@ -241,6 +250,43 @@ export default function OrgTeamPage() {
     }
   }, [fetcher.data, fetcher.state]);
 
+  useEffect(() => {
+    if (isError) {
+      toast.error(error?.message ?? 'Failed to check permission');
+    }
+  }, [isError, error]);
+
+  const rowActions = useMemo(
+    () => [
+      {
+        key: 'resend',
+        label: 'Resend invitation',
+        icon: <Redo2Icon className="size-4" />,
+        hidden: (row: ITeamMember) =>
+          row.type !== 'invitation' || row.invitationState !== 'Pending',
+        action: (row: ITeamMember) => resendInvitation(row.id),
+      },
+      {
+        key: 'cancel',
+        label: 'Cancel invitation',
+        variant: 'destructive' as const,
+        icon: <TrashIcon className="size-4" />,
+        hidden: (row: ITeamMember) => row.type !== 'invitation',
+        action: (row: ITeamMember) => cancelInvitation(row),
+      },
+      {
+        key: 'remove',
+        label: 'Remove member',
+        variant: 'destructive' as const,
+        icon: <TrashIcon className="size-4" />,
+        hidden: (row: ITeamMember) =>
+          row.type !== 'member' || row.email === user?.email || !hasRemoveMemberPermission,
+        action: (row: ITeamMember) => removeMember(row),
+      },
+    ],
+    [user?.email, hasRemoveMemberPermission]
+  );
+
   return (
     <DataTable
       columns={columns}
@@ -260,31 +306,7 @@ export default function OrgTeamPage() {
           </Link>
         ),
       }}
-      rowActions={[
-        {
-          key: 'resend',
-          label: 'Resend invitation',
-          icon: <Redo2Icon className="size-4" />,
-          hidden: (row) => row.type !== 'invitation' || row.invitationState !== 'Pending',
-          action: (row) => resendInvitation(row.id),
-        },
-        {
-          key: 'cancel',
-          label: 'Cancel invitation',
-          variant: 'destructive',
-          icon: <TrashIcon className="size-4" />,
-          hidden: (row) => row.type !== 'invitation',
-          action: (row) => cancelInvitation(row),
-        },
-        {
-          key: 'remove',
-          label: 'Remove member',
-          variant: 'destructive',
-          icon: <TrashIcon className="size-4" />,
-          hidden: (row) => row.type !== 'member' || row.email === user?.email,
-          action: (row) => removeMember(row),
-        },
-      ]}
+      rowActions={rowActions}
     />
   );
 }

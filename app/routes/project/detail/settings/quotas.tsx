@@ -1,6 +1,6 @@
 import { QuotasTable } from '@/features/quotas/quotas-table';
 import { createAllowanceBucketsControl } from '@/resources/control-plane/quota/allowancebuckets.control';
-import { IAllowanceBucketControlResponse } from '@/resources/interfaces/allowance-bucket';
+import { IAllowanceBucketControlResponse } from '@/resources/interfaces/allowance-bucket.interface';
 import { Client } from '@hey-api/client-axios';
 import {
   LoaderFunctionArgs,
