@@ -11,7 +11,7 @@ export default function BlankLayout({
   return (
     <div
       className={cn(
-        'bg-cream relative flex min-h-screen w-full flex-col items-center justify-center',
+        'bg-cream dark:bg-navy relative flex min-h-screen w-full flex-col items-center justify-center',
         className
       )}>
       <LogoStacked height={66} className="mb-12" />
