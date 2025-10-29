@@ -8,6 +8,7 @@ export const paths = {
   },
   home: '/',
   gettingStarted: '/getting-started',
+  waitlist: '/waitlist',
   account: {
     root: '/account',
     organizations: {

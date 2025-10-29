@@ -1,4 +1,3 @@
-import { LogoFlat } from '@/components/logo/logo-flat';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -8,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import BlankLayout from '@/layouts/blank/blank.layout';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationsControl } from '@/resources/control-plane';
@@ -29,7 +29,7 @@ import {
 } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Getting Started');
+  return metaObject('Invitation');
 });
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
@@ -71,7 +71,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   }
 };
 
-export default function GettingStartedPage() {
+export default function InvitationPage() {
   const invitation = useLoaderData<typeof loader>();
   const { user: currentUser } = useApp();
   const fetcher = useFetcher();
@@ -109,24 +109,20 @@ export default function GettingStartedPage() {
   }, [fetcher.state]);
 
   return (
-    <div className="m-auto flex h-screen w-full max-w-md flex-col items-center justify-center">
-      <Card className="w-full border-0 shadow-xl">
-        <CardHeader className="space-y-3 pb-6">
-          <div className="flex items-center justify-center">
-            <LogoFlat height={32} />
-          </div>
-
+    <BlankLayout>
+      <Card className="w-full max-w-md rounded-lg border py-11 shadow-none">
+        <CardHeader className="space-y-3 px-9 pb-6">
           <div className="space-y-2 text-center">
-            <CardTitle className="text-2xl font-bold text-balance">
+            <CardTitle className="text-navy text-xl font-semibold">
               You&apos;ve been invited!
             </CardTitle>
-            <CardDescription className="text-base text-pretty">
+            <CardDescription className="text-navy text-sm font-normal">
               Join your team and start collaborating
             </CardDescription>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 px-9">
           <p className="text-center text-base font-normal break-words">
             <strong>
               {invitation.inviterUser?.displayName || invitation.invitedBy || 'Someone'}
@@ -136,7 +132,7 @@ export default function GettingStartedPage() {
             organization
           </p>
         </CardContent>
-        <CardFooter className="flex flex-col gap-3 pt-6">
+        <CardFooter className="flex flex-col gap-3 px-9 pt-6">
           {!isEmailMatch ? (
             <div className="text-center text-sm leading-relaxed">
               <p className="font-semibold">
@@ -159,15 +155,15 @@ export default function GettingStartedPage() {
               <Button
                 onClick={() => handleStateUpdate('Accepted')}
                 disabled={isLoading}
-                className="bg-primary h-11 w-full text-base font-semibold shadow-lg transition-all hover:shadow-xl">
+                className="w-full">
                 {isLoading && action === 'Accepted' ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="size-4 animate-spin" />
                     Joining...
                   </>
                 ) : (
                   <>
-                    <Check className="mr-2 h-5 w-5" />
+                    <Check className="size-4" />
                     Join Organization
                   </>
                 )}
@@ -176,8 +172,8 @@ export default function GettingStartedPage() {
               <Button
                 onClick={() => handleStateUpdate('Declined')}
                 disabled={isLoading}
-                variant="ghost"
-                className="h-11 w-full text-base font-medium">
+                variant="link"
+                className="text-destructive hover:text-destructive/80 w-full">
                 {isLoading && action === 'Declined' ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -193,12 +189,12 @@ export default function GettingStartedPage() {
       </Card>
 
       {/* Footer Text */}
-      <p className="text-muted-foreground mt-6 text-center text-sm">
+      <p className="text-muted-foreground mt-12 text-center text-sm">
         Need help? Contact{' '}
-        <Link to={`mailto:support@datum.net`} className="text-primary underline">
+        <Link to={`mailto:support@datum.net`} className="underline">
           support@datum.net
         </Link>
       </p>
-    </div>
+    </BlankLayout>
   );
 }

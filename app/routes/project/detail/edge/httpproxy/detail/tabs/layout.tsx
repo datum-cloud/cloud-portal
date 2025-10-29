@@ -2,7 +2,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { Button } from '@/components/ui/button';
-import TabsLayout from '@/layouts/tabs/tabs';
+import TabsLayout from '@/layouts/tabs/tabs.layout';
 import { TabsNavProps } from '@/layouts/tabs/tabs.types';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';

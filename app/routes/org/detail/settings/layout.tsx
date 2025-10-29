@@ -1,4 +1,4 @@
-import TabsLayout from '@/layouts/tabs/tabs';
+import TabsLayout from '@/layouts/tabs/tabs.layout';
 import { TabsNavProps } from '@/layouts/tabs/tabs.types';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { paths } from '@/utils/config/paths.config';

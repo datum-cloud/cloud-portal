@@ -1,5 +1,5 @@
-import { LogoFlat } from '@/components/logo/logo-flat';
 import { OrganizationCard, CreateOrganizationCard } from '@/features/organization';
+import BlankLayout from '@/layouts/blank/blank.layout';
 import { getSession } from '@/modules/cookie/session.server';
 import { createUserControl } from '@/resources/control-plane';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
@@ -72,34 +72,27 @@ export default function GettingStartedPage() {
   }, []); */
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-center justify-center">
-      <div className="flex w-full max-w-4xl flex-col items-center justify-center gap-10">
-        {/* Header Section */}
-        <div className="flex flex-col items-center justify-center text-center">
-          <LogoFlat height={32} className="mb-8" />
-          <h1 className="mb-1 text-3xl font-bold">Welcome to Datum Cloud</h1>
-          <p className="text-muted-foreground">
-            Choose how you&apos;d like to get started with your organization
-          </p>
+    <BlankLayout>
+      <p className="text-muted-foreground mb-8">
+        Choose how you&apos;d like to get started with your organization
+      </p>
+
+      {/* Organizations Grid */}
+      <div className="w-full max-w-5xl">
+        <div className="grid auto-rows-fr grid-cols-1 gap-6 md:grid-cols-3">
+          {/* Standard Organizations */}
+          {organizations.map((org) => (
+            <OrganizationCard key={org.name} organization={org} variant="selection" />
+          ))}
+
+          {/* New Organization Option */}
+          <CreateOrganizationCard />
         </div>
-
-        {/* Organizations Grid */}
-        <div className="w-full">
-          <div className="grid auto-rows-fr grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Standard Organizations */}
-            {organizations.map((org) => (
-              <OrganizationCard key={org.name} organization={org} variant="selection" />
-            ))}
-
-            {/* New Organization Option */}
-            <CreateOrganizationCard />
-          </div>
-        </div>
-
-        <p className="text-muted-foreground text-center text-sm">
-          You can always create additional organizations later from your account settings
-        </p>
       </div>
-    </div>
+
+      <p className="text-muted-foreground mt-8 text-center text-sm">
+        You can always create additional organizations later from your account settings
+      </p>
+    </BlankLayout>
   );
 }

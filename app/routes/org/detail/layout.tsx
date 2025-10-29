@@ -1,4 +1,4 @@
-import { DashboardLayout } from '@/layouts/dashboard/dashboard';
+import { DashboardLayout } from '@/layouts/dashboard/dashboard.layout';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { RbacProvider } from '@/modules/rbac';
