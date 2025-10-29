@@ -1,4 +1,4 @@
-import { DashboardLayout } from '@/layouts/dashboard/dashboard';
+import { DashboardLayout } from '@/layouts/dashboard/dashboard.layout';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { paths } from '@/utils/config/paths.config';
 import { Building2Icon, SettingsIcon } from 'lucide-react';

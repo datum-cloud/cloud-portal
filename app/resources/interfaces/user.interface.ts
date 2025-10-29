@@ -1,5 +1,11 @@
 export type ThemeValue = 'dark' | 'light' | 'system';
 
+export enum RegistrationApproval {
+  Approved = 'Approved',
+  Rejected = 'Rejected',
+  Pending = 'Pending',
+}
+
 export interface IUserPreferences {
   theme: ThemeValue;
   timezone: string;
@@ -17,4 +23,6 @@ export interface IUser {
   fullName?: string;
   preferences?: IUserPreferences;
   onboardedAt?: string;
+  registrationApproval?: RegistrationApproval;
+  state?: string;
 }

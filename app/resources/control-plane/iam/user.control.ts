@@ -1,4 +1,9 @@
-import { IUser, IUserPreferences, ThemeValue } from '@/resources/interfaces/user.interface';
+import {
+  IUser,
+  IUserPreferences,
+  RegistrationApproval,
+  ThemeValue,
+} from '@/resources/interfaces/user.interface';
 import { UserPreferencesSchema, UserSchema } from '@/resources/schemas/user.schema';
 import { toBoolean } from '@/utils/helpers/text.helper';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
@@ -20,11 +25,15 @@ export interface ComMiloapisIamV1Alpha1User {
     familyName: string;
     givenName: string;
   };
+  status: {
+    registrationApproval: 'Approved' | 'Rejected' | 'Pending';
+    state: string;
+  };
 }
 
 export const createUserControl = (client: Client) => {
   const transform = (user: ComMiloapisIamV1Alpha1User): IUser => {
-    const { metadata, spec } = user;
+    const { metadata, spec, status } = user;
 
     const preferences: IUserPreferences = {
       theme: (metadata?.annotations?.['preferences/theme'] ?? 'system') as ThemeValue,
@@ -43,6 +52,8 @@ export const createUserControl = (client: Client) => {
       fullName: `${spec?.givenName} ${spec?.familyName}`,
       preferences,
       onboardedAt: metadata?.annotations?.['onboarding/completedAt'],
+      registrationApproval: (status?.registrationApproval ?? 'Pending') as RegistrationApproval,
+      state: status?.state,
     };
   };
 

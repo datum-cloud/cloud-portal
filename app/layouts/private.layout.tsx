@@ -4,6 +4,7 @@ import { getSession } from '@/modules/cookie/session.server';
 import { HelpScoutBeacon } from '@/modules/helpscout';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
+import { registrationApprovalMiddleware } from '@/modules/middleware/registration-approval.middleware';
 import { AppProvider } from '@/providers/app.provider';
 import { createUserControl } from '@/resources/control-plane';
 import { IUser } from '@/resources/interfaces/user.interface';
@@ -21,38 +22,42 @@ import {
 } from 'react-router';
 import { Theme, useTheme } from 'remix-themes';
 
-export const loader = withMiddleware(async ({ request, context }: LoaderFunctionArgs) => {
-  try {
-    const { controlPlaneClient } = context as AppLoadContext;
-    const { session } = await getSession(request);
-    const sharedEnv = getSharedEnvs();
+export const loader = withMiddleware(
+  async ({ request, context }: LoaderFunctionArgs) => {
+    try {
+      const { controlPlaneClient } = context as AppLoadContext;
+      const { session } = await getSession(request);
+      const sharedEnv = getSharedEnvs();
 
-    const userControl = createUserControl(controlPlaneClient);
-    const user = await userControl.detail(session?.sub ?? '');
+      const userControl = createUserControl(controlPlaneClient);
+      const user = await userControl.detail(session?.sub ?? '');
 
-    /**
-     * Generate Help Scout signature for secure mode
-     */
-    let helpscoutSignature = null;
-    if (
-      sharedEnv.isProd &&
-      sharedEnv.HELPSCOUT_SECRET_KEY &&
-      sharedEnv.HELPSCOUT_BEACON_ID &&
-      user?.email
-    ) {
-      helpscoutSignature = createHmac('sha256', sharedEnv.HELPSCOUT_SECRET_KEY)
-        .update(user?.email)
-        .digest('hex');
+      /**
+       * Generate Help Scout signature for secure mode
+       */
+      let helpscoutSignature = null;
+      if (
+        sharedEnv.isProd &&
+        sharedEnv.HELPSCOUT_SECRET_KEY &&
+        sharedEnv.HELPSCOUT_BEACON_ID &&
+        user?.email
+      ) {
+        helpscoutSignature = createHmac('sha256', sharedEnv.HELPSCOUT_SECRET_KEY)
+          .update(user?.email)
+          .digest('hex');
+      }
+
+      return data({
+        user,
+        helpscoutSignature,
+      });
+    } catch {
+      return redirect(paths.auth.logOut);
     }
-
-    return data({
-      user,
-      helpscoutSignature,
-    });
-  } catch {
-    return redirect(paths.auth.logOut);
-  }
-}, authMiddleware);
+  },
+  authMiddleware,
+  registrationApprovalMiddleware
+);
 
 export default function PrivateLayout() {
   const data: { user: IUser; helpscoutSignature: string | null; ENV: any } =

@@ -23,6 +23,9 @@ export default [
     // Invitation
     route('invitation/:invitationId/accept', 'routes/invitation/index.tsx'),
 
+    // Waitlist
+    route('waitlist', 'routes/waitlist/index.tsx'),
+
     // Account
     route('account', 'routes/account/layout.tsx', [
       index('routes/account/index.tsx'),
