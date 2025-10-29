@@ -1,9 +1,9 @@
 import { Field } from '@/components/field/field';
 import useAutosizeTextArea from '@/hooks/useAutosizeTextArea';
-import { Input } from '@/modules/shadcn/ui/components/input';
-import { Textarea } from '@/modules/shadcn/ui/components/textarea';
 import { SecretEnvSchema } from '@/resources/schemas/secret.schema';
 import { getInputProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
+import { Textarea } from '@shadcn/ui/textarea';
 import { useEffect, useRef } from 'react';
 
 export const KeyField = ({

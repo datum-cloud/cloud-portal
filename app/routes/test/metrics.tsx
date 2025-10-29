@@ -12,8 +12,8 @@ import {
   MetricsFilter,
   type QueryBuilderFunction,
 } from '@/modules/metrics';
-import { Card, CardContent, CardHeader, CardTitle } from '@/modules/shadcn/ui/components/card';
-import { ChartTooltipContent } from '@/modules/shadcn/ui/components/chart';
+import { Card, CardContent, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { ChartTooltipContent } from '@shadcn/ui/chart';
 import { Activity, Server, Globe, Database } from 'lucide-react';
 import { useCallback } from 'react';
 

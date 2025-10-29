@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
-import { Card, CardContent, CardDescription, CardTitle } from '@/modules/shadcn/ui/components/card';
+import { cn } from '@shadcn/lib/utils';
+import { Card, CardContent, CardDescription, CardTitle } from '@shadcn/ui/card';
 import { Plus } from 'lucide-react';
 import { motion } from 'motion/react';
 

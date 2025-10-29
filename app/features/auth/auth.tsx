@@ -1,6 +1,6 @@
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { Card, CardContent } from '@/modules/shadcn/ui/components/card';
 import { paths } from '@/utils/config/paths.config';
+import { Card, CardContent } from '@shadcn/ui/card';
 import { Link, useNavigation, useSubmit } from 'react-router';
 
 export default function AuthCard({ mode }: { mode: 'login' | 'signup' }) {

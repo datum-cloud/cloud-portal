@@ -5,14 +5,6 @@ import { ResourceForm } from '@/features/policy-binding/form/resource-form';
 import { SubjectsForm } from '@/features/policy-binding/form/subjects-form';
 import { useIsPending } from '@/hooks/useIsPending';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/components/card';
 import { useApp } from '@/providers/app.provider';
 import {
   IPolicyBindingControlResponse,
@@ -33,6 +25,14 @@ import {
   useInputControl,
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@shadcn/ui/card';
 import { useEffect, useMemo, useState } from 'react';
 import { Form, useFetcher, useNavigate } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

@@ -1,17 +1,11 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Alert, AlertDescription, AlertTitle } from '@/modules/datum-ui/components/alert.tsx';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/components/card';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_ACTION_PATH } from '@/routes/api/organizations/$id';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@shadcn/ui/card';
 import { CircleAlertIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFetcher, useNavigate } from 'react-router';

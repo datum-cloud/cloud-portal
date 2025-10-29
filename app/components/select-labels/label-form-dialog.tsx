@@ -1,12 +1,12 @@
 import { LabelForm } from './label-form';
+import { LabelFormSchema } from '@/resources/schemas/metadata.schema';
 import {
   DialogContent,
   Dialog,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/modules/shadcn/ui/components/dialog';
-import { LabelFormSchema } from '@/resources/schemas/metadata.schema';
+} from '@shadcn/ui/dialog';
 import { useImperativeHandle, useRef, useState } from 'react';
 
 interface LabelFormDialogProps {

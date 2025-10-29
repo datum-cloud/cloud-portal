@@ -1,8 +1,8 @@
 import { Field } from '@/components/field/field';
 import { SelectIATA } from '@/features/location/form/select-iata';
-import { Input } from '@/modules/shadcn/ui/components/input';
 import { PlacementFieldSchema } from '@/resources/schemas/workload.schema';
 import { useForm, useInputControl, getInputProps } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
 import { useEffect, useRef } from 'react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 

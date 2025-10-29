@@ -1,11 +1,11 @@
 import { SelectTimezone } from '@/components/select-timezone/select-timezone';
-import { cn } from '@/modules/shadcn';
-import { Card, CardContent, CardHeader, CardTitle } from '@/modules/shadcn/ui/components/card';
-import { Label } from '@/modules/shadcn/ui/components/label';
-import { Separator } from '@/modules/shadcn/ui/components/separator';
 import { useApp } from '@/providers/app.provider';
 import { ThemeValue } from '@/resources/interfaces/user.interface';
 import { ROUTE_PATH as USER_PREFERENCES_UPDATE_ACTION } from '@/routes/api/user/preferences';
+import { cn } from '@shadcn/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Label } from '@shadcn/ui/label';
+import { Separator } from '@shadcn/ui/separator';
 import { Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFetcher } from 'react-router';

@@ -1,11 +1,11 @@
-import { cn } from '@/modules/shadcn';
+import { cn } from '@shadcn/lib/utils';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/modules/shadcn/ui/components/dialog';
+} from '@shadcn/ui/dialog';
 import { Command as CommandPrimitive } from 'cmdk';
 import { SearchIcon } from 'lucide-react';
 import * as React from 'react';

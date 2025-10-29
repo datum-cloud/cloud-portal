@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
 import * as SelectPrimitive from '@radix-ui/react-select';
+import { cn } from '@shadcn/lib/utils';
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import * as React from 'react';
 

@@ -1,4 +1,6 @@
 import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   Card,
   CardContent,
@@ -6,9 +8,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/modules/shadcn/ui/components/card';
-import { paths } from '@/utils/config/paths.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+} from '@shadcn/ui/card';
 import { CheckCircle2, Shield, Settings, Activity } from 'lucide-react';
 import { AnimatePresence, motion, Variants } from 'motion/react';
 import { useNavigate } from 'react-router';

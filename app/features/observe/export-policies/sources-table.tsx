@@ -2,9 +2,9 @@ import { CodeEditor } from '@/components/code-editor/code-editor';
 import { DataTable } from '@/components/data-table/data-table';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { Card, CardHeader, CardTitle, CardContent } from '@/modules/shadcn/ui/components/card';
-import { Popover, PopoverContent, PopoverTrigger } from '@/modules/shadcn/ui/components/popover';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { CodeIcon } from 'lucide-react';
 import { useMemo } from 'react';
 

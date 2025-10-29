@@ -1,11 +1,6 @@
-import { cn } from '@/modules/shadcn';
-import { Avatar, AvatarFallback, AvatarImage } from '@/modules/shadcn/ui/components/avatar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/modules/shadcn/ui/components/tooltip';
+import { cn } from '@shadcn/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@shadcn/ui/avatar';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { type VariantProps, cva } from 'class-variance-authority';
 import * as React from 'react';
 

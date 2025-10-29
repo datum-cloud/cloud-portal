@@ -3,15 +3,6 @@ import { InputName } from '@/components/input-name/input-name';
 import { SelectOrganization } from '@/components/select-organization/select-organization';
 import { useIsPending } from '@/hooks/useIsPending';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/components/card';
-import { Input } from '@/modules/shadcn/ui/components/input';
 import { useApp } from '@/providers/app.provider';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { projectSchema } from '@/resources/schemas/project.schema';
@@ -19,6 +10,15 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@shadcn/ui/card';
+import { Input } from '@shadcn/ui/input';
 import { RocketIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Form, useNavigate } from 'react-router';

@@ -1,9 +1,9 @@
 import { KeyField } from './key-field';
 import { FieldLabel } from '@/components/field/field-label';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
 import { SecretEnvSchema, SecretVariablesSchema } from '@/resources/schemas/secret.schema';
 import { FormMetadata, useForm } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 

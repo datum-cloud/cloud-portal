@@ -1,4 +1,8 @@
 import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { ROUTE_PATH as CLOUD_VALIDATION_DNS_PATH } from '@/routes/api/cloudvalid/dns';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   Card,
   CardContent,
@@ -6,11 +10,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/modules/shadcn/ui/components/card';
-import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
-import { ROUTE_PATH as CLOUD_VALIDATION_DNS_PATH } from '@/routes/api/cloudvalid/dns';
-import { paths } from '@/utils/config/paths.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+} from '@shadcn/ui/card';
 import { ExternalLink, ZapIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';

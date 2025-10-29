@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
 import * as SeparatorPrimitive from '@radix-ui/react-separator';
+import { cn } from '@shadcn/lib/utils';
 import * as React from 'react';
 
 const Separator = ({

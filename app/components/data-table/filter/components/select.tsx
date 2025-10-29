@@ -1,7 +1,7 @@
 import { useStringFilter, useArrayFilter } from '../../hooks/useFilterQueryState';
 import { Badge } from '@/modules/datum-ui/components/badge.tsx';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
+import { cn } from '@shadcn/lib/utils';
 import {
   Command,
   CommandEmpty,
@@ -9,9 +9,9 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/modules/shadcn/ui/components/command';
-import { Label } from '@/modules/shadcn/ui/components/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/modules/shadcn/ui/components/popover';
+} from '@shadcn/ui/command';
+import { Label } from '@shadcn/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { Check, ChevronDown, X } from 'lucide-react';
 import { ReactNode, useCallback, useState } from 'react';
 

@@ -1,6 +1,6 @@
-import { cn } from '@/modules/shadcn';
-import { Avatar, AvatarFallback, AvatarImage } from '@/modules/shadcn/ui/components/avatar';
 import { getInitials } from '@/utils/helpers/text.helper';
+import { cn } from '@shadcn/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@shadcn/ui/avatar';
 import { UserRound } from 'lucide-react';
 
 interface ProfileIdentityProps {

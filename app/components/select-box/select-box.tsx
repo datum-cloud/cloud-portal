@@ -1,5 +1,5 @@
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
+import { cn } from '@shadcn/lib/utils';
 import {
   Command,
   CommandEmpty,
@@ -7,8 +7,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/modules/shadcn/ui/components/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/modules/shadcn/ui/components/popover';
+} from '@shadcn/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { CheckIcon, ChevronDown, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 

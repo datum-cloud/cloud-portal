@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
+import { cn } from '@shadcn/lib/utils';
 import * as React from 'react';
 import { Link } from 'react-router';
 

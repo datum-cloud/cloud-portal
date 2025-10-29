@@ -3,14 +3,6 @@ import { SelectLabels } from '@/components/select-labels/select-labels';
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
 import { useIsPending } from '@/hooks/useIsPending';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from '@/modules/shadcn/ui/components/card';
-import { Input } from '@/modules/shadcn/ui/components/input';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
 import { convertObjectToLabels } from '@/utils/helpers/object.helper';
@@ -22,6 +14,8 @@ import {
   useInputControl,
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@shadcn/ui/card';
+import { Input } from '@shadcn/ui/input';
 import { useEffect, useRef } from 'react';
 import { Form } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

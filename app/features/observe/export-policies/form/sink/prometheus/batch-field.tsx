@@ -1,9 +1,9 @@
 import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
 import { InputWithAddons } from '@/modules/datum-ui/components/input-with-addons.tsx';
-import { Input } from '@/modules/shadcn/ui/components/input';
 import { ExportPolicySinkPrometheusFieldSchema } from '@/resources/schemas/export-policy.schema';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
 import { useEffect } from 'react';
 
 export const BatchField = ({

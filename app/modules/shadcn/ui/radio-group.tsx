@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
 import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
+import { cn } from '@shadcn/lib/utils';
 import { CircleIcon } from 'lucide-react';
 import * as React from 'react';
 

@@ -1,4 +1,4 @@
-import { cn } from '@/modules/shadcn';
+import { cn } from '@shadcn/lib/utils';
 import * as React from 'react';
 import * as RechartsPrimitive from 'recharts';
 import type { LegendPayload } from 'recharts/types/component/DefaultLegendContent';

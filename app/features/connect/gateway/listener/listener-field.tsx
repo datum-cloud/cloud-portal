@@ -1,13 +1,5 @@
 import { TlsConfiguration } from './tls-configuration';
 import { Field } from '@/components/field/field';
-import { Input } from '@/modules/shadcn/ui/components/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/modules/shadcn/ui/components/select';
 import {
   GatewayAllowedRoutes,
   GatewayPort,
@@ -15,6 +7,8 @@ import {
 } from '@/resources/interfaces/gateway.interface';
 import { GatewayListenerFieldSchema, GatewayTlsSchema } from '@/resources/schemas/gateway.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { useEffect } from 'react';
 
 export const ListenerField = ({

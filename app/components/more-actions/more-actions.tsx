@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/modules/datum-ui/components/dropdown.tsx';
-import { cn } from '@/modules/shadcn';
+import { cn } from '@shadcn/lib/utils';
 import { Ellipsis } from 'lucide-react';
 import { useState } from 'react';
 

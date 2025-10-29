@@ -1,10 +1,4 @@
 import { StatusDot, StatusText } from '@/components/status-badge/status-badge';
-import { cn } from '@/modules/shadcn';
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from '@/modules/shadcn/ui/components/hover-card';
 import {
   ControlPlaneStatus,
   IControlPlaneStatus,
@@ -13,6 +7,8 @@ import { IDomainControlResponse } from '@/resources/interfaces/domain.interface'
 import { ROUTE_PATH as DOMAIN_STATUS_ROUTE_PATH } from '@/routes/api/domains/status';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { cn } from '@shadcn/lib/utils';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@shadcn/ui/hover-card';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useFetcher } from 'react-router';
 

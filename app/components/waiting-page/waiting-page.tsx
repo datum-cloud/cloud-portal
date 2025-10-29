@@ -1,6 +1,6 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
-import { cn } from '@/modules/shadcn';
-import { Card, CardContent, CardFooter } from '@/modules/shadcn/ui/components/card';
+import { cn } from '@shadcn/lib/utils';
+import { Card, CardContent, CardFooter } from '@shadcn/ui/card';
 import { Loader2 } from 'lucide-react';
 
 export const WaitingPage = ({ title, className }: { title: string; className?: string }) => {

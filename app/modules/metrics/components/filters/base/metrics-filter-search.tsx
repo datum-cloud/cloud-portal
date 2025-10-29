@@ -3,9 +3,9 @@
  */
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
-import { cn } from '@/modules/shadcn';
-import { Input } from '@/modules/shadcn/ui/components/input';
-import { Label } from '@/modules/shadcn/ui/components/label';
+import { cn } from '@shadcn/lib/utils';
+import { Input } from '@shadcn/ui/input';
+import { Label } from '@shadcn/ui/label';
 import { Search, X } from 'lucide-react';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect } from 'react';

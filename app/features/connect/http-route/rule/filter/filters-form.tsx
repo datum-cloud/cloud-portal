@@ -1,10 +1,10 @@
 import { FilterField } from './filter-field';
 import { FieldLabel } from '@/components/field/field-label';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
 import { HTTPFilterType, HTTPPathRewriteType } from '@/resources/interfaces/http-route.interface';
 import { HttpRouteFilterSchema, HttpRouteRuleSchema } from '@/resources/schemas/http-route.schema';
 import { useForm, useFormMetadata } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect } from 'react';
 

@@ -1,4 +1,4 @@
-import { cn } from '@/modules/shadcn';
+import { cn } from '@shadcn/lib/utils';
 
 export interface ListItem {
   label?: React.ReactNode | string;

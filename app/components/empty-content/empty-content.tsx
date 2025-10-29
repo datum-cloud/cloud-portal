@@ -1,5 +1,5 @@
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
+import { cn } from '@shadcn/lib/utils';
 import { Link } from 'react-router';
 
 export interface EmptyContentAction {

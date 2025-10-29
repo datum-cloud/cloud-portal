@@ -1,12 +1,7 @@
 import { NetworkForm } from './form';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/modules/shadcn/ui/components/dialog';
-import { VisuallyHidden } from '@/modules/shadcn/ui/components/visuallyhidden';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@shadcn/ui/dialog';
+import { VisuallyHidden } from '@shadcn/ui/visuallyhidden';
 import { forwardRef, useImperativeHandle, useState } from 'react';
 
 export interface NetworkDialogFormRef {

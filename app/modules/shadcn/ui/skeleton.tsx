@@ -1,4 +1,4 @@
-import { cn } from '@/modules/shadcn';
+import { cn } from '@shadcn/lib/utils';
 
 function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn('bg-muted animate-pulse rounded-md', className)} {...props} />;

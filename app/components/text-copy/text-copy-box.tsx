@@ -1,6 +1,6 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
+import { cn } from '@shadcn/lib/utils';
 import { CopyIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';

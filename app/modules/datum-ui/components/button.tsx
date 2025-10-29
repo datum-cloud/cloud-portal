@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
 import { Slot } from '@radix-ui/react-slot';
+import { cn } from '@shadcn/lib/utils';
 import { type VariantProps, cva } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
 import * as React from 'react';

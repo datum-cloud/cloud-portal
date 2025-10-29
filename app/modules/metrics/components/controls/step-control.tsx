@@ -2,13 +2,7 @@ import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { STEP_OPTIONS } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/modules/shadcn/ui/components/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { useQueryState } from 'nuqs';
 import { useEffect } from 'react';
 

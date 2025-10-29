@@ -1,17 +1,11 @@
 import { CodeEditor } from '@/components/code-editor/code-editor';
 import { Field } from '@/components/field/field';
 import { POLICY_SOURCE_TYPES } from '@/features/observe/constants';
-import { cn } from '@/modules/shadcn';
-import { Input } from '@/modules/shadcn/ui/components/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/modules/shadcn/ui/components/select';
 import { ExportPolicySourceFieldSchema } from '@/resources/schemas/export-policy.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
+import { Input } from '@shadcn/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { useEffect, useRef } from 'react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 

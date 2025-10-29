@@ -3,13 +3,13 @@ import { BatchField } from './batch-field';
 import { RetryField } from './retry-field';
 import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
-import { Input } from '@/modules/shadcn/ui/components/input';
-import { Separator } from '@/modules/shadcn/ui/components/separator';
 import {
   ExportPolicySinkAuthenticationSchema,
   ExportPolicySinkPrometheusFieldSchema,
 } from '@/resources/schemas/export-policy.schema';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
+import { Separator } from '@shadcn/ui/separator';
 import { useEffect } from 'react';
 
 export const PrometheusField = ({

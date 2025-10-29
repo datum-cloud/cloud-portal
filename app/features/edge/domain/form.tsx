@@ -3,15 +3,6 @@ import { Field } from '@/components/field/field';
 import { InputName } from '@/components/input-name/input-name';
 import { useIsPending } from '@/hooks/useIsPending';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/components/card';
-import { Input } from '@/modules/shadcn/ui/components/input';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { domainSchema } from '@/resources/schemas/domain.schema';
 import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
@@ -25,6 +16,15 @@ import {
   useInputControl,
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@shadcn/ui/card';
+import { Input } from '@shadcn/ui/input';
 import { useEffect, useMemo, useRef } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

@@ -1,6 +1,6 @@
-import { cn } from '@/modules/shadcn';
-import { Label } from '@/modules/shadcn/ui/components/label';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/modules/shadcn/ui/components/tooltip';
+import { cn } from '@shadcn/lib/utils';
+import { Label } from '@shadcn/ui/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CircleHelp } from 'lucide-react';
 import { useState } from 'react';
 

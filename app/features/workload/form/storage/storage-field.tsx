@@ -1,16 +1,10 @@
 import { Field } from '@/components/field/field';
 import { STORAGE_TYPES } from '@/features/workload/constants';
-import { Input } from '@/modules/shadcn/ui/components/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/modules/shadcn/ui/components/select';
 import { StorageType } from '@/resources/interfaces/workload.interface';
 import { StorageFieldSchema } from '@/resources/schemas/workload.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { useEffect, useRef } from 'react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 

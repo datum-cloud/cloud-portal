@@ -5,14 +5,6 @@ import { MetadataForm } from '@/components/metadata/metadata-form';
 import { useIsPending } from '@/hooks/useIsPending';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-} from '@/modules/shadcn/ui/components/card';
-import {
   ExportPolicyAuthenticationType,
   ExportPolicySinkType,
   ExportPolicySourceType,
@@ -32,6 +24,14 @@ import { convertObjectToLabels } from '@/utils/helpers/object.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useForm, FormProvider, getFormProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+} from '@shadcn/ui/card';
 import { has } from 'es-toolkit/compat';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import { Fragment, cloneElement, useMemo } from 'react';

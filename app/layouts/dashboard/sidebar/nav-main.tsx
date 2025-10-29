@@ -18,12 +18,8 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@/modules/datum-ui/components/sidebar.tsx';
-import { cn } from '@/modules/shadcn';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/modules/shadcn/ui/components/collapsible';
+import { cn } from '@shadcn/lib/utils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronRight, ExternalLinkIcon, LucideIcon } from 'lucide-react';
 import { ComponentProps, Fragment, forwardRef, useCallback, useState } from 'react';
 import { Link, useLocation } from 'react-router';

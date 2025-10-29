@@ -1,23 +1,12 @@
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
-import { Input } from '@/modules/shadcn/ui/components/input';
-import { Separator } from '@/modules/shadcn/ui/components/separator';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/modules/shadcn/ui/components/sheet';
-import { Skeleton } from '@/modules/shadcn/ui/components/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/modules/shadcn/ui/components/tooltip';
-import { useIsMobile } from '@/modules/shadcn/ui/hooks';
 import { Slot } from '@radix-ui/react-slot';
+import { useIsMobile } from '@shadcn/hooks/use-mobile';
+import { cn } from '@shadcn/lib/utils';
+import { Input } from '@shadcn/ui/input';
+import { Separator } from '@shadcn/ui/separator';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@shadcn/ui/sheet';
+import { Skeleton } from '@shadcn/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { cva, VariantProps } from 'class-variance-authority';
 import { PanelLeftIcon } from 'lucide-react';
 import * as React from 'react';

@@ -2,15 +2,9 @@ import { Field } from '@/components/field/field';
 import { GuideStep, GuideStepItem } from '@/features/edge/httpproxy/grafana/step-item';
 import { InstanceFormValues } from '@/features/edge/httpproxy/grafana/stepper.schema';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/components/card';
-import { Input } from '@/modules/shadcn/ui/components/input';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Input } from '@shadcn/ui/input';
 import { ExternalLink } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router';

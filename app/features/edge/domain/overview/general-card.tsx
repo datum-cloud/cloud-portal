@@ -4,8 +4,8 @@ import { TextCopy } from '@/components/text-copy/text-copy';
 import { DomainDnsProviders } from '@/features/edge/domain/dns-providers';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
-import { Card, CardHeader, CardTitle, CardContent } from '@/modules/shadcn/ui/components/card';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';
 import { useMemo } from 'react';
 
 export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }) => {

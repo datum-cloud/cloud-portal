@@ -3,9 +3,9 @@ import { DateTime } from '@/components/date-time';
 import { StatusBadge } from '@/components/status-badge/status-badge';
 import { Badge } from '@/modules/datum-ui/components/badge.tsx';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { Popover, PopoverContent, PopoverTrigger } from '@/modules/shadcn/ui/components/popover';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/modules/shadcn/ui/components/tooltip';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { Users } from 'lucide-react';
 
 export type ResourceTooltipProps = {

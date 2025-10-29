@@ -5,14 +5,6 @@ import { FieldLabel } from '@/components/field/field-label';
 import { List, ListItem } from '@/components/list/list';
 import { RUNTIME_TYPES } from '@/features/workload/constants';
 import { Badge } from '@/modules/datum-ui/components/badge.tsx';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/modules/shadcn/ui/components/select';
-import { Separator } from '@/modules/shadcn/ui/components/separator';
 import { RuntimeType } from '@/resources/interfaces/workload.interface';
 import {
   RuntimeContainerSchema,
@@ -20,6 +12,8 @@ import {
   RuntimeVMSchema,
 } from '@/resources/schemas/workload.schema';
 import { getSelectProps, useForm, useFormMetadata, useInputControl } from '@conform-to/react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+import { Separator } from '@shadcn/ui/separator';
 import { useEffect, useMemo } from 'react';
 
 export const RuntimeForm = ({

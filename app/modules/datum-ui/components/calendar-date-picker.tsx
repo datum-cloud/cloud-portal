@@ -1,14 +1,8 @@
 import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { Calendar } from '@/modules/datum-ui/components/calendar.tsx';
-import { cn } from '@/modules/shadcn';
-import { Popover, PopoverContent, PopoverTrigger } from '@/modules/shadcn/ui/components/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/modules/shadcn/ui/components/select';
+import { cn } from '@shadcn/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { cva, VariantProps } from 'class-variance-authority';
 import {
   startOfWeek,

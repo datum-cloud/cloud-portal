@@ -1,10 +1,10 @@
 import { useArrayFilter } from '../../hooks/useFilterQueryState';
 import { Badge } from '@/modules/datum-ui/components/badge.tsx';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
-import { Checkbox } from '@/modules/shadcn/ui/components/checkbox';
-import { Label } from '@/modules/shadcn/ui/components/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/modules/shadcn/ui/components/popover';
+import { cn } from '@shadcn/lib/utils';
+import { Checkbox } from '@shadcn/ui/checkbox';
+import { Label } from '@shadcn/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { ChevronDown, X } from 'lucide-react';
 import { ReactNode, useState, useMemo } from 'react';
 

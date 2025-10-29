@@ -1,5 +1,5 @@
 import { Option } from './select-autocomplete.types';
-import { cn } from '@/modules/shadcn';
+import { cn } from '@shadcn/lib/utils';
 import {
   Command,
   CommandEmpty,
@@ -7,7 +7,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/modules/shadcn/ui/components/command';
+} from '@shadcn/ui/command';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { CheckIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';

@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
+import { cn } from '@shadcn/lib/utils';
 import * as React from 'react';
 
 const Popover = ({ ...props }: React.ComponentProps<typeof PopoverPrimitive.Root>) => {

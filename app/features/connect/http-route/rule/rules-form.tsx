@@ -3,10 +3,10 @@ import { FilterDefaultValues, FiltersForm } from './filter/filters-form';
 import { MatchDefaultValues, MatchesForm } from './match/matches-form';
 import { FieldLabel } from '@/components/field/field-label';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
-import { Separator } from '@/modules/shadcn/ui/components/separator';
 import { HttpRouteRuleSchema, HttpRouteSchema } from '@/resources/schemas/http-route.schema';
 import { useForm, useFormMetadata } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
+import { Separator } from '@shadcn/ui/separator';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect } from 'react';
 

@@ -3,10 +3,10 @@ import {
   useDateRangeFilter,
 } from '@/components/data-table/hooks/useFilterQueryState';
 import { CalendarDatePicker } from '@/modules/datum-ui/components/calendar-date-picker.tsx';
-import { cn } from '@/modules/shadcn';
-import { Label } from '@/modules/shadcn/ui/components/label';
 import { useApp } from '@/providers/app.provider';
 import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone.helper';
+import { cn } from '@shadcn/lib/utils';
+import { Label } from '@shadcn/ui/label';
 import { useCallback, useMemo } from 'react';
 import { DateRange } from 'react-day-picker';
 

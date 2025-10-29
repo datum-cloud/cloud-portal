@@ -1,6 +1,5 @@
 import { SourceField } from './source-field';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
 import { ExportPolicySourceType } from '@/resources/interfaces/export-policy.interface';
 import {
   ExportPolicySourceFieldSchema,
@@ -8,6 +7,7 @@ import {
   UpdateExportPolicySchema,
 } from '@/resources/schemas/export-policy.schema';
 import { useForm, useFormMetadata } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useEffect } from 'react';
 

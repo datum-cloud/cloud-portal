@@ -15,7 +15,7 @@ export const HttpProxyGlobalUpstreamLatency = ({
 }) => {
   return (
     <MetricChart
-      query={({ filters, get }) => {
+      query={({ filters }) => {
         return buildHistogramQuantileQuery({
           quantile: 0.99,
           metric: 'envoy_vhost_vcluster_upstream_rq_time_bucket',

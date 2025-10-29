@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
-import { Card, CardContent, CardHeader, CardTitle } from '@/modules/shadcn/ui/components/card';
+import { cn } from '@shadcn/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@shadcn/ui/card';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router';
 

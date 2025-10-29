@@ -3,14 +3,6 @@ import { SelectRole } from '@/components/select-role/select-role';
 import { useIsPending } from '@/hooks/useIsPending';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { TagsInput } from '@/modules/datum-ui/components/tag-input.tsx';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/components/card';
 import { invitationFormSchema } from '@/resources/schemas/invitation.schema';
 import {
   FormProvider,
@@ -20,6 +12,14 @@ import {
   useInputControl,
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@shadcn/ui/card';
 import { useState } from 'react';
 import { Form, useNavigate } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

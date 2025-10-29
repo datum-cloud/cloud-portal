@@ -1,6 +1,8 @@
 import { useOs } from '@/hooks/useOs';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { cn } from '@shadcn/lib/utils';
 import {
   CommandDialog,
   CommandEmpty,
@@ -8,9 +10,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/modules/shadcn/ui/components/command';
-import { paths } from '@/utils/config/paths.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+} from '@shadcn/ui/command';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';

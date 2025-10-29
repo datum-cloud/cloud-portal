@@ -4,8 +4,6 @@ import { List, ListItem } from '@/components/list/list';
 import { STORAGE_TYPES } from '@/features/workload/constants';
 import { Badge } from '@/modules/datum-ui/components/badge.tsx';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
-import { Separator } from '@/modules/shadcn/ui/components/separator';
 import { StorageType } from '@/resources/interfaces/workload.interface';
 import {
   StorageFieldSchema,
@@ -13,6 +11,8 @@ import {
   UpdateWorkloadSchema,
 } from '@/resources/schemas/workload.schema';
 import { useForm, useFormMetadata } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
+import { Separator } from '@shadcn/ui/separator';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 

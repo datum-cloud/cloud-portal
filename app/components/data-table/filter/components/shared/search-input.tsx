@@ -1,7 +1,7 @@
 import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { InputWithAddons } from '@/modules/datum-ui/components/input-with-addons.tsx';
-import { cn } from '@/modules/shadcn';
-import { Label } from '@/modules/shadcn/ui/components/label';
+import { cn } from '@shadcn/lib/utils';
+import { Label } from '@shadcn/ui/label';
 import { Search, X } from 'lucide-react';
 
 /**

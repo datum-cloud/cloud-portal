@@ -2,13 +2,13 @@ import { Field } from '@/components/field/field';
 import { SelectProject } from '@/components/select-project/select-project';
 import { POLICY_RESOURCES } from '@/features/policy-binding/form/constants';
 import { SelectResource } from '@/features/policy-binding/form/select-resource';
-import { Input } from '@/modules/shadcn/ui/components/input';
 import { useApp } from '@/providers/app.provider';
 import {
   NewPolicyBindingSchema,
   PolicyBindingResourceSchema,
 } from '@/resources/schemas/policy-binding.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
 import { useEffect, useState } from 'react';
 
 export const ResourceForm = ({

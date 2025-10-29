@@ -23,7 +23,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from '@/modules/shadcn/ui/components/chart';
+} from '@shadcn/ui/chart';
 import { format } from 'date-fns';
 import { ReactNode, useCallback, useEffect, useMemo } from 'react';
 import { CartesianGrid, AreaChart, BarChart, LineChart, XAxis, YAxis, YAxisProps } from 'recharts';

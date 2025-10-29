@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
 import * as AvatarPrimitive from '@radix-ui/react-avatar';
+import { cn } from '@shadcn/lib/utils';
 import * as React from 'react';
 
 const Avatar = ({ className, ...props }: React.ComponentProps<typeof AvatarPrimitive.Root>) => {

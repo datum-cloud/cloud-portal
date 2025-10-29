@@ -3,19 +3,8 @@ import { REFRESH_OPTIONS } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context';
 import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/modules/shadcn/ui/components/select';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/modules/shadcn/ui/components/tooltip';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { useQueryState } from 'nuqs';

@@ -1,6 +1,11 @@
 import { KeysForm } from './keys-form';
 import { useIsPending } from '@/hooks/useIsPending';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { SecretVariablesSchema, secretVariablesSchema } from '@/resources/schemas/secret.schema';
+import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
+import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
+import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import {
   DialogContent,
   Dialog,
@@ -8,12 +13,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/modules/shadcn/ui/components/dialog';
-import { SecretVariablesSchema, secretVariablesSchema } from '@/resources/schemas/secret.schema';
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
-import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
-import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+} from '@shadcn/ui/dialog';
 import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';

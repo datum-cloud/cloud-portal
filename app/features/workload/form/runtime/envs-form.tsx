@@ -1,8 +1,8 @@
 import { EnvField } from './env-field';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
 import { RuntimeEnvSchema } from '@/resources/schemas/workload.schema';
 import { useForm, useFormMetadata } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect } from 'react';
 

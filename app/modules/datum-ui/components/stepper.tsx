@@ -1,8 +1,8 @@
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react/prop-types */
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
 import { Slot } from '@radix-ui/react-slot';
+import { cn } from '@shadcn/lib/utils';
 import * as Stepperize from '@stepperize/react';
 import { type VariantProps, cva } from 'class-variance-authority';
 import * as React from 'react';

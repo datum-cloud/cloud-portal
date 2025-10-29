@@ -1,5 +1,10 @@
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
+import { useApp } from '@/providers/app.provider';
+import { IProjectControlResponse, ICachedProject } from '@/resources/interfaces/project.interface';
+import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api/projects';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { cn } from '@shadcn/lib/utils';
 import {
   Command,
   CommandEmpty,
@@ -8,13 +13,8 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/modules/shadcn/ui/components/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/modules/shadcn/ui/components/popover';
-import { useApp } from '@/providers/app.provider';
-import { IProjectControlResponse, ICachedProject } from '@/resources/interfaces/project.interface';
-import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api/projects';
-import { paths } from '@/utils/config/paths.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+} from '@shadcn/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { CheckIcon, ChevronsUpDownIcon, Loader2, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useFetcher, useNavigate } from 'react-router';

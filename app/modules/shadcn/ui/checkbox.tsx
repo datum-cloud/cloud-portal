@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
+import { cn } from '@shadcn/lib/utils';
 import { CheckIcon } from 'lucide-react';
 import * as React from 'react';
 

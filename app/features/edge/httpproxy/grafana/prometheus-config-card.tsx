@@ -5,15 +5,9 @@ import { DeployFormValues } from '@/features/edge/httpproxy/grafana/stepper.sche
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { Alert, AlertDescription } from '@/modules/datum-ui/components/alert.tsx';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/components/card';
-import { Input } from '@/modules/shadcn/ui/components/input';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Input } from '@shadcn/ui/input';
 import { CopyIcon, ExternalLinkIcon, LightbulbIcon, TriangleAlertIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 

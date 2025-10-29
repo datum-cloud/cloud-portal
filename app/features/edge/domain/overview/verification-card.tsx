@@ -1,14 +1,8 @@
 import { DateTime } from '@/components/date-time';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/components/card';
-import { Separator } from '@/modules/shadcn/ui/components/separator';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Separator } from '@shadcn/ui/separator';
 
 export const DomainVerificationCard = ({ domain }: { domain: IDomainControlResponse }) => {
   const dnsRecord = domain.status?.verification?.dnsRecord;

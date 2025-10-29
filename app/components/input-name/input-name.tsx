@@ -1,13 +1,13 @@
 import { Field } from '../field/field';
 import { FieldLabel } from '@/components/field/field-label';
-import { cn } from '@/modules/shadcn';
-import { Checkbox } from '@/modules/shadcn/ui/components/checkbox';
-import { Input } from '@/modules/shadcn/ui/components/input';
-import { Label } from '@/modules/shadcn/ui/components/label';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/modules/shadcn/ui/components/tooltip';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { FieldMetadata, useInputControl } from '@conform-to/react';
 import { getInputProps } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
+import { Checkbox } from '@shadcn/ui/checkbox';
+import { Input } from '@shadcn/ui/input';
+import { Label } from '@shadcn/ui/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CircleHelp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 

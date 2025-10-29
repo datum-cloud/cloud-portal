@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
 import * as LabelPrimitive from '@radix-ui/react-label';
+import { cn } from '@shadcn/lib/utils';
 import * as React from 'react';
 
 const Label = ({ className, ...props }: React.ComponentProps<typeof LabelPrimitive.Root>) => {

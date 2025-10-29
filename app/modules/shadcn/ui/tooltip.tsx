@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
+import { cn } from '@shadcn/lib/utils';
 import * as React from 'react';
 
 const TooltipProvider = ({

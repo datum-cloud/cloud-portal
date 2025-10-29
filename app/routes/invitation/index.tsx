@@ -1,14 +1,6 @@
 import BlankLayout from '@/layouts/blank/blank.layout';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/components/card';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationsControl } from '@/resources/control-plane';
 import { ROUTE_PATH as INVITATION_UPDATE_STATE_ACTION } from '@/routes/api/team/invitations/update-state';
@@ -16,6 +8,14 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@shadcn/ui/card';
 import { Check, Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {

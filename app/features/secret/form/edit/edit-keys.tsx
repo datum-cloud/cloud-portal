@@ -5,23 +5,10 @@ import {
   VariablesFormDialogRef,
 } from '@/features/secret/form/keys/keys-form-dialog';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/components/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/modules/shadcn/ui/components/table';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@shadcn/ui/table';
 import { PencilIcon, PlusIcon, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';

@@ -6,60 +6,44 @@ A self-contained, modular UI kit built on [shadcn/ui](https://ui.shadcn.com/) an
 
 ```
 app/modules/shadcn/
-├── index.ts                    # Main barrel export
-├── ui/
-│   ├── components/            # 36 shadcn UI components
-│   ├── hooks/                 # UI-related hooks
-│   │   ├── use-toast.ts      # Toast notifications
-│   │   └── use-mobile.ts     # Mobile breakpoint detection
-│   ├── utils/                 # UI utilities
-│   │   └── cn.ts             # Class name utility (clsx + tailwind-merge)
-│   └── index.ts
-├── styles/
-│   ├── shadcn.css            # Core shadcn/ui styles & theme
-│   ├── animations.css        # Custom animations
-│   └── index.ts
-└── README.md                  # This file
+├── ui/                        # All shadcn/ui components (flat files)
+│   ├── button.tsx
+│   ├── card.tsx
+│   └── ...
+├── hooks/                     # Hooks
+│   └── use-mobile.ts
+├── lib/                       # Utilities
+│   └── utils.ts               # Class name utility (clsx + tailwind-merge)
+├── styles/                    # Styles
+│   ├── shadcn.css             # Core shadcn/ui styles & theme
+│   └── animations.css         # Custom animations
+├── style.css                  # Convenience entry that imports both styles
+└── README.md
 ```
 
 ## 🚀 Usage
 
-### Basic Import (Recommended)
+### Imports (via @shadcn aliases)
 
-Import components, hooks, and utilities from the main module:
-
-```typescript
-import { Button, Card, Input, useToast, cn } from '@/modules/shadcn';
-
-export function MyComponent() {
-  const toast = useToast();
-
-  return (
-    <Card className={cn('p-4', 'border-primary')}>
-      <Input placeholder="Enter text..." />
-      <Button onClick={() => toast.success('Success!')}>
-        Submit
-      </Button>
-    </Card>
-  );
-}
-```
-
-### Granular Imports
-
-For more explicit imports or better tree-shaking in large apps:
+Use per-file path imports. No barrels are required or maintained.
 
 ```typescript
-import { cn } from '@/modules/shadcn/cn';
-import { Button } from '@/modules/shadcn/ui/components/button';
-import { useToast } from '@/modules/shadcn/ui/hooks/use-toast';
+// Hooks
+import { useIsMobile } from '@shadcn/hooks/use-mobile';
+// Utils
+import { cn } from '@shadcn/lib/utils';
+import { Button } from '@shadcn/ui/button';
+import { Card } from '@shadcn/ui/card';
 ```
 
 ### Styles
 
-The styles are automatically imported in `app/root.tsx`:
+Include styles in your app root (or a global layout):
 
 ```typescript
+// Option A: import both explicitly
+// Option B: single convenience entry
+import '@/modules/shadcn/style.css';
 import '@/modules/shadcn/styles/animations.css';
 import '@/modules/shadcn/styles/shadcn.css';
 ```
@@ -220,13 +204,16 @@ Datum-specific colors:
 
 ### components.json
 
-The shadcn CLI configuration points to the module:
+The shadcn CLI is configured to generate flat files and use explicit paths:
 
 ```json
 {
   "aliases": {
-    "components": "@/modules/shadcn/ui/components",
-    "utils": "@/modules/shadcn"
+    "components": "@shadcn/components",
+    "utils": "@shadcn/lib/utils",
+    "ui": "@shadcn/ui",
+    "lib": "@shadcn/lib",
+    "hooks": "@shadcn/hooks"
   },
   "tailwind": {
     "css": "app/modules/shadcn/styles/shadcn.css"
@@ -238,28 +225,22 @@ The shadcn CLI configuration points to the module:
 
 To add a new shadcn component:
 
-1. **Install via CLI:**
+1. Install via CLI
 
    ```bash
    npx shadcn@latest add <component-name>
    ```
 
-2. **The component will be added to:**
+2. Files are placed directly under
 
    ```
-   app/modules/shadcn/ui/components/<component-name>.tsx
+   app/modules/shadcn/ui/<component-name>.tsx
    ```
 
-3. **Export in barrel file:**
+3. Import by path (no barrel required)
 
    ```typescript
-   // app/modules/shadcn/ui/components/index.ts
-   export * from './<component-name>';
-   ```
-
-4. **Use immediately:**
-   ```typescript
-   import { NewComponent } from '@/modules/shadcn';
+   import { <Component> } from '@shadcn/ui/<component-name>';
    ```
 
 ## ✨ Benefits

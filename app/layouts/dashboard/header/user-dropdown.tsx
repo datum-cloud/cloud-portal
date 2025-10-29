@@ -8,11 +8,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/modules/datum-ui/components/dropdown.tsx';
-import { cn } from '@/modules/shadcn';
-import { Avatar, AvatarFallback } from '@/modules/shadcn/ui/components/avatar';
 import { useApp } from '@/providers/app.provider';
 import { paths } from '@/utils/config/paths.config';
 import { getInitials } from '@/utils/helpers/text.helper';
+import { cn } from '@shadcn/lib/utils';
+import { Avatar, AvatarFallback } from '@shadcn/ui/avatar';
 import { LogOut, UserCogIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSubmit } from 'react-router';

@@ -1,10 +1,10 @@
 import { Badge } from '@/modules/datum-ui/components/badge.tsx';
-import { cn } from '@/modules/shadcn';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/modules/shadcn/ui/components/tooltip';
 import {
   ControlPlaneStatus,
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
+import { cn } from '@shadcn/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CircleIcon, Loader2 } from 'lucide-react';
 import { ReactNode } from 'react';
 

@@ -1,7 +1,6 @@
 import { ListenerField } from './listener-field';
 import { FieldLabel } from '@/components/field/field-label';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
 import {
   GatewayAllowedRoutes,
   GatewayProtocol,
@@ -12,6 +11,7 @@ import {
   GatewayListenerSchema,
 } from '@/resources/schemas/gateway.schema';
 import { useForm, useFormMetadata } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 

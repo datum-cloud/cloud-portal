@@ -1,12 +1,12 @@
 import { BackendRefField } from './backend-ref-field';
 import { FieldLabel } from '@/components/field/field-label';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
 import {
   HttpRouteBackendRefSchema,
   HttpRouteRuleSchema,
 } from '@/resources/schemas/http-route.schema';
 import { useForm, useFormMetadata } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect } from 'react';
 

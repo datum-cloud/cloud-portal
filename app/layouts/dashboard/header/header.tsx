@@ -3,9 +3,9 @@ import { ProjectSwitcher } from '@/layouts/dashboard/header/project-switcher';
 import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { SidebarTrigger } from '@/modules/datum-ui/components/sidebar.tsx';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/modules/shadcn/ui/components/tooltip';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CircleHelp, SlashIcon } from 'lucide-react';
 import { Link } from 'react-router';
 

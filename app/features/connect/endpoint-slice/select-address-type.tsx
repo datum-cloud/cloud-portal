@@ -1,11 +1,5 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/modules/shadcn/ui/components/select';
 import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 
 export const SelectAddressType = ({ meta }: { meta: FieldMetadata<string> }) => {
   const control = useInputControl(meta);

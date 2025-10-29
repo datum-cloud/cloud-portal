@@ -7,9 +7,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/modules/shadcn/ui/components/dialog';
-import { Input } from '@/modules/shadcn/ui/components/input';
-import { Label } from '@/modules/shadcn/ui/components/label';
+} from '@shadcn/ui/dialog';
+import { Input } from '@shadcn/ui/input';
+import { Label } from '@shadcn/ui/label';
 import { AlertCircle } from 'lucide-react';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 

@@ -1,5 +1,5 @@
-import { cn } from '@/modules/shadcn';
 import * as SwitchPrimitive from '@radix-ui/react-switch';
+import { cn } from '@shadcn/lib/utils';
 import * as React from 'react';
 
 function Switch({ className, ...props }: React.ComponentProps<typeof SwitchPrimitive.Root>) {

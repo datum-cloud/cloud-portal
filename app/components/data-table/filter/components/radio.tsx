@@ -1,7 +1,7 @@
 import { useStringFilter } from '../../hooks/useFilterQueryState';
-import { cn } from '@/modules/shadcn';
-import { Label } from '@/modules/shadcn/ui/components/label';
-import { RadioGroup, RadioGroupItem } from '@/modules/shadcn/ui/components/radio-group';
+import { cn } from '@shadcn/lib/utils';
+import { Label } from '@shadcn/ui/label';
+import { RadioGroup, RadioGroupItem } from '@shadcn/ui/radio-group';
 import { ReactNode, useCallback } from 'react';
 
 export interface RadioOption {

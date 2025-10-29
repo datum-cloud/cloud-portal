@@ -9,8 +9,8 @@ import { SelectBox, type SelectBoxOption } from '@/components/select-box/select-
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import type { FilterOption } from '@/modules/metrics/types/metrics.type';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
-import { cn } from '@/modules/shadcn';
-import { Label } from '@/modules/shadcn/ui/components/label';
+import { cn } from '@shadcn/lib/utils';
+import { Label } from '@shadcn/ui/label';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo } from 'react';
 

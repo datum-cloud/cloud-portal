@@ -4,12 +4,12 @@ import { HelpScoutBeacon } from '@/modules/helpscout';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { registrationApprovalMiddleware } from '@/modules/middleware/registration-approval.middleware';
-import { TooltipProvider } from '@/modules/shadcn/ui/components/tooltip';
 import { AppProvider } from '@/providers/app.provider';
 import { createUserControl } from '@/resources/control-plane';
 import { IUser } from '@/resources/interfaces/user.interface';
 import { getSharedEnvs } from '@/utils/config/env.config';
 import { paths } from '@/utils/config/paths.config';
+import { TooltipProvider } from '@shadcn/ui/tooltip';
 import { createHmac } from 'crypto';
 import { useEffect, useState } from 'react';
 import {

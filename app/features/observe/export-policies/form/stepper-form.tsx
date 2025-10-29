@@ -6,14 +6,6 @@ import { MetadataForm } from '@/components/metadata/metadata-form';
 import { MetadataPreview } from '@/components/metadata/metadata-preview';
 import { useIsPending } from '@/hooks/useIsPending';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
-import { cn } from '@/modules/shadcn';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from '@/modules/shadcn/ui/components/card';
 import {
   ExportPolicySinkType,
   ExportPolicySourceType,
@@ -31,6 +23,8 @@ import {
 import { MetadataSchema, metadataSchema } from '@/resources/schemas/metadata.schema';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { cn } from '@shadcn/lib/utils';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@shadcn/ui/card';
 import { defineStepper } from '@stepperize/react';
 import { FileIcon, Layers, Loader2, Terminal } from 'lucide-react';
 import React, { useMemo } from 'react';

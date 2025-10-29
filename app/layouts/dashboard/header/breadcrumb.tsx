@@ -1,3 +1,5 @@
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   BreadcrumbItem,
   BreadcrumbLink,
@@ -5,9 +7,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   Breadcrumb as BreadcrumbUI,
-} from '@/modules/shadcn/ui/components/breadcrumb';
-import { paths } from '@/utils/config/paths.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+} from '@shadcn/ui/breadcrumb';
 import React, { useMemo } from 'react';
 import { useLocation, useMatches, useParams } from 'react-router';
 

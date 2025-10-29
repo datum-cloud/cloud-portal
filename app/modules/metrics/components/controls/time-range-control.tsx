@@ -9,10 +9,10 @@ import {
   serializeTimeRange,
 } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
-import { cn } from '@/modules/shadcn';
-import { Popover, PopoverContent, PopoverTrigger } from '@/modules/shadcn/ui/components/popover';
 import { useApp } from '@/providers/app.provider';
 import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone.helper';
+import { cn } from '@shadcn/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { Calendar as CalendarIcon, ChevronDownIcon } from 'lucide-react';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
