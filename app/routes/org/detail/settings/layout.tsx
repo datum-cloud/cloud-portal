@@ -1,6 +1,6 @@
 import TabsLayout from '@/layouts/tabs/tabs.layout';
 import { TabsNavProps } from '@/layouts/tabs/tabs.types';
-import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
+import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
@@ -17,12 +17,12 @@ export default function OrgSettingsLayout() {
         label: 'Preferences',
         to: getPathWithParams(paths.org.detail.settings.preferences, { orgId }),
       },
-      {
+      /* {
         value: 'policy-bindings',
         label: 'Policy bindings',
         to: getPathWithParams(paths.org.detail.policyBindings.root, { orgId }),
         hidden: org?.type === OrganizationType.Personal,
-      },
+      }, */
       {
         value: 'quotas',
         label: 'Quotas',

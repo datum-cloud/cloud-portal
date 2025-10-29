@@ -64,18 +64,18 @@ export default [
         ]),
 
         // Policy Bindings of an organization
-        route('policy-bindings/new', 'routes/org/detail/policy-bindings/new.tsx'),
+        /* route('policy-bindings/new', 'routes/org/detail/policy-bindings/new.tsx'),
         route(
           'policy-bindings/:policyBindingId/edit',
           'routes/org/detail/policy-bindings/edit.tsx'
-        ),
+        ), */
 
         // Settings of an organization
         layout('routes/org/detail/settings/layout.tsx', [
           route('preferences', 'routes/org/detail/settings/preferences.tsx'),
           route('quotas', 'routes/org/detail/settings/quotas.tsx'),
           route('activity', 'routes/org/detail/settings/activity.tsx'),
-          route('policy-bindings', 'routes/org/detail/settings/policy-bindings.tsx'),
+          // route('policy-bindings', 'routes/org/detail/settings/policy-bindings.tsx'),
         ]),
       ]),
     ]),
@@ -222,7 +222,7 @@ export default [
       route('activity', 'routes/api/activity/index.ts'),
 
       // Policy Bindings
-      route('policy-bindings', 'routes/api/policy-bindings/index.ts'),
+      // route('policy-bindings', 'routes/api/policy-bindings/index.ts'),
 
       // Groups
       route('groups', 'routes/api/groups/index.ts'),
