@@ -2,9 +2,9 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DataTable } from '@/components/data-table/data-table';
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
 import { DateTime } from '@/components/date-time';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { SECRET_TYPES } from '@/features/secret/constants';
+import { Badge } from '@/modules/datum-ui/components/badge.tsx';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { createSecretsControl } from '@/resources/control-plane';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';

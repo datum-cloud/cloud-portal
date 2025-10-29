@@ -1,6 +1,6 @@
 import { CodeEditorProps } from './code-editor.types';
-import { cn } from '@/utils/common';
 import Editor, { Monaco } from '@monaco-editor/react';
+import { cn } from '@shadcn/lib/utils';
 import { editor } from 'monaco-editor';
 import { useRef } from 'react';
 import { useTheme, Theme } from 'remix-themes';

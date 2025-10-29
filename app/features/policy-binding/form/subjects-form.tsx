@@ -1,13 +1,13 @@
 import { FieldLabel } from '@/components/field/field-label';
-import { Button } from '@/components/ui/button';
 import { SubjectField } from '@/features/policy-binding/form/subject-field';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { PolicyBindingSubjectKind } from '@/resources/interfaces/policy-binding.interface';
 import {
   NewPolicyBindingSchema,
   PolicyBindingSubjectSchema,
 } from '@/resources/schemas/policy-binding.schema';
-import { cn } from '@/utils/common';
 import { useForm, useFormMetadata } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 

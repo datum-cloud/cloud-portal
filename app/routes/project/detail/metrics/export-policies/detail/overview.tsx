@@ -2,11 +2,11 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { PageTitle } from '@/components/page-title/page-title';
-import { Button } from '@/components/ui/button';
 import { ExportPolicyGeneralCard } from '@/features/observe/export-policies/general-card';
 import { WorkloadSinksTable } from '@/features/observe/export-policies/sinks-table';
 import { WorkloadSourcesTable } from '@/features/observe/export-policies/sources-table';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/export-policies/';
 import { paths } from '@/utils/config/paths.config';

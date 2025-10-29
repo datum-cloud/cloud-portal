@@ -7,9 +7,9 @@ import {
   SidebarHeader,
   SidebarRail,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { cn } from '@/utils/common';
+} from '@/modules/datum-ui/components/sidebar.tsx';
 import { paths } from '@/utils/config/paths.config';
+import { cn } from '@shadcn/lib/utils';
 import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';
 

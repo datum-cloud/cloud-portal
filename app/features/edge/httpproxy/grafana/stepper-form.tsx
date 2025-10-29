@@ -1,5 +1,3 @@
-import { Button } from '@/components/ui/button';
-import { defineStepper } from '@/components/ui/stepper';
 import { GrafanaAccessCard } from '@/features/edge/httpproxy/grafana/grafana-access-card';
 import { PrometheusConfigCard } from '@/features/edge/httpproxy/grafana/prometheus-config-card';
 import {
@@ -10,6 +8,8 @@ import {
   instanceSchema,
 } from '@/features/edge/httpproxy/grafana/stepper.schema';
 import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
+import { defineStepper } from '@/modules/datum-ui/components/stepper.tsx';
 import {
   ExportPolicyAuthenticationType,
   ExportPolicySinkType,

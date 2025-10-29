@@ -2,13 +2,13 @@ import { EnvsForm } from './envs-form';
 import { PortsForm } from './ports-form';
 import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
-import { Input } from '@/components/ui/input';
 import {
   RuntimeContainerSchema,
   RuntimeEnvSchema,
   RuntimePortSchema,
 } from '@/resources/schemas/workload.schema';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
 import { useEffect, useRef } from 'react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 

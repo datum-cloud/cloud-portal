@@ -4,17 +4,8 @@ import { SelectIATA } from './select-iata';
 import { SelectLocationProvider } from './select-provider';
 import { Field } from '@/components/field/field';
 import { SelectLabels } from '@/components/select-labels/select-labels';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   ILocationControlResponse,
   LocationClass,
@@ -24,6 +15,15 @@ import { newLocationSchema } from '@/resources/schemas/location.schema';
 import { convertObjectToLabels } from '@/utils/helpers/object.helper';
 import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@shadcn/ui/card';
+import { Input } from '@shadcn/ui/input';
 import { useEffect, useMemo, useRef } from 'react';
 import { Form, useNavigate } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

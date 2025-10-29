@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useApp } from '@/providers/app.provider';
+import { Card, CardContent, CardHeader, CardTitle } from '@shadcn/ui/card';
 import { MailIcon } from 'lucide-react';
 
 export const AccountIdentitySettingsCard = () => {

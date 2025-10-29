@@ -4,16 +4,8 @@ import { SelectAddressType } from './select-address-type';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
 import { MetadataForm } from '@/components/metadata/metadata-form';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { useApp } from '@/providers/app.provider';
 import {
   EndpointSliceAddressType,
@@ -28,6 +20,14 @@ import { ROUTE_PATH as ENDPOINT_SLICES_ACTIONS_PATH } from '@/routes/api/endpoin
 import { convertObjectToLabels } from '@/utils/helpers/object.helper';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@shadcn/ui/card';
 import { useEffect, useMemo, useState } from 'react';
 import { Form, useNavigate, useSubmit } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

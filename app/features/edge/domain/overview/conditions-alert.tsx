@@ -1,4 +1,4 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/modules/datum-ui/components/alert.tsx';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { TriangleAlertIcon } from 'lucide-react';
 import { useMemo } from 'react';

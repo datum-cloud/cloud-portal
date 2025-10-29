@@ -1,15 +1,9 @@
 import { URLRewriteField } from './url-rewrite-field';
 import { Field } from '@/components/field/field';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { HTTPFilterType } from '@/resources/interfaces/http-route.interface';
 import { HttpURLRewriteSchema, HttpRouteFilterSchema } from '@/resources/schemas/http-route.schema';
 import { getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { useEffect } from 'react';
 
 export const FilterField = ({

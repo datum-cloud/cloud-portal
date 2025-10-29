@@ -1,12 +1,12 @@
 import { AnnotationForm } from './annotations-form';
+import { AnnotationFormSchema } from '@/resources/schemas/metadata.schema';
 import {
   DialogContent,
   Dialog,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
-import { AnnotationFormSchema } from '@/resources/schemas/metadata.schema';
+} from '@shadcn/ui/dialog';
 import { useImperativeHandle, useRef, useState } from 'react';
 
 interface AnnotationFormDialogProps {

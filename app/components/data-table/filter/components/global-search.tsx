@@ -5,7 +5,7 @@ import {
 } from '../../utils/global-search.helpers';
 import { SearchInput } from './shared/search-input';
 import { useSearchState } from './shared/use-search-state';
-import { cn } from '@/utils/common';
+import { cn } from '@shadcn/lib/utils';
 import { useMemo, useEffect } from 'react';
 
 /**

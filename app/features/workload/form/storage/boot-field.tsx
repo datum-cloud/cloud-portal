@@ -1,13 +1,7 @@
 import { Field } from '@/components/field/field';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { BOOT_IMAGES } from '@/features/workload/constants';
+import { Input } from '@shadcn/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 
 export const BootField = ({
   defaultValue,

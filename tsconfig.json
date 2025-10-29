@@ -29,6 +29,7 @@
     "allowImportingTsExtensions": true,
     "baseUrl": ".",
     "paths": {
+      "@shadcn/*": ["./app/modules/shadcn/*"],
       "@/*": ["./app/*"]
     },
     "rootDirs": [".", "./.react-router/types"],

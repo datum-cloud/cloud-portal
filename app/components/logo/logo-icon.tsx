@@ -1,5 +1,5 @@
 import { logoStyles } from './logo.styles';
-import { cn } from '@/utils/common';
+import { cn } from '@shadcn/lib/utils';
 import { useTheme, Theme } from 'remix-themes';
 
 export const LogoIcon = ({ width = 385, className }: { width?: number; className?: string }) => {

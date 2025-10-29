@@ -1,8 +1,8 @@
 import { SelectEndpointSlice } from '../../select-endpoint-slices';
 import { Field } from '@/components/field/field';
-import { Input } from '@/components/ui/input';
 import { HttpRouteBackendRefSchema } from '@/resources/schemas/http-route.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
 import { useEffect } from 'react';
 
 export const BackendRefField = ({

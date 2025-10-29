@@ -1,15 +1,7 @@
 import { KeysForm } from './keys/keys-form';
 import { SecretMetadataForm } from './metadata-form';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import {
   SecretBaseSchema,
@@ -18,6 +10,14 @@ import {
 } from '@/resources/schemas/secret.schema';
 import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@shadcn/ui/card';
 import { useMemo } from 'react';
 import { Form } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

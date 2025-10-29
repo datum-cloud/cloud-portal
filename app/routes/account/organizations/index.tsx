@@ -1,7 +1,7 @@
 import { EmptyContent } from '@/components/empty-content/empty-content';
 import { PageTitle } from '@/components/page-title/page-title';
-import { Button } from '@/components/ui/button';
 import { CreateOrganizationCard, OrganizationCard } from '@/features/organization';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
 import { paths } from '@/utils/config/paths.config';

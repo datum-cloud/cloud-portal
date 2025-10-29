@@ -2,9 +2,9 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DataTable } from '@/components/data-table/data-table';
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
 import { DateTime } from '@/components/date-time';
-import { Button } from '@/components/ui/button';
 import { ExportPolicyStatus } from '@/features/observe/export-policies/status';
 import { dataWithToast } from '@/modules/cookie/toast.server';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { createExportPoliciesControl } from '@/resources/control-plane';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/export-policies';

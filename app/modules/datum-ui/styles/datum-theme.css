@@ -1,0 +1,197 @@
+/**
+ * Datum UI Theme
+ *
+ * Datum brand colors, custom palettes, and design system tokens.
+ * This file extends shadcn/ui with Datum-specific customizations.
+ */
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* ================================
+   * DATUM BRAND COLORS
+   * ================================ */
+
+  /* Primary Brand Colors */
+  --color-navy: #0c1d31;
+  --color-cream: #f6f6f5;
+  --color-light-gray: #e8e7e4;
+  --color-lime-green: #e6f59f;
+  --color-dark-navy-blue: #111e34;
+  --color-light-pink: #ecd0d0;
+  --color-mauve: #91757b;
+  --color-navy-muted: #14233d;
+  --color-orange: #ff6b35;
+  --color-tuscany: #c49d9d;
+  --color-indigo: #2d3948;
+  --color-pearl-gray: #efefed;
+  --color-green-dark: #4d6356;
+  --color-warm-white: #f5f5f3;
+
+  /* ================================
+   * CUSTOM COLOR PALETTES
+   * ================================ */
+
+  /* Sunglow Palette - Warm coral/salmon tones */
+  --sunglow: hsl(18 89% 68%);
+  --sunglow-50: hsl(0 14% 98%);
+  --sunglow-100: hsl(8 22% 96%);
+  --sunglow-200: hsl(8 22% 94%);
+  --sunglow-300: hsl(10 67% 94%);
+  --sunglow-400: hsl(11 70% 91%);
+  --sunglow-500: hsl(8 89% 87%);
+  --sunglow-600: hsl(10 89% 84%);
+  --sunglow-700: hsl(10 78% 78%);
+  --sunglow-800: hsl(10 84% 72%);
+  --sunglow-900: hsl(18 89% 68%);
+  --sunglow-foreground: hsl(240 10% 3.9%);
+
+  /* Winter Sky Palette - Cool blue-gray tones */
+  --winter-sky-900: hsl(184 18% 89%);
+  --winter-sky-800: hsl(180 16% 94%);
+  --winter-sky-700: hsl(180 12% 96%);
+  --winter-sky-600: hsl(180 10% 97%);
+
+  /* Butter Palette - Warm yellow tones */
+  --butter-900: hsl(48 72% 84%);
+  --butter-800: hsl(48 100% 93%);
+  --butter-foreground: hsl(240 10% 3.9%);
+
+  /* ================================
+   * STATE COLORS
+   * ================================ */
+
+  /* Success States - Green palette */
+  --success-100: hsl(143, 85%, 96%);
+  --success-300: hsl(145, 92%, 87%);
+  --success-500: hsl(140, 100%, 27%);
+
+  /* Info States - Blue palette */
+  --info-100: hsl(208, 100%, 97%);
+  --info-300: hsl(221, 91%, 93%);
+  --info-500: hsl(210, 92%, 45%);
+
+  /* ================================
+   * DATUM THEME OVERRIDES
+   * ================================ */
+
+  /* Override shadcn primary/secondary with Datum brand colors */
+  --primary: var(--color-navy);
+  --primary-foreground: var(--color-cream);
+
+  --secondary: var(--color-light-gray);
+  --secondary-foreground: var(--color-navy);
+
+  --accent: var(--winter-sky-700);
+
+  /* Datum Sidebar Theme */
+  --sidebar-background: var(--color-warm-white);
+  --sidebar-foreground: var(--color-navy);
+  --sidebar-primary: var(--color-navy);
+  --sidebar-primary-foreground: var(--winter-sky-900);
+  --sidebar-accent: var(--color-light-gray);
+  --sidebar-accent-foreground: var(--color-navy);
+  --sidebar-border: var(--color-light-gray);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+.dark {
+  /* Sunglow adjustments for dark mode */
+  --sunglow: hsl(8 89% 87%);
+  --sunglow-foreground: hsl(240 5.9% 10%);
+
+  /* Success States - Dark mode */
+  --success-100: hsl(150, 100%, 6%);
+  --success-300: hsl(147, 100%, 12%);
+  --success-500: hsl(150, 86%, 65%);
+
+  /* Info States - Dark mode */
+  --info-100: hsl(216, 87%, 65%);
+  --info-300: hsl(215, 100%, 6%);
+  --info-500: hsl(223, 43%, 17%);
+
+  /* Sidebar - Dark mode */
+  --sidebar-background: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+/* ================================
+ * TAILWIND THEME INTEGRATION
+ * ================================ */
+
+@theme {
+  /* Font Family */
+  --font-sans:
+    'Alliance No1', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
+
+  /* Sunglow Palette */
+  --color-sunglow: var(--sunglow);
+  --color-sunglow-50: var(--sunglow-50);
+  --color-sunglow-100: var(--sunglow-100);
+  --color-sunglow-200: var(--sunglow-200);
+  --color-sunglow-300: var(--sunglow-300);
+  --color-sunglow-400: var(--sunglow-400);
+  --color-sunglow-500: var(--sunglow-500);
+  --color-sunglow-600: var(--sunglow-600);
+  --color-sunglow-700: var(--sunglow-700);
+  --color-sunglow-800: var(--sunglow-800);
+  --color-sunglow-900: var(--sunglow-900);
+  --color-sunglow-foreground: var(--sunglow-foreground);
+
+  /* Butter Palette */
+  --color-butter: var(--butter-900);
+  --color-butter-900: var(--butter-900);
+  --color-butter-800: var(--butter-800);
+  --color-butter-foreground: var(--butter-foreground);
+
+  /* Winter Sky Palette */
+  --color-winter-sky-600: var(--winter-sky-600);
+  --color-winter-sky-700: var(--winter-sky-700);
+  --color-winter-sky-800: var(--winter-sky-800);
+  --color-winter-sky-900: var(--winter-sky-900);
+
+  /* Success Colors */
+  --color-success: var(--success-500);
+  --color-success-100: var(--success-100);
+  --color-success-300: var(--success-300);
+  --color-success-500: var(--success-500);
+
+  /* Info Colors */
+  --color-info: var(--info-500);
+  --color-info-100: var(--info-100);
+  --color-info-300: var(--info-300);
+  --color-info-500: var(--info-500);
+
+  /* Datum Brand Colors */
+  --color-navy: var(--color-navy);
+  --color-cream: var(--color-cream);
+  --color-light-gray: var(--color-light-gray);
+  --color-lime-green: var(--color-lime-green);
+  --color-dark-navy-blue: var(--color-dark-navy-blue);
+  --color-light-pink: var(--color-light-pink);
+  --color-mauve: var(--color-mauve);
+  --color-navy-muted: var(--color-navy-muted);
+  --color-orange: var(--color-orange);
+  --color-tuscany: var(--color-tuscany);
+  --color-indigo: var(--color-indigo);
+  --color-pearl-gray: var(--color-pearl-gray);
+  --color-green-dark: var(--color-green-dark);
+  --color-warm-white: var(--color-warm-white);
+}
+
+/* ================================
+ * DATUM-SPECIFIC BASE STYLES
+ * ================================ */
+
+@layer base {
+  body {
+    @apply text-navy dark:text-cream;
+  }
+}

@@ -1,9 +1,9 @@
 import { DataTable } from '@/components/data-table/data-table';
 import { DateTime } from '@/components/date-time';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ISubnetControlResponse } from '@/resources/interfaces/network.interface';
 import { getShortId } from '@/utils/helpers/text.helper';
+import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 

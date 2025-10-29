@@ -2,9 +2,9 @@ import { WorkloadStatus } from './status';
 import { DataTable } from '@/components/data-table/data-table';
 import { DateTime } from '@/components/date-time';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { CardContent, CardHeader, CardTitle, Card } from '@/components/ui/card';
 import { IInstanceControlResponse } from '@/resources/interfaces/workload.interface';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { CardContent, CardHeader, CardTitle, Card } from '@shadcn/ui/card';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 

@@ -1,5 +1,4 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,11 +7,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown';
+} from '@/modules/datum-ui/components/dropdown.tsx';
 import { useApp } from '@/providers/app.provider';
-import { cn } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { getInitials } from '@/utils/helpers/text.helper';
+import { cn } from '@shadcn/lib/utils';
+import { Avatar, AvatarFallback } from '@shadcn/ui/avatar';
 import { LogOut, UserCogIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSubmit } from 'react-router';

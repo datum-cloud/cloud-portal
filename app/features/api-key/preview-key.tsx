@@ -1,5 +1,5 @@
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/modules/datum-ui/components/alert.tsx';
 import { Terminal } from 'lucide-react';
 import { motion } from 'motion/react';
 

@@ -1,15 +1,9 @@
 import { Field } from '@/components/field/field';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { HTTPPathMatchType } from '@/resources/interfaces/http-route.interface';
 import { HttpPathMatchSchema } from '@/resources/schemas/http-route.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { useEffect } from 'react';
 
 export const PathField = ({

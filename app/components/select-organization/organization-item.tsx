@@ -1,7 +1,7 @@
 import { ProfileIdentity } from '@/components/profile-identity';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
-import { cn } from '@/utils/common';
 import { getInitials } from '@/utils/helpers/text.helper';
+import { cn } from '@shadcn/lib/utils';
 import { Building2, UserRound } from 'lucide-react';
 
 export const OrganizationItem = ({

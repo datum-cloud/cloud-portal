@@ -2,17 +2,9 @@ import { RulesForm } from './rule/rules-form';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
 import { MetadataForm } from '@/components/metadata/metadata-form';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { SelectGateways } from '@/features/connect/http-route/select-gateways';
 import { useIsPending } from '@/hooks/useIsPending';
+import { Button } from '@/modules/datum-ui/components/button.tsx';
 import { useApp } from '@/providers/app.provider';
 import { IHttpRouteControlResponse } from '@/resources/interfaces/http-route.interface';
 import {
@@ -32,6 +24,14 @@ import {
   useInputControl,
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@shadcn/ui/card';
 import { useEffect, useMemo, useState } from 'react';
 import { Form, useNavigate, useSubmit } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
