@@ -1,5 +1,5 @@
 import { LogoStacked } from '@/components/logo/logo-stacked';
-import { cn } from '@/utils/common';
+import { cn } from '@/modules/shadcn/ui/utils';
 
 export default function BlankLayout({
   children,

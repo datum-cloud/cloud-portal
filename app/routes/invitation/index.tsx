@@ -1,4 +1,3 @@
-import { LogoFlat } from '@/components/logo/logo-flat';
 import BlankLayout from '@/layouts/blank/blank.layout';
 import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { Button } from '@/modules/datum-ui/components/button.tsx';
