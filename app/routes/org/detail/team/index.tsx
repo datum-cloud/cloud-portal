@@ -221,10 +221,8 @@ export default function OrgTeamPage() {
       ),
       submitText: 'Remove',
       cancelText: 'Cancel',
-      confirmValue: 'REMOVE',
-      confirmInputLabel: 'Type "REMOVE" to confirm.',
       variant: 'destructive',
-      showConfirmInput: true,
+      showConfirmInput: false,
       onSubmit: async () => {
         await fetcher.submit(
           {
