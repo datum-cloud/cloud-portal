@@ -1,7 +1,6 @@
 import { InvitationForm } from '@/features/organization/team/invitation-form';
 import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { getSession } from '@/modules/cookie/session.server';
-import { createInvitationsControl, createUserControl } from '@/resources/control-plane';
+import { createInvitationsControl } from '@/resources/control-plane';
 import { invitationFormSchema, NewInvitationSchema } from '@/resources/schemas/invitation.schema';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -47,13 +46,8 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
       throw new Error('Invalid form data');
     }
 
-    const { session } = await getSession(request);
-
     const { controlPlaneClient } = context as AppLoadContext;
     const invitationsControl = createInvitationsControl(controlPlaneClient as Client);
-
-    const userControl = createUserControl(controlPlaneClient as Client);
-    const user = await userControl.detail(session?.sub ?? '');
 
     const BATCH_SIZE = 3; // Process 3 at a time to avoid overwhelming API
     const results: any = [];
@@ -68,8 +62,6 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
         batch.map(async (email) => {
           const payload: NewInvitationSchema = {
             email,
-            inviterFamilyName: user.familyName, // inviter
-            inviterGivenName: user.givenName, // inviter
             role: parsed.value.role,
             roleNamespace: parsed.value.roleNamespace,
           };

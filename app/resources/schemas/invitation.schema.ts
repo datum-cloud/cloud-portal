@@ -3,8 +3,6 @@ import { z } from 'zod';
 
 export const newInvitationSchema = z.object({
   email: z.email(),
-  inviterFamilyName: z.string().optional(),
-  inviterGivenName: z.string().optional(),
   role: z
     .enum(Object.values(Roles) as [string, ...string[]], {
       error: 'Role is required.',

@@ -58,8 +58,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     // Create a new invitation
     const newInvitation = await invitationsControl.create(orgId as string, {
       email: currentInvitation.email,
-      inviterFamilyName: currentInvitation.familyName,
-      inviterGivenName: currentInvitation.givenName,
       role: currentInvitation.role,
     });
 
