@@ -1,6 +1,6 @@
 import { NextFunction } from './middleware';
 import { getSession } from '@/modules/cookie/session.server';
-import { RegistrationApproval } from '@/resources/interfaces/user.interface';
+import { IUser, RegistrationApproval } from '@/resources/interfaces/user.interface';
 import { ROUTE_PATH as USER_API } from '@/routes/api/user/index';
 import { paths } from '@/utils/config/paths.config';
 import { redirect } from 'react-router';
@@ -57,7 +57,7 @@ export async function registrationApprovalMiddleware(
       return next();
     }
 
-    const user = userResult.data;
+    const user: IUser = userResult.data as IUser;
 
     // Check if user's registration is approved
     if (user.registrationApproval !== RegistrationApproval.Approved) {

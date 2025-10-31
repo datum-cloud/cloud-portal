@@ -138,6 +138,14 @@ export default function OrgTeamInvitePage() {
         const failedResults = data.data.filter((r: InvitationResult) => !r.success);
 
         const ErrorList = (errors: InvitationResult[]) => {
+          if (errors.length === 1) {
+            const result = errors[0];
+            return (
+              <span className="text-muted-foreground text-xs">
+                {result.email}:{result.error}
+              </span>
+            );
+          }
           return (
             <ul className="list-inside list-disc text-xs">
               {errors.map((result, index) => (

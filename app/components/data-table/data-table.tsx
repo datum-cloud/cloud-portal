@@ -46,6 +46,7 @@ export const DataTable = <TData, TValue>({
   rowActions = [],
   hideRowActions,
   disableRowActions,
+  maxInlineActions = 3,
   onRowClick,
   rowClassName,
   tableTitle,
@@ -237,6 +238,7 @@ export const DataTable = <TData, TValue>({
                                   actions={rowActions}
                                   hideRowActions={hideRowActions}
                                   disableRowActions={disableRowActions}
+                                  maxInlineActions={maxInlineActions}
                                 />
                               </TableCell>
                             )}
@@ -297,6 +299,7 @@ export const DataTable = <TData, TValue>({
                                   actions={rowActions}
                                   hideRowActions={hideRowActions}
                                   disableRowActions={disableRowActions}
+                                  maxInlineActions={maxInlineActions}
                                 />
                               </div>
                             )}

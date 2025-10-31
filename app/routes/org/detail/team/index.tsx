@@ -9,6 +9,7 @@ import { createInvitationsControl } from '@/resources/control-plane';
 import { createMembersControl } from '@/resources/control-plane/resource-manager/members.control';
 import { IInvitationControlResponse } from '@/resources/interfaces/invitation.interface';
 import { IMemberControlResponse } from '@/resources/interfaces/member.interface';
+import { ROUTE_PATH as MEMBERS_LEAVE_ROUTE_PATH } from '@/routes/api/members/leave';
 import { ROUTE_PATH as MEMBERS_REMOVE_ROUTE_PATH } from '@/routes/api/members/remove';
 import { ROUTE_PATH as TEAM_INVITATIONS_CANCEL_ROUTE_PATH } from '@/routes/api/team/invitations/cancel';
 import { ROUTE_PATH as TEAM_INVITATIONS_RESEND_ROUTE_PATH } from '@/routes/api/team/invitations/resend';
@@ -37,7 +38,10 @@ interface ITeamMember {
   givenName?: string;
   familyName?: string;
   email: string;
-  role?: string;
+  roles?: {
+    name: string;
+    namespace?: string;
+  }[];
   invitationState?: 'Pending' | 'Accepted' | 'Declined';
   type: 'member' | 'invitation';
   name?: string;
@@ -66,7 +70,9 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     givenName: invitation.givenName,
     familyName: invitation.familyName,
     email: invitation.email,
-    role: invitation.role,
+    roles: invitation.role
+      ? [{ name: invitation.role, namespace: invitation.role ?? 'datum-cloud' }]
+      : [],
     invitationState: invitation.state,
     type: 'invitation' as const,
     name: invitation.name,
@@ -78,7 +84,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     givenName: member.user.givenName,
     familyName: member.user.familyName,
     email: member.user.email || '',
-    role: undefined, // TODO: Extract role from member data when available
+    roles: member.roles,
     type: 'member' as const,
     name: member.name,
   }));
@@ -97,6 +103,17 @@ export default function OrgTeamPage() {
   const fetcher = useFetcher();
   const { confirm } = useConfirmationDialog();
 
+  const orderedTeamMembers = useMemo(() => {
+    if (!user?.email) return teamMembers;
+    const cloned = [...(teamMembers ?? [])];
+    cloned.sort((a, b) => {
+      const aIsCurrent = a.type === 'member' && a.email === user.email ? 0 : 1;
+      const bIsCurrent = b.type === 'member' && b.email === user.email ? 0 : 1;
+      return aIsCurrent - bIsCurrent;
+    });
+    return cloned;
+  }, [teamMembers, user?.email]);
+
   const {
     hasPermission: hasRemoveMemberPermission,
     isError,
@@ -105,6 +122,35 @@ export default function OrgTeamPage() {
     namespace: buildNamespace('organization', orgId ?? ''),
     group: 'resourcemanager.miloapis.com',
   });
+
+  // Check if current user is the last owner
+  const isLastOwner = useMemo(() => {
+    if (!user?.email) return false;
+
+    // Find current user's member record
+    const currentUserMember = teamMembers.find(
+      (member) => member.type === 'member' && member.email === user.email
+    );
+
+    if (!currentUserMember) return false;
+
+    const ownerRoles = ['owner', 'datum-cloud-owner'];
+
+    // Check if user has owner role
+    const isOwner = currentUserMember.roles?.some((role) =>
+      ownerRoles.includes(role.name.toLowerCase())
+    );
+
+    if (!isOwner) return false;
+
+    // Count total owners in the organization (members only, not invitations)
+    const ownerCount = teamMembers.filter((member) => {
+      if (member.type !== 'member') return false;
+      return member.roles?.some((role) => ownerRoles.includes(role.name.toLowerCase()));
+    }).length;
+
+    return ownerCount === 1; // True if user is the only owner
+  }, [teamMembers, user?.email]);
 
   const cancelInvitation = async (row: ITeamMember) => {
     await confirm({
@@ -201,7 +247,22 @@ export default function OrgTeamPage() {
         accessorKey: 'role',
         enableSorting: false,
         cell: ({ row }) => {
-          return <span>{row.original.role ?? '-'}</span>;
+          const roles = row.original.roles ?? [];
+          if (!roles.length) {
+            return <span className="text-muted-foreground text-xs">—</span>;
+          }
+          return (
+            <div className="flex flex-wrap gap-1">
+              {roles.map((role, idx) => (
+                <Badge
+                  key={`${role.name}-${idx}`}
+                  variant="outline"
+                  className="py-0.5 text-xs font-normal">
+                  {role.name}
+                </Badge>
+              ))}
+            </div>
+          );
         },
       },
     ];
@@ -221,10 +282,8 @@ export default function OrgTeamPage() {
       ),
       submitText: 'Remove',
       cancelText: 'Cancel',
-      confirmValue: 'REMOVE',
-      confirmInputLabel: 'Type "REMOVE" to confirm.',
       variant: 'destructive',
-      showConfirmInput: true,
+      showConfirmInput: false,
       onSubmit: async () => {
         await fetcher.submit(
           {
@@ -233,6 +292,35 @@ export default function OrgTeamPage() {
           },
           {
             action: MEMBERS_REMOVE_ROUTE_PATH,
+            method: 'DELETE',
+          }
+        );
+      },
+    });
+  };
+
+  const leaveTeam = async (row: ITeamMember) => {
+    await confirm({
+      title: 'Leave Organization',
+      description: (
+        <span>
+          Are you sure you want to leave this organization? You will lose access to all organization
+          resources and will need to be re-invited to rejoin.
+        </span>
+      ),
+      submitText: 'Leave',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      showConfirmInput: false,
+      onSubmit: async () => {
+        await fetcher.submit(
+          {
+            id: row?.name ?? '',
+            orgId: orgId ?? '',
+            redirectUri: paths.account.organizations.root,
+          },
+          {
+            action: MEMBERS_LEAVE_ROUTE_PATH,
             method: 'DELETE',
           }
         );
@@ -258,6 +346,7 @@ export default function OrgTeamPage() {
 
   const rowActions = useMemo(
     () => [
+      // Resend invitation (for pending invites only)
       {
         key: 'resend',
         label: 'Resend invitation',
@@ -266,6 +355,7 @@ export default function OrgTeamPage() {
           row.type !== 'invitation' || row.invitationState !== 'Pending',
         action: (row: ITeamMember) => resendInvitation(row.id),
       },
+      // Cancel invitation (for invites only)
       {
         key: 'cancel',
         label: 'Cancel invitation',
@@ -274,23 +364,68 @@ export default function OrgTeamPage() {
         hidden: (row: ITeamMember) => row.type !== 'invitation',
         action: (row: ITeamMember) => cancelInvitation(row),
       },
+      // Remove member (for OTHER members, not self)
       {
         key: 'remove',
         label: 'Remove member',
         variant: 'destructive' as const,
         icon: <TrashIcon className="size-4" />,
-        hidden: (row: ITeamMember) =>
-          row.type !== 'member' || row.email === user?.email || !hasRemoveMemberPermission,
+        hidden: (row: ITeamMember) => {
+          // Hide if not a member
+          if (row.type !== 'member') return true;
+
+          // Hide if it's current user (use "Leave" instead)
+          if (row.email === user?.email) return true;
+
+          // Hide if no permission
+          if (!hasRemoveMemberPermission) return true;
+
+          return false;
+        },
         action: (row: ITeamMember) => removeMember(row),
       },
+      // Leave team (for current user only)
+      {
+        key: 'leave',
+        label: 'Leave team',
+        display: 'inline' as const,
+        hidden: (row: ITeamMember) => {
+          // Only show for members
+          if (row.type !== 'member') return true;
+
+          // Only show for current user
+          if (row.email !== user?.email) return true;
+
+          return false;
+        },
+        disabled: (_row: ITeamMember) => {
+          // Disable if user is the last owner
+          if (isLastOwner) return true;
+
+          return false;
+        },
+        tooltip: (_row: ITeamMember) => {
+          // Show helpful message when disabled
+          if (isLastOwner) {
+            return (
+              <span>
+                You are the last owner. To leave the organization, <br /> first assign ownership to
+                another member.
+              </span>
+            );
+          }
+          return undefined;
+        },
+        action: (row: ITeamMember) => leaveTeam(row),
+      },
     ],
-    [user?.email, hasRemoveMemberPermission]
+    [user?.email, hasRemoveMemberPermission, isLastOwner]
   );
 
   return (
     <DataTable
       columns={columns}
-      data={teamMembers ?? []}
+      data={orderedTeamMembers ?? []}
       tableTitle={{
         title: 'Team',
         description: 'Manage your organization team',

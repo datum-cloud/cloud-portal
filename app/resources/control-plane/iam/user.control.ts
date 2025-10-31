@@ -52,7 +52,10 @@ export const createUserControl = (client: Client) => {
       fullName: `${spec?.givenName} ${spec?.familyName}`,
       preferences,
       onboardedAt: metadata?.annotations?.['onboarding/completedAt'],
-      registrationApproval: (status?.registrationApproval ?? 'Pending') as RegistrationApproval,
+      registrationApproval:
+        status && typeof status.registrationApproval !== 'undefined'
+          ? (status.registrationApproval as RegistrationApproval)
+          : undefined,
       state: status?.state,
     };
   };
