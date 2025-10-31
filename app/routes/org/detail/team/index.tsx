@@ -19,7 +19,7 @@ import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { LogOutIcon, Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
+import { Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   AppLoadContext,
@@ -377,7 +377,6 @@ export default function OrgTeamPage() {
       {
         key: 'leave',
         label: 'Leave team',
-        icon: <LogOutIcon className="size-4" />,
         display: 'inline' as const,
         hidden: (row: ITeamMember) => {
           // Only show for members
