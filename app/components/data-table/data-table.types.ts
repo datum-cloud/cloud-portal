@@ -65,7 +65,7 @@ export interface DataTableRowActionsProps<TData> {
   hidden?: (row: TData) => boolean;
   display?: 'dropdown' | 'inline'; // Control whether action appears as inline button or in dropdown (default: 'dropdown')
   showLabel?: boolean; // For inline buttons, whether to show label alongside icon (default: false for inline, true for dropdown)
-  tooltip?: string | ((row: TData) => string | undefined); // Tooltip text - can be static string or function that receives row data
+  tooltip?: string | React.ReactNode | ((row: TData) => string | React.ReactNode | undefined); // Tooltip text - can be static string or function that receives row data
 }
 
 export interface DataTableTitleProps {

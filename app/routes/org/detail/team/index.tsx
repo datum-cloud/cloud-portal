@@ -397,7 +397,12 @@ export default function OrgTeamPage() {
         tooltip: (_row: ITeamMember) => {
           // Show helpful message when disabled
           if (isLastOwner) {
-            return 'You’re the last owner. To leave the organization, first assign ownership to another member.';
+            return (
+              <span>
+                You are the last owner. To leave the organization, <br /> first assign ownership to
+                another member.
+              </span>
+            );
           }
           return undefined;
         },
