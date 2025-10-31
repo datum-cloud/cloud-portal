@@ -103,6 +103,17 @@ export default function OrgTeamPage() {
   const fetcher = useFetcher();
   const { confirm } = useConfirmationDialog();
 
+  const orderedTeamMembers = useMemo(() => {
+    if (!user?.email) return teamMembers;
+    const cloned = [...(teamMembers ?? [])];
+    cloned.sort((a, b) => {
+      const aIsCurrent = a.type === 'member' && a.email === user.email ? 0 : 1;
+      const bIsCurrent = b.type === 'member' && b.email === user.email ? 0 : 1;
+      return aIsCurrent - bIsCurrent;
+    });
+    return cloned;
+  }, [teamMembers, user?.email]);
+
   const {
     hasPermission: hasRemoveMemberPermission,
     isError,
@@ -414,7 +425,7 @@ export default function OrgTeamPage() {
   return (
     <DataTable
       columns={columns}
-      data={teamMembers ?? []}
+      data={orderedTeamMembers ?? []}
       tableTitle={{
         title: 'Team',
         description: 'Manage your organization team',
