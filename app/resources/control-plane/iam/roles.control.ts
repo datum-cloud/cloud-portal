@@ -2,6 +2,7 @@ import {
   ComMiloapisIamV1Alpha1Role,
   ComMiloapisIamV1Alpha1RoleList,
   listIamMiloapisComV1Alpha1NamespacedRole,
+  readIamMiloapisComV1Alpha1NamespacedRole,
 } from '@/modules/control-plane/iam';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IRoleControlResponse } from '@/resources/interfaces/role.interface';
@@ -22,6 +23,7 @@ export const createRolesControl = (client: Client) => {
       namespace: metadata?.namespace ?? '',
       displayName: metadata?.annotations?.['kubernetes.io/display-name'],
       description: metadata?.annotations?.['kubernetes.io/description'],
+      annotations: metadata?.annotations,
     };
   };
 
@@ -45,6 +47,22 @@ export const createRolesControl = (client: Client) => {
             })
             .map((item) => transform(item)) ?? []
         );
+      } catch (e) {
+        throw e;
+      }
+    },
+    get: async (roleName: string, namespace: string = 'datum-cloud') => {
+      try {
+        const response = await readIamMiloapisComV1Alpha1NamespacedRole({
+          client,
+          path: {
+            namespace,
+            name: roleName,
+          },
+        });
+
+        const role = response.data as ComMiloapisIamV1Alpha1Role;
+        return transform(role);
       } catch (e) {
         throw e;
       }

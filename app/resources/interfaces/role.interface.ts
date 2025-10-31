@@ -16,4 +16,5 @@ export interface IRoleControlResponse {
   namespace: string;
   displayName?: string;
   description?: string;
+  annotations?: Record<string, string>;
 }
