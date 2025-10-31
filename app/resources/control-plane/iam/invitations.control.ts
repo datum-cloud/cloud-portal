@@ -89,8 +89,6 @@ export const createInvitationsControl = (client: Client) => {
               name: `${organizationId}-${generateRandomString(8)}`,
             },
             spec: {
-              familyName: payload.inviterFamilyName, // For Inviter
-              givenName: payload.inviterGivenName, // For Inviter
               email: payload.email,
               expirationDate: formatRFC3339(addHours(new Date(), 24)), // 24 hours (RFC3339 format)
               organizationRef: { name: organizationId },
