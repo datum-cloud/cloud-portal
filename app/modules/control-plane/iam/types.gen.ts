@@ -1103,7 +1103,7 @@ export type ComMiloapisIamV1Alpha1UserInvitationSpec = {
     name: string;
   };
   /**
-   * The roles that will be assigned to the user when they accept the invitation.
+   * The roles that will be assigned to the user when they join the organization.
    */
   roles?: Array<{
     /**
@@ -1111,7 +1111,7 @@ export type ComMiloapisIamV1Alpha1UserInvitationSpec = {
      */
     name: string;
     /**
-     * Namespace of the referenced Role. If empty, it is assumed to be in the PolicyBinding's namespace.
+     * Namespace of the referenced Role. If empty, it is assumed to be in the UserInvitation's namespace.
      */
     namespace?: string;
   }>;

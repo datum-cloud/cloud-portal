@@ -28,6 +28,7 @@ export const createMembersControl = (client: Client) => {
         id: member.spec?.organizationRef?.name ?? '',
         ...member.status?.organization,
       },
+      roles: member.spec?.roles ?? [],
       status: member.status,
     };
   };

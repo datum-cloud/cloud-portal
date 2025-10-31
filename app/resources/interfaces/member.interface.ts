@@ -16,5 +16,9 @@ export interface IMemberControlResponse {
     displayName?: string;
     type?: string;
   };
+  roles: {
+    name: string;
+    namespace?: string;
+  }[];
   status: ComMiloapisResourcemanagerV1Alpha1OrganizationMembership['status'];
 }

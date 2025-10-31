@@ -41,6 +41,7 @@ export interface DataTableProps<TData, TValue> {
   rowActions?: DataTableRowActionsProps<TData>[];
   hideRowActions?: (row: TData) => boolean;
   disableRowActions?: (row: TData) => boolean;
+  maxInlineActions?: number; // Maximum number of inline actions to show (default: 3)
   onRowClick?: (row: TData) => void;
   rowClassName?: (row: TData) => string;
   tableTitle?: DataTableTitleProps;
@@ -62,6 +63,9 @@ export interface DataTableRowActionsProps<TData> {
   action: (row: TData) => void | Promise<void>;
   disabled?: (row: TData) => boolean;
   hidden?: (row: TData) => boolean;
+  display?: 'dropdown' | 'inline'; // Control whether action appears as inline button or in dropdown (default: 'dropdown')
+  showLabel?: boolean; // For inline buttons, whether to show label alongside icon (default: false for inline, true for dropdown)
+  tooltip?: string | ((row: TData) => string | undefined); // Tooltip text - can be static string or function that receives row data
 }
 
 export interface DataTableTitleProps {

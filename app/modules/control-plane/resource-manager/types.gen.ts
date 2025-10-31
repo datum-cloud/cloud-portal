@@ -127,6 +127,19 @@ export type ComMiloapisResourcemanagerV1Alpha1OrganizationMembership = {
       name: string;
     };
     /**
+     * The roles that will be assigned to the user when they join the organization.
+     */
+    roles?: Array<{
+      /**
+       * Name is the name of resource being referenced
+       */
+      name: string;
+      /**
+       * Namespace of the referenced Role. If empty, it is assumed to be in the OrganizationMembership's namespace.
+       */
+      namespace?: string;
+    }>;
+    /**
      * UserRef is a reference to the User that is a member of the Organization.
      */
     userRef: {
