@@ -200,12 +200,17 @@ export default function OrgTeamPage() {
         accessorKey: 'email',
         enableSorting: false,
         cell: ({ row }) => {
-          const fullName =
-            row.original.givenName && row.original.familyName
-              ? `${row.original.givenName} ${row.original.familyName}`.trim()
-              : '';
-          const name = fullName || row.original.email;
-          const subtitle = fullName ? row.original.email : undefined;
+          let name = row.original.email;
+          let subtitle = undefined;
+
+          if (row.original.type === 'member') {
+            const fullName =
+              row.original.givenName && row.original.familyName
+                ? `${row.original.givenName} ${row.original.familyName}`.trim()
+                : undefined;
+            name = fullName || row.original.email;
+            subtitle = fullName;
+          }
 
           return (
             <div className="flex items-center gap-2">
