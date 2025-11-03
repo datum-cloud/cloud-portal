@@ -1,5 +1,7 @@
+import { OrganizationDangerCard } from '@/features/organization';
 import { OrganizationGeneralCard } from '@/features/organization/settings/general-card';
 import { createOrganizationsControl } from '@/resources/control-plane';
+import { OrganizationType } from '@/resources/interfaces/organization.interface';
 import {
   UpdateOrganizationSchema,
   updateOrganizationSchema,
@@ -78,9 +80,9 @@ export default function OrgPreferencesPage() {
       <OrganizationGeneralCard organization={organization ?? {}} />
 
       {/* Danger Zone */}
-      {/* {organization && organization?.type !== OrganizationType.Personal ? (
+      {organization && organization?.type !== OrganizationType.Personal && (
         <OrganizationDangerCard organization={organization ?? {}} />
-      ) : null} */}
+      )}
     </div>
   );
 }

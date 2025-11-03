@@ -8,11 +8,13 @@ import {
   patchResourcemanagerMiloapisComV1Alpha1Organization,
   readResourcemanagerMiloapisComV1Alpha1Organization,
 } from '@/modules/control-plane/resource-manager';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import {
   OrganizationSchema,
   UpdateOrganizationSchema,
 } from '@/resources/schemas/organization.schema';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { convertLabelsToObject } from '@/utils/helpers/object.helper';
 import { Client } from '@hey-api/client-axios';
 
@@ -68,18 +70,23 @@ export const createOrganizationsControl = (client: Client) => {
           data?.items?.map((org: ComMiloapisResourcemanagerV1Alpha1OrganizationMembership) =>
             transformOrgMembership(org)
           ) ?? []
-        ).sort((a, b) => {
-          // First, sort by type - Personal organizations first
-          if (a.type === OrganizationType.Personal && b.type !== OrganizationType.Personal)
-            return -1;
-          if (b.type === OrganizationType.Personal && a.type !== OrganizationType.Personal)
-            return 1;
+        )
+          ?.filter((org: IOrganization) => {
+            const status = transformControlPlaneStatus(org.status);
+            return status.status === ControlPlaneStatus.Success;
+          })
+          .sort((a, b) => {
+            // First, sort by type - Personal organizations first
+            if (a.type === OrganizationType.Personal && b.type !== OrganizationType.Personal)
+              return -1;
+            if (b.type === OrganizationType.Personal && a.type !== OrganizationType.Personal)
+              return 1;
 
-          // Then sort alphabetically by displayName or name
-          const aName = a?.displayName ?? a?.name ?? '';
-          const bName = b?.displayName ?? b?.name ?? '';
-          return aName.localeCompare(bName);
-        });
+            // Then sort alphabetically by displayName or name
+            const aName = a?.displayName ?? a?.name ?? '';
+            const bName = b?.displayName ?? b?.name ?? '';
+            return aName.localeCompare(bName);
+          });
 
         return orgs;
       } catch (e) {

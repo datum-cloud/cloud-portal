@@ -1,6 +1,5 @@
 import { createOrganizationsControl } from '@/resources/control-plane';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { setOrgSession } from '@/utils/cookies';
+import { redirectWithToast, setOrgSession } from '@/utils/cookies';
 import { AppError, BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
@@ -52,16 +51,21 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
     const orgAPI = createOrganizationsControl(controlPlaneClient as Client);
     switch (request.method) {
       case 'DELETE': {
+        const formData = Object.fromEntries(await request.formData());
+
+        const { redirectUri } = formData;
+
         await orgAPI.delete(id);
         await cache.removeItem(`organizations:${id}`);
 
-        const organizations = await cache.getItem('organizations');
+        await cache.removeItem('organizations');
 
-        if (organizations) {
-          const filtered = (organizations as IOrganization[]).filter(
-            (org: IOrganization) => org.name !== id
-          );
-          await cache.setItem('organizations', filtered);
+        if (redirectUri) {
+          return redirectWithToast(redirectUri as string, {
+            title: 'Organization deleted successfully',
+            description: 'The organization has been deleted successfully',
+            type: 'success',
+          });
         }
 
         return data(
