@@ -2,8 +2,10 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DataTable } from '@/components/data-table';
 import { ProfileIdentity } from '@/components/profile-identity';
 import { useHasPermission } from '@/modules/rbac';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/modules/shadcn/ui/tooltip';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationsControl } from '@/resources/control-plane';
+import { createRolesControl } from '@/resources/control-plane/iam/roles.control';
 import { createMembersControl } from '@/resources/control-plane/resource-manager/members.control';
 import { IInvitationControlResponse } from '@/resources/interfaces/invitation.interface';
 import { IMemberControlResponse } from '@/resources/interfaces/member.interface';
@@ -41,6 +43,8 @@ interface ITeamMember {
   roles?: {
     name: string;
     namespace?: string;
+    displayName?: string;
+    description?: string;
   }[];
   invitationState?: 'Pending' | 'Accepted' | 'Declined';
   type: 'member' | 'invitation';
@@ -52,10 +56,33 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext;
   const invitationsControl = createInvitationsControl(controlPlaneClient as Client);
   const membersControl = createMembersControl(controlPlaneClient as Client);
+  const rolesControl = createRolesControl(controlPlaneClient as Client);
 
   if (!orgId) {
     throw new BadRequestError('Organization ID is required');
   }
+
+  // Helper function to resolve role details by querying the API
+  const resolveRoleDetails = async (roleName: string, namespace: string = 'datum-cloud') => {
+    try {
+      const role = await rolesControl.get(roleName, namespace);
+      return {
+        name: roleName,
+        namespace,
+        displayName: role.displayName ?? roleName,
+        description: role.description,
+      };
+    } catch (error) {
+      // Fallback if role not found
+      console.error(`Failed to resolve role details for ${roleName}:`, error);
+      return {
+        name: roleName,
+        namespace,
+        displayName: roleName,
+        description: undefined,
+      };
+    }
+  };
 
   const invitations = await invitationsControl.list(orgId);
   const filteredInvitations: IInvitationControlResponse[] = invitations.filter(
@@ -65,29 +92,37 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const members: IMemberControlResponse[] = await membersControl.list(orgId);
 
   // Transform invitations to generic format
-  const invitationTeamMembers: ITeamMember[] = filteredInvitations.map((invitation) => ({
-    id: invitation.name, // Use email as ID for invitations since they don't have user ID yet
-    givenName: invitation.givenName,
-    familyName: invitation.familyName,
-    email: invitation.email,
-    roles: invitation.role
-      ? [{ name: invitation.role, namespace: invitation.role ?? 'datum-cloud' }]
-      : [],
-    invitationState: invitation.state,
-    type: 'invitation' as const,
-    name: invitation.name,
-  }));
+  const invitationTeamMembers: ITeamMember[] = await Promise.all(
+    filteredInvitations.map(async (invitation) => ({
+      id: invitation.name,
+      givenName: invitation.givenName,
+      familyName: invitation.familyName,
+      email: invitation.email,
+      roles: invitation.role ? [await resolveRoleDetails(invitation.role, 'datum-cloud')] : [],
+      invitationState: invitation.state,
+      type: 'invitation' as const,
+      name: invitation.name,
+    }))
+  );
 
   // Transform members to generic format
-  const memberTeamMembers: ITeamMember[] = members.map((member) => ({
-    id: member.user.id,
-    givenName: member.user.givenName,
-    familyName: member.user.familyName,
-    email: member.user.email || '',
-    roles: member.roles,
-    type: 'member' as const,
-    name: member.name,
-  }));
+  const memberTeamMembers: ITeamMember[] = await Promise.all(
+    members.map(async (member) => ({
+      id: member.user.id,
+      givenName: member.user.givenName,
+      familyName: member.user.familyName,
+      email: member.user.email || '',
+      roles: member.roles
+        ? await Promise.all(
+            member.roles.map((role) =>
+              resolveRoleDetails(role.name, role.namespace ?? 'datum-cloud')
+            )
+          )
+        : [],
+      type: 'member' as const,
+      name: member.name,
+    }))
+  );
 
   // Combine both arrays
   const teamMembers: ITeamMember[] = [...memberTeamMembers, ...invitationTeamMembers];
@@ -258,14 +293,29 @@ export default function OrgTeamPage() {
           }
           return (
             <div className="flex flex-wrap gap-1">
-              {roles.map((role, idx) => (
-                <Badge
-                  key={`${role.name}-${idx}`}
-                  variant="outline"
-                  className="py-0.5 text-xs font-normal">
-                  {role.name}
-                </Badge>
-              ))}
+              {roles.map((role, idx) => {
+                const displayName = role.displayName || role.name;
+                const badge = (
+                  <Badge
+                    key={`${role.name}-${idx}`}
+                    variant="outline"
+                    className="py-0.5 text-xs font-normal">
+                    {displayName}
+                  </Badge>
+                );
+
+                // If there's a description, wrap with tooltip
+                if (role.description) {
+                  return (
+                    <Tooltip key={`${role.name}-${idx}`}>
+                      <TooltipTrigger asChild>{badge}</TooltipTrigger>
+                      <TooltipContent>{role.description}</TooltipContent>
+                    </Tooltip>
+                  );
+                }
+
+                return badge;
+              })}
             </div>
           );
         },
