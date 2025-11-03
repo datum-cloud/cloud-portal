@@ -1,17 +1,17 @@
 import { ChipsOverflow } from '@/components/chips-overflow';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 
-export interface DomainDnsProvidersProps {
+export interface DomainDnsHostProps {
   nameservers?: NonNullable<IDomainControlResponse['status']>['nameservers'];
   maxVisible?: number;
   wrap?: boolean;
 }
 
-export const DomainDnsProviders = ({
+export const DomainDnsHost = ({
   nameservers,
   maxVisible = 2,
   wrap = false,
-}: DomainDnsProvidersProps) => {
+}: DomainDnsHostProps) => {
   if (!nameservers?.length) return <>-</>;
 
   const registrantNames = Array.from(

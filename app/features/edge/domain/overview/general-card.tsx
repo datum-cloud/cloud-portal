@@ -2,7 +2,7 @@ import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { DomainDnsProviders } from '@/features/edge/domain/dns-providers';
+import { DomainDnsHost } from '@/features/edge/domain/dns-host';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
@@ -24,11 +24,9 @@ export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }
         content: <span>{domain.namespace}</span>,
       },
       {
-        label: 'DNS Providers',
+        label: 'DNS Host',
         className: 'px-2',
-        content: (
-          <DomainDnsProviders nameservers={domain?.status?.nameservers} maxVisible={99} wrap />
-        ),
+        content: <DomainDnsHost nameservers={domain?.status?.nameservers} maxVisible={99} wrap />,
       },
       {
         label: 'Status',
