@@ -1,13 +1,13 @@
 import { PortField } from './port-field';
 import { FieldLabel } from '@/components/field/field-label';
-import { Button } from '@/components/ui/button';
 import { EndpointSlicePortProtocol } from '@/resources/interfaces/endpoint-slice.interface';
 import {
   EndpointSlicePortSchema,
   EndpointSliceSchema,
 } from '@/resources/schemas/endpoint-slice.schema';
-import { cn } from '@/utils/common';
 import { useForm, useFormMetadata } from '@conform-to/react';
+import { Button } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect } from 'react';
 

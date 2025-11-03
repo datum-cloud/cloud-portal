@@ -1,8 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DataTable } from '@/components/data-table';
 import { ProfileIdentity } from '@/components/profile-identity';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationsControl } from '@/resources/control-plane';
@@ -17,6 +15,8 @@ import { buildNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Badge } from '@datum-ui/components';
+import { Button } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';

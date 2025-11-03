@@ -1,9 +1,9 @@
 import { Field } from '@/components/field/field';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { labelFormSchema, LabelFormSchema } from '@/resources/schemas/metadata.schema';
 import { getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { Button } from '@datum-ui/components';
+import { Input } from '@shadcn/ui/input';
 import { useEffect, useRef } from 'react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 

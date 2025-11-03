@@ -1,9 +1,8 @@
 import { SecretForm } from '@/features/secret/form/form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createSecretsControl } from '@/resources/control-plane';
 import { SecretNewSchema, secretNewSchema } from '@/resources/schemas/secret.schema';
 import { paths } from '@/utils/config/paths.config';
+import { dataWithToast, validateCSRF } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod/v4';

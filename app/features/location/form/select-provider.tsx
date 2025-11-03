@@ -1,13 +1,7 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { LOCATION_PROVIDERS } from '@/features/location/constants';
 import { LocationProvider } from '@/resources/interfaces/location.interface';
 import { FieldMetadata, getSelectProps, useInputControl } from '@conform-to/react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { useMemo } from 'react';
 
 export const SelectLocationProvider = ({

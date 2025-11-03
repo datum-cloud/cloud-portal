@@ -1,11 +1,11 @@
-import { Button } from '@/components/ui/button';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { OrganizationSwitcher } from '@/layouts/dashboard/header/org-switcher';
 import { ProjectSwitcher } from '@/layouts/dashboard/header/project-switcher';
 import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { Button } from '@datum-ui/components';
+import { SidebarTrigger } from '@datum-ui/components';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CircleHelp, SlashIcon } from 'lucide-react';
 import { Link } from 'react-router';
 

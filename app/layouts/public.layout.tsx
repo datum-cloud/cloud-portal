@@ -1,5 +1,5 @@
-import { getSession, isAuthenticated } from '@/modules/cookie/session.server';
 import { paths } from '@/utils/config/paths.config';
+import { getSession, isAuthenticated } from '@/utils/cookies';
 import { LoaderFunctionArgs, Outlet, redirect } from 'react-router';
 
 export async function loader({ request }: LoaderFunctionArgs) {

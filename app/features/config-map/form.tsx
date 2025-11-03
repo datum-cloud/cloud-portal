@@ -2,8 +2,14 @@ import { SimpleConfigMapDetail } from './simple-detail';
 import { CodeEditorTabs } from '@/components/code-editor/code-editor-tabs';
 import { EditorLanguage } from '@/components/code-editor/code-editor.types';
 import { Field } from '@/components/field/field';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { useIsPending } from '@/hooks/useIsPending';
+import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
+import { configMapSchema, updateConfigMapSchema } from '@/resources/schemas/config-map.schema';
+import { jsonToYaml } from '@/utils/helpers/format.helper';
+import { getFormProps, useForm, useInputControl } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
+import { Button } from '@datum-ui/components';
 import {
   Card,
   CardContent,
@@ -11,13 +17,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { useIsPending } from '@/hooks/useIsPending';
-import { IConfigMapControlResponse } from '@/resources/interfaces/config-map.interface';
-import { configMapSchema, updateConfigMapSchema } from '@/resources/schemas/config-map.schema';
-import { jsonToYaml } from '@/utils/helpers/format.helper';
-import { getFormProps, useForm, useInputControl } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+} from '@shadcn/ui/card';
 import { InfoIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Form, useNavigate } from 'react-router';

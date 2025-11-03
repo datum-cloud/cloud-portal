@@ -1,7 +1,7 @@
 import { Field } from '@/components/field/field';
-import { TagsInput } from '@/components/ui/tag-input';
 import { EndpointSliceEndpointSchema } from '@/resources/schemas/endpoint-slice.schema';
 import { getCollectionProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { TagsInput } from '@datum-ui/components';
 import { useEffect } from 'react';
 
 export const EndpointField = ({

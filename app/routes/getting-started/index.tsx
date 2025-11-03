@@ -1,9 +1,9 @@
 import { OrganizationCard, CreateOrganizationCard } from '@/features/organization';
 import BlankLayout from '@/layouts/blank/blank.layout';
-import { getSession } from '@/modules/cookie/session.server';
 import { createUserControl } from '@/resources/control-plane';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
+import { getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import {
   AppLoadContext,

@@ -1,5 +1,3 @@
-import { Button } from '@/components/ui/button';
-import { defineStepper } from '@/components/ui/stepper';
 import { GrafanaAccessCard } from '@/features/edge/httpproxy/grafana/grafana-access-card';
 import { PrometheusConfigCard } from '@/features/edge/httpproxy/grafana/prometheus-config-card';
 import {
@@ -22,6 +20,8 @@ import { ROUTE_PATH as TELEMETRY_GRAFANA_ACTION } from '@/routes/api/telemetry/g
 import { yamlToJson } from '@/utils/helpers/format.helper';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { Button } from '@datum-ui/components';
+import { defineStepper } from '@datum-ui/components';
 import { useEffect } from 'react';
 import { Form, useFetcher, useNavigate } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';

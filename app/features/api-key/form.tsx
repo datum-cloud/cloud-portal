@@ -1,6 +1,10 @@
 import { SelectExpires } from './select-expires';
 import { Field } from '@/components/field/field';
-import { Button } from '@/components/ui/button';
+import { useIsPending } from '@/hooks/useIsPending';
+import { newApiKeySchema } from '@/resources/schemas/api-key.schema';
+import { FieldMetadata, getFormProps, getInputProps, useForm } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { Button } from '@datum-ui/components';
 import {
   Card,
   CardContent,
@@ -8,12 +12,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { useIsPending } from '@/hooks/useIsPending';
-import { newApiKeySchema } from '@/resources/schemas/api-key.schema';
-import { FieldMetadata, getFormProps, getInputProps, useForm } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+} from '@shadcn/ui/card';
+import { Input } from '@shadcn/ui/input';
 import { useEffect, useRef } from 'react';
 import { Form, useNavigate } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

@@ -1,9 +1,9 @@
 import { List, ListItem } from '@/components/list/list';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ExportPolicySourceType } from '@/resources/interfaces/export-policy.interface';
 import { ExportPolicySourcesSchema } from '@/resources/schemas/export-policy.schema';
+import { Badge } from '@datum-ui/components';
+import { Separator } from '@shadcn/ui/separator';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CodeIcon } from 'lucide-react';
 import { useMemo } from 'react';
 

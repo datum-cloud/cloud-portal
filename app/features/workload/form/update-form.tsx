@@ -4,15 +4,6 @@ import { RuntimeForm } from './runtime/runtime-form';
 import { StoragesForm } from './storage/storages-form';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { MetadataForm } from '@/components/metadata/metadata-form';
-import { Button } from '@/components/ui/button';
-import {
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  Card,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card';
 import { BOOT_IMAGES } from '@/features/workload/constants';
 import { WorkloadHelper } from '@/features/workload/helper';
 import { useIsPending } from '@/hooks/useIsPending';
@@ -31,6 +22,15 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { Button } from '@datum-ui/components';
+import {
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Card,
+  CardContent,
+  CardFooter,
+} from '@shadcn/ui/card';
 import { Cpu, HardDrive, Layers, Network, Server } from 'lucide-react';
 import { Fragment, cloneElement, useEffect, useState } from 'react';
 import { Form, useNavigate, useSubmit } from 'react-router';

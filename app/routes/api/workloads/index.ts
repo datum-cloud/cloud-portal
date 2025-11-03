@@ -1,10 +1,9 @@
-import { redirectWithToast } from '@/modules/cookie/toast.server';
-import { deletedWorkloadIdsCookie } from '@/modules/cookie/workload.server';
 import {
   createInstancesControl,
   createWorkloadDeploymentsControl,
   createWorkloadsControl,
 } from '@/resources/control-plane';
+import { deletedWorkloadIdsCookie, redirectWithToast } from '@/utils/cookies';
 import { BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, LoaderFunctionArgs, data } from 'react-router';

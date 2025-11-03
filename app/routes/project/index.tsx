@@ -1,5 +1,5 @@
-import { getOrgSession } from '@/modules/cookie/org.server';
 import { paths } from '@/utils/config/paths.config';
+import { getOrgSession } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { LoaderFunctionArgs, redirect } from 'react-router';
 

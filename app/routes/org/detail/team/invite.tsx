@@ -1,8 +1,8 @@
 import { InvitationForm } from '@/features/organization/team/invitation-form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
 import { createInvitationsControl } from '@/resources/control-plane';
 import { invitationFormSchema, NewInvitationSchema } from '@/resources/schemas/invitation.schema';
 import { paths } from '@/utils/config/paths.config';
+import { validateCSRF } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod/v4';

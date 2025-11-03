@@ -1,8 +1,8 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
+import { Button } from '@datum-ui/components';
 import { ExternalLinkIcon, SignalHighIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
 

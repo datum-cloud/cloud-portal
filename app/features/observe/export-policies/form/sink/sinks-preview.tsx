@@ -1,9 +1,9 @@
 import { List, ListItem } from '@/components/list/list';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.interface';
 import { ExportPolicySinksSchema } from '@/resources/schemas/export-policy.schema';
+import { Badge } from '@datum-ui/components';
+import { Separator } from '@shadcn/ui/separator';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { LinkIcon } from 'lucide-react';
 import { useMemo } from 'react';
 

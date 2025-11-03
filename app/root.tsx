@@ -2,24 +2,22 @@ import { AuthError } from '@/components/error/auth';
 import { GenericError } from '@/components/error/generic';
 import { ClientHintCheck } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
-import { Toaster } from '@/components/ui/sonner';
 import { useNonce } from '@/hooks/useNonce';
 import { useToast } from '@/hooks/useToast';
-import { csrf } from '@/modules/cookie/csrf.server';
-import { themeSessionResolver } from '@/modules/cookie/theme.server';
-import { getToastSession } from '@/modules/cookie/toast.server';
 import { FathomAnalytics } from '@/modules/fathom/fathom';
 import MarkerIoEmbed from '@/modules/markerio';
-import { configureProgress, startProgress, stopProgress } from '@/modules/nprogress';
 import { queryClient } from '@/modules/tanstack/query';
 import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api/action/set-cache';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
 import RootCSS from '@/styles/root.css?url';
 import { getSharedEnvs } from '@/utils/config/env.config';
+import { csrf, getToastSession, themeSessionResolver } from '@/utils/cookies';
 import { metaObject } from '@/utils/helpers/meta.helper';
 import { combineHeaders } from '@/utils/helpers/path.helper';
+import { configureProgress, startProgress, stopProgress } from '@datum-ui/components/nprogress';
 import * as Sentry from '@sentry/react-router';
+import { Toaster } from '@shadcn/ui/sonner';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import React, { useEffect, useMemo } from 'react';
@@ -115,7 +113,7 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
   const [theme] = useTheme();
 
   return (
-    <html lang="en" className={`${theme} overflow-x-hidden`} data-theme={theme ?? ''}>
+    <html lang="en" className={`theme-alpha ${theme} overflow-x-hidden`} data-theme={theme ?? ''}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

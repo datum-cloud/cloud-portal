@@ -6,10 +6,10 @@ import {
   parseDate,
 } from './formatters';
 import type { DateTimeProps, FormatterOptions } from './types';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useApp } from '@/providers/app.provider';
-import { cn } from '@/utils/common';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
+import { cn } from '@shadcn/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { useEffect, useState } from 'react';
 
 /**

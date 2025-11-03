@@ -1,10 +1,10 @@
 import { Header } from './header/header';
 import { NavItem } from './sidebar/nav-main';
 import { DashboardSidebar } from './sidebar/sidebar';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
-import { cn } from '@/utils/common';
+import { SidebarInset, SidebarProvider } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
 import React from 'react';
 
 export function DashboardLayout({

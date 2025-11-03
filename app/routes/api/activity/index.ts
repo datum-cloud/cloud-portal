@@ -1,5 +1,5 @@
-import { getSession } from '@/modules/cookie/session.server';
 import { LokiActivityLogsService, type QueryParams } from '@/modules/loki';
+import { getSession } from '@/utils/cookies';
 import { AuthenticationError } from '@/utils/errors';
 import { data, type LoaderFunctionArgs } from 'react-router';
 

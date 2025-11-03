@@ -3,15 +3,6 @@ import { VirtualMachineForm } from './virtual-machine-form';
 import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
 import { List, ListItem } from '@/components/list/list';
-import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { RUNTIME_TYPES } from '@/features/workload/constants';
 import { RuntimeType } from '@/resources/interfaces/workload.interface';
 import {
@@ -20,6 +11,9 @@ import {
   RuntimeVMSchema,
 } from '@/resources/schemas/workload.schema';
 import { getSelectProps, useForm, useFormMetadata, useInputControl } from '@conform-to/react';
+import { Badge } from '@datum-ui/components';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+import { Separator } from '@shadcn/ui/separator';
 import { useEffect, useMemo } from 'react';
 
 export const RuntimeForm = ({

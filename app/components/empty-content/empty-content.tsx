@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button';
-import { cn } from '@/utils/common';
+import { Button } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
 import { Link } from 'react-router';
 
 export interface EmptyContentAction {

@@ -2,7 +2,7 @@
  * Sonner is a toast library for React.
  * Implementation based on github.com/epicweb-dev/epic-stack
  */
-import type { Toast } from '@/modules/cookie/toast.server';
+import type { Toast } from '@/utils/cookies';
 import { useEffect } from 'react';
 import { toast as showToast } from 'sonner';
 

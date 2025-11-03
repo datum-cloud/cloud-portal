@@ -1,15 +1,15 @@
 import { NavItem, NavMain } from './nav-main';
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { LogoText } from '@/components/logo/logo-text';
+import { paths } from '@/utils/config/paths.config';
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
   SidebarRail,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { cn } from '@/utils/common';
-import { paths } from '@/utils/config/paths.config';
+} from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
 import { useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router';
 

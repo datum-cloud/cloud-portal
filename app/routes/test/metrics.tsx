@@ -3,9 +3,6 @@
  * Showcases the new MetricsToolbar with CoreControls and dynamic Filters
  */
 import { DateTime } from '@/components/date-time';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartTooltipContent } from '@/components/ui/chart';
 import {
   MetricCard,
   MetricChart,
@@ -14,6 +11,9 @@ import {
   MetricsFilter,
   type QueryBuilderFunction,
 } from '@/modules/metrics';
+import { Badge } from '@datum-ui/components';
+import { Card, CardContent, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { ChartTooltipContent } from '@shadcn/ui/chart';
 import { Activity, Server, Globe, Database } from 'lucide-react';
 import { useCallback } from 'react';
 

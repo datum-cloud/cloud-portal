@@ -1,7 +1,5 @@
-import { destroyIdTokenSession } from '@/modules/cookie/id-token.server';
-import { destroyOrgSession } from '@/modules/cookie/org.server';
-import { destroySession } from '@/modules/cookie/session.server';
 import { paths } from '@/utils/config/paths.config';
+import { destroyIdTokenSession, destroyOrgSession, destroySession } from '@/utils/cookies';
 import { combineHeaders } from '@/utils/helpers/path.helper';
 import { AppLoadContext, redirect } from 'react-router';
 

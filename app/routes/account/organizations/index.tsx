@@ -1,11 +1,11 @@
 import { EmptyContent } from '@/components/empty-content/empty-content';
 import { PageTitle } from '@/components/page-title/page-title';
-import { Button } from '@/components/ui/button';
 import { CreateOrganizationCard, OrganizationCard } from '@/features/organization';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Button } from '@datum-ui/components';
 import { PlusIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useMemo } from 'react';

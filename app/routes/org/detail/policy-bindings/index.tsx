@@ -1,6 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DataTableRowActionsProps } from '@/components/data-table';
-import { Button } from '@/components/ui/button';
 import { PolicyBindingTable } from '@/features/policy-binding';
 import { createPolicyBindingsControl } from '@/resources/control-plane';
 import { IPolicyBindingControlResponse } from '@/resources/interfaces/policy-binding.interface';
@@ -9,6 +8,7 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Button } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';

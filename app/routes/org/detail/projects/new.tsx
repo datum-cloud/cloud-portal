@@ -1,14 +1,12 @@
 import { CreateProjectForm } from '@/features/project/create-form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast } from '@/modules/cookie/toast.server';
-import { authMiddleware } from '@/modules/middleware/auth.middleware';
-import { withMiddleware } from '@/modules/middleware/middleware';
 import { createProjectsControl } from '@/resources/control-plane';
 import { projectSchema, ProjectSchema } from '@/resources/schemas/project.schema';
 import { paths } from '@/utils/config/paths.config';
+import { dataWithToast, validateCSRF } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { authMiddleware, withMiddleware } from '@/utils/middlewares';
 import { parseWithZod } from '@conform-to/zod/v4';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, redirect } from 'react-router';

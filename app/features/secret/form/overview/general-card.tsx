@@ -1,8 +1,8 @@
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
+import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';
 import { useMemo } from 'react';
 
 export const SecretGeneralCard = ({ secret }: { secret: ISecretControlResponse }) => {

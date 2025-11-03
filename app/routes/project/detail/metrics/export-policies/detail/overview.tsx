@@ -2,7 +2,6 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { PageTitle } from '@/components/page-title/page-title';
-import { Button } from '@/components/ui/button';
 import { ExportPolicyGeneralCard } from '@/features/observe/export-policies/general-card';
 import { WorkloadSinksTable } from '@/features/observe/export-policies/sinks-table';
 import { WorkloadSourcesTable } from '@/features/observe/export-policies/sources-table';
@@ -12,6 +11,7 @@ import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/e
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Button } from '@datum-ui/components';
 import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link, MetaFunction, useFetcher, useParams, useRouteLoaderData } from 'react-router';
