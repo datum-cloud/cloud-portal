@@ -108,8 +108,7 @@ export const SelectRole = ({
       }}
       groups={groups}
       placeholder="Select a Role"
-      searchable
-      searchPlaceholder="Search roles..."
+      searchable={false}
       isLoading={fetcher.state === 'loading'}
     />
   );
