@@ -2,10 +2,10 @@
  * Prometheus API middleware route
  * Handles Prometheus queries server-side with proper authentication and environment variables
  */
-import { getSession } from '@/modules/cookie/session.server';
 import { PrometheusService } from '@/modules/prometheus';
 import { PrometheusError } from '@/modules/prometheus/errors';
 import { getSharedEnvs } from '@/utils/config/env.config';
+import { getSession } from '@/utils/cookies';
 import { data, type ActionFunctionArgs } from 'react-router';
 
 export const ROUTE_PATH = '/api/prometheus' as const;

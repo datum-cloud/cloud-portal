@@ -1,13 +1,13 @@
 import { Field } from '@/components/field/field';
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
 import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { Button } from '@datum-ui/components';
+import { Card, CardContent, CardFooter } from '@shadcn/ui/card';
+import { Input } from '@shadcn/ui/input';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

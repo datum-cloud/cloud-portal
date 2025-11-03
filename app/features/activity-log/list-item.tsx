@@ -1,8 +1,9 @@
 import { DateTime } from '@/components/date-time';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { ActivityLogEntry } from '@/modules/loki/types';
-import { cn, isPrivateIP } from '@/utils/common';
+import { isPrivateIP } from '@/utils/common';
+import { Badge } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CheckCircle, Info, AlertTriangle, XCircle } from 'lucide-react';
 
 interface ActivityLogItemProps {

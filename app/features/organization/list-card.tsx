@@ -1,9 +1,9 @@
 import { DateTime } from '@/components/date-time';
 import { ProfileIdentity } from '@/components/profile-identity';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { getInitials } from '@/utils/helpers/text.helper';
+import { Badge } from '@datum-ui/components';
+import { Card, CardContent } from '@shadcn/ui/card';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';
 
 export const OrganizationListCard = ({ org }: { org: IOrganization }) => {

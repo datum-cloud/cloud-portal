@@ -1,5 +1,3 @@
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast } from '@/modules/cookie/toast.server';
 import { createExportPoliciesControl, createSecretsControl } from '@/resources/control-plane';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
@@ -8,6 +6,7 @@ import {
   newExportPolicySchema,
 } from '@/resources/schemas/export-policy.schema';
 import { SecretNewSchema, secretNewSchema } from '@/resources/schemas/secret.schema';
+import { dataWithToast, validateCSRF } from '@/utils/cookies';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 

@@ -1,20 +1,9 @@
 import { Field } from '@/components/field/field';
 import { InputName } from '@/components/input-name/input-name';
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { organizationSchema } from '@/resources/schemas/organization.schema';
-import { cn } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { convertObjectToLabels } from '@/utils/helpers/object.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
@@ -26,6 +15,17 @@ import {
   useInputControl,
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { Button } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@shadcn/ui/card';
+import { Input } from '@shadcn/ui/input';
 import { useEffect, useMemo, useRef } from 'react';
 import { Form, useNavigate } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

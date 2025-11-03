@@ -1,13 +1,13 @@
 /**
  * MetricsToolbar - Compound component for organizing core controls and filters
  */
-import { Card, CardContent } from '@/components/ui/card';
 import { RefreshControl } from '@/modules/metrics/components/controls/refresh-control';
 import { StepControl } from '@/modules/metrics/components/controls/step-control';
 // Import existing controls (will be updated to use new context)
 import { TimeRangeControl } from '@/modules/metrics/components/controls/time-range-control';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
-import { cn } from '@/utils/common';
+import { cn } from '@shadcn/lib/utils';
+import { Card, CardContent } from '@shadcn/ui/card';
 import { ReactNode } from 'react';
 
 // Main toolbar props

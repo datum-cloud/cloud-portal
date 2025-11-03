@@ -8,8 +8,8 @@ import { createGlobalSearchFilter } from './utils/global-search.helpers';
 import { createNestedAccessor, getSortingFnByType } from './utils/sorting.helpers';
 import { EmptyContent } from '@/components/empty-content/empty-content';
 import { PageTitle } from '@/components/page-title/page-title';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-import { cn } from '@/utils/common';
+import { cn } from '@shadcn/lib/utils';
+import { Table, TableBody, TableCell, TableRow } from '@shadcn/ui/table';
 import {
   ColumnDef,
   ColumnFiltersState,

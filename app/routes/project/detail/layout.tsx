@@ -1,7 +1,5 @@
 import { DashboardLayout } from '@/layouts/dashboard/dashboard.layout';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
-import { getOrgSession, setOrgSession } from '@/modules/cookie/org.server';
-import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { useApp } from '@/providers/app.provider';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
@@ -9,6 +7,7 @@ import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse, ICachedProject } from '@/resources/interfaces/project.interface';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
 import { paths } from '@/utils/config/paths.config';
+import { getOrgSession, redirectWithToast, setOrgSession } from '@/utils/cookies';
 import { BadRequestError, ValidationError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';

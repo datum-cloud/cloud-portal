@@ -1,10 +1,10 @@
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { INetworkControlResponse } from '@/resources/interfaces/network.interface';
 import { getShortId } from '@/utils/helpers/text.helper';
+import { Badge } from '@datum-ui/components';
+import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';
 import { useMemo } from 'react';
 
 export const NetworkGeneralCard = ({ network }: { network: INetworkControlResponse }) => {

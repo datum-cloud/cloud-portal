@@ -1,13 +1,13 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
-import { Button } from '@/components/ui/button';
 import TabsLayout from '@/layouts/tabs/tabs.layout';
 import { TabsNavProps } from '@/layouts/tabs/tabs.types';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Button } from '@datum-ui/components';
 import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { Outlet, Link, useParams, useFetcher, useRouteLoaderData } from 'react-router';
 

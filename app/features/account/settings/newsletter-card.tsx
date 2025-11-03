@@ -1,8 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { useApp } from '@/providers/app.provider';
 import { ROUTE_PATH as USER_PREFERENCES_UPDATE_ACTION } from '@/routes/api/user/preferences';
+import { Card, CardContent, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Label } from '@shadcn/ui/label';
+import { Switch } from '@shadcn/ui/switch';
 import { useEffect, useState } from 'react';
 import { useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';

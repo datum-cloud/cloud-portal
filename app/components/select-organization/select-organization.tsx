@@ -1,5 +1,9 @@
 import { OrganizationItem } from './organization-item';
-import { Button } from '@/components/ui/button';
+import { IOrganization } from '@/resources/interfaces/organization.interface';
+import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
+import { paths } from '@/utils/config/paths.config';
+import { Button } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
 import {
   Command,
   CommandEmpty,
@@ -7,12 +11,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
-import { cn } from '@/utils/common';
-import { paths } from '@/utils/config/paths.config';
+} from '@shadcn/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { Building2Icon, CheckIcon, ChevronsUpDownIcon, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useFetcher } from 'react-router';

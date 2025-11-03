@@ -1,14 +1,6 @@
 import { PrometheusField } from './prometheus/prometheus-field';
 import { Field } from '@/components/field/field';
 import { MultiSelect } from '@/components/multi-select/multi-select';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
 import { POLICY_SINK_TYPES } from '@/features/observe/constants';
 import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.interface';
 import {
@@ -16,6 +8,8 @@ import {
   ExportPolicySinkPrometheusFieldSchema,
 } from '@/resources/schemas/export-policy.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@shadcn/ui/select';
 import { isEqual } from 'es-toolkit/compat';
 import { useEffect, useRef, useState } from 'react';
 import { useHydrated } from 'remix-utils/use-hydrated';

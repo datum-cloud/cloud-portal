@@ -1,13 +1,13 @@
 import { Field } from '@/components/field/field';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
 import { userSchema } from '@/resources/schemas/user.schema';
 import { ROUTE_PATH as USER_UPDATE_ACTION } from '@/routes/api/user';
 import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { Button } from '@datum-ui/components';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Input } from '@shadcn/ui/input';
 import { useEffect } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';

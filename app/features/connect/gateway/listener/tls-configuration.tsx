@@ -1,14 +1,8 @@
 import { Field } from '@/components/field/field';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { GatewayTlsMode } from '@/resources/interfaces/gateway.interface';
 import { GatewayTlsSchema } from '@/resources/schemas/gateway.schema';
 import { useForm, getSelectProps, useInputControl } from '@conform-to/react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { useEffect } from 'react';
 
 export const TlsConfiguration = ({

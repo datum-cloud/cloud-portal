@@ -1,14 +1,8 @@
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { STEP_OPTIONS } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
+import { Button } from '@datum-ui/components';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { useQueryState } from 'nuqs';
 import { useEffect } from 'react';
 

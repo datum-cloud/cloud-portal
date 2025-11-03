@@ -1,14 +1,15 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { authenticator } from '@/modules/auth/auth.server';
-import { setIdTokenSession } from '@/modules/cookie/id-token.server';
+import { IAuthSession } from '@/resources/interfaces/auth.interface';
+import { paths } from '@/utils/config/paths.config';
 import {
   clearRedirectIntent,
   getRedirectIntent,
+  getSession,
   isValidRedirectPath,
-} from '@/modules/cookie/redirect-intent.server';
-import { getSession, setSession } from '@/modules/cookie/session.server';
-import { IAuthSession } from '@/resources/interfaces/auth.interface';
-import { paths } from '@/utils/config/paths.config';
+  setIdTokenSession,
+  setSession,
+} from '@/utils/cookies';
 import { AuthenticationError } from '@/utils/errors';
 import { combineHeaders } from '@/utils/helpers/path.helper';
 import { jwtDecode } from 'jwt-decode';

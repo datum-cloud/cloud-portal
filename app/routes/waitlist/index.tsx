@@ -1,11 +1,11 @@
-import { Card, CardContent } from '@/components/ui/card';
 import BlankLayout from '@/layouts/blank/blank.layout';
-import { getSession } from '@/modules/cookie/session.server';
 import { createUserControl } from '@/resources/control-plane';
 import { RegistrationApproval } from '@/resources/interfaces/user.interface';
 import { paths } from '@/utils/config/paths.config';
+import { getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Client } from '@hey-api/client-axios';
+import { Card, CardContent } from '@shadcn/ui/card';
 import { Link, MetaFunction, LoaderFunctionArgs, redirect } from 'react-router';
 import { AppLoadContext, data } from 'react-router';
 

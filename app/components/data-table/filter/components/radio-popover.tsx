@@ -1,10 +1,10 @@
 import { useStringFilter } from '../../hooks/useFilterQueryState';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { cn } from '@/utils/common';
+import { Badge } from '@datum-ui/components';
+import { Button } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
+import { Label } from '@shadcn/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@shadcn/ui/radio-group';
 import { ChevronDown, X } from 'lucide-react';
 import { ReactNode, useState, useMemo } from 'react';
 

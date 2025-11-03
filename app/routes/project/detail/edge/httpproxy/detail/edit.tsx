@@ -1,9 +1,8 @@
 import { HttpProxyForm } from '@/features/edge/httpproxy/form';
-import { validateCSRF } from '@/modules/cookie/csrf.server';
-import { dataWithToast, redirectWithToast } from '@/modules/cookie/toast.server';
 import { createHttpProxiesControl } from '@/resources/control-plane';
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
 import { paths } from '@/utils/config/paths.config';
+import { dataWithToast, redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod/v4';
 import { Client } from '@hey-api/client-axios';

@@ -146,7 +146,7 @@ export const loader = withMiddleware(
 ### 2. Conditionally Render UI with Component
 
 ```tsx
-import { PermissionGate } from '@/components/rbac';
+import { PermissionGate } from '@/modules/rbac/components';
 
 function WorkloadActions({ workload }) {
   return (
@@ -262,7 +262,7 @@ Components provide **client-side UI control** based on permissions.
 Conditionally render children based on a single permission.
 
 ```tsx
-import { PermissionGate } from '@/components/rbac';
+import { PermissionGate } from '@/modules/rbac/components';
 
 <PermissionGate
   resource="workloads"
@@ -292,7 +292,7 @@ import { PermissionGate } from '@/components/rbac';
 Check multiple permissions with AND/OR logic.
 
 ```tsx
-import { PermissionCheck } from '@/components/rbac';
+import { PermissionCheck } from '@/modules/rbac/components';
 
 // Require ALL permissions (AND)
 <PermissionCheck
@@ -329,7 +329,7 @@ import { PermissionCheck } from '@/components/rbac';
 Wrap components with permission checking.
 
 ```tsx
-import { withPermission } from '@/components/rbac';
+import { withPermission } from '@/modules/rbac/components';
 
 const DeleteButton = ({ onClick }) => <button onClick={onClick}>Delete</button>;
 
@@ -714,10 +714,10 @@ const verb: PermissionVerb = 'create';
 ### Full Example: Workload Management Page
 
 ```tsx
-import { PermissionGate } from '@/components/rbac';
 import { authMiddleware } from '@/modules/middleware/auth.middleware';
 import { withMiddleware } from '@/modules/middleware/middleware';
 import { createRbacMiddleware, useHasPermission } from '@/modules/rbac';
+import { PermissionGate } from '@/modules/rbac/components';
 import { LoaderFunctionArgs, data } from 'react-router';
 
 // Protect route with middleware

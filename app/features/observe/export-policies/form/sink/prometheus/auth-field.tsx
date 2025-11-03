@@ -1,20 +1,14 @@
 import { Field } from '@/components/field/field';
 import { SelectSecret } from '@/components/select-secret/select-secret';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { SINK_AUTH_TYPES } from '@/features/observe/constants';
 import { ExportPolicyAuthenticationType } from '@/resources/interfaces/export-policy.interface';
 import { SecretType } from '@/resources/interfaces/secret.interface';
 import { ExportPolicySinkAuthenticationSchema } from '@/resources/schemas/export-policy.schema';
-import { cn } from '@/utils/common';
 import { getSelectProps, useForm, useInputControl } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
+import { Label } from '@shadcn/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+import { Switch } from '@shadcn/ui/switch';
 import { useEffect, useState } from 'react';
 
 export const AuthField = ({

@@ -1,5 +1,5 @@
-import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { createMembersControl } from '@/resources/control-plane/resource-manager/members.control';
+import { redirectWithToast } from '@/utils/cookies';
 import { BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';

@@ -6,11 +6,11 @@
  */
 import { MultiSelect, type MultiSelectOption } from '@/components/multi-select/multi-select';
 import { SelectBox, type SelectBoxOption } from '@/components/select-box/select-box';
-import { Label } from '@/components/ui/label';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import type { FilterOption } from '@/modules/metrics/types/metrics.type';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
-import { cn } from '@/utils/common';
+import { cn } from '@shadcn/lib/utils';
+import { Label } from '@shadcn/ui/label';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo } from 'react';
 

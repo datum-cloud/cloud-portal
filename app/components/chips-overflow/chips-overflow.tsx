@@ -1,6 +1,6 @@
-import { Badge, type BadgeProps } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/utils/common';
+import { Badge, type BadgeProps } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import * as React from 'react';
 
 export type ChipsOverflowItem = string | React.ReactNode;

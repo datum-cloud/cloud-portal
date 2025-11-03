@@ -7,10 +7,10 @@ import { RadioFilter } from './components/radio';
 import { RadioPopoverFilter } from './components/radio-popover';
 import { SearchFilter } from './components/search';
 import { SelectFilter } from './components/select';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { cn } from '@/utils/common';
+import { Button } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronDown, Filter, RotateCcw } from 'lucide-react';
 import { ReactNode, useState, Children } from 'react';
 

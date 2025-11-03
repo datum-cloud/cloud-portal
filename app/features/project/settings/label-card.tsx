@@ -1,7 +1,4 @@
 import { SelectLabels } from '@/components/select-labels/select-labels';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { useIsPending } from '@/hooks/useIsPending';
 import { ILabel } from '@/resources/interfaces/label.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
@@ -14,6 +11,9 @@ import {
   useInputControl,
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { Button } from '@datum-ui/components';
+import { Card, CardContent, CardFooter } from '@shadcn/ui/card';
+import { Label } from '@shadcn/ui/label';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

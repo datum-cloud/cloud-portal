@@ -1,10 +1,10 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { cn } from '@/utils/common';
+import { Badge } from '@datum-ui/components';
+import { Button } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CopyIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';

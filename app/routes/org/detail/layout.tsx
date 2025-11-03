@@ -1,11 +1,11 @@
 import { DashboardLayout } from '@/layouts/dashboard/dashboard.layout';
 import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
-import { redirectWithToast } from '@/modules/cookie/toast.server';
 import { RbacProvider } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
 import { paths } from '@/utils/config/paths.config';
+import { redirectWithToast } from '@/utils/cookies';
 import { HttpError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { FoldersIcon, SettingsIcon, UsersIcon } from 'lucide-react';
