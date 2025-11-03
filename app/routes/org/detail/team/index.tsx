@@ -1,8 +1,8 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DataTable } from '@/components/data-table';
 import { ProfileIdentity } from '@/components/profile-identity';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useHasPermission } from '@/modules/rbac';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/modules/shadcn/ui/tooltip';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationsControl } from '@/resources/control-plane';
 import { createRolesControl } from '@/resources/control-plane/iam/roles.control';
@@ -72,8 +72,9 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
         displayName: role.displayName ?? roleName,
         description: role.description,
       };
-    } catch (_e) {
+    } catch (error) {
       // Fallback if role not found
+      console.error(`Failed to resolve role details for ${roleName}:`, error);
       return {
         name: roleName,
         namespace,
