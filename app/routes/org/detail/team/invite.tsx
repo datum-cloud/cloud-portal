@@ -124,50 +124,55 @@ export default function OrgTeamInvitePage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (data) {
-      if (data.success && data.data) {
-        const successCount = data.data.filter((r: InvitationResult) => r.success).length;
-        const failedResults = data.data.filter((r: InvitationResult) => !r.success);
+    if (!data) return;
 
-        const ErrorList = (errors: InvitationResult[]) => {
-          if (errors.length === 1) {
-            const result = errors[0];
-            return (
-              <span className="text-muted-foreground text-xs">
-                {result.email}:{result.error}
-              </span>
-            );
-          }
+    if (data.success && data.data) {
+      const successCount = data.data.filter((r: InvitationResult) => r.success).length;
+      const failedResults = data.data.filter((r: InvitationResult) => !r.success);
+      const failedCount = failedResults.length;
+
+      const getInvitationText = (count: number) => (count === 1 ? 'invitation' : 'invitations');
+
+      const ErrorList = (errors: InvitationResult[]) => {
+        if (errors.length === 1) {
+          const result = errors[0];
           return (
-            <ul className="list-inside list-disc text-xs">
-              {errors.map((result, index) => (
-                <li key={index}>
-                  <span className="text-muted-foreground">
-                    {result.email}:{result.error}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <span className="text-muted-foreground text-xs">
+              {result.email}:{result.error}
+            </span>
           );
-        };
-
-        if (successCount > 0 && failedResults.length === 0) {
-          toast.success(`Invitations sent successfully!`);
-          navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
-          return;
-        } else if (successCount > 0 && failedResults.length > 0) {
-          toast.warning(`${successCount} invitations sent, ${failedResults.length} failed`, {
-            description: ErrorList(failedResults),
-          });
-          navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
-        } else if (failedResults.length > 0) {
-          toast.error('Invitations failed', {
-            description: ErrorList(failedResults),
-          });
         }
-      } else {
-        toast.error(data?.error ?? 'An unexpected error occurred');
+        return (
+          <ul className="list-inside list-disc text-xs">
+            {errors.map((result, index) => (
+              <li key={index}>
+                <span className="text-muted-foreground">
+                  {result.email}:{result.error}
+                </span>
+              </li>
+            ))}
+          </ul>
+        );
+      };
+
+      if (successCount > 0 && failedCount === 0) {
+        toast.success(`${successCount} ${getInvitationText(successCount)} sent successfully!`);
+        navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
+      } else if (successCount > 0 && failedCount > 0) {
+        toast.warning(
+          `${successCount} ${getInvitationText(successCount)} sent, ${failedCount} failed`,
+          {
+            description: ErrorList(failedResults),
+          }
+        );
+        navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
+      } else if (failedCount > 0) {
+        toast.error(`${failedCount} ${getInvitationText(failedCount)} failed`, {
+          description: ErrorList(failedResults),
+        });
       }
+    } else {
+      toast.error(data?.error ?? 'An unexpected error occurred');
     }
   }, [data, navigate, orgId]);
 

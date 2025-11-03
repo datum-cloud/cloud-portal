@@ -66,3 +66,8 @@ export {
   combinePermissionsAND,
   combinePermissionsOR,
 } from './permission-checker';
+
+// ============================================================================
+// Components
+// ============================================================================
+export { PermissionGate, PermissionCheck, withPermission } from './components';

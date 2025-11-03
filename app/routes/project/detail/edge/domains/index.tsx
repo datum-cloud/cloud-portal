@@ -3,7 +3,7 @@ import { DataTable } from '@/components/data-table/data-table';
 import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
 import { DataTableFilter } from '@/components/data-table/filter/data-table-filter';
 import { Button } from '@/components/ui/button';
-import { DomainDnsProviders } from '@/features/edge/domain/dns-providers';
+import { DomainDnsHost } from '@/features/edge/domain/dns-host';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { createDomainsControl } from '@/resources/control-plane';
@@ -137,7 +137,7 @@ export default function DomainsPage() {
         header: 'DNS Host',
         accessorKey: 'nameservers',
         cell: ({ row }) => {
-          return <DomainDnsProviders nameservers={row.original?.nameservers} maxVisible={2} />;
+          return <DomainDnsHost nameservers={row.original?.nameservers} maxVisible={2} />;
         },
         meta: {
           sortPath: 'status.nameservers',
