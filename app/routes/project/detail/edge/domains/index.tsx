@@ -134,7 +134,7 @@ export default function DomainsPage() {
       },
       {
         id: 'nameservers',
-        header: 'DNS Providers',
+        header: 'DNS Host',
         accessorKey: 'nameservers',
         cell: ({ row }) => {
           return <DomainDnsProviders nameservers={row.original?.nameservers} maxVisible={2} />;
