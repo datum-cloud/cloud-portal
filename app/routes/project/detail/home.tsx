@@ -237,7 +237,7 @@ export default function ProjectDashboardPage() {
                       href="https://docs.datum.net/"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-sunglow underline">
+                      className="text-accent underline">
                       Documentation
                     </a>
                   </SectionDescription>

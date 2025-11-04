@@ -75,7 +75,7 @@
        ======================================== */
 
     /* Base colors */
-    --background: hsl(0 0% 100%); /* #FFFFFF */
+    --background: var(--color-cream); /* Cream background */
     --foreground: hsl(240 10% 3.9%); /* #0A0A0A */
 
     /* Card colors */
@@ -143,11 +143,11 @@
 
     &.dark {
       /* Base colors */
-      --background: hsl(240 10% 3.9%); /* #0A0A0A */
+      --background: var(--color-navy); /* Navy for dark backgrounds */
       --foreground: hsl(0 0% 98%); /* #FAFAFA */
 
       /* Card colors */
-      --card: hsl(240 10% 3.9%); /* #0A0A0A */
+      --card: var(--color-navy); /* Navy for dark card backgrounds */
       --card-foreground: hsl(0 0% 98%); /* #FAFAFA */
 
       /* Popover colors */
@@ -271,5 +271,5 @@
    ======================================== */
 html,
 body {
-  @apply text-navy dark:text-cream font-sans antialiased;
+  @apply text-primary dark:text-foreground font-sans antialiased;
 }
