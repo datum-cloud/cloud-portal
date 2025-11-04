@@ -69,7 +69,8 @@ export const StorageGroupNode = ({ data }: { data: IGroupNode }) => {
         <div className={`font-bold ${fontClass} text-center text-yellow-700`}>{data.label}</div>
 
         <Button
-          variant="ghost"
+          type="quaternary"
+          theme="borderless"
           size="icon"
           onClick={(e) => handleToggle(e)}
           className="size-6 bg-transparent hover:bg-transparent">

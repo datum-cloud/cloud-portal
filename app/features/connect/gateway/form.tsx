@@ -175,8 +175,8 @@ export const GatewayForm = ({
           <CardFooter className="flex justify-between gap-2">
             {isEdit ? (
               <Button
-                type="button"
-                variant="destructive"
+                type="danger"
+                theme="solid"
                 onClick={() => deleteGateway()}
                 disabled={isPending}>
                 Delete
@@ -186,15 +186,15 @@ export const GatewayForm = ({
             )}
             <div className="flex justify-end gap-2">
               <Button
-                type="button"
-                variant="link"
+                type="quaternary"
+                theme="borderless"
                 disabled={isPending}
                 onClick={() => {
                   navigate(-1);
                 }}>
                 Return to List
               </Button>
-              <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+              <Button htmlType="submit" disabled={isPending} loading={isPending}>
                 {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
               </Button>
             </div>

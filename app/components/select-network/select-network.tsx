@@ -110,7 +110,8 @@ export const SelectNetwork = ({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
+            type="quaternary"
+            theme="outline"
             role="combobox"
             aria-expanded={open}
             className="w-full justify-between">

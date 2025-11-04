@@ -57,9 +57,9 @@ export const SourcesForm = ({
 
               {fieldList.length > 1 && (
                 <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
+                  type="quaternary"
+                  theme="borderless"
+                  size="small"
                   className={cn('text-destructive relative top-2 w-fit')}
                   onClick={() => form.remove({ name: fields.sources.name, index })}>
                   <TrashIcon className="size-4" />
@@ -70,9 +70,9 @@ export const SourcesForm = ({
         })}
       </div>
       <Button
-        type="button"
-        variant="outline"
-        size="sm"
+        type="quaternary"
+        theme="outline"
+        size="small"
         className="w-fit"
         onClick={() =>
           form.insert({

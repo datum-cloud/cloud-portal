@@ -35,8 +35,8 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 export default function WaitlistPage() {
   return (
     <BlankLayout>
-      <Card className="dark:border-navy w-full max-w-md rounded-lg border py-11 shadow-none">
-        <CardContent className="text-navy dark:text-cream px-9">
+      <Card className="dark:border-primary w-full max-w-md rounded-lg border py-11 shadow-none">
+        <CardContent className="text-primary dark:text-foreground px-9">
           <h2 className="mb-4 text-center text-2xl font-medium">You&apos;re on the list!</h2>
           <div className="space-y-2 text-center text-sm leading-6 font-normal">
             <p>
@@ -48,13 +48,13 @@ export default function WaitlistPage() {
               when your account is ready to go). We&apos;ll be in touch soon!
             </p>
           </div>
-          <div className="border-light-gray dark:border-navy dark:bg-navy mt-5 rounded-lg border bg-white p-5 text-center text-sm leading-6 font-normal shadow-sm">
+          <div className="border-secondary dark:border-primary dark:bg-card mt-5 rounded-lg border bg-white p-5 text-center text-sm leading-6 font-normal shadow-sm">
             In the meantime, join us on{' '}
             <Link
               to="https://discord.com/invite/AeA9XZu4Py"
               target="_blank"
               rel="noreferrer"
-              className="text-tuscany font-semibold underline">
+              className="text-muted-foreground font-semibold underline">
               Discord
             </Link>
             , drop by an upcoming{' '}
@@ -62,7 +62,7 @@ export default function WaitlistPage() {
               to="https://www.datum.net/community-huddle/"
               target="_blank"
               rel="noreferrer"
-              className="text-tuscany font-semibold underline">
+              className="text-muted-foreground font-semibold underline">
               Community Huddle
             </Link>
             , or check out <br />
@@ -71,7 +71,7 @@ export default function WaitlistPage() {
               to="https://www.datum.net/docs/"
               target="_blank"
               rel="noreferrer"
-              className="text-tuscany font-semibold underline">
+              className="text-muted-foreground font-semibold underline">
               Docs
             </Link>
             .
@@ -79,7 +79,7 @@ export default function WaitlistPage() {
           <div className="mt-6 text-center">
             <Link
               to={paths.auth.logOut}
-              className="dark:text-cream dark:hover:text-cream text-sm text-gray-600 underline hover:text-gray-900">
+              className="dark:text-foreground dark:hover:text-foreground text-sm text-gray-600 underline hover:text-gray-900">
               Log out
             </Link>
           </div>

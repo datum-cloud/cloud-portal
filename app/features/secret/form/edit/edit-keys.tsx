@@ -90,8 +90,9 @@ export const EditSecretKeys = ({
             </CardDescription>
           </div>
           <Button
-            variant="outline"
-            size="sm"
+            type="quaternary"
+            theme="outline"
+            size="small"
             onClick={() => variablesFormDialogRef.current?.show()}>
             <PlusIcon className="size-4" />
             Add
@@ -113,14 +114,16 @@ export const EditSecretKeys = ({
                     <TableCell className="w-[100px] px-2 py-1">
                       <div className="flex items-center justify-end gap-1">
                         <Button
-                          variant="ghost"
+                          type="quaternary"
+                          theme="borderless"
                           size="icon"
                           onClick={() => editKeyValueDialogRef.current?.show(variable)}
                           className="text-muted-foreground hover:bg-muted hover:text-primary size-8">
                           <PencilIcon className="size-4" />
                         </Button>
                         <Button
-                          variant="ghost"
+                          type="quaternary"
+                          theme="borderless"
                           size="icon"
                           onClick={() => deleteSecret(variable)}
                           className="text-muted-foreground hover:bg-muted hover:text-destructive size-8">

@@ -7,7 +7,7 @@ export interface EmptyContentAction {
   label: string;
   onClick?: () => void;
   to?: string;
-  variant?: React.ComponentProps<typeof Button>['variant'];
+  variant?: 'default' | 'destructive';
   icon?: React.ReactNode;
 }
 
@@ -189,8 +189,9 @@ export const EmptyContent = ({
   const renderAction = (action: EmptyContentAction) => {
     const buttonContent = (
       <Button
-        size={sizeStyles.buttonSize}
-        variant={action.variant || 'default'}
+        size={sizeStyles.buttonSize === 'default' ? 'default' : 'small'}
+        type={action.variant === 'destructive' ? 'danger' : 'primary'}
+        theme={action.variant === 'destructive' ? 'solid' : 'outline'}
         className={cn(BASE_STYLES.button, sizeStyles.subtitle)}>
         {action.icon}
         <span>{action.label}</span>
@@ -212,9 +213,10 @@ export const EmptyContent = ({
     return (
       <Button
         key={action.label}
-        size={sizeStyles.buttonSize}
+        size={sizeStyles.buttonSize === 'default' ? 'default' : 'small'}
         onClick={action.onClick}
-        variant={action.variant || 'default'}
+        type={action.variant === 'destructive' ? 'danger' : 'primary'}
+        theme={action.variant === 'destructive' ? 'solid' : 'outline'}
         className={cn(BASE_STYLES.button, sizeStyles.subtitle)}>
         {action.icon}
         <span>{action.label}</span>

@@ -117,19 +117,20 @@ export function InvitationNotificationItem({
           <div className="flex justify-end gap-1">
             <Button
               className="h-6 text-xs"
-              size="sm"
-              variant="ghost"
+              size="small"
+              type="quaternary"
+              theme="borderless"
               onClick={(e) => handleStateUpdate(e, 'Declined')}
               disabled={isLoading}
-              isLoading={isLoading && action === 'Declined'}>
+              loading={isLoading && action === 'Declined'}>
               {isLoading && action === 'Declined' ? 'Declining...' : 'Decline'}
             </Button>
             <Button
               className="h-6 text-xs"
-              size="sm"
+              size="small"
               onClick={(e) => handleStateUpdate(e, 'Accepted')}
               disabled={isLoading}
-              isLoading={isLoading && action === 'Accepted'}>
+              loading={isLoading && action === 'Accepted'}>
               {isLoading && action === 'Accepted' ? 'Joining...' : 'Join Organization'}
             </Button>
           </div>

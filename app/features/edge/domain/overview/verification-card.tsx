@@ -25,7 +25,8 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
               <DateTime
                 variant="absolute"
                 date={domain.status.verification.nextVerificationAttempt}
-                className="text-foreground font-semibold"
+                className="text-foreground w-fit font-semibold"
+                showTooltip={false}
               />
             </>
           )}

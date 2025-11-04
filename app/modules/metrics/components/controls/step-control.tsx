@@ -42,8 +42,9 @@ export const StepControl = ({ filterKey = 'step', defaultValue = '15m' }: StepCo
   return (
     <div className="border-input bg-background flex h-[36px] items-center rounded-md border">
       <Button
-        variant="ghost"
-        size="sm"
+        type="quaternary"
+        theme="borderless"
+        size="small"
         className="pointer-events-none w-auto cursor-default rounded-r-none border-r font-medium">
         Step
       </Button>

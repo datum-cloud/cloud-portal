@@ -74,18 +74,18 @@ export function CheckboxFilter({
         {options.length > 3 && (
           <div className="flex justify-between">
             <Button
-              type="button"
-              variant="ghost"
-              size="sm"
+              type="quaternary"
+              theme="borderless"
+              size="small"
               onClick={handleSelectAll}
               disabled={allSelected || disabled}
               className="h-6 px-2 text-xs">
               Select All
             </Button>
             <Button
-              type="button"
-              variant="ghost"
-              size="sm"
+              type="quaternary"
+              theme="borderless"
+              size="small"
               onClick={handleClearAll}
               disabled={!someSelected || disabled}
               className="text-muted-foreground hover:text-foreground h-6 px-2 text-xs">

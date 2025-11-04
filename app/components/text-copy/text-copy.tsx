@@ -38,8 +38,8 @@ export const TextCopy = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            type="button"
-            variant="ghost"
+            type="quaternary"
+            theme="borderless"
             size="icon"
             className={cn(
               'size-3 focus-visible:ring-0 focus-visible:ring-offset-0',

@@ -149,14 +149,15 @@ export const ConfirmationDialog = ({
           </div>
         )}
         <DialogFooter className="flex gap-2">
-          <Button variant="link" onClick={handleCancel} disabled={isPending}>
+          <Button type="quaternary" theme="borderless" onClick={handleCancel} disabled={isPending}>
             {dialogProps.cancelText}
           </Button>
           <Button
-            variant={dialogProps.variant}
+            type={dialogProps.variant === 'destructive' ? 'danger' : 'primary'}
+            theme="solid"
             onClick={handleConfirm}
             disabled={isDisabled || isPending}
-            isLoading={isPending}>
+            loading={isPending}>
             {dialogProps.submitText}
           </Button>
         </DialogFooter>

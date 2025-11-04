@@ -217,9 +217,9 @@ export const SelectBox = ({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            type="button"
             disabled={disabled || isLoading}
-            variant="outline"
+            type="quaternary"
+            theme="outline"
             role="combobox"
             aria-expanded={open}
             onClick={() => setOpen(!open)}

@@ -67,7 +67,8 @@ export const PortGroupNode = ({ data }: { data: IGroupNode }) => {
       <div className="flex items-center justify-between">
         <div className={`font-bold ${fontClass} text-center text-indigo-700`}>{data.label}</div>
         <Button
-          variant="ghost"
+          type="quaternary"
+          theme="borderless"
           size="icon"
           onClick={(e) => handleToggle(e)}
           className="size-6 bg-transparent hover:bg-transparent">

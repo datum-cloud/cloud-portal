@@ -1,0 +1,57 @@
+/**
+ * Brand Token Definitions (REFERENCE ONLY)
+ * 
+ * This file contains the original brand color values that were migrated.
+ * 
+ * ⚠️ REFERENCE ONLY - Not imported or used in code
+ * 
+ * Kept for reference to show what brand tokens existed before Figma integration.
+ * Current implementation uses Figma tokens directly in alpha.css.
+ */
+
+/* ========================================
+   BRAND COLORS FOR TAILWIND UTILITIES
+   These colors are available globally as Tailwind utilities
+   ======================================== */
+@theme {
+  /* Datum Brand Colors */
+  --color-navy: #0c1d31;
+  --color-cream: #f6f6f5;
+  --color-light-gray: #e8e7e4;
+  --color-lime-green: #e6f59f;
+  --color-dark-navy-blue: #111e34;
+  --color-light-pink: #ecd0d0;
+  --color-mauve: #91757b;
+  --color-navy-muted: #14233d;
+  --color-orange: #ff6b35;
+  --color-tuscany: #c49d9d;
+  --color-indigo: #2d3948;
+  --color-pearl-gray: #efefed;
+  --color-green-dark: #4d6356;
+  --color-warm-white: #f5f5f3;
+
+  /* Sunglow Palette */
+  --color-sunglow: hsl(18 89% 68%); /* #F27A67 */
+  --color-sunglow-50: hsl(0 14% 98%); /* #FAF7F7 */
+  --color-sunglow-100: hsl(8 22% 96%); /* #F4EDEC */
+  --color-sunglow-200: hsl(8 22% 94%); /* #F3E7E4 */
+  --color-sunglow-300: hsl(10 67% 94%); /* #F8E0DB */
+  --color-sunglow-400: hsl(11 70% 91%); /* #F8D4CD */
+  --color-sunglow-500: hsl(8 89% 87%); /* #FBC8BF */
+  --color-sunglow-600: hsl(10 89% 84%); /* #FABCB1 */
+  --color-sunglow-700: hsl(10 78% 78%); /* #F4A89B */
+  --color-sunglow-800: hsl(10 84% 72%); /* #F39282 */
+  --color-sunglow-900: hsl(18 89% 68%); /* #F27A67 */
+  --color-sunglow-foreground: hsl(240 10% 3.9%); /* #0A0A0A */
+
+  /* Winter Sky Palette */
+  --color-winter-sky-600: hsl(180 10% 97%); /* #F7FAFA */
+  --color-winter-sky-700: hsl(180 12% 96%); /* #F5F7F7 */
+  --color-winter-sky-800: hsl(180 16% 94%); /* #EFF3F3 */
+  --color-winter-sky-900: hsl(184 18% 89%); /* #E1EBEA */
+
+  /* Butter Palette */
+  --color-butter-800: hsl(48 100% 93%); /* #FFF6D7 */
+  --color-butter-900: hsl(48 72% 84%); /* #F2E6BC */
+  --color-butter-foreground: hsl(240 10% 3.9%); /* #312847 */
+}

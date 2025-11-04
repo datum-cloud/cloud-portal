@@ -70,7 +70,7 @@ export const SecretForm = ({ defaultValue }: { defaultValue?: ISecretControlResp
           </CardContent>
 
           <CardFooter className="flex justify-end gap-2">
-            <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+            <Button htmlType="submit" disabled={isPending} loading={isPending}>
               {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
             </Button>
           </CardFooter>

@@ -16,7 +16,7 @@ export const CreateOrganizationCard = ({ onClick, className }: CreateOrganizatio
   return (
     <MotionCard
       className={cn(
-        'border-muted-foreground/50 hover:border-navy group flex h-full cursor-pointer flex-col border-2 border-dashed transition-all hover:shadow-md',
+        'border-muted-foreground/50 hover:border-primary group flex h-full cursor-pointer flex-col border-2 border-dashed transition-all hover:shadow-md',
         className
       )}
       onClick={onClick}

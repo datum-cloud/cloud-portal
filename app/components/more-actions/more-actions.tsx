@@ -47,7 +47,8 @@ export const MoreActions = <TData,>({
       <DropdownMenuTrigger asChild>
         <Button
           onClick={() => setOpen(!open)}
-          variant="ghost"
+          type="quaternary"
+          theme="borderless"
           size="icon"
           disabled={disabled}
           className={cn(

@@ -145,18 +145,14 @@ export const HttpProxyForm = ({
           </CardContent>
           <CardFooter className="flex justify-between gap-2">
             {isEdit ? (
-              <Button
-                type="button"
-                variant="destructive"
-                disabled={isPending}
-                onClick={deleteHttpProxy}>
+              <Button type="danger" theme="solid" disabled={isPending} onClick={deleteHttpProxy}>
                 Delete
               </Button>
             ) : (
               <div />
             )}
             <div className="flex justify-end gap-2">
-              <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+              <Button htmlType="submit" disabled={isPending} loading={isPending}>
                 {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
               </Button>
             </div>

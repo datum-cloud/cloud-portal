@@ -53,17 +53,16 @@ export const PrometheusConfigCard = ({
               </div>
               <div className="flex items-center gap-2 py-2 pr-3">
                 <Button
-                  type="button"
-                  size="sm"
+                  size="small"
                   className="h-7 w-fit gap-1 px-2 text-xs"
                   onClick={() => window.open(connectionUrl, '_blank')}>
                   <ExternalLinkIcon className="size-3!" />
                   Open
                 </Button>
                 <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
+                  type="quaternary"
+                  theme="outline"
+                  size="small"
                   className="h-7 w-fit gap-1 px-2 text-xs"
                   onClick={() =>
                     copy(connectionUrl, {

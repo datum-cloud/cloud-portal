@@ -9,11 +9,12 @@ import { Bell } from 'lucide-react';
 export function NotificationBell({ unreadCount }: NotificationBellProps) {
   return (
     <Button
-      variant="ghost"
-      size="sm"
-      className="relative"
+      type="quaternary"
+      theme="borderless"
+      size="small"
+      className="relative cursor-pointer"
       aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}>
-      <Bell className="h-5 w-5" />
+      <Bell size={18} />
       {unreadCount > 0 && (
         <Badge
           variant="butter"

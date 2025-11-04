@@ -33,7 +33,7 @@ export const List = ({ items, className, itemClassName, labelClassName }: ListPr
           <div
             key={index}
             className={cn(
-              'text-primary flex w-full items-center gap-2 px-4 py-2 [&:not(:last-child)]:border-b',
+              'flex w-full items-center gap-2 px-4 py-2 [&:not(:last-child)]:border-b',
               itemClassName,
               item.className
             )}>
