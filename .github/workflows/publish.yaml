@@ -3,11 +3,11 @@ name: Publish Portal
 on:
   push:
     paths-ignore:
-      - 'docs/**'
-      - 'README.md'
+      - "docs/**"
+      - "README.md"
 
   release:
-    types: ['published']
+    types: ["published"]
 
 jobs:
   check-files:
@@ -28,6 +28,11 @@ jobs:
     secrets: inherit
 
   publish-kustomize-bundles:
+    # Add explicit dependency so that the kustomize bundles only get published
+    # if the container image has been built successfully. This helps prevent
+    # situations where the deployment manifests are picked up by flux but the
+    # container is still being created.
+    needs: [publish-container-image]
     permissions:
       id-token: write
       contents: read
