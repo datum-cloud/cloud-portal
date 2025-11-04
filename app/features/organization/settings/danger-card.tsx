@@ -8,13 +8,12 @@ import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@shadcn/ui/card';
 import { CircleAlertIcon } from 'lucide-react';
 import { useEffect } from 'react';
-import { useFetcher, useNavigate } from 'react-router';
+import { useFetcher } from 'react-router';
 import { toast } from 'sonner';
 
 export const OrganizationDangerCard = ({ organization }: { organization: IOrganization }) => {
   const fetcher = useFetcher({ key: 'org-delete' });
   const { confirm } = useConfirmationDialog();
-  const navigate = useNavigate();
 
   const deleteOrganization = async () => {
     await confirm({

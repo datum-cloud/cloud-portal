@@ -1,4 +1,4 @@
-import { ExportPolicyUpdateForm } from '@/features/observe/export-policies/form/update-form';
+import { ExportPolicyUpdateForm } from '@/features/metric/export-policies/form/update-form';
 import { createExportPoliciesControl } from '@/resources/control-plane';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { newExportPolicySchema } from '@/resources/schemas/export-policy.schema';
