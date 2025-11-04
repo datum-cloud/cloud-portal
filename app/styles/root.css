@@ -16,6 +16,9 @@
 
 @import './fonts.css';
 
+/* Figma design tokens - source of truth */
+@import './tokens/figma-tokens.css';
+
 /* Shadcn/ui base variables and component styles */
 @import '../modules/shadcn/style.css';
 

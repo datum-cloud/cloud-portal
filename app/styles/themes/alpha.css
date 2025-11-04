@@ -1,55 +1,13 @@
 /**
- * Alpha Theme
- * Self-contained theme with base variables and alpha-specific overrides
- * This theme uses the Datum brand colors with custom styling
+ * Alpha Theme - Purpose Token Mapping
+ * 
+ * This file maps Figma tokens → purpose tokens directly.
+ * 
+ * Figma tokens are defined in: app/styles/tokens/figma-tokens.css
+ * 
+ * Purpose tokens (--primary, --background, etc.) are used by components
+ * via Tailwind utilities (text-primary, bg-background, etc.)
  */
-
-/* ========================================
-   CUSTOM BRAND COLORS FOR TAILWIND UTILITIES
-   These colors are available globally as Tailwind utilities
-   ======================================== */
-@theme {
-  /* Datum Brand Colors */
-  --color-navy: #0c1d31;
-  --color-cream: #f6f6f5;
-  --color-light-gray: #e8e7e4;
-  --color-lime-green: #e6f59f;
-  --color-dark-navy-blue: #111e34;
-  --color-light-pink: #ecd0d0;
-  --color-mauve: #91757b;
-  --color-navy-muted: #14233d;
-  --color-orange: #ff6b35;
-  --color-tuscany: #c49d9d;
-  --color-indigo: #2d3948;
-  --color-pearl-gray: #efefed;
-  --color-green-dark: #4d6356;
-  --color-warm-white: #f5f5f3;
-
-  /* Sunglow Palette */
-  --color-sunglow: hsl(18 89% 68%); /* #F27A67 */
-  --color-sunglow-50: hsl(0 14% 98%); /* #FAF7F7 */
-  --color-sunglow-100: hsl(8 22% 96%); /* #F4EDEC */
-  --color-sunglow-200: hsl(8 22% 94%); /* #F3E7E4 */
-  --color-sunglow-300: hsl(10 67% 94%); /* #F8E0DB */
-  --color-sunglow-400: hsl(11 70% 91%); /* #F8D4CD */
-  --color-sunglow-500: hsl(8 89% 87%); /* #FBC8BF */
-  --color-sunglow-600: hsl(10 89% 84%); /* #FABCB1 */
-  --color-sunglow-700: hsl(10 78% 78%); /* #F4A89B */
-  --color-sunglow-800: hsl(10 84% 72%); /* #F39282 */
-  --color-sunglow-900: hsl(18 89% 68%); /* #F27A67 */
-  --color-sunglow-foreground: hsl(240 10% 3.9%); /* #0A0A0A */
-
-  /* Winter Sky Palette */
-  --color-winter-sky-600: hsl(180 10% 97%); /* #F7FAFA */
-  --color-winter-sky-700: hsl(180 12% 96%); /* #F5F7F7 */
-  --color-winter-sky-800: hsl(180 16% 94%); /* #EFF3F3 */
-  --color-winter-sky-900: hsl(184 18% 89%); /* #E1EBEA */
-
-  /* Butter Palette */
-  --color-butter-800: hsl(48 100% 93%); /* #FFF6D7 */
-  --color-butter-900: hsl(48 72% 84%); /* #F2E6BC */
-  --color-butter-foreground: hsl(240 10% 3.9%); /* #312847 */
-}
 
 /* ========================================
    THEME LAYER - OVERRIDES SHADCN BASE
@@ -67,15 +25,15 @@
        BASE SHADCN VARIABLES
        ======================================== */
 
-    /* Radius */
-    --radius: 0.5rem;
+    /* Radius - using Figma medium radius as base */
+    --radius: var(--radius-md);
 
     /* ========================================
        SHADCN COLOR OVERRIDES - LIGHT MODE
        ======================================== */
 
     /* Base colors */
-    --background: var(--color-cream); /* Cream background */
+    --background: var(--glacier-mist-900); /* Cream background from Figma */
     --foreground: hsl(240 10% 3.9%); /* #0A0A0A */
 
     /* Card colors */
@@ -86,20 +44,20 @@
     --popover: hsl(0 0% 100%); /* #FFFFFF */
     --popover-foreground: hsl(240 10% 3.9%); /* #0A0A0A */
 
-    /* Primary colors - using custom navy */
-    --primary: var(--color-navy);
-    --primary-foreground: var(--color-cream);
+    /* Primary colors - using Figma tokens */
+    --primary: var(--midnight-fjord);
+    --primary-foreground: var(--glacier-mist-900);
 
-    /* Secondary colors - using custom light gray */
-    --secondary: var(--color-light-gray);
-    --secondary-foreground: var(--color-navy);
+    /* Secondary colors - using Figma tokens */
+    --secondary: var(--glacier-mist-800);
+    --secondary-foreground: var(--midnight-fjord);
 
     /* Muted colors */
     --muted: hsl(240 4.8% 95.9%); /* #F4F4F5 */
     --muted-foreground: hsl(240 3.8% 46.1%); /* #737373 */
 
-    /* Accent colors - using winter sky */
-    --accent: var(--color-winter-sky-700);
+    /* Accent colors - using Figma tokens */
+    --accent: var(--glacier-mist-700);
     --accent-foreground: hsl(240 5.9% 10%); /* #191919 */
 
     /* Destructive colors */
@@ -118,14 +76,14 @@
     --chart-4: hsl(43 74% 66%); /* #F1C40F */
     --chart-5: hsl(27 87% 67%); /* #E67E22 */
 
-    /* Sidebar colors */
-    --sidebar: var(--color-warm-white);
-    --sidebar-foreground: var(--color-navy);
-    --sidebar-primary: var(--color-navy);
-    --sidebar-primary-foreground: var(--color-winter-sky-900);
-    --sidebar-accent: var(--color-light-gray);
-    --sidebar-accent-foreground: var(--color-navy);
-    --sidebar-border: var(--color-light-gray);
+    /* Sidebar colors - using Figma tokens */
+    --sidebar: var(--glacier-mist-700);
+    --sidebar-foreground: var(--midnight-fjord);
+    --sidebar-primary: var(--midnight-fjord);
+    --sidebar-primary-foreground: var(--glacier-mist-900);
+    --sidebar-accent: var(--glacier-mist-800);
+    --sidebar-accent-foreground: var(--midnight-fjord);
+    --sidebar-border: var(--glacier-mist-800);
     --sidebar-ring: hsl(217.2 91.2% 59.8%); /* #3B82F6 */
 
     /* Status colors */
@@ -142,12 +100,12 @@
        ======================================== */
 
     &.dark {
-      /* Base colors */
-      --background: var(--color-navy); /* Navy for dark backgrounds */
+      /* Base colors - dark mode */
+      --background: var(--midnight-fjord); /* Navy for dark backgrounds */
       --foreground: hsl(0 0% 98%); /* #FAFAFA */
 
-      /* Card colors */
-      --card: var(--color-navy); /* Navy for dark card backgrounds */
+      /* Card colors - dark mode */
+      --card: var(--midnight-fjord); /* Navy for dark card backgrounds */
       --card-foreground: hsl(0 0% 98%); /* #FAFAFA */
 
       /* Popover colors */
@@ -258,11 +216,15 @@
     --color-info-300: var(--info-300);
     --color-info-500: var(--info-500);
 
-    /* Radius utilities */
-    --radius-sm: calc(var(--radius) - 4px);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) + 4px);
+    /* ========================================
+       FIGMA → TAILWIND UTILITIES (Spacing, Typography, Radius, Fonts)
+       Exposes Figma tokens as Tailwind utilities alongside shadcn colors
+       ======================================== */
+
+    --radius-none: var(--radius-none);
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius-md);
+    --radius-lg: var(--radius-lg);
   }
 }
 
