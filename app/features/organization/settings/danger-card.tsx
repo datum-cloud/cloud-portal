@@ -34,7 +34,9 @@ export const OrganizationDangerCard = ({ organization }: { organization: IOrgani
       showConfirmInput: true,
       onSubmit: async () => {
         await fetcher.submit(
-          {},
+          {
+            redirectUri: paths.account.organizations.root,
+          },
           {
             method: 'DELETE',
             action: getPathWithParams(ORG_ACTION_PATH, { id: organization?.name }),
@@ -48,12 +50,7 @@ export const OrganizationDangerCard = ({ organization }: { organization: IOrgani
     if (fetcher.data && fetcher.state === 'idle') {
       const { success } = fetcher.data;
 
-      if (success) {
-        navigate(paths.account.organizations.root);
-        toast.success('Organization deleted successfully', {
-          description: 'The organization has been deleted successfully',
-        });
-      } else {
+      if (!success) {
         toast.error('Failed to delete organization', {
           description: fetcher.data?.error,
         });

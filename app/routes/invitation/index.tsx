@@ -113,10 +113,8 @@ export default function InvitationPage() {
       <Card className="w-full max-w-md rounded-lg border py-11 shadow-none">
         <CardHeader className="space-y-3 px-9 pb-6">
           <div className="space-y-2 text-center">
-            <CardTitle className="text-navy text-xl font-semibold">
-              You&apos;ve been invited!
-            </CardTitle>
-            <CardDescription className="text-navy text-sm font-normal">
+            <CardTitle className="text-xl font-semibold">You&apos;ve been invited!</CardTitle>
+            <CardDescription className="text-sm font-normal">
               Join your team and start collaborating
             </CardDescription>
           </div>

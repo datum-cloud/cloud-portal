@@ -12,7 +12,7 @@ import { useMemo } from 'react';
 import { useLoaderData, LoaderFunctionArgs, data, Link, useNavigate } from 'react-router';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const req = await fetch(`${process.env.APP_URL}${ORG_LIST_PATH}`, {
+  const req = await fetch(`${process.env.APP_URL}${ORG_LIST_PATH}?noCache=true`, {
     method: 'GET',
     headers: {
       Cookie: request.headers.get('Cookie') || '',
