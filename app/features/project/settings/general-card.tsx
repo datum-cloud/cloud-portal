@@ -75,10 +75,7 @@ export const ProjectGeneralCard = ({ project }: { project: IProjectControlRespon
             {/* <Button type="button" variant="link" disabled={isPending} onClick={handleReset}>
               Cancel
             </Button> */}
-            <Button
-              htmlType="submit"
-              disabled={isPending || !form.valid}
-              loading={isPending}>
+            <Button htmlType="submit" disabled={isPending || !form.valid} loading={isPending}>
               {isPending ? 'Saving' : 'Save'}
             </Button>
           </CardFooter>

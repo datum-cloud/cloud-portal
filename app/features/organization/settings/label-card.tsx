@@ -87,10 +87,7 @@ export const OrganizationLabelCard = ({ labels }: { labels: ILabel }) => {
             <Button type="quaternary" theme="borderless" disabled={isPending} onClick={handleReset}>
               Cancel
             </Button>
-            <Button
-              htmlType="submit"
-              disabled={isPending || !form.valid}
-              loading={isPending}>
+            <Button htmlType="submit" disabled={isPending || !form.valid} loading={isPending}>
               {isPending ? 'Saving' : 'Save'}
             </Button>
           </CardFooter>

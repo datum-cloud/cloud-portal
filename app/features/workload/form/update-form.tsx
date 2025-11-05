@@ -289,11 +289,7 @@ export const WorkloadUpdateForm = ({
             </nav>
           </CardContent>
           <CardFooter className="flex justify-between gap-2">
-            <Button
-              type="danger"
-              theme="solid"
-              onClick={deleteWorkload}
-              disabled={isPending}>
+            <Button type="danger" theme="solid" onClick={deleteWorkload} disabled={isPending}>
               Delete
             </Button>
             <div className="flex gap-2">

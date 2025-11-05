@@ -144,11 +144,7 @@ export const DomainForm = ({
           </CardContent>
           <CardFooter className="flex justify-between gap-2">
             {isEdit ? (
-              <Button
-                type="danger"
-                theme="solid"
-                disabled={isPending}
-                onClick={deleteDomain}>
+              <Button type="danger" theme="solid" disabled={isPending} onClick={deleteDomain}>
                 Delete
               </Button>
             ) : (

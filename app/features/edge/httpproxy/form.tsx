@@ -145,11 +145,7 @@ export const HttpProxyForm = ({
           </CardContent>
           <CardFooter className="flex justify-between gap-2">
             {isEdit ? (
-              <Button
-                type="danger"
-                theme="solid"
-                disabled={isPending}
-                onClick={deleteHttpProxy}>
+              <Button type="danger" theme="solid" disabled={isPending} onClick={deleteHttpProxy}>
                 Delete
               </Button>
             ) : (
