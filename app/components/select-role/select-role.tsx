@@ -1,4 +1,5 @@
 import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
+import { useIsPending } from '@/hooks/useIsPending';
 import { IRoleControlResponse } from '@/resources/interfaces/role.interface';
 import { ROUTE_PATH as ROLES_LIST_PATH } from '@/routes/api/roles';
 import { useEffect, useMemo, useState } from 'react';
@@ -21,6 +22,7 @@ export const SelectRole = ({
   disabled?: boolean;
 }) => {
   const fetcher = useFetcher({ key: 'role-list' });
+  const isPending = useIsPending({ fetcherKey: 'role-list', formMethod: 'GET' });
 
   const [roles, setRoles] = useState<IRoleControlResponse[]>([]);
 
@@ -109,7 +111,7 @@ export const SelectRole = ({
       groups={groups}
       placeholder="Select a Role"
       searchable={false}
-      isLoading={fetcher.state === 'loading'}
+      isLoading={isPending}
     />
   );
 };

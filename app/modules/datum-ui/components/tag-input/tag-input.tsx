@@ -393,7 +393,8 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
                 activeIndex === -1,
             },
             className
-          )}>
+          )}
+          suppressHydrationWarning>
           {/* Show validation errors if enabled or show external errors */}
           {((showValidationErrors && validationError) || error) && (
             <div className="mb-1 w-full text-sm text-red-500">

@@ -4,6 +4,7 @@ import {
   createIamMiloapisComV1Alpha1NamespacedUserInvitation,
   deleteIamMiloapisComV1Alpha1NamespacedUserInvitation,
   listIamMiloapisComV1Alpha1NamespacedUserInvitation,
+  listIamMiloapisComV1Alpha1UserInvitationForAllNamespaces,
   patchIamMiloapisComV1Alpha1NamespacedUserInvitation,
   readIamMiloapisComV1Alpha1NamespacedUserInvitation,
 } from '@/modules/control-plane/iam';
@@ -57,7 +58,11 @@ export const createInvitationsControl = (client: Client) => {
 
         const invitations = response.data as ComMiloapisIamV1Alpha1UserInvitationList;
 
-        return invitations.items?.map(transform) ?? [];
+        return (
+          invitations.items
+            ?.filter((invitation) => invitation.spec?.state === 'Pending')
+            .map(transform) ?? []
+        );
       } catch (error) {
         throw error;
       }
@@ -172,6 +177,24 @@ export const createInvitationsControl = (client: Client) => {
         return transform(invitation);
       } catch (e) {
         throw e;
+      }
+    },
+    userInvitations: async (userId: string) => {
+      try {
+        const response = await listIamMiloapisComV1Alpha1UserInvitationForAllNamespaces({
+          client,
+          baseURL: `${client.instance.defaults.baseURL}/apis/iam.miloapis.com/v1alpha1/users/${userId}/control-plane`,
+        });
+
+        const invitations = response.data as ComMiloapisIamV1Alpha1UserInvitationList;
+
+        return (
+          invitations.items
+            ?.filter((invitation) => invitation.spec?.state === 'Pending')
+            .map(transform) ?? []
+        );
+      } catch (error) {
+        throw error;
       }
     },
   };

@@ -156,15 +156,20 @@ export default function OrgTeamInvitePage() {
       };
 
       if (successCount > 0 && failedCount === 0) {
-        toast.success(`${successCount} ${getInvitationText(successCount)} sent successfully!`);
+        const message =
+          successCount === 1
+            ? 'Invitation sent successfully!'
+            : `${successCount} ${getInvitationText(successCount)} sent successfully!`;
+        toast.success(message);
         navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
       } else if (successCount > 0 && failedCount > 0) {
-        toast.warning(
-          `${successCount} ${getInvitationText(successCount)} sent, ${failedCount} failed`,
-          {
-            description: ErrorList(failedResults),
-          }
-        );
+        const message =
+          successCount === 1
+            ? `Invitation sent, ${failedCount} failed`
+            : `${successCount} ${getInvitationText(successCount)} sent, ${failedCount} failed`;
+        toast.warning(message, {
+          description: ErrorList(failedResults),
+        });
         navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
       } else if (failedCount > 0) {
         toast.error(`${failedCount} ${getInvitationText(failedCount)} failed`, {

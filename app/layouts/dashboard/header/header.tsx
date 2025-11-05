@@ -5,6 +5,7 @@ import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { Button } from '@datum-ui/components';
 import { SidebarTrigger } from '@datum-ui/components';
+import { NotificationDropdown } from '@datum-ui/components/notification';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CircleHelp, SlashIcon } from 'lucide-react';
 import { Link } from 'react-router';
@@ -35,7 +36,7 @@ export const Header = ({
         )}
       </div>
       {/* Right Section */}
-      <div className="flex h-9 flex-1 items-center justify-end gap-3">
+      <div className="flex h-9 flex-1 items-center justify-end">
         {/* <SearchBar /> */}
         <div className="flex h-full items-center gap-2">
           {/* <Button variant="outline" size="sm" className="cursor-pointer px-2">
@@ -55,7 +56,9 @@ export const Header = ({
           </Tooltip>
         </div>
 
-        <UserDropdown />
+        <NotificationDropdown pollingInterval={60000} defaultTab="invitation" />
+
+        <UserDropdown className="ml-2" />
       </div>
     </header>
   );

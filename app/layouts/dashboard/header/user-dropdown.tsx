@@ -48,7 +48,7 @@ const UserItem = ({
     </div>
   );
 };
-export const UserDropdown = () => {
+export const UserDropdown = ({ className }: { className?: string }) => {
   const navigate = useNavigate();
   const submit = useSubmit();
   const { user } = useApp();
@@ -61,7 +61,10 @@ export const UserDropdown = () => {
           type="button"
           variant="ghost"
           size="sm"
-          className="h-8 cursor-pointer p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden data-[state=open]:bg-transparent">
+          className={cn(
+            'h-8 cursor-pointer p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden data-[state=open]:bg-transparent',
+            className
+          )}>
           <UserItem type="avatar" fullName={user?.fullName!} className="px-0" />
           {/* <ChevronDownIcon className="size-4 text-primary/60" /> */}
         </Button>
