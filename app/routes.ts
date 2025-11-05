@@ -244,6 +244,9 @@ export default [
       // Permissions
       route('permissions/check', 'routes/api/permissions/check.ts'),
       route('permissions/bulk-check', 'routes/api/permissions/bulk-check.ts'),
+
+      // Notifications
+      route('notifications', 'routes/api/notifications/index.ts'),
     ]),
   ]),
 

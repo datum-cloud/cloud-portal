@@ -9,6 +9,7 @@ export const paths = {
   home: '/',
   gettingStarted: '/getting-started',
   waitlist: '/waitlist',
+  invitationAccept: '/invitation/:invitationId/accept',
   account: {
     root: '/account',
     organizations: {

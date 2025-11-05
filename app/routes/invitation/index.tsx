@@ -88,14 +88,17 @@ export default function InvitationPage() {
 
   const handleStateUpdate = async (state: 'Accepted' | 'Declined') => {
     setAction(state);
-    await fetcher.submit(
+    fetcher.submit(
       {
         orgId: invitation.organizationName,
         invitationId: invitation.name,
         state,
-        redirectUri: getPathWithParams(paths.org.detail.root, {
-          orgId: invitation.organizationName,
-        }),
+        redirectUri:
+          state === 'Accepted'
+            ? getPathWithParams(paths.org.detail.root, {
+                orgId: invitation.organizationName,
+              })
+            : paths.account.organizations.root,
       },
       {
         method: 'PATCH',
