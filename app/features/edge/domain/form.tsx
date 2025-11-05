@@ -145,8 +145,8 @@ export const DomainForm = ({
           <CardFooter className="flex justify-between gap-2">
             {isEdit ? (
               <Button
-                type="button"
-                variant="destructive"
+                type="danger"
+                theme="solid"
                 disabled={isPending}
                 onClick={deleteDomain}>
                 Delete
@@ -155,7 +155,7 @@ export const DomainForm = ({
               <div />
             )}
             <div className="flex justify-end gap-2">
-              <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+              <Button htmlType="submit" disabled={isPending} loading={isPending}>
                 {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
               </Button>
             </div>

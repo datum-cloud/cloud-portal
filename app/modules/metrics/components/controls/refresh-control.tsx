@@ -99,8 +99,9 @@ export const RefreshControl = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="ghost"
-              size="sm"
+              type="quaternary"
+              theme="borderless"
+              size="small"
               className="size-9 rounded-r-none border-r"
               onClick={handleManualRefresh}
               disabled={isManualRefreshing || isAutoRefreshing}>

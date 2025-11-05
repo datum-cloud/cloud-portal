@@ -57,7 +57,7 @@ export const AccountDangerSettingsCard = () => {
         </Alert>
       </CardContent>
       <CardFooter className="border-destructive/50 bg-destructive/10 flex justify-end border-t px-6 py-2">
-        <Button variant="destructive" onClick={() => deleteAccount()}>
+        <Button type="danger" theme="solid" onClick={() => deleteAccount()}>
           Delete
         </Button>
       </CardFooter>

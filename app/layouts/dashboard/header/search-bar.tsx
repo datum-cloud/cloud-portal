@@ -35,10 +35,11 @@ export default function SearchBar({ className }: { className?: string }) {
   return (
     <>
       <Button
-        type="button"
+        htmlType="button"
         aria-label="Search"
-        variant="outline"
-        size="sm"
+        type="quaternary"
+        theme="outline"
+        size="small"
         className={cn('h-9 w-full max-w-64 cursor-text justify-between px-2', className)}
         onClick={() => setOpen(true)}>
         <div className="flex items-center gap-2 [&>svg]:opacity-50">

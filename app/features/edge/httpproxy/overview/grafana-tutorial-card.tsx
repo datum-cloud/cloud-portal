@@ -25,8 +25,9 @@ export const GrafanaTutorialCard = ({
           and setting up an ExportPolicy.
         </p>
         <Button
-          size="sm"
-          variant="outline"
+          type="quaternary"
+          theme="outline"
+          size="small"
           onClick={() => {
             navigate(
               getPathWithParams(paths.project.detail.httpProxy.detail.grafana, {

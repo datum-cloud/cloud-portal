@@ -8,7 +8,7 @@
    LAYER ORDER DEFINITION
    Theme layer always wins over shadcn-base
    ======================================== */
-@layer shadcn-base, theme;
+/* @layer shadcn-base, theme; */
 
 /* ========================================
    IMPORTS

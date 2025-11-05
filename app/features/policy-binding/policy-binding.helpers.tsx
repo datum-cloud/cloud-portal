@@ -86,8 +86,8 @@ export const renderSubjectsCell = (subjects: PolicyBinding['subjects']) => {
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          type="button"
-          variant="outline"
+          type="quaternary"
+          theme="outline"
           size="icon"
           onClick={(e) => {
             e.stopPropagation();

@@ -16,6 +16,7 @@ export default [
     route('test/metrics', 'routes/test/metrics.tsx'),
     route('test/sentry', 'routes/test/sentry.tsx'),
     route('test/permissions', 'routes/test/permissions.tsx'),
+    route('test/demo', 'routes/test/demo.tsx'),
 
     // Getting Started
     route('getting-started', 'routes/getting-started/index.tsx'),

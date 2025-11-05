@@ -75,9 +75,9 @@ export const StoragesForm = ({
 
               {storages.length > 0 && (
                 <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
+                  type="quaternary"
+                  theme="borderless"
+                  size="small"
                   className={cn(
                     'text-destructive relative w-fit',
                     (storageFields.name.errors ?? []).length > 0 ||
@@ -94,9 +94,9 @@ export const StoragesForm = ({
         })}
       </div>
       <Button
-        type="button"
-        variant="outline"
-        size="sm"
+        type="quaternary"
+        theme="outline"
+        size="small"
         className="w-fit"
         onClick={() =>
           form.insert({

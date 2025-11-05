@@ -174,7 +174,7 @@ export const GrafanaCompletedCard = ({
 
           <CardFooter className="flex justify-center pt-6">
             <motion.div variants={itemVariants}>
-              <Button variant="default" size="lg" onClick={handleDone} className="text-base">
+              <Button size="large" onClick={handleDone} className="text-base">
                 Done
               </Button>
             </motion.div>

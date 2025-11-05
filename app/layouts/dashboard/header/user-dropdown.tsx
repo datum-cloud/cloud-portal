@@ -58,9 +58,9 @@ export const UserDropdown = () => {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+          type="quaternary"
+          theme="borderless"
+          size="small"
           className="h-8 cursor-pointer p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden data-[state=open]:bg-transparent">
           <UserItem type="avatar" fullName={user?.fullName!} className="px-0" />
           {/* <ChevronDownIcon className="size-4 text-primary/60" /> */}
@@ -91,8 +91,9 @@ export const UserDropdown = () => {
             submit(null, { method: 'POST', action: paths.auth.logOut });
           }}>
           <Button
-            type="submit"
-            variant="link"
+            htmlType="submit"
+            type="quaternary"
+            theme="borderless"
             className="focus:text-destructive flex h-8 w-full cursor-pointer justify-start text-left hover:bg-transparent hover:no-underline focus-visible:ring-0 focus-visible:ring-offset-0">
             <LogOut className="text-destructive size-4" />
             Log out

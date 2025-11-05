@@ -84,10 +84,9 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
               Cancel
             </Button> */}
               <Button
-                variant="default"
-                type="submit"
+                htmlType="submit"
                 disabled={isPending || !form.valid}
-                isLoading={isPending}>
+                loading={isPending}>
                 {isPending ? 'Saving' : 'Save'}
               </Button>
             </CardFooter>

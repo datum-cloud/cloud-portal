@@ -67,7 +67,8 @@ export const SelectAutocomplete = React.forwardRef<
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
-              variant="outline"
+              type="quaternary"
+              theme="outline"
               role="combobox"
               aria-expanded={open}
               className={cn(

@@ -259,14 +259,13 @@ export const ExportPolicyStepperForm = ({
 
                         <div className="mt-4 flex items-center justify-end gap-2 border-t pt-4">
                           <div className="flex items-center gap-2">
-                            <Button type="button" variant="link" onClick={handleBack}>
+                            <Button type="quaternary" theme="borderless" onClick={handleBack}>
                               {stepper.isFirst ? 'Return to List' : 'Back'}
                             </Button>
                             <Button
-                              variant="default"
-                              type="submit"
+                              htmlType="submit"
                               disabled={isPending}
-                              isLoading={isPending}>
+                              loading={isPending}>
                               {stepper.isLast ? (isEdit ? 'Save' : 'Create') : 'Next'}
                             </Button>
                           </div>

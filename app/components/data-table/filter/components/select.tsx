@@ -116,9 +116,8 @@ export function SelectFilter({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            type="button"
-            size="sm"
-            variant="dashed"
+            type="quaternary"
+            theme="outline"
             role="combobox"
             aria-expanded={open}
             className={cn(

@@ -56,7 +56,8 @@ export function RadioPopoverFilter({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
+            type="quaternary"
+            theme="outline"
             role="combobox"
             aria-expanded={open}
             className="h-8 w-full justify-between"
@@ -80,8 +81,9 @@ export function RadioPopoverFilter({
               <span className="text-sm font-medium">{displayLabel}</span>
               {value && (
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  type="quaternary"
+                  theme="borderless"
+                  size="small"
                   onClick={() => setValue('')}
                   className="h-6 px-2 text-xs">
                   Clear

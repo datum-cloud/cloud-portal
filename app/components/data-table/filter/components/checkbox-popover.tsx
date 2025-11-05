@@ -69,7 +69,8 @@ export function CheckboxPopoverFilter({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            variant="outline"
+            type="quaternary"
+            theme="outline"
             role="combobox"
             aria-expanded={open}
             className="h-8 w-full justify-between"
@@ -103,8 +104,9 @@ export function CheckboxPopoverFilter({
               <span className="text-sm font-medium">{displayLabel}</span>
               {selectedValues.length > 0 && (
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  type="quaternary"
+                  theme="borderless"
+                  size="small"
                   onClick={handleClearAll}
                   className="h-6 px-2 text-xs">
                   Clear

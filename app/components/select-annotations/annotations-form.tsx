@@ -75,14 +75,14 @@ export const AnnotationForm = ({
       </div>
       <div className="flex justify-end gap-2 pt-6">
         <Button
-          type="button"
-          variant="link"
+          type="quaternary"
+          theme="borderless"
           onClick={() => {
             onCancel?.();
           }}>
           Cancel
         </Button>
-        <Button type="submit">Save</Button>
+        <Button htmlType="submit">Save</Button>
       </div>
     </form>
   );

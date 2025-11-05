@@ -129,8 +129,8 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
           <CardFooter className="flex justify-end gap-2">
             {!isEdit && (
               <Button
-                type="button"
-                variant="link"
+                type="quaternary"
+                theme="borderless"
                 disabled={isPending}
                 onClick={() => {
                   navigate(paths.account.organizations.root);
@@ -138,7 +138,7 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
                 Return to List
               </Button>
             )}
-            <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+            <Button htmlType="submit" disabled={isPending} loading={isPending}>
               {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
             </Button>
           </CardFooter>

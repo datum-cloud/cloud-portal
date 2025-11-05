@@ -83,8 +83,9 @@ export const ProjectSwitcher = ({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild className="w-full">
           <Button
-            variant="outline"
-            size="sm"
+            type="quaternary"
+            theme="outline"
+            size="small"
             className={cn(
               'data-[state=open]:bg-primary/5 flex h-7 w-fit gap-2 border-none p-0 px-2',
               triggerClassName

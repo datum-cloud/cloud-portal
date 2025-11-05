@@ -290,16 +290,16 @@ export const WorkloadUpdateForm = ({
           </CardContent>
           <CardFooter className="flex justify-between gap-2">
             <Button
-              type="button"
-              variant="destructive"
+              type="danger"
+              theme="solid"
               onClick={deleteWorkload}
               disabled={isPending}>
               Delete
             </Button>
             <div className="flex gap-2">
               <Button
-                type="button"
-                variant="link"
+                type="quaternary"
+                theme="borderless"
                 disabled={isPending}
                 onClick={() => {
                   navigate(
@@ -311,7 +311,7 @@ export const WorkloadUpdateForm = ({
                 }}>
                 Return to List
               </Button>
-              <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+              <Button htmlType="submit" disabled={isPending} loading={isPending}>
                 {isPending ? `Saving` : `Save`}
               </Button>
             </div>

@@ -56,7 +56,7 @@ export const ProjectDangerCard = ({ project }: { project: IProjectControlRespons
         </Alert>
       </CardContent>
       <CardFooter className="border-destructive/50 bg-destructive/10 flex justify-end border-t px-6 py-2">
-        <Button variant="destructive" onClick={() => deleteProject()}>
+        <Button type="danger" theme="solid" onClick={() => deleteProject()}>
           Delete
         </Button>
       </CardFooter>

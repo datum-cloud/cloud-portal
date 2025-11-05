@@ -109,8 +109,8 @@ export const CreateProjectForm = () => {
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
           <Button
-            type="button"
-            variant="link"
+            type="quaternary"
+            theme="borderless"
             disabled={isPending}
             onClick={() => {
               navigate(
@@ -121,7 +121,7 @@ export const CreateProjectForm = () => {
             }}>
             Return to List
           </Button>
-          <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+          <Button htmlType="submit" disabled={isPending} loading={isPending}>
             {isPending ? 'Creating' : 'Create'} Project
             <RocketIcon className="size-4" />
           </Button>

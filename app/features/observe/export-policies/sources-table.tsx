@@ -37,8 +37,9 @@ export const WorkloadSourcesTable = ({
             <Popover>
               <PopoverTrigger asChild>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  type="quaternary"
+                  theme="outline"
+                  size="small"
                   className="flex h-8 items-center gap-1 focus:ring-0">
                   <CodeIcon className="size-4" />
                   <span>Query</span>

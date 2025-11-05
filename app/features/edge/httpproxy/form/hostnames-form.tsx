@@ -47,9 +47,9 @@ export const HostnamesForm = ({
                 </Field>
                 {hostnameList.length > 0 && (
                   <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
+                    type="quaternary"
+                    theme="borderless"
+                    size="small"
                     className="text-destructive relative top-0.5 w-fit"
                     onClick={() => form.remove({ name: fields.hostnames.name, index })}>
                     <TrashIcon className="size-4" />
@@ -62,9 +62,9 @@ export const HostnamesForm = ({
       )}
 
       <Button
-        type="button"
-        variant="outline"
-        size="sm"
+        type="quaternary"
+        theme="outline"
+        size="small"
         className="w-fit"
         onClick={() =>
           form.insert({

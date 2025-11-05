@@ -124,7 +124,8 @@ export const TimeRangeControl = ({
       <PopoverTrigger asChild>
         <Button
           id="date"
-          variant={'outline'}
+          type="quaternary"
+          theme="outline"
           className={cn(
             'h-[36px] justify-start px-3 text-left font-normal hover:bg-transparent',
             !date && 'text-muted-foreground'
@@ -159,8 +160,9 @@ export const TimeRangeControl = ({
               {PRESET_RANGES.map((preset) => (
                 <Button
                   key={preset.value}
-                  size="sm"
-                  variant="ghost"
+                  size="small"
+                  type="quaternary"
+                  theme="borderless"
                   className="justify-start"
                   onClick={(): void => handlePresetSelect(preset)}>
                   {preset.label}
@@ -184,11 +186,11 @@ export const TimeRangeControl = ({
               className="rounded-md border-0"
             />
             <div className="mt-4 flex justify-end gap-2">
-              <Button size="sm" variant="outline" onClick={handleReset}>
+              <Button size="small" type="quaternary" theme="outline" onClick={handleReset}>
                 Reset
               </Button>
               <Button
-                size="sm"
+                size="small"
                 onClick={handleApply}
                 disabled={!pendingDate?.from || !pendingDate?.to}>
                 Apply

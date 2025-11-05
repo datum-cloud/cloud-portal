@@ -141,15 +141,15 @@ export const KeysFormDialog = ({
             />
             <DialogFooter className="flex gap-2">
               <Button
-                type="button"
-                variant="link"
+                type="quaternary"
+                theme="borderless"
                 disabled={isPending}
                 onClick={() => {
                   handleOpenChange(false);
                 }}>
                 Cancel
               </Button>
-              <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+              <Button htmlType="submit" disabled={isPending} loading={isPending}>
                 {isPending ? 'Creating' : 'Create'}
               </Button>
             </DialogFooter>

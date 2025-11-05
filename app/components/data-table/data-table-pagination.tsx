@@ -32,7 +32,8 @@ export const DataTablePagination = <TData,>({ table }: { table: TTable<TData> })
       </div>
       <div className="flex items-center space-x-2">
         <Button
-          variant="outline"
+          type="quaternary"
+          theme="outline"
           className="hidden h-8 w-8 p-0 lg:flex"
           onClick={() => {
             table.setPageIndex(0);
@@ -42,7 +43,8 @@ export const DataTablePagination = <TData,>({ table }: { table: TTable<TData> })
           <ChevronsLeft className="size-4" />
         </Button>
         <Button
-          variant="outline"
+          type="quaternary"
+          theme="outline"
           className="h-8 w-8 p-0"
           onClick={() => {
             table.previousPage();
@@ -52,7 +54,8 @@ export const DataTablePagination = <TData,>({ table }: { table: TTable<TData> })
           <ChevronLeft className="size-4" />
         </Button>
         <Button
-          variant="outline"
+          type="quaternary"
+          theme="outline"
           className="h-8 w-8 p-0"
           onClick={() => {
             table.nextPage();
@@ -62,7 +65,8 @@ export const DataTablePagination = <TData,>({ table }: { table: TTable<TData> })
           <ChevronRight className="size-4" />
         </Button>
         <Button
-          variant="outline"
+          type="quaternary"
+          theme="outline"
           className="hidden h-8 w-8 p-0 lg:flex"
           onClick={() => {
             table.setPageIndex(table.getPageCount() - 1);

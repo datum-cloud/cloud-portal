@@ -1,5 +1,4 @@
 import { EmptyContentProps } from '@/components/empty-content/empty-content';
-import { Button } from '@datum-ui/components';
 import { ColumnDef, ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 export type SearchParams = {
@@ -84,7 +83,7 @@ export interface DataTableEmptyContentProps {
     label: string;
     onClick?: () => void;
     to?: string;
-    variant?: React.ComponentProps<typeof Button>['variant'];
+    variant?: 'default' | 'destructive';
     icon?: React.ReactNode;
   }>;
 }

@@ -39,9 +39,9 @@ export const TextCopyBox = ({
       </div>
       <div className="flex items-center py-2 pr-3">
         <Button
-          type="button"
-          variant="outline"
-          size="sm"
+          type="quaternary"
+          theme="outline"
+          size="small"
           className={cn('h-7 w-fit gap-1 px-2 text-xs', buttonClassName)}
           onClick={copyToClipboard}>
           <CopyIcon className="size-3!" />

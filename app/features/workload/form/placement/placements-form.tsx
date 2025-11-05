@@ -78,9 +78,9 @@ export const PlacementsForm = ({
 
               {placements.length > 1 && (
                 <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
+                  type="quaternary"
+                  theme="borderless"
+                  size="small"
                   className={cn(
                     'text-destructive relative w-fit',
                     (placementFields.name.errors ?? []).length > 0 ? 'top-2' : 'top-5.5'
@@ -94,9 +94,9 @@ export const PlacementsForm = ({
         })}
       </div>
       <Button
-        type="button"
-        variant="outline"
-        size="sm"
+        type="quaternary"
+        theme="outline"
+        size="small"
         className="w-fit"
         onClick={() =>
           form.insert({
