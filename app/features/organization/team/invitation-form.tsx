@@ -29,7 +29,7 @@ import { z } from 'zod';
 const emailValidator = z.email({ error: 'Please enter a valid email address' });
 
 export const InvitationForm = () => {
-  const isPending = useIsPending({ formMethod: 'POST' });
+  const isPending = useIsPending({ formMethod: 'POST', formId: 'invitation-form' });
   const navigate = useNavigate();
 
   // State to track real-time validation errors from TagsInput

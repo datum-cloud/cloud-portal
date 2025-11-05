@@ -44,7 +44,13 @@ export function InvitationNotificationItem({
         orgId: invitation.organizationName,
         invitationId: invitation.name,
         state,
-      },
+        redirectUri:
+          state === 'Accepted'
+            ? getPathWithParams(paths.org.detail.root, {
+                orgId: invitation.organizationName,
+              })
+            : undefined,
+      } as unknown as FormData,
       {
         method: 'PATCH',
         action: INVITATION_UPDATE_STATE_ACTION,
@@ -61,15 +67,14 @@ export function InvitationNotificationItem({
 
   // Show toast on action completion
   useEffect(() => {
-    if (fetcher.data) {
+    if (fetcher.data && fetcher.state === 'idle') {
       if (fetcher.data.success) {
-        toast.success(fetcher.data.message || 'Invitation updated');
         onRefresh();
       } else {
         toast.error(fetcher.data.error || 'Failed to update invitation');
       }
     }
-  }, [fetcher.data, fetcher.state, onRefresh]);
+  }, [fetcher.data, fetcher.state]);
 
   const isLoading = useMemo(() => {
     return fetcher.state === 'submitting' || fetcher.state === 'loading';
@@ -83,7 +88,7 @@ export function InvitationNotificationItem({
     <NotificationItemWrapper onNavigate={handleNavigate}>
       <div className="flex gap-3">
         {/* Avatar */}
-        <Avatar className="size-10 flex-shrink-0">
+        <Avatar className="size-10 shrink-0">
           <AvatarImage src={invitation.inviterUser?.avatar} alt="User" />
           <AvatarFallback className="bg-muted">{getInitials(inviterName)}</AvatarFallback>
         </Avatar>
