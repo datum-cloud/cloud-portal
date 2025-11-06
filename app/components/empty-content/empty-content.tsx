@@ -33,8 +33,8 @@ export interface EmptyContentProps {
 
 // Base styles that are consistent across variants
 const BASE_STYLES = {
-  container: 'flex items-center justify-center',
-  content: 'flex flex-col items-center text-center',
+  container: 'flex items-center justify-center relative overflow-hidden',
+  content: 'flex flex-col items-center text-center relative z-10',
   titleContainer: 'flex flex-col items-center',
   title: 'font-semibold text-foreground',
   subtitle: 'text-muted-foreground',
@@ -190,8 +190,8 @@ export const EmptyContent = ({
     const buttonContent = (
       <Button
         size={sizeStyles.buttonSize === 'default' ? 'default' : 'small'}
-        type={action.variant === 'destructive' ? 'danger' : 'primary'}
-        theme={action.variant === 'destructive' ? 'solid' : 'outline'}
+        type={action.variant === 'destructive' ? 'danger' : 'tertiary'}
+        theme="solid"
         className={cn(BASE_STYLES.button, sizeStyles.subtitle)}>
         {action.icon}
         <span>{action.label}</span>
@@ -215,8 +215,8 @@ export const EmptyContent = ({
         key={action.label}
         size={sizeStyles.buttonSize === 'default' ? 'default' : 'small'}
         onClick={action.onClick}
-        type={action.variant === 'destructive' ? 'danger' : 'primary'}
-        theme={action.variant === 'destructive' ? 'solid' : 'outline'}
+        type={action.variant === 'destructive' ? 'danger' : 'tertiary'}
+        theme="solid"
         className={cn(BASE_STYLES.button, sizeStyles.subtitle)}>
         {action.icon}
         <span>{action.label}</span>
@@ -233,6 +233,20 @@ export const EmptyContent = ({
         sizeStyles.container,
         className
       )}>
+      {/* Decorative corner images */}
+      <img
+        src={'/images/scene-2.png'}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-0 left-0 h-auto w-1/3 max-w-96 -scale-x-100 select-none"
+      />
+      <img
+        src={'/images/scene-1.png'}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute right-0 bottom-0 h-auto w-1/3 max-w-48 -scale-x-100 select-none"
+      />
+
       <div
         className={cn(
           BASE_STYLES.content,

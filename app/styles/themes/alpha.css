@@ -70,9 +70,9 @@ Scope variables to the theme class so we can swap themes by class
   --destructive-foreground: var(--glacier-mist-700);
 
   /* UI elements */
-  --border: hsl(240 5.9% 90%);
-  --input: hsl(240 5.9% 90%);
-  --ring: hsl(240 10% 3.9%);
+  --border: var(--app-dark-utility-5);
+  --input: var(--app-dark-utility-5);
+  --ring: var(--app-dark-utility-4);
 
   /* Chart colors */
   --chart-1: hsl(12 76% 61%);
