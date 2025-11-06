@@ -10,6 +10,7 @@ export * from './badge';
 export * from './button';
 export * from './calendar';
 export * from './calendar-date-picker';
+export * from './data-table';
 export * from './dropdown';
 export * from './input-number';
 export * from './input-with-addons';

@@ -30,8 +30,8 @@ Scope variables to the theme class so we can swap themes by class
    ======================================== */
 
   /* Base colors */
-  --background: var(--white);
-  --foreground: hsl(240 10% 3.9%);
+  --background: var(--glacier-mist-700);
+  --foreground: var(--midnight-fjord);
 
   /* Card colors */
   --card: hsl(0 0% 100%);

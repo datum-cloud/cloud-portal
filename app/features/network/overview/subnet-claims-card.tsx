@@ -1,6 +1,6 @@
-import { DataTable } from '@/components/data-table/data-table';
 import { DateTime } from '@/components/date-time';
 import { TextCopy } from '@/components/text-copy/text-copy';
+import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
 import { ISubnetClaimControlResponse } from '@/resources/interfaces/network.interface';
 import { getShortId } from '@/utils/helpers/text.helper';
 import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';

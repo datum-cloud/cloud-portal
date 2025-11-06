@@ -1,6 +1,6 @@
 import { CodeEditor } from '@/components/code-editor/code-editor';
-import { DataTable } from '@/components/data-table/data-table';
 import { TextCopy } from '@/components/text-copy/text-copy';
+import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { Button } from '@datum-ui/components';
 import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';

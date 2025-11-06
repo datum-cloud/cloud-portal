@@ -1,7 +1,7 @@
 import {
   useDateFilter,
   useDateRangeFilter,
-} from '@/components/data-table/hooks/useFilterQueryState';
+} from '@/modules/datum-ui/components/data-table/hooks/useFilterQueryState';
 import { useApp } from '@/providers/app.provider';
 import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone.helper';
 import { CalendarDatePicker } from '@datum-ui/components';

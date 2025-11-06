@@ -3,13 +3,15 @@ import { TableHead, TableHeader, TableRow } from '@shadcn/ui/table';
 import { Table as TTable, flexRender } from '@tanstack/react-table';
 import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
 
-export const DataTableHeader = <TData,>({
-  table,
-  hasRowActions = false,
-}: {
+export interface DataTableColumnHeaderProps<TData> {
   table: TTable<TData>;
   hasRowActions?: boolean;
-}) => {
+}
+
+export const DataTableColumnHeader = <TData,>({
+  table,
+  hasRowActions = false,
+}: DataTableColumnHeaderProps<TData>) => {
   return (
     <TableHeader>
       {table.getHeaderGroups().map((headerGroup) => (

@@ -1,7 +1,7 @@
 import { WorkloadStatus } from './status';
-import { DataTable } from '@/components/data-table/data-table';
 import { DateTime } from '@/components/date-time';
 import { TextCopy } from '@/components/text-copy/text-copy';
+import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
 import { IWorkloadDeploymentControlResponse } from '@/resources/interfaces/workload.interface';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';

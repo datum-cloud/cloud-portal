@@ -1,22 +1,22 @@
-import { DataTableHeader } from './data-table-header';
+import { DataTableCardView } from './data-table-card-view';
+import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableLoadingContent } from './data-table-loading';
 import { DataTablePagination } from './data-table-pagination';
-import { DataTableRowActions } from './data-table-row-actions';
+import { DataTableToolbar } from './data-table-toolbar';
+import { DataTableView } from './data-table-view';
 import { DataTableProvider } from './data-table.context';
 import { DataTableProps } from './data-table.types';
 import { createGlobalSearchFilter } from './utils/global-search.helpers';
 import { createNestedAccessor, getSortingFnByType } from './utils/sorting.helpers';
 import { EmptyContent } from '@/components/empty-content/empty-content';
-import { PageTitle } from '@/components/page-title/page-title';
 import { cn } from '@shadcn/lib/utils';
-import { Table, TableBody, TableCell, TableRow } from '@shadcn/ui/table';
+import { Table } from '@shadcn/ui/table';
 import {
   ColumnDef,
   ColumnFiltersState,
   PaginationState,
   SortingState,
   Table as TTable,
-  flexRender,
   getCoreRowModel,
   getFacetedMinMaxValues,
   getFacetedRowModel,
@@ -35,6 +35,7 @@ export const DataTable = <TData, TValue>({
   defaultSorting = [],
   pageSize = 20,
   filterComponent,
+  filters,
   defaultFilters,
   onFiltersChange,
   onFilteringStart,
@@ -50,6 +51,7 @@ export const DataTable = <TData, TValue>({
   onRowClick,
   rowClassName,
   tableTitle,
+  toolbar,
   emptyContent = {
     title: 'No results.',
   },
@@ -59,6 +61,24 @@ export const DataTable = <TData, TValue>({
   isLoading,
   loadingText,
 }: DataTableProps<TData, TValue>) => {
+  // Deprecation warnings for old API
+  if (process.env.NODE_ENV === 'development') {
+    if (filterComponent && !filters) {
+      console.warn(
+        '[DataTable] The "filterComponent" prop is deprecated and will be removed in a future version. ' +
+          'Please use the "filters" prop instead. Filters are now auto-wrapped in DataTableFilter context.\n' +
+          'Example: filters={<><DataTableFilter.Select filterKey="status" /><DataTableFilter.DatePicker filterKey="date" /></>}'
+      );
+    }
+    if (toolbar?.search && !toolbar?.includeSearch) {
+      console.warn(
+        '[DataTable] The "toolbar.search" prop is deprecated and will be removed in a future version. ' +
+          'Please use "toolbar.includeSearch" instead to better reflect that search is just another filter.\n' +
+          'Example: toolbar={{ includeSearch: { placeholder: "Search..." } }}'
+      );
+    }
+  }
+
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(defaultColumnFilters);
   const [sorting, setSorting] = useState<SortingState>(defaultSorting);
   const [globalFilter, setGlobalFilter] = useState<string>('');
@@ -183,21 +203,19 @@ export const DataTable = <TData, TValue>({
           !isLoading && data?.length > 0 ? 'max-w-(--breakpoint-xl)' : '',
           className
         )}>
-        {filterComponent && (
-          <>
-            {/* Header Section */}
-            {tableTitle && <PageTitle {...tableTitle} />}
-
-            {/* Filter Section */}
-            {filterComponent}
-          </>
-        )}
+        {/* Toolbar Section: Page Title + Filters */}
+        <DataTableToolbar
+          tableTitle={tableTitle}
+          filterComponent={filterComponent}
+          filters={filters}
+          config={toolbar}
+          show={!isLoading || Boolean(filterComponent || filters || tableTitle || toolbar)}
+        />
 
         {isLoading ? (
           <DataTableLoadingContent title={loadingText} />
         ) : data?.length > 0 ? (
           <>
-            {!filterComponent && tableTitle && <PageTitle {...tableTitle} />}
             {/* Table Section */}
             <div
               className={cn(
@@ -207,108 +225,33 @@ export const DataTable = <TData, TValue>({
               )}>
               <Table className={tableClassName}>
                 {!hideHeader && (
-                  <DataTableHeader table={table} hasRowActions={rowActions.length > 0} />
+                  <DataTableColumnHeader table={table} hasRowActions={rowActions.length > 0} />
                 )}
 
-                <TableBody>
-                  {mode === 'table' ? (
-                    // Traditional table rows
-                    table.getRowModel().rows.length > 0 ? (
-                      <>
-                        {table.getRowModel().rows.map((row) => (
-                          <TableRow
-                            key={row.id}
-                            data-state={row.getIsSelected() && 'selected'}
-                            onClick={() => onRowClick?.(row.original)}
-                            className={cn(
-                              onRowClick && 'cursor-pointer',
-                              rowClassName?.(row.original)
-                            )}>
-                            {row.getVisibleCells().map((cell) => (
-                              <TableCell
-                                key={cell.id}
-                                className={cn(cell.column.columnDef.meta?.className)}>
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                              </TableCell>
-                            ))}
-                            {rowActions && rowActions.length > 0 && (
-                              <TableCell className="p-2">
-                                <DataTableRowActions
-                                  row={row.original}
-                                  actions={rowActions}
-                                  hideRowActions={hideRowActions}
-                                  disableRowActions={disableRowActions}
-                                  maxInlineActions={maxInlineActions}
-                                />
-                              </TableCell>
-                            )}
-                          </TableRow>
-                        ))}
-                      </>
-                    ) : (
-                      <TableRow>
-                        <TableCell
-                          colSpan={columns.length + (rowActions.length > 0 ? 1 : 0)}
-                          className="h-24 text-center">
-                          <EmptyContent
-                            variant="minimal"
-                            {...{
-                              title: 'No results found',
-                              subtitle:
-                                "Try adjusting your search or filters to find what you're looking for.",
-                            }}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    )
-                  ) : (
-                    // Card-style rows
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow key={row.id} className="border-none hover:bg-transparent">
-                        <TableCell
-                          colSpan={columns.length + (rowActions.length > 0 ? 1 : 0)}
-                          className={cn('p-0 pb-2', !hideHeader && 'first:pt-3')}>
-                          <div
-                            onClick={() => onRowClick?.(row.original)}
-                            className={cn(
-                              'bg-card group relative rounded-lg border p-4 shadow-sm transition-all duration-200',
-                              'hover:border-primary/20 hover:shadow-md',
-                              onRowClick && 'cursor-pointer',
-                              row.getIsSelected() && 'ring-primary ring-2 ring-offset-2',
-                              tableCardClassName
-                            )}>
-                            {/* Card Content */}
-                            <div className="space-y-2">
-                              {row.getVisibleCells().map((cell) => (
-                                <div
-                                  key={cell.id}
-                                  className={cn(
-                                    'text-foreground dark:text-foreground text-sm',
-                                    cell.column.columnDef.meta?.className
-                                  )}>
-                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* Card Actions */}
-                            {rowActions && rowActions.length > 0 && (
-                              <div className="absolute top-2 right-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                                <DataTableRowActions
-                                  row={row.original}
-                                  actions={rowActions}
-                                  hideRowActions={hideRowActions}
-                                  disableRowActions={disableRowActions}
-                                  maxInlineActions={maxInlineActions}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
+                {mode === 'table' ? (
+                  <DataTableView
+                    table={table}
+                    columns={columns}
+                    rowActions={rowActions}
+                    hideRowActions={hideRowActions}
+                    disableRowActions={disableRowActions}
+                    maxInlineActions={maxInlineActions}
+                    onRowClick={onRowClick}
+                    rowClassName={rowClassName}
+                  />
+                ) : (
+                  <DataTableCardView
+                    table={table}
+                    columns={columns}
+                    rowActions={rowActions}
+                    hideRowActions={hideRowActions}
+                    disableRowActions={disableRowActions}
+                    maxInlineActions={maxInlineActions}
+                    onRowClick={onRowClick}
+                    hideHeader={hideHeader}
+                    tableCardClassName={tableCardClassName}
+                  />
+                )}
               </Table>
             </div>
 
