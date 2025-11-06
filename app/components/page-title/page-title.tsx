@@ -36,9 +36,7 @@ export const PageTitle = ({
           <span className={cn('text-2xl leading-none font-medium', titleClassName)}>{title}</span>
         )}
         {description && (
-          <div className={cn('text-muted-foreground text-sm', descriptionClassName)}>
-            {description}
-          </div>
+          <div className={cn('text-sm font-normal', descriptionClassName)}>{description}</div>
         )}
       </div>
       {actions && (

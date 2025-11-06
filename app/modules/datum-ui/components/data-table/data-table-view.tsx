@@ -37,12 +37,17 @@ export const DataTableView = <TData,>({
               onClick={() => onRowClick?.(row.original)}
               className={cn(onRowClick && 'cursor-pointer', rowClassName?.(row.original))}>
               {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id} className={cn(cell.column.columnDef.meta?.className)}>
+                <TableCell
+                  key={cell.id}
+                  className={cn(
+                    'bg-table-cell px-4 py-2.5',
+                    cell.column.columnDef.meta?.className
+                  )}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
               ))}
               {rowActions && rowActions.length > 0 && (
-                <TableCell className="p-2">
+                <TableCell className="bg-table-cell px-4 py-2.5">
                   <DataTableRowActions
                     row={row.original}
                     actions={rowActions}

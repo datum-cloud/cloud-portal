@@ -248,37 +248,29 @@ export default function OrgTeamPage() {
           }
 
           return (
-            <div className="flex items-center gap-2">
-              <ProfileIdentity
-                fallbackIcon={row.original.type === 'invitation' ? UserIcon : undefined}
-                name={name}
-                subtitle={subtitle}
-                size="sm"
-              />
-              {row.original.email === user?.email && (
-                <Badge variant="outline" className="py-0.5 text-xs font-normal">
-                  You
+            <div className="flex w-full items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <ProfileIdentity
+                  fallbackIcon={row.original.type === 'invitation' ? UserIcon : undefined}
+                  name={name}
+                  subtitle={subtitle}
+                  size="sm"
+                />
+                {row.original.email === user?.email && (
+                  <Badge variant="outline" className="py-0.5 text-xs font-normal">
+                    You
+                  </Badge>
+                )}
+              </div>
+
+              {row.original.type === 'invitation' && (
+                <Badge variant={row.original.invitationState === 'Pending' ? 'sunglow' : 'default'}>
+                  {row.original.invitationState === 'Pending'
+                    ? 'Invited'
+                    : row.original.invitationState}
                 </Badge>
               )}
             </div>
-          );
-        },
-      },
-      {
-        header: '',
-        accessorKey: 'invitationState',
-        enableSorting: false,
-        cell: ({ row }) => {
-          if (row.original.type === 'member') {
-            return <></>;
-          }
-
-          return (
-            <Badge variant={row.original.invitationState === 'Pending' ? 'sunglow' : 'default'}>
-              {row.original.invitationState === 'Pending'
-                ? 'Invited'
-                : row.original.invitationState}
-            </Badge>
           );
         },
       },
@@ -483,7 +475,6 @@ export default function OrgTeamPage() {
       data={orderedTeamMembers ?? []}
       tableTitle={{
         title: 'Team',
-        description: 'Manage your organization team',
         actions: (
           <Link
             to={getPathWithParams(paths.org.detail.team.invite, {
@@ -496,7 +487,29 @@ export default function OrgTeamPage() {
           </Link>
         ),
       }}
+      toolbar={{
+        layout: 'compact',
+        includeSearch: {
+          placeholder: 'Search team members...',
+        },
+        filtersDisplay: 'inline',
+      }}
       rowActions={rowActions}
+      emptyContent={{
+        title: 'No team members',
+        subtitle: 'Invite members to collaborate on this organization.',
+        actions: [
+          {
+            type: 'link',
+            label: 'Invite Member',
+            to: getPathWithParams(paths.org.detail.team.invite, {
+              orgId,
+            }),
+            variant: 'default',
+            icon: <UserPlusIcon className="size-4" />,
+          },
+        ],
+      }}
     />
   );
 }

@@ -21,7 +21,9 @@ export const DataTableColumnHeader = <TData,>({
               <TableHead
                 key={header.id}
                 className={cn(
-                  'hover:text-primary h-10 transition-colors',
+                  'text-foreground h-8 border-r px-4 py-3 font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5',
+                  !hasRowActions && 'last:border-r-0',
+                  header.column.getCanSort() && 'group hover:bg-table-accent',
                   header.column.columnDef.meta?.className
                 )}>
                 {header.isPlaceholder ? null : header.column.getCanSort() ? (
@@ -46,7 +48,11 @@ export const DataTableColumnHeader = <TData,>({
                         desc: <ChevronDown size={16} aria-hidden="true" />,
                       }[header.column.getIsSorted() as string]
                     ) : (
-                      <ChevronsUpDown className="opacity-60" size={16} aria-hidden="true" />
+                      <ChevronsUpDown
+                        className="text-foreground opacity-40 transition-opacity group-hover:opacity-100"
+                        size={16}
+                        aria-hidden="true"
+                      />
                     )}
                   </div>
                 ) : (
@@ -55,7 +61,7 @@ export const DataTableColumnHeader = <TData,>({
               </TableHead>
             );
           })}
-          {hasRowActions && <TableHead className="h-10 w-[50px]" />}
+          {hasRowActions && <TableHead className="h-8 w-[50px]" />}
         </TableRow>
       ))}
     </TableHeader>

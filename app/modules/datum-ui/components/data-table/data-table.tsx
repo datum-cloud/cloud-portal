@@ -179,6 +179,17 @@ export const DataTable = <TData, TValue>({
     },
   });
 
+  // Determine if we have actual data (not just filtered out)
+  const hasData = data && data.length > 0;
+  const hasFilteredData = table.getFilteredRowModel().rows.length > 0;
+  const isEmptyFromFilter = hasData && !hasFilteredData;
+
+  // Show toolbar if:
+  // 1. Not loading AND has data (even if filtered to 0 results)
+  // 2. Has any toolbar content (title, filters, or toolbar config)
+  const showToolbar =
+    !isLoading && hasData && Boolean(filterComponent || filters || tableTitle || toolbar);
+
   return (
     <DataTableProvider
       table={table}
@@ -199,23 +210,24 @@ export const DataTable = <TData, TValue>({
       globalSearchOptionsRef={globalSearchOptionsRef}>
       <div
         className={cn(
-          'mx-auto flex h-full w-full flex-col gap-4',
-          !isLoading && data?.length > 0 ? 'max-w-(--breakpoint-xl)' : '',
+          'mx-auto flex h-full w-full flex-col gap-8',
+          !isLoading && hasData ? 'max-w-(--breakpoint-xl)' : '',
           className
         )}>
         {/* Toolbar Section: Page Title + Filters */}
-        <DataTableToolbar
-          tableTitle={tableTitle}
-          filterComponent={filterComponent}
-          filters={filters}
-          config={toolbar}
-          show={!isLoading || Boolean(filterComponent || filters || tableTitle || toolbar)}
-        />
+        {showToolbar && (
+          <DataTableToolbar
+            tableTitle={tableTitle}
+            filterComponent={filterComponent}
+            filters={filters}
+            config={toolbar}
+          />
+        )}
 
         {isLoading ? (
           <DataTableLoadingContent title={loadingText} />
         ) : data?.length > 0 ? (
-          <>
+          <div className="space-y-6">
             {/* Table Section */}
             <div
               className={cn(
@@ -257,7 +269,7 @@ export const DataTable = <TData, TValue>({
 
             {/* Pagination Section */}
             <DataTablePagination table={table} />
-          </>
+          </div>
         ) : (
           <EmptyContent variant="dashed" {...emptyContent} />
         )}

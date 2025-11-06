@@ -97,9 +97,9 @@ export interface DataTableTitleProps {
 export interface DataTableSearchConfig {
   /** Placeholder text for search input */
   placeholder?: string;
-  /** Filter key for search (default: 'q') */
+  /** Filter key for search (default: 'q') - only used for single column search */
   filterKey?: string;
-  /** Search mode: 'search' for single column, 'global-search' for multi-column */
+  /** Search mode: 'global-search' for multi-column (default), 'search' for single column */
   mode?: 'search' | 'global-search';
   /** Columns to search in (for global-search mode) */
   searchableColumns?: string[];

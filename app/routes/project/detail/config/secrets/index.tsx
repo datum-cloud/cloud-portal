@@ -148,7 +148,6 @@ export default function SecretsPage() {
       }}
       tableTitle={{
         title: 'Secrets',
-        description: 'Manage secrets for your project resources',
         actions: (
           <Link
             to={getPathWithParams(paths.project.detail.config.secrets.new, {
@@ -160,6 +159,12 @@ export default function SecretsPage() {
             </Button>
           </Link>
         ),
+      }}
+      toolbar={{
+        layout: 'compact',
+        includeSearch: {
+          placeholder: 'Search secrets...',
+        },
       }}
       defaultSorting={[{ id: 'createdAt', desc: true }]}
       rowActions={rowActions}

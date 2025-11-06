@@ -327,12 +327,14 @@ interface DataTableProps {
 ```typescript
 interface DataTableSearchConfig {
   placeholder?: string; // Default: 'Search...'
-  filterKey?: string; // Default: 'q'
-  mode?: 'search' | 'global-search'; // Default: 'search'
-  searchableColumns?: string[]; // For global-search
+  filterKey?: string; // Default: 'q' (only used for single-column search)
+  mode?: 'search' | 'global-search'; // Default: 'global-search'
+  searchableColumns?: string[]; // For global-search mode
   debounce?: number; // Default: 300ms
 }
 ```
+
+**Note:** The default mode is now `'global-search'` which searches across all searchable columns client-side. Use `mode: 'search'` for single-column server-side search, or set `serverSideFiltering: true` in DataTable props.
 
 ### Toolbar Config
 

@@ -21,10 +21,11 @@ The DataTable component has been enhanced with a unified filter API:
 
 1. **Unified Filter API**: Auto-wrapping of filters - no manual `<DataTableFilter>` wrapper needed
 2. **Built-in Search**: Use `includeSearch` prop instead of `search`
-3. **Smart Filter Display**: Auto-collapse filters into dropdown on space constraints
-4. **Compact Toolbar**: Horizontal layout with left (search/filters) and right (actions) sections
-5. **Filter Dropdown**: Collapsible dropdown for secondary filters
-6. **Responsive Design**: Auto-adapts to mobile screens
+3. **Global Search by Default**: Search now defaults to multi-column global search (client-side)
+4. **Smart Filter Display**: Auto-collapse filters into dropdown on space constraints
+5. **Compact Toolbar**: Horizontal layout with left (search/filters) and right (actions) sections
+6. **Filter Dropdown**: Collapsible dropdown for secondary filters
+7. **Responsive Design**: Auto-adapts to mobile screens
 
 ### 🔄 Breaking Changes
 

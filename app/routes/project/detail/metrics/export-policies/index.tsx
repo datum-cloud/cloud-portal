@@ -196,7 +196,6 @@ export default function ExportPoliciesPage() {
       }}
       tableTitle={{
         title: 'Export Policies',
-        description: 'Manage export policies for your project resources',
         actions: (
           <Link
             to={getPathWithParams(paths.project.detail.metrics.exportPolicies.new, {
@@ -208,6 +207,12 @@ export default function ExportPoliciesPage() {
             </Button>
           </Link>
         ),
+      }}
+      toolbar={{
+        layout: 'compact',
+        includeSearch: {
+          placeholder: 'Search export policies...',
+        },
       }}
       rowActions={rowActions}
     />

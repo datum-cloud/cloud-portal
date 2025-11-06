@@ -106,5 +106,14 @@ export const QuotasTable = ({
     ];
   }, [data]);
 
-  return <DataTable columns={columns} data={data} />;
+  return (
+    <DataTable
+      columns={columns}
+      data={data}
+      emptyContent={{
+        title: 'No quotas found',
+        subtitle: 'No quota information is available at this time.',
+      }}
+    />
+  );
 };

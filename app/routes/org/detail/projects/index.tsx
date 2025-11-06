@@ -91,11 +91,7 @@ export default function OrgProjectsPage() {
         header: 'Description',
         accessorKey: 'description',
         cell: ({ row }) => {
-          return (
-            <span className="text-primary leading-none font-semibold">
-              {row.original.description}
-            </span>
-          );
+          return <span className="font-medium">{row.original.description}</span>;
         },
       },
       {
@@ -147,7 +143,6 @@ export default function OrgProjectsPage() {
       }}
       tableTitle={{
         title: 'Projects',
-        description: 'Use projects to organize resources deployed to Datum Cloud',
         actions: (
           <Link to={getPathWithParams(paths.org.detail.projects.new, { orgId })}>
             <Button>

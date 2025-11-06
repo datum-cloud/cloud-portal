@@ -161,7 +161,7 @@ export const DataTableToolbar = ({
       return {
         placeholder: 'Search...',
         filterKey: 'q',
-        mode: 'search',
+        mode: 'global-search', // Default to global-search
         debounce: 300,
       };
     }
@@ -169,7 +169,7 @@ export const DataTableToolbar = ({
     return {
       placeholder: toolbarConfig.includeSearch.placeholder || 'Search...',
       filterKey: toolbarConfig.includeSearch.filterKey || 'q',
-      mode: toolbarConfig.includeSearch.mode || 'search',
+      mode: toolbarConfig.includeSearch.mode || 'global-search', // Default to global-search
       searchableColumns: toolbarConfig.includeSearch.searchableColumns,
       debounce: toolbarConfig.includeSearch.debounce || 300,
     };
@@ -215,7 +215,7 @@ export const DataTableToolbar = ({
   // Render stacked layout (legacy/default)
   if (toolbarConfig.layout === 'stacked') {
     return (
-      <div className={cn('space-y-4', className)}>
+      <div className={cn('space-y-5', className)}>
         {/* Page Title Section */}
         {(finalTitle || finalDescription || finalActions) && (
           <PageTitle title={finalTitle} description={finalDescription} actions={finalActions} />
@@ -229,17 +229,20 @@ export const DataTableToolbar = ({
 
   // Render compact layout (new)
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className={cn('space-y-5', className)}>
       {/* Title and Description at Top (if provided) */}
       {(finalTitle || finalDescription) && (
         <PageTitle title={finalTitle} description={finalDescription} />
       )}
 
       {/* Compact Toolbar Row */}
-      <div className="flex items-center justify-between gap-4">
+
+      <DataTableFilter className="flex items-center justify-between gap-4">
         {/* Left Section: Search + Inline Filters */}
         <div className={cn('flex flex-1 items-center gap-2', leftSectionClassName)}>
-          {searchConfig && <DataTableToolbarSearch config={searchConfig} />}
+          {searchConfig && (
+            <DataTableToolbarSearch config={searchConfig} className="w-full rounded-md" />
+          )}
 
           {inlineFilters && inlineFilters.length > 0 && (
             <div className="flex items-center gap-2">
@@ -251,18 +254,20 @@ export const DataTableToolbar = ({
         </div>
 
         {/* Right Section: Dropdown Filters + Actions */}
-        <div className={cn('flex items-center gap-2', rightSectionClassName)}>
+        <div className={cn('flex items-center justify-end gap-3', rightSectionClassName)}>
           {dropdownFilters && dropdownFilters.length > 0 && (
             <DataTableToolbarFilterDropdown showFilterCount={toolbarConfig.showFilterCount}>
               {dropdownFilters.map((filter, index) => (
-                <div key={index}>{filter}</div>
+                <div key={index} className="border-b last:border-b-0">
+                  {filter}
+                </div>
               ))}
             </DataTableToolbarFilterDropdown>
           )}
 
           {finalActions && <div className="flex items-center gap-2">{finalActions}</div>}
         </div>
-      </div>
+      </DataTableFilter>
     </div>
   );
 };

@@ -78,6 +78,9 @@ interface DataTableContextType<TData = unknown, TValue = unknown> {
     searchableColumns?: string[];
     excludeColumns?: string[];
   }) => void;
+
+  // Filter strategy
+  serverSideFiltering: boolean;
 }
 
 export const DataTableContext = createContext<DataTableContextType<any, any> | null>(null);
@@ -352,6 +355,9 @@ export function DataTableProvider<TData, TValue>({
       resetGlobalFilter,
       globalSearchOptions,
       setGlobalSearchOptions,
+
+      // Filter strategy
+      serverSideFiltering,
     }),
     [
       // Table props
@@ -391,6 +397,9 @@ export function DataTableProvider<TData, TValue>({
       resetGlobalFilter,
       globalSearchOptions,
       setGlobalSearchOptions,
+
+      // Filter strategy
+      serverSideFiltering,
     ]
   );
 

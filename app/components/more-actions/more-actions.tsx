@@ -27,11 +27,13 @@ export const MoreActions = <TData,>({
   actions,
   className,
   disabled = false,
+  iconClassName,
 }: {
   row?: TData;
   actions: MoreActionsProps<TData>[];
   className?: string;
   disabled?: boolean;
+  iconClassName?: string;
 }) => {
   const [open, setOpen] = useState<boolean>(false);
   // Filter visible actions
@@ -55,7 +57,7 @@ export const MoreActions = <TData,>({
             'data-[state=open]:bg-accent size-7 p-0 focus-visible:ring-0 focus-visible:ring-offset-0',
             className
           )}>
-          <Ellipsis className="size-5" />
+          <Ellipsis className={cn('size-5', iconClassName)} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

@@ -236,7 +236,6 @@ export default function DomainsPage() {
       }}
       tableTitle={{
         title: 'Domains',
-        description: 'Manage Domains for your project resources',
         actions: (
           <Link
             to={getPathWithParams(paths.project.detail.domains.new, {
@@ -249,11 +248,17 @@ export default function DomainsPage() {
           </Link>
         ),
       }}
-      rowActions={rowActions}
-      filterComponent={
-        <DataTableFilter>
-          <DataTableFilter.GlobalSearch placeholder="Search..." />
+      toolbar={{
+        layout: 'compact',
+        includeSearch: {
+          placeholder: 'Search domains...',
+        },
+        filtersDisplay: 'dropdown',
+      }}
+      filters={
+        <>
           <DataTableFilter.Select
+            label="Status"
             placeholder="Status"
             filterKey="statusType"
             options={[
@@ -268,8 +273,9 @@ export default function DomainsPage() {
             ]}
             triggerClassName="min-w-32"
           />
-        </DataTableFilter>
+        </>
       }
+      rowActions={rowActions}
     />
   );
 }
