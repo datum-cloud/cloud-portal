@@ -38,7 +38,7 @@ export const Header = ({
       {/* Right Section */}
       <div className="flex h-9 flex-1 items-center justify-end">
         {/* <SearchBar /> */}
-        <div className="flex h-full items-center gap-0.5">
+        <div className="flex h-full items-center gap-1">
           {/* <Button variant="outline" size="sm" className="cursor-pointer px-2">
             Feedback
           </Button> */}
@@ -49,7 +49,7 @@ export const Header = ({
                   type="quaternary"
                   theme="borderless"
                   size="small"
-                  className="cursor-pointer">
+                  className="cursor-pointer px-2">
                   <CircleHelp size={18} />
                 </Button>
               </Link>

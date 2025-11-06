@@ -1,6 +1,6 @@
-import { DataTable } from '@/components/data-table/data-table';
 import { DateTime } from '@/components/date-time';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ICachedProject } from '@/resources/interfaces/project.interface';
 import { paths } from '@/utils/config/paths.config';
@@ -91,11 +91,7 @@ export default function OrgProjectsPage() {
         header: 'Description',
         accessorKey: 'description',
         cell: ({ row }) => {
-          return (
-            <span className="text-primary leading-none font-semibold">
-              {row.original.description}
-            </span>
-          );
+          return <span className="font-medium">{row.original.description}</span>;
         },
       },
       {
@@ -147,16 +143,21 @@ export default function OrgProjectsPage() {
       }}
       tableTitle={{
         title: 'Projects',
-        description: 'Use projects to organize resources deployed to Datum Cloud',
-        actions:
-          visibleProjects.length > 0 ? (
-            <Link to={getPathWithParams(paths.org.detail.projects.new, { orgId })}>
-              <Button>
-                <PlusIcon className="size-4" />
-                New Project
-              </Button>
-            </Link>
-          ) : null,
+        actions: (
+          <Link to={getPathWithParams(paths.org.detail.projects.new, { orgId })}>
+            <Button>
+              <PlusIcon className="size-4" />
+              New Project
+            </Button>
+          </Link>
+        ),
+      }}
+      toolbar={{
+        layout: 'compact',
+        includeSearch: {
+          placeholder: 'Search projects...',
+          filterKey: 'q',
+        },
       }}
       defaultSorting={[{ id: 'createdAt', desc: true }]}
     />

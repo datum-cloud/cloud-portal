@@ -2,6 +2,26 @@ import { DataTableInlineActions } from './data-table-inline-actions';
 import { DataTableRowActionsProps } from './data-table.types';
 import { MoreActions, MoreActionsProps } from '@/components/more-actions/more-actions';
 
+const RowMoreActions = <TData,>({
+  row,
+  actions,
+  disabled = false,
+}: {
+  row: TData;
+  actions: MoreActionsProps<TData>[];
+  disabled?: boolean;
+}) => {
+  return (
+    <MoreActions
+      row={row}
+      actions={actions}
+      disabled={disabled}
+      className="size-6 border"
+      iconClassName="size-3.5"
+    />
+  );
+};
+
 export const DataTableRowActions = <TData,>({
   row,
   actions,
@@ -32,11 +52,10 @@ export const DataTableRowActions = <TData,>({
       `DataTable: Too many inline actions (${inlineActions.length}). Maximum allowed is ${maxInlineActions}. All actions will be shown in dropdown.`
     );
     return (
-      <MoreActions
+      <RowMoreActions
         row={row}
         actions={actions as MoreActionsProps<TData>[]}
         disabled={isDisabled}
-        className="border"
       />
     );
   }
@@ -44,11 +63,10 @@ export const DataTableRowActions = <TData,>({
   // If only dropdown actions (backward compatibility)
   if (inlineActions.length === 0) {
     return (
-      <MoreActions
+      <RowMoreActions
         row={row}
         actions={dropdownActions as MoreActionsProps<TData>[]}
         disabled={isDisabled}
-        className="border"
       />
     );
   }
@@ -62,11 +80,10 @@ export const DataTableRowActions = <TData,>({
   return (
     <div className="flex items-center justify-end gap-1">
       <DataTableInlineActions row={row} actions={inlineActions} disabled={isDisabled} />
-      <MoreActions
+      <RowMoreActions
         row={row}
         actions={dropdownActions as MoreActionsProps<TData>[]}
         disabled={isDisabled}
-        className="border"
       />
     </div>
   );

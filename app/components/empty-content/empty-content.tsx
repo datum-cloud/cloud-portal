@@ -45,19 +45,19 @@ const BASE_STYLES = {
 // Variant-specific styles
 const VARIANT_STYLES = {
   default: {
-    container: 'rounded-lg border-2 border-border bg-background',
+    container: 'rounded-lg border-2 border-border bg-white dark:bg-transparent',
     content: '',
   },
   dashed: {
-    container: 'rounded-lg border-2 border-dashed border-border bg-background',
+    container: 'rounded-lg border-2 border-dashed border-border bg-white dark:bg-transparent',
     content: '',
   },
   minimal: {
-    container: 'bg-transparent',
+    container: 'bg-white dark:bg-transparent',
     content: '',
   },
   centered: {
-    container: 'bg-background',
+    container: 'bg-white dark:bg-transparent',
     content: '',
   },
 } as const;
@@ -65,7 +65,7 @@ const VARIANT_STYLES = {
 // Size configurations - comprehensive sizing system
 const SIZE_CONFIG = {
   xs: {
-    container: 'max-h-32 p-3',
+    container: 'h-32 p-3',
     content: 'gap-1.5',
     icon: 'size-6',
     image: 'size-16',
@@ -77,7 +77,7 @@ const SIZE_CONFIG = {
     buttonSize: 'sm' as const,
   },
   sm: {
-    container: 'max-h-48 p-4',
+    container: 'h-48 p-4',
     content: 'gap-2',
     icon: 'size-8',
     image: 'size-24',
@@ -89,7 +89,7 @@ const SIZE_CONFIG = {
     buttonSize: 'sm' as const,
   },
   md: {
-    container: 'max-h-72 p-6',
+    container: 'h-64 p-6',
     content: 'gap-3',
     icon: 'size-10',
     image: 'size-32',
@@ -101,7 +101,7 @@ const SIZE_CONFIG = {
     buttonSize: 'sm' as const,
   },
   lg: {
-    container: 'max-h-96 p-8',
+    container: 'h-80 p-8',
     content: 'gap-4',
     icon: 'size-12',
     image: 'size-40',
@@ -113,7 +113,7 @@ const SIZE_CONFIG = {
     buttonSize: 'default' as const,
   },
   xl: {
-    container: 'max-h-[32rem] p-12',
+    container: 'h-96 p-12',
     content: 'gap-6',
     icon: 'size-16',
     image: 'size-48',

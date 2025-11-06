@@ -1,8 +1,8 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DataTable } from '@/components/data-table/data-table';
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
 import { DateTime } from '@/components/date-time';
 import { SECRET_TYPES } from '@/features/secret/constants';
+import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
+import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table/data-table.types';
 import { createSecretsControl } from '@/resources/control-plane';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
@@ -148,7 +148,6 @@ export default function SecretsPage() {
       }}
       tableTitle={{
         title: 'Secrets',
-        description: 'Manage secrets for your project resources',
         actions: (
           <Link
             to={getPathWithParams(paths.project.detail.config.secrets.new, {
@@ -160,6 +159,12 @@ export default function SecretsPage() {
             </Button>
           </Link>
         ),
+      }}
+      toolbar={{
+        layout: 'compact',
+        includeSearch: {
+          placeholder: 'Search secrets...',
+        },
       }}
       defaultSorting={[{ id: 'createdAt', desc: true }]}
       rowActions={rowActions}

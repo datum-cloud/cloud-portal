@@ -1,4 +1,4 @@
-import { DataTable } from '@/components/data-table';
+import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { helpScoutAPI } from '@/modules/helpscout';
 import { IAllowanceBucketControlResponse } from '@/resources/interfaces/allowance-bucket.interface';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
@@ -106,5 +106,14 @@ export const QuotasTable = ({
     ];
   }, [data]);
 
-  return <DataTable columns={columns} data={data} />;
+  return (
+    <DataTable
+      columns={columns}
+      data={data}
+      emptyContent={{
+        title: 'No quotas found',
+        subtitle: 'No quota information is available at this time.',
+      }}
+    />
+  );
 };

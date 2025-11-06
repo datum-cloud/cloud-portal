@@ -30,9 +30,9 @@ const UserItem = ({
 }) => {
   return (
     <div className={cn('flex items-center gap-2 px-1 py-1.5 text-left text-sm', className)}>
-      <Avatar className="size-8 rounded-lg">
+      <Avatar className="size-8 rounded-md">
         {/* <AvatarImage src={user?.avatarRemoteURL} alt={fullName} /> */}
-        <AvatarFallback className="bg-sidebar dark:bg-secondary font-semibold">
+        <AvatarFallback className="bg-primary text-primary-foreground rounded-md font-semibold">
           {getInitials(fullName)}
         </AvatarFallback>
       </Avatar>

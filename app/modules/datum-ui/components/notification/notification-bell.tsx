@@ -12,13 +12,13 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
       type="quaternary"
       theme="borderless"
       size="small"
-      className="relative cursor-pointer"
+      className="relative cursor-pointer px-2"
       aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}>
       <Bell size={18} />
       {unreadCount > 0 && (
         <Badge
           variant="butter"
-          className="bg-tuscany text-cream absolute top-[2px] right-[4px] flex size-4 items-center justify-center rounded-full p-0 text-[10px] leading-0">
+          className="bg-primary text-primary-foreground absolute top-[2px] right-[4px] flex size-4 items-center justify-center rounded-full p-0 text-[10px] leading-0">
           {unreadCount > 99 ? '99+' : unreadCount}
         </Badge>
       )}

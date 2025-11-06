@@ -49,7 +49,7 @@ function FilterBar({
   // Default variant - simple filters without card wrapper
   if (variant === 'default') {
     return (
-      <div className={cn('w-full', className)}>
+      <>
         {showHeader && (
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2 text-lg font-semibold">
@@ -74,14 +74,14 @@ function FilterBar({
             )}
           </div>
         )}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={cn('flex flex-wrap items-center gap-2', className)}>
           {Children.map(children, (child: ReactNode, index: number) => (
-            <div key={index} className="flex-shrink-0">
+            <div key={index} className="flex-1 flex-shrink-0">
               {child}
             </div>
           ))}
         </div>
-      </div>
+      </>
     );
   }
 

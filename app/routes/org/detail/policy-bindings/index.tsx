@@ -1,6 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DataTableRowActionsProps } from '@/components/data-table';
 import { PolicyBindingTable } from '@/features/policy-binding';
+import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { createPolicyBindingsControl } from '@/resources/control-plane';
 import { IPolicyBindingControlResponse } from '@/resources/interfaces/policy-binding.interface';
 import { ROUTE_PATH as POLICY_BINDINGS_ACTIONS_PATH } from '@/routes/api/policy-bindings';

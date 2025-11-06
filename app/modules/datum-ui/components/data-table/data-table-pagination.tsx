@@ -1,7 +1,7 @@
 import { Button } from '@datum-ui/components';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { Table as TTable } from '@tanstack/react-table';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 export const DataTablePagination = <TData,>({ table }: { table: TTable<TData> }) => {
   return (
@@ -14,7 +14,7 @@ export const DataTablePagination = <TData,>({ table }: { table: TTable<TData> })
             onValueChange={(value) => {
               table.setPageSize(Number(value));
             }}>
-            <SelectTrigger className="h-8 min-h-8 w-[70px]">
+            <SelectTrigger className="border-secondary/20 hover:border-secondary w-[70px] transition-all">
               <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
@@ -26,54 +26,32 @@ export const DataTablePagination = <TData,>({ table }: { table: TTable<TData> })
             </SelectContent>
           </Select>
         </div>
-        <div className="flex items-center justify-center text-sm font-medium">
-          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-        </div>
       </div>
       <div className="flex items-center space-x-2">
+        <div className="mr-5 flex items-center justify-center text-sm font-medium">
+          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+        </div>
         <Button
-          type="quaternary"
+          type="secondary"
           theme="outline"
-          className="hidden h-8 w-8 p-0 lg:flex"
-          onClick={() => {
-            table.setPageIndex(0);
-          }}
-          disabled={!table.getCanPreviousPage()}>
-          <span className="sr-only">Go to first page</span>
-          <ChevronsLeft className="size-4" />
-        </Button>
-        <Button
-          type="quaternary"
-          theme="outline"
-          className="h-8 w-8 p-0"
+          className="disabled:cursor-not-allowed disabled:opacity-20"
           onClick={() => {
             table.previousPage();
           }}
           disabled={!table.getCanPreviousPage()}>
           <span className="sr-only">Go to previous page</span>
-          <ChevronLeft className="size-4" />
+          <ArrowLeft className="size-4" />
         </Button>
         <Button
-          type="quaternary"
+          type="secondary"
           theme="outline"
-          className="h-8 w-8 p-0"
+          className="disabled:cursor-not-allowed disabled:opacity-20"
           onClick={() => {
             table.nextPage();
           }}
           disabled={!table.getCanNextPage()}>
           <span className="sr-only">Go to next page</span>
-          <ChevronRight className="size-4" />
-        </Button>
-        <Button
-          type="quaternary"
-          theme="outline"
-          className="hidden h-8 w-8 p-0 lg:flex"
-          onClick={() => {
-            table.setPageIndex(table.getPageCount() - 1);
-          }}
-          disabled={!table.getCanNextPage()}>
-          <span className="sr-only">Go to last page</span>
-          <ChevronsRight className="size-4" />
+          <ArrowRight className="size-4" />
         </Button>
       </div>
     </div>

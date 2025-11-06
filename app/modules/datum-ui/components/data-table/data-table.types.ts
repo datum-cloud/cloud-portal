@@ -17,11 +17,25 @@ export interface DataTableProps<TData, TValue> {
   pageSize?: number; // Custom page size (default: 20)
 
   // Filter system (compound components)
+  /**
+   * @deprecated Use `filters` prop instead. This will be removed in a future version.
+   * Legacy filter component wrapped in DataTableFilter context
+   */
   filterComponent?: React.ReactNode;
+
+  /**
+   * New unified filter system - filters are auto-wrapped in DataTableFilter context
+   * No manual wrapping needed
+   */
+  filters?: React.ReactNode;
+
   defaultFilters?: Record<string, any>;
   onFiltersChange?: (filters: Record<string, any>) => void;
   onFilteringStart?: () => void; // Callback when filtering starts (for loading states)
   onFilteringEnd?: () => void; // Callback when filtering completes
+
+  // New toolbar configuration
+  toolbar?: DataTableToolbarConfig;
 
   // Filter strategy
   serverSideFiltering?: boolean; // true = API/server filtering, false = client/table filtering (default: false)
@@ -71,6 +85,60 @@ export interface DataTableTitleProps {
   title?: string;
   description?: string;
   actions?: React.ReactNode;
+}
+
+// =============================================================================
+// New Toolbar Configuration Types
+// =============================================================================
+
+/**
+ * Search configuration for the toolbar
+ */
+export interface DataTableSearchConfig {
+  /** Placeholder text for search input */
+  placeholder?: string;
+  /** Filter key for search (default: 'q') - only used for single column search */
+  filterKey?: string;
+  /** Search mode: 'global-search' for multi-column (default), 'search' for single column */
+  mode?: 'search' | 'global-search';
+  /** Columns to search in (for global-search mode) */
+  searchableColumns?: string[];
+  /** Debounce delay in milliseconds (default: 300) */
+  debounce?: number;
+}
+
+/**
+ * Toolbar layout configuration
+ */
+export interface DataTableToolbarConfig {
+  /** Layout mode for the toolbar */
+  layout?: 'stacked' | 'compact';
+
+  /**
+   * @deprecated Use `includeSearch` instead. This will be removed in a future version.
+   */
+  search?: boolean | DataTableSearchConfig;
+
+  /**
+   * Include built-in search filter in the toolbar
+   * Search is just another filter, auto-wrapped like other filters
+   */
+  includeSearch?: boolean | DataTableSearchConfig;
+
+  /** How to display filters */
+  filtersDisplay?: 'inline' | 'dropdown' | 'auto';
+
+  /** Maximum inline filters before moving to dropdown (for 'auto' mode) */
+  maxInlineFilters?: number;
+
+  /** Specific filters to always show inline (overrides auto logic) */
+  primaryFilters?: string[];
+
+  /** Show filter count badge on dropdown button */
+  showFilterCount?: boolean;
+
+  /** Enable responsive behavior (auto-collapse on mobile) */
+  responsive?: boolean;
 }
 
 export interface DataTableEmptyContentProps {

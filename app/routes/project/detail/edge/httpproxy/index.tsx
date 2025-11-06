@@ -1,8 +1,8 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DataTable } from '@/components/data-table/data-table';
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
 import { DateTime } from '@/components/date-time';
 import { StatusBadge } from '@/components/status-badge/status-badge';
+import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
+import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table/data-table.types';
 import { createHttpProxiesControl } from '@/resources/control-plane';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
@@ -87,7 +87,7 @@ export default function HttpProxyPage() {
         header: 'Resource Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return <span className="text-primary font-semibold">{row.original.name}</span>;
+          return <span className="font-medium">{row.original.name}</span>;
         },
       },
       {
@@ -186,7 +186,6 @@ export default function HttpProxyPage() {
       }}
       tableTitle={{
         title: 'HTTPProxy',
-        description: 'Manage HTTPProxy for your project resources',
         actions: (
           <Link
             to={getPathWithParams(paths.project.detail.httpProxy.new, {
@@ -198,6 +197,12 @@ export default function HttpProxyPage() {
             </Button>
           </Link>
         ),
+      }}
+      toolbar={{
+        layout: 'compact',
+        includeSearch: {
+          placeholder: 'Search proxies...',
+        },
       }}
       rowActions={rowActions}
     />

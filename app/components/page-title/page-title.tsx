@@ -1,27 +1,50 @@
 import { cn } from '@shadcn/lib/utils';
 
+export interface PageTitleProps {
+  title?: string;
+  description?: React.ReactNode;
+  actions?: React.ReactNode;
+  className?: string;
+  titleClassName?: string;
+  descriptionClassName?: string;
+  actionsClassName?: string;
+  actionsPosition?: 'inline' | 'bottom';
+}
+
 export const PageTitle = ({
   title,
   description,
   actions,
   className,
   titleClassName,
-}: {
-  title?: string;
-  description?: React.ReactNode;
-  actions?: React.ReactNode;
-  className?: string;
-  titleClassName?: string;
-}) => {
+  descriptionClassName,
+  actionsClassName,
+  actionsPosition = 'inline',
+}: PageTitleProps) => {
+  const isInline = actionsPosition === 'inline';
+
   return (
-    <div className={cn('flex w-full items-center justify-between', className)}>
-      <div className="flex flex-col justify-start gap-1">
+    <div
+      className={cn(
+        'flex w-full',
+        isInline ? 'items-center justify-between' : 'flex-col gap-3',
+        className
+      )}>
+      <div
+        className={cn('flex', isInline ? 'flex-col justify-start gap-1' : 'w-full flex-col gap-1')}>
         {title && (
-          <span className={cn('text-2xl leading-none font-bold', titleClassName)}>{title}</span>
+          <span className={cn('text-2xl leading-none font-medium', titleClassName)}>{title}</span>
         )}
-        {description && <div className="text-muted-foreground text-sm">{description}</div>}
+        {description && (
+          <div className={cn('text-sm font-normal', descriptionClassName)}>{description}</div>
+        )}
       </div>
-      {actions && <div className="flex justify-end gap-1 pl-2">{actions}</div>}
+      {actions && (
+        <div
+          className={cn('flex gap-1', isInline ? 'justify-end pl-2' : 'w-full', actionsClassName)}>
+          {actions}
+        </div>
+      )}
     </div>
   );
 };

@@ -13,10 +13,25 @@ export { DataTable } from './data-table';
 export { DataTableProvider } from './data-table.context';
 
 // Table sub-components
-export { DataTableHeader } from './data-table-header';
+export { DataTableColumnHeader } from './data-table-column-header';
+export { DataTableToolbar } from './data-table-toolbar';
+export { DataTableToolbarSearch } from './data-table-toolbar-search';
+export { DataTableToolbarFilterDropdown } from './data-table-toolbar-filter-dropdown';
 export { DataTablePagination } from './data-table-pagination';
 export { DataTableRowActions } from './data-table-row-actions';
 export { DataTableLoadingContent } from './data-table-loading';
+
+// Table view components
+export { DataTableView } from './data-table-view';
+export { DataTableCardView } from './data-table-card-view';
+
+// Table sub-component types
+export type { DataTableColumnHeaderProps } from './data-table-column-header';
+export type { DataTableToolbarProps } from './data-table-toolbar';
+export type { DataTableToolbarSearchProps } from './data-table-toolbar-search';
+export type { DataTableToolbarFilterDropdownProps } from './data-table-toolbar-filter-dropdown';
+export type { DataTableViewProps } from './data-table-view';
+export type { DataTableCardViewProps } from './data-table-card-view';
 
 // =============================================================================
 // Core Types
@@ -28,6 +43,8 @@ export type {
   DataTableRowActionsProps,
   DataTableTitleProps,
   DataTableEmptyContentProps,
+  DataTableToolbarConfig,
+  DataTableSearchConfig,
   SearchParams,
 } from './data-table.types';
 
@@ -99,7 +116,7 @@ export type { CheckboxFilterProps, CheckboxOption } from './filter/components/ch
 // =============================================================================
 
 // Re-export everything from filter for backward compatibility
-// This ensures existing imports from '@/components/data-table/filter' continue to work
+// This ensures existing imports from '@/modules/datum-ui/components/data-table/filter' continue to work
 export * from './filter';
 
 // =============================================================================

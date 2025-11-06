@@ -30,8 +30,8 @@ Scope variables to the theme class so we can swap themes by class
    ======================================== */
 
   /* Base colors */
-  --background: var(--white);
-  --foreground: hsl(240 10% 3.9%);
+  --background: var(--glacier-mist-700);
+  --foreground: var(--midnight-fjord);
 
   /* Card colors */
   --card: hsl(0 0% 100%);
@@ -100,6 +100,13 @@ Scope variables to the theme class so we can swap themes by class
   --info-300: hsl(221, 91%, 93%);
   --info-500: hsl(210, 92%, 45%);
 
+  /* Input */
+  --placeholder-input: var(--app-dark-utility-2);
+
+  /* Table */
+  --table-accent: var(--glacier-mist-800);
+  --table-cell: hsl(0 0% 100%);
+
   /* ========================================
    DARK MODE OVERRIDES
    ======================================== */
@@ -145,7 +152,7 @@ Scope variables to the theme class so we can swap themes by class
     --destructive-foreground: var(--glacier-mist-700);
 
     /* UI elements */
-    --border: var(--app-dark-utility-2);
+    --border: var(--app-dark-utility-1);
     --input: var(--app-dark-utility-2);
     --ring: var(--app-dark-utility-3);
 
@@ -174,6 +181,11 @@ Scope variables to the theme class so we can swap themes by class
     --info-100: hsl(216, 87%, 65%);
     --info-300: hsl(215, 100%, 6%);
     --info-500: hsl(223, 43%, 17%);
+
+    --placeholder-input: var(--glacier-mist-700);
+
+    --table-accent: var(--app-dark-utility-1);
+    --table-cell: var(--midnight-fjord);
   }
 }
 
@@ -189,6 +201,11 @@ TAILWIND CUSTOM UTILITIES FOR THEME
 
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-placeholder-input: var(--placeholder-input);
+
+  --color-table-accent: var(--table-accent);
+  --color-table-cell: var(--table-cell);
 }
 
 /* ========================================

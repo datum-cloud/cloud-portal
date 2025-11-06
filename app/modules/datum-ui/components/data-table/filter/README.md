@@ -20,8 +20,8 @@ A cutting-edge filter system for React data tables with debounced search, popove
 ### Basic Usage (Clean & Simple)
 
 ```tsx
-import { DataTable } from '@/components/data-table/data-table';
-import { DataTableFilter } from '@/components/data-table/filter';
+import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
+import { DataTableFilter } from '@/modules/datum-ui/components/data-table/filter';
 
 function MyTable() {
   return (
@@ -254,7 +254,7 @@ Space-saving collapsible card for complex filter sets.
 Access the complete unified context with both table and filter state.
 
 ```tsx
-import { useDataTable } from '@/components/data-table/data-table.context';
+import { useDataTable } from '@/modules/datum-ui/components/data-table/data-table.context';
 
 function CustomComponent() {
   const {
@@ -288,7 +288,7 @@ function CustomComponent() {
 Access only filter-related functionality for backward compatibility.
 
 ```tsx
-import { useDataTableFilter } from '@/components/data-table/filter';
+import { useDataTableFilter } from '@/modules/datum-ui/components/data-table/filter';
 
 function FilterStatus() {
   const {
@@ -310,7 +310,7 @@ function FilterStatus() {
 Hook for individual filter components with optimized re-renders.
 
 ```tsx
-import { useFilter } from '@/components/data-table/filter';
+import { useFilter } from '@/modules/datum-ui/components/data-table/filter';
 
 function CustomFilter({ filterKey }: { filterKey: string }) {
   const { value, setValue, reset } = useFilter<string>(filterKey);
@@ -328,7 +328,7 @@ import {
   useTableData,
   useFilterData,
   useTableState,
-} from '@/components/data-table/data-table.context';
+} from '@/modules/datum-ui/components/data-table/data-table.context';
 
 // Only re-renders when table data changes
 const { rows, pageCount, canNextPage } = useTableData();
@@ -412,7 +412,7 @@ Default variant uses flexible wrapping, card variant uses CSS Grid:
 ### Creating Custom Filter Components
 
 ```tsx
-import { useFilter } from '@/components/data-table/filter';
+import { useFilter } from '@/modules/datum-ui/components/data-table/filter';
 
 interface CustomFilterProps {
   filterKey: string;
@@ -466,8 +466,8 @@ function ExternalControls() {
 ### Testing Filter Components
 
 ```tsx
-import { DataTableProvider } from '@/components/data-table/data-table.context';
-import { DataTableFilter } from '@/components/data-table/filter';
+import { DataTableProvider } from '@/modules/datum-ui/components/data-table/data-table.context';
+import { DataTableFilter } from '@/modules/datum-ui/components/data-table/filter';
 import { render, screen, fireEvent } from '@testing-library/react';
 
 test('search filter updates value', () => {

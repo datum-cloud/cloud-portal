@@ -21,7 +21,7 @@ A powerful, feature-rich data table component built with React, TypeScript, and 
 ### Basic Usage
 
 ```tsx
-import { DataTable } from '@/components/data-table';
+import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 
 interface User {
@@ -50,8 +50,8 @@ function UsersTable() {
 ### With Filtering
 
 ```tsx
-import { DataTable } from '@/components/data-table';
-import { DataTableFilter } from '@/components/data-table/filter';
+import { DataTable } from '@/modules/datum-ui/components/data-table';
+import { DataTableFilter } from '@/modules/datum-ui/components/data-table/filter';
 
 function UsersTableWithFilters() {
   return (
@@ -849,7 +849,7 @@ Individual filters use `useFilter` hook for isolated updates - only re-render wh
 Access filter state programmatically:
 
 ```tsx
-import { useFilter, useDataTableFilter } from '@/components/data-table';
+import { useFilter, useDataTableFilter } from '@/modules/datum-ui/components/data-table';
 
 function CustomFilterComponent() {
   // Access specific filter
@@ -1139,7 +1139,7 @@ function UsersPage() {
 Access the complete table and filter state from any component within the DataTable.
 
 ```tsx
-import { useDataTable } from '@/components/data-table/data-table.context';
+import { useDataTable } from '@/modules/datum-ui/components/data-table/data-table.context';
 
 function CustomTableControls() {
   const {
@@ -1177,7 +1177,7 @@ function CustomTableControls() {
 Access only filter-related functionality.
 
 ```tsx
-import { useDataTableFilter } from '@/components/data-table/filter';
+import { useDataTableFilter } from '@/modules/datum-ui/components/data-table/filter';
 
 function FilterSummary() {
   const { filterState, hasActiveFilters, getActiveFilterCount, resetAllFilters } =
@@ -1201,7 +1201,7 @@ function FilterSummary() {
 ### Basic Testing
 
 ```tsx
-import { DataTable } from '@/components/data-table';
+import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { render, screen, fireEvent } from '@testing-library/react';
 
 const mockData = [

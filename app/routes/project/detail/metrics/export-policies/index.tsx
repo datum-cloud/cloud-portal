@@ -1,8 +1,8 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DataTable } from '@/components/data-table/data-table';
-import { DataTableRowActionsProps } from '@/components/data-table/data-table.types';
 import { DateTime } from '@/components/date-time';
 import { ExportPolicyStatus } from '@/features/observe/export-policies/status';
+import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
+import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table/data-table.types';
 import { createExportPoliciesControl } from '@/resources/control-plane';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/export-policies';
@@ -196,7 +196,6 @@ export default function ExportPoliciesPage() {
       }}
       tableTitle={{
         title: 'Export Policies',
-        description: 'Manage export policies for your project resources',
         actions: (
           <Link
             to={getPathWithParams(paths.project.detail.metrics.exportPolicies.new, {
@@ -208,6 +207,12 @@ export default function ExportPoliciesPage() {
             </Button>
           </Link>
         ),
+      }}
+      toolbar={{
+        layout: 'compact',
+        includeSearch: {
+          placeholder: 'Search export policies...',
+        },
       }}
       rowActions={rowActions}
     />
