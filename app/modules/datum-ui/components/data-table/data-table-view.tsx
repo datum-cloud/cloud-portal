@@ -64,7 +64,7 @@ export const DataTableView = <TData,>({
         <TableRow>
           <TableCell
             colSpan={columns.length + (rowActions.length > 0 ? 1 : 0)}
-            className="h-24 text-center">
+            className="p-0 text-center">
             <EmptyContent
               variant="minimal"
               {...{
