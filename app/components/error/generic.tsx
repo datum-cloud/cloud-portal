@@ -37,14 +37,15 @@ export const GenericError = ({ message }: { message: string }) => {
         </div>
         <div className="flex items-center gap-2">
           <Link to={paths.home}>
-            <Button size="sm">
+            <Button size="small">
               <HomeIcon className="size-4" />
               Back to Home
             </Button>
           </Link>
           <Button
-            variant="outline"
-            size="sm"
+            type="quaternary"
+            theme="outline"
+            size="small"
             onClick={() => {
               navigate(0);
             }}>

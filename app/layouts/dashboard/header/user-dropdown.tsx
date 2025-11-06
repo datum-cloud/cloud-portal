@@ -32,7 +32,7 @@ const UserItem = ({
     <div className={cn('flex items-center gap-2 px-1 py-1.5 text-left text-sm', className)}>
       <Avatar className="size-8 rounded-lg">
         {/* <AvatarImage src={user?.avatarRemoteURL} alt={fullName} /> */}
-        <AvatarFallback className="bg-warm-white dark:bg-secondary font-semibold">
+        <AvatarFallback className="bg-sidebar dark:bg-secondary font-semibold">
           {getInitials(fullName)}
         </AvatarFallback>
       </Avatar>
@@ -58,9 +58,9 @@ export const UserDropdown = ({ className }: { className?: string }) => {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          type="button"
-          variant="ghost"
-          size="sm"
+          type="quaternary"
+          theme="borderless"
+          size="small"
           className={cn(
             'h-8 cursor-pointer p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden data-[state=open]:bg-transparent',
             className
@@ -94,8 +94,9 @@ export const UserDropdown = ({ className }: { className?: string }) => {
             submit(null, { method: 'POST', action: paths.auth.logOut });
           }}>
           <Button
-            type="submit"
-            variant="link"
+            htmlType="submit"
+            type="quaternary"
+            theme="borderless"
             className="focus:text-destructive flex h-8 w-full cursor-pointer justify-start text-left hover:bg-transparent hover:no-underline focus-visible:ring-0 focus-visible:ring-offset-0">
             <LogOut className="text-destructive size-4" />
             Log out

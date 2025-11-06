@@ -100,7 +100,7 @@ export default function ExportPolicyOverview() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4, duration: 0.3 }}
               className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
+              <Button type="quaternary" theme="outline" size="small">
                 <Link
                   className="flex items-center gap-2"
                   to={getPathWithParams(paths.project.detail.metrics.exportPolicies.detail.edit, {

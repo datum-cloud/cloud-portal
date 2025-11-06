@@ -38,15 +38,19 @@ export const Header = ({
       {/* Right Section */}
       <div className="flex h-9 flex-1 items-center justify-end">
         {/* <SearchBar /> */}
-        <div className="flex h-full items-center gap-2">
+        <div className="flex h-full items-center gap-0.5">
           {/* <Button variant="outline" size="sm" className="cursor-pointer px-2">
             Feedback
           </Button> */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Link to="https://datum.net/docs/" target="_blank" rel="noreferrer">
-                <Button variant="ghost" size="sm" className="cursor-pointer">
-                  <CircleHelp />
+                <Button
+                  type="quaternary"
+                  theme="borderless"
+                  size="small"
+                  className="cursor-pointer">
+                  <CircleHelp size={18} />
                 </Button>
               </Link>
             </TooltipTrigger>
@@ -54,11 +58,11 @@ export const Header = ({
               <p>Docs</p>
             </TooltipContent>
           </Tooltip>
+
+          <NotificationDropdown pollingInterval={60000} defaultTab="invitation" />
+
+          <UserDropdown className="ml-1.5" />
         </div>
-
-        <NotificationDropdown pollingInterval={60000} defaultTab="invitation" />
-
-        <UserDropdown className="ml-2" />
       </div>
     </header>
   );

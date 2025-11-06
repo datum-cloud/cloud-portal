@@ -90,9 +90,9 @@ export const QuotasTable = ({
               </div>
               {percentage > 90 && (
                 <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
+                  type="quaternary"
+                  theme="outline"
+                  size="small"
                   className="h-7 gap-1 px-2 text-xs"
                   onClick={() => handleRequestIncrease(row.original)}>
                   <ArrowUpIcon className="h-4 w-4" />

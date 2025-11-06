@@ -100,9 +100,9 @@ export const RulesForm = ({
 
               {ruleList.length > 1 && (
                 <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
+                  type="quaternary"
+                  theme="borderless"
+                  size="small"
                   className={cn('text-destructive relative top-2 w-fit')}
                   onClick={() => {
                     defaultValue?.splice(index, 1);
@@ -116,9 +116,9 @@ export const RulesForm = ({
         })}
       </div>
       <Button
-        type="button"
-        variant="outline"
-        size="sm"
+        type="quaternary"
+        theme="outline"
+        size="small"
         className="ml-1 w-fit"
         onClick={() =>
           form.insert({

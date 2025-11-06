@@ -76,10 +76,10 @@ export const QuickSetupCard = ({
       <CardFooter className="flex flex-col gap-2">
         <Button
           className="w-full font-medium"
-          type="button"
+          htmlType="button"
           onClick={handleQuickSetup}
           disabled={fetcher.state === 'submitting' || fetcher.state === 'loading'}
-          isLoading={fetcher.state === 'submitting' || fetcher.state === 'loading'}>
+          loading={fetcher.state === 'submitting' || fetcher.state === 'loading'}>
           <ExternalLink className="size-4" />
           Set Up DNS Automatically with CloudValid
         </Button>

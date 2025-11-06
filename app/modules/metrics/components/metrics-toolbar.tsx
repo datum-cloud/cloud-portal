@@ -52,8 +52,9 @@ function Filters({
             {filterCount} filter{filterCount !== 1 ? 's' : ''}
           </span>
           <Button
-            variant="ghost"
-            size="sm"
+            type="quaternary"
+            theme="borderless"
+            size="small"
             onClick={resetAllFilters}
             className="hover:bg-destructive hover:text-destructive-foreground h-7 px-2 text-xs">
             <RotateCcw className="mr-1 h-3 w-3" />

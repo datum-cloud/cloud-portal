@@ -135,7 +135,7 @@ export const EditSecretMetadata = ({
               }}>
               Return to List
             </Button> */}
-            <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+            <Button htmlType="submit" disabled={isPending} loading={isPending}>
               {isPending ? 'Saving' : 'Save'}
             </Button>
           </CardFooter>

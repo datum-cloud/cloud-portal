@@ -60,8 +60,8 @@ export function SearchInput({
           trailing={
             value && (
               <Button
-                type="button"
-                variant="ghost"
+                type="quaternary"
+                theme="borderless"
                 size="icon"
                 onClick={onClear}
                 className="text-muted-foreground hover:text-primary size-4 p-0 hover:bg-transparent">

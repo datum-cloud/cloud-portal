@@ -75,7 +75,7 @@ export const OrganizationDangerCard = ({ organization }: { organization: IOrgani
         </Alert>
       </CardContent>
       <CardFooter className="border-destructive/50 bg-destructive/10 flex justify-end border-t px-6 py-2">
-        <Button variant="destructive" onClick={() => deleteOrganization()}>
+        <Button type="danger" theme="solid" onClick={() => deleteOrganization()}>
           Delete
         </Button>
       </CardFooter>

@@ -63,8 +63,9 @@ function FilterBar({
             </div>
             {hasActiveFiltersValue && (
               <Button
-                variant="ghost"
-                size="sm"
+                type="quaternary"
+                theme="borderless"
+                size="small"
                 onClick={resetAllFilters}
                 className="hover:bg-destructive hover:text-destructive-foreground h-8 px-2 text-xs">
                 <RotateCcw className="mr-1 h-3 w-3" />
@@ -103,8 +104,9 @@ function FilterBar({
             <div className="flex items-center gap-2">
               {hasActiveFiltersValue && (
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  type="quaternary"
+                  theme="borderless"
+                  size="small"
                   onClick={resetAllFilters}
                   className="h-7 px-2 text-xs">
                   <RotateCcw className="mr-1 h-3 w-3" />
@@ -114,7 +116,11 @@ function FilterBar({
               {collapsible && (
                 <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
                   <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                    <Button
+                      type="quaternary"
+                      theme="borderless"
+                      size="small"
+                      className="h-7 w-7 p-0">
                       <ChevronDown
                         className={cn('h-4 w-4 transition-transform', isExpanded && 'rotate-180')}
                       />

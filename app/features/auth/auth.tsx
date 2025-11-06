@@ -23,9 +23,10 @@ export default function AuthCard({ mode }: { mode: 'login' | 'signup' }) {
           </div>
           <div className="grid w-full grid-cols-1 gap-4">
             <Button
-              variant="outline"
+              type="quaternary"
+              theme="outline"
               className="w-full cursor-pointer"
-              isLoading={
+              loading={
                 navigation.state === 'submitting' && navigation.formAction === paths.auth.root
               }
               disabled={navigation.state === 'submitting'}

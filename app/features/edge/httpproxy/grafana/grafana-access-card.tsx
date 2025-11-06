@@ -25,7 +25,7 @@ export const GrafanaAccessCard = ({
         title: 'Sign Up for Grafana Cloud',
         description: "If you don't have an account, create one to get started.",
         body: (
-          <Button type="button" size="sm" variant="outline" className="w-fit">
+          <Button type="quaternary" theme="outline" size="small" className="w-fit">
             <Link
               to="https://grafana.com"
               target="_blank"

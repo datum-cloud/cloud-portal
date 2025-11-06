@@ -243,8 +243,8 @@ export const NetworkForm = ({
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             <Button
-              type="button"
-              variant="link"
+              type="quaternary"
+              theme="borderless"
               disabled={isPending}
               onClick={() => {
                 if (onCancel) {
@@ -257,10 +257,9 @@ export const NetworkForm = ({
             </Button>
             <Button
               form={form.id}
-              variant="default"
-              type="submit"
+              htmlType="submit"
               disabled={isPending || isLoading}
-              isLoading={isPending || isLoading}>
+              loading={isPending || isLoading}>
               {isPending || isLoading
                 ? `${isEdit ? 'Saving' : 'Creating'}`
                 : `${isEdit ? 'Save' : 'Create'}`}

@@ -106,7 +106,7 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
           </Field>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
-          <Button variant="default" type="submit" disabled={isPending} isLoading={isPending}>
+          <Button htmlType="submit" disabled={isPending} loading={isPending}>
             {isPending ? 'Updating' : 'Update'}
           </Button>
         </CardFooter>

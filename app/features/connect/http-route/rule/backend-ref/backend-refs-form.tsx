@@ -61,9 +61,9 @@ export const BackendRefsForm = ({
               />
               {backendRefList.length > 1 && (
                 <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
+                  type="quaternary"
+                  theme="borderless"
+                  size="small"
                   className={cn(
                     'text-destructive relative w-fit',
                     (backendRefFields.name.errors ?? []).length > 0 ||
@@ -81,9 +81,9 @@ export const BackendRefsForm = ({
       </div>
 
       <Button
-        type="button"
-        variant="outline"
-        size="sm"
+        type="quaternary"
+        theme="outline"
+        size="small"
         className="ml-1 w-fit"
         onClick={() =>
           form.insert({

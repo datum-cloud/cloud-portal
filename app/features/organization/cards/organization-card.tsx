@@ -212,7 +212,7 @@ export const OrganizationCard = ({
   return (
     <MotionCard
       className={cn(
-        'hover:border-navy border-border group flex h-full cursor-pointer flex-col transition-all hover:shadow-md',
+        'hover:border-primary border-border group flex h-full cursor-pointer flex-col transition-all hover:shadow-md',
         className
       )}
       onClick={handleClick}

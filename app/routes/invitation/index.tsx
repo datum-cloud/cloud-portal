@@ -173,7 +173,8 @@ export default function InvitationPage() {
               <Button
                 onClick={() => handleStateUpdate('Declined')}
                 disabled={isLoading}
-                variant="link"
+                type="quaternary"
+                theme="borderless"
                 className="text-destructive hover:text-destructive/80 w-full">
                 {isLoading && action === 'Declined' ? (
                   <>

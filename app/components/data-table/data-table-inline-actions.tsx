@@ -34,8 +34,9 @@ export const DataTableInlineActions = <TData,>({
 
         const button = (
           <Button
-            variant={action.variant === 'destructive' ? 'destructive' : 'outline'}
-            size={showLabel ? 'sm' : 'icon'}
+            type={action.variant === 'destructive' ? 'danger' : 'quaternary'}
+            theme={action.variant === 'destructive' ? 'solid' : 'outline'}
+            size={showLabel ? 'small' : 'icon'}
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();

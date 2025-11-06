@@ -85,7 +85,7 @@ export default function HttpProxyDetailLayout() {
         ),
         actions: (
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button type="quaternary" theme="outline" size="small">
               <Link
                 className="flex items-center gap-2"
                 to={getPathWithParams(paths.project.detail.httpProxy.detail.edit, {

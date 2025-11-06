@@ -57,9 +57,9 @@ export const MatchesForm = ({
 
               {matchList.length > 1 && (
                 <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
+                  type="quaternary"
+                  theme="borderless"
+                  size="small"
                   className={cn(
                     'text-destructive relative w-fit',
                     (matchFields.path.errors ?? []).length > 0 ? '-top-1' : 'top-2.5'
@@ -74,9 +74,9 @@ export const MatchesForm = ({
       </div>
 
       <Button
-        type="button"
-        variant="outline"
-        size="sm"
+        type="quaternary"
+        theme="outline"
+        size="small"
         className="ml-1 w-fit"
         onClick={() =>
           form.insert({

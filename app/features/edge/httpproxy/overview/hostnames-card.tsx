@@ -99,8 +99,9 @@ export const HttpProxyHostnamesCard = ({
                     <span className="text-sm font-medium">{val.hostname}</span>
                   </div>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    type="quaternary"
+                    theme="outline"
+                    size="small"
                     className="h-7"
                     onClick={() => copyToClipboard(val.hostname)}>
                     <CopyIcon className="size-4" />

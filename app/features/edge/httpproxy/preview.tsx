@@ -157,8 +157,7 @@ export const HttpProxyPreview = ({ data, projectId }: HttpProxyPreviewProps) => 
             </CardContent>
             <CardFooter className="flex justify-end gap-2 pt-6">
               <Button
-                variant="default"
-                type="button"
+                htmlType="button"
                 onClick={() =>
                   navigate(getPathWithParams(paths.project.detail.httpProxy.root, { projectId }))
                 }>

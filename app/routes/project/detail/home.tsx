@@ -167,7 +167,7 @@ export default function ProjectDashboardPage() {
                   </SectionDescription>
 
                   <div className="flex gap-3">
-                    <Button variant="outline" size="sm" className="h-7 w-fit">
+                    <Button type="quaternary" theme="outline" size="small" className="h-7 w-fit">
                       <Link
                         to={getPathWithParams(paths.project.detail.httpProxy.root, {
                           projectId: project.name,
@@ -175,7 +175,7 @@ export default function ProjectDashboardPage() {
                         Explore HTTPProxy
                       </Link>
                     </Button>
-                    <Button variant="outline" size="sm" className="h-7 w-fit">
+                    <Button type="quaternary" theme="outline" size="small" className="h-7 w-fit">
                       <a
                         href="https://docs.datum.net/docs/tutorials/httpproxy/"
                         target="_blank"
@@ -237,7 +237,7 @@ export default function ProjectDashboardPage() {
                       href="https://docs.datum.net/"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-sunglow underline">
+                      className="text-accent underline">
                       Documentation
                     </a>
                   </SectionDescription>
@@ -262,7 +262,7 @@ export default function ProjectDashboardPage() {
                       <SectionDescription>
                         If the problem persists, please contact support.
                       </SectionDescription>
-                      <Button variant="outline" size="sm" className="h-7 w-fit">
+                      <Button type="quaternary" theme="outline" size="small" className="h-7 w-fit">
                         <Link to="mailto:support@datum.net" className="flex items-center gap-2">
                           <Mail className="size-4" />
                           Contact Support

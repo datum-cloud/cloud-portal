@@ -114,11 +114,7 @@ export const AccountProfileSettingsCard = () => {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            <Button
-              variant="default"
-              type="submit"
-              disabled={isPending || !form.valid}
-              isLoading={isPending}>
+            <Button htmlType="submit" disabled={isPending || !form.valid} loading={isPending}>
               {isPending ? 'Saving' : 'Save'}
             </Button>
           </CardFooter>

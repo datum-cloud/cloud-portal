@@ -84,14 +84,10 @@ export const ProjectLabelCard = ({ labels }: { labels: ILabel }) => {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            <Button type="button" variant="link" disabled={isPending} onClick={handleReset}>
+            <Button type="quaternary" theme="borderless" disabled={isPending} onClick={handleReset}>
               Cancel
             </Button>
-            <Button
-              variant="default"
-              type="submit"
-              disabled={isPending || !form.valid}
-              isLoading={isPending}>
+            <Button htmlType="submit" disabled={isPending || !form.valid} loading={isPending}>
               {isPending ? 'Saving' : 'Save'}
             </Button>
           </CardFooter>
