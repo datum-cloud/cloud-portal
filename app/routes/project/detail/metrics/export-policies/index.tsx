@@ -118,7 +118,6 @@ export default function ExportPoliciesPage() {
                 currentStatus={transformControlPlaneStatus(row.original.status)}
                 projectId={projectId}
                 id={row.original.name}
-                type="badge"
               />
             )
           );

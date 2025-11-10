@@ -14,7 +14,7 @@ interface GuideStepItemProps extends GuideStep {
 export const GuideStepItem = ({ stepNumber, title, description, body }: GuideStepItemProps) => {
   return (
     <div className="flex w-full items-start gap-3">
-      <Badge variant="secondary" className="size-8 justify-center rounded-full p-0">
+      <Badge type="secondary" className="size-8 justify-center rounded-full p-0">
         {stepNumber}
       </Badge>
       <div className="flex w-full flex-col gap-4">

@@ -30,8 +30,7 @@ export const SimpleWorkloadDetail = ({
           projectId={projectId}
           id={workload?.name}
           workloadType="workload"
-          type="badge"
-          badgeClassName="w-fit text-sm font-medium border border-input"
+          className="border-input w-fit border text-sm font-medium"
         />
       </Field>
       {workload?.createdAt && (

@@ -9,6 +9,17 @@ import { Button } from '@datum-ui/components';
 import { Download, Heart, Plus, Settings, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
+export const buttonDemoSections = [
+  { id: 'button-types', label: 'Button Types' },
+  { id: 'button-themes', label: 'Button Themes' },
+  { id: 'button-sizes', label: 'Button Sizes' },
+  { id: 'icon-only-buttons', label: 'Icon-Only Buttons' },
+  { id: 'buttons-with-icons', label: 'Buttons with Icons' },
+  { id: 'loading-states', label: 'Loading States' },
+  { id: 'block-buttons', label: 'Block Buttons' },
+  { id: 'disabled-states', label: 'Disabled States' },
+];
+
 export default function ButtonDemo() {
   const [loading, setLoading] = useState<Record<string, boolean>>({});
 
@@ -22,7 +33,7 @@ export default function ButtonDemo() {
   return (
     <div className="space-y-8 p-6">
       {/* Button Types */}
-      <Card>
+      <Card id="button-types">
         <CardHeader>
           <CardTitle>Button Types</CardTitle>
           <CardDescription>Different button types for various use cases</CardDescription>
@@ -41,7 +52,7 @@ export default function ButtonDemo() {
       </Card>
 
       {/* Button Themes */}
-      <Card>
+      <Card id="button-themes">
         <CardHeader>
           <CardTitle>Button Themes</CardTitle>
           <CardDescription>Different visual themes for each button type</CardDescription>
@@ -72,7 +83,7 @@ export default function ButtonDemo() {
       </Card>
 
       {/* Button Sizes */}
-      <Card>
+      <Card id="button-sizes">
         <CardHeader>
           <CardTitle>Button Sizes</CardTitle>
           <CardDescription>Different sizes for different contexts</CardDescription>
@@ -90,7 +101,7 @@ export default function ButtonDemo() {
       </Card>
 
       {/* Icon-Only Buttons */}
-      <Card>
+      <Card id="icon-only-buttons">
         <CardHeader>
           <CardTitle>Icon-Only Buttons</CardTitle>
           <CardDescription>Icon-only buttons in different sizes and themes</CardDescription>
@@ -258,7 +269,7 @@ export default function ButtonDemo() {
       </Card>
 
       {/* Button with Icons */}
-      <Card>
+      <Card id="buttons-with-icons">
         <CardHeader>
           <CardTitle>Buttons with Icons</CardTitle>
           <CardDescription>Buttons can include icons on left or right side</CardDescription>
@@ -283,7 +294,7 @@ export default function ButtonDemo() {
       </Card>
 
       {/* Loading States */}
-      <Card>
+      <Card id="loading-states">
         <CardHeader>
           <CardTitle>Loading States</CardTitle>
           <CardDescription>Buttons can show loading states with spinners</CardDescription>
@@ -318,7 +329,7 @@ export default function ButtonDemo() {
       </Card>
 
       {/* Block Buttons */}
-      <Card>
+      <Card id="block-buttons">
         <CardHeader>
           <CardTitle>Block Buttons</CardTitle>
           <CardDescription>Full-width buttons for forms and layouts</CardDescription>
@@ -337,7 +348,7 @@ export default function ButtonDemo() {
       </Card>
 
       {/* Disabled State */}
-      <Card>
+      <Card id="disabled-states">
         <CardHeader>
           <CardTitle>Disabled States</CardTitle>
           <CardDescription>Buttons can be disabled to prevent interaction</CardDescription>

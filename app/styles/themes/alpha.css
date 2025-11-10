@@ -107,6 +107,24 @@ Scope variables to the theme class so we can swap themes by class
   --table-accent: var(--glacier-mist-800);
   --table-cell: hsl(0 0% 100%);
 
+  /* Badge */
+  --badge-primary: var(--primary);
+  --badge-primary-foreground: var(--primary-foreground);
+  --badge-secondary: var(--secondary);
+  --badge-secondary-foreground: var(--secondary-foreground);
+  --badge-tertiary: var(--tertiary);
+  --badge-tertiary-foreground: var(--tertiary-foreground);
+  --badge-quaternary: var(--quaternary);
+  --badge-quaternary-foreground: var(--quaternary-foreground);
+  --badge-success: hsl(112, 14%, 57%);
+  --badge-success-foreground: var(--glacier-mist-700);
+  --badge-info: hsl(202, 34%, 46%);
+  --badge-info-foreground: var(--glacier-mist-700);
+  --badge-danger: var(--destructive);
+  --badge-danger-foreground: var(--destructive-foreground);
+  --badge-warning: hsl(34, 100%, 50%);
+  --badge-warning-foreground: var(--glacier-mist-700);
+
   /* ========================================
    DARK MODE OVERRIDES
    ======================================== */
@@ -186,6 +204,24 @@ Scope variables to the theme class so we can swap themes by class
 
     --table-accent: var(--app-dark-utility-1);
     --table-cell: var(--midnight-fjord);
+
+    /* Badge */
+    --badge-primary: var(--primary);
+    --badge-primary-foreground: var(--primary-foreground);
+    --badge-secondary: var(--secondary);
+    --badge-secondary-foreground: var(--secondary-foreground);
+    --badge-tertiary: var(--tertiary);
+    --badge-tertiary-foreground: var(--tertiary-foreground);
+    --badge-quaternary: var(--quaternary);
+    --badge-quaternary-foreground: var(--quaternary-foreground);
+    --badge-success: hsl(112, 14%, 57%);
+    --badge-success-foreground: var(--glacier-mist-700);
+    --badge-info: hsl(202, 34%, 46%);
+    --badge-info-foreground: var(--glacier-mist-700);
+    --badge-danger: var(--destructive);
+    --badge-danger-foreground: var(--destructive-foreground);
+    --badge-warning: hsl(34, 100%, 50%);
+    --badge-warning-foreground: var(--glacier-mist-700);
   }
 }
 
@@ -206,6 +242,24 @@ TAILWIND CUSTOM UTILITIES FOR THEME
 
   --color-table-accent: var(--table-accent);
   --color-table-cell: var(--table-cell);
+
+  /* Badge */
+  --color-badge-primary: var(--badge-primary);
+  --color-badge-primary-foreground: var(--badge-primary-foreground);
+  --color-badge-secondary: var(--badge-secondary);
+  --color-badge-secondary-foreground: var(--badge-secondary-foreground);
+  --color-badge-tertiary: var(--badge-tertiary);
+  --color-badge-tertiary-foreground: var(--badge-tertiary-foreground);
+  --color-badge-quaternary: var(--badge-quaternary);
+  --color-badge-quaternary-foreground: var(--badge-quaternary-foreground);
+  --color-badge-success: var(--badge-success);
+  --color-badge-success-foreground: var(--badge-success-foreground);
+  --color-badge-info: var(--badge-info);
+  --color-badge-info-foreground: var(--badge-info-foreground);
+  --color-badge-danger: var(--badge-danger);
+  --color-badge-danger-foreground: var(--badge-danger-foreground);
+  --color-badge-warning: var(--badge-warning);
+  --color-badge-warning-foreground: var(--badge-warning-foreground);
 }
 
 /* ========================================

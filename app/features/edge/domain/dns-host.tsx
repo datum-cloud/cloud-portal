@@ -29,6 +29,6 @@ export const DomainDnsHost = ({
   if (registrantNames.length === 0) return <>-</>;
 
   return (
-    <ChipsOverflow items={registrantNames} maxVisible={maxVisible} variant="outline" wrap={wrap} />
+    <ChipsOverflow items={registrantNames} maxVisible={maxVisible} theme="outline" wrap={wrap} />
   );
 };

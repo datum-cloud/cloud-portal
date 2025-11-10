@@ -104,10 +104,8 @@ export default function ProjectDashboardPage() {
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}>
                   <StatusBadge
                     status={status}
-                    type="badge"
                     showTooltip={false}
-                    readyText="Active"
-                    badgeClassName="bg-secondary text-secondary-foreground font-medium border border-input"
+                    className="bg-secondary text-secondary-foreground border-input border font-medium"
                   />
                 </motion.div>
               )}

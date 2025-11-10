@@ -39,7 +39,7 @@ export const NetworkGeneralCard = ({ network }: { network: INetworkControlRespon
         content: (
           <div className="flex flex-wrap gap-1">
             {network.ipFamilies?.map((ipFamily) => (
-              <Badge key={ipFamily} variant={ipFamily === 'IPv4' ? 'outline' : 'default'}>
+              <Badge key={ipFamily} theme={ipFamily === 'IPv4' ? 'outline' : 'solid'}>
                 {ipFamily}
               </Badge>
             ))}

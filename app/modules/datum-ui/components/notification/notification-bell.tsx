@@ -17,7 +17,8 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
       <Bell size={18} />
       {unreadCount > 0 && (
         <Badge
-          variant="butter"
+          type="tertiary"
+          theme="light"
           className="bg-primary text-primary-foreground absolute top-[2px] right-[4px] flex size-4 items-center justify-center rounded-full p-0 text-[10px] leading-0">
           {unreadCount > 99 ? '99+' : unreadCount}
         </Badge>

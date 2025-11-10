@@ -46,8 +46,6 @@ export const ExportPolicyGeneralCard = ({
         content: (
           <ExportPolicyStatus
             currentStatus={transformControlPlaneStatus(exportPolicy?.status)}
-            type="badge"
-            badgeClassName="w-fit text-sm font-medium px-0"
             showTooltip={false}
           />
         ),

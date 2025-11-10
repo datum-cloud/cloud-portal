@@ -1,4 +1,4 @@
-import { StatusDot, StatusText } from '@/components/status-badge/status-badge';
+import { StatusBadge } from '@/components/status-badge/status-badge';
 import {
   ControlPlaneStatus,
   IControlPlaneStatus,
@@ -112,18 +112,25 @@ export const DomainStatus = ({
     );
   }, [conditions]);
 
+  // Determine label based on status
+  const getLabel = () => {
+    if (currentStatus?.status === ControlPlaneStatus.Success) return 'Verified';
+    if (currentStatus?.status === ControlPlaneStatus.Pending) return 'Verifying...';
+    return undefined; // Use default
+  };
+
   return status ? (
     <HoverCard openDelay={300}>
       <HoverCardTrigger
         className={cn(
-          'flex cursor-pointer items-center gap-1',
+          'w-fit',
           currentStatus?.status === ControlPlaneStatus.Success ? 'pointer-events-none' : ''
         )}>
-        <StatusDot status={currentStatus?.status} />
-        <StatusText
-          status={currentStatus?.status}
-          pendingText="Verifying..."
-          readyText="Verified"
+        <StatusBadge
+          status={currentStatus}
+          label={getLabel()}
+          showIcon={true}
+          showTooltip={false}
         />
       </HoverCardTrigger>
       <HoverCardContent

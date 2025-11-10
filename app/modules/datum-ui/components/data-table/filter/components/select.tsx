@@ -133,7 +133,7 @@ export function SelectFilter({
                     {selectedValues.slice(0, 2).map((val) => {
                       const option = getSelectedOption(val);
                       return option ? (
-                        <Badge key={val} variant="secondary" className="text-xs">
+                        <Badge key={val} type="secondary" className="text-xs">
                           {option.icon && <span className="mr-1">{option.icon}</span>}
                           {option.label}
                           <button
@@ -149,7 +149,7 @@ export function SelectFilter({
                       ) : null;
                     })}
                     {selectedValues.length > 2 && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge type="secondary" className="text-xs">
                         +{selectedValues.length - 2} more
                       </Badge>
                     )}
@@ -242,7 +242,7 @@ export function SelectFilter({
           {selectedValues.map((val) => {
             const option = getSelectedOption(val);
             return option ? (
-              <Badge key={val} variant="outline" className="text-xs">
+              <Badge key={val} theme="outline" className="text-xs">
                 {option.icon && <span className="mr-1">{option.icon}</span>}
                 {option.label}
                 <button

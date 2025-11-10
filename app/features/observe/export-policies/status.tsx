@@ -12,16 +12,16 @@ export const ExportPolicyStatus = ({
   currentStatus,
   projectId,
   id,
-  type = 'dot',
+  label,
   showTooltip = true,
-  badgeClassName,
+  className,
 }: {
   currentStatus?: IControlPlaneStatus;
   projectId?: string;
   id?: string;
-  type?: 'dot' | 'badge';
+  label?: string;
   showTooltip?: boolean;
-  badgeClassName?: string;
+  className?: string;
 }) => {
   const fetcher = useFetcher({ key: `export-policy-status-${projectId}` });
   const intervalRef = useRef<NodeJS.Timeout>(null);
@@ -103,12 +103,15 @@ export const ExportPolicyStatus = ({
     }
   }, [fetcher.data]);
 
+  const displayLabel =
+    label ?? (status.status === ControlPlaneStatus.Success ? 'Ready' : undefined);
+
   return status ? (
     <StatusBadge
       status={status}
-      type={type}
+      label={displayLabel}
       showTooltip={showTooltip}
-      badgeClassName={badgeClassName}
+      className={className}
       tooltipText={
         fetcher.data?.status === ControlPlaneStatus.Success ? (
           'Active'

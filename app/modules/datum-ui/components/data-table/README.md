@@ -1039,7 +1039,7 @@ const columns: ColumnDef<User>[] = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => (
-      <Badge variant={row.original.status === 'active' ? 'success' : 'secondary'}>
+      <Badge type={row.original.status === 'active' ? 'success' : 'secondary'}>
         {row.original.status}
       </Badge>
     ),

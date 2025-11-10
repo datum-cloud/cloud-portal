@@ -62,7 +62,7 @@ export const ActivityLogItem = ({ log, index }: ActivityLogItemProps) => {
           <Tooltip>
             <TooltipTrigger asChild>
               <Badge
-                variant="outline"
+                theme="outline"
                 className={cn(
                   'w-fit cursor-pointer capitalize',
                   log.category === 'success' && 'border-green-200 bg-green-50 text-green-600',

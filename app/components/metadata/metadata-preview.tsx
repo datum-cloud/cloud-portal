@@ -14,7 +14,7 @@ export const MetadataPreview = ({ values }: { values: MetadataSchema }) => {
           content: (
             <div className="flex flex-wrap gap-2">
               {values.labels?.map((label) => (
-                <Badge key={label} variant="outline">
+                <Badge key={label} theme="outline">
                   {label}
                 </Badge>
               ))}
@@ -27,7 +27,7 @@ export const MetadataPreview = ({ values }: { values: MetadataSchema }) => {
           content: (
             <div className="flex flex-wrap gap-2">
               {values.annotations?.map((annotation) => (
-                <Badge key={annotation} variant="outline">
+                <Badge key={annotation} theme="outline">
                   {annotation}
                 </Badge>
               ))}

@@ -2,6 +2,7 @@ import { DateTime } from '@/components/date-time';
 import { StatusBadge } from '@/components/status-badge/status-badge';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { INetworkBindingControlResponse } from '@/resources/interfaces/network.interface';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getShortId } from '@/utils/helpers/text.helper';
@@ -53,13 +54,18 @@ export const NetworkBindingsCard = ({ data }: { data: INetworkBindingControlResp
         enableSorting: false,
         cell: ({ row }) => {
           return (
-            row.original.status && (
-              <StatusBadge
-                status={transformControlPlaneStatus(row.original.status)}
-                type="badge"
-                readyText="Active"
-              />
-            )
+            row.original.status &&
+            (() => {
+              const transformedStatus = transformControlPlaneStatus(row.original.status);
+              return (
+                <StatusBadge
+                  status={transformedStatus}
+                  label={
+                    transformedStatus.status === ControlPlaneStatus.Success ? 'Active' : undefined
+                  }
+                />
+              );
+            })()
           );
         },
       },

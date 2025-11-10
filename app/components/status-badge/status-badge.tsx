@@ -2,147 +2,162 @@ import {
   ControlPlaneStatus,
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
-import { Badge } from '@datum-ui/components';
+import { Badge, type BadgeProps } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
-import { CircleIcon, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { ReactNode } from 'react';
 
-// Nano component: Status Dot
-export const StatusDot = ({
-  status,
-  className,
-}: {
-  status: ControlPlaneStatus;
-  className?: string;
-}) => {
-  if (status === ControlPlaneStatus.Success) {
-    return (
-      <CircleIcon
-        className={cn('size-3 cursor-default fill-green-500 text-green-500', className)}
-        aria-hidden="true"
-      />
-    );
-  }
+export type StatusBadgeStatus = 'active' | 'pending' | 'error' | 'inactive' | 'success';
 
-  if (status === ControlPlaneStatus.Error) {
-    return (
-      <CircleIcon
-        className={cn('size-3 cursor-default fill-red-500 text-red-500', className)}
-        aria-hidden="true"
-      />
-    );
-  }
+interface StatusConfig {
+  badgeType?: BadgeProps['type'];
+  badgeTheme?: BadgeProps['theme'];
+  // Custom colors (overrides badgeType/badgeTheme if provided)
+  customColor?: {
+    border: string;
+    text: string;
+    bg: string;
+  };
+  icon?: ReactNode;
+  defaultLabel: string;
+}
 
-  if (status === ControlPlaneStatus.Pending) {
-    return <Loader2 className={cn('size-3 animate-spin cursor-default', className)} />;
-  }
-
-  return null;
+// Centralized status configuration
+// Customize colors here - all usages will inherit these settings
+const STATUS_CONFIG: Record<StatusBadgeStatus, StatusConfig> = {
+  active: {
+    badgeType: 'success',
+    badgeTheme: 'light',
+    defaultLabel: 'Active',
+  },
+  pending: {
+    // Option 1: Use existing Badge type/theme
+    badgeType: 'info',
+    badgeTheme: 'light',
+    // Option 2: Use custom colors
+    // customColor: {
+    //   border: 'border-blue-500',
+    //   text: 'text-blue-600 dark:text-blue-400',
+    //   bg: 'bg-blue-500/20 dark:bg-blue-500/20',
+    // },
+    icon: <Loader2 className="size-3 animate-spin" aria-hidden="true" />,
+    defaultLabel: 'Pending',
+  },
+  error: {
+    badgeType: 'danger',
+    badgeTheme: 'light',
+    defaultLabel: 'Failed',
+  },
+  inactive: {
+    badgeType: 'secondary',
+    badgeTheme: 'light',
+    defaultLabel: 'Inactive',
+  },
+  success: {
+    badgeType: 'success',
+    badgeTheme: 'light',
+    defaultLabel: 'Ready',
+  },
 };
 
-// Nano component: Status Text
-export const StatusText = ({
-  status,
-  pendingText = 'Setting up...',
-  errorText = 'Failed',
-  readyText = 'Ready',
-}: {
-  status: ControlPlaneStatus;
-  pendingText?: string;
-  errorText?: string;
-  readyText?: string;
-}) => {
-  if (status === ControlPlaneStatus.Success) return readyText;
-  if (status === ControlPlaneStatus.Error) return errorText;
-  return pendingText;
+// Helper to map ControlPlaneStatus to StatusBadgeStatus
+const mapControlPlaneStatus = (status: ControlPlaneStatus): StatusBadgeStatus => {
+  switch (status) {
+    case ControlPlaneStatus.Success:
+      return 'active';
+    case ControlPlaneStatus.Pending:
+      return 'pending';
+    case ControlPlaneStatus.Error:
+      return 'error';
+    default:
+      return 'inactive';
+  }
 };
 
-// Nano component: Status Badge (just the badge wrapper)
-export const StatusBadgeWrapper = ({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) => (
-  <Badge
-    variant="outline"
-    className={cn(
-      'flex cursor-default items-center gap-1 border-none px-0 text-sm font-normal',
-      className
-    )}>
-    {children}
-  </Badge>
-);
-
-// Nano component: Status Tooltip Wrapper
-export const StatusTooltipWrapper = ({
-  children,
-  tooltipText,
-  showTooltip = true,
-  status,
-}: {
-  children: ReactNode;
-  tooltipText?: string | ReactNode;
+export interface StatusBadgeProps {
+  // Accept either new status string or legacy IControlPlaneStatus
+  status?: StatusBadgeStatus | IControlPlaneStatus;
+  label?: string;
+  showIcon?: boolean;
   showTooltip?: boolean;
-  status: ControlPlaneStatus;
-}) => (
-  <Tooltip>
-    <TooltipTrigger
-      className={cn(
-        'w-fit',
-        !showTooltip || status === ControlPlaneStatus.Success ? 'pointer-events-none' : ''
-      )}>
-      {children}
-    </TooltipTrigger>
-    <TooltipContent>{tooltipText}</TooltipContent>
-  </Tooltip>
-);
+  tooltipText?: string | ReactNode;
+  className?: string;
+  // Override centralized config (use sparingly)
+  badgeType?: BadgeProps['type'];
+  badgeTheme?: BadgeProps['theme'];
+}
 
-// Composed component: Full Status Badge (for backward compatibility)
 export const StatusBadge = ({
   status,
-  type = 'dot',
+  label,
+  showIcon = false,
   showTooltip = true,
-  badgeClassName,
-  pendingText = 'Setting up...',
-  errorText = 'Failed',
-  readyText = 'Ready',
   tooltipText,
-}: {
-  status?: IControlPlaneStatus;
-  type?: 'dot' | 'badge';
-  showTooltip?: boolean;
-  badgeClassName?: string;
-  pendingText?: string;
-  errorText?: string;
-  readyText?: string;
-  tooltipText?: string | ReactNode;
-}) => {
+  className,
+  badgeType: overrideBadgeType,
+  badgeTheme: overrideBadgeTheme,
+}: StatusBadgeProps) => {
+  // Handle legacy IControlPlaneStatus format
+  let statusValue: StatusBadgeStatus;
+  let statusMessage: string | undefined;
+
   if (!status) return null;
 
-  const content =
-    type === 'dot' ? (
-      <StatusDot status={status.status} />
-    ) : (
-      <StatusBadgeWrapper className={badgeClassName}>
-        <StatusDot status={status.status} />
-        <StatusText
-          status={status.status}
-          pendingText={pendingText}
-          errorText={errorText}
-          readyText={readyText}
-        />
-      </StatusBadgeWrapper>
-    );
+  if (typeof status === 'object' && 'status' in status) {
+    // Legacy format: IControlPlaneStatus
+    statusValue = mapControlPlaneStatus(status.status);
+    statusMessage = status.message;
+  } else {
+    // New format: StatusBadgeStatus string
+    statusValue = status;
+  }
 
-  return (
-    <StatusTooltipWrapper
-      tooltipText={tooltipText ?? status.message}
-      showTooltip={showTooltip}
-      status={status.status}>
-      {content}
-    </StatusTooltipWrapper>
+  const config = STATUS_CONFIG[statusValue.toLowerCase() as StatusBadgeStatus];
+  if (!config) return null;
+
+  // Determine badge props
+  const badgeType = overrideBadgeType ?? config.badgeType;
+  const badgeTheme = overrideBadgeTheme ?? config.badgeTheme;
+  const displayLabel = label ?? config.defaultLabel;
+  const finalTooltipText = tooltipText ?? statusMessage;
+
+  // Build className for custom colors
+  const customColorClasses = config.customColor
+    ? cn(
+        config.customColor.border,
+        config.customColor.text,
+        config.customColor.bg,
+        'border' // Ensure border is shown
+      )
+    : undefined;
+
+  const badgeContent = (
+    <Badge
+      type={badgeType}
+      theme={badgeTheme}
+      className={cn(
+        'flex cursor-default items-center gap-1.5 px-2 py-0.5 text-xs font-normal',
+        customColorClasses,
+        className
+      )}>
+      {showIcon && config.icon}
+      {displayLabel}
+    </Badge>
   );
+
+  // Wrap with tooltip if needed
+  if (showTooltip && finalTooltipText && statusValue !== 'active') {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild className="w-fit">
+          {badgeContent}
+        </TooltipTrigger>
+        <TooltipContent>{finalTooltipText}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  // Wrap in container to prevent stretching in table cells
+  return <div className="w-fit">{badgeContent}</div>;
 };
