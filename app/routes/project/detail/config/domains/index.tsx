@@ -243,7 +243,7 @@ export default function DomainsPage() {
             })}>
             <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              Add Domain
+              Add domain
             </Button>
           </Link>
         ),
@@ -251,7 +251,7 @@ export default function DomainsPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search domains...',
+          placeholder: 'Search domains',
         },
         filtersDisplay: 'dropdown',
       }}

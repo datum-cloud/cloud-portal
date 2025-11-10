@@ -153,7 +153,7 @@ export default function SecretsPage() {
             })}>
             <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              Add Secret
+              Add secret
             </Button>
           </Link>
         ),
@@ -161,7 +161,7 @@ export default function SecretsPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search secrets...',
+          placeholder: 'Search secrets',
         },
       }}
       defaultSorting={[{ id: 'createdAt', desc: true }]}

@@ -54,18 +54,18 @@ export const QuickSetupCard = ({
   }, [fetcher.data, fetcher.state]);
 
   return (
-    <Card className="border-info-300 bg-info-100 border">
+    <Card>
       <CardHeader>
-        <CardTitle className="text-info-500 dark:text-foreground flex items-center gap-2">
-          <ZapIcon className="text-info-500 dark:text-foreground size-4" />
+        <CardTitle className="flex items-center gap-2">
+          <ZapIcon className="size-4" />
           Automatic DNS Configuration
         </CardTitle>
-        <CardDescription className="dark:text-foreground">
+        <CardDescription>
           Skip the manual DNS setup process and let CloudValid automatically configure your DNS
           records for you.
         </CardDescription>
       </CardHeader>
-      <CardContent className="text-muted-foreground dark:text-foreground flex flex-col gap-2 text-sm">
+      <CardContent className="flex flex-col gap-2 text-sm">
         <p className="font-medium">What this does:</p>
         <ul className="ml-4 list-disc">
           <li>Automatically adds the required TXT record to your DNS</li>
@@ -83,7 +83,7 @@ export const QuickSetupCard = ({
           <ExternalLink className="size-4" />
           Set Up DNS Automatically with CloudValid
         </Button>
-        <p className="text-muted-foreground dark:text-foreground text-center text-xs">
+        <p className="text-muted-foreground text-center text-xs">
           You&apos;ll be redirected to CloudValid to authorize DNS changes
         </p>
       </CardFooter>

@@ -199,7 +199,7 @@ export default function HttpProxyPage() {
             })}>
             <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              Add HTTPProxy
+              Add proxy
             </Button>
           </Link>
         ),
@@ -207,7 +207,7 @@ export default function HttpProxyPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search proxies...',
+          placeholder: 'Search proxies',
         },
       }}
       rowActions={rowActions}

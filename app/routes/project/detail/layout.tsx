@@ -117,13 +117,6 @@ export default function ProjectLayout() {
         disabled: !isReady,
         children: [
           {
-            title: 'Domains',
-            href: getPathWithParams(paths.project.detail.domains.root, {
-              projectId,
-            }),
-            type: 'link',
-          },
-          {
             title: 'HTTPProxy',
             href: getPathWithParams(paths.project.detail.httpProxy.root, {
               projectId,
@@ -164,6 +157,13 @@ export default function ProjectLayout() {
         icon: FolderDot,
         disabled: !isReady,
         children: [
+          {
+            title: 'Domains',
+            href: getPathWithParams(paths.project.detail.domains.root, {
+              projectId,
+            }),
+            type: 'link',
+          },
           {
             title: 'Secrets',
             href: getPathWithParams(paths.project.detail.config.secrets.root, {

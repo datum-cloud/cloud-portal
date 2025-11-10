@@ -137,6 +137,15 @@ export default function DnsZonesPage() {
         id: 'description',
         header: 'Description',
         accessorKey: 'description',
+        cell: ({ row }) => {
+          return (
+            <>
+              {row.original.description && row.original.description.length > 0
+                ? row.original.description
+                : '-'}
+            </>
+          );
+        },
       },
     ],
     [projectId]
@@ -215,7 +224,7 @@ export default function DnsZonesPage() {
             })}>
             <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              Add Zone
+              Add zone
             </Button>
           </Link>
         ),
@@ -223,7 +232,7 @@ export default function DnsZonesPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search zones...',
+          placeholder: 'Search DNS zones',
         },
       }}
     />

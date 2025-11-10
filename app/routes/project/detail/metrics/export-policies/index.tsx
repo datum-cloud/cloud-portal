@@ -201,7 +201,7 @@ export default function ExportPoliciesPage() {
             })}>
             <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              Add Export Policy
+              Add export policy
             </Button>
           </Link>
         ),
@@ -209,7 +209,7 @@ export default function ExportPoliciesPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search export policies...',
+          placeholder: 'Search export policies',
         },
       }}
       rowActions={rowActions}

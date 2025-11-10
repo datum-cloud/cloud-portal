@@ -123,7 +123,7 @@ export default function AccountOrganizations() {
                     className="flex items-center gap-2"
                     to={getPathWithParams(paths.account.organizations.new)}>
                     <PlusIcon className="size-4" />
-                    Add Organization
+                    Add organization
                   </Link>
                 </Button>
               </motion.div>

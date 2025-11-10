@@ -147,7 +147,7 @@ export default function OrgProjectsPage() {
           <Link to={getPathWithParams(paths.org.detail.projects.new, { orgId })}>
             <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              Add Project
+              Add project
             </Button>
           </Link>
         ),
@@ -155,7 +155,7 @@ export default function OrgProjectsPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search projects...',
+          placeholder: 'Search projects',
           filterKey: 'q',
         },
       }}

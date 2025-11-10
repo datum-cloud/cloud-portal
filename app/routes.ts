@@ -137,18 +137,18 @@ export default [
         ]),
 
         // Domains
-        route('domains', 'routes/project/detail/edge/domains/layout.tsx', [
-          index('routes/project/detail/edge/domains/index.tsx'),
-          route('new', 'routes/project/detail/edge/domains/new.tsx'),
+        route('domains', 'routes/project/detail/config/domains/layout.tsx', [
+          index('routes/project/detail/config/domains/index.tsx'),
+          route('new', 'routes/project/detail/config/domains/new.tsx'),
 
           route(
             ':domainId',
-            'routes/project/detail/edge/domains/detail/layout.tsx',
+            'routes/project/detail/config/domains/detail/layout.tsx',
             { id: 'domain-detail' },
             [
-              index('routes/project/detail/edge/domains/detail/index.tsx'),
-              route('overview', 'routes/project/detail/edge/domains/detail/overview.tsx'),
-              // route('edit', 'routes/project/detail/edge/domains/detail/edit.tsx'),
+              index('routes/project/detail/config/domains/detail/index.tsx'),
+              route('overview', 'routes/project/detail/config/domains/detail/overview.tsx'),
+              // route('edit', 'routes/project/detail/config/domains/detail/edit.tsx'),
             ]
           ),
         ]),

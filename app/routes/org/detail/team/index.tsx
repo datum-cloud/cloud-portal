@@ -481,7 +481,7 @@ export default function OrgTeamPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search team members...',
+          placeholder: 'Search team members',
         },
         filtersDisplay: 'inline',
       }}
