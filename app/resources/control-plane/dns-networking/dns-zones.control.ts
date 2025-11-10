@@ -2,7 +2,10 @@ import {
   ComMiloapisNetworkingDnsV1Alpha1DnsZone,
   ComMiloapisNetworkingDnsV1Alpha1DnsZoneList,
   createDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone,
+  deleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone,
   listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone,
+  patchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone,
+  readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone,
 } from '@/modules/control-plane/dns-networking';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns-zone.interface';
 import { FormDnsZoneSchema } from '@/resources/schemas/dns-zone.schema';
@@ -68,6 +71,7 @@ export const createDnsZonesControl = (client: Client) => {
             },
             spec: {
               domainName: payload.domainName,
+              dnsZoneClassName: 'datum-external-global-dns', // @TODO: Make this configurable
             },
           },
         });
@@ -75,6 +79,79 @@ export const createDnsZonesControl = (client: Client) => {
         const dnsZone = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsZone;
 
         return dryRun ? dnsZone : transformDnsZone(dnsZone);
+      } catch (e) {
+        throw e;
+      }
+    },
+    detail: async (projectId: string, id: string) => {
+      try {
+        const response = await readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+            name: id,
+          },
+        });
+
+        const dnsZone = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsZone;
+
+        return transformDnsZone(dnsZone);
+      } catch (e) {
+        throw e;
+      }
+    },
+    update: async (
+      projectId: string,
+      id: string,
+      payload: { description?: string },
+      dryRun: boolean = false
+    ) => {
+      try {
+        const response = await patchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+            name: id,
+          },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+            fieldManager: 'datum-cloud-portal',
+          },
+          headers: {
+            'Content-Type': 'application/merge-patch+json',
+          },
+          body: {
+            kind: 'DNSZone',
+            apiVersion: 'dns.networking.miloapis.com/v1alpha1',
+            metadata: {
+              annotations: {
+                'kubernetes.io/description': payload.description ?? '',
+              },
+            },
+          },
+        });
+
+        const dnsZone = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsZone;
+
+        return dryRun ? dnsZone : transformDnsZone(dnsZone);
+      } catch (e) {
+        throw e;
+      }
+    },
+    delete: async (projectId: string, id: string) => {
+      try {
+        const response = await deleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+            name: id,
+          },
+        });
+
+        return response.data;
       } catch (e) {
         throw e;
       }

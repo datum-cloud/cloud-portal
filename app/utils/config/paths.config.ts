@@ -88,11 +88,7 @@ export const paths = {
       dnsZones: {
         root: '/project/[projectId]/dns-zones',
         new: '/project/[projectId]/dns-zones/new',
-        detail: {
-          root: '/project/[projectId]/dns-zones/[dnsZoneId]',
-          overview: '/project/[projectId]/dns-zones/[dnsZoneId]/overview',
-          edit: '/project/[projectId]/dns-zones/[dnsZoneId]/edit',
-        },
+        edit: '/project/[projectId]/dns-zones/[dnsZoneId]/edit',
       },
       metrics: {
         root: '/project/[projectId]/export-policies',

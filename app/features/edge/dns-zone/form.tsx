@@ -1,7 +1,11 @@
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns-zone.interface';
 import { formDnsZoneSchema } from '@/resources/schemas/dns-zone.schema';
+import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   FormProvider,
   getFormProps,
@@ -21,7 +25,7 @@ import {
 } from '@shadcn/ui/card';
 import { Input } from '@shadcn/ui/input';
 import { useEffect, useMemo, useRef } from 'react';
-import { Form } from 'react-router';
+import { Form, useFetcher } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 
@@ -35,6 +39,39 @@ export const DnsZoneForm = ({
   const isHydrated = useHydrated();
   const isPending = useIsPending();
   const inputRef = useRef<HTMLInputElement>(null);
+  const fetcher = useFetcher({ key: 'delete-dns-zone' });
+
+  const { confirm } = useConfirmationDialog();
+  const deleteDnsZone = async () => {
+    await confirm({
+      title: 'Delete DNS Zone',
+      description: (
+        <span>
+          Are you sure you want to delete&nbsp;
+          <strong>{defaultValue?.domainName}</strong>?
+        </span>
+      ),
+      submitText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      showConfirmInput: true,
+      onSubmit: async () => {
+        await fetcher.submit(
+          {
+            id: defaultValue?.name ?? '',
+            projectId: projectId ?? '',
+            redirectUri: getPathWithParams(paths.project.detail.dnsZones.root, {
+              projectId,
+            }),
+          },
+          {
+            method: 'DELETE',
+            action: DNS_ZONES_ACTIONS_PATH,
+          }
+        );
+      },
+    });
+  };
 
   const isEdit = useMemo(() => {
     return defaultValue?.uid !== undefined;
@@ -42,18 +79,16 @@ export const DnsZoneForm = ({
 
   const [form, fields] = useForm({
     id: 'dns-zone-form',
-    constraint: getZodConstraint(formDnsZoneSchema),
+    constraint: getZodConstraint(isEdit ? formDnsZoneSchema : formDnsZoneSchema),
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: formDnsZoneSchema });
     },
-    defaultValue: {
-      domainName: undefined,
-    },
   });
 
   const domainNameControl = useInputControl(fields.domainName);
+  const descriptionControl = useInputControl(fields.description);
 
   useEffect(() => {
     isHydrated && inputRef.current?.focus();
@@ -62,6 +97,7 @@ export const DnsZoneForm = ({
   useEffect(() => {
     if (defaultValue && defaultValue.domainName) {
       domainNameControl.change(defaultValue.domainName);
+      descriptionControl.change(defaultValue.description ?? '');
     }
   }, [defaultValue]);
 
@@ -89,8 +125,9 @@ export const DnsZoneForm = ({
               errors={fields.domainName.errors}>
               <Input
                 {...getInputProps(fields.domainName, { type: 'text' })}
+                readOnly={isEdit}
                 key={fields.domainName.id}
-                ref={inputRef}
+                ref={isEdit ? undefined : inputRef}
                 placeholder="e.g. example.com"
               />
             </Field>
@@ -100,12 +137,13 @@ export const DnsZoneForm = ({
                 {...getInputProps(fields.description, { type: 'text' })}
                 key={fields.description.id}
                 placeholder="e.g. Our main marketing site"
+                ref={isEdit ? inputRef : undefined}
               />
             </Field>
           </CardContent>
           <CardFooter className="flex justify-between gap-2">
             {isEdit ? (
-              <Button type="danger" theme="solid" disabled={isPending}>
+              <Button type="danger" theme="solid" disabled={isPending} onClick={deleteDnsZone}>
                 Delete
               </Button>
             ) : (

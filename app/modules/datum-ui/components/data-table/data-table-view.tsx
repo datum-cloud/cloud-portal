@@ -68,8 +68,7 @@ export const DataTableView = <TData,>({
             <EmptyContent
               variant="minimal"
               {...{
-                title: 'No results found',
-                subtitle: "Try adjusting your search or filters to find what you're looking for.",
+                title: "Try adjusting your search or filters to find what you're looking for.",
               }}
             />
           </TableCell>

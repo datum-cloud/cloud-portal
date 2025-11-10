@@ -108,7 +108,7 @@ export default function ProjectLayout() {
         icon: HomeIcon,
       },
       {
-        title: 'Internet edge',
+        title: 'Runtime',
         href: getPathWithParams(paths.project.detail.httpProxy.root, {
           projectId,
         }),
@@ -140,7 +140,7 @@ export default function ProjectLayout() {
         ],
       },
       {
-        title: 'Metrics',
+        title: 'Workflows',
         href: getPathWithParams(paths.project.detail.metrics.root, { projectId }),
         type: 'collapsible',
         icon: AreaChartIcon,
@@ -156,7 +156,7 @@ export default function ProjectLayout() {
         ],
       },
       {
-        title: 'Config',
+        title: 'Assets',
         href: getPathWithParams(paths.project.detail.config.root, {
           projectId,
         }),

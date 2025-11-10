@@ -118,12 +118,12 @@ export default function AccountOrganizations() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3, duration: 0.4 }}>
-                <Button>
+                <Button type="primary" theme="solid" size="small">
                   <Link
                     className="flex items-center gap-2"
                     to={getPathWithParams(paths.account.organizations.new)}>
                     <PlusIcon className="size-4" />
-                    New Organization
+                    Add Organization
                   </Link>
                 </Button>
               </motion.div>

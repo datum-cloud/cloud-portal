@@ -21,7 +21,7 @@ import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
+import { ArrowRightIcon, Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   AppLoadContext,
@@ -487,17 +487,17 @@ export default function OrgTeamPage() {
       }}
       rowActions={rowActions}
       emptyContent={{
-        title: 'No team members',
-        subtitle: 'Invite members to collaborate on this organization.',
+        title: "Looks like you don't have any team members added yet",
         actions: [
           {
             type: 'link',
-            label: 'Invite Member',
+            label: 'Invite a team member',
             to: getPathWithParams(paths.org.detail.team.invite, {
               orgId,
             }),
             variant: 'default',
-            icon: <UserPlusIcon className="size-4" />,
+            icon: <ArrowRightIcon className="size-4" />,
+            iconPosition: 'end',
           },
         ],
       }}

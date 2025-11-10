@@ -1,25 +1,29 @@
 import { ChipsOverflow } from '@/components/chips-overflow';
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns-zone.interface';
+import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, DataTable } from '@datum-ui/components';
+import { Button, DataTable, DataTableRowActionsProps } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { ArrowRightIcon, PlusIcon } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 import {
   AppLoadContext,
   Link,
   LoaderFunctionArgs,
   MetaFunction,
+  useFetcher,
   useLoaderData,
   useNavigate,
   useParams,
 } from 'react-router';
+import { toast } from 'sonner';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('DNS Zones');
@@ -41,8 +45,38 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 export default function DnsZonesPage() {
   const data = useLoaderData<typeof loader>();
   const { projectId } = useParams();
-
+  const fetcher = useFetcher({ key: 'delete-dns-zone' });
   const navigate = useNavigate();
+
+  const { confirm } = useConfirmationDialog();
+
+  const deleteDnsZone = async (dnsZone: IDnsZoneControlResponse) => {
+    await confirm({
+      title: 'Delete DNS Zone',
+      description: (
+        <span>
+          Are you sure you want to delete&nbsp;
+          <strong>{dnsZone.domainName}</strong>?
+        </span>
+      ),
+      submitText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      showConfirmInput: true,
+      onSubmit: async () => {
+        await fetcher.submit(
+          {
+            id: dnsZone?.name ?? '',
+            projectId: projectId ?? '',
+          },
+          {
+            method: 'DELETE',
+            action: DNS_ZONES_ACTIONS_PATH,
+          }
+        );
+      },
+    });
+  };
 
   const columns: ColumnDef<IDnsZoneControlResponse>[] = useMemo(
     () => [
@@ -73,7 +107,7 @@ export default function DnsZonesPage() {
       },
       {
         id: 'recordCount',
-        header: 'Record Count',
+        header: 'Records',
         accessorKey: 'status.recordCount',
         cell: ({ row }) => {
           const status = row.original.status;
@@ -84,6 +118,7 @@ export default function DnsZonesPage() {
         meta: {
           sortPath: 'status.recordCount',
           sortType: 'number',
+          tooltip: 'The number of DNS records hosted in Datum',
         },
       },
       {
@@ -107,30 +142,67 @@ export default function DnsZonesPage() {
     [projectId]
   );
 
+  const rowActions: DataTableRowActionsProps<IDnsZoneControlResponse>[] = useMemo(
+    () => [
+      {
+        key: 'edit',
+        label: 'Edit',
+        variant: 'default',
+        action: (row) =>
+          navigate(
+            getPathWithParams(paths.project.detail.dnsZones.edit, {
+              projectId,
+              dnsZoneId: row.name,
+            })
+          ),
+      },
+      {
+        key: 'delete',
+        label: 'Delete',
+        variant: 'destructive',
+        action: (row) => deleteDnsZone(row),
+      },
+    ],
+    [projectId]
+  );
+
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      if (fetcher.data.success) {
+        toast.success('DNS Zone deleted successfully', {
+          description: 'The DNS Zone has been deleted successfully',
+        });
+      } else {
+        toast.error(fetcher.data.error);
+      }
+    }
+  }, [fetcher.data, fetcher.state]);
+
   return (
     <DataTable
       columns={columns}
       data={data ?? []}
+      rowActions={rowActions}
       onRowClick={(row) => {
         navigate(
-          getPathWithParams(paths.project.detail.dnsZones.detail.overview, {
+          getPathWithParams(paths.project.detail.dnsZones.edit, {
             projectId,
             dnsZoneId: row.name,
           })
         );
       }}
       emptyContent={{
-        title: 'No DNS Zone found.',
-        subtitle: 'Create your first DNS zone to get started.',
+        title: "Looks like you don't have any DNS zones added yet",
         actions: [
           {
             type: 'link',
-            label: 'New DNS Zone',
+            label: 'Add a DNS zone',
             to: getPathWithParams(paths.project.detail.dnsZones.new, {
               projectId,
             }),
             variant: 'default',
-            icon: <PlusIcon className="size-4" />,
+            icon: <ArrowRightIcon className="size-4" />,
+            iconPosition: 'end',
           },
         ],
       }}
@@ -141,9 +213,9 @@ export default function DnsZonesPage() {
             to={getPathWithParams(paths.project.detail.dnsZones.new, {
               projectId,
             })}>
-            <Button>
+            <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              New DNS Zone
+              Add Zone
             </Button>
           </Link>
         ),
@@ -151,7 +223,7 @@ export default function DnsZonesPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search DNS zones...',
+          placeholder: 'Search zones...',
         },
       }}
     />

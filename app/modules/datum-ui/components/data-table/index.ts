@@ -42,11 +42,14 @@ export type {
   DataTableProps,
   DataTableRowActionsProps,
   DataTableTitleProps,
-  DataTableEmptyContentProps,
   DataTableToolbarConfig,
   DataTableSearchConfig,
   SearchParams,
 } from './data-table.types';
+
+// Column types (includes module augmentation for TanStack Table)
+export type { ColumnHeaderTooltip } from './data-table-column.types';
+export { isTooltipConfig, normalizeTooltip } from './data-table-column.types';
 
 // Context types
 export type {

@@ -157,16 +157,7 @@ export default [
         route('dns-zones', 'routes/project/detail/edge/dns-zones/layout.tsx', [
           index('routes/project/detail/edge/dns-zones/index.tsx'),
           route('new', 'routes/project/detail/edge/dns-zones/new.tsx'),
-
-          // route(
-          //   ':dnsZoneId',
-          //   'routes/project/detail/edge/dns-zones/detail/layout.tsx',
-          //   { id: 'dns-zone-detail' },
-          //   [
-          //     index('routes/project/detail/edge/dns-zones/detail/index.tsx'),
-          //     route('overview', 'routes/project/detail/edge/dns-zones/detail/overview.tsx'),
-          //   ]
-          // ),
+          route(':dnsZoneId/edit', 'routes/project/detail/edge/dns-zones/edit.tsx'),
         ]),
 
         // Export Policies
@@ -221,9 +212,13 @@ export default [
       route('members', 'routes/api/members/index.ts'),
       route('members/remove', 'routes/api/members/remove.ts'),
       route('members/leave', 'routes/api/members/leave.ts'),
+
       // Domains
       route('domains', 'routes/api/domains/index.ts'),
       route('domains/:id/status', 'routes/api/domains/status.ts'),
+
+      // DNS Zones
+      route('dns-zones', 'routes/api/dns-zones/index.ts'),
 
       // HTTPProxies
       route('httpproxy', 'routes/api/httpproxy/index.ts'),

@@ -140,18 +140,3 @@ export interface DataTableToolbarConfig {
   /** Enable responsive behavior (auto-collapse on mobile) */
   responsive?: boolean;
 }
-
-export interface DataTableEmptyContentProps {
-  title?: string;
-  subtitle?: string;
-  image?: string;
-  size?: 'sm' | 'md' | 'lg';
-  actions?: Array<{
-    type: 'button' | 'link' | 'external-link';
-    label: string;
-    onClick?: () => void;
-    to?: string;
-    variant?: 'default' | 'destructive';
-    icon?: React.ReactNode;
-  }>;
-}
