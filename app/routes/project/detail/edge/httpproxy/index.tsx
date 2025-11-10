@@ -4,6 +4,7 @@ import { StatusBadge } from '@/components/status-badge/status-badge';
 import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table/data-table.types';
 import { createHttpProxiesControl } from '@/resources/control-plane';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
 import { paths } from '@/utils/config/paths.config';
@@ -102,13 +103,18 @@ export default function HttpProxyPage() {
         accessorKey: 'status',
         cell: ({ row }) => {
           return (
-            row.original.status && (
-              <StatusBadge
-                status={transformControlPlaneStatus(row.original.status)}
-                type="badge"
-                readyText="Active"
-              />
-            )
+            row.original.status &&
+            (() => {
+              const transformedStatus = transformControlPlaneStatus(row.original.status);
+              return (
+                <StatusBadge
+                  status={transformedStatus}
+                  label={
+                    transformedStatus.status === ControlPlaneStatus.Success ? 'Active' : undefined
+                  }
+                />
+              );
+            })()
           );
         },
       },

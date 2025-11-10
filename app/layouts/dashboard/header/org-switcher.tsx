@@ -19,7 +19,7 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: IOrganization
           {currentOrg?.displayName ?? currentOrg?.name}
         </span>
         {currentOrg?.type === OrganizationType.Personal && (
-          <Badge variant="secondary" className="border">
+          <Badge type="secondary" className="border">
             Personal
           </Badge>
         )}

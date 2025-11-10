@@ -49,7 +49,7 @@ const MetricsContent = () => {
             <h1 className="text-3xl font-bold text-gray-900">Enhanced Dashboard</h1>
             <p className="mt-1 text-gray-600">New MetricsToolbar with Dynamic Filters Demo</p>
           </div>
-          <Badge variant="secondary" className="flex items-center gap-2">
+          <Badge type="secondary" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             Enhanced Demo
           </Badge>

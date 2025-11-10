@@ -185,7 +185,7 @@ export const RuntimePreview = ({ values }: { values: RuntimeSchema }) => {
               <div key={index} className="flex items-center gap-2">
                 <span className="font-medium">{container.name}</span>
                 <Separator orientation="vertical" className="h-4" />
-                <Badge variant="outline">{container.image}</Badge>
+                <Badge theme="outline">{container.image}</Badge>
                 {(container.ports ?? []).length > 0 && (
                   <>
                     <Separator orientation="vertical" className="h-4" />

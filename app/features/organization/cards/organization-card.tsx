@@ -122,9 +122,7 @@ export const OrganizationCard = ({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.1 }}>
-                    <Badge variant="secondary" className="rounded-full text-xs font-normal">
-                      Personal
-                    </Badge>
+                    <Badge type="secondary">Personal</Badge>
                   </motion.div>
                 )}
               </div>
@@ -193,9 +191,7 @@ export const OrganizationCard = ({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.1 }}>
-                    <Badge variant="secondary" className="rounded-full text-xs font-normal">
-                      Personal
-                    </Badge>
+                    <Badge type="secondary">Personal</Badge>
                   </motion.div>
                 )}
               </div>
@@ -233,9 +229,7 @@ export const OrganizationCard = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}>
-            <Badge variant="secondary" className="rounded-full text-xs font-normal">
-              Personal
-            </Badge>
+            <Badge type="secondary">Personal</Badge>
           </motion.div>
         )}
         <div className={cn('flex items-center space-x-3', isPersonal && 'pr-16')}>

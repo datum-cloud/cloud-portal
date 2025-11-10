@@ -14,13 +14,13 @@ export const SourcesPreview = ({ values }: { values: ExportPolicySourcesSchema }
         label: source.name,
         content: (
           <div className="flex items-center gap-2">
-            <Badge variant="outline">{source.type}</Badge>
+            <Badge theme="outline">{source.type}</Badge>
             <Separator orientation="vertical" className="h-4" />
             {source.type === ExportPolicySourceType.METRICS && source.metricQuery && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Badge
-                    variant="secondary"
+                    type="secondary"
                     className="hover:bg-secondary-hover flex cursor-help items-center gap-1">
                     <CodeIcon className="h-3 w-3" />
                     <span>MetricsQL Query</span>

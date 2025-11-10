@@ -71,7 +71,9 @@ export const HttpProxyHostnamesCard = ({
         {endpoint && (
           <CardDescription>
             These endpoints will forward requests to your backend:{' '}
-            <Badge variant="butter">{endpoint}</Badge>
+            <Badge type="tertiary" theme="light">
+              {endpoint}
+            </Badge>
           </CardDescription>
         )}
       </CardHeader>
@@ -88,7 +90,7 @@ export const HttpProxyHostnamesCard = ({
                       <TooltipTrigger
                         asChild
                         className={cn(val.valid ? 'pointer-events-none' : 'cursor-pointer')}>
-                        <Badge variant={val.valid ? 'default' : 'destructive'}>
+                        <Badge type={val.valid ? 'primary' : 'danger'}>
                           {val.valid ? 'HTTP/HTTPS' : 'Invalid'}
                         </Badge>
                       </TooltipTrigger>

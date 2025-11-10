@@ -42,7 +42,7 @@ export const WorkloadSinksTable = ({
         enableSorting: false,
         cell: ({ row }: any) => {
           const type = row.original?.target?.prometheusRemoteWrite ? 'Prometheus' : 'Unknown';
-          return <Badge variant="outline">{type}</Badge>;
+          return <Badge theme="outline">{type}</Badge>;
         },
       },
       {
@@ -51,7 +51,7 @@ export const WorkloadSinksTable = ({
         enableSorting: false,
         cell: ({ row }: any) => {
           return row.original?.sources?.map((source: string) => (
-            <Badge variant="secondary" key={source}>
+            <Badge type="secondary" key={source}>
               <span>{source}</span>
             </Badge>
           ));
@@ -66,12 +66,11 @@ export const WorkloadSinksTable = ({
           return (
             <StatusBadge
               status={transformedStatus}
-              type="badge"
+              label={transformedStatus?.status === ControlPlaneStatus.Success ? 'Available' : undefined}
               showTooltip
               tooltipText={
                 transformedStatus?.status === ControlPlaneStatus.Success ? 'Active' : undefined
               }
-              readyText="Available"
             />
           );
         },

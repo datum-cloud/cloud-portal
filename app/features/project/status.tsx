@@ -12,15 +12,15 @@ import { useFetcher } from 'react-router';
 export const ProjectStatus = ({
   currentStatus,
   projectId,
-  type = 'dot',
+  label,
   showTooltip = true,
-  badgeClassName,
+  className,
 }: {
   currentStatus?: IControlPlaneStatus;
   projectId?: string;
-  type?: 'dot' | 'badge';
+  label?: string;
   showTooltip?: boolean;
-  badgeClassName?: string;
+  className?: string;
 }) => {
   const { orgId } = useApp();
   const fetcher = useFetcher({ key: `project-status-${projectId}` });
@@ -87,9 +87,9 @@ export const ProjectStatus = ({
   return status ? (
     <StatusBadge
       status={status}
-      type={type}
+      label={label}
       showTooltip={showTooltip}
-      badgeClassName={badgeClassName}
+      className={className}
       tooltipText={tooltipText}
     />
   ) : (

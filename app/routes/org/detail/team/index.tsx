@@ -256,15 +256,13 @@ export default function OrgTeamPage() {
                   subtitle={subtitle}
                   size="sm"
                 />
-                {row.original.email === user?.email && (
-                  <Badge variant="outline" className="py-0.5 text-xs font-normal">
-                    You
-                  </Badge>
-                )}
+                {row.original.email === user?.email && <Badge>You</Badge>}
               </div>
 
               {row.original.type === 'invitation' && (
-                <Badge variant={row.original.invitationState === 'Pending' ? 'sunglow' : 'default'}>
+                <Badge
+                  type={row.original.invitationState === 'Pending' ? 'warning' : 'primary'}
+                  theme={row.original.invitationState === 'Pending' ? 'light' : 'solid'}>
                   {row.original.invitationState === 'Pending'
                     ? 'Invited'
                     : row.original.invitationState}
@@ -287,14 +285,7 @@ export default function OrgTeamPage() {
             <div className="flex flex-wrap gap-1">
               {roles.map((role, idx) => {
                 const displayName = role.displayName || role.name;
-                const badge = (
-                  <Badge
-                    key={`${role.name}-${idx}`}
-                    variant="outline"
-                    className="py-0.5 text-xs font-normal">
-                    {displayName}
-                  </Badge>
-                );
+                const badge = <Badge key={`${role.name}-${idx}`}>{displayName}</Badge>;
 
                 // If there's a description, wrap with tooltip
                 if (role.description) {

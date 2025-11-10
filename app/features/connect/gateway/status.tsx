@@ -11,16 +11,16 @@ export const GatewayStatus = ({
   currentStatus,
   projectId,
   id,
-  type = 'dot',
+  label,
   showTooltip = true,
-  badgeClassName,
+  className,
 }: {
   currentStatus?: IControlPlaneStatus;
   projectId?: string;
   id?: string;
-  type?: 'dot' | 'badge';
+  label?: string;
   showTooltip?: boolean;
-  badgeClassName?: string;
+  className?: string;
 }) => {
   const fetcher = useFetcher({ key: `gateway-status-${projectId}` });
   const intervalRef = useRef<NodeJS.Timeout>(null);
@@ -75,9 +75,9 @@ export const GatewayStatus = ({
   return status ? (
     <StatusBadge
       status={status}
-      type={type}
+      label={label}
       showTooltip={showTooltip}
-      badgeClassName={badgeClassName}
+      className={className}
       tooltipText={fetcher.data?.status === ControlPlaneStatus.Success ? 'Active' : undefined}
     />
   ) : (

@@ -118,9 +118,9 @@ export const PlacementsPreview = ({ values }: { values: PlacementsSchema }) => {
         label: placement.name,
         content: (
           <div className="flex items-center gap-2">
-            <Badge variant="outline">{placement.cityCode}</Badge>
+            <Badge theme="outline">{placement.cityCode}</Badge>
             <Separator orientation="vertical" className="h-4" />
-            <Badge variant="outline">Min Replicas: {placement.minimumReplicas}</Badge>
+            <Badge theme="outline">Min Replicas: {placement.minimumReplicas}</Badge>
           </div>
         ),
       }));

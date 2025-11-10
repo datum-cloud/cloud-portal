@@ -12,19 +12,17 @@ export const WorkloadStatus = ({
   projectId,
   id,
   workloadType = 'workload',
-  type = 'dot',
+  label,
   showTooltip = true,
-  badgeClassName,
-  readyText,
+  className,
 }: {
   currentStatus?: IControlPlaneStatus;
   projectId?: string;
   id?: string;
   workloadType?: 'workload' | 'deployment' | 'instance';
-  type?: 'dot' | 'badge';
+  label?: string;
   showTooltip?: boolean;
-  badgeClassName?: string;
-  readyText?: string;
+  className?: string;
 }) => {
   const fetcher = useFetcher({ key: `workload-status-${id}` });
   const intervalRef = useRef<NodeJS.Timeout>(null);
@@ -86,11 +84,10 @@ export const WorkloadStatus = ({
   return status ? (
     <StatusBadge
       status={status}
-      type={type}
+      label={label}
       showTooltip={showTooltip}
-      badgeClassName={badgeClassName}
+      className={className}
       tooltipText={fetcher.data?.status === ControlPlaneStatus.Success ? 'Active' : undefined}
-      readyText={readyText}
     />
   ) : (
     <></>

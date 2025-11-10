@@ -11,7 +11,8 @@ export interface ChipsOverflowProps {
   items: ChipsOverflowItem[];
   maxVisible?: number;
   size?: ChipsOverflowSize;
-  variant?: BadgeProps['variant'];
+  type?: BadgeProps['type'];
+  theme?: BadgeProps['theme'];
   renderChip?: (item: ChipsOverflowItem, index: number) => React.ReactNode;
   overflowLabel?: (hiddenCount: number) => string;
   className?: string;
@@ -30,7 +31,8 @@ export function ChipsOverflow({
   items,
   maxVisible = 2,
   size = 'md',
-  variant = 'secondary',
+  type = 'secondary',
+  theme = 'solid',
   renderChip,
   overflowLabel = (n) => `${n}+`,
   className,
@@ -55,7 +57,8 @@ export function ChipsOverflow({
     return (
       <Badge
         key={index}
-        variant={variant}
+        type={type}
+        theme={theme}
         className={cn(sizeClassNames[size], isClickable ? 'cursor-pointer' : 'cursor-default')}
         onClick={(event) => {
           event.stopPropagation();
@@ -108,7 +111,7 @@ export function ChipsOverflow({
               setOpen((prev) => !prev);
             }
           }}>
-          <Badge variant={variant} className={sizeClassNames[size]}>
+          <Badge type={type} theme={theme} className={sizeClassNames[size]}>
             {overflowLabel(hiddenCount)}
           </Badge>
         </button>

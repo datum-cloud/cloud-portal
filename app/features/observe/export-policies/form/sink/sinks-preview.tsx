@@ -17,13 +17,13 @@ export const SinksPreview = ({ values }: { values: ExportPolicySinksSchema }) =>
           <div className="flex flex-col gap-2">
             {/* Top row with name, type and sources */}
             <div className="flex items-center gap-2">
-              <Badge variant="outline">{sink.type}</Badge>
+              <Badge theme="outline">{sink.type}</Badge>
               <Separator orientation="vertical" className="h-4" />
               {sink.sources && sink.sources.length > 0 && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Badge
-                      variant="secondary"
+                      type="secondary"
                       className="hover:bg-secondary-hover flex cursor-help items-center gap-1">
                       <LinkIcon className="h-3 w-3" />
                       <span>Sources ({sink.sources.length})</span>

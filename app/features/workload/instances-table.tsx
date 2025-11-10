@@ -2,6 +2,7 @@ import { WorkloadStatus } from './status';
 import { DateTime } from '@/components/date-time';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IInstanceControlResponse } from '@/resources/interfaces/workload.interface';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { CardContent, CardHeader, CardTitle, Card } from '@shadcn/ui/card';
@@ -51,13 +52,18 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
         enableSorting: false,
         cell: ({ row }) => {
           return (
-            row.original.status && (
-              <WorkloadStatus
-                readyText="Available"
-                currentStatus={transformControlPlaneStatus(row.original.status)}
-                type="badge"
-              />
-            )
+            row.original.status &&
+            (() => {
+              const transformedStatus = transformControlPlaneStatus(row.original.status);
+              return (
+                <WorkloadStatus
+                  label={
+                    transformedStatus.status === ControlPlaneStatus.Success ? 'Available' : undefined
+                  }
+                  currentStatus={transformedStatus}
+                />
+              );
+            })()
           );
         },
       },

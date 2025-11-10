@@ -145,7 +145,7 @@ export const NetworkPreview = ({ values }: { values: NetworksSchema }) => {
           content: (
             <div className="flex items-center gap-2">
               {network.ipFamilies.map((ipFamily) => (
-                <Badge variant="outline" key={ipFamily}>
+                <Badge theme="outline" key={ipFamily}>
                   {ipFamily.toUpperCase()}
                 </Badge>
               ))}

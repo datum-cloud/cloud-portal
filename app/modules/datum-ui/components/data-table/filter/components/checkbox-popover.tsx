@@ -82,7 +82,7 @@ export function CheckboxPopoverFilter({
                 selectedOptions.map((option) => (
                   <Badge
                     key={option.value}
-                    variant="secondary"
+                    type="secondary"
                     className="h-5 px-1 text-xs"
                     onClick={(e) => handleRemoveSelection(option.value, e)}>
                     {option.label}
@@ -90,7 +90,7 @@ export function CheckboxPopoverFilter({
                   </Badge>
                 ))
               ) : (
-                <Badge variant="secondary" className="h-5 px-1 text-xs">
+                <Badge type="secondary" className="h-5 px-1 text-xs">
                   {selectedOptions.length} selected
                 </Badge>
               )}

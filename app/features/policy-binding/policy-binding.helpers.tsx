@@ -1,6 +1,7 @@
 import { PolicyBinding } from './policy-binding.types';
 import { DateTime } from '@/components/date-time';
 import { StatusBadge } from '@/components/status-badge/status-badge';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
@@ -110,7 +111,7 @@ export const renderSubjectsCell = (subjects: PolicyBinding['subjects']) => {
                     <div className="flex items-center justify-between gap-1">
                       <span>{user.name}</span>
                       {user.namespace && (
-                        <Badge variant="outline" className="text-muted-foreground text-xs">
+                        <Badge theme="outline" className="text-muted-foreground text-xs">
                           {user.namespace}
                         </Badge>
                       )}
@@ -130,7 +131,7 @@ export const renderSubjectsCell = (subjects: PolicyBinding['subjects']) => {
                     <div className="flex items-center justify-between gap-1">
                       <span>{group.name}</span>
                       {group.namespace && (
-                        <Badge variant="outline" className="text-muted-foreground text-xs">
+                        <Badge theme="outline" className="text-muted-foreground text-xs">
                           {group.namespace}
                         </Badge>
                       )}
@@ -151,8 +152,12 @@ export const renderStatusCell = (status: PolicyBinding['status']) => {
     return '-';
   }
 
+  const transformedStatus = transformControlPlaneStatus(status);
   return (
-    <StatusBadge status={transformControlPlaneStatus(status)} type="badge" readyText="Active" />
+    <StatusBadge
+      status={transformedStatus}
+      label={transformedStatus.status === ControlPlaneStatus.Success ? 'Active' : undefined}
+    />
   );
 };
 

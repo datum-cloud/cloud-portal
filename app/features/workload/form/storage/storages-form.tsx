@@ -148,9 +148,9 @@ export const StoragesPreview = ({
         label: storage.name,
         content: (
           <div className="flex items-center gap-2 font-medium">
-            <Badge variant="outline">Size: {storage.size}Gi</Badge>
+            <Badge theme="outline">Size: {storage.size}Gi</Badge>
             <Separator orientation="vertical" className="h-4" />
-            <Badge variant="outline">
+            <Badge theme="outline">
               {STORAGE_TYPES[storage.type as keyof typeof STORAGE_TYPES].label}
             </Badge>
           </div>

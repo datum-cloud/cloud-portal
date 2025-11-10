@@ -64,7 +64,7 @@ export function RadioPopoverFilter({
             disabled={disabled}>
             <div className="flex items-center gap-2">
               {selectedOption ? (
-                <Badge variant="secondary" className="h-5 px-1 text-xs" onClick={handleClear}>
+                <Badge type="secondary" className="h-5 px-1 text-xs" onClick={handleClear}>
                   {selectedOption.label}
                   <X className="ml-1 h-3 w-3 cursor-pointer" />
                 </Badge>

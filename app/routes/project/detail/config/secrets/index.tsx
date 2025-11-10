@@ -88,9 +88,7 @@ export default function SecretsPage() {
         accessorKey: 'type',
         cell: ({ row }) => {
           return (
-            <Badge variant="outline">
-              {SECRET_TYPES[row.original.type as keyof typeof SECRET_TYPES].label}
-            </Badge>
+            <Badge>{SECRET_TYPES[row.original.type as keyof typeof SECRET_TYPES].label}</Badge>
           );
         },
       },
