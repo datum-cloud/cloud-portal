@@ -36,7 +36,7 @@ export const CreateProjectForm = () => {
 
   const [form, { name, description, orgEntityId }] = useForm({
     constraint: getZodConstraint(projectSchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: projectSchema });

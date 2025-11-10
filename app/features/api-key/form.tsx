@@ -27,7 +27,7 @@ export const ApiKeyForm = () => {
 
   const [form, fields] = useForm({
     constraint: getZodConstraint(newApiKeySchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: newApiKeySchema });

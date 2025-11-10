@@ -28,7 +28,7 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
 
   const [form, fields] = useForm({
     constraint: getZodConstraint(updateProjectSchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: updateProjectSchema });

@@ -130,6 +130,13 @@ export default function ProjectLayout() {
             }),
             type: 'link',
           },
+          {
+            title: 'DNS Zones',
+            href: getPathWithParams(paths.project.detail.dnsZones.root, {
+              projectId,
+            }),
+            type: 'link',
+          },
         ],
       },
       {

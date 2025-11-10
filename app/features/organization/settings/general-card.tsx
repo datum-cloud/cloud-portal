@@ -24,7 +24,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
   const [form, fields] = useForm({
     id: formId,
     constraint: getZodConstraint(updateOrganizationSchema.pick({ description: true })),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, {

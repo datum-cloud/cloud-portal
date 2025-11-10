@@ -1,0 +1,83 @@
+import {
+  ComMiloapisNetworkingDnsV1Alpha1DnsZone,
+  ComMiloapisNetworkingDnsV1Alpha1DnsZoneList,
+  createDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone,
+  listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone,
+} from '@/modules/control-plane/dns-networking';
+import { IDnsZoneControlResponse } from '@/resources/interfaces/dns-zone.interface';
+import { FormDnsZoneSchema } from '@/resources/schemas/dns-zone.schema';
+import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
+import { Client } from '@hey-api/client-axios';
+
+export const createDnsZonesControl = (client: Client) => {
+  const baseUrl = `${client.instance.defaults.baseURL}/apis/resourcemanager.miloapis.com/v1alpha1`;
+
+  const transformDnsZone = (
+    dnsZone: ComMiloapisNetworkingDnsV1Alpha1DnsZone
+  ): IDnsZoneControlResponse => {
+    const { metadata, spec, status } = dnsZone;
+    return {
+      name: metadata?.name ?? '',
+      createdAt: metadata?.creationTimestamp ?? new Date(),
+      uid: metadata?.uid ?? '',
+      resourceVersion: metadata?.resourceVersion ?? '',
+      namespace: metadata?.namespace ?? '',
+      dnsZoneClassName: spec?.dnsZoneClassName ?? '',
+      domainName: spec?.domainName ?? '',
+      description: metadata?.annotations?.['kubernetes.io/description'] ?? '',
+      status: status,
+    };
+  };
+  return {
+    list: async (projectId: string) => {
+      try {
+        const response = await listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+        });
+
+        const dnsZones = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsZoneList;
+
+        return dnsZones.items.map(transformDnsZone);
+      } catch (e) {
+        throw e;
+      }
+    },
+    create: async (projectId: string, payload: FormDnsZoneSchema, dryRun: boolean = false) => {
+      try {
+        const response = await createDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+          },
+          body: {
+            kind: 'DNSZone',
+            apiVersion: 'dns.networking.miloapis.com/v1alpha1',
+            metadata: {
+              name: generateId(payload.domainName, { randomText: generateRandomString(6) }),
+              annotations: {
+                'kubernetes.io/description': payload.description ?? '',
+              },
+            },
+            spec: {
+              domainName: payload.domainName,
+            },
+          },
+        });
+
+        const dnsZone = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsZone;
+
+        return dryRun ? dnsZone : transformDnsZone(dnsZone);
+      } catch (e) {
+        throw e;
+      }
+    },
+  };
+};

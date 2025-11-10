@@ -102,7 +102,7 @@ export const WorkloadUpdateForm = ({
   const [form, fields] = useForm({
     id: 'workload-form',
     constraint: getZodConstraint(updateWorkloadSchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     defaultValue: initialValues,
     onValidate({ formData }) {

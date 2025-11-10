@@ -153,6 +153,22 @@ export default [
           ),
         ]),
 
+        // DNS Zones
+        route('dns-zones', 'routes/project/detail/edge/dns-zones/layout.tsx', [
+          index('routes/project/detail/edge/dns-zones/index.tsx'),
+          route('new', 'routes/project/detail/edge/dns-zones/new.tsx'),
+
+          // route(
+          //   ':dnsZoneId',
+          //   'routes/project/detail/edge/dns-zones/detail/layout.tsx',
+          //   { id: 'dns-zone-detail' },
+          //   [
+          //     index('routes/project/detail/edge/dns-zones/detail/index.tsx'),
+          //     route('overview', 'routes/project/detail/edge/dns-zones/detail/overview.tsx'),
+          //   ]
+          // ),
+        ]),
+
         // Export Policies
         route('export-policies', 'routes/project/detail/metrics/export-policies/layout.tsx', [
           index('routes/project/detail/metrics/export-policies/index.tsx'),

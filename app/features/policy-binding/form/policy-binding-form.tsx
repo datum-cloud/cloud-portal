@@ -84,7 +84,7 @@ export const PolicyBindingForm = ({
   const [form, fields] = useForm({
     id: 'policy-binding-form',
     constraint: getZodConstraint(newPolicyBindingSchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: newPolicyBindingSchema });

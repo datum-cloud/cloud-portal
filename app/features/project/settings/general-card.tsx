@@ -24,7 +24,7 @@ export const ProjectGeneralCard = ({ project }: { project: IProjectControlRespon
   const [form, fields] = useForm({
     id: formId,
     constraint: getZodConstraint(updateProjectSchema.pick({ description: true })),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, {
