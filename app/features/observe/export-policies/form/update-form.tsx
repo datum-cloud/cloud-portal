@@ -77,7 +77,7 @@ export const ExportPolicyUpdateForm = ({
   const [form, fields] = useForm({
     id: 'export-policy-form',
     constraint: getZodConstraint(updateExportPolicySchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: updateExportPolicySchema });

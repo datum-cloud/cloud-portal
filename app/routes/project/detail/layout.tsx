@@ -108,7 +108,7 @@ export default function ProjectLayout() {
         icon: HomeIcon,
       },
       {
-        title: 'Internet edge',
+        title: 'Runtime',
         href: getPathWithParams(paths.project.detail.httpProxy.root, {
           projectId,
         }),
@@ -117,15 +117,15 @@ export default function ProjectLayout() {
         disabled: !isReady,
         children: [
           {
-            title: 'Domains',
-            href: getPathWithParams(paths.project.detail.domains.root, {
+            title: 'HTTPProxy',
+            href: getPathWithParams(paths.project.detail.httpProxy.root, {
               projectId,
             }),
             type: 'link',
           },
           {
-            title: 'HTTPProxy',
-            href: getPathWithParams(paths.project.detail.httpProxy.root, {
+            title: 'DNS Zones',
+            href: getPathWithParams(paths.project.detail.dnsZones.root, {
               projectId,
             }),
             type: 'link',
@@ -133,7 +133,7 @@ export default function ProjectLayout() {
         ],
       },
       {
-        title: 'Metrics',
+        title: 'Workflows',
         href: getPathWithParams(paths.project.detail.metrics.root, { projectId }),
         type: 'collapsible',
         icon: AreaChartIcon,
@@ -149,7 +149,7 @@ export default function ProjectLayout() {
         ],
       },
       {
-        title: 'Config',
+        title: 'Assets',
         href: getPathWithParams(paths.project.detail.config.root, {
           projectId,
         }),
@@ -157,6 +157,13 @@ export default function ProjectLayout() {
         icon: FolderDot,
         disabled: !isReady,
         children: [
+          {
+            title: 'Domains',
+            href: getPathWithParams(paths.project.detail.domains.root, {
+              projectId,
+            }),
+            type: 'link',
+          },
           {
             title: 'Secrets',
             href: getPathWithParams(paths.project.detail.config.secrets.root, {

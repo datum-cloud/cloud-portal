@@ -13,7 +13,7 @@ import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
+import { ArrowRightIcon, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   LoaderFunctionArgs,
@@ -132,15 +132,15 @@ export default function SecretsPage() {
       columns={columns}
       data={data ?? []}
       emptyContent={{
-        title: 'No secrets found.',
-        subtitle: 'Create your first secret to get started.',
+        title: "Looks like you don't have any secrets added yet",
         actions: [
           {
             type: 'link',
-            label: 'New Secret',
+            label: 'Add a secret',
             to: getPathWithParams(paths.project.detail.config.secrets.new, { projectId }),
             variant: 'default',
-            icon: <PlusIcon className="size-4" />,
+            icon: <ArrowRightIcon className="size-4" />,
+            iconPosition: 'end',
           },
         ],
       }}
@@ -151,9 +151,9 @@ export default function SecretsPage() {
             to={getPathWithParams(paths.project.detail.config.secrets.new, {
               projectId,
             })}>
-            <Button>
+            <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              New Secret
+              Add secret
             </Button>
           </Link>
         ),
@@ -161,7 +161,7 @@ export default function SecretsPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search secrets...',
+          placeholder: 'Search secrets',
         },
       }}
       defaultSorting={[{ id: 'createdAt', desc: true }]}

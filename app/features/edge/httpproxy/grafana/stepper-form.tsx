@@ -54,7 +54,7 @@ export default function GrafanaStepperForm({
 
   const [form, fields] = useForm({
     id: 'grafana-stepper-form',
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     constraint: getZodConstraint(stepper.current.schema),
     onValidate({ formData }) {

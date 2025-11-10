@@ -52,7 +52,7 @@ export const KeysFormDialog = ({
     id: 'secret-variables-form',
     constraint: getZodConstraint(secretVariablesSchema),
     defaultValue: defaultValue,
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: secretVariablesSchema });

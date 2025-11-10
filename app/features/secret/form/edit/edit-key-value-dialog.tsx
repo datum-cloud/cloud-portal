@@ -59,7 +59,7 @@ export const EditKeyValueDialog = ({
     id: 'secret-variables-form',
     constraint: getZodConstraint(keyValueSchema),
     defaultValue: { value: '' },
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: keyValueSchema });

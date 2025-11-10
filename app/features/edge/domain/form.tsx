@@ -82,7 +82,7 @@ export const DomainForm = ({
   const [form, fields] = useForm({
     id: 'domain-form',
     constraint: getZodConstraint(domainSchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: domainSchema });
@@ -101,7 +101,7 @@ export const DomainForm = ({
       nameControl.change(defaultValue.name);
       domainControl.change(defaultValue.domainName);
     }
-  }, [defaultValue]);
+  }, [defaultValue, nameControl, domainControl]);
 
   return (
     <Card>

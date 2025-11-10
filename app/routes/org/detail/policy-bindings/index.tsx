@@ -129,9 +129,9 @@ export default function OrgPolicyBindingsPage() {
         description: 'Manage your organization policy bindings',
         actions: (
           <Link to={getPathWithParams(paths.org.detail.policyBindings.new, { orgId })}>
-            <Button>
+            <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              New Policy Binding
+              Add policy binding
             </Button>
           </Link>
         ),

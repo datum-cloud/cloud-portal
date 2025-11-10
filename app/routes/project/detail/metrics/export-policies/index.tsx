@@ -14,7 +14,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
+import { ArrowRightIcon, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   AppLoadContext,
@@ -113,13 +113,12 @@ export default function ExportPoliciesPage() {
         accessorKey: 'status',
         cell: ({ row }) => {
           return (
-            row.original.status && (
-              <ExportPolicyStatus
-                currentStatus={transformControlPlaneStatus(row.original.status)}
-                projectId={projectId}
-                id={row.original.name}
-              />
-            )
+            <ExportPolicyStatus
+              currentStatus={transformControlPlaneStatus(row.original.status)}
+              projectId={projectId}
+              id={row.original.name}
+              showTooltip={false}
+            />
           );
         },
       },
@@ -181,15 +180,15 @@ export default function ExportPoliciesPage() {
         );
       }}
       emptyContent={{
-        title: 'No export policies found.',
-        subtitle: 'Create your first export policy to get started.',
+        title: "Looks like you don't have any export policies added yet",
         actions: [
           {
             type: 'link',
-            label: 'New Export Policy',
+            label: 'Add a export policy',
             to: getPathWithParams(paths.project.detail.metrics.exportPolicies.new, { projectId }),
             variant: 'default',
-            icon: <PlusIcon className="size-4" />,
+            icon: <ArrowRightIcon className="size-4" />,
+            iconPosition: 'end',
           },
         ],
       }}
@@ -200,9 +199,9 @@ export default function ExportPoliciesPage() {
             to={getPathWithParams(paths.project.detail.metrics.exportPolicies.new, {
               projectId,
             })}>
-            <Button>
+            <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              New Export Policy
+              Add export policy
             </Button>
           </Link>
         ),
@@ -210,7 +209,7 @@ export default function ExportPoliciesPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search export policies...',
+          placeholder: 'Search export policies',
         },
       }}
       rowActions={rowActions}

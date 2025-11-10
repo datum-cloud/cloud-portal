@@ -28,7 +28,6 @@ export const createSelfSubjectAccessReviewControl = (client: Client) => {
       dryRun: boolean = false
     ) => {
       try {
-        console.log('payload', payload);
         const response = await createAuthorizationV1SelfSubjectAccessReview({
           client,
           baseURL: buildBaseUrl(client, organizationId),

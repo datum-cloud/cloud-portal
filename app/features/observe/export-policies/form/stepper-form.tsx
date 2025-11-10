@@ -85,6 +85,10 @@ export const ExportPolicyStepperForm = ({
       {
         name: undefined,
         type: ExportPolicySinkType.PROMETHEUS,
+        authentication: {
+          authType: undefined,
+          secretName: undefined,
+        },
       },
     ],
   };

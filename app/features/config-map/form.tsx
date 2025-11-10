@@ -29,7 +29,7 @@ export const ConfigMapForm = ({ defaultValue }: { defaultValue?: IConfigMapContr
 
   const [form, fields] = useForm({
     constraint: getZodConstraint(defaultValue ? updateConfigMapSchema : configMapSchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, {

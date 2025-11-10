@@ -30,7 +30,7 @@ export const OrganizationLabelCard = ({ labels }: { labels: ILabel }) => {
   const [form, fields] = useForm({
     id: formId,
     constraint: getZodConstraint(updateOrganizationSchema.pick({ labels: true })),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: updateOrganizationSchema.pick({ labels: true }) });

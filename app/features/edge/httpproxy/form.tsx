@@ -83,7 +83,7 @@ export const HttpProxyForm = ({
   const [form, fields] = useForm({
     id: 'http-proxy-form',
     constraint: getZodConstraint(httpProxySchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: httpProxySchema });

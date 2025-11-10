@@ -1,7 +1,6 @@
-import { DataTableEmptyContentProps } from './data-table.types';
 import { LogoIcon } from '@/components/logo/logo-icon';
 
-export const DataTableLoadingContent = ({ title = 'Loading...' }: DataTableEmptyContentProps) => {
+export const DataTableLoadingContent = ({ title = 'Loading...' }: { title?: string }) => {
   return (
     <div className={`flex h-full flex-col items-center justify-center gap-5`}>
       <LogoIcon width={64} className="animate-spin-pause" />

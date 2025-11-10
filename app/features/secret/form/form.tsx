@@ -28,7 +28,7 @@ export const SecretForm = ({ defaultValue }: { defaultValue?: ISecretControlResp
   const [form, fields] = useForm({
     id: 'secret-form',
     constraint: getZodConstraint(secretNewSchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: secretNewSchema });

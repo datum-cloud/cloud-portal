@@ -52,7 +52,7 @@ export const EndpointSliceForm = ({
     defaultValue: {
       addressType: EndpointSliceAddressType.FQDN,
     },
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: endpointSliceSchema });

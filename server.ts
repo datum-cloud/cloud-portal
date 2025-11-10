@@ -134,6 +134,27 @@ const strongestRateLimit = expressRateLimit({
   ...defaultRateLimit,
   windowMs: 60 * 1000,
   max: 10 * MAX_LIMIT_MULTIPLE,
+  handler: (req, res) => {
+    console.log(`[RATE LIMIT] Strongest limit exceeded:`, {
+      ip: req.ip,
+      path: req.path,
+      method: req.method,
+      limit: 10 * MAX_LIMIT_MULTIPLE,
+      window: '60s',
+    });
+    res.status(429).json({ error: 'Too many requests, please try again later.' });
+  },
+  skip: (req) => {
+    if (IS_DEV) {
+      console.log(`[RATE LIMIT] Strongest limit check:`, {
+        ip: req.ip,
+        path: req.path,
+        method: req.method,
+        limit: 10 * MAX_LIMIT_MULTIPLE,
+      });
+    }
+    return false;
+  },
 });
 
 /**
@@ -143,12 +164,56 @@ const strongRateLimit = expressRateLimit({
   ...defaultRateLimit,
   windowMs: 60 * 1000,
   max: 100 * MAX_LIMIT_MULTIPLE,
+  handler: (req, res) => {
+    console.log(`[RATE LIMIT] Strong limit exceeded:`, {
+      ip: req.ip,
+      path: req.path,
+      method: req.method,
+      limit: 100 * MAX_LIMIT_MULTIPLE,
+      window: '60s',
+    });
+    res.status(429).json({ error: 'Too many requests, please try again later.' });
+  },
+  skip: (req) => {
+    if (IS_DEV) {
+      console.log(`[RATE LIMIT] Strong limit check:`, {
+        ip: req.ip,
+        path: req.path,
+        method: req.method,
+        limit: 100 * MAX_LIMIT_MULTIPLE,
+      });
+    }
+    return false;
+  },
 });
 
 /**
  * General rate limit - 1000 requests per minute
  */
-const generalRateLimit = expressRateLimit(defaultRateLimit);
+const generalRateLimit = expressRateLimit({
+  ...defaultRateLimit,
+  handler: (req, res) => {
+    console.log(`[RATE LIMIT] General limit exceeded:`, {
+      ip: req.ip,
+      path: req.path,
+      method: req.method,
+      limit: 1000 * MAX_LIMIT_MULTIPLE,
+      window: '60s',
+    });
+    res.status(429).json({ error: 'Too many requests, please try again later.' });
+  },
+  skip: (req) => {
+    if (IS_DEV) {
+      console.log(`[RATE LIMIT] General limit check:`, {
+        ip: req.ip,
+        path: req.path,
+        method: req.method,
+        limit: 1000 * MAX_LIMIT_MULTIPLE,
+      });
+    }
+    return false;
+  },
+});
 
 /**
  * Apply rate limits based on request path and method
@@ -158,11 +223,20 @@ app.use((req, res, next) => {
 
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     if (STRONG_PATHS.some((path) => req.path.includes(path))) {
+      if (IS_DEV) {
+        console.log(`[RATE LIMIT] Applying STRONGEST limiter for ${req.method} ${req.path}`);
+      }
       return strongestRateLimit(req, res, next);
+    }
+    if (IS_DEV) {
+      console.log(`[RATE LIMIT] Applying STRONG limiter for ${req.method} ${req.path}`);
     }
     return strongRateLimit(req, res, next);
   }
 
+  if (IS_DEV) {
+    console.log(`[RATE LIMIT] Applying GENERAL limiter for ${req.method} ${req.path}`);
+  }
   return generalRateLimit(req, res, next);
 });
 

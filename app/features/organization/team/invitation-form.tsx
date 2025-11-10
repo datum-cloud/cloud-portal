@@ -38,7 +38,7 @@ export const InvitationForm = () => {
   const [form, fields] = useForm({
     id: 'invitation-form',
     constraint: getZodConstraint(invitationFormSchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: invitationFormSchema });

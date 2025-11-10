@@ -137,20 +137,27 @@ export default [
         ]),
 
         // Domains
-        route('domains', 'routes/project/detail/edge/domains/layout.tsx', [
-          index('routes/project/detail/edge/domains/index.tsx'),
-          route('new', 'routes/project/detail/edge/domains/new.tsx'),
+        route('domains', 'routes/project/detail/config/domains/layout.tsx', [
+          index('routes/project/detail/config/domains/index.tsx'),
+          route('new', 'routes/project/detail/config/domains/new.tsx'),
 
           route(
             ':domainId',
-            'routes/project/detail/edge/domains/detail/layout.tsx',
+            'routes/project/detail/config/domains/detail/layout.tsx',
             { id: 'domain-detail' },
             [
-              index('routes/project/detail/edge/domains/detail/index.tsx'),
-              route('overview', 'routes/project/detail/edge/domains/detail/overview.tsx'),
-              // route('edit', 'routes/project/detail/edge/domains/detail/edit.tsx'),
+              index('routes/project/detail/config/domains/detail/index.tsx'),
+              route('overview', 'routes/project/detail/config/domains/detail/overview.tsx'),
+              // route('edit', 'routes/project/detail/config/domains/detail/edit.tsx'),
             ]
           ),
+        ]),
+
+        // DNS Zones
+        route('dns-zones', 'routes/project/detail/edge/dns-zones/layout.tsx', [
+          index('routes/project/detail/edge/dns-zones/index.tsx'),
+          route('new', 'routes/project/detail/edge/dns-zones/new.tsx'),
+          route(':dnsZoneId/edit', 'routes/project/detail/edge/dns-zones/edit.tsx'),
         ]),
 
         // Export Policies
@@ -205,9 +212,13 @@ export default [
       route('members', 'routes/api/members/index.ts'),
       route('members/remove', 'routes/api/members/remove.ts'),
       route('members/leave', 'routes/api/members/leave.ts'),
+
       // Domains
       route('domains', 'routes/api/domains/index.ts'),
       route('domains/:id/status', 'routes/api/domains/status.ts'),
+
+      // DNS Zones
+      route('dns-zones', 'routes/api/dns-zones/index.ts'),
 
       // HTTPProxies
       route('httpproxy', 'routes/api/httpproxy/index.ts'),

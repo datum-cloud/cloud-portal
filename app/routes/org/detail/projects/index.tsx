@@ -9,7 +9,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
+import { ArrowRightIcon, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   AppLoadContext,
@@ -129,15 +129,15 @@ export default function OrgProjectsPage() {
         return undefined;
       }}
       emptyContent={{
-        title: 'No projects found.',
-        subtitle: 'Create your first project to get started.',
+        title: "Looks like you don't have any projects added yet",
         actions: [
           {
             type: 'link',
-            label: 'New Project',
+            label: 'Add a project',
             to: getPathWithParams(paths.org.detail.projects.new, { orgId }),
             variant: 'default',
-            icon: <PlusIcon className="size-4" />,
+            icon: <ArrowRightIcon className="size-4" />,
+            iconPosition: 'end',
           },
         ],
       }}
@@ -145,9 +145,9 @@ export default function OrgProjectsPage() {
         title: 'Projects',
         actions: (
           <Link to={getPathWithParams(paths.org.detail.projects.new, { orgId })}>
-            <Button>
+            <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              New Project
+              Add project
             </Button>
           </Link>
         ),
@@ -155,7 +155,7 @@ export default function OrgProjectsPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search projects...',
+          placeholder: 'Search projects',
           filterKey: 'q',
         },
       }}

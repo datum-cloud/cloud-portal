@@ -27,7 +27,7 @@ export const AccountProfileSettingsCard = () => {
   const [form, fields] = useForm({
     id: formId,
     constraint: getZodConstraint(userSchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: userSchema });

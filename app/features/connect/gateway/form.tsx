@@ -85,7 +85,7 @@ export const GatewayForm = ({
   const [form, fields] = useForm({
     id: 'gateway-form',
     constraint: getZodConstraint(gatewaySchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: gatewaySchema });

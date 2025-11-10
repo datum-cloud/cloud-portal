@@ -39,7 +39,7 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
 
   const [form, { name, description }] = useForm({
     constraint: getZodConstraint(organizationSchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: organizationSchema });

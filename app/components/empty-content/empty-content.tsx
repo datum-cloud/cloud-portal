@@ -9,6 +9,7 @@ export interface EmptyContentAction {
   to?: string;
   variant?: 'default' | 'destructive';
   icon?: React.ReactNode;
+  iconPosition?: 'start' | 'end';
 }
 
 export interface EmptyContentProps {
@@ -36,7 +37,7 @@ const BASE_STYLES = {
   container: 'flex items-center justify-center relative overflow-hidden',
   content: 'flex flex-col items-center text-center relative z-10',
   titleContainer: 'flex flex-col items-center',
-  title: 'font-semibold text-foreground',
+  title: 'font-normal text-foreground',
   subtitle: 'text-muted-foreground',
   actionsContainer: 'flex items-center',
   button: 'flex items-center gap-1',
@@ -159,7 +160,7 @@ const ORIENTATION_CONFIG = {
 
 export const EmptyContent = ({
   title = 'No data found',
-  subtitle = 'There is no data to display.',
+  subtitle,
   icon,
   image,
   variant = 'default',
@@ -187,14 +188,17 @@ export const EmptyContent = ({
   };
 
   const renderAction = (action: EmptyContentAction) => {
+    const { icon, iconPosition = 'start' } = action;
+
     const buttonContent = (
       <Button
         size={sizeStyles.buttonSize === 'default' ? 'default' : 'small'}
         type={action.variant === 'destructive' ? 'danger' : 'tertiary'}
         theme="solid"
         className={cn(BASE_STYLES.button, sizeStyles.subtitle)}>
-        {action.icon}
+        {icon && iconPosition === 'start' && icon}
         <span>{action.label}</span>
+        {icon && iconPosition === 'end' && icon}
       </Button>
     );
 
@@ -218,8 +222,9 @@ export const EmptyContent = ({
         type={action.variant === 'destructive' ? 'danger' : 'tertiary'}
         theme="solid"
         className={cn(BASE_STYLES.button, sizeStyles.subtitle)}>
-        {action.icon}
+        {icon && iconPosition === 'start' && icon}
         <span>{action.label}</span>
+        {icon && iconPosition === 'end' && icon}
       </Button>
     );
   };

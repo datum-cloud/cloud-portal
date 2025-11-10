@@ -58,7 +58,7 @@ export const NetworkForm = ({
   const [form, fields] = useForm({
     id: 'network-form',
     constraint: getZodConstraint(defaultValue ? updateNetworkSchema : newNetworkSchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     defaultValue: {
       ipam: 'Auto',

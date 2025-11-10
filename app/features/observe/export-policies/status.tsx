@@ -117,7 +117,11 @@ export const ExportPolicyStatus = ({
           'Active'
         ) : (
           <>
-            {fetcher.data?.message && <p>{status.message}</p>}
+            {fetcher.data?.message && fetcher.data?.message !== '' ? (
+              <p>{status.message}</p>
+            ) : (
+              <p>Status not available</p>
+            )}
             {sinkMessages.length > 0 && (
               <ul className="mt-1 list-disc pl-4 text-left">
                 {sinkMessages.map((message: string, index: number) => (

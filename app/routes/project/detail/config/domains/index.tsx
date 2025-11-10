@@ -17,7 +17,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
+import { ArrowRightIcon, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   AppLoadContext,
@@ -220,17 +220,17 @@ export default function DomainsPage() {
         );
       }}
       emptyContent={{
-        title: 'No Domain found.',
-        subtitle: 'Create your first domain to get started.',
+        title: "Looks like you don't have any domains added yet",
         actions: [
           {
             type: 'link',
-            label: 'New Domain',
+            label: 'Add a domain',
             to: getPathWithParams(paths.project.detail.domains.new, {
               projectId,
             }),
             variant: 'default',
-            icon: <PlusIcon className="size-4" />,
+            icon: <ArrowRightIcon className="size-4" />,
+            iconPosition: 'end',
           },
         ],
       }}
@@ -241,9 +241,9 @@ export default function DomainsPage() {
             to={getPathWithParams(paths.project.detail.domains.new, {
               projectId,
             })}>
-            <Button>
+            <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              New Domain
+              Add domain
             </Button>
           </Link>
         ),
@@ -251,7 +251,7 @@ export default function DomainsPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search domains...',
+          placeholder: 'Search domains',
         },
         filtersDisplay: 'dropdown',
       }}

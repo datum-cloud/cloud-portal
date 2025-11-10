@@ -43,7 +43,7 @@ export const EditSecretMetadata = ({
   const [form, fields] = useForm({
     id: 'edit-secret-form',
     constraint: getZodConstraint(secretEditSchema),
-    shouldValidate: 'onInput',
+    shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: secretEditSchema });

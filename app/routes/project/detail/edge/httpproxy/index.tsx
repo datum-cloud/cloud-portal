@@ -15,7 +15,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
+import { ArrowRightIcon, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   AppLoadContext,
@@ -176,17 +176,17 @@ export default function HttpProxyPage() {
         );
       }}
       emptyContent={{
-        title: 'No HTTPProxy found.',
-        subtitle: 'Create your first http proxy to get started.',
+        title: "Looks like you don't have any HTTPProxy added yet",
         actions: [
           {
             type: 'link',
-            label: 'New HTTPProxy',
+            label: 'Add a HTTPProxy',
             to: getPathWithParams(paths.project.detail.httpProxy.new, {
               projectId,
             }),
             variant: 'default',
-            icon: <PlusIcon className="size-4" />,
+            icon: <ArrowRightIcon className="size-4" />,
+            iconPosition: 'end',
           },
         ],
       }}
@@ -197,9 +197,9 @@ export default function HttpProxyPage() {
             to={getPathWithParams(paths.project.detail.httpProxy.new, {
               projectId,
             })}>
-            <Button>
+            <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              New HTTPProxy
+              Add proxy
             </Button>
           </Link>
         ),
@@ -207,7 +207,7 @@ export default function HttpProxyPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search proxies...',
+          placeholder: 'Search proxies',
         },
       }}
       rowActions={rowActions}

@@ -44,16 +44,8 @@ export const DomainStatus = ({
   domainStatus: IDomainControlResponse['status'];
 }) => {
   const fetcher = useFetcher({ key: `domain-status-${domainId}` });
-  const intervalRef = useRef<NodeJS.Timeout>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [status, setStatus] = useState<IControlPlaneStatus>();
-
-  const loadStatus = () => {
-    if (domainId && projectId) {
-      fetcher.load(
-        `${getPathWithParams(DOMAIN_STATUS_ROUTE_PATH, { id: domainId })}?projectId=${projectId}`
-      );
-    }
-  };
 
   const currentStatus = useMemo(() => {
     return transformControlPlaneStatus(domainStatus);
@@ -61,11 +53,21 @@ export const DomainStatus = ({
 
   useEffect(() => {
     setStatus(currentStatus);
+  }, [currentStatus]);
 
+  useEffect(() => {
     // Only set up polling if we have the required IDs
     if (!projectId || !domainId) {
       return;
     }
+
+    const loadStatus = () => {
+      if (domainId && projectId) {
+        fetcher.load(
+          `${getPathWithParams(DOMAIN_STATUS_ROUTE_PATH, { id: domainId })}?projectId=${projectId}`
+        );
+      }
+    };
 
     // Initial load if:
     // 1. No current status exists, or
@@ -81,9 +83,10 @@ export const DomainStatus = ({
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-  }, [projectId, domainId]);
+  }, [projectId, domainId, currentStatus]);
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {

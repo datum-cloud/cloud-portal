@@ -8,33 +8,17 @@
 
 /* Custom theme overrides */
 #nprogress .bar {
-  background: var(--color-tuscany);
+  background: var(--color-primary);
   height: 4px;
 }
 
 #nprogress .spinner-icon {
-  border-top-color: var(--color-tuscany);
-  border-left-color: var(--color-tuscany);
+  border-top-color: var(--color-primary);
+  border-left-color: var(--color-primary);
 }
 
 #nprogress .peg {
   box-shadow:
-    0 0 10px var(--color-light-pink),
-    0 0 5px var(--color-light-pink);
-}
-
-/* Dark mode overrides */
-.dark #nprogress .bar {
-  background: var(--color-cream);
-}
-
-.dark #nprogress .spinner-icon {
-  border-top-color: var(--color-cream);
-  border-left-color: var(--color-cream);
-}
-
-.dark #nprogress .peg {
-  box-shadow:
-    0 0 10px var(--color-cream),
-    0 0 5px var(--color-cream);
+    0 0 10px var(--color-primary),
+    0 0 5px var(--color-primary);
 }
