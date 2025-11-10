@@ -66,7 +66,9 @@ export const WorkloadSinksTable = ({
           return (
             <StatusBadge
               status={transformedStatus}
-              label={transformedStatus?.status === ControlPlaneStatus.Success ? 'Available' : undefined}
+              label={
+                transformedStatus?.status === ControlPlaneStatus.Success ? 'Available' : undefined
+              }
               showTooltip
               tooltipText={
                 transformedStatus?.status === ControlPlaneStatus.Success ? 'Active' : undefined

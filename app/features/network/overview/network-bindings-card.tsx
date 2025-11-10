@@ -54,12 +54,15 @@ export const NetworkBindingsCard = ({ data }: { data: INetworkBindingControlResp
         enableSorting: false,
         cell: ({ row }) => {
           return (
-            row.original.status && (() => {
+            row.original.status &&
+            (() => {
               const transformedStatus = transformControlPlaneStatus(row.original.status);
               return (
                 <StatusBadge
                   status={transformedStatus}
-                  label={transformedStatus.status === ControlPlaneStatus.Success ? 'Active' : undefined}
+                  label={
+                    transformedStatus.status === ControlPlaneStatus.Success ? 'Active' : undefined
+                  }
                 />
               );
             })()

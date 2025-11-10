@@ -41,7 +41,7 @@ export const WorkloadGeneralCard = ({ workload }: { workload: IWorkloadControlRe
           <WorkloadStatus
             currentStatus={transformControlPlaneStatus(workload?.status)}
             workloadType="workload"
-            className="w-fit text-sm font-medium px-0"
+            className="w-fit px-0 text-sm font-medium"
           />
         ),
       },

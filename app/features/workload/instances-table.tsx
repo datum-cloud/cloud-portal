@@ -58,7 +58,9 @@ export const InstancesTable = ({ data }: { data: IInstanceControlResponse[] }) =
               return (
                 <WorkloadStatus
                   label={
-                    transformedStatus.status === ControlPlaneStatus.Success ? 'Available' : undefined
+                    transformedStatus.status === ControlPlaneStatus.Success
+                      ? 'Available'
+                      : undefined
                   }
                   currentStatus={transformedStatus}
                 />

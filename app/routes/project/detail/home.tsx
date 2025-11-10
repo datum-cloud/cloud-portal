@@ -105,7 +105,7 @@ export default function ProjectDashboardPage() {
                   <StatusBadge
                     status={status}
                     showTooltip={false}
-                    className="bg-secondary text-secondary-foreground font-medium border border-input"
+                    className="bg-secondary text-secondary-foreground border-input border font-medium"
                   />
                 </motion.div>
               )}
