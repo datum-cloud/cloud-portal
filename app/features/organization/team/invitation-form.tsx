@@ -1,6 +1,5 @@
 import { Field } from '@/components/field/field';
 import { SelectRole } from '@/components/select-role/select-role';
-import { useIsPending } from '@/hooks/useIsPending';
 import { invitationFormSchema } from '@/resources/schemas/invitation.schema';
 import {
   FormProvider,
@@ -29,8 +28,10 @@ import { z } from 'zod';
 const emailValidator = z.email({ error: 'Please enter a valid email address' });
 
 export const InvitationForm = () => {
-  const isPending = useIsPending({ formMethod: 'POST', formId: 'invitation-form' });
   const navigate = useNavigate();
+
+  // Manual loading state - set to true on submit, reset by re-render after navigation
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State to track real-time validation errors from TagsInput
   const [tagsInputError, setTagsInputError] = useState<string | null>(null);
@@ -65,7 +66,11 @@ export const InvitationForm = () => {
           id={form.id}
           method="POST"
           autoComplete="off"
-          className="flex flex-col gap-6">
+          className="flex flex-col gap-6"
+          onSubmit={() => {
+            // Set loading state when form is submitted
+            setIsSubmitting(true);
+          }}>
           <AuthenticityTokenInput />
           <CardContent className="space-y-4">
             <Field isRequired label="Role" errors={fields.role.errors}>
@@ -117,14 +122,14 @@ export const InvitationForm = () => {
             <Button
               type="quaternary"
               theme="borderless"
-              disabled={isPending}
+              disabled={isSubmitting}
               onClick={() => {
                 navigate(-1);
               }}>
               Return to List
             </Button>
-            <Button htmlType="submit" disabled={isPending} loading={isPending}>
-              {isPending ? 'Inviting' : 'Invite'}
+            <Button htmlType="submit" disabled={isSubmitting} loading={isSubmitting}>
+              {isSubmitting ? 'Inviting' : 'Invite'}
             </Button>
           </CardFooter>
         </Form>

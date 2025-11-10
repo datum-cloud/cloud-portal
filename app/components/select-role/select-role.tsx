@@ -20,17 +20,22 @@ export const SelectRole = ({
   id?: string;
   disabled?: boolean;
 }) => {
-  const fetcher = useFetcher({ key: 'role-list' });
+  const fetcher = useFetcher({ key: 'select-role' });
+  const [isLoading, setIsLoading] = useState(true);
 
   const [roles, setRoles] = useState<IRoleControlResponse[]>([]);
 
   useEffect(() => {
+    setIsLoading(true);
     fetcher.load(`${ROLES_LIST_PATH}`);
   }, []);
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
       const { success, error, data } = fetcher.data;
+
+      setIsLoading(false);
+
       if (!success) {
         toast.error(error);
         return;
@@ -109,7 +114,7 @@ export const SelectRole = ({
       groups={groups}
       placeholder="Select a Role"
       searchable={false}
-      isLoading={fetcher.state === 'loading'}
+      isLoading={isLoading}
     />
   );
 };

@@ -42,7 +42,7 @@ export const SelectOrganization = ({
 
   useEffect(() => {
     if (open) {
-      fetcher.load(ORG_LIST_PATH);
+      fetcher.load(ORG_LIST_PATH, { flushSync: true });
     }
   }, [open]);
 
