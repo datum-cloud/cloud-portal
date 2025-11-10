@@ -96,9 +96,7 @@ export default function DnsZonesPage() {
           const status = row.original.status;
 
           if (!status?.nameservers || status?.nameservers.length === 0) return <>-</>;
-          return (
-            <ChipsOverflow items={status?.nameservers} maxVisible={2} variant="outline" wrap />
-          );
+          return <ChipsOverflow items={status?.nameservers} maxVisible={2} theme="outline" wrap />;
         },
         meta: {
           sortPath: 'status.nameservers',
