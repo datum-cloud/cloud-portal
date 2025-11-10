@@ -109,6 +109,30 @@ export interface IPermissionCheckProps {
 }
 
 /**
+ * Context provided to custom onDenied handler
+ */
+export interface OnDeniedContext {
+  errorMessage: string;
+  resource: string;
+  verb: PermissionVerb;
+  group?: string;
+  namespace?: string;
+  name?: string;
+  request: Request;
+}
+
+/**
+ * Handler for permission denied scenarios
+ * - 'redirect': Simple redirect to error page
+ * - 'error': Throw error (caught by ErrorBoundary)
+ * - Custom function: Full control over response
+ */
+export type OnDeniedHandler =
+  | 'redirect'
+  | 'error'
+  | ((context: OnDeniedContext) => Response | Promise<Response>);
+
+/**
  * RBAC middleware configuration
  */
 export interface IRbacMiddlewareConfig {
@@ -118,13 +142,16 @@ export interface IRbacMiddlewareConfig {
   namespace?: string | ((params: Record<string, string>) => string | undefined);
   name?: string | ((params: Record<string, string>) => string | undefined);
   /**
-   * If true, redirect to error page on denial
-   * If false or undefined, throw error in current page
-   * Default: both - shows error and provides redirect option
+   * Handler for permission denied scenarios
+   * - 'redirect': Redirect to error page (uses redirectTo)
+   * - 'error': Throw error (caught by ErrorBoundary) - **DEFAULT**
+   * - Custom function: Full control over response (e.g., redirectWithToast)
+   *
+   * @default 'error'
    */
-  onDenied?: 'redirect' | 'error' | 'both';
+  onDenied?: OnDeniedHandler;
   /**
-   * Custom redirect path when denied (only used with 'redirect' or 'both')
+   * Custom redirect path when denied (only used with 'redirect')
    * Default: '/error/403'
    */
   redirectTo?: string;

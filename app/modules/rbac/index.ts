@@ -17,6 +17,8 @@ export type {
   IPermissionCheckProps,
   IRbacMiddlewareConfig,
   IPermissionCacheKey,
+  OnDeniedContext,
+  OnDeniedHandler,
 } from './types';
 
 export { PermissionDeniedError, PERMISSIONS } from './types';

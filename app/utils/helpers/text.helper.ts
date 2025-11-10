@@ -1,6 +1,7 @@
 /**
  * Text manipulation, formatting, and ID generation utilities
  */
+import { ValidationError } from '@/utils/errors';
 
 // ============================================================================
 // STRING UTILITIES (from string.ts)
@@ -239,7 +240,7 @@ export const generateId = (name: string, options: IdGeneratorOptions = {}): stri
 
     // Validate
     if (!validateId(finalId) || !config.customValidation(finalId)) {
-      throw new Error('Generated ID failed validation');
+      throw new ValidationError('Generated ID failed validation');
     }
 
     return finalId;
@@ -292,7 +293,7 @@ export const generateUniqueId = (
   } while (existingIds.includes(id) && attempt < maxAttempts);
 
   if (attempt >= maxAttempts) {
-    throw new Error('Could not generate unique ID after maximum attempts');
+    throw new ValidationError('Could not generate unique ID after maximum attempts');
   }
 
   return id;

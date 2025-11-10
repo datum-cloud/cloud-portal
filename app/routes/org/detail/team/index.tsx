@@ -37,8 +37,7 @@ import { toast } from 'sonner';
 // Generic interface for combined team data
 interface ITeamMember {
   id: string;
-  givenName?: string;
-  familyName?: string;
+  fullName?: string;
   email: string;
   roles?: {
     name: string;
@@ -95,9 +94,8 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const invitationTeamMembers: ITeamMember[] = await Promise.all(
     filteredInvitations.map(async (invitation) => ({
       id: invitation.name,
-      givenName: invitation.givenName,
-      familyName: invitation.familyName,
-      email: invitation.email,
+      fullName: `${invitation.givenName ?? ''} ${invitation.familyName ?? ''}`.trim(),
+      email: invitation.email ?? '',
       roles: invitation.role ? [await resolveRoleDetails(invitation.role, 'datum-cloud')] : [],
       invitationState: invitation.state,
       type: 'invitation' as const,
@@ -109,9 +107,8 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const memberTeamMembers: ITeamMember[] = await Promise.all(
     members.map(async (member) => ({
       id: member.user.id,
-      givenName: member.user.givenName,
-      familyName: member.user.familyName,
-      email: member.user.email || '',
+      fullName: `${member.user.givenName ?? ''} ${member.user.familyName ?? ''}`.trim(),
+      email: member.user.email ?? '',
       roles: member.roles
         ? await Promise.all(
             member.roles.map((role) =>
@@ -149,14 +146,23 @@ export default function OrgTeamPage() {
     return cloned;
   }, [teamMembers, user?.email]);
 
-  const {
-    hasPermission: hasRemoveMemberPermission,
-    isError,
-    error,
-  } = useHasPermission('organizationmemberships', 'delete', {
-    namespace: buildNamespace('organization', orgId ?? ''),
-    group: 'resourcemanager.miloapis.com',
-  });
+  const { hasPermission: hasRemoveMemberPermission } = useHasPermission(
+    'organizationmemberships',
+    'delete',
+    {
+      namespace: buildNamespace('organization', orgId ?? ''),
+      group: 'resourcemanager.miloapis.com',
+    }
+  );
+
+  const { hasPermission: hasInviteMemberPermission } = useHasPermission(
+    'userinvitations',
+    'create',
+    {
+      namespace: buildNamespace('organization', orgId ?? ''),
+      group: 'iam.miloapis.com',
+    }
+  );
 
   // Check if current user is the last owner
   const isLastOwner = useMemo(() => {
@@ -232,20 +238,12 @@ export default function OrgTeamPage() {
     return [
       {
         header: 'User',
-        accessorKey: 'email',
+        id: 'user',
+        accessorKey: 'fullName',
         enableSorting: false,
         cell: ({ row }) => {
-          let name = row.original.email;
-          let subtitle = undefined;
-
-          if (row.original.type === 'member') {
-            const fullName =
-              row.original.givenName && row.original.familyName
-                ? `${row.original.givenName} ${row.original.familyName}`.trim()
-                : undefined;
-            name = fullName || row.original.email;
-            subtitle = fullName;
-          }
+          const name = row.original.fullName ?? row.original.email;
+          const subtitle = row.original.email;
 
           return (
             <div className="flex w-full items-center justify-between gap-2">
@@ -253,7 +251,7 @@ export default function OrgTeamPage() {
                 <ProfileIdentity
                   fallbackIcon={row.original.type === 'invitation' ? UserIcon : undefined}
                   name={name}
-                  subtitle={subtitle}
+                  subtitle={row.original.type === 'member' ? subtitle : undefined}
                   size="sm"
                 />
                 {row.original.email === user?.email && <Badge>You</Badge>}
@@ -313,7 +311,7 @@ export default function OrgTeamPage() {
         <span>
           Are you sure you want to remove&nbsp;
           <strong>
-            {row.givenName} {row.familyName} ({row.email})
+            {row.fullName} ({row.email})
           </strong>{' '}
           from the organization?
         </span>
@@ -375,12 +373,6 @@ export default function OrgTeamPage() {
       }
     }
   }, [fetcher.data, fetcher.state]);
-
-  useEffect(() => {
-    if (isError) {
-      toast.error(error?.message ?? 'Failed to check permission');
-    }
-  }, [isError, error]);
 
   const rowActions = useMemo(
     () => [
@@ -466,7 +458,7 @@ export default function OrgTeamPage() {
       data={orderedTeamMembers ?? []}
       tableTitle={{
         title: 'Team',
-        actions: (
+        actions: hasInviteMemberPermission && (
           <Link
             to={getPathWithParams(paths.org.detail.team.invite, {
               orgId,
@@ -483,7 +475,6 @@ export default function OrgTeamPage() {
         includeSearch: {
           placeholder: 'Search team members',
         },
-        filtersDisplay: 'inline',
       }}
       rowActions={rowActions}
       emptyContent={{

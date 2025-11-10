@@ -1,15 +1,15 @@
 /**
  * RBAC Middleware
  * Server-side route protection based on permissions
- * Uses server-side RbacService for permission checks
+ * Uses BFF API for permission checks (similar to org-type middleware)
  */
 import type { NextFunction } from '../../utils/middlewares/middleware';
 import { extractOrgIdFromPath, resolveDynamicValue } from './permission-checker';
-import { RbacService } from './service/rbac.service';
-import type { IRbacMiddlewareConfig } from './types';
-import type { Client } from '@hey-api/client-axios';
+import type { IRbacMiddlewareConfig, OnDeniedContext } from './types';
+import type { IPermissionCheckResponse } from '@/resources/interfaces/permission.interface';
+import { ROUTE_PATH as PERMISSION_CHECK_PATH } from '@/routes/api/permissions/check';
+import { AuthorizationError } from '@/utils/errors';
 import { redirect } from 'react-router';
-import type { AppLoadContext } from 'react-router';
 
 /**
  * Default error page path for permission denied
@@ -18,13 +18,13 @@ const DEFAULT_ERROR_PATH = '/error/403';
 
 /**
  * Create RBAC middleware that checks permissions before allowing route access
- * Uses server-side RbacService for direct permission checks
+ * Uses BFF API endpoint for permission checks (same pattern as org-type middleware)
  *
  * @param config - Middleware configuration
- * @param context - Optional app context (if available in middleware chain)
  * @returns Middleware function
  *
  * @example
+ * Basic usage (throws error on denial, caught by ErrorBoundary):
  * ```typescript
  * export const loader = withMiddleware(
  *   async ({ context, params }) => {
@@ -35,6 +35,30 @@ const DEFAULT_ERROR_PATH = '/error/403';
  *     resource: 'workloads',
  *     verb: 'list',
  *     namespace: (params) => params.namespace,
+ *   })
+ * );
+ * ```
+ *
+ * @example
+ * Custom handler with toast notification:
+ * ```typescript
+ * import { redirectWithToast } from '@/utils/cookies';
+ *
+ * export const loader = withMiddleware(
+ *   async ({ context, params }) => {
+ *     // Your loader logic
+ *   },
+ *   authMiddleware,
+ *   createRbacMiddleware({
+ *     resource: 'domains',
+ *     verb: 'delete',
+ *     onDenied: ({ errorMessage, request }) => {
+ *       return redirectWithToast('/dashboard', {
+ *         type: 'error',
+ *         title: 'Permission Denied',
+ *         description: errorMessage,
+ *       });
+ *     },
  *   })
  * );
  * ```
@@ -49,98 +73,117 @@ export function createRbacMiddleware(config: IRbacMiddlewareConfig) {
         throw new Error('Organization ID not found in request path');
       }
 
-      // Get route params from URL for dynamic value resolution
+      // Extract route params from URL path
+      // NOTE: Middleware doesn't have access to React Router params directly.
+      // We extract params by parsing the URL using known patterns.
+      // If you need to extract a new param, add it to the paramPatterns map below.
       const url = new URL(request.url);
       const pathSegments = url.pathname.split('/').filter(Boolean);
+
+      // Build params object from URL segments
+      // Strategy: Look for common patterns like /resource/:id
+      // Examples: /org/:orgId, /project/:projectId, /namespace/:namespace, /domains/:domainId
       const params: Record<string, string> = {};
 
-      // Simple param extraction (can be enhanced if needed)
-      pathSegments.forEach((segment, index) => {
-        if (segment.startsWith(':')) {
-          const paramName = segment.slice(1);
-          const paramValue = pathSegments[index];
-          if (paramValue && !paramValue.startsWith(':')) {
-            params[paramName] = paramValue;
-          }
-        }
-      });
+      // Extract params based on known URL patterns
+      // This maps route segment names to param names (e.g., 'project' -> 'projectId')
+      const paramPatterns: Record<string, string> = {
+        org: 'orgId',
+        project: 'projectId',
+        // namespace: 'namespace',
+        // domains: 'domainId',
+        // secrets: 'secretName',
+        // configmaps: 'configMapName',
+        // workloads: 'workloadName',
+        // services: 'serviceName',
+        // Add more patterns as needed for your routes
+      };
 
-      // Resolve dynamic values
+      for (let i = 0; i < pathSegments.length - 1; i++) {
+        const segment = pathSegments[i];
+        const nextSegment = pathSegments[i + 1];
+
+        // If this segment matches a known pattern, extract the param
+        if (paramPatterns[segment] && nextSegment) {
+          params[paramPatterns[segment]] = nextSegment;
+        }
+      }
+
+      // Resolve dynamic values using extracted params
       const namespace = resolveDynamicValue(config.namespace, params);
       const name = resolveDynamicValue(config.name, params);
 
-      // Get context from request (added by withMiddleware)
-      // Note: This requires the middleware system to attach context to request
-      const context = (request as any).context as AppLoadContext;
-
-      if (!context || !context.controlPlaneClient) {
-        throw new Error('App context or controlPlaneClient not available in middleware');
-      }
-
-      // Create server-side RBAC service
-      const rbacService = new RbacService(context.controlPlaneClient as Client);
-
-      // Check permission using server-side service
-      const result = await rbacService.checkPermission(orgId, {
-        resource: config.resource,
-        verb: config.verb,
-        group: config.group,
-        namespace,
-        name,
+      // Call BFF API for permission check (similar to org-type middleware)
+      const checkResponse = await fetch(`${process.env.APP_URL}${PERMISSION_CHECK_PATH}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: request.headers.get('Cookie') || '',
+          'X-Permission-Check-Source': 'rbac-middleware',
+        },
+        body: JSON.stringify({
+          organizationId: orgId,
+          resource: config.resource,
+          verb: config.verb,
+          group: config.group,
+          namespace,
+          name,
+        }),
       });
 
+      const result: IPermissionCheckResponse = await checkResponse.json();
+
+      // Check if permission check was successful
+      if (!result.success) {
+        throw new AuthorizationError(result.error || 'Permission check failed');
+      }
+
       // Check if permission is allowed
-      const { allowed, denied } = result;
+      const { allowed, denied } = result.data!;
 
       if (!allowed || denied) {
-        const errorMessage = `Permission denied: You do not have permission to ${config.verb} ${config.resource}${namespace ? ` in namespace ${namespace}` : ''}`;
+        const errorMessage = `Permission denied: You do not have permission to ${config.verb} ${config.resource}`;
 
-        const onDenied = config.onDenied || 'both';
+        const onDenied = config.onDenied ?? 'error';
 
-        // Handle based on onDenied strategy
-        if (onDenied === 'redirect') {
+        // Handle custom function
+        if (typeof onDenied === 'function') {
+          const context: OnDeniedContext = {
+            errorMessage,
+            resource: config.resource,
+            verb: config.verb,
+            group: config.group,
+            namespace,
+            name,
+            request,
+          };
+          return await onDenied(context);
+        } else if (onDenied === 'redirect') {
           // Redirect to error page
           const redirectPath = config.redirectTo || DEFAULT_ERROR_PATH;
-          return redirect(`${redirectPath}?reason=${encodeURIComponent(errorMessage)}`);
-        } else if (onDenied === 'error') {
-          // Throw error to show in current page
-          throw new Error(errorMessage);
+          return redirect(redirectPath);
         } else {
-          // 'both' - return error response with redirect option
-          return new Response(
-            JSON.stringify({
-              success: false,
-              error: errorMessage,
-              permissionCheck: {
-                resource: config.resource,
-                verb: config.verb,
-                namespace,
-                name,
-              },
-              redirectTo: config.redirectTo || DEFAULT_ERROR_PATH,
-            }),
-            {
-              status: 403,
-              statusText: 'Forbidden',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            }
-          );
+          // 'error' - Throw error (caught by ErrorBoundary)
+          throw new AuthorizationError(errorMessage);
         }
       }
 
       // Permission granted, proceed to next middleware/loader
       return next();
     } catch (error) {
-      // Handle errors
+      // Re-throw AuthorizationError to be caught by ErrorBoundary
+      if (error instanceof AuthorizationError) {
+        throw error;
+      }
+
+      // Handle other errors
       const errorMessage =
         error instanceof Error ? error.message : 'An error occurred while checking permissions';
 
       // Log error for debugging
       console.error('[RBAC Middleware Error]', errorMessage);
 
-      // Return error response
+      // Return error response for non-authorization errors
       return new Response(
         JSON.stringify({
           success: false,

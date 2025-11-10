@@ -1,5 +1,6 @@
 import { NextFunction } from './middleware';
 import { isAuthenticated } from '@/utils/cookies';
+import { AuthenticationError } from '@/utils/errors';
 
 /**
  * Authentication middleware that checks if a user is authenticated
@@ -24,5 +25,5 @@ export async function authMiddleware(request: Request, next: NextFunction): Prom
 
   // This should not happen if isAuthenticated is properly implemented,
   // but added as a fallback for type safety
-  throw new Error('Authentication check returned an unexpected result');
+  throw new AuthenticationError('User is not authenticated');
 }
