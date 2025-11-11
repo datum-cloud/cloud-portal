@@ -5,8 +5,8 @@ import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interfa
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
+import { Tooltip } from '@datum-ui/components';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { Users } from 'lucide-react';
 
 export type ResourceTooltipProps = {
@@ -14,11 +14,8 @@ export type ResourceTooltipProps = {
 };
 
 export const ResourceRefTooltip = ({ resourceRef }: ResourceTooltipProps) => (
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <span className="cursor-help break-words whitespace-normal">{resourceRef?.name}</span>
-    </TooltipTrigger>
-    <TooltipContent>
+  <Tooltip
+    message={
       <div className="space-y-1">
         {resourceRef?.apiGroup && (
           <div>
@@ -34,7 +31,8 @@ export const ResourceRefTooltip = ({ resourceRef }: ResourceTooltipProps) => (
           </div>
         )}
       </div>
-    </TooltipContent>
+    }>
+    <span className="cursor-help break-words whitespace-normal">{resourceRef?.name}</span>
   </Tooltip>
 );
 
@@ -43,11 +41,8 @@ export type ResourceKindTooltipProps = {
 };
 
 export const ResourceKindTooltip = ({ resourceKind }: ResourceKindTooltipProps) => (
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <span className="cursor-help break-words whitespace-normal">{resourceKind?.kind}</span>
-    </TooltipTrigger>
-    <TooltipContent>
+  <Tooltip
+    message={
       <div className="space-y-1">
         {resourceKind?.apiGroup && (
           <div>
@@ -59,7 +54,8 @@ export const ResourceKindTooltip = ({ resourceKind }: ResourceKindTooltipProps) 
         </div>
         <div className="text-muted-foreground text-sm">Applies to all resources of this kind</div>
       </div>
-    </TooltipContent>
+    }>
+    <span className="cursor-help break-words whitespace-normal">{resourceKind?.kind}</span>
   </Tooltip>
 );
 

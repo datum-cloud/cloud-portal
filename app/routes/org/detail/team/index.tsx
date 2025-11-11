@@ -2,7 +2,6 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { ProfileIdentity } from '@/components/profile-identity';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { useHasPermission } from '@/modules/rbac';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/modules/shadcn/ui/tooltip';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationsControl } from '@/resources/control-plane';
 import { createRolesControl } from '@/resources/control-plane/iam/roles.control';
@@ -17,6 +16,7 @@ import { buildNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Tooltip } from '@datum-ui/components';
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
@@ -290,9 +290,8 @@ export default function OrgTeamPage() {
                 // If there's a description, wrap with tooltip
                 if (role.description) {
                   return (
-                    <Tooltip key={`${role.name}-${idx}`}>
-                      <TooltipTrigger asChild>{badge}</TooltipTrigger>
-                      <TooltipContent>{role.description}</TooltipContent>
+                    <Tooltip key={`${role.name}-${idx}`} message={role.description}>
+                      {badge}
                     </Tooltip>
                   );
                 }

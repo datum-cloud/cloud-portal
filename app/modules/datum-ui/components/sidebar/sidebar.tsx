@@ -1,3 +1,5 @@
+import { TooltipProvider } from '@/modules/shadcn/ui/tooltip';
+import { Tooltip } from '@datum-ui/components';
 import { Slot } from '@radix-ui/react-slot';
 import { useIsMobile } from '@shadcn/hooks/use-mobile';
 import { cn } from '@shadcn/lib/utils';
@@ -6,7 +8,6 @@ import { Input } from '@shadcn/ui/input';
 import { Separator } from '@shadcn/ui/separator';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@shadcn/ui/sheet';
 import { Skeleton } from '@shadcn/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { cva, VariantProps } from 'class-variance-authority';
 import { PanelLeftIcon } from 'lucide-react';
 import * as React from 'react';
@@ -466,7 +467,14 @@ const SidebarMenuButton = ({
 }: React.ComponentProps<'button'> & {
   asChild?: boolean;
   isActive?: boolean;
-  tooltip?: string | React.ComponentProps<typeof TooltipContent>;
+  tooltip?:
+    | string
+    | React.ReactNode
+    | {
+        message: string | React.ReactNode;
+        side?: 'top' | 'right' | 'bottom' | 'left';
+        align?: 'start' | 'center' | 'end';
+      };
 } & VariantProps<typeof sidebarMenuButtonVariants>) => {
   const Comp = asChild ? Slot : 'button';
   const { isMobile, state } = useSidebar();
@@ -486,21 +494,29 @@ const SidebarMenuButton = ({
     return button;
   }
 
-  if (typeof tooltip === 'string') {
-    tooltip = {
-      children: tooltip,
-    };
-  }
+  // Handle string or ReactNode tooltip
+  const tooltipMessage =
+    typeof tooltip === 'string' ||
+    React.isValidElement(tooltip) ||
+    (typeof tooltip === 'object' && 'message' in tooltip)
+      ? typeof tooltip === 'string' || React.isValidElement(tooltip)
+        ? tooltip
+        : tooltip.message
+      : null;
+
+  const tooltipProps =
+    typeof tooltip === 'object' && 'message' in tooltip
+      ? { side: tooltip.side, align: tooltip.align }
+      : {};
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent
-        side="right"
-        align="center"
-        hidden={state !== 'collapsed' || isMobile}
-        {...tooltip}
-      />
+    <Tooltip
+      message={tooltipMessage}
+      side="right"
+      align="center"
+      hidden={state !== 'collapsed' || isMobile}
+      {...tooltipProps}>
+      {button}
     </Tooltip>
   );
 };

@@ -2,8 +2,8 @@ import { DateTime } from '@/components/date-time';
 import type { ActivityLogEntry } from '@/modules/loki/types';
 import { isPrivateIP } from '@/utils/common';
 import { Badge } from '@datum-ui/components';
+import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CheckCircle, Info, AlertTriangle, XCircle } from 'lucide-react';
 
 interface ActivityLogItemProps {
@@ -57,30 +57,34 @@ export const ActivityLogItem = ({ log, index }: ActivityLogItemProps) => {
       </div>
 
       {/* Status badge with relevant colors and tooltip */}
-      {(log.statusMessage || log.category) && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge
-                theme="outline"
-                className={cn(
-                  'w-fit cursor-pointer capitalize',
-                  log.category === 'success' && 'border-green-200 bg-green-50 text-green-600',
-                  log.category === 'info' && 'border-blue-200 bg-blue-50 text-blue-600',
-                  log.category === 'warning' && 'border-yellow-200 bg-yellow-50 text-yellow-600',
-                  log.category === 'error' && 'border-red-200 bg-red-50 text-red-600'
-                )}>
-                {log.statusMessage || log.category}
-              </Badge>
-            </TooltipTrigger>
-            {log.detailedStatusMessage && (
-              <TooltipContent>
-                <p>{log.detailedStatusMessage}</p>
-              </TooltipContent>
-            )}
+      {(log.statusMessage || log.category) &&
+        (log.detailedStatusMessage ? (
+          <Tooltip message={log.detailedStatusMessage}>
+            <Badge
+              theme="outline"
+              className={cn(
+                'w-fit cursor-pointer capitalize',
+                log.category === 'success' && 'border-green-200 bg-green-50 text-green-600',
+                log.category === 'info' && 'border-blue-200 bg-blue-50 text-blue-600',
+                log.category === 'warning' && 'border-yellow-200 bg-yellow-50 text-yellow-600',
+                log.category === 'error' && 'border-red-200 bg-red-50 text-red-600'
+              )}>
+              {log.statusMessage || log.category}
+            </Badge>
           </Tooltip>
-        </TooltipProvider>
-      )}
+        ) : (
+          <Badge
+            theme="outline"
+            className={cn(
+              'w-fit cursor-pointer capitalize',
+              log.category === 'success' && 'border-green-200 bg-green-50 text-green-600',
+              log.category === 'info' && 'border-blue-200 bg-blue-50 text-blue-600',
+              log.category === 'warning' && 'border-yellow-200 bg-yellow-50 text-yellow-600',
+              log.category === 'error' && 'border-red-200 bg-red-50 text-red-600'
+            )}>
+            {log.statusMessage || log.category}
+          </Badge>
+        ))}
     </div>
   );
 };

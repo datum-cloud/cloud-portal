@@ -1,6 +1,6 @@
+import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@shadcn/ui/avatar';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { type VariantProps, cva } from 'class-variance-authority';
 import * as React from 'react';
 
@@ -52,42 +52,34 @@ const AvatarStack = ({
       )}
       {...props}>
       {shownAvatars.map(({ name, image }, index) => (
-        <TooltipProvider delayDuration={300} key={`${image}-${index + 1}`}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Avatar className={cn(avatarStackVariants(), 'hover:z-10', avatarClassName)}>
-                <AvatarImage src={image} />
-                <AvatarFallback>
-                  {name
-                    ?.split(' ')
-                    ?.map((word) => word[0])
-                    ?.join('')
-                    ?.toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{name}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip key={`${image}-${index + 1}`} message={name} delayDuration={300}>
+          <Avatar className={cn(avatarStackVariants(), 'hover:z-10', avatarClassName)}>
+            <AvatarImage src={image} />
+            <AvatarFallback>
+              {name
+                ?.split(' ')
+                ?.map((word) => word[0])
+                ?.join('')
+                ?.toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </Tooltip>
       ))}
 
       {hiddenAvatars.length ? (
-        <TooltipProvider delayDuration={300}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Avatar key="Excesive avatars" className={cn(avatarClassName)}>
-                <AvatarFallback>+{avatars.length - shownAvatars.length}</AvatarFallback>
-              </Avatar>
-            </TooltipTrigger>
-            <TooltipContent>
+        <Tooltip
+          message={
+            <>
               {hiddenAvatars.map(({ name }, index) => (
                 <p key={`${name}-${index + 1}`}>{name}</p>
               ))}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+            </>
+          }
+          delayDuration={300}>
+          <Avatar key="Excesive avatars" className={cn(avatarClassName)}>
+            <AvatarFallback>+{avatars.length - shownAvatars.length}</AvatarFallback>
+          </Avatar>
+        </Tooltip>
       ) : null}
     </div>
   );

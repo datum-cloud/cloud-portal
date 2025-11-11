@@ -3,11 +3,11 @@ import { FieldLabel } from '@/components/field/field-label';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { FieldMetadata, useInputControl } from '@conform-to/react';
 import { getInputProps } from '@conform-to/react';
+import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Checkbox } from '@shadcn/ui/checkbox';
 import { Input } from '@shadcn/ui/input';
 import { Label } from '@shadcn/ui/label';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CircleHelp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -66,24 +66,19 @@ export const InputName = ({
           }
         />
         {autoGenerate && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex cursor-pointer items-center gap-0.5">
-                <Checkbox
-                  className="size-3.5"
-                  id="auto"
-                  checked={auto}
-                  onCheckedChange={(checked: boolean) => setAuto(checked)}
-                />
-                <Label htmlFor="auto" className="text-muted-foreground ml-1 cursor-pointer text-xs">
-                  Auto-generate
-                </Label>
-                <CircleHelp className="text-muted-foreground size-2.5" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Uses Kubernetes generateName to automatically create a unique resource name.</p>
-            </TooltipContent>
+          <Tooltip message="Uses Kubernetes generateName to automatically create a unique resource name.">
+            <div className="flex cursor-pointer items-center gap-0.5">
+              <Checkbox
+                className="size-3.5"
+                id="auto"
+                checked={auto}
+                onCheckedChange={(checked: boolean) => setAuto(checked)}
+              />
+              <Label htmlFor="auto" className="text-muted-foreground ml-1 cursor-pointer text-xs">
+                Auto-generate
+              </Label>
+              <CircleHelp className="text-muted-foreground size-2.5" />
+            </div>
           </Tooltip>
         )}
       </div>

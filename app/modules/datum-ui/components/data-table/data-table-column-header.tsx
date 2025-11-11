@@ -1,7 +1,7 @@
 import { normalizeTooltip } from './data-table-column.types';
+import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { TableHead, TableHeader, TableRow } from '@shadcn/ui/table';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { Table as TTable, flexRender } from '@tanstack/react-table';
 import { ChevronDown, ChevronsUpDown, ChevronUp, Info } from 'lucide-react';
 
@@ -83,14 +83,13 @@ export const DataTableColumnHeader = <TData,>({
                   header.column.columnDef.meta?.className
                 )}>
                 {header.isPlaceholder ? null : hasTooltip ? (
-                  <Tooltip delayDuration={tooltipConfig.delayDuration}>
-                    <TooltipTrigger asChild>{renderContent()}</TooltipTrigger>
-                    <TooltipContent
-                      side={tooltipConfig.side}
-                      align={tooltipConfig.align}
-                      sideOffset={10}>
-                      {tooltipConfig.content}
-                    </TooltipContent>
+                  <Tooltip
+                    message={tooltipConfig.content}
+                    delayDuration={tooltipConfig.delayDuration}
+                    side={tooltipConfig.side}
+                    align={tooltipConfig.align}
+                    sideOffset={10}>
+                    {renderContent()}
                   </Tooltip>
                 ) : (
                   renderContent()
