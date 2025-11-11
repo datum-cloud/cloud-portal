@@ -2,9 +2,9 @@ import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
+import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@shadcn/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CopyIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -86,17 +86,12 @@ export const HttpProxyHostnamesCard = ({
                   key={val.hostname}
                   className="border-input bg-background flex items-center justify-between gap-2 rounded-md border p-2">
                   <div className="flex items-center gap-2">
-                    <Tooltip>
-                      <TooltipTrigger
-                        asChild
+                    <Tooltip message={val.valid ? 'Valid' : val.message}>
+                      <Badge
+                        type={val.valid ? 'primary' : 'danger'}
                         className={cn(val.valid ? 'pointer-events-none' : 'cursor-pointer')}>
-                        <Badge type={val.valid ? 'primary' : 'danger'}>
-                          {val.valid ? 'HTTP/HTTPS' : 'Invalid'}
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        <p>{val.valid ? 'Valid' : val.message}</p>
-                      </TooltipContent>
+                        {val.valid ? 'HTTP/HTTPS' : 'Invalid'}
+                      </Badge>
                     </Tooltip>
                     <span className="text-sm font-medium">{val.hostname}</span>
                   </div>

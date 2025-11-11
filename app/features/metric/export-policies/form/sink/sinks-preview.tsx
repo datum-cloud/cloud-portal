@@ -2,8 +2,8 @@ import { List, ListItem } from '@/components/list/list';
 import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.interface';
 import { ExportPolicySinksSchema } from '@/resources/schemas/export-policy.schema';
 import { Badge } from '@datum-ui/components';
+import { Tooltip } from '@datum-ui/components';
 import { Separator } from '@shadcn/ui/separator';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { LinkIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -20,16 +20,8 @@ export const SinksPreview = ({ values }: { values: ExportPolicySinksSchema }) =>
               <Badge theme="outline">{sink.type}</Badge>
               <Separator orientation="vertical" className="h-4" />
               {sink.sources && sink.sources.length > 0 && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge
-                      type="secondary"
-                      className="hover:bg-secondary-hover flex cursor-help items-center gap-1">
-                      <LinkIcon className="h-3 w-3" />
-                      <span>Sources ({sink.sources.length})</span>
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
+                <Tooltip
+                  message={
                     <div className="flex flex-col gap-1">
                       {sink.sources.map((source, idx) => (
                         <p key={idx} className="text-xs">
@@ -37,7 +29,13 @@ export const SinksPreview = ({ values }: { values: ExportPolicySinksSchema }) =>
                         </p>
                       ))}
                     </div>
-                  </TooltipContent>
+                  }>
+                  <Badge
+                    type="secondary"
+                    className="hover:bg-secondary-hover flex cursor-help items-center gap-1">
+                    <LinkIcon className="h-3 w-3" />
+                    <span>Sources ({sink.sources.length})</span>
+                  </Badge>
                 </Tooltip>
               )}
             </div>

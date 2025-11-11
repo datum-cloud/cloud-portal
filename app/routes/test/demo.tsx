@@ -1,6 +1,7 @@
 import BadgeDemo, { badgeDemoSections } from '@/components/demo/badge';
 import ButtonDemo, { buttonDemoSections } from '@/components/demo/button';
 import StatusBadgeDemo, { statusBadgeDemoSections } from '@/components/demo/status-badge';
+import TooltipDemo, { tooltipDemoSections } from '@/components/demo/tooltip';
 import { Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
@@ -14,6 +15,7 @@ const demoComponents = [
   { name: 'Button', sections: buttonDemoSections, Component: ButtonDemo },
   { name: 'Badge', sections: badgeDemoSections, Component: BadgeDemo },
   { name: 'StatusBadge', sections: statusBadgeDemoSections, Component: StatusBadgeDemo },
+  { name: 'Tooltip', sections: tooltipDemoSections, Component: TooltipDemo },
 ];
 
 export default function Demo() {

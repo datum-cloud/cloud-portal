@@ -1,7 +1,7 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { Button } from '@datum-ui/components';
+import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CopyIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -35,25 +35,19 @@ export const TextCopy = ({
   return (
     <div className="flex items-center gap-2">
       <span className={className}>{text ?? value}</span>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="quaternary"
-            theme="borderless"
-            size="icon"
-            className={cn(
-              'size-3 focus-visible:ring-0 focus-visible:ring-offset-0',
-              buttonClassName
-            )}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              copyToClipboard();
-            }}>
-            <CopyIcon className="size-3" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>{copied ? 'Copied!' : 'Copy'}</TooltipContent>
+      <Tooltip message={copied ? 'Copied!' : 'Copy'}>
+        <Button
+          type="quaternary"
+          theme="borderless"
+          size="icon"
+          className={cn('size-3 focus-visible:ring-0 focus-visible:ring-offset-0', buttonClassName)}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            copyToClipboard();
+          }}>
+          <CopyIcon className="size-3" />
+        </Button>
       </Tooltip>
     </div>
   );

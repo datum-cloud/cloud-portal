@@ -1,7 +1,7 @@
 import { DataTableRowActionsProps } from './data-table.types';
 import { Button } from '@datum-ui/components';
+import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 
 export const DataTableInlineActions = <TData,>({
   row,
@@ -57,14 +57,11 @@ export const DataTableInlineActions = <TData,>({
         // Wrap with tooltip if tooltip text exists
         if (tooltipText) {
           return (
-            <Tooltip key={action.key}>
-              <TooltipTrigger asChild className="pointer-events-auto!">
-                {button}
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{tooltipText}</p>
-              </TooltipContent>
-            </Tooltip>
+            <div key={action.key} className="pointer-events-auto">
+              <Tooltip message={tooltipText}>
+                <span className="inline-block">{button}</span>
+              </Tooltip>
+            </div>
           );
         }
 

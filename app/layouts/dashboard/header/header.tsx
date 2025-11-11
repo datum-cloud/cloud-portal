@@ -5,8 +5,8 @@ import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { Button } from '@datum-ui/components';
 import { SidebarTrigger } from '@datum-ui/components';
+import { Tooltip } from '@datum-ui/components';
 import { NotificationDropdown } from '@datum-ui/components/notification';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CircleHelp, SlashIcon } from 'lucide-react';
 import { Link } from 'react-router';
 
@@ -42,21 +42,16 @@ export const Header = ({
           {/* <Button variant="outline" size="sm" className="cursor-pointer px-2">
             Feedback
           </Button> */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Link to="https://datum.net/docs/" target="_blank" rel="noreferrer">
-                <Button
-                  type="quaternary"
-                  theme="borderless"
-                  size="small"
-                  className="cursor-pointer px-2">
-                  <CircleHelp size={18} />
-                </Button>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Docs</p>
-            </TooltipContent>
+          <Tooltip message="Docs">
+            <Link to="https://datum.net/docs/" target="_blank" rel="noreferrer">
+              <Button
+                type="quaternary"
+                theme="borderless"
+                size="small"
+                className="cursor-pointer px-2">
+                <CircleHelp size={18} />
+              </Button>
+            </Link>
           </Tooltip>
 
           <NotificationDropdown pollingInterval={60000} defaultTab="invitation" />

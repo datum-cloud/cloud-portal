@@ -18,3 +18,4 @@ export * from './sidebar';
 export * from './stepper';
 export * from './tabs';
 export * from './tag-input';
+export * from './tooltip';

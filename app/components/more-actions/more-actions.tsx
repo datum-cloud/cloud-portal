@@ -5,8 +5,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@datum-ui/components';
+import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { Ellipsis } from 'lucide-react';
 import { useState } from 'react';
 
@@ -91,11 +91,8 @@ export const MoreActions = <TData,>({
           // Wrap with tooltip if tooltip text differs from label (shows additional context)
           if (tooltipText && tooltipText !== action.label) {
             return (
-              <Tooltip key={action.key}>
-                <TooltipTrigger asChild>{menuItem}</TooltipTrigger>
-                <TooltipContent side="left">
-                  <p>{tooltipText}</p>
-                </TooltipContent>
+              <Tooltip key={action.key} message={tooltipText}>
+                {menuItem}
               </Tooltip>
             );
           }

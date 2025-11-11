@@ -3,8 +3,8 @@ import { useMetrics } from '@/modules/metrics/context';
 import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { Button } from '@datum-ui/components';
+import { Tooltip } from '@datum-ui/components';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { useQueryState } from 'nuqs';
@@ -95,26 +95,19 @@ export const RefreshControl = ({
   return (
     <div className="border-input bg-background flex h-[36px] items-center rounded-md border">
       {/* Manual Refresh Button */}
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="quaternary"
-              theme="borderless"
-              size="small"
-              className="size-9 rounded-r-none border-r"
-              onClick={handleManualRefresh}
-              disabled={isManualRefreshing || isAutoRefreshing}>
-              <RefreshCw
-                className={`size-4 ${isManualRefreshing || isAutoRefreshing ? 'animate-spin' : ''}`}
-              />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{getTooltipText()}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip message={getTooltipText()}>
+        <Button
+          type="quaternary"
+          theme="borderless"
+          size="small"
+          className="size-9 rounded-r-none border-r"
+          onClick={handleManualRefresh}
+          disabled={isManualRefreshing || isAutoRefreshing}>
+          <RefreshCw
+            className={`size-4 ${isManualRefreshing || isAutoRefreshing ? 'animate-spin' : ''}`}
+          />
+        </Button>
+      </Tooltip>
 
       {/* Auto Refresh Interval Dropdown */}
       <Select value={refreshInterval || defaultValue} onValueChange={setRefreshInterval}>

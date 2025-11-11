@@ -8,8 +8,8 @@ import {
 import type { DateTimeProps, FormatterOptions } from './types';
 import { useApp } from '@/providers/app.provider';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
+import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { useEffect, useState } from 'react';
 
 /**
@@ -106,13 +106,8 @@ export const DateTime = ({
   );
 
   return (
-    <Tooltip>
-      <TooltipTrigger className={cn('cursor-pointer')} asChild>
-        <span className={cn(className)}>{content}</span>
-      </TooltipTrigger>
-      <TooltipContent>
-        {typeof tooltipContent === 'string' ? <p>{tooltipContent}</p> : tooltipContent}
-      </TooltipContent>
+    <Tooltip message={tooltipContent}>
+      <span className={cn('cursor-pointer', className)}>{content}</span>
     </Tooltip>
   );
 };
