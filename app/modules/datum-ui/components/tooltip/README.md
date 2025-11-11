@@ -36,11 +36,17 @@ import { Tooltip } from '@/modules/datum-ui';
 
 ### TooltipProps
 
-| Prop            | Type                  | Default | Description                                  |
-| --------------- | --------------------- | ------- | -------------------------------------------- |
-| `message`       | `string \| ReactNode` | -       | Tooltip content (required)                   |
-| `children`      | `ReactNode`           | -       | Element that triggers the tooltip (required) |
-| `delayDuration` | `number`              | `200`   | Delay in milliseconds before showing tooltip |
+| Prop            | Type                                     | Default | Description                                                    |
+| --------------- | ---------------------------------------- | ------- | -------------------------------------------------------------- |
+| `message`       | `string \| ReactNode`                    | -       | Tooltip content (required)                                     |
+| `children`      | `ReactNode`                              | -       | Element that triggers the tooltip (required)                   |
+| `delayDuration` | `number`                                 | `200`   | Delay in milliseconds before showing tooltip                   |
+| `side`          | `'top' \| 'right' \| 'bottom' \| 'left'` | -       | Preferred side of the trigger to render against                |
+| `align`         | `'start' \| 'center' \| 'end'`           | -       | Alignment of the tooltip relative to the trigger               |
+| `sideOffset`    | `number`                                 | -       | Distance in pixels from the trigger                            |
+| `hidden`        | `boolean`                                | -       | Whether to hide the tooltip (useful for conditional rendering) |
+| `open`          | `boolean`                                | -       | Controlled open state                                          |
+| `onOpenChange`  | `(open: boolean) => void`                | -       | Callback fired when the open state changes                     |
 
 ## Examples
 
@@ -186,11 +192,81 @@ function FormTooltip() {
 }
 ```
 
+### Tooltip Positioning
+
+```tsx
+import { Tooltip } from '@/modules/datum-ui';
+import { Button } from '@/modules/datum-ui';
+
+function PositionedTooltips() {
+  return (
+    <div className="flex flex-col gap-4">
+      <Tooltip message="Top tooltip" side="top">
+        <Button>Top</Button>
+      </Tooltip>
+      <Tooltip message="Right tooltip" side="right" align="center">
+        <Button>Right</Button>
+      </Tooltip>
+      <Tooltip message="Bottom tooltip" side="bottom" sideOffset={10}>
+        <Button>Bottom with offset</Button>
+      </Tooltip>
+      <Tooltip message="Left tooltip" side="left" align="start">
+        <Button>Left aligned start</Button>
+      </Tooltip>
+    </div>
+  );
+}
+```
+
+### Controlled Tooltip State
+
+```tsx
+import { Tooltip } from '@/modules/datum-ui';
+import { Button } from '@/modules/datum-ui';
+import { useState } from 'react';
+
+function ControlledTooltip() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="space-y-4">
+      <Tooltip message="This tooltip is controlled" open={isOpen} onOpenChange={setIsOpen}>
+        <Button onClick={() => setIsOpen(!isOpen)}>Toggle Tooltip</Button>
+      </Tooltip>
+
+      <Tooltip
+        message="Tooltip that appears on hover of parent"
+        open={isOpen}
+        onOpenChange={setIsOpen}>
+        <div onMouseEnter={() => setIsOpen(true)} onMouseLeave={() => setIsOpen(false)}>
+          Hover me
+        </div>
+      </Tooltip>
+    </div>
+  );
+}
+```
+
+### Conditional Tooltip Visibility
+
+```tsx
+import { Tooltip } from '@/modules/datum-ui';
+import { Button } from '@/modules/datum-ui';
+
+function ConditionalTooltip({ isCollapsed }: { isCollapsed: boolean }) {
+  return (
+    <Tooltip message="Only visible when sidebar is collapsed" hidden={!isCollapsed} side="right">
+      <Button>Menu Item</Button>
+    </Tooltip>
+  );
+}
+```
+
 ## Advanced Usage
 
 ### Using shadcn/ui Primitives Directly
 
-For more control over tooltip behavior, you can use the underlying shadcn/ui primitives directly:
+For even more advanced use cases, you can use the underlying shadcn/ui primitives directly:
 
 ```tsx
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/modules/shadcn/ui/tooltip';
@@ -201,20 +277,15 @@ function AdvancedTooltip() {
       <TooltipTrigger asChild>
         <Button>Advanced Tooltip</Button>
       </TooltipTrigger>
-      <TooltipContent side="top" align="center">
-        <p>Custom positioned tooltip</p>
+      <TooltipContent side="top" align="center" className="custom-class">
+        <p>Custom styled tooltip</p>
       </TooltipContent>
     </Tooltip>
   );
 }
 ```
 
-This gives you access to additional props like:
-
-- `side`: `'top' | 'right' | 'bottom' | 'left'`
-- `align`: `'start' | 'center' | 'end'`
-- `open`: Controlled open state
-- `onOpenChange`: Callback for open state changes
+Note: The Datum UI Tooltip wrapper already supports most common use cases including positioning, controlled state, and conditional visibility. Only use shadcn primitives directly if you need custom className or other advanced features not exposed by the wrapper.
 
 ## Styling
 
@@ -227,11 +298,12 @@ The tooltip component uses Tailwind CSS classes and supports:
 
 The tooltip content is styled with:
 
-- Primary background color
-- Primary foreground text color
+- Secondary background color (`bg-secondary`)
+- Secondary foreground text color (`text-secondary-foreground`)
 - Rounded corners
 - Padding for comfortable reading
 - Arrow indicator pointing to the trigger element
+- Smooth fade and slide animations
 
 ## Accessibility
 
@@ -289,8 +361,10 @@ import { Tooltip } from '@/modules/datum-ui';
 
 ## Notes
 
-- The tooltip wrapper simplifies the API but you can always use shadcn/ui primitives directly for advanced use cases
-- Tooltips automatically hide when the trigger element loses focus or hover
+- The tooltip wrapper simplifies the API and supports all common use cases including positioning, controlled state, and conditional visibility
+- Tooltips automatically hide when the trigger element loses focus or hover (unless using controlled state)
 - The default delay of 200ms helps prevent accidental tooltip triggers
 - Tooltips are rendered in a portal, so they won't be clipped by parent overflow containers
 - The `asChild` prop on TooltipTrigger merges props with the child element
+- Use the `hidden` prop to conditionally show/hide tooltips based on application state (e.g., sidebar collapsed state)
+- Controlled state (`open`/`onOpenChange`) is useful when you need to trigger tooltips programmatically or based on custom hover logic

@@ -1,6 +1,6 @@
+import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Label } from '@shadcn/ui/label';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { CircleHelp } from 'lucide-react';
 import { useState } from 'react';
 
@@ -36,18 +36,17 @@ export const FieldLabel = ({
         {isRequired && <span className="text-destructive align-super text-sm leading-0">*</span>}
       </Label>
       {tooltipInfo && (
-        <Tooltip open={isTooltipVisible} onOpenChange={handleTooltipOpenChange}>
-          <TooltipTrigger asChild>
-            <CircleHelp
-              className={cn(
-                'text-muted-foreground absolute -top-0 -right-3 size-3.5 cursor-pointer transition-opacity duration-400',
-                isHovering || isTooltipVisible ? 'opacity-100' : 'opacity-0'
-              )}
-            />
-          </TooltipTrigger>
-          <TooltipContent className="z-50" data-side="bottom">
-            {tooltipInfo}
-          </TooltipContent>
+        <Tooltip
+          message={tooltipInfo}
+          open={isTooltipVisible}
+          onOpenChange={handleTooltipOpenChange}
+          side="bottom">
+          <CircleHelp
+            className={cn(
+              'text-muted-foreground absolute -top-0 -right-3 size-3.5 cursor-pointer transition-opacity duration-400',
+              isHovering || isTooltipVisible ? 'opacity-100' : 'opacity-0'
+            )}
+          />
         </Tooltip>
       )}
     </div>

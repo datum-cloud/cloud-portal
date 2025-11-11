@@ -3,9 +3,9 @@ import ButtonDemo, { buttonDemoSections } from '@/components/demo/button';
 import StatusBadgeDemo, { statusBadgeDemoSections } from '@/components/demo/status-badge';
 import TooltipDemo, { tooltipDemoSections } from '@/components/demo/tooltip';
 import { Button } from '@datum-ui/components';
+import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { ChevronRight, Moon, Sun, ChevronsUpDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -108,35 +108,25 @@ export default function Demo() {
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Component Demos</h2>
             <div className="flex gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="tertiary"
-                    theme="borderless"
-                    size="icon"
-                    onClick={toggleAllAccordions}
-                    className="h-8 w-8">
-                    <ChevronsUpDown className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{areAllOpen ? 'Collapse all' : 'Expand all'}</p>
-                </TooltipContent>
+              <Tooltip message={areAllOpen ? 'Collapse all' : 'Expand all'}>
+                <Button
+                  type="tertiary"
+                  theme="borderless"
+                  size="icon"
+                  onClick={toggleAllAccordions}
+                  className="h-8 w-8">
+                  <ChevronsUpDown className="h-4 w-4" />
+                </Button>
               </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    type="tertiary"
-                    theme="borderless"
-                    size="icon"
-                    onClick={() => setIsDarkMode(!isDarkMode)}
-                    className="h-8 w-8">
-                    {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}</p>
-                </TooltipContent>
+              <Tooltip message={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
+                <Button
+                  type="tertiary"
+                  theme="borderless"
+                  size="icon"
+                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  className="h-8 w-8">
+                  {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </Button>
               </Tooltip>
             </div>
           </div>

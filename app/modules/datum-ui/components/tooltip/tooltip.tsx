@@ -7,6 +7,14 @@ interface TooltipProps {
   message: string | ReactNode;
   children: ReactNode;
   delayDuration?: number;
+  // Advanced props passed to TooltipContent
+  side?: 'top' | 'right' | 'bottom' | 'left';
+  align?: 'start' | 'center' | 'end';
+  sideOffset?: number;
+  hidden?: boolean;
+  // Controlled state props
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const TooltipContent = ({
@@ -33,11 +41,21 @@ const TooltipContent = ({
   );
 };
 
-export default function Tooltip({ message, children, delayDuration = 200 }: TooltipProps) {
+export default function Tooltip({
+  message,
+  children,
+  delayDuration = 200,
+  side,
+  align,
+  sideOffset,
+  hidden,
+  open,
+  onOpenChange,
+}: TooltipProps) {
   return (
-    <TooltipPrimitive delayDuration={delayDuration}>
+    <TooltipPrimitive delayDuration={delayDuration} open={open} onOpenChange={onOpenChange}>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent>
+      <TooltipContent side={side} align={align} sideOffset={sideOffset} hidden={hidden}>
         <span>{message}</span>
       </TooltipContent>
     </TooltipPrimitive>
