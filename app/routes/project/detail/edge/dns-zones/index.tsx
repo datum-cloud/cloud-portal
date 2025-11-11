@@ -1,6 +1,7 @@
-import { ChipsOverflow } from '@/components/chips-overflow';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { DomainDnsHost } from '@/features/edge/domain/dns-host';
+import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns-zone.interface';
 import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
@@ -11,7 +12,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, DataTable, DataTableRowActionsProps } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, PlusIcon } from 'lucide-react';
+import { ArrowRightIcon, Loader2Icon, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   AppLoadContext,
@@ -47,6 +48,12 @@ export default function DnsZonesPage() {
   const { projectId } = useParams();
   const fetcher = useFetcher({ key: 'delete-dns-zone' });
   const navigate = useNavigate();
+
+  // revalidate every 5 seconds to keep DNS zones list fresh
+  const { start: startRevalidator, clear: clearRevalidator } = useRevalidateOnInterval({
+    interval: 5000,
+    enabled: false,
+  });
 
   const { confirm } = useConfirmationDialog();
 
@@ -91,16 +98,21 @@ export default function DnsZonesPage() {
       {
         id: 'nameservers',
         header: 'DNS Host',
-        accessorKey: 'status.nameservers',
+        accessorKey: 'nameservers',
         cell: ({ row }) => {
-          const status = row.original.status;
+          const nameservers = row.original?.status?.domainRef?.status?.nameservers;
 
-          if (!status?.nameservers || status?.nameservers.length === 0) return <>-</>;
-          return <ChipsOverflow items={status?.nameservers} maxVisible={2} theme="outline" wrap />;
+          // Show spinner if nameservers data is not available yet
+          if (!nameservers) {
+            return <Loader2Icon className="text-muted-foreground size-4 animate-spin" />;
+          }
+
+          return <DomainDnsHost nameservers={nameservers} maxVisible={2} />;
         },
         meta: {
-          sortPath: 'status.nameservers',
+          sortPath: 'status.domainRef.status.nameservers',
           sortType: 'array',
+          sortArrayBy: 'ips.registrantName',
         },
       },
       {
@@ -172,6 +184,17 @@ export default function DnsZonesPage() {
     ],
     [projectId]
   );
+
+  useEffect(() => {
+    // Start revalidator if any DNS zone doesn't have nameservers data yet
+    const hasIncompleteData = data?.some((zone) => !zone.status?.domainRef?.status?.nameservers);
+
+    if (hasIncompleteData) {
+      startRevalidator();
+    } else {
+      clearRevalidator();
+    }
+  }, [data]);
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
