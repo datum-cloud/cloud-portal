@@ -1,6 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
-import { ExportPolicyStatus } from '@/features/observe/export-policies/status';
+import { ExportPolicyStatus } from '@/features/metric/export-policies/status';
 import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table/data-table.types';
 import { createExportPoliciesControl } from '@/resources/control-plane';

@@ -1,4 +1,4 @@
-import { ExportPolicyStepperForm } from '@/features/observe/export-policies/form/stepper-form';
+import { ExportPolicyStepperForm } from '@/features/metric/export-policies/form/stepper-form';
 import { createExportPoliciesControl } from '@/resources/control-plane';
 import { newExportPolicySchema } from '@/resources/schemas/export-policy.schema';
 import { paths } from '@/utils/config/paths.config';

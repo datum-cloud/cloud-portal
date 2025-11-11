@@ -18,9 +18,6 @@ export default [
     route('test/permissions', 'routes/test/permissions.tsx'),
     route('test/demo', 'routes/test/demo.tsx'),
 
-    // Getting Started
-    route('getting-started', 'routes/getting-started/index.tsx'),
-
     // Invitation
     route('invitation/:invitationId/accept', 'routes/invitation/index.tsx'),
 

@@ -1,5 +1,3 @@
-import { paths } from '@/utils/config/paths.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   BreadcrumbItem,
   BreadcrumbLink,
@@ -9,7 +7,7 @@ import {
   Breadcrumb as BreadcrumbUI,
 } from '@shadcn/ui/breadcrumb';
 import React, { useMemo } from 'react';
-import { useLocation, useMatches, useParams } from 'react-router';
+import { useLocation, useMatches } from 'react-router';
 
 /**
  * Type for route handle with breadcrumb function
@@ -34,7 +32,6 @@ interface BreadcrumbItem {
  * and renders a breadcrumb navigation based on route data
  */
 export const Breadcrumb = (): React.ReactElement | null => {
-  const params = useParams<{ orgId: string; projectId: string }>();
   const location = useLocation();
   const matches = useMatches();
 
@@ -57,17 +54,6 @@ export const Breadcrumb = (): React.ReactElement | null => {
           isLast,
         };
       });
-
-    if ((params.orgId || params.projectId) && !location.pathname.includes('/dashboard')) {
-      const route = params?.projectId ? paths.projects.dashboard : paths.org.detail.projects.root;
-      filteredMatches.unshift({
-        key: `breadcrumb-dashboard`,
-        path: getPathWithParams(route, { orgId: params.orgId, projectId: params.projectId }),
-        content: <BreadcrumbPage className="font-medium">Dashboard</BreadcrumbPage>,
-        isCurrentPath: location.pathname.includes('/dashboard'),
-        isLast: filteredMatches.length === 0,
-      });
-    }
 
     return filteredMatches;
   }, [matches, location.pathname]);
