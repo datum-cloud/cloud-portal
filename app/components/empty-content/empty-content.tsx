@@ -40,7 +40,7 @@ const BASE_STYLES = {
   title: 'font-normal text-foreground',
   subtitle: 'text-muted-foreground',
   actionsContainer: 'flex items-center',
-  button: 'flex items-center gap-1',
+  button: 'flex items-center gap-1 !text-xs',
 } as const;
 
 // Variant-specific styles

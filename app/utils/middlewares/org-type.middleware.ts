@@ -1,6 +1,7 @@
 import { NextFunction } from './middleware';
 import { OrganizationType, IOrganization } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
+import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 
 /**
@@ -21,7 +22,7 @@ export function createOrgTypeMiddleware(allowedTypes: OrganizationType[]) {
       orgIndex !== -1 && orgIndex + 1 < pathSegments.length ? pathSegments[orgIndex + 1] : null;
 
     if (!orgId) {
-      throw new Error('Organization ID not found in request');
+      throw new BadRequestError('Organization ID not found in request');
     }
 
     // Fetch organization details using the same pattern as org detail layout
@@ -38,14 +39,14 @@ export function createOrgTypeMiddleware(allowedTypes: OrganizationType[]) {
     const orgResult = await orgResponse.json();
 
     if (!orgResult.success) {
-      throw new Error('Organization not found');
+      throw new NotFoundError('Organization not found');
     }
 
     const org: IOrganization = orgResult.data;
 
     // Check if organization type is allowed
     if (org.type && !allowedTypes.includes(org.type)) {
-      throw new Error(`This feature is not available for ${org.type} organizations`);
+      throw new BadRequestError(`This feature is not available for ${org.type} organizations`);
     }
 
     // Attach organization data to request for downstream use

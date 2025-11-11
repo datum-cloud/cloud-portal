@@ -1,10 +1,13 @@
 import { InvitationForm } from '@/features/organization/team/invitation-form';
+import { createRbacMiddleware } from '@/modules/rbac';
 import { createInvitationsControl } from '@/resources/control-plane';
 import { invitationFormSchema, NewInvitationSchema } from '@/resources/schemas/invitation.schema';
+import { buildNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { validateCSRF } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { withMiddleware } from '@/utils/middlewares';
 import { parseWithZod } from '@conform-to/zod/v4';
 import { Client } from '@hey-api/client-axios';
 import { useEffect } from 'react';
@@ -105,6 +108,18 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
   }
 };
 
+export const loader = withMiddleware(
+  async () => {
+    return data({});
+  },
+  createRbacMiddleware({
+    resource: 'userinvitations',
+    verb: 'create',
+    group: 'iam.miloapis.com',
+    namespace: (params) => buildNamespace('organization', params.orgId),
+  })
+);
+
 interface InvitationResult {
   email: string;
   success: boolean;
@@ -131,14 +146,19 @@ export default function OrgTeamInvitePage() {
       const failedResults = data.data.filter((r: InvitationResult) => !r.success);
       const failedCount = failedResults.length;
 
-      const getInvitationText = (count: number) => (count === 1 ? 'invitation' : 'invitations');
+      // Helper to pluralize "invitation"
+      const pluralize = (count: number) => (count === 1 ? 'invitation' : 'invitations');
 
+      // Helper to format count with proper pluralization
+      const formatCount = (count: number) => `${count} ${pluralize(count)}`;
+
+      // Error list component for toast descriptions
       const ErrorList = (errors: InvitationResult[]) => {
         if (errors.length === 1) {
           const result = errors[0];
           return (
             <span className="text-muted-foreground text-xs">
-              {result.email}:{result.error}
+              {result.email}: {result.error}
             </span>
           );
         }
@@ -147,7 +167,7 @@ export default function OrgTeamInvitePage() {
             {errors.map((result, index) => (
               <li key={index}>
                 <span className="text-muted-foreground">
-                  {result.email}:{result.error}
+                  {result.email}: {result.error}
                 </span>
               </li>
             ))}
@@ -155,24 +175,37 @@ export default function OrgTeamInvitePage() {
         );
       };
 
-      if (successCount > 0 && failedCount === 0) {
+      // Build success/failure message based on counts
+      const hasSuccess = successCount > 0;
+      const hasFailed = failedCount > 0;
+
+      if (hasSuccess && !hasFailed) {
+        // All invitations succeeded
         const message =
           successCount === 1
             ? 'Invitation sent successfully!'
-            : `${successCount} ${getInvitationText(successCount)} sent successfully!`;
+            : `${formatCount(successCount)} sent successfully!`;
         toast.success(message);
         navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
-      } else if (successCount > 0 && failedCount > 0) {
+      } else if (hasSuccess && hasFailed) {
+        // Partial success - some succeeded, some failed
         const message =
-          successCount === 1
-            ? `Invitation sent, ${failedCount} failed`
-            : `${successCount} ${getInvitationText(successCount)} sent, ${failedCount} failed`;
+          successCount === 1 && failedCount === 1
+            ? 'Invitation sent, 1 invitation failed'
+            : successCount === 1
+              ? `Invitation sent, ${formatCount(failedCount)} failed`
+              : failedCount === 1
+                ? `${formatCount(successCount)} sent, 1 invitation failed`
+                : `${formatCount(successCount)} sent, ${formatCount(failedCount)} failed`;
         toast.warning(message, {
           description: ErrorList(failedResults),
         });
         navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
-      } else if (failedCount > 0) {
-        toast.error(`${failedCount} ${getInvitationText(failedCount)} failed`, {
+      } else if (hasFailed) {
+        // All invitations failed
+        const message =
+          failedCount === 1 ? 'Invitation failed' : `${formatCount(failedCount)} failed`;
+        toast.error(message, {
           description: ErrorList(failedResults),
         });
       }

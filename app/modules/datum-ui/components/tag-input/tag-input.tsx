@@ -357,13 +357,24 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
       setInputValue(e.currentTarget.value);
     }, []);
 
-    const handleBlur = React.useCallback(() => {
-      // Add the current input value as a tag when input loses focus
-      if (inputValue.trim() !== '') {
-        onValueChangeHandler(inputValue);
-        setInputValue('');
-      }
-    }, [inputValue, onValueChangeHandler]);
+    const handleBlur = React.useCallback(
+      (e: React.FocusEvent<HTMLInputElement>) => {
+        // Don't add tag on blur if we're submitting the form
+        // Check if the related target (element receiving focus) is a submit button
+        const relatedTarget = e.relatedTarget as HTMLElement;
+        const isSubmitButton =
+          relatedTarget?.tagName === 'BUTTON' &&
+          (relatedTarget?.getAttribute('type') === 'submit' ||
+            relatedTarget?.closest('button[type="submit"]'));
+
+        // Only add tag if we're not submitting the form
+        if (!isSubmitButton && inputValue.trim() !== '') {
+          onValueChangeHandler(inputValue);
+          setInputValue('');
+        }
+      },
+      [inputValue, onValueChangeHandler]
+    );
 
     const contextValue = React.useMemo(
       () => ({
