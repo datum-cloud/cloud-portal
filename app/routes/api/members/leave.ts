@@ -34,14 +34,14 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
 
     if (redirectUri) {
       return redirectWithToast(redirectUri as string, {
-        title: 'You have left the organization',
-        description: 'You have left the organization successfully',
+        title: 'Organization left',
+        description: 'You have successfully left the organization.',
         type: 'success',
       });
     }
 
     return data(
-      { success: true, message: 'You have left the organization successfully' },
+      { success: true, message: 'You have successfully left the organization.' },
       { status: 200 }
     );
   } catch (error: any) {
