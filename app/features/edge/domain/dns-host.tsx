@@ -26,7 +26,7 @@ export const DomainDnsHost = ({
       .keys()
   );
 
-  if (registrantNames.length === 0) return <>-</>;
+  if ((registrantNames ?? []).length === 0) return <>-</>;
 
   return (
     <ChipsOverflow items={registrantNames} maxVisible={maxVisible} theme="outline" wrap={wrap} />
