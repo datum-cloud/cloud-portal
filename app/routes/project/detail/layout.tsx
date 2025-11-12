@@ -117,15 +117,15 @@ export default function ProjectLayout() {
         disabled: !isReady,
         children: [
           {
-            title: 'HTTPProxy',
-            href: getPathWithParams(paths.project.detail.httpProxy.root, {
+            title: 'DNS',
+            href: getPathWithParams(paths.project.detail.dnsZones.root, {
               projectId,
             }),
             type: 'link',
           },
           {
-            title: 'DNS Zones',
-            href: getPathWithParams(paths.project.detail.dnsZones.root, {
+            title: 'Proxy',
+            href: getPathWithParams(paths.project.detail.httpProxy.root, {
               projectId,
             }),
             type: 'link',
@@ -174,7 +174,7 @@ export default function ProjectLayout() {
         ],
       },
       {
-        title: 'Project settings',
+        title: 'Project Settings',
         href: getPathWithParams(paths.project.detail.settings.preferences, { projectId }),
         type: 'link',
         disabled: !isReady,

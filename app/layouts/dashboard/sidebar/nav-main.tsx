@@ -42,6 +42,66 @@ export type NavItem = {
   // while `/account/organizations` uses sidebar layout, but all share the same parent sidebar nav
   tabChildLinks?: string[];
 };
+
+// Centralized style constants for nav menu buttons
+const NAV_STYLES = {
+  menuButton:
+    'text-foreground rounded-lg h-8 font-normal transition-all px-2 py-1 data-[active=true]:bg-sidebar-accent data-[active=true]:text-foreground data-[active=true]:font-medium hover:bg-sidebar-accent hover:text-foreground',
+  disabled: 'pointer-events-none opacity-50',
+  icon: 'text-foreground/50',
+  iconSmall: 'text-foreground/50 size-4',
+} as const;
+
+// Centralized icon renderer component
+const NavIcon = ({
+  icon: Icon,
+  className,
+  size = 'default',
+}: {
+  icon?: LucideIcon;
+  className?: string;
+  size?: 'default' | 'small';
+}) => {
+  if (!Icon) return null;
+  return (
+    <Icon className={cn(size === 'small' ? NAV_STYLES.iconSmall : NAV_STYLES.icon, className)} />
+  );
+};
+
+NavIcon.displayName = 'NavIcon';
+
+// Wrapper component for NavSidebarMenuButton
+type NavSidebarMenuButtonProps = ComponentProps<typeof SidebarMenuButton> & {
+  item: Pick<NavItem, 'disabled' | 'icon' | 'title'>;
+  isActive?: boolean;
+};
+
+const NavSidebarMenuButton = forwardRef<HTMLButtonElement, NavSidebarMenuButtonProps>(
+  ({ item, isActive, className, children, asChild, ...props }, ref) => {
+    return (
+      <SidebarMenuButton
+        ref={ref}
+        tooltip={item.title}
+        isActive={isActive}
+        disabled={item.disabled}
+        asChild={asChild}
+        className={cn(NAV_STYLES.menuButton, item.disabled && NAV_STYLES.disabled, className)}
+        {...props}>
+        {asChild ? (
+          children
+        ) : (
+          <>
+            <NavIcon icon={item.icon} />
+            {children}
+          </>
+        )}
+      </SidebarMenuButton>
+    );
+  }
+);
+
+NavSidebarMenuButton.displayName = 'NavSidebarMenuButton';
+
 export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { items: NavItem[] }>(
   ({ className, items, ...props }, ref) => {
     const { pathname } = useLocation();
@@ -140,16 +200,7 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
           <SidebarMenu key={itemKey}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  tooltip={item.title}
-                  isActive={isActive || hasActiveChild}
-                  disabled={item.disabled}
-                  className={cn(
-                    item.disabled && 'pointer-events-none opacity-50',
-                    'data-[active=true]:text-primary h-9 font-medium transition-all data-[active=true]:font-semibold'
-                  )}>
-                  {item.icon && <item.icon />}
-                </SidebarMenuButton>
+                <NavSidebarMenuButton item={item} isActive={isActive || hasActiveChild} />
               </DropdownMenuTrigger>
               <DropdownMenuContent side="right" align="start">
                 <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
@@ -190,7 +241,9 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
                                     className={cn(
                                       isThirdLevelActive && 'bg-primary/10 text-primary'
                                     )}>
-                                    <Link to={thirdLevelItem.href || ''} className="flex w-full">
+                                    <Link
+                                      to={thirdLevelItem.href || ''}
+                                      className="flex w-full text-xs">
                                       <span>{thirdLevelItem.title}</span>
                                     </Link>
                                   </DropdownMenuItem>
@@ -230,18 +283,10 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
               className="group/collapsible">
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild className="w-full">
-                  <SidebarMenuButton
-                    tooltip={item.title}
-                    isActive={isActive || hasActiveChild}
-                    disabled={item.disabled}
-                    className={cn(
-                      item.disabled && 'pointer-events-none opacity-50',
-                      'data-[active=true]:text-primary h-9 font-medium transition-all data-[active=true]:font-semibold'
-                    )}>
-                    {item?.icon && <item.icon />}
+                  <NavSidebarMenuButton item={item} isActive={isActive || hasActiveChild}>
                     <span>{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                  </SidebarMenuButton>
+                  </NavSidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub
@@ -268,17 +313,10 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
           className="group/collapsible">
           <SidebarMenuItem key={`collapsible-sidebar-${currentItem.title}-${currentLevel}`}>
             <CollapsibleTrigger asChild className="w-full">
-              <SidebarMenuButton
-                tooltip={currentItem.title}
-                disabled={currentItem.disabled}
-                className={cn(
-                  currentItem.disabled && 'pointer-events-none opacity-50',
-                  'data-[active=true]:text-primary h-9 font-medium transition-all data-[active=true]:font-semibold'
-                )}>
-                {currentItem?.icon && <currentItem.icon />}
+              <NavSidebarMenuButton item={currentItem}>
                 <span>{currentItem.title}</span>
                 <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-              </SidebarMenuButton>
+              </NavSidebarMenuButton>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <SidebarMenuSub className={currentLevel >= 1 ? 'mr-0 pr-[.1rem]' : ''}>
@@ -296,16 +334,12 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
       return (
         <SidebarMenu key={itemKey} className={cn(`level_${level}`)}>
           <SidebarMenuItem>
-            <SidebarMenuButton
+            <NavSidebarMenuButton
               asChild
-              tooltip={item.title}
+              item={item}
               isActive={isActive && !hasActiveChild}
-              disabled={item.disabled}
               onClick={() => hasChildren && toggleItem(item.href as string)}
-              className={cn(
-                'data-[active=true]:text-primary h-9 font-medium transition-all data-[active=true]:font-semibold',
-                item.disabled && 'pointer-events-none opacity-50'
-              )}>
+              className={cn(level >= 1 && 'h-7 opacity-80')}>
               {item.type === 'externalLink' ? (
                 <a
                   href={item.href || ''}
@@ -313,18 +347,18 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
                   rel="noopener noreferrer"
                   className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {item?.icon && <item.icon className="size-4" />}
-                    <span>{item.title}</span>
+                    {item?.icon && <item.icon className="text-foreground/50 size-4" />}
+                    <span className={cn(level >= 1 && 'text-xs')}>{item.title}</span>
                   </div>
                   <ExternalLinkIcon className="ml-auto size-4" />
                 </a>
               ) : (
                 <Link to={item.href || ''}>
-                  {item?.icon && <item.icon />}
-                  <span>{item.title}</span>
+                  {item?.icon && <item.icon className="text-foreground/50" />}
+                  <span className={cn(level >= 1 && 'text-xs')}>{item.title}</span>
                 </Link>
               )}
-            </SidebarMenuButton>
+            </NavSidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       );
@@ -334,7 +368,7 @@ export const NavMain = forwardRef<HTMLUListElement, ComponentProps<'ul'> & { ite
       <ul
         ref={ref}
         data-sidebar="menu"
-        className={cn('flex w-full min-w-0 flex-col gap-1 p-2', className)}
+        className={cn('flex h-full w-full min-w-0 flex-col gap-1 p-2', className)}
         {...props}>
         {(items || []).map((item) => renderNavItem(item))}
       </ul>

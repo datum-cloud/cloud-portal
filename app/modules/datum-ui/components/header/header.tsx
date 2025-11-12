@@ -1,7 +1,7 @@
+import { OrganizationSwitcher } from './org-switcher';
+import { ProjectSwitcher } from './project-switcher';
+import { UserDropdown } from './user-dropdown';
 import { LogoIcon } from '@/components/logo/logo-icon';
-import { OrganizationSwitcher } from '@/layouts/dashboard/header/org-switcher';
-import { ProjectSwitcher } from '@/layouts/dashboard/header/project-switcher';
-import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { paths } from '@/utils/config/paths.config';
@@ -45,7 +45,7 @@ export const Header = ({
                 theme="outline"
                 size="small"
                 className="h-8 w-8 rounded-xl p-0">
-                <BookOpen size={14} className="text-quaternary-foreground/50" />
+                <BookOpen size={14} className="text-quaternary-foreground" />
               </Button>
             </Link>
           </Tooltip>

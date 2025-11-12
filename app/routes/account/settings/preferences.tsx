@@ -1,3 +1,4 @@
+import { PageTitle } from '@/components/page-title/page-title';
 import { AccountDangerSettingsCard } from '@/features/account/settings/danger-card';
 import { AccountIdentitySettingsCard } from '@/features/account/settings/indetity-card';
 import { AccountPortalSettingsCard } from '@/features/account/settings/portal-card';
@@ -78,6 +79,7 @@ export default function AccountPreferencesPage() {
 
   return (
     <div className="mx-auto flex w-full flex-col gap-6">
+      <PageTitle title="Preferences" />
       <AccountProfileSettingsCard />
 
       <AccountIdentitySettingsCard />

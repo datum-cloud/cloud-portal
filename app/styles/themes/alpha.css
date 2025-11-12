@@ -25,6 +25,11 @@ Scope variables to the theme class so we can swap themes by class
   /* Radius - using Figma medium radius as base */
   --radius: var(--radius-md);
 
+  /* Sidebar */
+  --sidebar-width: 15.875rem; /* 254px */
+  --sidebar-width-icon: 3rem; /* 48px */
+  --sidebar-width-mobile: 18.75rem; /* 300px */
+
   /* ========================================
    SHADCN COLOR OVERRIDES - LIGHT MODE
    ======================================== */
