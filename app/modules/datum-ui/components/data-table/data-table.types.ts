@@ -43,6 +43,7 @@ export interface DataTableProps<TData, TValue> {
   // Display mode props
   mode?: 'table' | 'card';
   hideHeader?: boolean;
+  hidePagination?: boolean; // Hide pagination and show all data
 
   // Styling props
   className?: string;

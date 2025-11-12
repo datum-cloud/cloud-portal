@@ -1,6 +1,6 @@
+import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
-import { StatusBadge } from '@/components/status-badge/status-badge';
 import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table/data-table.types';
 import { createHttpProxiesControl } from '@/resources/control-plane';
@@ -107,7 +107,7 @@ export default function HttpProxyPage() {
             (() => {
               const transformedStatus = transformControlPlaneStatus(row.original.status);
               return (
-                <StatusBadge
+                <BadgeStatus
                   status={transformedStatus}
                   label={
                     transformedStatus.status === ControlPlaneStatus.Success ? 'Active' : undefined

@@ -1,4 +1,4 @@
-import { StatusBadge } from '@/components/status-badge/status-badge';
+import { BadgeStatus } from '@/components/badge/badge-status';
 import {
   ArrowListItem,
   ExplorerCard,
@@ -102,7 +102,7 @@ export default function ProjectDashboardPage() {
                   initial={{ scale: 0.8 }}
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}>
-                  <StatusBadge
+                  <BadgeStatus
                     status={status}
                     showTooltip={false}
                     className="bg-secondary text-secondary-foreground border-input border font-medium"

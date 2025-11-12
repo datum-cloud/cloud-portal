@@ -1,4 +1,4 @@
-import { StatusBadge } from '@/components/status-badge/status-badge';
+import { BadgeStatus } from '@/components/badge/badge-status';
 import { useApp } from '@/providers/app.provider';
 import {
   ControlPlaneStatus,
@@ -85,7 +85,7 @@ export const ProjectStatus = ({
   }, [fetcher.data]);
 
   return status ? (
-    <StatusBadge
+    <BadgeStatus
       status={status}
       label={label}
       showTooltip={showTooltip}

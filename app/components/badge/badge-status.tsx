@@ -7,8 +7,6 @@ import { cn } from '@shadcn/lib/utils';
 import { Loader2 } from 'lucide-react';
 import { ReactNode } from 'react';
 
-export type StatusBadgeStatus = 'active' | 'pending' | 'error' | 'inactive' | 'success';
-
 interface StatusConfig {
   badgeType?: BadgeProps['type'];
   badgeTheme?: BadgeProps['theme'];
@@ -24,7 +22,7 @@ interface StatusConfig {
 
 // Centralized status configuration
 // Customize colors here - all usages will inherit these settings
-const STATUS_CONFIG: Record<StatusBadgeStatus, StatusConfig> = {
+const STATUS_CONFIG: Record<string, StatusConfig> = {
   active: {
     badgeType: 'success',
     badgeTheme: 'light',
@@ -58,10 +56,20 @@ const STATUS_CONFIG: Record<StatusBadgeStatus, StatusConfig> = {
     badgeTheme: 'light',
     defaultLabel: 'Ready',
   },
+  personal: {
+    badgeType: 'primary',
+    badgeTheme: 'light',
+    defaultLabel: 'Personal',
+  },
+  standard: {
+    badgeType: 'info',
+    badgeTheme: 'light',
+    defaultLabel: 'Standard',
+  },
 };
 
-// Helper to map ControlPlaneStatus to StatusBadgeStatus
-const mapControlPlaneStatus = (status: ControlPlaneStatus): StatusBadgeStatus => {
+// Helper to map ControlPlaneStatus to BadgeStatusStatus
+const mapControlPlaneStatus = (status: ControlPlaneStatus): string => {
   switch (status) {
     case ControlPlaneStatus.Success:
       return 'active';
@@ -74,9 +82,9 @@ const mapControlPlaneStatus = (status: ControlPlaneStatus): StatusBadgeStatus =>
   }
 };
 
-export interface StatusBadgeProps {
+export interface BadgeStatusProps {
   // Accept either new status string or legacy IControlPlaneStatus
-  status?: StatusBadgeStatus | IControlPlaneStatus;
+  status?: string | IControlPlaneStatus;
   label?: string;
   showIcon?: boolean;
   showTooltip?: boolean;
@@ -87,7 +95,7 @@ export interface StatusBadgeProps {
   badgeTheme?: BadgeProps['theme'];
 }
 
-export const StatusBadge = ({
+export const BadgeStatus = ({
   status,
   label,
   showIcon = false,
@@ -96,9 +104,9 @@ export const StatusBadge = ({
   className,
   badgeType: overrideBadgeType,
   badgeTheme: overrideBadgeTheme,
-}: StatusBadgeProps) => {
+}: BadgeStatusProps) => {
   // Handle legacy IControlPlaneStatus format
-  let statusValue: StatusBadgeStatus;
+  let statusValue: string;
   let statusMessage: string | undefined;
 
   if (!status) return null;
@@ -108,11 +116,11 @@ export const StatusBadge = ({
     statusValue = mapControlPlaneStatus(status.status);
     statusMessage = status.message;
   } else {
-    // New format: StatusBadgeStatus string
+    // New format: BadgeStatusStatus string
     statusValue = status;
   }
 
-  const config = STATUS_CONFIG[statusValue.toLowerCase() as StatusBadgeStatus];
+  const config = STATUS_CONFIG[statusValue.toLowerCase()];
   if (!config) return null;
 
   // Determine badge props
@@ -157,3 +165,4 @@ export const StatusBadge = ({
   // Wrap in container to prevent stretching in table cells
   return <div className="w-fit">{badgeContent}</div>;
 };
+
