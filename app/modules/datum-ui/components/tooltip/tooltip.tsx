@@ -1,6 +1,6 @@
-import { Tooltip as TooltipPrimitive, TooltipTrigger } from '@/modules/shadcn/ui/tooltip';
 import * as TooltipPrimitiveRadix from '@radix-ui/react-tooltip';
 import { cn } from '@shadcn/lib/utils';
+import { Tooltip as TooltipPrimitive, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { ReactNode } from 'react';
 
 interface TooltipProps {

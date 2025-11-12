@@ -23,8 +23,8 @@ import { MetadataSchema, metadataSchema } from '@/resources/schemas/metadata.sch
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@shadcn/ui/card';
 import { defineStepper } from '@stepperize/react';
 import { FileIcon, Layers, Loader2, Terminal } from 'lucide-react';
 import React, { useMemo } from 'react';

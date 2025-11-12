@@ -1,7 +1,7 @@
 /**
  * Common utilities for networking, validation, and error handling
  *
- * Note: The `cn()` utility has been moved to @/modules/shadcn
+ * Note: The `cn()` utility has been moved to @shadcn
  * Import it from there: import { cn } from '@shadcn/lib/utils'
  */
 

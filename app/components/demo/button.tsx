@@ -1,11 +1,5 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/card';
 import { Button } from '@datum-ui/components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 import { Download, Heart, Plus, Settings, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 

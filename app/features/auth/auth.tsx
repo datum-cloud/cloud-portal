@@ -1,6 +1,6 @@
 import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
-import { Card, CardContent } from '@shadcn/ui/card';
+import { Card, CardContent } from '@datum-ui/components';
 import { Link, useNavigation, useSubmit } from 'react-router';
 
 export default function AuthCard({ mode }: { mode: 'login' | 'signup' }) {

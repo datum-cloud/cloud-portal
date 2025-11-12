@@ -174,7 +174,7 @@ function TextTooltip() {
 
 ```tsx
 import { Tooltip } from '@/modules/datum-ui';
-import { Input } from '@/modules/shadcn/ui/input';
+import { Input } from '@shadcn/ui/input';
 import { Info } from 'lucide-react';
 
 function FormTooltip() {
@@ -269,7 +269,7 @@ function ConditionalTooltip({ isCollapsed }: { isCollapsed: boolean }) {
 For even more advanced use cases, you can use the underlying shadcn/ui primitives directly:
 
 ```tsx
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/modules/shadcn/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 
 function AdvancedTooltip() {
   return (
@@ -318,7 +318,7 @@ The tooltip component includes:
 ## Dependencies
 
 - `@radix-ui/react-tooltip`: Core tooltip functionality
-- `@/modules/shadcn/ui/tooltip`: shadcn/ui tooltip primitives
+- `@shadcn/ui/tooltip`: shadcn/ui tooltip primitives
 - `react`: React library
 
 ## When to Use

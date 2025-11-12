@@ -31,7 +31,7 @@ import {
   CardHeader,
   CardFooter,
   CardTitle,
-} from '@shadcn/ui/card';
+} from '@datum-ui/components';
 import { has } from 'es-toolkit/compat';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import { Fragment, cloneElement, useMemo } from 'react';

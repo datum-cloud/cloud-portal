@@ -14,7 +14,7 @@ import {
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@shadcn/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@datum-ui/components';
 import { Input } from '@shadcn/ui/input';
 import { useEffect, useRef } from 'react';
 import { Form } from 'react-router';

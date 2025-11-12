@@ -2,7 +2,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { ROUTE_PATH as USER_DELETE_ACTION } from '@/routes/api/user';
 import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
 import { CircleAlertIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';

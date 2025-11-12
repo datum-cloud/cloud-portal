@@ -1,11 +1,5 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/card';
 import { Badge } from '@datum-ui/components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 import { AlertCircle, CheckCircle, XCircle, Star, Info } from 'lucide-react';
 
 export const badgeDemoSections = [

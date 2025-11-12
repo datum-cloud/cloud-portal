@@ -286,7 +286,7 @@ The badge component includes:
 ## Dependencies
 
 - `class-variance-authority`: For type-safe variant styling
-- `@/modules/shadcn/lib/utils`: For class name utilities
+- `@shadcn/lib/utils`: For class name utilities
 
 ## Migration from Other Badge Components
 

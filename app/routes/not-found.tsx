@@ -1,7 +1,7 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
-import { Card, CardContent } from '@shadcn/ui/card';
+import { Card, CardContent } from '@datum-ui/components';
 import { ArrowLeft, HomeIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, MetaFunction, useLocation, useNavigate } from 'react-router';

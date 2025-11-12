@@ -1,13 +1,7 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/card';
-import { Input } from '@/modules/shadcn/ui/input';
 import { Tooltip } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
+import { Input } from '@shadcn/ui/input';
 import { Info, Settings, Trash2, Download, HelpCircle, AlertCircle } from 'lucide-react';
 
 export const tooltipDemoSections = [

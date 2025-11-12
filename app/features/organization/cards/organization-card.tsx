@@ -3,8 +3,8 @@ import { ProfileIdentity } from '@/components/profile-identity';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { getInitials } from '@/utils/helpers/text.helper';
 import { Badge } from '@datum-ui/components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@shadcn/ui/card';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';
 import { motion } from 'motion/react';
 

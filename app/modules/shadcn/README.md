@@ -29,11 +29,11 @@ Use per-file path imports. No barrels are required or maintained.
 
 ```typescript
 // Hooks
+import { Card } from '@datum-ui/components';
 import { useIsMobile } from '@shadcn/hooks/use-mobile';
 // Utils
 import { cn } from '@shadcn/lib/utils';
 import { Button } from '@shadcn/ui/button';
-import { Card } from '@shadcn/ui/card';
 ```
 
 ### Styles
@@ -43,9 +43,9 @@ Include styles in your app root (or a global layout):
 ```typescript
 // Option A: import both explicitly
 // Option B: single convenience entry
-import '@/modules/shadcn/style.css';
-import '@/modules/shadcn/styles/animations.css';
-import '@/modules/shadcn/styles/shadcn.css';
+import '@shadcn/style.css';
+import '@shadcn/styles/animations.css';
+import '@shadcn/styles/shadcn.css';
 ```
 
 ## 📦 Available Components
@@ -108,7 +108,7 @@ import '@/modules/shadcn/styles/shadcn.css';
 Display toast notifications using Sonner:
 
 ```typescript
-import { useToast } from '@/modules/shadcn';
+import { useToast } from '@shadcn';
 
 function MyComponent() {
   const toast = useToast();
@@ -133,7 +133,7 @@ toast.info('Information');
 Detect mobile breakpoint (< 768px):
 
 ```typescript
-import { useIsMobile } from '@/modules/shadcn';
+import { useIsMobile } from '@shadcn';
 
 function ResponsiveComponent() {
   const isMobile = useIsMobile();
@@ -153,7 +153,7 @@ function ResponsiveComponent() {
 Merge Tailwind CSS classes with conflict resolution:
 
 ```typescript
-import { cn } from '@/modules/shadcn';
+import { cn } from '@shadcn';
 
 const className = cn(
   'base-class',

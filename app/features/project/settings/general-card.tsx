@@ -6,7 +6,7 @@ import { updateProjectSchema } from '@/resources/schemas/project.schema';
 import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
-import { Card, CardContent, CardFooter } from '@shadcn/ui/card';
+import { Card, CardContent, CardFooter } from '@datum-ui/components';
 import { Input } from '@shadcn/ui/input';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';

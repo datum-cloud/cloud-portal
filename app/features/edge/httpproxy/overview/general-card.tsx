@@ -5,7 +5,7 @@ import { TextCopy } from '@/components/text-copy/text-copy';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 

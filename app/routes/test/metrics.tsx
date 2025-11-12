@@ -12,7 +12,7 @@ import {
   type QueryBuilderFunction,
 } from '@/modules/metrics';
 import { Badge } from '@datum-ui/components';
-import { Card, CardContent, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { ChartTooltipContent } from '@shadcn/ui/chart';
 import { Activity, Server, Globe, Database } from 'lucide-react';
 import { useCallback } from 'react';

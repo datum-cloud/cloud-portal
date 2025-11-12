@@ -3,8 +3,8 @@ import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.int
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@shadcn/ui/card';
 import { CopyIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';

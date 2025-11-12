@@ -22,7 +22,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@shadcn/ui/card';
+} from '@datum-ui/components';
 import { useEffect, useMemo } from 'react';
 import { useNavigate, Form, useFetcher } from 'react-router';
 import { AuthenticityTokenInput, useAuthenticityToken } from 'remix-utils/csrf/react';

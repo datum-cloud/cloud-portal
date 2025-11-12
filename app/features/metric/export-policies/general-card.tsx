@@ -5,7 +5,7 @@ import { TextCopy } from '@/components/text-copy/text-copy';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getShortId } from '@/utils/helpers/text.helper';
-import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
 import { useMemo } from 'react';
 
 export const ExportPolicyGeneralCard = ({

@@ -5,7 +5,7 @@ import { DomainDnsHost } from '@/features/edge/domain/dns-host';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
-import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
 import { useMemo } from 'react';
 
 export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }) => {
