@@ -165,4 +165,3 @@ export const BadgeStatus = ({
   // Wrap in container to prevent stretching in table cells
   return <div className="w-fit">{badgeContent}</div>;
 };
-

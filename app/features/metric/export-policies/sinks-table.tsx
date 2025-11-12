@@ -1,5 +1,5 @@
-import { CodeEditor } from '@/components/code-editor/code-editor';
 import { BadgeStatus } from '@/components/badge/badge-status';
+import { CodeEditor } from '@/components/code-editor/code-editor';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';

@@ -41,26 +41,26 @@ import { AlertCircle } from 'lucide-react';
 
 ### Alert
 
-| Prop        | Type                                                                                                 | Default     | Description                      |
-| ----------- | ---------------------------------------------------------------------------------------------------- | ----------- | -------------------------------- |
-| `variant`   | `'default' \| 'secondary' \| 'outline' \| 'destructive' \| 'success' \| 'info' \| 'warning'` | `'default'` | Alert variant/style               |
-| `closable`  | `boolean`                                                                                            | `false`     | Whether the alert can be closed  |
-| `onClose`   | `() => void`                                                                                         | -           | Callback when close button is clicked |
-| `className` | `string`                                                                                             | -           | Additional CSS classes           |
-| `...props`  | `React.HTMLAttributes<HTMLDivElement>`                                                               | -           | All standard HTML div attributes |
+| Prop        | Type                                                                                         | Default     | Description                           |
+| ----------- | -------------------------------------------------------------------------------------------- | ----------- | ------------------------------------- |
+| `variant`   | `'default' \| 'secondary' \| 'outline' \| 'destructive' \| 'success' \| 'info' \| 'warning'` | `'default'` | Alert variant/style                   |
+| `closable`  | `boolean`                                                                                    | `false`     | Whether the alert can be closed       |
+| `onClose`   | `() => void`                                                                                 | -           | Callback when close button is clicked |
+| `className` | `string`                                                                                     | -           | Additional CSS classes                |
+| `...props`  | `React.HTMLAttributes<HTMLDivElement>`                                                       | -           | All standard HTML div attributes      |
 
 ### AlertTitle
 
-| Prop        | Type                                    | Default | Description            |
-| ----------- | --------------------------------------- | ------- | ---------------------- |
-| `className` | `string`                                | -       | Additional CSS classes |
+| Prop        | Type                                   | Default | Description             |
+| ----------- | -------------------------------------- | ------- | ----------------------- |
+| `className` | `string`                               | -       | Additional CSS classes  |
 | `...props`  | `React.HTMLAttributes<HTMLDivElement>` | -       | Standard div attributes |
 
 ### AlertDescription
 
-| Prop        | Type                                    | Default | Description            |
-| ----------- | --------------------------------------- | ------- | ---------------------- |
-| `className` | `string`                                | -       | Additional CSS classes |
+| Prop        | Type                                   | Default | Description             |
+| ----------- | -------------------------------------- | ------- | ----------------------- |
+| `className` | `string`                               | -       | Additional CSS classes  |
 | `...props`  | `React.HTMLAttributes<HTMLDivElement>` | -       | Standard div attributes |
 
 ## Variants
@@ -281,8 +281,8 @@ Alerts can be made closable by setting the `closable` prop to `true` and providi
 
 ```tsx
 import { Alert, AlertTitle, AlertDescription } from '@datum-ui/components';
-import { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
+import { useState } from 'react';
 
 function ClosableAlerts() {
   const [showAlert, setShowAlert] = useState(true);
@@ -305,8 +305,8 @@ Or with multiple closable alerts:
 
 ```tsx
 import { Alert, AlertTitle, AlertDescription } from '@datum-ui/components';
-import { useState } from 'react';
 import { CheckCircle, AlertCircle } from 'lucide-react';
+import { useState } from 'react';
 
 function MultipleClosableAlerts() {
   const [alerts, setAlerts] = useState([
@@ -387,7 +387,7 @@ The alert component uses Tailwind CSS classes and supports:
 ### Custom Styling
 
 ```tsx
-<Alert variant="success" className="shadow-lg border-2">
+<Alert variant="success" className="border-2 shadow-lg">
   <AlertTitle className="text-lg font-bold">Custom Alert</AlertTitle>
   <AlertDescription className="text-base">Custom styled description.</AlertDescription>
 </Alert>
@@ -441,4 +441,3 @@ import { Alert, AlertTitle, AlertDescription } from '@datum-ui/components';
 - Alerts are not closable by default - set `closable={true}` and provide an `onClose` callback to enable the close button
 - The close button is positioned in the top-right corner and inherits the alert's variant color
 - When closable, the alert automatically adds right padding to accommodate the close button
-

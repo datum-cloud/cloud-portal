@@ -1,6 +1,6 @@
+import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
-import { BadgeStatus } from '@/components/badge/badge-status';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
