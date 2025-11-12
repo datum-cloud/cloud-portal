@@ -1,5 +1,6 @@
 import BadgeDemo, { badgeDemoSections } from '@/components/demo/badge';
 import ButtonDemo, { buttonDemoSections } from '@/components/demo/button';
+import GridDemo, { gridDemoSections } from '@/components/demo/grid';
 import StatusBadgeDemo, { statusBadgeDemoSections } from '@/components/demo/status-badge';
 import TooltipDemo, { tooltipDemoSections } from '@/components/demo/tooltip';
 import { Button } from '@datum-ui/components';
@@ -16,6 +17,7 @@ const demoComponents = [
   { name: 'Badge', sections: badgeDemoSections, Component: BadgeDemo },
   { name: 'StatusBadge', sections: statusBadgeDemoSections, Component: StatusBadgeDemo },
   { name: 'Tooltip', sections: tooltipDemoSections, Component: TooltipDemo },
+  { name: 'Grid', sections: gridDemoSections, Component: GridDemo },
 ];
 
 export default function Demo() {

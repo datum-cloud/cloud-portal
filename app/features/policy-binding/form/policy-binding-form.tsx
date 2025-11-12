@@ -32,7 +32,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@shadcn/ui/card';
+} from '@datum-ui/components';
 import { useEffect, useMemo, useState } from 'react';
 import { Form, useFetcher, useNavigate } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

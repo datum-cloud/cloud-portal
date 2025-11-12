@@ -15,7 +15,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@shadcn/ui/card';
+} from '@datum-ui/components';
 import { InfoIcon, Loader2 } from 'lucide-react';
 import { AnimatePresence, motion, Variants } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';

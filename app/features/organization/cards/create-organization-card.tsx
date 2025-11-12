@@ -1,5 +1,5 @@
+import { Card, CardContent, CardDescription, CardTitle } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Card, CardContent, CardDescription, CardTitle } from '@shadcn/ui/card';
 import { Plus } from 'lucide-react';
 import { motion } from 'motion/react';
 

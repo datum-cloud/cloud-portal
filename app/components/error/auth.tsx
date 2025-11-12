@@ -1,6 +1,6 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { paths } from '@/utils/config/paths.config';
-import { Card, CardContent } from '@shadcn/ui/card';
+import { Card, CardContent } from '@datum-ui/components';
 import { Loader2Icon } from 'lucide-react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';

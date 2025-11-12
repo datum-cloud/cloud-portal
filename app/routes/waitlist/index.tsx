@@ -4,8 +4,8 @@ import { RegistrationApproval } from '@/resources/interfaces/user.interface';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { Card, CardContent } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
-import { Card, CardContent } from '@shadcn/ui/card';
 import { Link, MetaFunction, LoaderFunctionArgs, redirect } from 'react-router';
 import { AppLoadContext, data } from 'react-router';
 

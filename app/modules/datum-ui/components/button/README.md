@@ -329,7 +329,7 @@ The button component includes:
 
 - `class-variance-authority`: For type-safe variant styling
 - `lucide-react`: For default loading icon
-- `@/modules/shadcn/lib/utils`: For class name utilities
+- `@shadcn/lib/utils`: For class name utilities
 
 ## Migration from Other Button Components
 

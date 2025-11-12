@@ -23,7 +23,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@shadcn/ui/card';
+} from '@datum-ui/components';
 import { Input } from '@shadcn/ui/input';
 import { useEffect, useMemo, useRef } from 'react';
 import { Form, useFetcher } from 'react-router';

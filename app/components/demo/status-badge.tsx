@@ -1,12 +1,6 @@
 import { StatusBadge } from '@/components/status-badge/status-badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/modules/shadcn/ui/card';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 
 export const statusBadgeDemoSections = [
   { id: 'status-badge-statuses', label: 'Status Badge Statuses' },

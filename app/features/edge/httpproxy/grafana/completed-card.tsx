@@ -8,7 +8,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@shadcn/ui/card';
+} from '@datum-ui/components';
 import { CheckCircle2, Shield, Settings, Activity } from 'lucide-react';
 import { AnimatePresence, motion, Variants } from 'motion/react';
 import { useNavigate } from 'react-router';

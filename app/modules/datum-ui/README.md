@@ -89,7 +89,7 @@ import {
   Dialog,
   // Pure shadcn
   Label, // Pure shadcn
-} from '@/modules/shadcn';
+} from '@shadcn';
 ```
 
 ### Component Examples

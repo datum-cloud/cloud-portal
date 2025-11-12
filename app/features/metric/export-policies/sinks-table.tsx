@@ -7,7 +7,7 @@ import { IExportPolicyControlResponse } from '@/resources/interfaces/export-poli
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
-import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { find } from 'es-toolkit/compat';
 import { SettingsIcon } from 'lucide-react';

@@ -2,7 +2,7 @@ import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
-import { Card, CardHeader, CardTitle, CardContent } from '@shadcn/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
 import { useMemo } from 'react';
 
 export const SecretGeneralCard = ({ secret }: { secret: ISecretControlResponse }) => {

@@ -1,5 +1,5 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@shadcn/ui/card';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router';
 

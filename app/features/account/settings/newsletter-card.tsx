@@ -1,6 +1,6 @@
 import { useApp } from '@/providers/app.provider';
 import { ROUTE_PATH as USER_PREFERENCES_UPDATE_ACTION } from '@/routes/api/user/preferences';
-import { Card, CardContent, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { Label } from '@shadcn/ui/label';
 import { Switch } from '@shadcn/ui/switch';
 import { useEffect, useState } from 'react';

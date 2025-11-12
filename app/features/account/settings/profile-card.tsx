@@ -6,7 +6,7 @@ import { ROUTE_PATH as USER_UPDATE_ACTION } from '@/routes/api/user';
 import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@shadcn/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
 import { Input } from '@shadcn/ui/input';
 import { useEffect } from 'react';
 import { Form, useFetcher } from 'react-router';
