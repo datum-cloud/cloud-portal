@@ -1,6 +1,6 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
+import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -38,6 +38,10 @@ export default function AccountOrganizations() {
   const orgs: IOrganization[] = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
+  const hasStandardOrg = useMemo(() => {
+    return orgs.some((org) => org.type === OrganizationType.Standard);
+  }, [orgs]);
+
   const columns: ColumnDef<IOrganization>[] = useMemo(
     () => [
       {
@@ -51,7 +55,7 @@ export default function AccountOrganizations() {
                 <Building className="size-4" />
                 <span>{row.original.displayName || row.original.name}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-6">
                 <BadgeCopy
                   value={row.original.name ?? ''}
                   text={row.original.name ?? ''}
@@ -89,7 +93,7 @@ export default function AccountOrganizations() {
                   type="primary"
                   theme="solid"
                   icon={<PlusIcon className="size-4" />}>
-                  Add organization
+                  Create organization
                 </LinkButton>
               ),
             }}
@@ -137,27 +141,31 @@ export default function AccountOrganizations() {
         </Col>
       </Row>
 
-      <Row gutter={16}>
-        <Col span={20} push={2}>
-          <Alert variant="warning" closable>
-            <TriangleAlert className="size-4" />
-            <AlertTitle>Understanding Organizations</AlertTitle>
-            <AlertDescription>
-              <ul className="mt-2 list-disc space-y-1 pl-5">
-                <li>Organizations group your projects with separate team and billing settings.</li>
-                <li>
-                  You start with a Personal organization to explore and manage small projects (try
-                  the one we&apos;ve created for you above!)
-                </li>
-                <li>
-                  Add Standard organizations for team collaboration and production workload
-                  features.
-                </li>
-              </ul>
-            </AlertDescription>
-          </Alert>
-        </Col>
-      </Row>
+      {!hasStandardOrg && (
+        <Row gutter={16}>
+          <Col span={20} push={2}>
+            <Alert variant="warning" closable>
+              <TriangleAlert className="size-4" />
+              <AlertTitle>Understanding Organizations</AlertTitle>
+              <AlertDescription>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  <li>
+                    Organizations group your projects with separate team and billing settings.
+                  </li>
+                  <li>
+                    You start with a Personal organization to explore and manage small projects (try
+                    the one we&apos;ve created for you above!)
+                  </li>
+                  <li>
+                    Add Standard organizations for team collaboration and production workload
+                    features.
+                  </li>
+                </ul>
+              </AlertDescription>
+            </Alert>
+          </Col>
+        </Row>
+      )}
     </>
   );
 }
