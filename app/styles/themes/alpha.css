@@ -54,7 +54,7 @@ Scope variables to the theme class so we can swap themes by class
   --tertiary-foreground: var(--glacier-mist-700);
 
   /* Quaternary colors - using Figma tokens */
-  --quaternary: var(--glacier-mist-800);
+  --quaternary: var(--app-dark-utility-5);
   --quaternary-foreground: var(--midnight-fjord);
 
   /* Muted colors */
@@ -242,6 +242,9 @@ TAILWIND CUSTOM UTILITIES FOR THEME
 
   --color-table-accent: var(--table-accent);
   --color-table-cell: var(--table-cell);
+
+  /* Font Sizes */
+  --text-2xs: 9px;
 
   /* Badge */
   --color-badge-primary: var(--badge-primary);

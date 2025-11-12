@@ -1,62 +1,58 @@
+import { LogoIcon } from '@/components/logo/logo-icon';
 import { OrganizationSwitcher } from '@/layouts/dashboard/header/org-switcher';
 import { ProjectSwitcher } from '@/layouts/dashboard/header/project-switcher';
 import { UserDropdown } from '@/layouts/dashboard/header/user-dropdown';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
-import { SidebarTrigger } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
 import { NotificationDropdown } from '@datum-ui/components/notification';
-import { CircleHelp, SlashIcon } from 'lucide-react';
+import { BookOpen, SlashIcon } from 'lucide-react';
 import { Link } from 'react-router';
 
 export const Header = ({
-  hideSidebar = false,
   currentProject,
   currentOrg,
   title,
 }: {
-  hideSidebar?: boolean;
   currentProject?: IProjectControlResponse;
   currentOrg?: IOrganization;
   title?: string;
 }) => {
   return (
-    <header className="bg-background sticky top-0 z-50 flex h-16 w-full shrink-0 items-center justify-between gap-4 border-b px-4">
+    <header className="bg-background sticky top-0 z-50 flex h-[54px] w-full shrink-0 items-center justify-between gap-4 border-b px-4 py-3.5">
       {/* Left Section */}
       <div className="flex flex-1 items-center">
-        {!hideSidebar && <SidebarTrigger className="-ml-1 cursor-pointer" />}
-        {title && <span className="ml-2 text-sm font-semibold">{title}</span>}
+        <Link to={paths.account.root} className="mr-6 flex size-7 items-center gap-2">
+          <LogoIcon width={21} />
+        </Link>
         {currentOrg && <OrganizationSwitcher currentOrg={currentOrg} />}
         {currentProject && (
           <>
-            <SlashIcon size={14} className="text-primary/20 mx-1" />
-            <ProjectSwitcher currentProject={currentProject} />
+            <SlashIcon size={14} className="text-foreground/10 mx-2.5" />
+            <ProjectSwitcher currentProject={currentProject} triggerClassName="h-7 w-fit" />
           </>
         )}
       </div>
       {/* Right Section */}
-      <div className="flex h-9 flex-1 items-center justify-end">
-        {/* <SearchBar /> */}
-        <div className="flex h-full items-center gap-1">
-          {/* <Button variant="outline" size="sm" className="cursor-pointer px-2">
-            Feedback
-          </Button> */}
+      <div className="flex h-8 flex-1 items-center justify-end">
+        <div className="flex h-full items-center gap-1.5">
           <Tooltip message="Docs">
             <Link to="https://datum.net/docs/" target="_blank" rel="noreferrer">
               <Button
                 type="quaternary"
-                theme="borderless"
+                theme="outline"
                 size="small"
-                className="cursor-pointer px-2">
-                <CircleHelp size={18} />
+                className="h-8 w-8 rounded-xl p-0">
+                <BookOpen size={14} className="text-quaternary-foreground/50" />
               </Button>
             </Link>
           </Tooltip>
 
           <NotificationDropdown pollingInterval={60000} defaultTab="invitation" />
 
-          <UserDropdown className="ml-1.5" />
+          <UserDropdown />
         </div>
       </div>
     </header>

@@ -32,10 +32,10 @@ export function DashboardSidebar({
 
   return (
     <Sidebar collapsible={props.collapsible ?? 'offcanvas'} {...props}>
-      <SidebarHeader className="flex h-16 flex-col justify-center px-4">
+      <SidebarHeader className="flex h-12 flex-col justify-center px-4">
         <Link to={paths.account.root} className="flex items-center gap-2">
           <LogoIcon
-            width={24}
+            width={20}
             className={cn('transition-transform duration-500', !open && 'rotate-[360deg]')}
           />
           {state === 'expanded' && <LogoText className="transition-opacity duration-500" />}

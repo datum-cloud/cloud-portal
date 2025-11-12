@@ -14,7 +14,6 @@ export function DashboardLayout({
   currentOrg,
   currentProject,
   className,
-  headerTitle,
 }: {
   children: React.ReactNode;
   navItems: NavItem[];
@@ -23,18 +22,22 @@ export function DashboardLayout({
   currentProject?: IProjectControlResponse;
   hideUserDropdown?: boolean;
   className?: string;
-  headerTitle?: string;
 }) {
   return (
-    <SidebarProvider>
-      <DashboardSidebar navItems={navItems} collapsible={sidebarCollapsible} />
-      <SidebarInset>
-        <Header currentProject={currentProject} currentOrg={currentOrg} title={headerTitle} />
-        <div className="mx-auto flex h-full w-full flex-1 flex-col gap-6 px-6 py-5">
-          {/* <Breadcrumb /> */}
-          <div className={cn('flex max-w-full flex-1 flex-col gap-4', className)}>{children}</div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="flex h-screen w-full flex-col">
+      {/* Header at the top - outside sidebar context */}
+      <Header currentProject={currentProject} currentOrg={currentOrg} />
+
+      {/* Sidebar + Content area below header */}
+      <SidebarProvider className="flex-1 overflow-hidden">
+        <DashboardSidebar navItems={navItems} collapsible={sidebarCollapsible} />
+        <SidebarInset>
+          <div className="mx-auto flex h-full w-full flex-1 flex-col gap-6 px-6 py-5">
+            {/* <Breadcrumb /> */}
+            <div className={cn('flex max-w-full flex-1 flex-col gap-4', className)}>{children}</div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   );
 }

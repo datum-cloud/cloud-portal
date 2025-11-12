@@ -1,9 +1,10 @@
+import { PersonalBadge } from '@/components/personal-badge/personal-badge';
 import { SelectOrganization } from '@/components/select-organization/select-organization';
 import { useApp } from '@/providers/app.provider';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Badge } from '@datum-ui/components';
+import { Building } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 
 export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: IOrganization }) => {
@@ -11,18 +12,13 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: IOrganization
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center gap-1 pl-2">
+    <div className="flex items-center gap-1">
       <Link
         to={getPathWithParams(paths.org.detail.projects.root, { orgId: currentOrg?.name })}
-        className="flex w-fit items-center justify-between gap-2 text-left text-sm leading-tight">
-        <span className="xs:whitespace-normal font-semibold">
-          {currentOrg?.displayName ?? currentOrg?.name}
-        </span>
-        {currentOrg?.type === OrganizationType.Personal && (
-          <Badge type="secondary" className="border">
-            Personal
-          </Badge>
-        )}
+        className="flex w-fit items-center justify-between text-left">
+        <Building size={14} className="text-secondary/60" />
+        <span className="ml-2.5 text-sm">{currentOrg?.displayName ?? currentOrg?.name}</span>
+        {currentOrg?.type === OrganizationType.Personal && <PersonalBadge className="ml-3" />}
       </Link>
       <SelectOrganization
         triggerClassName="h-7 w-fit"
