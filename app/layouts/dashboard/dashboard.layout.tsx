@@ -1,10 +1,9 @@
-import { NavItem } from './sidebar/nav-main';
-import { DashboardSidebar } from './sidebar/sidebar';
+import { ContentWrapper } from '@/components/content-wrapper';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { SidebarInset, SidebarProvider } from '@datum-ui/components';
 import { Header } from '@datum-ui/components/header/header';
-import { cn } from '@shadcn/lib/utils';
+import { AppSidebar, NavItem } from '@datum-ui/components/sidebar';
 import React from 'react';
 
 export function DashboardLayout({
@@ -27,7 +26,7 @@ export function DashboardLayout({
   containerClassName?: string;
 }) {
   return (
-    <div className="flex h-screen w-full flex-col">
+    <div className="flex h-screen w-full flex-col overflow-hidden">
       {/* Header at the top - outside sidebar context */}
       <Header currentProject={currentProject} currentOrg={currentOrg} />
 
@@ -43,23 +42,18 @@ export function DashboardLayout({
             '--sidebar-width-mobile': '18.75rem', // Custom desktop width
           } as React.CSSProperties
         }>
-        <DashboardSidebar
+        <AppSidebar
           title={sidebarHeader as any}
           navItems={navItems}
           collapsible={sidebarCollapsible}
           className="top-[54px] h-[calc(100vh-54px)]"
         />
         <SidebarInset>
-          <div
-            className={cn(
-              'mx-auto flex h-full w-full flex-1 flex-col gap-6 p-9',
-              containerClassName ?? ''
-            )}>
-            {/* <Breadcrumb /> */}
-            <div className={cn('flex max-w-full flex-1 flex-col gap-4', contentClassName ?? '')}>
-              {children}
-            </div>
-          </div>
+          <ContentWrapper
+            containerClassName={containerClassName}
+            contentClassName={contentClassName}>
+            {children}
+          </ContentWrapper>
         </SidebarInset>
       </SidebarProvider>
     </div>

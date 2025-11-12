@@ -9,7 +9,7 @@ import {
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 
-export function DashboardSidebar({
+export function AppSidebar({
   navItems,
   title,
   ...props
@@ -33,7 +33,7 @@ export function DashboardSidebar({
       <SidebarContent className="gap-0">
         {title && <SidebarHeader className="px-4 pt-4 pb-0">{title}</SidebarHeader>}
 
-        {navItems.length > 0 && <NavMain items={navItems} />}
+        {navItems.length > 0 && <NavMain className="py-3.5" items={navItems} />}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

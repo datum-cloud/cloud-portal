@@ -1,5 +1,4 @@
 import { DashboardLayout } from '@/layouts/dashboard/dashboard.layout';
-import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { RbacProvider } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { OrganizationType } from '@/resources/interfaces/organization.interface';
@@ -8,6 +7,7 @@ import { paths } from '@/utils/config/paths.config';
 import { redirectWithToast } from '@/utils/cookies';
 import { HttpError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { useEffect, useMemo } from 'react';
 import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
 

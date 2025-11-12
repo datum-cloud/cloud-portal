@@ -1,5 +1,4 @@
 import { DashboardLayout } from '@/layouts/dashboard/dashboard.layout';
-import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
 import { useApp } from '@/providers/app.provider';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
@@ -11,6 +10,7 @@ import { getOrgSession, redirectWithToast, setOrgSession } from '@/utils/cookies
 import { BadRequestError, ValidationError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { Client } from '@hey-api/client-axios';
 import { AreaChartIcon, FolderDot, HomeIcon, NetworkIcon, SettingsIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';

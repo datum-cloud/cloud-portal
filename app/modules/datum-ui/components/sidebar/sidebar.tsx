@@ -29,6 +29,8 @@ type SidebarContext = {
   toggleSidebar: () => void;
   handleMouseEnter: () => void;
   handleMouseLeave: () => void;
+  hasSubLayout: boolean;
+  setHasSubLayout: (value: boolean) => void;
 };
 
 const SidebarContext = React.createContext<SidebarContext | null>(null);
@@ -60,6 +62,7 @@ const SidebarProvider = ({
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
   const [isHovered, setIsHovered] = React.useState(false);
+  const [hasSubLayout, setHasSubLayout] = React.useState(false);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   // This is the internal state of the sidebar.
@@ -147,6 +150,8 @@ const SidebarProvider = ({
       toggleSidebar,
       handleMouseEnter,
       handleMouseLeave,
+      hasSubLayout,
+      setHasSubLayout,
     }),
     [
       state,
@@ -158,6 +163,8 @@ const SidebarProvider = ({
       toggleSidebar,
       handleMouseEnter,
       handleMouseLeave,
+      hasSubLayout,
+      setHasSubLayout,
     ]
   );
 
