@@ -1,4 +1,4 @@
-import { RESPONSIVE_MAP, RESPONSIVE_ARRAY, Breakpoint } from '../constants/grid.constants';
+import { RESPONSIVE_ARRAY, Breakpoint } from '../constants/grid.constants';
 import { Gutter } from '../types/grid.types';
 
 export interface MediaQueryCallback {

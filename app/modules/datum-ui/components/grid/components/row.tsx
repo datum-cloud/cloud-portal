@@ -1,4 +1,4 @@
-import { GRID_PREFIX, RESPONSIVE_MAP, RESPONSIVE_ARRAY } from '../constants/grid.constants';
+import { GRID_PREFIX, RESPONSIVE_MAP } from '../constants/grid.constants';
 import { RowProps, RowState, RowContextType } from '../types/grid.types';
 import { registerMediaQuery, getGutter } from '../utils/responsive';
 import { cn } from '@shadcn/lib/utils';
