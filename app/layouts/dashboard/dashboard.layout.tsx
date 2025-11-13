@@ -15,6 +15,8 @@ export function DashboardLayout({
   contentClassName,
   sidebarHeader,
   containerClassName,
+  expandBehavior = 'push',
+  showBackdrop = false,
 }: {
   children: React.ReactNode;
   navItems: NavItem[];
@@ -24,6 +26,8 @@ export function DashboardLayout({
   contentClassName?: string;
   sidebarHeader?: string | React.ReactNode;
   containerClassName?: string;
+  expandBehavior?: 'push' | 'overlay';
+  showBackdrop?: boolean;
 }) {
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden">
@@ -34,6 +38,8 @@ export function DashboardLayout({
       <SidebarProvider
         defaultOpen={sidebarCollapsible === 'offcanvas'}
         expandOnHover={sidebarCollapsible === 'icon'}
+        expandBehavior={expandBehavior}
+        showBackdrop={showBackdrop}
         className="flex-1 overflow-hidden"
         style={
           {

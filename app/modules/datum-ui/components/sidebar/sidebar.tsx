@@ -29,8 +29,11 @@ type SidebarContext = {
   toggleSidebar: () => void;
   handleMouseEnter: () => void;
   handleMouseLeave: () => void;
+  forceClose: () => void;
   hasSubLayout: boolean;
   setHasSubLayout: (value: boolean) => void;
+  expandBehavior: 'push' | 'overlay';
+  showBackdrop: boolean;
 };
 
 const SidebarContext = React.createContext<SidebarContext | null>(null);
@@ -49,6 +52,8 @@ const SidebarProvider = ({
   open: openProp,
   onOpenChange: setOpenProp,
   expandOnHover = false,
+  expandBehavior = 'push',
+  showBackdrop = false,
   className,
   style,
   children,
@@ -58,6 +63,8 @@ const SidebarProvider = ({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   expandOnHover?: boolean;
+  expandBehavior?: 'push' | 'overlay';
+  showBackdrop?: boolean;
 }) => {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
@@ -95,10 +102,13 @@ const SidebarProvider = ({
 
   const handleMouseLeave = React.useCallback(() => {
     if (!expandOnHover) return;
+    // In overlay mode, use shorter delay for more responsive feel
+    // In push mode, use a longer delay for better UX
+    const delay = expandBehavior === 'overlay' ? 200 : 300;
     hoverTimeoutRef.current = setTimeout(() => {
       setIsHovered(false);
-    }, 300); // 300ms delay before closing
-  }, [expandOnHover]);
+    }, delay);
+  }, [expandOnHover, expandBehavior]);
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
@@ -118,6 +128,20 @@ const SidebarProvider = ({
       }
     }
   }, [isMobile, setOpen, open, setOpenMobile, expandOnHover]);
+
+  // Force close the sidebar (used for backdrop clicks and outside clicks in overlay mode)
+  const forceClose = React.useCallback(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+      return;
+    }
+
+    setOpen(false);
+    setIsHovered(false);
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+  }, [isMobile, setOpen, setOpenMobile]);
 
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
@@ -150,12 +174,15 @@ const SidebarProvider = ({
       toggleSidebar,
       handleMouseEnter,
       handleMouseLeave,
+      forceClose,
       hasSubLayout,
       setHasSubLayout,
+      expandBehavior,
+      showBackdrop,
     }),
     [
       state,
-      open,
+      effectiveOpen,
       setOpen,
       isMobile,
       openMobile,
@@ -163,8 +190,11 @@ const SidebarProvider = ({
       toggleSidebar,
       handleMouseEnter,
       handleMouseLeave,
+      forceClose,
       hasSubLayout,
       setHasSubLayout,
+      expandBehavior,
+      showBackdrop,
     ]
   );
 
@@ -204,8 +234,40 @@ const Sidebar = ({
   variant?: 'sidebar' | 'floating' | 'inset';
   collapsible?: 'offcanvas' | 'icon' | 'none';
 }) => {
-  const { isMobile, state, openMobile, setOpenMobile, handleMouseEnter, handleMouseLeave } =
-    useSidebar();
+  const {
+    isMobile,
+    state,
+    openMobile,
+    setOpenMobile,
+    handleMouseEnter,
+    handleMouseLeave,
+    expandBehavior,
+    showBackdrop,
+    forceClose,
+  } = useSidebar();
+  const sidebarRef = React.useRef<HTMLDivElement>(null);
+  const [showBackdropElement, setShowBackdropElement] = React.useState(false);
+  const [backdropVisible, setBackdropVisible] = React.useState(false);
+
+  // Handle backdrop animation state
+  React.useEffect(() => {
+    if (showBackdrop && expandBehavior === 'overlay' && state === 'expanded') {
+      // First mount the element
+      setShowBackdropElement(true);
+      // Then trigger the animation in the next frame
+      requestAnimationFrame(() => {
+        setBackdropVisible(true);
+      });
+    } else {
+      // First trigger the fade-out animation
+      setBackdropVisible(false);
+      // Then unmount the element after animation completes
+      const timer = setTimeout(() => {
+        setShowBackdropElement(false);
+      }, 200); // Match the transition duration
+      return () => clearTimeout(timer);
+    }
+  }, [showBackdrop, expandBehavior, state]);
 
   if (collapsible === 'none') {
     return (
@@ -261,14 +323,22 @@ const Sidebar = ({
           'relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear',
           'group-data-[collapsible=offcanvas]:w-0',
           'group-data-[side=right]:rotate-180',
-          variant === 'floating' || variant === 'inset'
-            ? 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]'
-            : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon)'
+          // In overlay mode, gap stays at collapsed width; in push mode, gap transitions
+          expandBehavior === 'overlay'
+            ? variant === 'floating' || variant === 'inset'
+              ? 'w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]'
+              : 'w-(--sidebar-width-icon)'
+            : variant === 'floating' || variant === 'inset'
+              ? 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]'
+              : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon)'
         )}
       />
       <div
+        ref={sidebarRef}
         className={cn(
-          'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex',
+          'fixed inset-y-0 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex',
+          // Z-index: Higher for overlay mode to float above content
+          expandBehavior === 'overlay' ? 'z-50' : 'z-10',
           side === 'left'
             ? 'left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]'
             : 'right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]',
@@ -281,10 +351,28 @@ const Sidebar = ({
         {...props}>
         <div
           data-sidebar="sidebar"
-          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm">
+          className={cn(
+            'bg-sidebar flex h-full w-full flex-col',
+            'group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm',
+            // Add shadow when expanded in overlay mode
+            expandBehavior === 'overlay' && state === 'expanded' && 'shadow-lg'
+          )}>
           {children}
         </div>
       </div>
+
+      {/* Backdrop/Overlay - only shown in overlay mode when expanded */}
+      {showBackdropElement && (
+        <div
+          className={cn(
+            'fixed inset-0 z-40 bg-black/50 transition-opacity duration-200 ease-in-out md:block hidden',
+            backdropVisible ? 'opacity-100' : 'opacity-0'
+          )}
+          onMouseEnter={() => forceClose()}
+          onClick={() => forceClose()}
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 };

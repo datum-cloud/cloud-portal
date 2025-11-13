@@ -8,6 +8,7 @@ import { redirectWithToast } from '@/utils/cookies';
 import { HttpError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
+import { FolderRoot, SettingsIcon, UsersIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
 
@@ -60,17 +61,20 @@ export default function OrgLayout() {
         title: 'Projects',
         href: getPathWithParams(paths.org.detail.projects.root, { orgId }),
         type: 'link',
+        icon: FolderRoot,
       },
       {
         title: 'Team',
         href: getPathWithParams(paths.org.detail.team.root, { orgId }),
         type: 'link',
         hidden: org?.type === OrganizationType.Personal,
+        icon: UsersIcon,
       },
       {
         title: 'Organization Settings',
         href: settingsPreferences,
         type: 'link',
+        icon: SettingsIcon,
         tabChildLinks: [
           settingsPreferences,
           settingsActivity,
@@ -88,15 +92,7 @@ export default function OrgLayout() {
   }, [org]);
 
   return (
-    <DashboardLayout
-      navItems={navItems}
-      sidebarCollapsible="offcanvas"
-      currentOrg={org}
-      sidebarHeader={
-        <span className="text-primary truncate text-sm font-semibold">
-          {org?.displayName ?? org?.name ?? 'Organization'}
-        </span>
-      }>
+    <DashboardLayout navItems={navItems} sidebarCollapsible="offcanvas" currentOrg={org}>
       <RbacProvider organizationId={org?.name}>
         <Outlet />
       </RbacProvider>

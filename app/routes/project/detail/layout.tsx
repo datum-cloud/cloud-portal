@@ -201,7 +201,9 @@ export default function ProjectLayout() {
       navItems={navItems}
       sidebarCollapsible="icon"
       currentProject={project}
-      currentOrg={org}>
+      currentOrg={org}
+      expandBehavior="overlay"
+      showBackdrop>
       <Outlet />
     </DashboardLayout>
   );
