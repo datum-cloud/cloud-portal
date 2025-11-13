@@ -1,27 +1,32 @@
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ICachedProject } from '@/resources/interfaces/project.interface';
 import { paths } from '@/utils/config/paths.config';
+import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-ui/components';
+import { Alert, AlertDescription, AlertTitle, Button } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, PlusIcon } from 'lucide-react';
+import { ArrowRightIcon, FolderRoot, PlusIcon, TriangleAlert } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
+  ActionFunctionArgs,
   AppLoadContext,
   data,
   Link,
   LoaderFunctionArgs,
+  useFetcher,
   useLoaderData,
   useNavigate,
   useParams,
+  useRevalidator,
 } from 'react-router';
 
-export const loader = async ({ params, context }: LoaderFunctionArgs) => {
+export const loader = async ({ params, request, context }: LoaderFunctionArgs) => {
   try {
     const { orgId } = params;
     const { controlPlaneClient, cache } = context as AppLoadContext;
@@ -62,10 +67,28 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     // Check if any projects are in "deleting" state for polling
     const hasDeleting = mergedProjects.some((p) => p._meta?.status === 'deleting');
 
-    return data({ projects: mergedProjects, shouldPoll: hasDeleting });
+    // Get alert state from server-side cookie
+    const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
+      request,
+      'projects_understanding'
+    );
+
+    return data(
+      { projects: mergedProjects, shouldPoll: hasDeleting, alertClosed },
+      { headers: alertHeaders }
+    );
   } catch {
-    return data({ projects: [], shouldPoll: false });
+    const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
+      request,
+      'projects_understanding'
+    );
+    return data({ projects: [], shouldPoll: false, alertClosed }, { headers: alertHeaders });
   }
+};
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { headers } = await setAlertClosed(request, 'projects_understanding');
+  return data({ success: true }, { headers });
 };
 
 export default function OrgProjectsPage() {
@@ -75,11 +98,20 @@ export default function OrgProjectsPage() {
   });
 
   const { orgId } = useParams();
-  const { projects, shouldPoll } = useLoaderData<typeof loader>();
+  const { projects, shouldPoll, alertClosed } = useLoaderData<typeof loader>();
 
   const navigate = useNavigate();
+  const fetcher = useFetcher();
+  const revalidator = useRevalidator();
 
-  // Filter out projects that are being deleted
+  const showAlert = !alertClosed;
+
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      revalidator.revalidate();
+    }
+  }, [fetcher.data, revalidator]);
+
   const visibleProjects = useMemo(
     () => projects.filter((project) => project._meta?.status !== 'deleting'),
     [projects]
@@ -88,21 +120,32 @@ export default function OrgProjectsPage() {
   const columns: ColumnDef<ICachedProject>[] = useMemo(
     () => [
       {
-        header: 'Description',
-        accessorKey: 'description',
-        cell: ({ row }) => {
-          return <span className="font-medium">{row.original.description}</span>;
-        },
-      },
-      {
-        header: 'Resource Name',
+        header: 'Project',
         accessorKey: 'name',
-      },
-      {
-        header: 'Creation Date',
-        accessorKey: 'createdAt',
+        id: 'name',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateTime date={row.original.createdAt} />;
+          return (
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <FolderRoot className="size-4" />
+                <span>{row.original.description}</span>
+              </div>
+              <div className="flex items-center gap-6">
+                <BadgeCopy
+                  value={row.original.name ?? ''}
+                  text={row.original.name ?? ''}
+                  badgeTheme="solid"
+                  badgeType="quaternary"
+                />
+                <span className="text-muted-foreground text-xs">
+                  Added:{' '}
+                  {row.original.createdAt && (
+                    <DateTime date={row.original.createdAt} format="yyyy-MM-dd" />
+                  )}
+                </span>
+              </div>
+            </div>
+          );
         },
       },
     ],
@@ -117,49 +160,73 @@ export default function OrgProjectsPage() {
     }
   }, [shouldPoll, startRevalidator, clearRevalidator]);
 
-  return (
-    <DataTable
-      columns={columns}
-      data={visibleProjects ?? []}
-      onRowClick={(row) => {
-        if (row.name) {
-          return navigate(getPathWithParams(paths.project.detail.root, { projectId: row.name }));
-        }
+  const handleAlertClose = () => {
+    // Save the close state via server-side cookie
+    fetcher.submit({}, { method: 'POST' });
+  };
 
-        return undefined;
-      }}
-      emptyContent={{
-        title: "Looks like you don't have any projects added yet",
-        actions: [
-          {
-            type: 'link',
-            label: 'Add a project',
-            to: getPathWithParams(paths.org.detail.projects.new, { orgId }),
-            variant: 'default',
-            icon: <ArrowRightIcon className="size-4" />,
-            iconPosition: 'end',
+  return (
+    <>
+      <DataTable
+        hideHeader
+        mode="card"
+        hidePagination
+        columns={columns}
+        data={visibleProjects ?? []}
+        onRowClick={(row) => {
+          if (row.name) {
+            return navigate(getPathWithParams(paths.project.detail.root, { projectId: row.name }));
+          }
+
+          return undefined;
+        }}
+        tableTitle={{
+          title: 'Projects',
+          actions: (
+            <Link to={getPathWithParams(paths.org.detail.projects.new, { orgId })}>
+              <Button type="primary" theme="solid" size="small">
+                <PlusIcon className="size-4" />
+                Create project
+              </Button>
+            </Link>
+          ),
+        }}
+        emptyContent={{
+          title: "Looks like you don't have any projects added yet",
+          actions: [
+            {
+              type: 'link',
+              label: 'Add a project',
+              to: getPathWithParams(paths.org.detail.projects.new, { orgId }),
+              variant: 'default',
+              icon: <ArrowRightIcon className="size-4" />,
+              iconPosition: 'end',
+            },
+          ],
+        }}
+        toolbar={{
+          layout: 'compact',
+          includeSearch: {
+            placeholder: 'Search projects',
+            filterKey: 'q',
           },
-        ],
-      }}
-      tableTitle={{
-        title: 'Projects',
-        actions: (
-          <Link to={getPathWithParams(paths.org.detail.projects.new, { orgId })}>
-            <Button type="primary" theme="solid" size="small">
-              <PlusIcon className="size-4" />
-              Add project
-            </Button>
-          </Link>
-        ),
-      }}
-      toolbar={{
-        layout: 'compact',
-        includeSearch: {
-          placeholder: 'Search projects',
-          filterKey: 'q',
-        },
-      }}
-      defaultSorting={[{ id: 'createdAt', desc: true }]}
-    />
+        }}
+        defaultSorting={[{ id: 'createdAt', desc: true }]}
+      />
+
+      {showAlert && (
+        <Alert variant="warning" closable onClose={handleAlertClose}>
+          <TriangleAlert className="size-4" />
+          <AlertTitle>Understanding Projects</AlertTitle>
+          <AlertDescription>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>Projects are dedicated instances on Datum Cloud.</li>
+              <li>You can use them to manage your core network services, workloads, and assets.</li>
+              <li>There is no limit to how many you create.</li>
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+    </>
   );
 }

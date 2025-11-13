@@ -3,6 +3,7 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
 import { paths } from '@/utils/config/paths.config';
+import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   Alert,
@@ -15,8 +16,16 @@ import {
 } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, Building, PlusIcon, TriangleAlert } from 'lucide-react';
-import { useMemo } from 'react';
-import { useLoaderData, LoaderFunctionArgs, data, useNavigate } from 'react-router';
+import { useEffect, useMemo } from 'react';
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  data,
+  useFetcher,
+  useLoaderData,
+  useNavigate,
+  useRevalidator,
+} from 'react-router';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const req = await fetch(`${process.env.APP_URL}${ORG_LIST_PATH}?noCache=true`, {
@@ -27,20 +36,44 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   });
 
   const res = await req.json();
-  if (!res.success) {
-    return data([]);
-  }
+  const orgs = res.success ? res.data : [];
 
-  return data(res.data);
+  const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
+    request,
+    'organizations_understanding'
+  );
+
+  return data({ orgs, alertClosed }, { headers: alertHeaders });
+};
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { headers } = await setAlertClosed(request, 'organizations_understanding');
+  return data({ success: true }, { headers });
 };
 
 export default function AccountOrganizations() {
-  const orgs: IOrganization[] = useLoaderData<typeof loader>();
+  const { orgs, alertClosed } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
+  const fetcher = useFetcher();
+  const revalidator = useRevalidator();
+
+  const orgsList = (orgs ?? []) as IOrganization[];
 
   const hasStandardOrg = useMemo(() => {
-    return orgs.some((org) => org.type === OrganizationType.Standard);
-  }, [orgs]);
+    return orgsList.some((org) => org.type === OrganizationType.Standard);
+  }, [orgsList]);
+
+  const showAlert = !alertClosed && !hasStandardOrg;
+
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      revalidator.revalidate();
+    }
+  }, [fetcher.data, revalidator]);
+
+  const handleAlertClose = () => {
+    fetcher.submit({}, { method: 'POST' });
+  };
 
   const columns: ColumnDef<IOrganization>[] = useMemo(
     () => [
@@ -81,7 +114,7 @@ export default function AccountOrganizations() {
             mode="card"
             hidePagination
             columns={columns}
-            data={(orgs ?? []) as IOrganization[]}
+            data={orgsList}
             onRowClick={(row) => {
               navigate(getPathWithParams(paths.org.detail.root, { orgId: row.name }));
             }}
@@ -142,10 +175,10 @@ export default function AccountOrganizations() {
         </Col>
       </Row>
 
-      {!hasStandardOrg && (
+      {showAlert && (
         <Row gutter={16}>
           <Col span={20} push={2}>
-            <Alert variant="warning" closable>
+            <Alert variant="warning" closable onClose={handleAlertClose}>
               <TriangleAlert className="size-4" />
               <AlertTitle>Understanding Organizations</AlertTitle>
               <AlertDescription>
