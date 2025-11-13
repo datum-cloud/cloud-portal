@@ -1,5 +1,4 @@
-import { DashboardLayout } from '@/layouts/dashboard/dashboard.layout';
-import { NavItem } from '@/layouts/dashboard/sidebar/nav-main';
+import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { useApp } from '@/providers/app.provider';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
@@ -11,6 +10,7 @@ import { getOrgSession, redirectWithToast, setOrgSession } from '@/utils/cookies
 import { BadRequestError, ValidationError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { Client } from '@hey-api/client-axios';
 import { AreaChartIcon, FolderDot, HomeIcon, NetworkIcon, SettingsIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
@@ -117,15 +117,15 @@ export default function ProjectLayout() {
         disabled: !isReady,
         children: [
           {
-            title: 'HTTPProxy',
-            href: getPathWithParams(paths.project.detail.httpProxy.root, {
+            title: 'DNS',
+            href: getPathWithParams(paths.project.detail.dnsZones.root, {
               projectId,
             }),
             type: 'link',
           },
           {
-            title: 'DNS Zones',
-            href: getPathWithParams(paths.project.detail.dnsZones.root, {
+            title: 'Proxy',
+            href: getPathWithParams(paths.project.detail.httpProxy.root, {
               projectId,
             }),
             type: 'link',
@@ -174,7 +174,7 @@ export default function ProjectLayout() {
         ],
       },
       {
-        title: 'Project settings',
+        title: 'Project Settings',
         href: getPathWithParams(paths.project.detail.settings.preferences, { projectId }),
         type: 'link',
         disabled: !isReady,
@@ -201,7 +201,9 @@ export default function ProjectLayout() {
       navItems={navItems}
       sidebarCollapsible="icon"
       currentProject={project}
-      currentOrg={org}>
+      currentOrg={org}
+      expandBehavior="overlay"
+      showBackdrop>
       <Outlet />
     </DashboardLayout>
   );

@@ -1,4 +1,4 @@
-import BlankLayout from '@/layouts/blank/blank.layout';
+import BlankLayout from '@/layouts/blank.layout';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationsControl } from '@/resources/control-plane';
 import { ROUTE_PATH as INVITATION_UPDATE_STATE_ACTION } from '@/routes/api/team/invitations/update-state';

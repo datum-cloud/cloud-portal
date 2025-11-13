@@ -15,16 +15,14 @@ import {
   CommandSeparator,
 } from '@shadcn/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
-import { CheckIcon, ChevronsUpDownIcon, Loader2, PlusIcon } from 'lucide-react';
+import { CheckIcon, ChevronDown, FolderRoot, Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useFetcher, useNavigate } from 'react-router';
 
 const ProjectItem = ({ project }: { project: IProjectControlResponse }) => {
   return (
-    <div className="flex items-center gap-2">
-      <div className="grid flex-1 text-left text-sm leading-tight">
-        <span className="cursor-pointer truncate font-semibold">{project?.description}</span>
-      </div>
+    <div className="flex w-full items-center gap-3">
+      <span className="truncate text-xs font-medium">{project?.description}</span>
     </div>
   );
 };
@@ -77,38 +75,46 @@ export const ProjectSwitcher = ({
         to={getPathWithParams(paths.project.detail.home, {
           projectId: currentProject.name,
         })}
-        className="flex w-fit max-w-[300px] items-center truncate text-left text-sm leading-tight font-semibold">
-        {currentProject?.description}
+        className="flex w-fit items-center justify-between text-left">
+        <FolderRoot size={14} className="text-secondary/60" />
+        <span className="ml-2.5 text-sm">{currentProject?.description}</span>
       </Link>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild className="w-full">
+        <PopoverTrigger asChild>
           <Button
             type="quaternary"
-            theme="outline"
+            theme="borderless"
             size="small"
             className={cn(
-              'data-[state=open]:bg-primary/5 flex h-7 w-fit gap-2 border-none p-0 px-2',
+              'flex h-full w-full cursor-pointer gap-2 border-none p-0 px-2 hover:bg-transparent data-[state=open]:bg-transparent',
               triggerClassName
             )}>
-            <ChevronsUpDownIcon className="text-primary/60 size-4" />
+            <ChevronDown
+              className={cn('text-secondary/60 size-4 transition-all', open && 'rotate-180')}
+            />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="popover-content-width-full min-w-[300px] p-0" align="center">
-          <Command>
+        <PopoverContent
+          className="popover-content-width-full border-input min-w-[220px] rounded-lg p-0"
+          align="center">
+          <Command className="rounded-lg">
             <CommandInput
-              className="h-9 rounded-md border-none focus-visible:ring-0"
-              placeholder="Find project..."
+              className="placeholder:text-secondary/60 h-7 border-none text-xs placeholder:text-xs focus-visible:ring-0"
+              iconClassName="text-secondary size-3.5"
+              wrapperClassName="px-3 py-2"
+              placeholder="Find project"
             />
             <CommandList className="max-h-none">
               <CommandEmpty>No results found.</CommandEmpty>
-              {fetcher.state === 'loading' && (
-                <CommandItem disabled>
-                  <Loader2 className="size-4 animate-spin" />
-                  <span>Loading projects...</span>
+              {fetcher.state === 'loading' && projects.length === 0 ? (
+                <CommandItem disabled className="px-4 py-2.5">
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="size-3.5 animate-spin" />
+                  </div>
+                  <span className="text-xs">Loading...</span>
                 </CommandItem>
-              )}
-              {projects.length > 0 && (
-                <CommandGroup className="max-h-[300px] overflow-y-auto">
+              ) : (
+                <CommandGroup className="max-h-[300px] overflow-y-auto px-0 py-0">
                   {(projects ?? [])
                     .sort((a: ICachedProject, b: ICachedProject) =>
                       (a?.description ?? '').localeCompare(b?.description ?? '')
@@ -125,7 +131,7 @@ export const ProjectSwitcher = ({
                               onSelect(project);
                             }
                           }}
-                          className="cursor-pointer justify-between">
+                          className="cursor-pointer justify-between px-3 py-2">
                           <ProjectItem project={project} />
                           {isSelected && <CheckIcon className="text-primary size-4" />}
                         </CommandItem>
@@ -137,12 +143,10 @@ export const ProjectSwitcher = ({
               <CommandSeparator />
               <CommandItem asChild className="cursor-pointer">
                 <Link
-                  to={getPathWithParams(paths.org.detail.projects.new, {
-                    orgId: currentProject.organizationId,
-                  })}
-                  className="flex items-center gap-2 px-3">
-                  <PlusIcon className="size-4" />
-                  <span>Create project</span>
+                  to={paths.account.organizations.root}
+                  className="flex items-center gap-2 px-3 py-2">
+                  <FolderRoot className="size-3.5" />
+                  <span className="text-xs">Create project</span>
                 </Link>
               </CommandItem>
             </CommandList>

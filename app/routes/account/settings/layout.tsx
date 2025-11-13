@@ -1,27 +1,29 @@
-import TabsLayout from '@/layouts/tabs/tabs.layout';
-import { TabsNavProps } from '@/layouts/tabs/tabs.types';
+import { BackButton } from '@/components/back-button';
+import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { paths } from '@/utils/config/paths.config';
+import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { Outlet } from 'react-router';
 
 export default function AccountSettingsLayout() {
-  const navItems: TabsNavProps[] = [
+  const navItems: NavItem[] = [
     {
-      value: 'preferences',
-      label: 'Preferences',
-      to: paths.account.preferences,
+      href: paths.account.preferences,
+      title: 'Preferences',
+      type: 'link',
     },
     {
-      value: 'activity',
-      label: 'Activity',
-      to: paths.account.activity,
+      href: paths.account.activity,
+      title: 'Activity',
+      type: 'link',
     },
   ];
   return (
-    <TabsLayout
-      tabsTitle={{ title: 'Account Settings' }}
+    <DashboardLayout
       navItems={navItems}
-      containerClassName="max-w-3xl">
+      sidebarCollapsible="offcanvas"
+      containerClassName="max-w-4xl"
+      sidebarHeader={<BackButton />}>
       <Outlet />
-    </TabsLayout>
+    </DashboardLayout>
   );
 }

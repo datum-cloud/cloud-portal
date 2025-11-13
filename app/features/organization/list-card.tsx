@@ -1,9 +1,9 @@
 import { DateTime } from '@/components/date-time';
+import { PersonalBadge } from '@/components/personal-badge/personal-badge';
 import { ProfileIdentity } from '@/components/profile-identity';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { getInitials } from '@/utils/helpers/text.helper';
-import { Badge } from '@datum-ui/components';
-import { Card, CardContent } from '@datum-ui/components';
+import { Card, CardContent } from '@shadcn/ui/card';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';
 
 export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
@@ -28,11 +28,7 @@ export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
               <h3 className="text-foreground text-lg leading-5 font-semibold">
                 {org?.displayName ?? org?.name ?? ''}
               </h3>
-              {org.type === OrganizationType.Personal && (
-                <Badge type="secondary" className="rounded-full text-xs font-normal">
-                  Personal
-                </Badge>
-              )}
+              {org.type === OrganizationType.Personal && <PersonalBadge />}
             </div>
             <p className="text-muted-foreground text-sm">{org?.name}</p>
             {org?.createdAt && (

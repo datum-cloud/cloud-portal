@@ -25,6 +25,11 @@ Scope variables to the theme class so we can swap themes by class
   /* Radius - using Figma medium radius as base */
   --radius: var(--radius-md);
 
+  /* Sidebar */
+  --sidebar-width: 15.875rem; /* 254px */
+  --sidebar-width-icon: 3rem; /* 48px */
+  --sidebar-width-mobile: 18.75rem; /* 300px */
+
   /* ========================================
    SHADCN COLOR OVERRIDES - LIGHT MODE
    ======================================== */
@@ -54,7 +59,7 @@ Scope variables to the theme class so we can swap themes by class
   --tertiary-foreground: var(--glacier-mist-700);
 
   /* Quaternary colors - using Figma tokens */
-  --quaternary: var(--glacier-mist-800);
+  --quaternary: var(--app-dark-utility-5);
   --quaternary-foreground: var(--midnight-fjord);
 
   /* Muted colors */
@@ -242,6 +247,9 @@ TAILWIND CUSTOM UTILITIES FOR THEME
 
   --color-table-accent: var(--table-accent);
   --color-table-cell: var(--table-cell);
+
+  /* Font Sizes */
+  --text-2xs: 9px;
 
   /* Badge */
   --color-badge-primary: var(--badge-primary);

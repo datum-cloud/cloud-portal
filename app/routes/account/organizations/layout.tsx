@@ -1,3 +1,4 @@
+import { MinimalLayout } from '@/layouts/minimal.layout';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { MetaFunction } from 'react-router';
 import { Outlet } from 'react-router';
@@ -11,5 +12,9 @@ export const meta: MetaFunction = mergeMeta(() => {
 });
 
 export default function Layout() {
-  return <Outlet />;
+  return (
+    <MinimalLayout>
+      <Outlet />
+    </MinimalLayout>
+  );
 }

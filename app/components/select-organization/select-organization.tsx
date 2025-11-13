@@ -11,9 +11,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@shadcn/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
-import { Building2Icon, CheckIcon, ChevronsUpDownIcon, Loader2 } from 'lucide-react';
+import { BuildingIcon, CheckIcon, ChevronDown, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useFetcher } from 'react-router';
 import { toast } from 'sonner';
@@ -64,34 +65,40 @@ export const SelectOrganization = ({
         <Button
           disabled={disabled}
           type="quaternary"
-          theme="outline"
+          theme="borderless"
           size="small"
           className={cn(
-            'data-[state=open]:bg-primary/5 flex h-full w-full cursor-pointer gap-2 border-none p-0 px-2',
+            'flex h-full w-full cursor-pointer gap-2 border-none p-0 px-2 hover:bg-transparent data-[state=open]:bg-transparent',
             triggerClassName
           )}>
           {!hideContent &&
             (selectedContent ?? <OrganizationItem org={currentOrg} className="flex-1" />)}
-          <ChevronsUpDownIcon className="text-primary/60 size-4" />
+          <ChevronDown
+            className={cn('text-secondary/60 size-4 transition-all', open && 'rotate-180')}
+          />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="popover-content-width-full min-w-[300px] p-0" align="center">
-        <Command>
+      <PopoverContent
+        className="popover-content-width-full border-input min-w-[310px] rounded-lg p-0"
+        align="center">
+        <Command className="rounded-lg">
           <CommandInput
-            className="h-9 rounded-md border-none focus-visible:ring-0"
-            placeholder="Find organization..."
+            className="placeholder:text-secondary/60 h-7 border-none text-xs placeholder:text-xs focus-visible:ring-0"
+            iconClassName="text-secondary size-3.5"
+            wrapperClassName="px-3 py-2"
+            placeholder="Find organization"
           />
           <CommandList className="max-h-none">
             <CommandEmpty>No results found.</CommandEmpty>
             {fetcher.state === 'loading' && organizations.length === 0 ? (
-              <CommandItem disabled className="px-3">
-                <div className="flex w-6 items-center justify-center">
-                  <Loader2 className="size-4 animate-spin" />
+              <CommandItem disabled className="px-4 py-2.5">
+                <div className="flex items-center justify-center">
+                  <Loader2 className="size-3.5 animate-spin" />
                 </div>
-                <span>Loading organizations...</span>
+                <span className="text-xs">Loading...</span>
               </CommandItem>
             ) : (
-              <CommandGroup className="max-h-[300px] overflow-y-auto">
+              <CommandGroup className="max-h-[300px] overflow-y-auto px-0 py-0">
                 {organizations.length > 0 &&
                   organizations.map((org: IOrganization) => {
                     const isSelected = org.name === currentOrg?.name;
@@ -105,7 +112,7 @@ export const SelectOrganization = ({
                             onSelect?.(org);
                           }
                         }}
-                        className="cursor-pointer justify-between">
+                        className="cursor-pointer justify-between px-3 py-2">
                         <OrganizationItem org={org} />
                         {isSelected && <CheckIcon className="text-primary size-4" />}
                       </CommandItem>
@@ -116,25 +123,13 @@ export const SelectOrganization = ({
 
             {!hideNewOrganization && (
               <>
-                {/* <CommandItem className="cursor-pointer" asChild>
-                  <Link
-                    to={paths.account.organizations.new}
-                    className="flex items-center gap-2 px-3">
-                    <div className="flex w-6 items-center justify-center">
-                      <PlusCircleIcon className="text-blue-400" />
-                    </div>
-                    <span>Create organization</span>
-                  </Link>
-                </CommandItem>
-                <CommandSeparator /> */}
-                <CommandItem className="cursor-pointer py-1.5" asChild>
+                <CommandSeparator />
+                <CommandItem className="cursor-pointer" asChild>
                   <Link
                     to={paths.account.organizations.root}
-                    className="my-1.5 flex items-center gap-2 px-3">
-                    <div className="flex w-6 items-center justify-center">
-                      <Building2Icon />
-                    </div>
-                    <span>All organizations</span>
+                    className="flex items-center gap-2 px-3 py-2">
+                    <BuildingIcon className="size-3.5" />
+                    <span className="text-xs">Organizations</span>
                   </Link>
                 </CommandItem>
               </>

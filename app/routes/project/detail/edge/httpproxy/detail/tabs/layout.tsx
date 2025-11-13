@@ -1,13 +1,14 @@
+import { BackButton } from '@/components/back-button';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
-import TabsLayout from '@/layouts/tabs/tabs.layout';
-import { TabsNavProps } from '@/layouts/tabs/tabs.types';
+import { SubLayout } from '@/layouts';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-ui/components';
+import { NavItem } from '@datum-ui/components/sidebar';
 import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { Outlet, Link, useParams, useFetcher, useRouteLoaderData } from 'react-router';
 
@@ -18,22 +19,22 @@ export default function HttpProxyDetailLayout() {
   const fetcher = useFetcher({ key: 'delete-httpproxy' });
   const { confirm } = useConfirmationDialog();
 
-  const navItems: TabsNavProps[] = [
+  const navItems: NavItem[] = [
     {
-      value: 'overview',
-      label: 'Overview',
-      to: getPathWithParams(paths.project.detail.httpProxy.detail.overview, {
+      title: 'Overview',
+      href: getPathWithParams(paths.project.detail.httpProxy.detail.overview, {
         projectId,
         proxyId: httpProxy?.name ?? '',
       }),
+      type: 'link',
     },
     {
-      value: 'metrics',
-      label: 'Metrics',
-      to: getPathWithParams(paths.project.detail.httpProxy.detail.metrics, {
+      title: 'Metrics',
+      href: getPathWithParams(paths.project.detail.httpProxy.detail.metrics, {
         projectId,
         proxyId: httpProxy?.name ?? '',
       }),
+      type: 'link',
     },
   ];
 
@@ -69,11 +70,25 @@ export default function HttpProxyDetailLayout() {
   };
 
   return (
-    <TabsLayout
-      containerClassName="max-w-6xl"
-      tabsTitle={{
-        title: (httpProxy as IHttpProxyControlResponse)?.name ?? 'HTTPProxy',
-        description: (
+    <SubLayout
+      navItems={navItems}
+      sidebarHeader={
+        <div className="flex flex-col gap-3.5">
+          <BackButton
+            to={getPathWithParams(paths.project.detail.httpProxy.root, {
+              projectId,
+            })}>
+            Back to Proxy
+          </BackButton>
+          <span className="text-primary text-sm font-semibold">Manage Proxy</span>
+        </div>
+      }>
+      {/* Header Section */}
+      <div className="mb-6 flex items-start justify-between">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-2xl font-semibold">
+            {(httpProxy as IHttpProxyControlResponse)?.name ?? 'HTTPProxy'}
+          </h1>
           <div className="flex items-center gap-1">
             <ClockIcon className="text-muted-foreground h-4 w-4" />
             <DateTime
@@ -82,37 +97,36 @@ export default function HttpProxyDetailLayout() {
               variant="both"
             />
           </div>
-        ),
-        actions: (
-          <div className="flex items-center gap-2">
-            <Button type="quaternary" theme="outline" size="small">
-              <Link
-                className="flex items-center gap-2"
-                to={getPathWithParams(paths.project.detail.httpProxy.detail.edit, {
-                  projectId,
-                  proxyId: httpProxy?.name ?? '',
-                })}>
-                <PencilIcon />
-                Edit
-              </Link>
-            </Button>
-            <MoreActions
-              className="border-input bg-background hover:bg-accent hover:text-accent-foreground size-9 rounded-md border px-3"
-              actions={[
-                {
-                  key: 'delete',
-                  label: 'Delete',
-                  variant: 'destructive',
-                  icon: <TrashIcon />,
-                  action: deleteHttpProxy,
-                },
-              ]}
-            />
-          </div>
-        ),
-      }}
-      navItems={navItems}>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button type="quaternary" theme="outline" size="small">
+            <Link
+              className="flex items-center gap-2"
+              to={getPathWithParams(paths.project.detail.httpProxy.detail.edit, {
+                projectId,
+                proxyId: httpProxy?.name ?? '',
+              })}>
+              <PencilIcon className="size-4" />
+              Edit
+            </Link>
+          </Button>
+          <MoreActions
+            className="border-input bg-background hover:bg-accent hover:text-accent-foreground size-9 rounded-md border px-3"
+            actions={[
+              {
+                key: 'delete',
+                label: 'Delete',
+                variant: 'destructive',
+                icon: <TrashIcon className="size-4" />,
+                action: deleteHttpProxy,
+              },
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* Content Area */}
       <Outlet />
-    </TabsLayout>
+    </SubLayout>
   );
 }
