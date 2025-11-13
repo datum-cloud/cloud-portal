@@ -94,7 +94,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const invitationTeamMembers: ITeamMember[] = await Promise.all(
     filteredInvitations.map(async (invitation) => ({
       id: invitation.name,
-      fullName: `${invitation.givenName ?? ''} ${invitation.familyName ?? ''}`.trim(),
+      fullName: invitation.email ?? '',
       email: invitation.email ?? '',
       roles: invitation.role ? [await resolveRoleDetails(invitation.role, 'datum-cloud')] : [],
       invitationState: invitation.state,
