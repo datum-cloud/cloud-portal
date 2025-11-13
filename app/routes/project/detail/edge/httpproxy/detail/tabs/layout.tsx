@@ -10,6 +10,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-ui/components';
 import { NavItem } from '@datum-ui/components/sidebar';
 import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import { Outlet, Link, useParams, useFetcher, useRouteLoaderData } from 'react-router';
 
 export default function HttpProxyDetailLayout() {
@@ -19,24 +20,26 @@ export default function HttpProxyDetailLayout() {
   const fetcher = useFetcher({ key: 'delete-httpproxy' });
   const { confirm } = useConfirmationDialog();
 
-  const navItems: NavItem[] = [
-    {
-      title: 'Overview',
-      href: getPathWithParams(paths.project.detail.httpProxy.detail.overview, {
-        projectId,
-        proxyId: httpProxy?.name ?? '',
-      }),
-      type: 'link',
-    },
-    {
-      title: 'Metrics',
-      href: getPathWithParams(paths.project.detail.httpProxy.detail.metrics, {
-        projectId,
-        proxyId: httpProxy?.name ?? '',
-      }),
-      type: 'link',
-    },
-  ];
+  const navItems: NavItem[] = useMemo(() => {
+    return [
+      {
+        title: 'Overview',
+        href: getPathWithParams(paths.project.detail.httpProxy.detail.overview, {
+          projectId,
+          proxyId: httpProxy?.name ?? '',
+        }),
+        type: 'link',
+      },
+      {
+        title: 'Metrics',
+        href: getPathWithParams(paths.project.detail.httpProxy.detail.metrics, {
+          projectId,
+          proxyId: httpProxy?.name ?? '',
+        }),
+        type: 'link',
+      },
+    ];
+  }, [projectId, httpProxy]);
 
   const deleteHttpProxy = async () => {
     await confirm({

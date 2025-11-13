@@ -169,7 +169,7 @@ export default function DnsZonesPage() {
         variant: 'default',
         action: (row) =>
           navigate(
-            getPathWithParams(paths.project.detail.dnsZones.edit, {
+            getPathWithParams(paths.project.detail.dnsZones.detail.root, {
               projectId,
               dnsZoneId: row.name,
             })
@@ -215,18 +215,18 @@ export default function DnsZonesPage() {
       rowActions={rowActions}
       onRowClick={(row) => {
         navigate(
-          getPathWithParams(paths.project.detail.dnsZones.edit, {
+          getPathWithParams(paths.project.detail.dnsZones.detail.root, {
             projectId,
             dnsZoneId: row.name,
           })
         );
       }}
       emptyContent={{
-        title: "Looks like you don't have any DNS zones added yet",
+        title: "Looks like you don't have any DNS added yet",
         actions: [
           {
             type: 'link',
-            label: 'Add a DNS zone',
+            label: 'Add zone',
             to: getPathWithParams(paths.project.detail.dnsZones.new, {
               projectId,
             }),
@@ -237,7 +237,7 @@ export default function DnsZonesPage() {
         ],
       }}
       tableTitle={{
-        title: 'DNS Zones',
+        title: 'DNS',
         actions: (
           <Link
             to={getPathWithParams(paths.project.detail.dnsZones.new, {
@@ -253,7 +253,7 @@ export default function DnsZonesPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search DNS zones',
+          placeholder: 'Search DNS',
         },
       }}
     />

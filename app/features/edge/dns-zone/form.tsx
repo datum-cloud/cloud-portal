@@ -104,9 +104,9 @@ export const DnsZoneForm = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEdit ? 'Edit DNS Zone' : 'Create a new DNS Zone'}</CardTitle>
+        <CardTitle>{isEdit ? 'Edit DNS Zone' : 'Add a DNS Zone'}</CardTitle>
         <CardDescription>
-          Create a new zone to get started with Datum’s advanced DNS features
+          Create a new zone to get started with Datum&apos;s advanced DNS features
         </CardDescription>
       </CardHeader>
       <FormProvider context={form.context}>
