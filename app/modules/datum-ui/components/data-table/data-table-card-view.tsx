@@ -36,11 +36,11 @@ export const DataTableCardView = <TData,>({
             <TableRow key={row.id} className="border-none hover:bg-transparent">
               <TableCell
                 colSpan={columns.length + (rowActions.length > 0 ? 1 : 0)}
-                className={cn('p-0 pb-2', !hideHeader && 'first:pt-3')}>
+                className={cn('p-0 pb-4', !hideHeader && 'first:pt-3')}>
                 <div
                   onClick={() => onRowClick?.(row.original)}
                   className={cn(
-                    'bg-card group relative rounded-lg border p-4 shadow-none transition-all duration-200',
+                    'bg-card group relative rounded-lg border p-6 shadow-none transition-all duration-200',
                     'hover:border-primary hover:text-primary',
                     onRowClick && 'cursor-pointer',
                     row.getIsSelected() && 'ring-primary ring-2 ring-offset-2',
