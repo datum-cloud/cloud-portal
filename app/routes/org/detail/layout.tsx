@@ -1,4 +1,4 @@
-import { DashboardLayout } from '@/layouts/dashboard/dashboard.layout';
+import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { RbacProvider } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { OrganizationType } from '@/resources/interfaces/organization.interface';

@@ -1,4 +1,5 @@
-import { SubLayoutProps } from './sub-layout.types';
+import { ContentWrapper } from '@/components/content-wrapper';
+import { SubLayoutProps } from './sub.types';
 import { NavMain, useSidebar } from '@datum-ui/components/sidebar';
 import { cn } from '@shadcn/lib/utils';
 import { useLayoutEffect } from 'react';
@@ -39,9 +40,11 @@ export function SubLayout({
 
       {/* Content Area - Scrollable */}
       <main className="h-full flex-1 overflow-y-auto">
-        <div className={cn('flex h-full w-full flex-col overflow-y-auto p-9', containerClassName)}>
-          <div className={cn('flex max-w-full flex-1 flex-col', contentClassName)}>{children}</div>
-        </div>
+        <ContentWrapper
+          containerClassName={cn('gap-6 overflow-y-auto p-9', containerClassName)}
+          contentClassName={contentClassName}>
+          {children}
+        </ContentWrapper>
       </main>
     </div>
   );

@@ -1,4 +1,4 @@
-import BlankLayout from '@/layouts/blank/blank.layout';
+import BlankLayout from '@/layouts/blank.layout';
 import { createUserControl } from '@/resources/control-plane';
 import { RegistrationApproval } from '@/resources/interfaces/user.interface';
 import { paths } from '@/utils/config/paths.config';

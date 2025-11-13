@@ -1,5 +1,5 @@
 import { BackButton } from '@/components/back-button';
-import { DashboardLayout } from '@/layouts/dashboard/dashboard.layout';
+import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { paths } from '@/utils/config/paths.config';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { Outlet } from 'react-router';

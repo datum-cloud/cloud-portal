@@ -60,7 +60,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
             onClick={() => navigate(paths.account.preferences)}>
             <div className="flex items-center gap-2">
               <UserCogIcon size={14} />
-              <span className="text-foreground">Account Settings</span>
+              <span className="text-foreground text-xs">Account Settings</span>
             </div>
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -72,7 +72,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
             }}>
             <div className="flex items-center gap-2">
               <LogOut size={14} />
-              <span className="text-destructive">Log Out</span>
+              <span className="text-destructive text-xs">Log Out</span>
             </div>
           </DropdownMenuItem>
         </DropdownMenuGroup>

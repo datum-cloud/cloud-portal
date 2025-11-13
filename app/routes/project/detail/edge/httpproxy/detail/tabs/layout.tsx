@@ -2,7 +2,7 @@ import { BackButton } from '@/components/back-button';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
-import { SubLayout } from '@/components/sub-layout';
+import { SubLayout } from '@/layouts';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
 import { paths } from '@/utils/config/paths.config';

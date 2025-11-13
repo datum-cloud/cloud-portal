@@ -1,4 +1,4 @@
-import { DashboardLayout } from '@/layouts/dashboard/dashboard.layout';
+import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { useApp } from '@/providers/app.provider';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';

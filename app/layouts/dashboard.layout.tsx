@@ -1,10 +1,49 @@
 import { ContentWrapper } from '@/components/content-wrapper';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
-import { SidebarInset, SidebarProvider } from '@datum-ui/components';
+import { SidebarInset, SidebarProvider, useSidebar } from '@datum-ui/components';
 import { Header } from '@datum-ui/components/header/header';
 import { AppSidebar, NavItem } from '@datum-ui/components/sidebar';
-import React from 'react';
+import { cn } from '@shadcn/lib/utils';
+import React, { useLayoutEffect, useState } from 'react';
+
+/**
+ * Internal component that handles dashboard-specific logic
+ * Must be used inside SidebarProvider to access useSidebar hook
+ */
+const DashboardContent = ({
+  children,
+  containerClassName,
+  contentClassName,
+}: {
+  children: React.ReactNode;
+  containerClassName?: string;
+  contentClassName?: string;
+}) => {
+  const { hasSubLayout } = useSidebar();
+  const [isReady, setIsReady] = useState(false);
+
+  // Mark as ready after first layout to prevent flash
+  useLayoutEffect(() => {
+    setIsReady(true);
+  }, []);
+
+  return (
+    <div
+      className={cn(
+        'transition-opacity duration-75',
+        !isReady && 'opacity-0',
+        isReady && 'opacity-100'
+      )}>
+      <ContentWrapper
+        containerClassName={cn(!hasSubLayout && 'gap-6 overflow-auto p-9', containerClassName)}
+        contentClassName={cn(!hasSubLayout && 'gap-4', contentClassName)}>
+        {!hasSubLayout && <>{/* <Breadcrumb /> - Future implementation */}</>}
+        {children}
+      </ContentWrapper>
+    </div>
+  );
+};
 
 export function DashboardLayout({
   children,
@@ -55,11 +94,11 @@ export function DashboardLayout({
           className="top-[54px] h-[calc(100vh-54px)]"
         />
         <SidebarInset>
-          <ContentWrapper
+          <DashboardContent
             containerClassName={containerClassName}
             contentClassName={contentClassName}>
             {children}
-          </ContentWrapper>
+          </DashboardContent>
         </SidebarInset>
       </SidebarProvider>
     </div>

@@ -1,5 +1,5 @@
+import { ContentWrapper } from '@/components/content-wrapper';
 import { Header } from '@datum-ui/components/header/header';
-import { cn } from '@shadcn/lib/utils';
 import React from 'react';
 
 export function MinimalLayout({
@@ -14,10 +14,10 @@ export function MinimalLayout({
       {/* Header at the top - outside sidebar context */}
       <Header />
 
-      <div className="mx-auto flex h-full w-full flex-1 flex-col gap-6 px-6 py-5">
-        {/* <Breadcrumb /> */}
-        <div className={cn('flex max-w-full flex-1 flex-col gap-4', className)}>{children}</div>
-      </div>
+      <ContentWrapper containerClassName="gap-6 px-6 py-5" contentClassName={className}>
+        {/* <Breadcrumb /> - Future implementation */}
+        {children}
+      </ContentWrapper>
     </div>
   );
 }
