@@ -62,7 +62,7 @@ export const WorkloadSourcesTable = ({
   );
 
   return (
-    <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
+    <Card>
       <CardHeader className="px-6">
         <CardTitle className="text-base leading-none font-medium">Sources</CardTitle>
       </CardHeader>

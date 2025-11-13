@@ -43,6 +43,7 @@ export const DataTable = <TData, TValue>({
   serverSideFiltering = false,
   mode = 'table',
   hideHeader = false,
+  hidePagination = false,
   className,
   rowActions = [],
   hideRowActions,
@@ -158,7 +159,7 @@ export const DataTable = <TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    ...(hidePagination ? {} : { getPaginationRowModel: getPaginationRowModel() }),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     // REMINDER: it doesn't support array of strings (WARNING: might not work for other types)
     getFacetedUniqueValues: (table: TTable<TData>, columnId: string) => () => {
@@ -268,7 +269,7 @@ export const DataTable = <TData, TValue>({
             </div>
 
             {/* Pagination Section */}
-            <DataTablePagination table={table} />
+            {!hidePagination && <DataTablePagination table={table} />}
           </div>
         ) : (
           <EmptyContent variant="dashed" {...emptyContent} />

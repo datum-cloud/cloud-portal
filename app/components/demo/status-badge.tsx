@@ -1,4 +1,4 @@
-import { StatusBadge } from '@/components/status-badge/status-badge';
+import { BadgeStatus } from '@/components/badge/badge-status';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 
@@ -11,7 +11,7 @@ export const statusBadgeDemoSections = [
   { id: 'status-badge-use-cases', label: 'Use Cases' },
 ];
 
-export default function StatusBadgeDemo() {
+export default function BadgeStatusDemo() {
   return (
     <div className="space-y-8 p-6">
       {/* Status Badge Statuses */}
@@ -24,11 +24,11 @@ export default function StatusBadgeDemo() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            <StatusBadge status="active" />
-            <StatusBadge status="pending" />
-            <StatusBadge status="error" />
-            <StatusBadge status="inactive" />
-            <StatusBadge status="success" />
+            <BadgeStatus status="active" />
+            <BadgeStatus status="pending" />
+            <BadgeStatus status="error" />
+            <BadgeStatus status="inactive" />
+            <BadgeStatus status="success" />
           </div>
           <div className="text-muted-foreground text-sm">
             <p>Each status has centralized color configuration in STATUS_CONFIG:</p>
@@ -63,33 +63,33 @@ export default function StatusBadgeDemo() {
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Active Status with Custom Labels</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge status="active" label="Active" />
-              <StatusBadge status="active" label="Running" />
-              <StatusBadge status="active" label="Online" />
+              <BadgeStatus status="active" label="Active" />
+              <BadgeStatus status="active" label="Running" />
+              <BadgeStatus status="active" label="Online" />
             </div>
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Success Status with Custom Labels</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge status="success" label="Ready" />
-              <StatusBadge status="success" label="Completed" />
-              <StatusBadge status="success" label="Available" />
+              <BadgeStatus status="success" label="Ready" />
+              <BadgeStatus status="success" label="Completed" />
+              <BadgeStatus status="success" label="Available" />
             </div>
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Pending Status with Custom Labels</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge status="pending" label="Setting up..." />
-              <StatusBadge status="pending" label="Verifying..." />
-              <StatusBadge status="pending" label="In Progress" />
+              <BadgeStatus status="pending" label="Setting up..." />
+              <BadgeStatus status="pending" label="Verifying..." />
+              <BadgeStatus status="pending" label="In Progress" />
             </div>
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Error Status with Custom Labels</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge status="error" label="Failed" />
-              <StatusBadge status="error" label="Error" />
-              <StatusBadge status="error" label="Unavailable" />
+              <BadgeStatus status="error" label="Failed" />
+              <BadgeStatus status="error" label="Error" />
+              <BadgeStatus status="error" label="Unavailable" />
             </div>
           </div>
         </CardContent>
@@ -105,19 +105,19 @@ export default function StatusBadgeDemo() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
-            <StatusBadge
+            <BadgeStatus
               status="active"
               tooltipText="This resource is currently active and running"
             />
-            <StatusBadge
+            <BadgeStatus
               status="pending"
               tooltipText="This resource is being set up. Please wait..."
             />
-            <StatusBadge
+            <BadgeStatus
               status="error"
               tooltipText="An error occurred while processing this resource"
             />
-            <StatusBadge status="success" tooltipText="Operation completed successfully" />
+            <BadgeStatus status="success" tooltipText="Operation completed successfully" />
           </div>
           <div className="text-muted-foreground text-sm">
             <p>Tooltips are automatically disabled for active status by default.</p>
@@ -135,10 +135,10 @@ export default function StatusBadgeDemo() {
           <div className="space-y-2">
             <h4 className="text-sm font-medium">With Icons</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge status="active" showIcon />
-              <StatusBadge status="pending" showIcon />
-              <StatusBadge status="error" showIcon />
-              <StatusBadge status="success" showIcon />
+              <BadgeStatus status="active" showIcon />
+              <BadgeStatus status="pending" showIcon />
+              <BadgeStatus status="error" showIcon />
+              <BadgeStatus status="success" showIcon />
             </div>
             <p className="text-muted-foreground text-xs">
               Note: Only pending status has an icon defined (spinning loader). Other statuses will
@@ -148,10 +148,10 @@ export default function StatusBadgeDemo() {
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Without Icons (Default)</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge status="active" />
-              <StatusBadge status="pending" />
-              <StatusBadge status="error" />
-              <StatusBadge status="success" />
+              <BadgeStatus status="active" />
+              <BadgeStatus status="pending" />
+              <BadgeStatus status="error" />
+              <BadgeStatus status="success" />
             </div>
             <p className="text-muted-foreground text-xs">
               By default, showIcon is false. Icons are only shown when explicitly enabled and
@@ -166,20 +166,20 @@ export default function StatusBadgeDemo() {
         <CardHeader>
           <CardTitle>ControlPlaneStatus Format</CardTitle>
           <CardDescription>
-            StatusBadge accepts legacy IControlPlaneStatus format for backward compatibility
+            BadgeStatus accepts legacy IControlPlaneStatus format for backward compatibility
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Success Status</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge
+              <BadgeStatus
                 status={{
                   status: ControlPlaneStatus.Success,
                   message: 'Resource is ready',
                 }}
               />
-              <StatusBadge
+              <BadgeStatus
                 status={{
                   status: ControlPlaneStatus.Success,
                   message: 'Resource is ready',
@@ -191,13 +191,13 @@ export default function StatusBadgeDemo() {
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Pending Status</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge
+              <BadgeStatus
                 status={{
                   status: ControlPlaneStatus.Pending,
                   message: 'Setting up resource...',
                 }}
               />
-              <StatusBadge
+              <BadgeStatus
                 status={{
                   status: ControlPlaneStatus.Pending,
                   message: 'Setting up resource...',
@@ -209,13 +209,13 @@ export default function StatusBadgeDemo() {
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Error Status</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge
+              <BadgeStatus
                 status={{
                   status: ControlPlaneStatus.Error,
                   message: 'Failed to process resource',
                 }}
               />
-              <StatusBadge
+              <BadgeStatus
                 status={{
                   status: ControlPlaneStatus.Error,
                   message: 'Failed to process resource',
@@ -237,37 +237,37 @@ export default function StatusBadgeDemo() {
       <Card id="status-badge-use-cases">
         <CardHeader>
           <CardTitle>Common Use Cases</CardTitle>
-          <CardDescription>Real-world examples of StatusBadge usage</CardDescription>
+          <CardDescription>Real-world examples of BadgeStatus usage</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Project Status</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge status="active" label="Active" />
-              <StatusBadge status="pending" label="Setting up..." />
+              <BadgeStatus status="active" label="Active" />
+              <BadgeStatus status="pending" label="Setting up..." />
             </div>
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Workload Status</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge status="active" label="Available" />
-              <StatusBadge status="pending" />
-              <StatusBadge status="error" label="Failed" />
+              <BadgeStatus status="active" label="Available" />
+              <BadgeStatus status="pending" />
+              <BadgeStatus status="error" label="Failed" />
             </div>
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Export Policy Status</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge status="success" label="Ready" />
-              <StatusBadge status="pending" />
-              <StatusBadge status="error" />
+              <BadgeStatus status="success" label="Ready" />
+              <BadgeStatus status="pending" />
+              <BadgeStatus status="error" />
             </div>
           </div>
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Domain Verification</h4>
             <div className="flex flex-wrap gap-2">
-              <StatusBadge status="success" label="Verified" />
-              <StatusBadge status="pending" label="Verifying..." />
+              <BadgeStatus status="success" label="Verified" />
+              <BadgeStatus status="pending" label="Verifying..." />
             </div>
           </div>
           <div className="space-y-2">
@@ -284,19 +284,19 @@ export default function StatusBadgeDemo() {
                   <tr>
                     <td className="p-2">Project Alpha</td>
                     <td className="p-2">
-                      <StatusBadge status="active" label="Active" />
+                      <BadgeStatus status="active" label="Active" />
                     </td>
                   </tr>
                   <tr>
                     <td className="p-2">Workload Beta</td>
                     <td className="p-2">
-                      <StatusBadge status="pending" />
+                      <BadgeStatus status="pending" />
                     </td>
                   </tr>
                   <tr>
                     <td className="p-2">Export Policy Gamma</td>
                     <td className="p-2">
-                      <StatusBadge status="success" label="Ready" />
+                      <BadgeStatus status="success" label="Ready" />
                     </td>
                   </tr>
                 </tbody>

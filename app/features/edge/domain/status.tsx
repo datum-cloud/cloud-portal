@@ -1,4 +1,4 @@
-import { StatusBadge } from '@/components/status-badge/status-badge';
+import { BadgeStatus } from '@/components/badge/badge-status';
 import {
   ControlPlaneStatus,
   IControlPlaneStatus,
@@ -129,7 +129,7 @@ export const DomainStatus = ({
           'w-fit',
           currentStatus?.status === ControlPlaneStatus.Success ? 'pointer-events-none' : ''
         )}>
-        <StatusBadge
+        <BadgeStatus
           status={currentStatus}
           label={getLabel()}
           showIcon={true}

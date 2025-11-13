@@ -1,7 +1,8 @@
+import AlertDemo, { alertDemoSections } from '@/components/demo/alert';
 import BadgeDemo, { badgeDemoSections } from '@/components/demo/badge';
 import ButtonDemo, { buttonDemoSections } from '@/components/demo/button';
 import GridDemo, { gridDemoSections } from '@/components/demo/grid';
-import StatusBadgeDemo, { statusBadgeDemoSections } from '@/components/demo/status-badge';
+import BadgeStatusDemo, { statusBadgeDemoSections } from '@/components/demo/status-badge';
 import TooltipDemo, { tooltipDemoSections } from '@/components/demo/tooltip';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
@@ -13,9 +14,10 @@ import { useState, useEffect } from 'react';
 // Auto-generate navigation from demo components
 // Just add your component here and it will automatically appear in navigation!
 const demoComponents = [
+  { name: 'Alert', sections: alertDemoSections, Component: AlertDemo },
   { name: 'Button', sections: buttonDemoSections, Component: ButtonDemo },
   { name: 'Badge', sections: badgeDemoSections, Component: BadgeDemo },
-  { name: 'StatusBadge', sections: statusBadgeDemoSections, Component: StatusBadgeDemo },
+  { name: 'BadgeStatus', sections: statusBadgeDemoSections, Component: BadgeStatusDemo },
   { name: 'Tooltip', sections: tooltipDemoSections, Component: TooltipDemo },
   { name: 'Grid', sections: gridDemoSections, Component: GridDemo },
 ];

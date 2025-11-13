@@ -1,5 +1,5 @@
+import { BadgeStatus } from '@/components/badge/badge-status';
 import { CodeEditor } from '@/components/code-editor/code-editor';
-import { StatusBadge } from '@/components/status-badge/status-badge';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
@@ -64,7 +64,7 @@ export const WorkloadSinksTable = ({
           const currentStatus = find(sinkStatus, (s) => s.name === row.original?.name);
           const transformedStatus = transformControlPlaneStatus(currentStatus);
           return (
-            <StatusBadge
+            <BadgeStatus
               status={transformedStatus}
               label={
                 transformedStatus?.status === ControlPlaneStatus.Success ? 'Available' : undefined
@@ -113,7 +113,7 @@ export const WorkloadSinksTable = ({
   }, [status]);
 
   return (
-    <Card className="bg-card text-card-foreground w-full rounded-xl border shadow">
+    <Card>
       <CardHeader className="px-6">
         <CardTitle className="text-base leading-none font-medium">Sinks</CardTitle>
       </CardHeader>
