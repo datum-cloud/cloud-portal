@@ -92,6 +92,7 @@ export default function AccountOrganizations() {
                   to={getPathWithParams(paths.account.organizations.new)}
                   type="primary"
                   theme="solid"
+                  size="small"
                   icon={<PlusIcon className="size-4" />}>
                   Create organization
                 </LinkButton>

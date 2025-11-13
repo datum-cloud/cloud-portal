@@ -209,12 +209,7 @@ export const DataTable = <TData, TValue>({
       onFilteringEnd={onFilteringEnd}
       serverSideFiltering={serverSideFiltering}
       globalSearchOptionsRef={globalSearchOptionsRef}>
-      <div
-        className={cn(
-          'mx-auto flex h-full w-full flex-col gap-8',
-          !isLoading && hasData ? 'max-w-(--breakpoint-xl)' : '',
-          className
-        )}>
+      <div className={cn('mx-auto flex h-full w-full flex-col gap-8', className)}>
         {/* Toolbar Section: Page Title + Filters */}
         {showToolbar && (
           <DataTableToolbar
