@@ -1,4 +1,5 @@
 import { PageTitle } from '@/components/page-title/page-title';
+import { DnsRecordCard } from '@/features/edge/dns-zone/overview/dns-records';
 import { NameserverCard } from '@/features/edge/dns-zone/overview/nameservers';
 import { TaskRecordCard } from '@/features/edge/dns-zone/overview/task-record-card';
 import { createDnsRecordSetsControl } from '@/resources/control-plane/dns-networking/dns-record-set.control';
@@ -27,13 +28,15 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext;
   const dnsRecordSetsControl = createDnsRecordSetsControl(controlPlaneClient as Client);
 
-  const dnsRecordSets = await dnsRecordSetsControl.list(projectId, dnsZoneId, 5);
+  // List returns flattened records (one row per value)
+  const flattenedRecords = await dnsRecordSetsControl.list(projectId, dnsZoneId);
 
-  return data(dnsRecordSets);
+  return data(flattenedRecords);
 };
 
 export default function DnsZoneOverviewPage() {
   const { dnsZone, domain } = useRouteLoaderData('dns-zone-detail');
+  const flattenedRecords = useLoaderData<typeof loader>();
   const { projectId, dnsZoneId } = useParams();
 
   return (
@@ -42,7 +45,23 @@ export default function DnsZoneOverviewPage() {
         <PageTitle title={dnsZone?.domainName ?? 'DNS Zone'} />
       </Col>
       <Col span={24}>
-        <TaskRecordCard dnsZone={dnsZone!} />
+        <DnsRecordCard
+          records={flattenedRecords}
+          maxRows={5}
+          title="DNS Records"
+          actions={
+            <LinkButton
+              to={getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
+                projectId: projectId ?? '',
+                dnsZoneId: dnsZoneId ?? '',
+              })}
+              icon={<PencilIcon size={12} />}
+              iconPosition="right"
+              size="xs">
+              Edit DNS records
+            </LinkButton>
+          }
+        />
       </Col>
       <Col span={24}>
         <NameserverCard

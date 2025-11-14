@@ -1,10 +1,10 @@
 import { DnsRecordTable } from './dns-record-table';
-import { IDnsRecordSetControlResponse } from '@/resources/interfaces/dns.interface';
+import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { useMemo } from 'react';
 
 export interface DnsRecordCardProps {
-  records: IDnsRecordSetControlResponse[];
+  records: IFlattenedDnsRecord[];
   maxRows?: number;
   title?: string;
   actions?: React.ReactNode;
@@ -35,7 +35,7 @@ export const DnsRecordCard = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <DnsRecordTable data={displayData} mode="compact" />
+        <DnsRecordTable data={displayData} hidePagination />
       </CardContent>
     </Card>
   );

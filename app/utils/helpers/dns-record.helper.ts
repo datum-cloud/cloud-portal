@@ -1,0 +1,147 @@
+import { IDnsRecordSetControlResponse } from '@/resources/interfaces/dns.interface';
+
+/**
+ * Flattened DNS record for UI display
+ * Each VALUE in each record becomes a separate row
+ */
+export interface IFlattenedDnsRecord {
+  // RecordSet metadata
+  recordSetId: string;
+  recordSetName: string;
+  createdAt: Date;
+  dnsZoneId: string;
+
+  // Record details
+  type: string; // Record type (NS, A, AAAA, CNAME, MX, etc.)
+  name: string; // Record name (recordSet name, not record.name)
+  value: string; // Single value
+  ttl?: number; // TTL if available
+
+  // Status
+  status: 'Active' | 'Pending' | 'Error';
+
+  // Raw data for editing
+  rawData: any;
+}
+
+/**
+ * Transform K8s DNSRecordSet array to flattened records for UI display
+ * Each value in spec.records[].raw/soa/mx/etc becomes a separate table row
+ */
+export function flattenDnsRecordSets(
+  recordSets: IDnsRecordSetControlResponse[]
+): IFlattenedDnsRecord[] {
+  const flattened: IFlattenedDnsRecord[] = [];
+
+  recordSets.forEach((recordSet) => {
+    const records = recordSet.records || [];
+    const status = extractStatus(recordSet.status);
+
+    records.forEach((record: any) => {
+      const values = extractValues(record, recordSet.recordType);
+      const ttl = extractTTL(record);
+
+      // Create one row per value
+      values.forEach((value) => {
+        flattened.push({
+          recordSetId: recordSet.uid || '',
+          recordSetName: recordSet.name || '',
+          createdAt: recordSet.createdAt || new Date(),
+          dnsZoneId: recordSet.dnsZoneId || '',
+          type: recordSet.recordType || '',
+          name: record.name || '',
+          value: value,
+          ttl: ttl,
+          status: status,
+          rawData: record,
+        });
+      });
+    });
+  });
+
+  return flattened;
+}
+
+/**
+ * Extract values from different record types
+ * Returns array of strings, each will become a separate row
+ */
+function extractValues(record: any, recordType: string | undefined): string[] {
+  switch (recordType) {
+    case 'NS':
+    case 'A':
+    case 'AAAA':
+    case 'CNAME':
+    case 'TXT':
+    case 'PTR':
+      // Simple raw array - each value gets its own row
+      return record.raw || [];
+
+    case 'SOA':
+      // Format SOA as readable string
+      if (record.soa) {
+        return [
+          `${record.soa.mname} ${record.soa.rname} ${record.soa.refresh} ${record.soa.retry} ${record.soa.expire} ${record.soa.ttl}`,
+        ];
+      }
+      return [];
+
+    case 'MX':
+      // Format: "priority target" - each MX gets its own row
+      if (record.mx) {
+        return record.mx.map((mx: any) => `${mx.priority} ${mx.target}`);
+      }
+      return [];
+
+    case 'SRV':
+      // Format: "priority weight port target" - each SRV gets its own row
+      if (record.srv) {
+        return record.srv.map(
+          (srv: any) => `${srv.priority} ${srv.weight} ${srv.port} ${srv.target}`
+        );
+      }
+      return [];
+
+    case 'CAA':
+      // Format: "flag tag value" - each CAA gets its own row
+      if (record.caa) {
+        return record.caa.map((caa: any) => `${caa.flag} ${caa.tag} "${caa.value}"`);
+      }
+      return [];
+
+    default:
+      // Fallback to raw if available
+      return record.raw || [];
+  }
+}
+
+/**
+ * Extract TTL from record
+ */
+function extractTTL(record: any): number | undefined {
+  // SOA has TTL in soa.ttl
+  if (record.soa?.ttl) return record.soa.ttl;
+
+  // Other types might have TTL at record level
+  if (record.ttl) return record.ttl;
+
+  return undefined;
+}
+
+/**
+ * Extract status from K8s conditions
+ */
+function extractStatus(status: any): 'Active' | 'Pending' | 'Error' {
+  if (!status?.conditions) return 'Pending';
+
+  const accepted = status.conditions.find((c: any) => c.type === 'Accepted');
+  const programmed = status.conditions.find((c: any) => c.type === 'Programmed');
+
+  const isAccepted = accepted?.status === 'True';
+  const isProgrammed = programmed?.status === 'True';
+
+  if (isAccepted && isProgrammed) return 'Active';
+  if (accepted?.status === 'False' || programmed?.status === 'False') return 'Error';
+  return 'Pending';
+}
+

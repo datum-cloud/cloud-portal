@@ -3,7 +3,11 @@ import {
   ComMiloapisNetworkingDnsV1Alpha1DnsRecordSetList,
   listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet,
 } from '@/modules/control-plane/dns-networking';
-import { IDnsRecordSetControlResponse } from '@/resources/interfaces/dns.interface';
+import {
+  IDnsRecordSetControlResponse,
+  IFlattenedDnsRecord,
+} from '@/resources/interfaces/dns.interface';
+import { flattenDnsRecordSets } from '@/utils/helpers/dns-record.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createDnsRecordSetsControl = (client: Client) => {
@@ -26,7 +30,11 @@ export const createDnsRecordSetsControl = (client: Client) => {
   };
 
   return {
-    list: async (projectId: string, dnsZoneId?: string, limit?: number) => {
+    list: async (
+      projectId: string,
+      dnsZoneId?: string,
+      limit?: number
+    ): Promise<IFlattenedDnsRecord[]> => {
       const response = await listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -40,8 +48,9 @@ export const createDnsRecordSetsControl = (client: Client) => {
       });
 
       const dnsRecordSets = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsRecordSetList;
+      const recordSets = dnsRecordSets.items.map(transformDnsRecordSet);
 
-      return dnsRecordSets.items.map(transformDnsRecordSet);
+      return flattenDnsRecordSets(recordSets);
     },
   };
 };

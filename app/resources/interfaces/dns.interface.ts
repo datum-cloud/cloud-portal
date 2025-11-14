@@ -34,6 +34,23 @@ export interface IDnsRecordSetControlResponse {
 }
 
 // ============================================
+// Flattened DNS Record for UI Display
+// Each VALUE in each record becomes a separate row
+// ============================================
+export interface IFlattenedDnsRecord {
+  recordSetId: string;
+  recordSetName: string;
+  createdAt: Date;
+  dnsZoneId: string;
+  type: string;
+  name: string;
+  value: string; // Single value per row
+  ttl?: number;
+  status: 'Active' | 'Pending' | 'Error';
+  rawData: any;
+}
+
+// ============================================
 // Nameserver Interfaces (Shared between Domain & DNS Zone)
 // ============================================
 export type IDnsNameserver = NonNullable<

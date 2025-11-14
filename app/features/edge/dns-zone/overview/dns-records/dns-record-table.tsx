@@ -5,17 +5,16 @@ import {
   DataTableTitleProps,
   DataTableToolbarConfig,
 } from '@/modules/datum-ui/components/data-table/data-table.types';
-import { IDnsRecordSetControlResponse } from '@/resources/interfaces/dns.interface';
+import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { Badge } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 
 export interface DnsRecordTableProps {
-  data: IDnsRecordSetControlResponse[];
-  mode?: 'compact' | 'full';
-  pageSize?: number;
-  onRowClick?: (row: IDnsRecordSetControlResponse) => void;
-  rowActions?: DataTableRowActionsProps<IDnsRecordSetControlResponse>[];
+  data: IFlattenedDnsRecord[];
+  hidePagination?: boolean;
+  onRowClick?: (row: IFlattenedDnsRecord) => void;
+  rowActions?: DataTableRowActionsProps<IFlattenedDnsRecord>[];
   tableTitle?: DataTableTitleProps;
   toolbar?: DataTableToolbarConfig;
   filters?: React.ReactNode;
@@ -27,11 +26,13 @@ export interface DnsRecordTableProps {
  * Unified DNS record table component
  * - mode="compact": Simple table without pagination/toolbar (for overview pages)
  * - mode="full": Full DataTable with pagination, search, filters (for standalone pages)
+ *
+ * Displays flattened DNS records with columns: Type, Name, Value, TTL, Status
+ * Each value in DNS records becomes a separate row
  */
 export const DnsRecordTable = ({
   data,
-  mode = 'full',
-  pageSize = 50,
+  hidePagination = false,
   onRowClick,
   rowActions,
   tableTitle,
@@ -40,13 +41,28 @@ export const DnsRecordTable = ({
   emptyContent,
   className,
 }: DnsRecordTableProps) => {
-  const isCompact = mode === 'compact';
-
-  const columns: ColumnDef<IDnsRecordSetControlResponse>[] = useMemo(
+  const columns: ColumnDef<IFlattenedDnsRecord>[] = useMemo(
     () => [
+      {
+        header: 'Type',
+        accessorKey: 'type',
+        size: 80,
+        cell: ({ row }) => {
+          return (
+            <Badge type="quaternary" theme="outline">
+              {row.original.type}
+            </Badge>
+          );
+        },
+        meta: {
+          sortPath: 'type',
+          sortType: 'text',
+        },
+      },
       {
         header: 'Name',
         accessorKey: 'name',
+        size: 150,
         cell: ({ row }) => {
           return <span className="font-medium">{row.original.name}</span>;
         },
@@ -56,70 +72,33 @@ export const DnsRecordTable = ({
         },
       },
       {
-        header: 'Type',
-        accessorKey: 'recordType',
+        header: 'Content',
+        accessorKey: 'value',
+        enableSorting: false,
         cell: ({ row }) => {
-          return (
-            <Badge type="quaternary" theme="outline">
-              {row.original.recordType}
-            </Badge>
-          );
-        },
-        meta: {
-          sortPath: 'recordType',
-          sortType: 'text',
+          return <span className="text-sm break-all">{row.original.value}</span>;
         },
       },
       {
-        header: 'Records',
-        accessorKey: 'records',
-        enableSorting: false,
+        header: 'TTL',
+        accessorKey: 'ttl',
+        size: 100,
         cell: ({ row }) => {
-          const records = row.original.records;
-          if (!records) return '-';
-
-          // Handle different record types
-          const recordsText = typeof records === 'string' ? records : JSON.stringify(records);
-
-          // For compact mode, show truncated text
-          if (isCompact) {
-            const displayText =
-              recordsText.length > 50 ? `${recordsText.substring(0, 50)}...` : recordsText;
-            return <span className="text-sm">{displayText}</span>;
-          }
-
-          // For full mode, show formatted JSON
-          const formattedText =
-            typeof records === 'string' ? records : JSON.stringify(records, null, 2);
-          return (
-            <pre className="max-w-md text-sm break-all whitespace-pre-wrap">{formattedText}</pre>
-          );
+          return <span className="text-sm">{row.original.ttl || '-'}</span>;
+        },
+        meta: {
+          sortPath: 'ttl',
+          sortType: 'number',
         },
       },
-      ...(isCompact
-        ? []
-        : [
-            {
-              header: 'DNS Zone',
-              accessorKey: 'dnsZoneId',
-              cell: ({ row }: { row: { original: IDnsRecordSetControlResponse } }) => {
-                return <span className="text-sm">{row.original.dnsZoneId || '-'}</span>;
-              },
-              meta: {
-                sortPath: 'dnsZoneId',
-                sortType: 'text',
-              },
-            } as ColumnDef<IDnsRecordSetControlResponse>,
-          ]),
     ],
-    [isCompact]
+    []
   );
 
   return (
     <DataTable
-      className={className || (isCompact ? undefined : 'max-w-(--breakpoint-2xl)')}
-      hidePagination={isCompact}
-      pageSize={isCompact ? undefined : pageSize}
+      className={className}
+      hidePagination={hidePagination}
       columns={columns}
       data={data}
       onRowClick={onRowClick}

@@ -66,14 +66,14 @@ export default function DnsZoneDetailLayout() {
         }),
         type: 'link',
       },
-      // {
-      //   title: 'DNS Records',
-      //   href: getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
-      //     projectId,
-      //     dnsZoneId: dnsZone?.name ?? '',
-      //   }),
-      //   type: 'link',
-      // },
+      {
+        title: 'DNS Records',
+        href: getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
+          projectId,
+          dnsZoneId: dnsZone?.name ?? '',
+        }),
+        type: 'link',
+      },
       {
         title: 'Nameservers',
         href: getPathWithParams(paths.project.detail.dnsZones.detail.nameservers, {
