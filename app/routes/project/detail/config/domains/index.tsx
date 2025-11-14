@@ -1,5 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DomainDnsHost } from '@/features/edge/domain/dns-host';
+import { DnsHostChips } from '@/components/dns-host-chips';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
@@ -137,7 +137,7 @@ export default function DomainsPage() {
         header: 'DNS Host',
         accessorKey: 'nameservers',
         cell: ({ row }) => {
-          return <DomainDnsHost nameservers={row.original?.nameservers} maxVisible={2} />;
+          return <DnsHostChips data={row.original?.nameservers} maxVisible={2} />;
         },
         meta: {
           sortPath: 'status.nameservers',

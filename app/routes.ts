@@ -161,6 +161,7 @@ export default [
             [
               index('routes/project/detail/edge/dns-zones/detail/index.tsx'),
               route('overview', 'routes/project/detail/edge/dns-zones/detail/overview.tsx'),
+              route('nameservers', 'routes/project/detail/edge/dns-zones/detail/nameservers.tsx'),
               // route('settings', 'routes/project/detail/edge/dns-zones/detail/settings.tsx'),
             ]
           ),

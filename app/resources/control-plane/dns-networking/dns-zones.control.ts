@@ -7,7 +7,7 @@ import {
   patchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone,
   readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone,
 } from '@/modules/control-plane/dns-networking';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns-zone.interface';
+import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { FormDnsZoneSchema } from '@/resources/schemas/dns-zone.schema';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { Client } from '@hey-api/client-axios';

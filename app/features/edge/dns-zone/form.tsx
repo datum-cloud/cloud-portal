@@ -1,7 +1,7 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
 import { useIsPending } from '@/hooks/useIsPending';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns-zone.interface';
+import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { formDnsZoneSchema } from '@/resources/schemas/dns-zone.schema';
 import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
 import { paths } from '@/utils/config/paths.config';

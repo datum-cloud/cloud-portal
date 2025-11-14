@@ -1,7 +1,8 @@
 import { BackButton } from '@/components/back-button';
 import { SubLayout } from '@/layouts';
+import { createDomainsControl } from '@/resources/control-plane';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns-zone.interface';
+import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -15,8 +16,8 @@ import {
   MetaFunction,
   Outlet,
   data,
+  useLoaderData,
   useParams,
-  useRouteLoaderData,
 } from 'react-router';
 
 export const handle = {
@@ -30,12 +31,12 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId, dnsZoneId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
 
   if (!projectId || !dnsZoneId) {
     throw new BadRequestError('Project ID and DNS ID are required');
   }
 
+  const { controlPlaneClient } = context as AppLoadContext;
   const dnsZonesControl = createDnsZonesControl(controlPlaneClient as Client);
 
   const dnsZone = await dnsZonesControl.detail(projectId, dnsZoneId);
@@ -44,11 +45,15 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     throw new NotFoundError('DNS not found');
   }
 
-  return data(dnsZone);
+  // Get Domain Detail
+  const domainsControl = createDomainsControl(controlPlaneClient as Client);
+  const domain = await domainsControl.detail(projectId, dnsZone.status?.domainRef?.name ?? '');
+
+  return data({ dnsZone, domain });
 };
 
 export default function DnsZoneDetailLayout() {
-  const dnsZone = useRouteLoaderData<IDnsZoneControlResponse>('dns-zone-detail');
+  const { dnsZone } = useLoaderData<typeof loader>();
   const { projectId } = useParams();
 
   const navItems: NavItem[] = useMemo(() => {
@@ -61,14 +66,14 @@ export default function DnsZoneDetailLayout() {
         }),
         type: 'link',
       },
-      {
-        title: 'DNS Records',
-        href: getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
-          projectId,
-          dnsZoneId: dnsZone?.name ?? '',
-        }),
-        type: 'link',
-      },
+      // {
+      //   title: 'DNS Records',
+      //   href: getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
+      //     projectId,
+      //     dnsZoneId: dnsZone?.name ?? '',
+      //   }),
+      //   type: 'link',
+      // },
       {
         title: 'Nameservers',
         href: getPathWithParams(paths.project.detail.dnsZones.detail.nameservers, {
@@ -79,6 +84,7 @@ export default function DnsZoneDetailLayout() {
       },
     ];
   }, [projectId, dnsZone]);
+
   return (
     <SubLayout
       sidebarHeader={

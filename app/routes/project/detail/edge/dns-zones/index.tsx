@@ -1,9 +1,9 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
-import { DomainDnsHost } from '@/features/edge/domain/dns-host';
+import { DnsHostChips } from '@/components/dns-host-chips';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns-zone.interface';
+import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
@@ -107,7 +107,7 @@ export default function DnsZonesPage() {
             return <Loader2Icon className="text-muted-foreground size-4 animate-spin" />;
           }
 
-          return <DomainDnsHost nameservers={nameservers} maxVisible={2} />;
+          return <DnsHostChips data={nameservers} maxVisible={2} />;
         },
         meta: {
           sortPath: 'status.domainRef.status.nameservers',

@@ -77,7 +77,7 @@ export const DataTableColumnHeader = <TData,>({
               <TableHead
                 key={header.id}
                 className={cn(
-                  'text-foreground h-8 border-r px-4 py-3 font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5',
+                  'bg-background text-foreground h-8 border-r px-4 py-3 font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5',
                   !hasRowActions && 'last:border-r-0',
                   isSortable && 'group hover:bg-table-accent',
                   header.column.columnDef.meta?.className
