@@ -1,6 +1,30 @@
 import { IDnsRecordSetControlResponse } from '@/resources/interfaces/dns.interface';
 
 /**
+ * Get sort priority for DNS record types
+ * Lower numbers appear first in sorted lists
+ */
+export function getDnsRecordTypePriority(recordType: string): number {
+  const priorities: Record<string, number> = {
+    SOA: 1,
+    NS: 2,
+    A: 3,
+    AAAA: 4,
+    CNAME: 5,
+    MX: 6,
+    TXT: 7,
+    SRV: 8,
+    CAA: 9,
+    PTR: 10,
+    TLSA: 11,
+    HTTPS: 12,
+    SVCB: 13,
+  };
+
+  return priorities[recordType] || 999;
+}
+
+/**
  * Convert TTL (in seconds) to human-readable format
  * Examples: 3600 -> "1 hr", 300 -> "5 min", 86400 -> "1 day"
  */
@@ -37,7 +61,7 @@ export interface IFlattenedDnsRecord {
   // Record details
   type: string; // Record type (NS, A, AAAA, CNAME, MX, etc.)
   name: string; // Record name (recordSet name, not record.name)
-  value: string; // Single value
+  value: string; // Single value (MX format: "preference|exchange")
   ttl?: number; // TTL if available
 
   // Status
@@ -82,42 +106,62 @@ export function flattenDnsRecordSets(
     });
   });
 
-  return flattened;
+  // Sort by type priority, then by name
+  return flattened.sort((a, b) => {
+    const priorityDiff = getDnsRecordTypePriority(a.type) - getDnsRecordTypePriority(b.type);
+    if (priorityDiff !== 0) return priorityDiff;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 /**
- * Extract values from different record types
+ * Extract values from different record types based on K8s schema
  * Returns array of strings, each will become a separate row
+ * Reference: ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet['spec']['records']
  */
 function extractValues(record: any, recordType: string | undefined): string[] {
   switch (recordType) {
-    case 'NS':
     case 'A':
+      // record.a.content: Array<string>
+      return record.a?.content || [];
+
     case 'AAAA':
+      // record.aaaa.content: Array<string>
+      return record.aaaa?.content || [];
+
     case 'CNAME':
+      // record.cname.content: string (single value, not array)
+      return record.cname?.content ? [record.cname.content] : [];
+
     case 'TXT':
+      // record.txt.content: Array<string>
+      return record.txt?.content || [];
+
+    case 'NS':
     case 'PTR':
-      // Simple raw array - each value gets its own row
+      // record.raw: Array<string>
       return record.raw || [];
 
     case 'SOA':
-      // Format SOA as readable string
+      // record.soa: { mname, rname, refresh, retry, expire, serial, ttl }
       if (record.soa) {
         return [
-          `${record.soa.mname} ${record.soa.rname} ${record.soa.refresh} ${record.soa.retry} ${record.soa.expire} ${record.soa.ttl}`,
+          `${record.soa.mname} ${record.soa.rname} ${record.soa.refresh || 0} ${record.soa.retry || 0} ${record.soa.expire || 0} ${record.soa.ttl || 0}`,
         ];
       }
       return [];
 
     case 'MX':
-      // Format: "priority target" - each MX gets its own row
+      // record.mx: Array<{ exchange: string, preference: number }>
+      // Format: "preference|exchange" (pipe separator for UI parsing)
       if (record.mx) {
-        return record.mx.map((mx: any) => `${mx.priority} ${mx.target}`);
+        return record.mx.map((mx: any) => `${mx.preference}|${mx.exchange}`);
       }
       return [];
 
     case 'SRV':
-      // Format: "priority weight port target" - each SRV gets its own row
+      // record.srv: Array<{ priority, weight, port, target }>
+      // Format: "priority weight port target"
       if (record.srv) {
         return record.srv.map(
           (srv: any) => `${srv.priority} ${srv.weight} ${srv.port} ${srv.target}`
@@ -126,9 +170,51 @@ function extractValues(record: any, recordType: string | undefined): string[] {
       return [];
 
     case 'CAA':
-      // Format: "flag tag value" - each CAA gets its own row
+      // record.caa: Array<{ flag, tag, value }>
+      // Format: "flag tag value"
       if (record.caa) {
         return record.caa.map((caa: any) => `${caa.flag} ${caa.tag} "${caa.value}"`);
+      }
+      return [];
+
+    case 'TLSA':
+      // record.tlsa: Array<{ usage, selector, matchingType, certData }>
+      // Format: "usage selector matchingType certData"
+      if (record.tlsa) {
+        return record.tlsa.map(
+          (tlsa: any) =>
+            `${tlsa.usage} ${tlsa.selector} ${tlsa.matchingType} ${tlsa.certData}`
+        );
+      }
+      return [];
+
+    case 'HTTPS':
+      // record.https: Array<{ priority, target, params }>
+      // Format: "priority target [params]"
+      if (record.https) {
+        return record.https.map((https: any) => {
+          const params = https.params
+            ? ` ${Object.entries(https.params)
+                .map(([k, v]) => `${k}=${v}`)
+                .join(' ')}`
+            : '';
+          return `${https.priority} ${https.target}${params}`;
+        });
+      }
+      return [];
+
+    case 'SVCB':
+      // record.svcb: Array<{ priority, target, params }>
+      // Format: "priority target [params]"
+      if (record.svcb) {
+        return record.svcb.map((svcb: any) => {
+          const params = svcb.params
+            ? ` ${Object.entries(svcb.params)
+                .map(([k, v]) => `${k}=${v}`)
+                .join(' ')}`
+            : '';
+          return `${svcb.priority} ${svcb.target}${params}`;
+        });
       }
       return [];
 

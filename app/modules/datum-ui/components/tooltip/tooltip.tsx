@@ -15,6 +15,7 @@ interface TooltipProps {
   // Controlled state props
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  contentClassName?: string;
 }
 
 const TooltipContent = ({
@@ -51,11 +52,17 @@ export default function Tooltip({
   hidden,
   open,
   onOpenChange,
+  contentClassName,
 }: TooltipProps) {
   return (
     <TooltipPrimitive delayDuration={delayDuration} open={open} onOpenChange={onOpenChange}>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent side={side} align={align} sideOffset={sideOffset} hidden={hidden}>
+      <TooltipContent
+        side={side}
+        align={align}
+        sideOffset={sideOffset}
+        hidden={hidden}
+        className={contentClassName}>
         <span>{message}</span>
       </TooltipContent>
     </TooltipPrimitive>

@@ -7,7 +7,7 @@ import {
 } from '@/modules/datum-ui/components/data-table/data-table.types';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { formatTTL } from '@/utils/helpers/dns-record.helper';
-import { Badge } from '@datum-ui/components';
+import { Badge, Tooltip } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 
@@ -77,7 +77,30 @@ export const DnsRecordTable = ({
         accessorKey: 'value',
         enableSorting: false,
         cell: ({ row }) => {
-          return <span className="text-sm break-all">{row.original.value}</span>;
+          const { type, value } = row.original;
+
+          // MX records: decode "preference|exchange" format
+          if (type === 'MX' && value.includes('|')) {
+            const [preference, exchange] = value.split('|');
+            return (
+              <div className="flex items-center gap-2">
+                <span className="text-sm break-all">{exchange}</span>
+                <Tooltip
+                  side="bottom"
+                  message="Priority of mail servers defined by MX records. Lowest value = highest priority."
+                  contentClassName="max-w-64">
+                  <Badge
+                    type="success"
+                    theme="light"
+                    className="max-w- cursor-pointer px-1 py-0.5 text-xs">
+                    {preference}
+                  </Badge>
+                </Tooltip>
+              </div>
+            );
+          }
+
+          return <span className="text-sm break-all">{value}</span>;
         },
       },
       {

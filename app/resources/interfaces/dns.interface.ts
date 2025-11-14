@@ -44,7 +44,7 @@ export interface IFlattenedDnsRecord {
   dnsZoneId: string;
   type: string;
   name: string;
-  value: string; // Single value per row
+  value: string; // Single value per row (MX format: "preference|exchange")
   ttl?: number;
   status: 'Active' | 'Pending' | 'Error';
   rawData: any;

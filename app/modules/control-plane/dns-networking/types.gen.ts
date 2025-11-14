@@ -125,7 +125,7 @@ export type ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet = {
       /**
        * TTL optionally overrides TTL for this owner/RRset.
        */
-      ttl?: bigint;
+      ttl?: bigint | number;
       txt?: {
         content: Array<string>;
       };
