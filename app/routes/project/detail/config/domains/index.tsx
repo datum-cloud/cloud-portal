@@ -1,5 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DomainDnsHost } from '@/features/edge/domain/dns-host';
+import { DnsHostChips } from '@/components/dns-host-chips';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
@@ -14,7 +14,7 @@ import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, PlusIcon } from 'lucide-react';
@@ -29,7 +29,6 @@ import {
   useNavigate,
   useParams,
 } from 'react-router';
-import { toast } from 'sonner';
 
 type FormattedDomain = {
   name: string;
@@ -137,7 +136,7 @@ export default function DomainsPage() {
         header: 'DNS Host',
         accessorKey: 'nameservers',
         cell: ({ row }) => {
-          return <DomainDnsHost nameservers={row.original?.nameservers} maxVisible={2} />;
+          return <DnsHostChips data={row.original?.nameservers} maxVisible={2} />;
         },
         meta: {
           sortPath: 'status.nameservers',

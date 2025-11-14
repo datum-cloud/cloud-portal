@@ -2,7 +2,7 @@ import { IDomainControlResponse } from '@/resources/interfaces/domain.interface'
 import { ROUTE_PATH as CLOUD_VALIDATION_DNS_PATH } from '@/routes/api/cloudvalid/dns';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import {
   Card,
   CardContent,
@@ -14,7 +14,6 @@ import {
 import { ExternalLink, ZapIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';
-import { toast } from 'sonner';
 
 export const QuickSetupCard = ({
   projectId,

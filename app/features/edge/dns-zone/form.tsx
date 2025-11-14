@@ -1,7 +1,7 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
 import { useIsPending } from '@/hooks/useIsPending';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns-zone.interface';
+import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { formDnsZoneSchema } from '@/resources/schemas/dns-zone.schema';
 import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
 import { paths } from '@/utils/config/paths.config';
@@ -79,7 +79,7 @@ export const DnsZoneForm = ({
 
   const [form, fields] = useForm({
     id: 'dns-zone-form',
-    constraint: getZodConstraint(isEdit ? formDnsZoneSchema : formDnsZoneSchema),
+    constraint: getZodConstraint(formDnsZoneSchema),
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
@@ -104,9 +104,9 @@ export const DnsZoneForm = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEdit ? 'Edit DNS Zone' : 'Create a new DNS Zone'}</CardTitle>
+        <CardTitle>{isEdit ? 'Edit DNS Zone' : 'Add a DNS Zone'}</CardTitle>
         <CardDescription>
-          Create a new zone to get started with Datum’s advanced DNS features
+          Create a new zone to get started with Datum&apos;s advanced DNS features
         </CardDescription>
       </CardHeader>
       <FormProvider context={form.context}>

@@ -1,9 +1,9 @@
 import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api/projects';
+import { toast } from '@datum-ui/components';
 import { useEffect, useMemo, useState } from 'react';
 import { useFetcher } from 'react-router';
-import { toast } from 'sonner';
 
 export const SelectProject = ({
   orgId,

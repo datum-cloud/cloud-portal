@@ -1,9 +1,8 @@
 import { CodeEditor } from './code-editor';
 import { EditorLanguage, CodeEditorTabsProps } from './code-editor.types';
 import { isValidJson, isValidYaml, jsonToYaml, yamlToJson } from '@/utils/helpers/format.helper';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@datum-ui/components';
+import { Tabs, TabsContent, TabsList, TabsTrigger, toast } from '@datum-ui/components';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 
 export function CodeEditorTabs({
   value,
@@ -24,7 +23,7 @@ export function CodeEditorTabs({
     try {
       return value ? yamlToJson(value) : '{}';
     } catch {
-      toast.error('Initial YAML to JSON conversion failed', { duration: Infinity });
+      toast.error('Initial YAML to JSON conversion failed');
       return '{}';
     }
   });
@@ -36,7 +35,7 @@ export function CodeEditorTabs({
     try {
       return value ? jsonToYaml(value) : '';
     } catch {
-      toast.error('Initial JSON to YAML conversion failed', { duration: Infinity });
+      toast.error('Initial JSON to YAML conversion failed');
       return '';
     }
   });
@@ -108,7 +107,6 @@ export function CodeEditorTabs({
       const errorMessage = error instanceof Error ? error.message : 'Conversion failed';
       toast.error(errorMessage, {
         id: 'conversion-error', // Use an ID to prevent duplicate toasts
-        duration: Infinity,
       });
     }
   };
@@ -129,7 +127,6 @@ export function CodeEditorTabs({
     } catch {
       toast.error('Failed to update YAML from JSON value', {
         id: 'json-to-yaml-error',
-        duration: Infinity,
       });
       // Invalid JSON, don't update YAML
     }
@@ -150,7 +147,6 @@ export function CodeEditorTabs({
     } catch {
       toast.error('Failed to update JSON from YAML value', {
         id: 'yaml-to-json-error',
-        duration: Infinity,
       });
       // Invalid YAML, don't update JSON
     }

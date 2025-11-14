@@ -5,7 +5,7 @@ import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
 import { getFormProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import {
   DialogContent,
   Dialog,
@@ -18,7 +18,6 @@ import { Textarea } from '@shadcn/ui/textarea';
 import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
-import { toast } from 'sonner';
 import { z } from 'zod';
 
 interface EditKeyValueDialogProps {
@@ -102,8 +101,14 @@ export const EditKeyValueDialog = ({
 
       if (success) {
         handleOpenChange(false);
-        toast.success(`Key "${keyId}" updated successfully`);
+        toast.success(`Key "${keyId}" updated successfully`, {
+          description: 'You have successfully updated the key-value pair.',
+        });
         onSuccess?.();
+      } else {
+        toast.error('Error', {
+          description: fetcher.data.error ?? 'An error occurred while updating the key-value pair',
+        });
       }
     }
   }, [fetcher.data, fetcher.state]);

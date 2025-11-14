@@ -1,9 +1,9 @@
 import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
 import { IGroupControlResponse } from '@/resources/interfaces/group.interface';
 import { ROUTE_PATH as GROUPS_LIST_PATH } from '@/routes/api/groups';
+import { toast } from '@datum-ui/components';
 import { useEffect, useMemo, useState } from 'react';
 import { useFetcher } from 'react-router';
-import { toast } from 'sonner';
 
 export const SelectGroup = ({
   orgId,

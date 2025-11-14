@@ -14,7 +14,7 @@ import {
 } from '@/utils/helpers/object.helper';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import {
   Card,
   CardContent,
@@ -26,7 +26,6 @@ import {
 import { useEffect, useMemo } from 'react';
 import { useNavigate, Form, useFetcher } from 'react-router';
 import { AuthenticityTokenInput, useAuthenticityToken } from 'remix-utils/csrf/react';
-import { toast } from 'sonner';
 
 export const EditSecretMetadata = ({
   projectId,
@@ -88,7 +87,13 @@ export const EditSecretMetadata = ({
 
       if (success) {
         navigate(-1);
-        toast.success('Secret metadata updated successfully');
+        toast.success('Secret metadata updated successfully', {
+          description: 'You have successfully updated the secret metadata.',
+        });
+      } else {
+        toast.error('Error', {
+          description: fetcher.data.error ?? 'An error occurred while updating the secret metadata',
+        });
       }
     }
   }, [fetcher.data, fetcher.state]);

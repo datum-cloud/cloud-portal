@@ -1,15 +1,15 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
-import { DomainDnsHost } from '@/features/edge/domain/dns-host';
+import { DnsHostChips } from '@/components/dns-host-chips';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns-zone.interface';
+import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, DataTable, DataTableRowActionsProps } from '@datum-ui/components';
+import { Button, DataTable, DataTableRowActionsProps, toast } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, Loader2Icon, PlusIcon } from 'lucide-react';
@@ -24,7 +24,6 @@ import {
   useNavigate,
   useParams,
 } from 'react-router';
-import { toast } from 'sonner';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('DNS Zones');
@@ -107,7 +106,7 @@ export default function DnsZonesPage() {
             return <Loader2Icon className="text-muted-foreground size-4 animate-spin" />;
           }
 
-          return <DomainDnsHost nameservers={nameservers} maxVisible={2} />;
+          return <DnsHostChips data={nameservers} maxVisible={2} />;
         },
         meta: {
           sortPath: 'status.domainRef.status.nameservers',
@@ -169,7 +168,7 @@ export default function DnsZonesPage() {
         variant: 'default',
         action: (row) =>
           navigate(
-            getPathWithParams(paths.project.detail.dnsZones.edit, {
+            getPathWithParams(paths.project.detail.dnsZones.detail.root, {
               projectId,
               dnsZoneId: row.name,
             })
@@ -215,18 +214,18 @@ export default function DnsZonesPage() {
       rowActions={rowActions}
       onRowClick={(row) => {
         navigate(
-          getPathWithParams(paths.project.detail.dnsZones.edit, {
+          getPathWithParams(paths.project.detail.dnsZones.detail.root, {
             projectId,
             dnsZoneId: row.name,
           })
         );
       }}
       emptyContent={{
-        title: "Looks like you don't have any DNS zones added yet",
+        title: "Looks like you don't have any DNS added yet",
         actions: [
           {
             type: 'link',
-            label: 'Add a DNS zone',
+            label: 'Add zone',
             to: getPathWithParams(paths.project.detail.dnsZones.new, {
               projectId,
             }),
@@ -237,7 +236,7 @@ export default function DnsZonesPage() {
         ],
       }}
       tableTitle={{
-        title: 'DNS Zones',
+        title: 'DNS',
         actions: (
           <Link
             to={getPathWithParams(paths.project.detail.dnsZones.new, {
@@ -253,7 +252,7 @@ export default function DnsZonesPage() {
       toolbar={{
         layout: 'compact',
         includeSearch: {
-          placeholder: 'Search DNS zones',
+          placeholder: 'Search DNS',
         },
       }}
     />

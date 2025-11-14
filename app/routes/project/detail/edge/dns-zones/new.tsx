@@ -1,6 +1,6 @@
 import { DnsZoneForm } from '@/features/edge/dns-zone/form';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns-zone.interface';
+import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { formDnsZoneSchema } from '@/resources/schemas/dns-zone.schema';
 import { paths } from '@/utils/config/paths.config';
 import { dataWithToast, validateCSRF } from '@/utils/cookies';

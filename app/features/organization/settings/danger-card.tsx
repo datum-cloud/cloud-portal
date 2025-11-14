@@ -4,12 +4,11 @@ import { ROUTE_PATH as ORG_ACTION_PATH } from '@/routes/api/organizations/$id';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
 import { CircleAlertIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';
-import { toast } from 'sonner';
 
 export const OrganizationDangerCard = ({ organization }: { organization: IOrganization }) => {
   const fetcher = useFetcher({ key: 'org-delete' });

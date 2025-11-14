@@ -154,7 +154,18 @@ export default [
         route('dns-zones', 'routes/project/detail/edge/dns-zones/layout.tsx', [
           index('routes/project/detail/edge/dns-zones/index.tsx'),
           route('new', 'routes/project/detail/edge/dns-zones/new.tsx'),
-          route(':dnsZoneId/edit', 'routes/project/detail/edge/dns-zones/edit.tsx'),
+          route(
+            ':dnsZoneId',
+            'routes/project/detail/edge/dns-zones/detail/layout.tsx',
+            { id: 'dns-zone-detail' },
+            [
+              index('routes/project/detail/edge/dns-zones/detail/index.tsx'),
+              route('overview', 'routes/project/detail/edge/dns-zones/detail/overview.tsx'),
+              route('dns-records', 'routes/project/detail/edge/dns-zones/detail/dns-records.tsx'),
+              route('nameservers', 'routes/project/detail/edge/dns-zones/detail/nameservers.tsx'),
+              route('settings', 'routes/project/detail/edge/dns-zones/detail/settings.tsx'),
+            ]
+          ),
         ]),
 
         // Export Policies

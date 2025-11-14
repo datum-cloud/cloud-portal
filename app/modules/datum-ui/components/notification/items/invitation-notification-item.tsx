@@ -6,11 +6,10 @@ import { ROUTE_PATH as INVITATION_UPDATE_STATE_ACTION } from '@/routes/api/team/
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { getInitials } from '@/utils/helpers/text.helper';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import { Avatar, AvatarFallback, AvatarImage } from '@shadcn/ui/avatar';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useFetcher } from 'react-router';
-import { toast } from 'sonner';
 
 /**
  * InvitationNotificationItem - Handles invitation-specific rendering and actions

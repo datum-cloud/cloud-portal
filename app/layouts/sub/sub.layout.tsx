@@ -1,5 +1,5 @@
-import { ContentWrapper } from '@/components/content-wrapper';
 import { SubLayoutProps } from './sub.types';
+import { ContentWrapper } from '@/components/content-wrapper';
 import { NavMain, useSidebar } from '@datum-ui/components/sidebar';
 import { cn } from '@shadcn/lib/utils';
 import { useLayoutEffect } from 'react';

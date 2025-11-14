@@ -1,9 +1,8 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
-import { Badge, type BadgeProps, Tooltip } from '@datum-ui/components';
+import { Badge, type BadgeProps, toast, Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { CopyIcon } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 export interface BadgeCopyProps {
   value: string;

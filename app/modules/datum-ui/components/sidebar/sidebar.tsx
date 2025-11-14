@@ -365,7 +365,7 @@ const Sidebar = ({
       {showBackdropElement && (
         <div
           className={cn(
-            'fixed inset-0 z-40 bg-black/50 transition-opacity duration-200 ease-in-out md:block hidden',
+            'fixed inset-0 z-40 hidden bg-black/50 transition-opacity duration-200 ease-in-out md:block',
             backdropVisible ? 'opacity-100' : 'opacity-0'
           )}
           onMouseEnter={() => forceClose()}

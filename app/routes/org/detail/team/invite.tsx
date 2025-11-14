@@ -9,6 +9,7 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { withMiddleware } from '@/utils/middlewares';
 import { parseWithZod } from '@conform-to/zod/v4';
+import { toast } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { useEffect } from 'react';
 import {
@@ -20,7 +21,6 @@ import {
   useNavigate,
   useParams,
 } from 'react-router';
-import { toast } from 'sonner';
 
 export const handle = {
   breadcrumb: () => <span>Invite Member</span>,
