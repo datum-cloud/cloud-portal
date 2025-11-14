@@ -13,6 +13,7 @@ import { paths } from '@/utils/config/paths.config';
 import { dataWithToast } from '@/utils/cookies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { toast } from '@datum-ui/components';
 import { ClockIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useMemo, useRef } from 'react';
@@ -24,7 +25,6 @@ import {
   useRouteLoaderData,
   useSearchParams,
 } from 'react-router';
-import { toast } from 'sonner';
 
 export const handle = {
   breadcrumb: () => <span>Overview</span>,

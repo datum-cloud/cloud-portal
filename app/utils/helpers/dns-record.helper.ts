@@ -182,8 +182,7 @@ function extractValues(record: any, recordType: string | undefined): string[] {
       // Format: "usage selector matchingType certData"
       if (record.tlsa) {
         return record.tlsa.map(
-          (tlsa: any) =>
-            `${tlsa.usage} ${tlsa.selector} ${tlsa.matchingType} ${tlsa.certData}`
+          (tlsa: any) => `${tlsa.usage} ${tlsa.selector} ${tlsa.matchingType} ${tlsa.certData}`
         );
       }
       return [];

@@ -79,7 +79,7 @@ export const DnsZoneForm = ({
 
   const [form, fields] = useForm({
     id: 'dns-zone-form',
-    constraint: getZodConstraint(isEdit ? formDnsZoneSchema : formDnsZoneSchema),
+    constraint: getZodConstraint(formDnsZoneSchema),
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {

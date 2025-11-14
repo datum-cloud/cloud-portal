@@ -10,7 +10,7 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-ui/components';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, PlusIcon } from 'lucide-react';
@@ -24,7 +24,6 @@ import {
   useFetcher,
   useNavigate,
 } from 'react-router';
-import { toast } from 'sonner';
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params;

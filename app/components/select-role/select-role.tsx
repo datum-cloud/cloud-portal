@@ -1,9 +1,9 @@
 import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
 import { IRoleControlResponse } from '@/resources/interfaces/role.interface';
 import { ROUTE_PATH as ROLES_LIST_PATH } from '@/routes/api/roles';
+import { toast } from '@datum-ui/components';
 import { useEffect, useMemo, useState } from 'react';
 import { useFetcher } from 'react-router';
-import { toast } from 'sonner';
 
 export const SelectRole = ({
   defaultValue,

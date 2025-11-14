@@ -21,9 +21,9 @@ import { useParams, useRouteLoaderData } from 'react-router';
 }; */
 
 export default function DnsZoneOverviewPage() {
-  const { dnsZone, domain } = useRouteLoaderData('dns-zone-detail');
+  const { dnsZone } = useRouteLoaderData('dns-zone-detail');
   // const flattenedRecords = useLoaderData<typeof loader>();
-  const { projectId, dnsZoneId } = useParams();
+  const { projectId } = useParams();
 
   return (
     <Row gutter={[0, 28]}>

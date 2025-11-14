@@ -38,6 +38,7 @@ export interface ConfirmationDialogProps {
 
 export interface ConfirmationDialogRef {
   show: (options: ConfirmationDialogProps) => Promise<boolean>;
+  close: () => void;
 }
 
 export const ConfirmationDialog = ({
@@ -79,6 +80,9 @@ export const ConfirmationDialog = ({
       return new Promise<boolean>((resolve) => {
         resolveRef.current = resolve;
       });
+    },
+    close: () => {
+      setIsOpen(false);
     },
   }));
 

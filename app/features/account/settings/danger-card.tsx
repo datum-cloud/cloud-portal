@@ -1,12 +1,11 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { ROUTE_PATH as USER_DELETE_ACTION } from '@/routes/api/user';
 import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
 import { CircleAlertIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';
-import { toast } from 'sonner';
 
 export const AccountDangerSettingsCard = () => {
   const fetcher = useFetcher({ key: 'user-delete' });

@@ -1,7 +1,7 @@
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, Card, CardContent, CardHeader, CardTitle, LinkButton } from '@datum-ui/components';
+import { Card, CardContent, CardHeader, CardTitle, LinkButton } from '@datum-ui/components';
 import { CheckIcon } from 'lucide-react';
 import { useMemo } from 'react';
 

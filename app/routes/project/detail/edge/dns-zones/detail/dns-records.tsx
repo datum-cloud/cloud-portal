@@ -14,6 +14,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 
   const dnsRecordSetsControl = createDnsRecordSetsControl(controlPlaneClient as Client);
   const dnsRecordSets = await dnsRecordSetsControl.list(projectId, dnsZoneId);
+  const newDnsRecordSet = await dnsRecordSetsControl.create(projectId, dnsZoneId);
 
   return data(dnsRecordSets);
 };

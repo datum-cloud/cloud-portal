@@ -3,11 +3,11 @@ import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
 import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
 import type { ActivityLogEntry, QueryParams } from '@/modules/loki/types';
 import { ROUTE_PATH as ACTIVITY_ROUTE_PATH } from '@/routes/api/activity';
+import { toast } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { useFetcher } from 'react-router';
-import { toast } from 'sonner';
 
 export const ActivityLogList = ({
   params,
@@ -121,7 +121,7 @@ export const ActivityLogList = ({
       if (fetcher.data?.success) {
         setLogs(fetcher.data?.data?.logs ?? []);
       } else {
-        toast.error(fetcher.data?.error);
+        toast.error(fetcher.data?.error ?? 'An error occurred');
       }
 
       setIsLoading(false);

@@ -74,7 +74,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         // Validate the CSRF token against the request headers
         await validateCSRF(formData, request.headers);
 
-        // // Validate form data with Zod
+        // Validate form data with Zod
         const parsed = secretEditSchema.safeParse(payload);
 
         if (!parsed.success) {

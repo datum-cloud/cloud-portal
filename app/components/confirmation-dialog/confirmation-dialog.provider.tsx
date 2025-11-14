@@ -7,17 +7,23 @@ import { createContext, useCallback, useContext, useRef } from 'react';
 
 const ConfirmationContext = createContext<{
   confirm: (options: ConfirmationDialogProps) => Promise<boolean>;
+  close: () => void;
 } | null>(null);
 
 export function ConfirmationDialogProvider({ children }: { children: React.ReactNode }) {
   const confirmRef = useRef<ConfirmationDialogRef>(null!);
 
   const confirm = useCallback(async (options: ConfirmationDialogProps) => {
-    return (await confirmRef.current?.show(options)) ?? false;
+    const result = await confirmRef.current?.show(options);
+    return result ?? false;
+  }, []);
+
+  const close = useCallback(() => {
+    confirmRef.current?.close();
   }, []);
 
   return (
-    <ConfirmationContext.Provider value={{ confirm }}>
+    <ConfirmationContext.Provider value={{ confirm, close }}>
       {children}
       <ConfirmationDialog ref={confirmRef} />
     </ConfirmationContext.Provider>

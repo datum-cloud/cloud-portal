@@ -1,10 +1,9 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { CopyIcon } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 export const TextCopy = ({
   value,

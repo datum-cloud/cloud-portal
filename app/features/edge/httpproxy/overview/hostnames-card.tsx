@@ -1,13 +1,12 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { Badge } from '@datum-ui/components';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { CopyIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
 
 export const HttpProxyHostnamesCard = ({
   endpoint,

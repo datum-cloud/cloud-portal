@@ -2,9 +2,9 @@ import { AnnotationFormDialog, AnnotationFormDialogRef } from './annotations-for
 import { MultiSelect, MultiSelectOption } from '@/components/multi-select/multi-select';
 import { LabelFormSchema } from '@/resources/schemas/metadata.schema';
 import { splitOption } from '@/utils/helpers/object.helper';
+import { toast } from '@datum-ui/components';
 import { PlusIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { toast } from 'sonner';
 
 export const SelectAnnotations = ({
   defaultValue,
@@ -50,9 +50,7 @@ export const SelectAnnotations = ({
     );
 
     if (isDuplicate) {
-      toast.error('Label already exists', {
-        duration: Infinity,
-      });
+      toast.error('Label already exists');
       return;
     }
 

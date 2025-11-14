@@ -25,7 +25,7 @@ export const handle = {
 };
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
-  const dnsZone = loaderData as IDnsZoneControlResponse;
+  const { dnsZone } = loaderData as { dnsZone: IDnsZoneControlResponse };
   return metaObject(dnsZone?.domainName || 'DNS');
 });
 
@@ -77,6 +77,14 @@ export default function DnsZoneDetailLayout() {
       {
         title: 'Nameservers',
         href: getPathWithParams(paths.project.detail.dnsZones.detail.nameservers, {
+          projectId,
+          dnsZoneId: dnsZone?.name ?? '',
+        }),
+        type: 'link',
+      },
+      {
+        title: 'Settings',
+        href: getPathWithParams(paths.project.detail.dnsZones.detail.settings, {
           projectId,
           dnsZoneId: dnsZone?.name ?? '',
         }),

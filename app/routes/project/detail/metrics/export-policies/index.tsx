@@ -11,7 +11,7 @@ import { dataWithToast } from '@/utils/cookies';
 import { AppError, BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, PlusIcon } from 'lucide-react';
@@ -26,7 +26,6 @@ import {
   useNavigate,
   useParams,
 } from 'react-router';
-import { toast } from 'sonner';
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   try {
