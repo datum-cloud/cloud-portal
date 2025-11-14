@@ -6,6 +6,7 @@ import {
   DataTableToolbarConfig,
 } from '@/modules/datum-ui/components/data-table/data-table.types';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
+import { formatTTL } from '@/utils/helpers/dns-record.helper';
 import { Badge } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
@@ -84,7 +85,7 @@ export const DnsRecordTable = ({
         accessorKey: 'ttl',
         size: 100,
         cell: ({ row }) => {
-          return <span className="text-sm">{row.original.ttl || '-'}</span>;
+          return <span className="text-sm">{formatTTL(row.original.ttl)}</span>;
         },
         meta: {
           sortPath: 'ttl',

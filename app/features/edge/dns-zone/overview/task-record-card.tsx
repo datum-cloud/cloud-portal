@@ -1,9 +1,17 @@
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Button, Card, CardContent, CardHeader, CardTitle, LinkButton } from '@datum-ui/components';
 import { CheckIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
-export const TaskRecordCard = ({ dnsZone }: { dnsZone: IDnsZoneControlResponse }) => {
+export const TaskRecordCard = ({
+  projectId,
+  dnsZone,
+}: {
+  projectId: string;
+  dnsZone: IDnsZoneControlResponse;
+}) => {
   const dnsRecordItems = useMemo(
     () => [
       <>
@@ -36,9 +44,17 @@ export const TaskRecordCard = ({ dnsZone }: { dnsZone: IDnsZoneControlResponse }
           ))}
         </ul>
 
-        <Button type="primary" theme="solid" size="small" className="mt-6">
+        <LinkButton
+          type="primary"
+          theme="solid"
+          size="small"
+          className="mt-6"
+          to={getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
+            projectId: projectId ?? '',
+            dnsZoneId: dnsZone?.name ?? '',
+          })}>
           Edit DNS records
-        </Button>
+        </LinkButton>
 
         <img
           src={'/images/scene-3.png'}

@@ -1,24 +1,10 @@
 import { PageTitle } from '@/components/page-title/page-title';
-import { DnsRecordCard } from '@/features/edge/dns-zone/overview/dns-records';
-import { NameserverCard } from '@/features/edge/dns-zone/overview/nameservers';
+import { TaskNameserverCard } from '@/features/edge/dns-zone/overview/task-nameserver-card';
 import { TaskRecordCard } from '@/features/edge/dns-zone/overview/task-record-card';
-import { createDnsRecordSetsControl } from '@/resources/control-plane/dns-networking/dns-record-set.control';
-import { paths } from '@/utils/config/paths.config';
-import { BadRequestError } from '@/utils/errors';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Col, LinkButton, Row } from '@datum-ui/components';
-import { Client } from '@hey-api/client-axios';
-import { PencilIcon } from 'lucide-react';
-import {
-  AppLoadContext,
-  LoaderFunctionArgs,
-  data,
-  useLoaderData,
-  useParams,
-  useRouteLoaderData,
-} from 'react-router';
+import { Col, Row } from '@datum-ui/components';
+import { useParams, useRouteLoaderData } from 'react-router';
 
-export const loader = async ({ context, params }: LoaderFunctionArgs) => {
+/* export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId, dnsZoneId } = params;
 
   if (!projectId || !dnsZoneId) {
@@ -32,11 +18,11 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const flattenedRecords = await dnsRecordSetsControl.list(projectId, dnsZoneId);
 
   return data(flattenedRecords);
-};
+}; */
 
 export default function DnsZoneOverviewPage() {
   const { dnsZone, domain } = useRouteLoaderData('dns-zone-detail');
-  const flattenedRecords = useLoaderData<typeof loader>();
+  // const flattenedRecords = useLoaderData<typeof loader>();
   const { projectId, dnsZoneId } = useParams();
 
   return (
@@ -45,7 +31,8 @@ export default function DnsZoneOverviewPage() {
         <PageTitle title={dnsZone?.domainName ?? 'DNS Zone'} />
       </Col>
       <Col span={24}>
-        <DnsRecordCard
+        <TaskRecordCard projectId={projectId ?? ''} dnsZone={dnsZone!} />
+        {/* <DnsRecordCard
           records={flattenedRecords}
           maxRows={5}
           title="DNS Records"
@@ -61,10 +48,11 @@ export default function DnsZoneOverviewPage() {
               Edit DNS records
             </LinkButton>
           }
-        />
+        /> */}
       </Col>
       <Col span={24}>
-        <NameserverCard
+        <TaskNameserverCard dnsZone={dnsZone!} />
+        {/* <NameserverCard
           nameservers={domain?.status?.nameservers ?? []}
           registration={domain?.status?.registration ?? {}}
           actions={
@@ -79,7 +67,7 @@ export default function DnsZoneOverviewPage() {
               Edit nameservers
             </LinkButton>
           }
-        />
+        /> */}
       </Col>
     </Row>
   );

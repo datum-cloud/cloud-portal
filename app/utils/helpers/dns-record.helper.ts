@@ -1,6 +1,29 @@
 import { IDnsRecordSetControlResponse } from '@/resources/interfaces/dns.interface';
 
 /**
+ * Convert TTL (in seconds) to human-readable format
+ * Examples: 3600 -> "1 hr", 300 -> "5 min", 86400 -> "1 day"
+ */
+export function formatTTL(ttlSeconds?: number): string {
+  if (!ttlSeconds) return 'Auto';
+
+  const days = Math.floor(ttlSeconds / 86400);
+  const hours = Math.floor((ttlSeconds % 86400) / 3600);
+  const minutes = Math.floor((ttlSeconds % 3600) / 60);
+  const seconds = ttlSeconds % 60;
+
+  const parts: string[] = [];
+
+  if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+  if (hours > 0) parts.push(`${hours} hr${hours > 1 ? 's' : ''}`);
+  if (minutes > 0) parts.push(`${minutes} min${minutes > 1 ? 's' : ''}`);
+  if (seconds > 0 && parts.length === 0) parts.push(`${seconds} sec${seconds > 1 ? 's' : ''}`);
+
+  // Return first two most significant units
+  return parts.slice(0, 2).join(' ');
+}
+
+/**
  * Flattened DNS record for UI display
  * Each VALUE in each record becomes a separate row
  */
@@ -144,4 +167,3 @@ function extractStatus(status: any): 'Active' | 'Pending' | 'Error' {
   if (accepted?.status === 'False' || programmed?.status === 'False') return 'Error';
   return 'Pending';
 }
-
