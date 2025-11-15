@@ -25,7 +25,7 @@ export const TaskNameserverCard = ({ dnsZone }: { dnsZone: IDnsZoneControlRespon
             <>
               This DNS zone is currently not associated with any detected host. For optimum
               performance we recommend delegating your nameservers to Datum. To do this, log in to
-              your domain's current DNS provider and change the nameservers to these:
+              your domain&apos;s current DNS provider and change the nameservers to these:
             </>
           )}
         </p>
