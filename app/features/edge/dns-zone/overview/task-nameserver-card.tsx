@@ -1,8 +1,13 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { useMemo } from 'react';
 
 export const TaskNameserverCard = ({ dnsZone }: { dnsZone: IDnsZoneControlResponse }) => {
+  const dnsHost = useMemo(() => {
+    return dnsZone?.status?.domainRef?.status?.nameservers?.[0].ips?.[0]?.registrantName;
+  }, [dnsZone]);
+
   return (
     <Card className="relative gap-6 overflow-hidden rounded-xl px-3 py-8 shadow-md">
       <CardHeader>
@@ -10,9 +15,19 @@ export const TaskNameserverCard = ({ dnsZone }: { dnsZone: IDnsZoneControlRespon
       </CardHeader>
       <CardContent className="max-w-4xl">
         <p className="text-sm leading-relaxed">
-          This DNS zone is currently hosted by AWS Route 53, however for optimum performance we
-          recommend delegating your nameservers so that it is hosted with Datum. To do this, log in
-          to your current host and change the nameservers to these:
+          {dnsHost ? (
+            <>
+              This DNS zone is currently hosted by {dnsHost}, however for optimum performance we
+              recommend delegating your nameservers so that it is hosted with Datum. To do this, log
+              in to your current host and change the nameservers to these:
+            </>
+          ) : (
+            <>
+              This DNS zone is currently not associated with any detected host. For optimum
+              performance we recommend delegating your nameservers to Datum. To do this, log in to
+              your domain&apos;s current DNS provider and change the nameservers to these:
+            </>
+          )}
         </p>
 
         <div className="mt-6 flex items-center gap-4">
