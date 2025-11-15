@@ -31,16 +31,19 @@ const DashboardContent = ({
   return (
     <div
       className={cn(
-        'transition-opacity duration-75',
+        'h-full transition-opacity duration-75',
         !isReady && 'opacity-0',
         isReady && 'opacity-100'
       )}>
-      <ContentWrapper
-        containerClassName={cn(!hasSubLayout && 'gap-6 overflow-auto p-9', containerClassName)}
-        contentClassName={cn(!hasSubLayout && 'gap-4', contentClassName)}>
-        {!hasSubLayout && <>{/* <Breadcrumb /> - Future implementation */}</>}
-        {children}
-      </ContentWrapper>
+      {hasSubLayout ? (
+        children
+      ) : (
+        <ContentWrapper
+          containerClassName={cn('gap-6 p-9 overflow-y-auto', containerClassName)}
+          contentClassName={cn('gap-4', contentClassName)}>
+          {children}
+        </ContentWrapper>
+      )}
     </div>
   );
 };
@@ -79,7 +82,7 @@ export function DashboardLayout({
         expandOnHover={sidebarCollapsible === 'icon'}
         expandBehavior={expandBehavior}
         showBackdrop={showBackdrop}
-        className="flex-1 overflow-hidden"
+        className="max-h-[calc(100vh-54px)] min-h-0 flex-1 overflow-hidden"
         style={
           {
             '--sidebar-width': '15.875rem', // Custom desktop width
@@ -91,7 +94,7 @@ export function DashboardLayout({
           title={sidebarHeader as any}
           navItems={navItems}
           collapsible={sidebarCollapsible}
-          className="top-[54px] h-[calc(100vh-54px)]"
+          className="top-[54px]"
         />
         <SidebarInset>
           <DashboardContent

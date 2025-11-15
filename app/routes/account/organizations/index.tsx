@@ -106,7 +106,7 @@ export default function AccountOrganizations() {
   );
 
   return (
-    <>
+    <div className="mx-auto flex w-full flex-col gap-6">
       <Row gutter={16}>
         <Col span={20} push={2}>
           <DataTable
@@ -200,6 +200,6 @@ export default function AccountOrganizations() {
           </Col>
         </Row>
       )}
-    </>
+    </div>
   );
 }

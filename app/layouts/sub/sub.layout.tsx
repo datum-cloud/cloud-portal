@@ -24,7 +24,7 @@ export function SubLayout({
   }, [setHasSubLayout]);
 
   return (
-    <div className={cn('flex h-screen w-full', className)}>
+    <div className={cn('flex h-full w-full', className)}>
       {/* Sub Sidebar - Fixed width, always visible */}
       <aside
         className="bg-sidebar h-full shrink-0 overflow-y-auto border-r"

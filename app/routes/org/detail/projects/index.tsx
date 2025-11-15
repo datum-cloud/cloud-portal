@@ -166,7 +166,7 @@ export default function OrgProjectsPage() {
   };
 
   return (
-    <>
+    <div className="mx-auto flex w-full flex-col gap-6">
       <DataTable
         hideHeader
         mode="card"
@@ -227,6 +227,6 @@ export default function OrgProjectsPage() {
           </AlertDescription>
         </Alert>
       )}
-    </>
+    </div>
   );
 }
