@@ -1,5 +1,5 @@
 import { cn } from '@shadcn/lib/utils';
-import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@shadcn/ui/card';
+import { CardTitle, CardDescription, CardContent, CardFooter } from '@shadcn/ui/card';
 import * as React from 'react';
 
 /**
@@ -18,5 +18,11 @@ const Card = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return <div data-slot="card" className={cn(DEFAULT_CARD_CLASSNAME, className)} {...props} />;
 };
 
-export { CardHeader, CardTitle, CardDescription, CardContent, CardFooter };
-export { Card };
+const CardHeader = ({ className, ...props }: React.ComponentProps<'div'>) => {
+  return (
+    <div data-slot="card-header" className={cn('flex flex-col gap-3 px-6', className)} {...props} />
+  );
+};
+
+export { CardTitle, CardDescription, CardContent, CardFooter };
+export { Card, CardHeader };

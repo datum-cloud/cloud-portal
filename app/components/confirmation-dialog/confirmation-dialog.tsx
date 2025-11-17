@@ -1,5 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
+import { Input, Label } from '@datum-ui/components';
 import {
   Dialog,
   DialogContent,
@@ -8,8 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@shadcn/ui/dialog';
-import { Input } from '@shadcn/ui/input';
-import { Label } from '@shadcn/ui/label';
 import { AlertCircle } from 'lucide-react';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 

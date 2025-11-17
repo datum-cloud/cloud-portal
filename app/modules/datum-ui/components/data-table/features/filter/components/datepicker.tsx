@@ -5,8 +5,8 @@ import {
 import { useApp } from '@/providers/app.provider';
 import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone.helper';
 import { CalendarDatePicker } from '@datum-ui/components';
+import { Label } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Label } from '@shadcn/ui/label';
 import { useCallback, useMemo } from 'react';
 import { DateRange } from 'react-day-picker';
 

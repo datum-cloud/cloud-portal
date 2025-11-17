@@ -3,7 +3,7 @@ import { FieldLabel } from '@/components/field/field-label';
 import { HttpProxyHostnameSchema, HttpProxySchema } from '@/resources/schemas/http-proxy.schema';
 import { FormMetadata, getInputProps, useForm } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect } from 'react';
 

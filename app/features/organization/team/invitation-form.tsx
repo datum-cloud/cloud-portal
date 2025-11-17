@@ -66,13 +66,13 @@ export const InvitationForm = () => {
           id={form.id}
           method="POST"
           autoComplete="off"
-          className="flex flex-col gap-6"
+          className="mt-6 flex flex-col gap-10"
           onSubmit={() => {
             // Set loading state when form is submitted
             setIsSubmitting(true);
           }}>
           <AuthenticityTokenInput />
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-10">
             <Field isRequired label="Role" errors={fields.role.errors}>
               <SelectRole
                 {...getSelectProps(fields.role)}

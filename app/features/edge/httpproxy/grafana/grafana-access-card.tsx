@@ -4,7 +4,7 @@ import { InstanceFormValues } from '@/features/edge/httpproxy/grafana/stepper.sc
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { ExternalLink } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router';

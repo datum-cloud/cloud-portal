@@ -20,7 +20,7 @@ import {
   CardHeader,
   toast,
 } from '@datum-ui/components';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { useEffect, useRef } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { AuthenticityTokenInput, useAuthenticityToken } from 'remix-utils/csrf/react';
@@ -113,9 +113,9 @@ export const DescriptionFormCard = ({
           id={form.id}
           method="POST"
           autoComplete="off"
-          className="flex flex-col gap-5">
+          className="mt-6 flex flex-col gap-10">
           <AuthenticityTokenInput />
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-10">
             <Field className="hidden" errors={fields.domainName.errors}>
               <Input
                 {...getInputProps(fields.domainName, { type: 'text' })}

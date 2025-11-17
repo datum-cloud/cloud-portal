@@ -18,7 +18,7 @@ export const projectSchema = z
     description: z
       .string({ error: 'Description is required.' })
       .max(100, { message: 'Description must be less than 100 characters long.' }),
-    orgEntityId: z.string({ error: 'Organization ID is required.' }),
+    orgEntityId: z.string({ error: 'Organization ID is required.' }).optional(),
   })
   .and(projectMetadataSchema);
 

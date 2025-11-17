@@ -13,6 +13,7 @@ export * from './calendar-date-picker';
 export * from './card';
 export * from './data-table';
 export * from './dropdown';
+export * from './form';
 export * from './input-number';
 export * from './input-with-addons';
 export * from './sidebar';

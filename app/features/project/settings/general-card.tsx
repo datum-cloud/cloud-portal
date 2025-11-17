@@ -7,7 +7,7 @@ import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardFooter } from '@datum-ui/components';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

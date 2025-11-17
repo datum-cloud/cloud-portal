@@ -1,6 +1,7 @@
 import AlertDemo, { alertDemoSections } from '@/components/demo/alert';
 import BadgeDemo, { badgeDemoSections } from '@/components/demo/badge';
 import ButtonDemo, { buttonDemoSections } from '@/components/demo/button';
+import FormFieldsDemo, { formFieldsDemoSections } from '@/components/demo/form-fields';
 import GridDemo, { gridDemoSections } from '@/components/demo/grid';
 import BadgeStatusDemo, { statusBadgeDemoSections } from '@/components/demo/status-badge';
 import TooltipDemo, { tooltipDemoSections } from '@/components/demo/tooltip';
@@ -18,6 +19,7 @@ const demoComponents = [
   { name: 'Button', sections: buttonDemoSections, Component: ButtonDemo },
   { name: 'Badge', sections: badgeDemoSections, Component: BadgeDemo },
   { name: 'BadgeStatus', sections: statusBadgeDemoSections, Component: BadgeStatusDemo },
+  { name: 'FormFields', sections: formFieldsDemoSections, Component: FormFieldsDemo },
   { name: 'Tooltip', sections: tooltipDemoSections, Component: TooltipDemo },
   { name: 'Grid', sections: gridDemoSections, Component: GridDemo },
 ];

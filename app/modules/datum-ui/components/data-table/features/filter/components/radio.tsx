@@ -1,7 +1,7 @@
 import { useStringFilter } from '../../../hooks/useFilterQueryState';
+import { Label } from '@datum-ui/components';
+import { RadioGroup, RadioGroupItem } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Label } from '@shadcn/ui/label';
-import { RadioGroup, RadioGroupItem } from '@shadcn/ui/radio-group';
 import { ReactNode, useCallback } from 'react';
 
 export interface RadioOption {

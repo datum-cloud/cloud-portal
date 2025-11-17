@@ -6,6 +6,7 @@ import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
 import { getFormProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button, toast } from '@datum-ui/components';
+import { Textarea } from '@datum-ui/components';
 import {
   DialogContent,
   Dialog,
@@ -14,7 +15,6 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@shadcn/ui/dialog';
-import { Textarea } from '@shadcn/ui/textarea';
 import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';

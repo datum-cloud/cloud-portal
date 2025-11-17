@@ -15,7 +15,7 @@ import {
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@datum-ui/components';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { useEffect, useRef } from 'react';
 import { Form } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
@@ -60,7 +60,7 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
         method="POST"
         autoComplete="off"
         {...getFormProps(form)}
-        className="flex flex-col gap-6">
+        className="mt-6 flex flex-col gap-10">
         <AuthenticityTokenInput />
 
         {defaultValue && (
@@ -70,7 +70,7 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
           </>
         )}
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-10">
           <Field
             label="Name"
             tooltipInfo="Used to identify your project in the dashboard, Datum CLI, and in the URL of your deployments">

@@ -3,9 +3,8 @@
  */
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
+import { Input, Label } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Input } from '@shadcn/ui/input';
-import { Label } from '@shadcn/ui/label';
 import { Search, X } from 'lucide-react';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect } from 'react';

@@ -1,7 +1,7 @@
 import { Tooltip } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { Info, Settings, Trash2, Download, HelpCircle, AlertCircle } from 'lucide-react';
 
 export const tooltipDemoSections = [

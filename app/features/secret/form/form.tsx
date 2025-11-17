@@ -55,9 +55,9 @@ export const SecretForm = ({ defaultValue }: { defaultValue?: ISecretControlResp
           id={form.id}
           method="POST"
           autoComplete="off"
-          className="flex flex-col gap-6">
+          className="mt-6 flex flex-col gap-10">
           <AuthenticityTokenInput />
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-10">
             <SecretMetadataForm
               fields={fields as unknown as ReturnType<typeof useForm<SecretBaseSchema>>[1]}
               defaultValue={defaultValue as SecretBaseSchema}

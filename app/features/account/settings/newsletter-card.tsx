@@ -1,8 +1,8 @@
 import { useApp } from '@/providers/app.provider';
 import { ROUTE_PATH as USER_PREFERENCES_UPDATE_ACTION } from '@/routes/api/user/preferences';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
-import { Label } from '@shadcn/ui/label';
-import { Switch } from '@shadcn/ui/switch';
+import { Label } from '@datum-ui/components';
+import { Switch } from '@datum-ui/components';
 import { useEffect, useState } from 'react';
 import { useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';

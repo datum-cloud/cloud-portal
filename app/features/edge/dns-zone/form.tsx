@@ -23,7 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { useEffect, useMemo, useRef } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
@@ -115,9 +115,9 @@ export const DnsZoneForm = ({
           id={form.id}
           method="POST"
           autoComplete="off"
-          className="flex flex-col gap-6">
+          className="mt-6 flex flex-col gap-10">
           <AuthenticityTokenInput />
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-10">
             <Field
               isRequired
               label="Zone Name"

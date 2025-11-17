@@ -1,6 +1,5 @@
 // src/components/multi-select.tsx
 import { Badge } from '@datum-ui/components';
-import { Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,
@@ -22,16 +21,14 @@ import { useEffect } from 'react';
  * Uses class-variance-authority (cva) to define different styles based on "variant" prop.
  */
 const multiSelectVariants = cva(
-  'm-1 transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-105 duration-300 whitespace-normal break-words',
+  'flex items-center gap-1 rounded-md border px-2 py-1 text-xs transition-colors whitespace-nowrap',
   {
     variants: {
       variant: {
-        default: 'border-foreground/10 text-foreground bg-card hover:bg-card/80',
-        secondary:
-          'border-foreground/10 bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        destructive:
-          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-        inverted: 'inverted',
+        default: 'border-input-border bg-input-background/80 text-input-foreground',
+        secondary: 'border-secondary/40 bg-secondary/20 text-secondary-foreground',
+        destructive: 'border-destructive/60 bg-destructive/20 text-destructive',
+        inverted: 'border-transparent bg-foreground text-background',
       },
     },
     defaultVariants: {
@@ -262,17 +259,22 @@ export const MultiSelect = ({
     <>
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen} modal={modalPopover}>
         <PopoverTrigger asChild>
-          <Button
+          <button
+            type="button"
             disabled={disabled || isLoading}
             data-slot="multi-select-trigger"
             onClick={handleTogglePopover}
             className={cn(
-              'relative flex h-auto min-h-10 w-full items-center justify-between rounded-md border bg-inherit p-1 hover:bg-inherit [&_svg]:pointer-events-auto',
+              'text-input-foreground placeholder:text-input-placeholder',
+              'border-input-border bg-input-background/50 relative flex min-h-10 w-full items-center justify-between rounded-lg border px-2 py-1 text-left text-sm transition-all',
+              'focus-visible:border-input-focus-border focus-visible:shadow-(--input-focus-shadow)',
+              'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden',
+              (disabled || isLoading) && 'cursor-not-allowed opacity-50',
               className
             )}>
             {currentSelectedValues.length > 0 && !isLoading && options.length > 0 ? (
               <div className="flex w-full items-center justify-between">
-                <div className="flex flex-wrap items-center">
+                <div className="flex flex-wrap items-center gap-2">
                   {currentSelectedValues
                     .slice(0, maxCount === -1 ? undefined : maxCount)
                     .map((value) => {
@@ -282,10 +284,11 @@ export const MultiSelect = ({
                         <Badge
                           key={value}
                           className={cn(
-                            isAnimating ? 'animate-bounce' : '',
                             multiSelectVariants({ variant }),
+                            'truncate',
+                            isAnimating && 'animate-bounce',
                             clickableBadges && 'cursor-pointer',
-                            badgeClassName ?? ''
+                            badgeClassName
                           )}
                           style={{ animationDuration: `${animation}s` }}
                           onClick={(event) => {
@@ -295,10 +298,12 @@ export const MultiSelect = ({
                               onBadgeClick?.(option ?? { label: '', value: '' });
                             }
                           }}>
-                          {IconComponent && <IconComponent className="mr-2 size-4" />}
-                          {option?.label}
+                          {IconComponent && (
+                            <IconComponent className="text-muted-foreground size-3" />
+                          )}
+                          <span className="max-w-[120px] truncate">{option?.label}</span>
                           <XCircle
-                            className="ml-2 size-4 cursor-pointer"
+                            className="text-muted-foreground ml-1 size-3 cursor-pointer"
                             onClick={(event) => {
                               event.stopPropagation();
                               event.preventDefault();
@@ -311,14 +316,14 @@ export const MultiSelect = ({
                   {currentSelectedValues.length > maxCount && maxCount !== -1 && (
                     <Badge
                       className={cn(
-                        'border-foreground/1 text-foreground bg-transparent hover:bg-transparent',
-                        isAnimating ? 'animate-bounce' : '',
-                        multiSelectVariants({ variant })
+                        multiSelectVariants({ variant }),
+                        'text-muted-foreground',
+                        isAnimating && 'animate-bounce'
                       )}
                       style={{ animationDuration: `${animation}s` }}>
                       {`+ ${currentSelectedValues.length - maxCount} more`}
                       <XCircle
-                        className="ml-2 size-4 cursor-pointer"
+                        className="text-muted-foreground ml-1 size-3 cursor-pointer"
                         onClick={(event) => {
                           event.stopPropagation();
                           clearExtraOptions();
@@ -340,18 +345,18 @@ export const MultiSelect = ({
                 </div>
               </div>
             ) : (
-              <div className="mx-auto flex w-full items-center justify-between">
-                <span className="text-muted-foreground mx-3 text-sm">{placeholder}</span>
-                <ChevronDown className="text-muted-foreground mx-2 h-4 cursor-pointer" />
+              <div className="flex w-full items-center justify-between px-2">
+                <span className="text-muted-foreground text-sm">{placeholder}</span>
+                <ChevronDown className="text-muted-foreground mx-1 h-4 cursor-pointer" />
               </div>
             )}
 
             {isLoading && (
-              <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-md backdrop-blur-xs">
+              <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-lg backdrop-blur-xs">
                 <Loader2 className="text-muted-foreground size-4 animate-spin" />
               </div>
             )}
-          </Button>
+          </button>
         </PopoverTrigger>
         <PopoverContent
           className={cn('popover-content-width-full min-w-[300px] p-0', boxClassName)}

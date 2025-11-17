@@ -1,4 +1,3 @@
-import { Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,
@@ -109,18 +108,17 @@ export const SelectBox = ({
   groups,
   name,
   id,
-  placeholder = 'Select a option',
+  placeholder = 'Select an option',
   disabled = false,
   isLoading = false,
   searchable = false,
   searchPlaceholder = 'Search...',
   itemPreview,
+  triggerClassName,
+  popoverClassName,
 }: {
   /** Currently selected option value (for single-select mode) */
   value?: string;
-
-  /** CSS class name for custom styling */
-  className?: string;
 
   /** Callback fired when a single option is selected */
   onChange?: (value: SelectBoxOption) => void;
@@ -152,9 +150,17 @@ export const SelectBox = ({
   /** Placeholder text for the search input (only used when searchable is true) */
   searchPlaceholder?: string;
 
-  /** Custom render function for option preview in the button */
+  /** Custom render function for option preview in the trigger */
   itemPreview?: (option: SelectBoxOption) => React.ReactNode;
+  /** Optional classes applied to both trigger and popover when more specific classes are not provided */
+  className?: string;
+  /** Optional classes applied to the trigger button */
+  triggerClassName?: string;
+  /** Optional classes applied to the popover content */
+  popoverClassName?: string;
 }) => {
+  const triggerClasses = triggerClassName ?? className;
+  const popoverClasses = popoverClassName ?? className;
   const [open, setOpen] = useState(false);
   const [initValue, setInitValue] = useState(value);
 
@@ -216,27 +222,37 @@ export const SelectBox = ({
     <>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button
+          <button
+            type="button"
             disabled={disabled || isLoading}
-            type="quaternary"
-            theme="outline"
             role="combobox"
             aria-expanded={open}
             onClick={() => setOpen(!open)}
-            className="relative !h-auto w-full p-0">
-            <div className="flex w-full flex-col items-start px-3 py-2 pr-10 text-left">
-              {selectedValue
-                ? previewHandler(selectedValue, 'line-clamp-1 text-ellipsis', true)
-                : placeholder}
+            className={cn(
+              'text-input-foreground placeholder:text-input-placeholder',
+              'border-input-border bg-input-background/50 relative flex h-auto! min-h-10 w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition-all',
+              'focus-visible:border-input-focus-border focus-visible:shadow-(--input-focus-shadow)',
+              'focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden',
+              (disabled || isLoading) && 'cursor-not-allowed opacity-50',
+              triggerClasses
+            )}>
+            <div className="flex w-full flex-col gap-0.5 pr-6">
+              {selectedValue ? (
+                previewHandler(selectedValue, 'line-clamp-1 text-ellipsis', true)
+              ) : (
+                <span className="text-muted-foreground">{placeholder}</span>
+              )}
             </div>
-            <ChevronDown className="absolute top-1/2 right-3 size-4 -translate-y-1/2 opacity-50" />
+            <ChevronDown className="text-muted-foreground absolute top-1/2 right-3 size-4 -translate-y-1/2" />
             {isLoading && (
-              <Loader2 className="absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2 animate-spin" />
+              <div className="bg-background/80 absolute inset-0 flex items-center justify-center">
+                <Loader2 className="text-muted-foreground size-4 animate-spin" />
+              </div>
             )}
-          </Button>
+          </button>
         </PopoverTrigger>
         <PopoverContent
-          className={cn('popover-content-width-full p-0', className)}
+          className={cn('popover-content-width-full p-0', popoverClasses)}
           align="center"
           onEscapeKeyDown={() => setOpen(false)}>
           <Command shouldFilter={true}>
@@ -263,11 +279,11 @@ export const SelectBox = ({
                                 setOpen(false);
                               }}
                               disabled={option.disabled}
-                              className="!flex !flex-col !items-start">
+                              className="flex! flex-col! items-start!">
                               <div className="flex w-full items-center justify-start gap-2">
                                 {previewHandler(option)}
                                 {isSelected && (
-                                  <CheckIcon className="text-primary ml-auto size-4 flex-shrink-0" />
+                                  <CheckIcon className="text-primary ml-auto size-4 shrink-0" />
                                 )}
                               </div>
                               {option.description && (
@@ -294,11 +310,11 @@ export const SelectBox = ({
                               setOpen(false);
                             }}
                             disabled={option.disabled}
-                            className="!flex !flex-col !items-start">
+                            className="flex! flex-col! items-start!">
                             <div className="flex w-full items-center justify-start gap-2">
                               {previewHandler(option)}
                               {isSelected && (
-                                <CheckIcon className="text-primary ml-auto size-4 flex-shrink-0" />
+                                <CheckIcon className="text-primary ml-auto size-4 shrink-0" />
                               )}
                             </div>
                             {option.description && (
