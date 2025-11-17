@@ -16,13 +16,8 @@ export const HTTPSRecordField = ({
   if (!httpsFields) return null;
 
   return (
-    <div className="flex gap-2">
-      <Field
-        isRequired
-        label="Priority"
-        errors={httpsFields.priority.errors}
-        className="w-24"
-        tooltipInfo="0 for alias mode, >0 for service mode">
+    <>
+      <Field isRequired label="Priority" errors={httpsFields.priority.errors}>
         <Input
           {...getInputProps(httpsFields.priority, { type: 'number' })}
           key={httpsFields.priority.id}
@@ -32,18 +27,13 @@ export const HTTPSRecordField = ({
         />
       </Field>
 
-      <Field
-        isRequired
-        label="Target"
-        errors={httpsFields.target.errors}
-        className="flex-1"
-        tooltipInfo="Target hostname or . for alias mode">
+      <Field isRequired label="Target" errors={httpsFields.target.errors}>
         <Input
           {...getInputProps(httpsFields.target, { type: 'text' })}
           key={httpsFields.target.id}
           placeholder="e.g., example.com or ."
         />
       </Field>
-    </div>
+    </>
   );
 };

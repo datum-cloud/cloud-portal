@@ -16,12 +16,8 @@ export const SRVRecordField = ({
   if (!srvFields) return null;
 
   return (
-    <div className="flex w-full flex-col gap-3">
-      <Field
-        isRequired
-        label="Target Server"
-        errors={srvFields.target.errors}
-        className="w-full">
+    <>
+      <Field isRequired label="Target Server" errors={srvFields.target.errors}>
         <Input
           {...getInputProps(srvFields.target, { type: 'text' })}
           key={srvFields.target.id}
@@ -29,51 +25,35 @@ export const SRVRecordField = ({
         />
       </Field>
 
-      <div className="flex gap-2">
-        <Field
-          isRequired
-          label="Priority"
-          errors={srvFields.priority.errors}
-          className="flex-1"
-          tooltipInfo="Lower values have higher priority">
-          <Input
-            {...getInputProps(srvFields.priority, { type: 'number' })}
-            key={srvFields.priority.id}
-            placeholder="10"
-            min={0}
-            max={65535}
-          />
-        </Field>
+      <Field isRequired label="Priority" errors={srvFields.priority.errors}>
+        <Input
+          {...getInputProps(srvFields.priority, { type: 'number' })}
+          key={srvFields.priority.id}
+          placeholder="10"
+          min={0}
+          max={65535}
+        />
+      </Field>
 
-        <Field
-          isRequired
-          label="Weight"
-          errors={srvFields.weight.errors}
-          className="flex-1"
-          tooltipInfo="For load balancing between same priority">
-          <Input
-            {...getInputProps(srvFields.weight, { type: 'number' })}
-            key={srvFields.weight.id}
-            placeholder="5"
-            min={0}
-            max={65535}
-          />
-        </Field>
+      <Field isRequired label="Weight" errors={srvFields.weight.errors}>
+        <Input
+          {...getInputProps(srvFields.weight, { type: 'number' })}
+          key={srvFields.weight.id}
+          placeholder="5"
+          min={0}
+          max={65535}
+        />
+      </Field>
 
-        <Field
-          isRequired
-          label="Port"
-          errors={srvFields.port.errors}
-          className="flex-1">
-          <Input
-            {...getInputProps(srvFields.port, { type: 'number' })}
-            key={srvFields.port.id}
-            placeholder="443"
-            min={1}
-            max={65535}
-          />
-        </Field>
-      </div>
-    </div>
+      <Field isRequired label="Port" errors={srvFields.port.errors}>
+        <Input
+          {...getInputProps(srvFields.port, { type: 'number' })}
+          key={srvFields.port.id}
+          placeholder="443"
+          min={1}
+          max={65535}
+        />
+      </Field>
+    </>
   );
 };

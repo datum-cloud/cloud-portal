@@ -16,13 +16,8 @@ export const SVCBRecordField = ({
   if (!svcbFields) return null;
 
   return (
-    <div className="flex gap-2">
-      <Field
-        isRequired
-        label="Priority"
-        errors={svcbFields.priority.errors}
-        className="w-24"
-        tooltipInfo="0 for alias mode, >0 for service mode">
+    <>
+      <Field isRequired label="Priority" errors={svcbFields.priority.errors}>
         <Input
           {...getInputProps(svcbFields.priority, { type: 'number' })}
           key={svcbFields.priority.id}
@@ -32,18 +27,13 @@ export const SVCBRecordField = ({
         />
       </Field>
 
-      <Field
-        isRequired
-        label="Target"
-        errors={svcbFields.target.errors}
-        className="flex-1"
-        tooltipInfo="Target hostname or . for alias mode">
+      <Field isRequired label="Target" errors={svcbFields.target.errors}>
         <Input
           {...getInputProps(svcbFields.target, { type: 'text' })}
           key={svcbFields.target.id}
           placeholder="e.g., example.com or ."
         />
       </Field>
-    </div>
+    </>
   );
 };

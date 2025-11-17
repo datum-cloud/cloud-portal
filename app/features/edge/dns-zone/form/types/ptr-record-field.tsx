@@ -25,7 +25,6 @@ export const PTRRecordField = ({
       isRequired
       label="Target Domain"
       errors={ptrFields.content.errors}
-      className="w-full"
       tooltipInfo="The domain name that this IP address points to (reverse DNS).">
       <Input
         {...getInputProps(ptrFields.content, { type: 'text' })}

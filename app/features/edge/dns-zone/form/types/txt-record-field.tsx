@@ -25,12 +25,12 @@ export const TXTRecordField = ({
       isRequired
       label="Text Content"
       errors={txtFields.content.errors}
-      className="w-full"
+      className="col-span-4"
       tooltipInfo="Text content for verification, SPF, DKIM, etc. Maximum 255 characters.">
       <Input
         {...getInputProps(txtFields.content, { type: 'text' })}
         key={txtFields.content.id}
-        placeholder='e.g., v=spf1 include:_spf.example.com ~all'
+        placeholder="e.g., v=spf1 include:_spf.example.com ~all"
         maxLength={255}
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           contentControl.change(e.target.value);

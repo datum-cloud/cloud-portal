@@ -16,12 +16,8 @@ export const MXRecordField = ({
   if (!mxFields) return null;
 
   return (
-    <div className="flex gap-2">
-      <Field
-        isRequired
-        label="Mail Server"
-        errors={mxFields.exchange.errors}
-        className="flex-1">
+    <>
+      <Field isRequired label="Mail Server" errors={mxFields.exchange.errors}>
         <Input
           {...getInputProps(mxFields.exchange, { type: 'text' })}
           key={mxFields.exchange.id}
@@ -29,11 +25,7 @@ export const MXRecordField = ({
         />
       </Field>
 
-      <Field
-        isRequired
-        label="Priority"
-        errors={mxFields.preference.errors}
-        className="w-24">
+      <Field isRequired label="Priority" errors={mxFields.preference.errors}>
         <Input
           {...getInputProps(mxFields.preference, { type: 'number' })}
           key={mxFields.preference.id}
@@ -42,6 +34,6 @@ export const MXRecordField = ({
           max={65535}
         />
       </Field>
-    </div>
+    </>
   );
 };

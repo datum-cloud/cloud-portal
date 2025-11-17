@@ -21,12 +21,7 @@ export const CNAMERecordField = ({
   }, [defaultValue, contentControl, cnameFields.content.value]);
 
   return (
-    <Field
-      isRequired
-      label="Target Domain"
-      errors={cnameFields.content.errors}
-      className="w-full"
-      tooltipInfo="The canonical name (target) that this record points to.">
+    <Field isRequired label="Target Domain" errors={cnameFields.content.errors}>
       <Input
         {...getInputProps(cnameFields.content, { type: 'text' })}
         key={cnameFields.content.id}

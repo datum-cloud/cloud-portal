@@ -25,7 +25,6 @@ export const NSRecordField = ({
       isRequired
       label="Nameserver"
       errors={nsFields.content.errors}
-      className="w-full"
       tooltipInfo="The authoritative nameserver for this domain.">
       <Input
         {...getInputProps(nsFields.content, { type: 'text' })}

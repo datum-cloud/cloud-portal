@@ -21,7 +21,7 @@ export const AAAARecordField = ({
   }, [defaultValue, contentControl, aaaaFields.content.value]);
 
   return (
-    <Field isRequired label="IPv6 Address" errors={aaaaFields.content.errors} className="w-full">
+    <Field isRequired label="IPv6 Address" errors={aaaaFields.content.errors}>
       <Input
         {...getInputProps(aaaaFields.content, { type: 'text' })}
         key={aaaaFields.content.id}

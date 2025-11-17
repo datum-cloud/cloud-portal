@@ -6,7 +6,7 @@ import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { BadRequestError } from '@/utils/errors';
 import { Button } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
-import { PencilIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { PencilIcon, PlusIcon, TrashIcon, XCircleIcon } from 'lucide-react';
 import { useRef } from 'react';
 import { AppLoadContext, LoaderFunctionArgs, data, useLoaderData } from 'react-router';
 
@@ -64,11 +64,10 @@ export default function DnsRecordsPage() {
         {
           key: 'edit',
           label: 'Edit',
-          icon: <PencilIcon className="size-4" />,
+          icon: <PencilIcon className="size-3.5" />,
           display: 'inline',
           triggerInlineEdit: true,
           showLabel: false,
-          tooltip: 'Edit DNS record',
           action: (row) => {
             console.log('Starting edit for:', row);
           },
@@ -85,8 +84,14 @@ export default function DnsRecordsPage() {
       // Inline form configuration
       enableInlineContent={true}
       inlineContent={({ mode, data, onClose }) => (
-        <div className="rounded-lg border px-7 py-5 shadow-sm">
+        <div className="border-secondary relative rounded-lg border px-7 py-5 shadow-sm">
           <DnsRecordInlineForm mode={mode} initialData={data} onClose={onClose} />
+
+          <XCircleIcon
+            size={20}
+            className="fill-secondary/20 text-secondary-foreground hover:fill-secondary hover:text-secondary-foreground absolute top-2 right-2 cursor-pointer transition-all"
+            onClick={onClose}
+          />
         </div>
       )}
       ref={tableRef}

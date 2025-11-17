@@ -4,25 +4,27 @@ import { z } from 'zod';
 export const DNS_RECORD_TYPES = [
   'A',
   'AAAA',
-  'CNAME',
-  'TXT',
-  'MX',
-  'SRV',
   'CAA',
-  'NS',
-  'SOA',
-  'PTR',
-  'TLSA',
+  'CNAME',
   'HTTPS',
+  'MX',
+  'NS',
+  'PTR',
+  'SOA',
+  'SRV',
   'SVCB',
+  'TLSA',
+  'TXT',
 ] as const;
 
 export type DNSRecordType = (typeof DNS_RECORD_TYPES)[number];
 
 // Common validation helpers
-const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+const ipv4Regex =
+  /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 const ipv6Regex = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
-const domainRegex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.?$/;
+const domainRegex =
+  /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.?$/;
 
 // TTL options in seconds - null/undefined means "Auto"
 export const TTL_OPTIONS = [
@@ -46,7 +48,8 @@ export const baseRecordFieldSchema = z.object({
     .string({ error: 'Name is required.' })
     .min(1, 'Name is required.')
     .regex(/^(@|[a-zA-Z0-9]([a-zA-Z0-9-_.]*[a-zA-Z0-9])?)$/, {
-      message: 'Name must be @ (root domain) or contain only alphanumeric characters, hyphens, underscores, and dots.',
+      message:
+        'Name must be @ (root domain) or contain only alphanumeric characters, hyphens, underscores, and dots.',
     }),
   ttl: z
     .union([z.string(), z.number(), z.null(), z.undefined()])
@@ -150,7 +153,9 @@ export const soaRecordDataSchema = z.object({
     .regex(domainRegex, { message: 'Invalid primary nameserver domain.' }),
   rname: z
     .string({ error: 'Responsible email is required.' })
-    .regex(/^[a-zA-Z0-9._%+-]+\.[a-zA-Z]{2,}$/, { message: 'Invalid email format (use dot instead of @).' }),
+    .regex(/^[a-zA-Z0-9._%+-]+\.[a-zA-Z]{2,}$/, {
+      message: 'Invalid email format (use dot instead of @).',
+    }),
   serial: z.coerce.number().optional(),
   refresh: z.coerce
     .number()

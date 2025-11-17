@@ -87,7 +87,7 @@ export const DataTableRowActions = <TData,>({
 
   // Mixed mode: both inline and dropdown
   return (
-    <div className="flex items-center justify-end gap-1">
+    <div className="flex items-center justify-end gap-2">
       <DataTableInlineActions
         row={row}
         rowId={rowId}

@@ -12,6 +12,7 @@ import { SVCBRecordField } from './types/svcb-record-field';
 import { TLSARecordField } from './types/tlsa-record-field';
 import { TXTRecordField } from './types/txt-record-field';
 import { Field } from '@/components/field/field';
+import { SelectBox } from '@/components/select-box/select-box';
 import {
   CreateDnsRecordSchema,
   createDnsRecordSchema,
@@ -23,6 +24,7 @@ import {
   FormProvider,
   getFormProps,
   getInputProps,
+  getSelectProps,
   useForm,
   useInputControl,
 } from '@conform-to/react';
@@ -42,11 +44,6 @@ interface DnsRecordFormProps {
   onSuccess?: () => void;
   isPending?: boolean;
 }
-
-const DNS_RECORD_TYPE_OPTIONS = DNS_RECORD_TYPES.map((type) => ({
-  value: type,
-  label: type,
-}));
 
 export function DnsRecordForm({
   mode,
@@ -149,7 +146,7 @@ export function DnsRecordForm({
 
   return (
     <FormProvider context={form.context}>
-      <Form {...getFormProps(form)} method="POST" className="flex flex-col gap-4">
+      <Form {...getFormProps(form)} method="POST" className="flex flex-row items-start gap-5">
         {loading && (
           <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 backdrop-blur-xs">
             <Loader2 className="size-4 animate-spin" />
@@ -157,40 +154,28 @@ export function DnsRecordForm({
           </div>
         )}
 
-        <div className="flex gap-3">
+        <div className="grid flex-1 grid-cols-4 gap-5">
           {/* Record Type */}
-          <Field
-            isRequired
-            label="Type"
-            errors={fields.recordType.errors}
-            className="w-32"
-            tooltipInfo="DNS record type">
-            <Select
-              key={fields.recordType.id}
+          <Field isRequired label="Type" errors={fields.recordType.errors}>
+            <SelectBox
+              {...getSelectProps(fields.recordType, { value: false })}
+              searchable
               name={fields.recordType.name}
+              id={fields.recordType.id}
+              key={fields.recordType.id}
               value={recordTypeControl.value}
-              disabled={mode === 'edit' || loading}
-              onValueChange={recordTypeControl.change}>
-              <SelectTrigger>
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {DNS_RECORD_TYPE_OPTIONS.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(value) => {
+                recordTypeControl.change(value.value);
+              }}
+              options={Object.values(DNS_RECORD_TYPES).map((kind) => ({
+                value: kind,
+                label: kind,
+              }))}
+            />
           </Field>
 
           {/* Name */}
-          <Field
-            isRequired
-            label="Name"
-            errors={fields.name.errors}
-            className="flex-1"
-            tooltipInfo="Record name (use @ for root domain or subdomain name)">
+          <Field isRequired label="Name" errors={fields.name.errors}>
             <Input
               {...getInputProps(fields.name, { type: 'text' })}
               key={fields.name.id}
@@ -206,12 +191,15 @@ export function DnsRecordForm({
           <Field
             label="TTL"
             errors={fields.ttl.errors}
-            className="w-32"
-            tooltipInfo="Time to live - Auto uses zone default">
+            description="The amount of time DNS servers will wait before refreshing the record">
             <Select
               key={fields.ttl.id}
               name={fields.ttl.name}
-              value={ttlControl.value === null || ttlControl.value === undefined ? 'auto' : String(ttlControl.value)}
+              value={
+                ttlControl.value === null || ttlControl.value === undefined
+                  ? 'auto'
+                  : String(ttlControl.value)
+              }
               disabled={loading}
               onValueChange={(value) => {
                 ttlControl.change(value === 'auto' ? '' : value);
@@ -230,26 +218,28 @@ export function DnsRecordForm({
               </SelectContent>
             </Select>
           </Field>
-        </div>
 
-        {/* Type-Specific Fields */}
-        <div className="rounded-md border p-4">
-          <div className="mb-3 text-sm font-medium">{currentRecordType} Record Configuration</div>
+          {/* Type-Specific Fields */}
           {renderTypeSpecificFields}
         </div>
 
         {/* Form Actions */}
-        <div className="flex items-center justify-end gap-2 pt-4">
-          <Button
+        <div className="flex items-center justify-start pt-5">
+          {/* <Button
             htmlType="button"
             type="quaternary"
             theme="borderless"
             onClick={onClose}
             disabled={loading}>
             Cancel
-          </Button>
-          <Button htmlType="submit" disabled={loading} loading={loading}>
-            {mode === 'create' ? 'Create Record' : 'Save Changes'}
+          </Button> */}
+          <Button
+            htmlType="submit"
+            disabled={loading}
+            loading={loading}
+            className="h-10"
+            type="secondary">
+            {mode === 'create' ? 'Add' : 'Save'}
           </Button>
         </div>
       </Form>

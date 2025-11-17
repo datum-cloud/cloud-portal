@@ -17,60 +17,42 @@ export const TLSARecordField = ({
   if (!tlsaFields) return null;
 
   return (
-    <div className="flex w-full flex-col gap-3">
-      <div className="flex gap-2">
-        <Field
-          isRequired
-          label="Usage"
-          errors={tlsaFields.usage.errors}
-          className="flex-1"
-          tooltipInfo="0-3: How the certificate is used">
-          <Input
-            {...getInputProps(tlsaFields.usage, { type: 'number' })}
-            key={tlsaFields.usage.id}
-            placeholder="3"
-            min={0}
-            max={3}
-          />
-        </Field>
+    <>
+      <Field isRequired label="Usage" errors={tlsaFields.usage.errors}>
+        <Input
+          {...getInputProps(tlsaFields.usage, { type: 'number' })}
+          key={tlsaFields.usage.id}
+          placeholder="3"
+          min={0}
+          max={3}
+        />
+      </Field>
 
-        <Field
-          isRequired
-          label="Selector"
-          errors={tlsaFields.selector.errors}
-          className="flex-1"
-          tooltipInfo="0: Full cert, 1: Public key only">
-          <Input
-            {...getInputProps(tlsaFields.selector, { type: 'number' })}
-            key={tlsaFields.selector.id}
-            placeholder="1"
-            min={0}
-            max={1}
-          />
-        </Field>
+      <Field isRequired label="Selector" errors={tlsaFields.selector.errors}>
+        <Input
+          {...getInputProps(tlsaFields.selector, { type: 'number' })}
+          key={tlsaFields.selector.id}
+          placeholder="1"
+          min={0}
+          max={1}
+        />
+      </Field>
 
-        <Field
-          isRequired
-          label="Matching Type"
-          errors={tlsaFields.matchingType.errors}
-          className="flex-1"
-          tooltipInfo="0: Full, 1: SHA-256, 2: SHA-512">
-          <Input
-            {...getInputProps(tlsaFields.matchingType, { type: 'number' })}
-            key={tlsaFields.matchingType.id}
-            placeholder="1"
-            min={0}
-            max={2}
-          />
-        </Field>
-      </div>
+      <Field isRequired label="Matching Type" errors={tlsaFields.matchingType.errors}>
+        <Input
+          {...getInputProps(tlsaFields.matchingType, { type: 'number' })}
+          key={tlsaFields.matchingType.id}
+          placeholder="1"
+          min={0}
+          max={2}
+        />
+      </Field>
 
       <Field
         isRequired
         label="Certificate Data (Hex)"
         errors={tlsaFields.certData.errors}
-        className="w-full"
-        tooltipInfo="Hexadecimal encoded certificate or public key hash">
+        className="col-span-4">
         <Textarea
           {...getInputProps(tlsaFields.certData, { type: 'text' })}
           key={tlsaFields.certData.id}
@@ -79,6 +61,6 @@ export const TLSARecordField = ({
           rows={3}
         />
       </Field>
-    </div>
+    </>
   );
 };

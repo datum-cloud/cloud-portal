@@ -31,10 +31,6 @@ export const DataTableInlineActions = <TData,>({
         const showLabel = action.showLabel ?? true;
 
         // Generate tooltip text from action config or fallback to label
-        const tooltipText =
-          typeof action.tooltip === 'function'
-            ? action.tooltip(row)
-            : (action.tooltip ?? action.label);
 
         const handleClick = (event: React.MouseEvent) => {
           event.preventDefault();
@@ -54,21 +50,25 @@ export const DataTableInlineActions = <TData,>({
         const button = (
           <Button
             type={action.variant === 'destructive' ? 'danger' : 'quaternary'}
-            theme={action.variant === 'destructive' ? 'solid' : 'outline'}
+            theme={action.variant === 'destructive' ? 'solid' : 'borderless'}
             size={showLabel ? 'small' : 'icon'}
             onClick={handleClick}
             disabled={isActionDisabled}
             className={cn(
-              'flex h-7 items-center justify-center px-2 focus-visible:ring-0 focus-visible:ring-offset-0',
+              'flex size-6 items-center justify-center border p-0 focus-visible:ring-0 focus-visible:ring-offset-0',
               action.className
             )}>
             {action.icon}
-            {showLabel && <span className="text-sm">{action.label}</span>}
+            {showLabel && <span className="text-xs">{action.label}</span>}
           </Button>
         );
 
         // Wrap with tooltip if tooltip text exists
-        if (tooltipText) {
+        if (action.tooltip) {
+          const tooltipText =
+            typeof action.tooltip === 'function'
+              ? action.tooltip(row)
+              : (action.tooltip ?? action.label);
           return (
             <div key={action.key} className="pointer-events-auto">
               <Tooltip message={tooltipText}>
