@@ -119,7 +119,7 @@ export const DomainForm = ({
           id={form.id}
           method="POST"
           autoComplete="off"
-          className="flex flex-col gap-10">
+          className="mt-6 flex flex-col gap-10">
           <AuthenticityTokenInput />
           <CardContent className="space-y-10">
             <Field

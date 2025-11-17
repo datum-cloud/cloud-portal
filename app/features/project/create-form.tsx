@@ -52,13 +52,15 @@ export const CreateProjectForm = () => {
     <Card>
       <CardHeader>
         <CardTitle>Create a new project</CardTitle>
-        <CardDescription>Create a new project to get started with Datum Cloud.</CardDescription>
+        <CardDescription>
+          Add a project to manage your core network services, workloads, and assets.
+        </CardDescription>
       </CardHeader>
       <Form
         method="POST"
         autoComplete="off"
         {...getFormProps(form)}
-        className="flex flex-col gap-10">
+        className="mt-6 flex flex-col gap-10">
         <AuthenticityTokenInput />
 
         <CardContent className="space-y-10">

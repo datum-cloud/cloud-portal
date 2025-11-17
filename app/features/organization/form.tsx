@@ -87,7 +87,7 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
           method="POST"
           autoComplete="off"
           {...getFormProps(form)}
-          className="flex flex-col gap-10">
+          className="mt-6 flex flex-col gap-10">
           <AuthenticityTokenInput />
 
           <CardContent className="space-y-10">

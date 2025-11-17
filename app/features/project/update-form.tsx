@@ -60,7 +60,7 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
         method="POST"
         autoComplete="off"
         {...getFormProps(form)}
-        className="flex flex-col gap-10">
+        className="mt-6 flex flex-col gap-10">
         <AuthenticityTokenInput />
 
         {defaultValue && (
