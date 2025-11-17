@@ -5,8 +5,11 @@ import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
 interface DnsRecordInlineFormProps {
   mode: 'create' | 'edit';
   initialData: IFlattenedDnsRecord | null;
+  projectId: string;
+  dnsZoneId: string;
   dnsZoneName?: string;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 /**
@@ -16,8 +19,11 @@ interface DnsRecordInlineFormProps {
 export function DnsRecordInlineForm({
   mode,
   initialData,
+  projectId,
+  dnsZoneId,
   dnsZoneName,
   onClose,
+  onSuccess,
 }: DnsRecordInlineFormProps) {
   // Transform flattened data to schema format if needed
   const defaultValue: CreateDnsRecordSchema | undefined = initialData
@@ -129,8 +135,15 @@ export function DnsRecordInlineForm({
     <DnsRecordForm
       mode={mode}
       defaultValue={defaultValue}
+      projectId={projectId}
+      dnsZoneId={dnsZoneId}
       dnsZoneName={dnsZoneName}
+      recordSetName={initialData?.recordSetName}
+      recordName={initialData?.name}
+      oldValue={initialData?.value} // Pass the original value for edit mode
+      oldTTL={initialData?.ttl ?? null} // Pass the original TTL for edit mode
       onClose={onClose}
+      onSuccess={onSuccess}
     />
   );
 }

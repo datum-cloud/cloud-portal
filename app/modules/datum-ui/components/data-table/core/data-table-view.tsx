@@ -55,7 +55,6 @@ export const DataTableView = <TData,>({
               <DataTableInlineContent
                 mode="create"
                 data={null}
-                rowId={null}
                 columnCount={columnCount}
                 onClose={closeInlineContent}
                 className={inlineContentClassName}>
@@ -74,7 +73,6 @@ export const DataTableView = <TData,>({
                   key={row.id}
                   mode="edit"
                   data={row.original}
-                  rowId={row.id}
                   columnCount={columnCount}
                   onClose={closeInlineContent}
                   className={inlineContentClassName}>

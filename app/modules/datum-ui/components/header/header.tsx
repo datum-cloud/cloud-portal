@@ -14,11 +14,9 @@ import { Link } from 'react-router';
 export const Header = ({
   currentProject,
   currentOrg,
-  title,
 }: {
   currentProject?: IProjectControlResponse;
   currentOrg?: IOrganization;
-  title?: string;
 }) => {
   return (
     <header className="bg-background sticky top-0 z-50 flex h-[54px] w-full shrink-0 items-center justify-between gap-4 border-b px-4 py-3.5">

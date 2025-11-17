@@ -20,6 +20,9 @@ import {
   DNSRecordType,
   TTL_OPTIONS,
 } from '@/resources/schemas/dns-record.schema';
+import { ROUTE_PATH as DNS_RECORDS_ACTIONS_PATH } from '@/routes/api/dns-records';
+import { ROUTE_PATH as DNS_RECORDS_DETAIL_PATH } from '@/routes/api/dns-records/$id';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   FormProvider,
   getFormProps,
@@ -29,17 +32,24 @@ import {
   useInputControl,
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import { Input } from '@shadcn/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Form, useSubmit } from 'react-router';
+import { Form } from 'react-router';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 interface DnsRecordFormProps {
   mode: 'create' | 'edit';
   defaultValue?: CreateDnsRecordSchema;
+  projectId: string;
+  dnsZoneId: string;
   dnsZoneName?: string;
+  recordSetName?: string;
+  recordName?: string;
+  oldValue?: string; // The original value being edited (for updating specific values in arrays)
+  oldTTL?: number | null; // The original TTL (for identifying which record to update)
   onClose: () => void;
   onSuccess?: () => void;
   isPending?: boolean;
@@ -48,12 +58,18 @@ interface DnsRecordFormProps {
 export function DnsRecordForm({
   mode,
   defaultValue,
+  projectId,
+  dnsZoneId,
   dnsZoneName,
+  recordSetName,
+  recordName,
+  oldValue,
+  oldTTL,
   onClose,
   onSuccess,
   isPending = false,
 }: DnsRecordFormProps) {
-  const submit = useSubmit();
+  const csrf = useAuthenticityToken();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Initialize form with default values based on record type
@@ -85,32 +101,51 @@ export function DnsRecordForm({
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: createDnsRecordSchema });
     },
-    onSubmit(event, { submission }) {
+    async onSubmit(event, { submission }) {
       event.preventDefault();
       event.stopPropagation();
 
       if (submission?.status === 'success') {
         setIsSubmitting(true);
 
-        // TODO: Replace with actual API call
-        setTimeout(() => {
-          console.log(
-            `${mode === 'create' ? 'Creating' : 'Updating'} DNS record:`,
-            submission.value
-          );
-          setIsSubmitting(false);
+        try {
+          const apiUrl =
+            mode === 'create'
+              ? DNS_RECORDS_ACTIONS_PATH
+              : getPathWithParams(DNS_RECORDS_DETAIL_PATH, { id: recordSetName });
+
+          const payload = {
+            csrf,
+            projectId,
+            dnsZoneId,
+            ...(mode === 'edit' && { recordName }),
+            ...(mode === 'edit' && oldValue && { oldValue }), // Include oldValue for edit mode
+            ...(mode === 'edit' && oldTTL !== undefined && { oldTTL }), // Include oldTTL for edit mode
+            ...submission.value,
+          };
+
+          const response = await fetch(apiUrl, {
+            method: mode === 'create' ? 'POST' : 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || `Failed to ${mode} DNS record`);
+          }
+
+          // Success!
           onSuccess?.();
           onClose();
-        }, 1000);
-
-        // For React Router integration:
-        // const formElement = event.currentTarget as HTMLFormElement;
-        // submit(submission.value, {
-        //   method: 'POST',
-        //   action: formElement.getAttribute('action') || undefined,
-        //   encType: 'application/json',
-        //   replace: true,
-        // });
+        } catch (error: any) {
+          toast.error(error.message || `Failed to ${mode} DNS record. Please try again.`);
+        } finally {
+          setIsSubmitting(false);
+        }
       }
     },
   });
@@ -150,7 +185,7 @@ export function DnsRecordForm({
         {loading && (
           <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 backdrop-blur-xs">
             <Loader2 className="size-4 animate-spin" />
-            {mode === 'create' ? 'Creating' : 'Updating'} DNS record...
+            {mode === 'create' ? 'Adding' : 'Saving'} DNS record...
           </div>
         )}
 
@@ -233,12 +268,7 @@ export function DnsRecordForm({
             disabled={loading}>
             Cancel
           </Button> */}
-          <Button
-            htmlType="submit"
-            disabled={loading}
-            loading={loading}
-            className="h-10"
-            type="secondary">
+          <Button htmlType="submit" disabled={loading} className="h-10" type="secondary">
             {mode === 'create' ? 'Add' : 'Save'}
           </Button>
         </div>

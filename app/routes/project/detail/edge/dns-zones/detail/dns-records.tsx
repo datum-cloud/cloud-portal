@@ -1,14 +1,24 @@
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DnsRecordTable } from '@/features/edge/dns-zone/overview/dns-records';
 import { DnsRecordInlineForm } from '@/features/edge/dns-zone/overview/dns-records/dns-record-inline-form';
 import { DataTableRef } from '@/modules/datum-ui/components/data-table';
 import { createDnsRecordSetsControl } from '@/resources/control-plane/dns-networking/dns-record-set.control';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
+import { ROUTE_PATH as DNS_RECORDS_ACTIONS_PATH } from '@/routes/api/dns-records';
 import { BadRequestError } from '@/utils/errors';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
-import { PencilIcon, PlusIcon, TrashIcon, XCircleIcon } from 'lucide-react';
-import { useRef } from 'react';
-import { AppLoadContext, LoaderFunctionArgs, data, useLoaderData } from 'react-router';
+import { PencilIcon, PlusIcon, Trash2Icon, XCircleIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import {
+  AppLoadContext,
+  LoaderFunctionArgs,
+  data,
+  useFetcher,
+  useLoaderData,
+  useParams,
+  useRevalidator,
+} from 'react-router';
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId, dnsZoneId } = params;
@@ -25,16 +35,74 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 };
 
 export default function DnsRecordsPage() {
-  const dnsRecordSets = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
+  const { projectId, dnsZoneId } = useParams();
+  const revalidator = useRevalidator();
   const tableRef = useRef<DataTableRef<IFlattenedDnsRecord>>(null);
 
-  const handleDelete = (record: IFlattenedDnsRecord) => {
-    if (confirm(`Are you sure you want to delete the ${record.type} record for ${record.name}?`)) {
-      // TODO: Implement delete API call
-      console.log('Deleting record:', record);
-      alert('Delete functionality not yet implemented');
-    }
+  const { confirm } = useConfirmationDialog();
+  const fetcher = useFetcher({ key: 'delete-dns-record' });
+
+  // Local state for DNS records that we can manipulate
+  const [dnsRecordSets, setDnsRecordSets] = useState<IFlattenedDnsRecord[]>(loaderData);
+  const [currentRecord, setCurrentRecord] = useState<IFlattenedDnsRecord | null>(null);
+
+  // Update local state when loader data changes (e.g., after revalidation)
+  useEffect(() => {
+    setDnsRecordSets(loaderData);
+  }, [loaderData]);
+
+  const handleDelete = async (record: IFlattenedDnsRecord) => {
+    await confirm({
+      title: 'Delete DNS Record',
+      description: (
+        <span>
+          Are you sure you want to delete the <strong>{record.type}</strong> record for{' '}
+          <strong>{record.name}</strong>?
+        </span>
+      ),
+      submitText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      onSubmit: async () => {
+        setCurrentRecord(record);
+        await fetcher.submit(
+          {
+            projectId: projectId!,
+            recordSetName: record.recordSetName,
+            recordName: record.name,
+            recordType: record.type,
+            value: record.value,
+          },
+          {
+            method: 'DELETE',
+            action: DNS_RECORDS_ACTIONS_PATH,
+          }
+        );
+      },
+    });
   };
+
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      if (fetcher.data?.success) {
+        toast.success('DNS record deleted successfully', {
+          description: 'The DNS record has been deleted successfully',
+        });
+
+        setDnsRecordSets((prev) =>
+          prev.filter(
+            (r) =>
+              r.value !== currentRecord?.value ||
+              r.name !== currentRecord?.name ||
+              r.ttl !== currentRecord?.ttl
+          )
+        );
+      } else {
+        toast.error(fetcher.data?.error);
+      }
+    }
+  }, [fetcher.data, fetcher.state]);
 
   return (
     <DnsRecordTable
@@ -68,16 +136,14 @@ export default function DnsRecordsPage() {
           display: 'inline',
           triggerInlineEdit: true,
           showLabel: false,
-          action: (row) => {
-            console.log('Starting edit for:', row);
-          },
+          action: () => {},
         },
         {
           key: 'delete',
           label: 'Delete',
-          icon: <TrashIcon className="size-4" />,
-          variant: 'destructive',
-          tooltip: 'Delete DNS record',
+          icon: <Trash2Icon className="size-3.5" />,
+          display: 'inline',
+          showLabel: false,
           action: (row) => handleDelete(row),
         },
       ]}
@@ -85,7 +151,21 @@ export default function DnsRecordsPage() {
       enableInlineContent={true}
       inlineContent={({ mode, data, onClose }) => (
         <div className="border-secondary relative rounded-lg border px-7 py-5 shadow-sm">
-          <DnsRecordInlineForm mode={mode} initialData={data} onClose={onClose} />
+          <DnsRecordInlineForm
+            mode={mode}
+            initialData={data}
+            projectId={projectId!}
+            dnsZoneId={dnsZoneId!}
+            onClose={onClose}
+            onSuccess={() => {
+              // Reload data after successful add/save
+              toast.success(`DNS record ${mode === 'create' ? 'added' : 'saved'} successfully`, {
+                description: `The ${mode === 'create' ? 'DNS record has been added' : 'DNS record has been saved'} successfully`,
+              });
+
+              revalidator.revalidate();
+            }}
+          />
 
           <XCircleIcon
             size={20}

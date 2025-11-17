@@ -2,7 +2,10 @@ import {
   ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet,
   ComMiloapisNetworkingDnsV1Alpha1DnsRecordSetList,
   createDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet,
+  deleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet,
   listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet,
+  patchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet,
+  readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet,
 } from '@/modules/control-plane/dns-networking';
 import {
   IDnsRecordSetControlResponse,
@@ -54,7 +57,59 @@ export const createDnsRecordSetsControl = (client: Client) => {
 
       return flattenDnsRecordSets(recordSets);
     },
-    create: async (projectId: string, dnsZoneId: string) => {
+    /**
+     * Get RecordSets list (raw, not flattened)
+     */
+    listRaw: async (
+      projectId: string,
+      dnsZoneId?: string,
+      limit?: number
+    ): Promise<IDnsRecordSetControlResponse[]> => {
+      const response = await listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: {
+          namespace: 'default',
+        },
+        query: {
+          fieldSelector: dnsZoneId ? `spec.dnsZoneRef.name=${dnsZoneId}` : undefined,
+          limit: limit,
+        },
+      });
+
+      const dnsRecordSets = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsRecordSetList;
+      return dnsRecordSets.items.map(transformDnsRecordSet);
+    },
+
+    /**
+     * Get single RecordSet by ID
+     */
+    detail: async (
+      projectId: string,
+      recordSetId: string
+    ): Promise<IDnsRecordSetControlResponse> => {
+      const response = await readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: {
+          namespace: 'default',
+          name: recordSetId,
+        },
+      });
+
+      const dnsRecordSet = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet;
+      return transformDnsRecordSet(dnsRecordSet);
+    },
+
+    /**
+     * Create new RecordSet
+     */
+    create: async (
+      projectId: string,
+      payload: ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet['spec'],
+      dryRun: boolean = false
+    ): Promise<IDnsRecordSetControlResponse> => {
+      const dnsZoneId = payload.dnsZoneRef?.name || '';
       const response = await createDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet({
         client,
         baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -62,7 +117,10 @@ export const createDnsRecordSetsControl = (client: Client) => {
           namespace: 'default',
         },
         query: {
-          dryRun: 'All',
+          dryRun: dryRun ? 'All' : undefined,
+        },
+        headers: {
+          'Content-Type': 'application/json',
         },
         body: {
           kind: 'DNSRecordSet',
@@ -70,27 +128,88 @@ export const createDnsRecordSetsControl = (client: Client) => {
           metadata: {
             name: `dns-record-set-${generateId(dnsZoneId, { randomText: generateRandomString(6) })}`,
           },
-          spec: {
-            dnsZoneRef: { name: dnsZoneId },
-            recordType: 'A',
-            records: [
-              {
-                name: '@',
-                a: {
-                  content: ['192.168.1.1', '192.168.1.2'],
-                },
-                ttl: 3600,
-              },
-            ],
-          },
+          spec: payload,
         },
       });
 
-      console.log(JSON.stringify(response.data, null, 2));
+      const dnsRecordSet = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet;
+      return transformDnsRecordSet(dnsRecordSet);
+    },
+
+    /**
+     * Update existing RecordSet (merge patch)
+     */
+    update: async (
+      projectId: string,
+      recordSetId: string,
+      payload: Partial<ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet['spec']>,
+      dryRun: boolean = false
+    ): Promise<IDnsRecordSetControlResponse> => {
+      const response = await patchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: {
+          namespace: 'default',
+          name: recordSetId,
+        },
+        query: {
+          dryRun: dryRun ? 'All' : undefined,
+          fieldManager: 'datum-cloud-portal',
+        },
+        headers: {
+          'Content-Type': 'application/merge-patch+json',
+        },
+        body: {
+          kind: 'DNSRecordSet',
+          apiVersion: 'dns.networking.miloapis.com/v1alpha1',
+          spec: payload,
+        },
+      });
 
       const dnsRecordSet = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet;
-
       return transformDnsRecordSet(dnsRecordSet);
+    },
+
+    /**
+     * Delete RecordSet
+     */
+    delete: async (projectId: string, recordSetId: string) => {
+      const response = await deleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: {
+          namespace: 'default',
+          name: recordSetId,
+        },
+      });
+
+      return response.data;
+    },
+
+    /**
+     * Find RecordSet by zone and type
+     */
+    findByTypeAndZone: async (
+      projectId: string,
+      dnsZoneId: string,
+      recordType: string
+    ): Promise<IDnsRecordSetControlResponse | undefined> => {
+      const response = await listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet({
+        client,
+        baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+        path: {
+          namespace: 'default',
+        },
+        query: {
+          fieldSelector: `spec.dnsZoneRef.name=${dnsZoneId},spec.recordType=${recordType}`,
+        },
+      });
+
+      const dnsRecordSets = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsRecordSetList;
+      const items = dnsRecordSets.items.map(transformDnsRecordSet);
+      return items.length > 0 ? items[0] : undefined;
     },
   };
 };
+
+export type DnsRecordSetsControl = ReturnType<typeof createDnsRecordSetsControl>;

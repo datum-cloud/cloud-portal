@@ -32,11 +32,6 @@ export interface DataTableInlineContentProps<TData> {
   data: TData | null;
 
   /**
-   * ID of the row being edited (null for create mode)
-   */
-  rowId: string | null;
-
-  /**
    * Total number of columns (including actions column if present)
    * Used for colSpan to make the content row span entire table width
    */
@@ -61,7 +56,6 @@ export interface DataTableInlineContentProps<TData> {
 export function DataTableInlineContent<TData>({
   mode,
   data,
-  rowId,
   columnCount,
   onClose,
   className,
