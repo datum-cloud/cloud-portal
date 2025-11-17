@@ -88,7 +88,7 @@ export const createProjectsControl = (client: Client) => {
             spec: {
               ownerRef: {
                 kind: 'Organization',
-                name: payload.orgEntityId,
+                name: payload.orgEntityId ?? '',
               },
             },
           },
