@@ -3,7 +3,13 @@ import { InputName } from '@/components/input-name/input-name';
 import { SECRET_TYPES } from '@/features/secret/constants';
 import { SecretBaseSchema } from '@/resources/schemas/secret.schema';
 import { getSelectProps, useForm, useInputControl } from '@conform-to/react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@datum-ui/components';
 import { useEffect, useRef } from 'react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 

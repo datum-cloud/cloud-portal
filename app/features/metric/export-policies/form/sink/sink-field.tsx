@@ -8,8 +8,14 @@ import {
   ExportPolicySinkPrometheusFieldSchema,
 } from '@/resources/schemas/export-policy.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
-import { Input } from '@shadcn/ui/input';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@shadcn/ui/select';
+import {
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@datum-ui/components';
 import { isEqual } from 'es-toolkit/compat';
 import { useEffect, useRef, useState } from 'react';
 import { useHydrated } from 'remix-utils/use-hydrated';

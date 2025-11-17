@@ -1,6 +1,6 @@
 import { Badge } from '@datum-ui/components';
+import { Input } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Input } from '@shadcn/ui/input';
 import { X as RemoveIcon } from 'lucide-react';
 import React from 'react';
 import { z } from 'zod';

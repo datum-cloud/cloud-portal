@@ -8,7 +8,7 @@ import {
   PolicyBindingResourceSchema,
 } from '@/resources/schemas/policy-binding.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { useEffect, useState } from 'react';
 
 export const ResourceForm = ({

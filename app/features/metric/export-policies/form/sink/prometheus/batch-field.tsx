@@ -3,7 +3,7 @@ import { FieldLabel } from '@/components/field/field-label';
 import { ExportPolicySinkPrometheusFieldSchema } from '@/resources/schemas/export-policy.schema';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { InputWithAddons } from '@datum-ui/components';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { useEffect } from 'react';
 
 export const BatchField = ({

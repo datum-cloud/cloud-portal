@@ -4,7 +4,13 @@ import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@datum-ui/components';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { useQueryState } from 'nuqs';

@@ -23,7 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { useEffect, useMemo, useRef } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

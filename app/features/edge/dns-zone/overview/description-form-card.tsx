@@ -20,7 +20,7 @@ import {
   CardHeader,
   toast,
 } from '@datum-ui/components';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { useEffect, useRef } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { AuthenticityTokenInput, useAuthenticityToken } from 'remix-utils/csrf/react';

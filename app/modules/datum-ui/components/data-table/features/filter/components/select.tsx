@@ -1,6 +1,7 @@
 import { useStringFilter, useArrayFilter } from '../../../hooks/useFilterQueryState';
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
+import { Label } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,
@@ -10,7 +11,6 @@ import {
   CommandItem,
   CommandList,
 } from '@shadcn/ui/command';
-import { Label } from '@shadcn/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { Check, ChevronDown, X } from 'lucide-react';
 import { ReactNode, useCallback, useState } from 'react';

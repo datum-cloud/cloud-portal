@@ -8,7 +8,7 @@ import {
   ExportPolicySinkPrometheusFieldSchema,
 } from '@/resources/schemas/export-policy.schema';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { Separator } from '@shadcn/ui/separator';
 import { useEffect } from 'react';
 

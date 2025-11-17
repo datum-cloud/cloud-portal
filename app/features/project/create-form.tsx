@@ -18,7 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { RocketIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Form, useNavigate } from 'react-router';

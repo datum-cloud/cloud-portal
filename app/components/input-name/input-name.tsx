@@ -4,10 +4,8 @@ import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { FieldMetadata, useInputControl } from '@conform-to/react';
 import { getInputProps } from '@conform-to/react';
 import { Tooltip } from '@datum-ui/components';
+import { Checkbox, Input, Label } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Checkbox } from '@shadcn/ui/checkbox';
-import { Input } from '@shadcn/ui/input';
-import { Label } from '@shadcn/ui/label';
 import { CircleHelp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 

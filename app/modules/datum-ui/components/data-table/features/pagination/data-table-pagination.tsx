@@ -1,5 +1,11 @@
 import { Button } from '@datum-ui/components';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@datum-ui/components';
 import { Table as TTable } from '@tanstack/react-table';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 

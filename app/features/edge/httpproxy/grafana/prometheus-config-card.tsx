@@ -7,7 +7,7 @@ import { getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { Alert, AlertDescription } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { CopyIcon, ExternalLinkIcon, LightbulbIcon, TriangleAlertIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 

@@ -6,7 +6,7 @@ import { useApp } from '@/providers/app.provider';
 import { PolicyBindingSubjectKind } from '@/resources/interfaces/policy-binding.interface';
 import { PolicyBindingSubjectSchema } from '@/resources/schemas/policy-binding.schema';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-ui/components';
 import { useEffect } from 'react';
 
 export const SubjectField = ({

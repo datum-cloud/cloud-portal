@@ -1,6 +1,6 @@
 import { Tooltip } from '@datum-ui/components';
+import { Label } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Label } from '@shadcn/ui/label';
 import { CircleHelp } from 'lucide-react';
 import { useState } from 'react';
 

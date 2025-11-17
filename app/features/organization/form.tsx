@@ -24,8 +24,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
+import { Input } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Input } from '@shadcn/ui/input';
 import { useEffect, useMemo, useRef } from 'react';
 import { Form, useNavigate } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

@@ -13,7 +13,7 @@ import {
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardFooter } from '@datum-ui/components';
-import { Label } from '@shadcn/ui/label';
+import { Label } from '@datum-ui/components';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';

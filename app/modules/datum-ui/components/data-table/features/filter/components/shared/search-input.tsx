@@ -1,7 +1,7 @@
 import { Button } from '@datum-ui/components';
 import { InputWithAddons } from '@datum-ui/components';
+import { Label } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Label } from '@shadcn/ui/label';
 import { Search, X } from 'lucide-react';
 
 /**
@@ -52,11 +52,8 @@ export function SearchInput({
           value={value}
           onChange={onChange}
           disabled={disabled}
-          containerClassName={cn(
-            'h-9 focus-within:ring-0 focus-within:border-primary focus-within:ring-offset-0 transition-all dark:bg-background bg-white',
-            inputClassName
-          )}
-          className="text-placeholder-input placeholder:text-placeholder-input/80 dark:bg-background h-full bg-white"
+          containerClassName={cn('h-9 dark:bg-input-background bg-white', inputClassName)}
+          className="dark:bg-input-background h-full bg-white"
           leading={<Search size={14} />}
           trailing={
             value && (
