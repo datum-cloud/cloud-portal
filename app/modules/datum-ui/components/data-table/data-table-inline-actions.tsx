@@ -1,17 +1,21 @@
 import { DataTableRowActionsProps } from './data-table.types';
+import { useDataTable } from './data-table.context';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 
 export const DataTableInlineActions = <TData,>({
   row,
+  rowId,
   actions,
   disabled = false,
 }: {
   row: TData;
+  rowId?: string;
   actions: DataTableRowActionsProps<TData>[];
   disabled?: boolean;
 }) => {
+  const { openInlineForm } = useDataTable<TData>();
   // Filter visible actions
   const visibleActions = actions.filter((action) => !action.hidden?.(row));
 
@@ -32,18 +36,27 @@ export const DataTableInlineActions = <TData,>({
             ? action.tooltip(row)
             : (action.tooltip ?? action.label);
 
+        const handleClick = (event: React.MouseEvent) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          if (isActionDisabled) return;
+
+          // If this action triggers inline edit, open the form
+          if (action.triggerInlineEdit && rowId) {
+            openInlineForm('edit', row, rowId);
+          }
+
+          // Still call the action callback (for optional pre-edit logic)
+          action.action(row);
+        };
+
         const button = (
           <Button
             type={action.variant === 'destructive' ? 'danger' : 'quaternary'}
             theme={action.variant === 'destructive' ? 'solid' : 'outline'}
             size={showLabel ? 'small' : 'icon'}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              if (!isActionDisabled) {
-                action.action(row);
-              }
-            }}
+            onClick={handleClick}
             disabled={isActionDisabled}
             className={cn(
               'flex h-7 items-center justify-center px-2 focus-visible:ring-0 focus-visible:ring-offset-0',

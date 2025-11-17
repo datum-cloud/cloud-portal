@@ -4,8 +4,8 @@ import { DataTableLoadingContent } from './data-table-loading';
 import { DataTablePagination } from './data-table-pagination';
 import { DataTableToolbar } from './data-table-toolbar';
 import { DataTableView } from './data-table-view';
-import { DataTableProvider } from './data-table.context';
-import { DataTableProps } from './data-table.types';
+import { DataTableProvider, useDataTable } from './data-table.context';
+import { DataTableProps, DataTableRef } from './data-table.types';
 import { createGlobalSearchFilter } from './utils/global-search.helpers';
 import { createNestedAccessor, getSortingFnByType } from './utils/sorting.helpers';
 import { EmptyContent } from '@/components/empty-content/empty-content';
@@ -26,42 +26,54 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { useMemo, useState, useRef } from 'react';
+import { forwardRef, useImperativeHandle, useMemo, useState, useRef, Ref } from 'react';
 
-export const DataTable = <TData, TValue>({
-  columns,
-  data,
-  defaultColumnFilters = [],
-  defaultSorting = [],
-  pageSize = 20,
-  filterComponent,
-  filters,
-  defaultFilters,
-  onFiltersChange,
-  onFilteringStart,
-  onFilteringEnd,
-  serverSideFiltering = false,
-  mode = 'table',
-  hideHeader = false,
-  hidePagination = false,
-  className,
-  rowActions = [],
-  hideRowActions,
-  disableRowActions,
-  maxInlineActions = 3,
-  onRowClick,
-  rowClassName,
-  tableTitle,
-  toolbar,
-  emptyContent = {
-    title: 'No results.',
-  },
-  tableContainerClassName,
-  tableClassName,
-  tableCardClassName,
-  isLoading,
-  loadingText,
-}: DataTableProps<TData, TValue>) => {
+// Internal component that wraps the table content and provides ref access
+function DataTableInternal<TData, TValue>(
+  {
+    columns,
+    data,
+    defaultColumnFilters = [],
+    defaultSorting = [],
+    pageSize = 20,
+    filterComponent,
+    filters,
+    defaultFilters,
+    onFiltersChange,
+    onFilteringStart,
+    onFilteringEnd,
+    serverSideFiltering = false,
+    mode = 'table',
+    hideHeader = false,
+    hidePagination = false,
+    className,
+    rowActions = [],
+    hideRowActions,
+    disableRowActions,
+    maxInlineActions = 3,
+    onRowClick,
+    rowClassName,
+    tableTitle,
+    toolbar,
+    emptyContent = {
+      title: 'No results.',
+    },
+    tableContainerClassName,
+    tableClassName,
+    tableCardClassName,
+    isLoading,
+    loadingText,
+    // Inline form props
+    enableInlineForm = false,
+    inlineFormContent,
+    inlineFormClassName,
+    inlineFormPosition = 'top',
+    onInlineFormOpen,
+    onInlineFormClose,
+    inlineFormDefaultData,
+  }: DataTableProps<TData, TValue>,
+  ref: Ref<DataTableRef<TData>>
+) {
   // Deprecation warnings for old API
   if (process.env.NODE_ENV === 'development') {
     if (filterComponent && !filters) {
@@ -208,68 +220,212 @@ export const DataTable = <TData, TValue>({
       onFilteringStart={onFilteringStart}
       onFilteringEnd={onFilteringEnd}
       serverSideFiltering={serverSideFiltering}
-      globalSearchOptionsRef={globalSearchOptionsRef}>
-      <div className={cn('mx-auto flex h-full w-full flex-col gap-8', className)}>
-        {/* Toolbar Section: Page Title + Filters */}
-        {showToolbar && (
-          <DataTableToolbar
-            tableTitle={tableTitle}
-            filterComponent={filterComponent}
-            filters={filters}
-            config={toolbar}
-          />
-        )}
-
-        {isLoading ? (
-          <DataTableLoadingContent title={loadingText} />
-        ) : data?.length > 0 ? (
-          <div className="space-y-6">
-            {/* Table Section */}
-            <div
-              className={cn(
-                'flex max-w-full flex-col overflow-hidden',
-                mode === 'table' ? 'rounded-md border' : '',
-                tableContainerClassName
-              )}>
-              <Table className={tableClassName}>
-                {!hideHeader && (
-                  <DataTableColumnHeader table={table} hasRowActions={rowActions.length > 0} />
-                )}
-
-                {mode === 'table' ? (
-                  <DataTableView
-                    table={table}
-                    columns={columns}
-                    rowActions={rowActions}
-                    hideRowActions={hideRowActions}
-                    disableRowActions={disableRowActions}
-                    maxInlineActions={maxInlineActions}
-                    onRowClick={onRowClick}
-                    rowClassName={rowClassName}
-                  />
-                ) : (
-                  <DataTableCardView
-                    table={table}
-                    columns={columns}
-                    rowActions={rowActions}
-                    hideRowActions={hideRowActions}
-                    disableRowActions={disableRowActions}
-                    maxInlineActions={maxInlineActions}
-                    onRowClick={onRowClick}
-                    hideHeader={hideHeader}
-                    tableCardClassName={tableCardClassName}
-                  />
-                )}
-              </Table>
-            </div>
-
-            {/* Pagination Section */}
-            {!hidePagination && <DataTablePagination table={table} />}
-          </div>
-        ) : (
-          <EmptyContent variant="dashed" {...emptyContent} />
-        )}
-      </div>
+      globalSearchOptionsRef={globalSearchOptionsRef}
+      onInlineFormOpen={onInlineFormOpen}
+      onInlineFormClose={onInlineFormClose}>
+      <DataTableContent
+        ref={ref}
+        className={className}
+        showToolbar={showToolbar}
+        tableTitle={tableTitle}
+        filterComponent={filterComponent}
+        filters={filters}
+        toolbar={toolbar}
+        isLoading={isLoading}
+        loadingText={loadingText}
+        hasData={hasData}
+        data={data}
+        mode={mode}
+        hideHeader={hideHeader}
+        table={table}
+        columns={columns}
+        rowActions={rowActions}
+        hideRowActions={hideRowActions}
+        disableRowActions={disableRowActions}
+        maxInlineActions={maxInlineActions}
+        onRowClick={onRowClick}
+        rowClassName={rowClassName}
+        tableContainerClassName={tableContainerClassName}
+        tableClassName={tableClassName}
+        tableCardClassName={tableCardClassName}
+        hidePagination={hidePagination}
+        emptyContent={emptyContent}
+        enableInlineForm={enableInlineForm}
+        inlineFormContent={inlineFormContent}
+        inlineFormClassName={inlineFormClassName}
+        inlineFormPosition={inlineFormPosition}
+        inlineFormDefaultData={inlineFormDefaultData}
+      />
     </DataTableProvider>
   );
-};
+}
+
+// Content component that has access to context and provides ref
+interface DataTableContentProps<TData, TValue> {
+  className?: string;
+  showToolbar: boolean;
+  tableTitle?: any;
+  filterComponent?: React.ReactNode;
+  filters?: React.ReactNode;
+  toolbar?: any;
+  isLoading?: boolean;
+  loadingText?: string;
+  hasData: boolean;
+  data: TData[];
+  mode: 'table' | 'card';
+  hideHeader: boolean;
+  table: TTable<TData>;
+  columns: ColumnDef<TData, TValue>[];
+  rowActions: any[];
+  hideRowActions?: (row: TData) => boolean;
+  disableRowActions?: (row: TData) => boolean;
+  maxInlineActions: number;
+  onRowClick?: (row: TData) => void;
+  rowClassName?: (row: TData) => string;
+  tableContainerClassName?: string;
+  tableClassName?: string;
+  tableCardClassName?: string;
+  hidePagination: boolean;
+  emptyContent: any;
+  enableInlineForm: boolean;
+  inlineFormContent?: any;
+  inlineFormClassName?: string;
+  inlineFormPosition: 'top' | 'replace';
+  inlineFormDefaultData?: Partial<TData>;
+}
+
+const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
+  {
+    className,
+    showToolbar,
+    tableTitle,
+    filterComponent,
+    filters,
+    toolbar,
+    isLoading,
+    loadingText,
+    hasData,
+    data,
+    mode,
+    hideHeader,
+    table,
+    columns,
+    rowActions,
+    hideRowActions,
+    disableRowActions,
+    maxInlineActions,
+    onRowClick,
+    rowClassName,
+    tableContainerClassName,
+    tableClassName,
+    tableCardClassName,
+    hidePagination,
+    emptyContent,
+    enableInlineForm,
+    inlineFormContent,
+    inlineFormClassName,
+    inlineFormPosition,
+    inlineFormDefaultData,
+  }: DataTableContentProps<TData, TValue>,
+  ref: Ref<DataTableRef<TData>>
+) {
+  const { openInlineForm, closeInlineForm, inlineFormState } = useDataTable<TData>();
+
+  // Expose ref methods for external control
+  useImperativeHandle(
+    ref,
+    () => ({
+      openCreateForm: () => {
+        const defaultData = (inlineFormDefaultData || null) as TData;
+        openInlineForm('create', defaultData);
+      },
+      openEditForm: (rowId: string, rowData: TData) => {
+        openInlineForm('edit', rowData, rowId);
+      },
+      closeForm: () => {
+        closeInlineForm();
+      },
+      getFormState: () => ({
+        isOpen: inlineFormState.isOpen,
+        mode: inlineFormState.mode,
+        editingRowId: inlineFormState.editingRowId,
+      }),
+    }),
+    [openInlineForm, closeInlineForm, inlineFormState, inlineFormDefaultData]
+  );
+
+  return (
+    <div className={cn('mx-auto flex h-full w-full flex-col gap-8', className)}>
+      {/* Toolbar Section: Page Title + Filters */}
+      {showToolbar && (
+        <DataTableToolbar
+          tableTitle={tableTitle}
+          filterComponent={filterComponent}
+          filters={filters}
+          config={toolbar}
+        />
+      )}
+
+      {isLoading ? (
+        <DataTableLoadingContent title={loadingText} />
+      ) : data?.length > 0 ? (
+        <div className="space-y-6">
+          {/* Table Section */}
+          <div
+            className={cn(
+              'flex max-w-full flex-col overflow-hidden',
+              mode === 'table' ? 'rounded-md border' : '',
+              tableContainerClassName
+            )}>
+            <Table className={tableClassName}>
+              {!hideHeader && (
+                <DataTableColumnHeader table={table} hasRowActions={rowActions.length > 0} />
+              )}
+
+              {mode === 'table' ? (
+                <DataTableView
+                  table={table}
+                  columns={columns}
+                  rowActions={rowActions}
+                  hideRowActions={hideRowActions}
+                  disableRowActions={disableRowActions}
+                  maxInlineActions={maxInlineActions}
+                  onRowClick={onRowClick}
+                  rowClassName={rowClassName}
+                  enableInlineForm={enableInlineForm}
+                  inlineFormContent={inlineFormContent}
+                  inlineFormClassName={inlineFormClassName}
+                  inlineFormPosition={inlineFormPosition}
+                />
+              ) : (
+                <DataTableCardView
+                  table={table}
+                  columns={columns}
+                  rowActions={rowActions}
+                  hideRowActions={hideRowActions}
+                  disableRowActions={disableRowActions}
+                  maxInlineActions={maxInlineActions}
+                  onRowClick={onRowClick}
+                  hideHeader={hideHeader}
+                  tableCardClassName={tableCardClassName}
+                />
+              )}
+            </Table>
+          </div>
+
+          {/* Pagination Section */}
+          {!hidePagination && <DataTablePagination table={table} />}
+        </div>
+      ) : (
+        <EmptyContent variant="dashed" {...emptyContent} />
+      )}
+    </div>
+  );
+}) as <TData, TValue>(
+  props: DataTableContentProps<TData, TValue> & { ref?: Ref<DataTableRef<TData>> }
+) => React.ReactElement;
+
+// Main export with generic support and forwardRef
+export const DataTable = forwardRef(DataTableInternal) as <TData, TValue>(
+  props: DataTableProps<TData, TValue> & { ref?: Ref<DataTableRef<TData>> }
+) => React.ReactElement;

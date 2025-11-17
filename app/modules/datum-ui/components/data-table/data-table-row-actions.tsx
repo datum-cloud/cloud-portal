@@ -24,12 +24,14 @@ const RowMoreActions = <TData,>({
 
 export const DataTableRowActions = <TData,>({
   row,
+  rowId,
   actions,
   hideRowActions,
   disableRowActions,
   maxInlineActions = 3,
 }: {
   row: TData;
+  rowId?: string;
   actions: DataTableRowActionsProps<TData>[];
   hideRowActions?: (row: TData) => boolean;
   disableRowActions?: (row: TData) => boolean;
@@ -73,13 +75,25 @@ export const DataTableRowActions = <TData,>({
 
   // If only inline actions
   if (dropdownActions.length === 0) {
-    return <DataTableInlineActions row={row} actions={inlineActions} disabled={isDisabled} />;
+    return (
+      <DataTableInlineActions
+        row={row}
+        rowId={rowId}
+        actions={inlineActions}
+        disabled={isDisabled}
+      />
+    );
   }
 
   // Mixed mode: both inline and dropdown
   return (
     <div className="flex items-center justify-end gap-1">
-      <DataTableInlineActions row={row} actions={inlineActions} disabled={isDisabled} />
+      <DataTableInlineActions
+        row={row}
+        rowId={rowId}
+        actions={inlineActions}
+        disabled={isDisabled}
+      />
       <RowMoreActions
         row={row}
         actions={dropdownActions as MoreActionsProps<TData>[]}
