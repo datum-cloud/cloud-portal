@@ -38,8 +38,9 @@ export function DnsRecordInlineForm({
         ...(initialData.type === 'MX' && {
           mx: [
             {
-              exchange: initialData.value || '',
-              preference: (initialData as any).preference || 10,
+              // Decode pipe-separated format: "preference|exchange"
+              exchange: initialData.value?.split('|')[1] || '',
+              preference: Number(initialData.value?.split('|')[0]) || 10,
             },
           ],
         }),
@@ -77,6 +78,7 @@ export function DnsRecordInlineForm({
             {
               priority: (initialData as any).priority || 1,
               target: initialData.value || '',
+              params: (initialData as any).params || {},
             },
           ],
         }),
@@ -85,9 +87,39 @@ export function DnsRecordInlineForm({
             {
               priority: (initialData as any).priority || 1,
               target: initialData.value || '',
+              params: (initialData as any).params || {},
             },
           ],
         }),
+        ...(initialData.type === 'SOA' &&
+          (() => {
+            try {
+              // Parse JSON-encoded SOA object
+              const soa = JSON.parse(initialData.value || '{}');
+              return {
+                soa: {
+                  mname: soa.mname || '',
+                  rname: soa.rname || '',
+                  refresh: soa.refresh || 3600,
+                  retry: soa.retry || 600,
+                  expire: soa.expire || 86400,
+                  ttl: soa.ttl || 3600,
+                },
+              };
+            } catch {
+              // Fallback to empty SOA if parsing fails
+              return {
+                soa: {
+                  mname: '',
+                  rname: '',
+                  refresh: 3600,
+                  retry: 600,
+                  expire: 86400,
+                  ttl: 3600,
+                },
+              };
+            }
+          })()),
 
         dnsZoneRef: dnsZoneName ? { name: dnsZoneName } : undefined,
       } as CreateDnsRecordSchema)

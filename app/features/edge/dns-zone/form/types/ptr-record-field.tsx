@@ -21,11 +21,7 @@ export const PTRRecordField = ({
   }, [defaultValue, contentControl, ptrFields.content.value]);
 
   return (
-    <Field
-      isRequired
-      label="Target Domain"
-      errors={ptrFields.content.errors}
-      tooltipInfo="The domain name that this IP address points to (reverse DNS).">
+    <Field isRequired label="Target Domain" errors={ptrFields.content.errors}>
       <Input
         {...getInputProps(ptrFields.content, { type: 'text' })}
         key={ptrFields.content.id}

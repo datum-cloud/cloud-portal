@@ -21,11 +21,7 @@ export const NSRecordField = ({
   }, [defaultValue, contentControl, nsFields.content.value]);
 
   return (
-    <Field
-      isRequired
-      label="Nameserver"
-      errors={nsFields.content.errors}
-      tooltipInfo="The authoritative nameserver for this domain.">
+    <Field isRequired label="Nameserver" errors={nsFields.content.errors}>
       <Input
         {...getInputProps(nsFields.content, { type: 'text' })}
         key={nsFields.content.id}

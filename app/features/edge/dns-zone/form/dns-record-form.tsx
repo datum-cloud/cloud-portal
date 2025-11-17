@@ -70,8 +70,8 @@ export function DnsRecordForm({
       srv: [{ target: '', port: 443, priority: 10, weight: 5 }],
       caa: [{ flag: 0, tag: 'issue', value: '' }],
       tlsa: [{ usage: 3, selector: 1, matchingType: 1, certData: '' }],
-      https: [{ priority: 1, target: '' }],
-      svcb: [{ priority: 1, target: '' }],
+      https: [{ priority: 1, target: '', params: {} }],
+      svcb: [{ priority: 1, target: '', params: {} }],
       dnsZoneRef: dnsZoneName ? { name: dnsZoneName } : undefined,
     } as Partial<CreateDnsRecordSchema>;
   };

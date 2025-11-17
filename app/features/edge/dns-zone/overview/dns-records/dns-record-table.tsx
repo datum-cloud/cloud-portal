@@ -114,6 +114,22 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
               );
             }
 
+            // SOA records: parse JSON and format for display
+            if (type === 'SOA') {
+              try {
+                const soa = JSON.parse(value);
+                return (
+                  <span className="text-sm break-all">
+                    {soa.mname} {soa.rname} {soa.refresh || 0} {soa.retry || 0} {soa.expire || 0}{' '}
+                    {soa.ttl || 0}
+                  </span>
+                );
+              } catch {
+                // Fallback if JSON parsing fails
+                return <span className="text-sm break-all">{value}</span>;
+              }
+            }
+
             return <span className="text-sm break-all">{value}</span>;
           },
         },

@@ -144,10 +144,10 @@ function extractValues(record: any, recordType: string | undefined): string[] {
 
     case 'SOA':
       // record.soa: { mname, rname, refresh, retry, expire, serial, ttl }
+      // Return as JSON string to preserve object structure for editing
+      // Format will be applied in table cell renderer
       if (record.soa) {
-        return [
-          `${record.soa.mname} ${record.soa.rname} ${record.soa.refresh || 0} ${record.soa.retry || 0} ${record.soa.expire || 0} ${record.soa.ttl || 0}`,
-        ];
+        return [JSON.stringify(record.soa)];
       }
       return [];
 

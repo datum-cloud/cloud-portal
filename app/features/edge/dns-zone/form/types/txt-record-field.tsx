@@ -21,12 +21,7 @@ export const TXTRecordField = ({
   }, [defaultValue, contentControl, txtFields.content.value]);
 
   return (
-    <Field
-      isRequired
-      label="Text Content"
-      errors={txtFields.content.errors}
-      className="col-span-4"
-      tooltipInfo="Text content for verification, SPF, DKIM, etc. Maximum 255 characters.">
+    <Field isRequired label="Text Content" errors={txtFields.content.errors} className="col-span-4">
       <Input
         {...getInputProps(txtFields.content, { type: 'text' })}
         key={txtFields.content.id}
