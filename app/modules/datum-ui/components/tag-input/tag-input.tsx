@@ -398,11 +398,10 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
           ref={ref}
           dir={dir}
           className={cn(
-            'bg-background ring-offset-background flex min-h-10 flex-wrap items-center gap-1 overflow-hidden rounded-md border px-3 py-1',
-            {
-              'focus-within:ring-ring focus-within:ring-2 focus-within:ring-offset-2 focus-within:outline-hidden':
-                activeIndex === -1,
-            },
+            'border-input-border bg-input-background/50 text-input-foreground flex min-h-10 flex-wrap items-center gap-1 overflow-hidden rounded-lg border px-3 py-2 transition-all',
+            activeIndex === -1
+              ? 'focus-within:border-input-focus-border focus-within:shadow-(--input-focus-shadow) focus-within:ring-0 focus-within:ring-offset-0 focus-within:outline-hidden'
+              : 'focus-within:ring-0 focus-within:ring-offset-0 focus-within:outline-hidden',
             className
           )}
           suppressHydrationWarning>
@@ -450,7 +449,9 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
             placeholder={placeholder}
             onClick={() => setActiveIndex(-1)}
             className={cn(
-              'placeholder:text-muted-foreground border-input h-6 min-w-fit flex-1 border-none p-0 py-1 outline-0 focus-visible:border-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-0',
+              'text-input-foreground h-6 min-w-fit flex-1 border-0 bg-transparent p-0 py-1 shadow-none',
+              'placeholder:text-input-placeholder',
+              'focus-visible:border-transparent focus-visible:shadow-none focus-visible:ring-0 focus-visible:ring-offset-0',
               activeIndex !== -1 && 'caret-transparent'
             )}
           />

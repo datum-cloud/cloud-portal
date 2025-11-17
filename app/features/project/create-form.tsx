@@ -1,13 +1,11 @@
 import { Field } from '@/components/field/field';
 import { InputName } from '@/components/input-name/input-name';
-import { SelectOrganization } from '@/components/select-organization/select-organization';
 import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { projectSchema } from '@/resources/schemas/project.schema';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { getFormProps, getInputProps, useForm, useInputControl } from '@conform-to/react';
+import { getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
 import {
@@ -20,7 +18,7 @@ import {
 } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
 import { RocketIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Form, useNavigate } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 import { useHydrated } from 'remix-utils/use-hydrated';
@@ -32,9 +30,7 @@ export const CreateProjectForm = () => {
   const isPending = useIsPending();
   const navigate = useNavigate();
 
-  const [currentOrg, setCurrentOrg] = useState<IOrganization | undefined>(organization);
-
-  const [form, { name, description, orgEntityId }] = useForm({
+  const [form, { name, description }] = useForm({
     constraint: getZodConstraint(projectSchema),
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
@@ -42,7 +38,6 @@ export const CreateProjectForm = () => {
       return parseWithZod(formData, { schema: projectSchema });
     },
     defaultValue: {
-      orgEntityId: organization?.name,
       name: '',
       description: '',
       labels: [] as string[],
@@ -52,16 +47,6 @@ export const CreateProjectForm = () => {
   useEffect(() => {
     isHydrated && inputRef.current?.focus();
   }, [isHydrated]);
-
-  useEffect(() => {
-    setCurrentOrg(organization);
-  }, [organization]);
-
-  const orgEntityIdControl = useInputControl(orgEntityId);
-
-  useEffect(() => {
-    orgEntityIdControl.change(organization?.name);
-  }, [organization]);
 
   return (
     <Card>
@@ -73,22 +58,12 @@ export const CreateProjectForm = () => {
         method="POST"
         autoComplete="off"
         {...getFormProps(form)}
-        className="flex flex-col gap-6">
+        className="flex flex-col gap-10">
         <AuthenticityTokenInput />
 
-        <CardContent className="space-y-4">
-          <Field isRequired label="Choose organization">
-            <SelectOrganization
-              hideNewOrganization
-              currentOrg={currentOrg!}
-              triggerClassName="py-2"
-              onSelect={(org) => {
-                setCurrentOrg(org);
-                orgEntityIdControl.change(org.name);
-                navigate(getPathWithParams(paths.org.detail.projects.new, { orgId: org.name }));
-              }}
-            />
-          </Field>
+        <CardContent className="space-y-10">
+          <input type="hidden" name="orgEntityId" value={organization?.name} />
+
           <Field
             isRequired
             label="Description"

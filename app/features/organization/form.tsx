@@ -87,14 +87,14 @@ export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganizatio
           method="POST"
           autoComplete="off"
           {...getFormProps(form)}
-          className="flex flex-col gap-6">
+          className="flex flex-col gap-10">
           <AuthenticityTokenInput />
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-10">
             {isEdit && (
               <input type="hidden" name="resourceVersion" value={defaultValue?.resourceVersion} />
             )}
-            <div className={cn('flex gap-4', isEdit ? 'flex-col-reverse' : 'flex-col')}>
+            <div className={cn('flex gap-10', isEdit ? 'flex-col-reverse' : 'flex-col')}>
               <Field
                 isRequired
                 label="Description"

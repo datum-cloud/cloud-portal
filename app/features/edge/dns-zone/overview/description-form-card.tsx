@@ -113,9 +113,9 @@ export const DescriptionFormCard = ({
           id={form.id}
           method="POST"
           autoComplete="off"
-          className="flex flex-col gap-5">
+          className="flex flex-col gap-10">
           <AuthenticityTokenInput />
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-10">
             <Field className="hidden" errors={fields.domainName.errors}>
               <Input
                 {...getInputProps(fields.domainName, { type: 'text' })}

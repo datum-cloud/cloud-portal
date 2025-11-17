@@ -1,4 +1,6 @@
 import { Field } from '@/components/field/field';
+import { MultiSelect } from '@/components/multi-select/multi-select';
+import { SelectBox } from '@/components/select-box/select-box';
 import {
   Button,
   Checkbox,
@@ -13,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
   Switch,
+  TagsInput,
   Textarea,
 } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
@@ -22,6 +25,9 @@ import { useState } from 'react';
 export const formFieldsDemoSections = [
   { id: 'input-fields', label: 'Input Fields' },
   { id: 'input-with-addons-field', label: 'Input with Addons' },
+  { id: 'select-box-field', label: 'Select Box' },
+  { id: 'multi-select-field', label: 'Multi Select' },
+  { id: 'tag-input-field', label: 'Tag Input' },
   { id: 'textarea-field', label: 'Textarea' },
   { id: 'checkbox-field', label: 'Checkbox' },
   { id: 'switch-field', label: 'Switch' },
@@ -39,6 +45,14 @@ export default function FormFieldsDemo() {
   const [switchChecked, setSwitchChecked] = useState(false);
   const [radioValue, setRadioValue] = useState('option1');
   const [selectValue, setSelectValue] = useState('');
+  const [selectBoxValue, setSelectBoxValue] = useState<string | undefined>('owner');
+  const [multiSelectValues, setMultiSelectValues] = useState<string[]>(['grafana']);
+  const [tagValues, setTagValues] = useState<string[]>(['alpha', 'beta']);
+  const [limitedTagValues, setLimitedTagValues] = useState<string[]>(['grafana']);
+  const [limitedMultiSelectValues, setLimitedMultiSelectValues] = useState<string[]>([
+    'prod',
+    'staging',
+  ]);
 
   return (
     <div className="space-y-8 p-6">
@@ -83,6 +97,120 @@ export default function FormFieldsDemo() {
               />
             </Field>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Multi Select */}
+      <Card id="multi-select-field">
+        <CardHeader>
+          <CardTitle>Multi Select</CardTitle>
+          <CardDescription>Select multiple items with badges and quick actions</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <Field label="Services" description="Pick multiple observability tools">
+            <MultiSelect
+              options={[
+                { value: 'grafana', label: 'Grafana' },
+                { value: 'prometheus', label: 'Prometheus' },
+                { value: 'tempo', label: 'Tempo' },
+                { value: 'loki', label: 'Loki' },
+                { value: 'jaeger', label: 'Jaeger' },
+              ]}
+              placeholder="Select services..."
+              value={multiSelectValues}
+              onValueChange={setMultiSelectValues}
+              showClearButton
+              showCloseButton
+              className="border-input-border bg-input-background/50"
+            />
+          </Field>
+
+          <Field
+            label="Limited Multi Select"
+            description="Restrict the number of items and show loading state">
+            <MultiSelect
+              options={[
+                { value: 'prod', label: 'Production' },
+                { value: 'staging', label: 'Staging' },
+                { value: 'dev', label: 'Development' },
+              ]}
+              placeholder="Select environments..."
+              value={limitedMultiSelectValues}
+              onValueChange={setLimitedMultiSelectValues}
+              maxCount={2}
+              showSelectAll
+              isLoading={false}
+            />
+          </Field>
+        </CardContent>
+      </Card>
+
+      {/* Select Box */}
+      <Card id="select-box-field">
+        <CardHeader>
+          <CardTitle>Select Box</CardTitle>
+          <CardDescription>Custom select built on Command and Popover</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <Field label="Flat Select Box" description="Single level select">
+            <SelectBox
+              value={selectBoxValue}
+              onChange={(option) => setSelectBoxValue(option?.value)}
+              placeholder="Select a role"
+              options={[
+                { value: 'owner', label: 'Owner', description: 'Full access to workspace' },
+                { value: 'editor', label: 'Editor', description: 'Can modify most resources' },
+                { value: 'viewer', label: 'Viewer', description: 'Read-only access' },
+              ]}
+            />
+          </Field>
+
+          <Field
+            label="Grouped Select Box"
+            description="Use groups to organize large sets of options">
+            <SelectBox
+              placeholder="Select a cluster"
+              groups={[
+                {
+                  label: 'Production',
+                  options: [
+                    { value: 'prod-east', label: 'prod-east', description: 'US East cluster' },
+                    { value: 'prod-eu', label: 'prod-eu', description: 'EU cluster' },
+                  ],
+                },
+                {
+                  label: 'Staging',
+                  options: [
+                    { value: 'staging-apac', label: 'staging-apac', description: 'APAC staging' },
+                  ],
+                },
+              ]}
+            />
+          </Field>
+        </CardContent>
+      </Card>
+
+      {/* Tag Input */}
+      <Card id="tag-input-field">
+        <CardHeader>
+          <CardTitle>Tag Input</CardTitle>
+          <CardDescription>Create tokenized inputs for lists and metadata</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <Field label="Project Tags" description="Type and press enter to add a tag">
+            <TagsInput value={tagValues} onValueChange={setTagValues} placeholder="Add a tag..." />
+          </Field>
+
+          <Field
+            label="Limited Tag Input"
+            description="Restrict the number of items and show validation feedback">
+            <TagsInput
+              value={limitedTagValues}
+              onValueChange={setLimitedTagValues}
+              placeholder="Add up to 4 endpoints"
+              maxItems={4}
+            />
+          </Field>
         </CardContent>
       </Card>
 

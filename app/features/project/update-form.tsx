@@ -60,7 +60,7 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
         method="POST"
         autoComplete="off"
         {...getFormProps(form)}
-        className="flex flex-col gap-6">
+        className="flex flex-col gap-10">
         <AuthenticityTokenInput />
 
         {defaultValue && (
@@ -70,7 +70,7 @@ export const UpdateProjectForm = ({ defaultValue }: { defaultValue: IProjectCont
           </>
         )}
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-10">
           <Field
             label="Name"
             tooltipInfo="Used to identify your project in the dashboard, Datum CLI, and in the URL of your deployments">

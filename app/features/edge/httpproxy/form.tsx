@@ -118,9 +118,9 @@ export const HttpProxyForm = ({
           id={form.id}
           method="POST"
           autoComplete="off"
-          className="flex flex-col gap-6">
+          className="flex flex-col gap-10">
           <AuthenticityTokenInput />
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-10">
             <InputName
               description="This unique resource name will be used to identify your HTTPProxy resource and cannot be changed."
               readOnly={isEdit}
