@@ -1,4 +1,4 @@
-import { useDataTableFilter } from './data-table.context';
+import { useDataTableFilter } from '../../core/data-table.context';
 import { Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@shadcn/ui/dropdown-menu';

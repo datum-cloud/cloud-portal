@@ -1,7 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
-import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
+import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ICachedProject } from '@/resources/interfaces/project.interface';
 import { paths } from '@/utils/config/paths.config';

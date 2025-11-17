@@ -1,4 +1,4 @@
-import { useStringFilter } from '../../hooks/useFilterQueryState';
+import { useStringFilter } from '../../../hooks/useFilterQueryState';
 import { SearchInput } from './shared/search-input';
 import { useSearchState } from './shared/use-search-state';
 

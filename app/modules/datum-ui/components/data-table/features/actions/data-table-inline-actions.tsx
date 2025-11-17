@@ -1,5 +1,5 @@
-import { DataTableRowActionsProps } from './data-table.types';
-import { useDataTable } from './data-table.context';
+import { useDataTable } from '../../core/data-table.context';
+import { DataTableRowActionsProps } from '../../core/data-table.types';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
@@ -15,7 +15,7 @@ export const DataTableInlineActions = <TData,>({
   actions: DataTableRowActionsProps<TData>[];
   disabled?: boolean;
 }) => {
-  const { openInlineForm } = useDataTable<TData>();
+  const { openInlineContent } = useDataTable<TData>();
   // Filter visible actions
   const visibleActions = actions.filter((action) => !action.hidden?.(row));
 
@@ -44,7 +44,7 @@ export const DataTableInlineActions = <TData,>({
 
           // If this action triggers inline edit, open the form
           if (action.triggerInlineEdit && rowId) {
-            openInlineForm('edit', row, rowId);
+            openInlineContent('edit', row, rowId);
           }
 
           // Still call the action callback (for optional pre-edit logic)

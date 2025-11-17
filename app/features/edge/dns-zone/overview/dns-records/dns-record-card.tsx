@@ -35,7 +35,7 @@ export const DnsRecordCard = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <DnsRecordTable data={displayData} hidePagination />
+        <DnsRecordTable data={displayData} mode="compact" />
       </CardContent>
     </Card>
   );

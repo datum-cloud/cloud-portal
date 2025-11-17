@@ -1,11 +1,11 @@
-import { DataTableToolbarFilterDropdown } from './data-table-toolbar-filter-dropdown';
-import { DataTableToolbarSearch } from './data-table-toolbar-search';
 import {
   DataTableSearchConfig,
   DataTableTitleProps,
   DataTableToolbarConfig,
-} from './data-table.types';
-import { DataTableFilter } from './filter/data-table-filter';
+} from '../../core/data-table.types';
+import { DataTableFilter } from '../filter/data-table-filter';
+import { DataTableToolbarFilterDropdown } from './data-table-toolbar-filter-dropdown';
+import { DataTableToolbarSearch } from './data-table-toolbar-search';
 import { PageTitle } from '@/components/page-title/page-title';
 import { cn } from '@shadcn/lib/utils';
 import { Children, ReactNode, useMemo } from 'react';

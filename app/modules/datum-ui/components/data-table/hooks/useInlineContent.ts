@@ -1,51 +1,48 @@
 import { useCallback, useState } from 'react';
 
 /**
- * Internal hook for managing inline form state
+ * Internal hook for managing inline content state
  * ⚠️ INTERNAL USE ONLY - Not exported to consumers
  *
- * This hook powers the DataTable's inline form functionality by managing:
- * - Form open/close state
+ * This hook powers the DataTable's inline content functionality by managing:
+ * - Content open/close state
  * - Create vs Edit mode
  * - Which row is being edited
  * - Current editing data
  */
 
-export interface InlineFormState<TData> {
+export interface InlineContentState<TData> {
   isOpen: boolean;
   mode: 'create' | 'edit' | null;
   editingRowId: string | null;
   editingRowData: TData | null;
 }
 
-export interface UseInlineFormReturn<TData> {
-  state: InlineFormState<TData>;
-  openForm: (mode: 'create' | 'edit', rowData?: TData, rowId?: string) => void;
-  closeForm: () => void;
+export interface UseInlineContentReturn<TData> {
+  state: InlineContentState<TData>;
+  open: (mode: 'create' | 'edit', rowData?: TData, rowId?: string) => void;
+  close: () => void;
   isRowEditing: (rowId: string) => boolean;
 }
 
-export function useInlineForm<TData>(): UseInlineFormReturn<TData> {
-  const [state, setState] = useState<InlineFormState<TData>>({
+export function useInlineContent<TData>(): UseInlineContentReturn<TData> {
+  const [state, setState] = useState<InlineContentState<TData>>({
     isOpen: false,
     mode: null,
     editingRowId: null,
     editingRowData: null,
   });
 
-  const openForm = useCallback(
-    (mode: 'create' | 'edit', rowData?: TData, rowId?: string) => {
-      setState({
-        isOpen: true,
-        mode,
-        editingRowId: rowId || null,
-        editingRowData: rowData || null,
-      });
-    },
-    []
-  );
+  const open = useCallback((mode: 'create' | 'edit', rowData?: TData, rowId?: string) => {
+    setState({
+      isOpen: true,
+      mode,
+      editingRowId: rowId || null,
+      editingRowData: rowData || null,
+    });
+  }, []);
 
-  const closeForm = useCallback(() => {
+  const close = useCallback(() => {
     setState({
       isOpen: false,
       mode: null,
@@ -63,8 +60,8 @@ export function useInlineForm<TData>(): UseInlineFormReturn<TData> {
 
   return {
     state,
-    openForm,
-    closeForm,
+    open,
+    close,
     isRowEditing,
   };
 }

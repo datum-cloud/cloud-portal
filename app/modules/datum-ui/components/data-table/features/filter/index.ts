@@ -26,7 +26,7 @@ export {
   useTableData,
   useFilterData,
   useTableState,
-} from '../data-table.context';
+} from '../../core/data-table.context';
 
 // URL-aware filter hooks
 export {
@@ -35,6 +35,6 @@ export {
   useArrayFilter,
   useDateFilter,
   useDateRangeFilter,
-} from '../hooks/useFilterQueryState';
+} from '../../hooks/useFilterQueryState';
 
-export type { FilterState, FilterValue } from '../data-table.context';
+export type { FilterState, FilterValue } from '../../core/data-table.context';

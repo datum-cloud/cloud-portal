@@ -1,4 +1,4 @@
-import { useArrayFilter } from '../../hooks/useFilterQueryState';
+import { useArrayFilter } from '../../../hooks/useFilterQueryState';
 import { Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Checkbox } from '@shadcn/ui/checkbox';

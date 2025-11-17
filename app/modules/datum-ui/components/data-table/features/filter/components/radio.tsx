@@ -1,4 +1,4 @@
-import { useStringFilter } from '../../hooks/useFilterQueryState';
+import { useStringFilter } from '../../../hooks/useFilterQueryState';
 import { cn } from '@shadcn/lib/utils';
 import { Label } from '@shadcn/ui/label';
 import { RadioGroup, RadioGroupItem } from '@shadcn/ui/radio-group';

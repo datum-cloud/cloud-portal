@@ -1,4 +1,4 @@
-import { useDataTableFilter, FilterValue } from '../data-table.context';
+import { useDataTableFilter, FilterValue } from '../core/data-table.context';
 import {
   serializeDateRange,
   deserializeDateRange,

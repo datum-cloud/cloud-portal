@@ -1,6 +1,9 @@
+import type { InlineContentRenderParams } from '../features/inline-content/data-table-inline-content';
 import { EmptyContentProps } from '@/components/empty-content/empty-content';
 import { ColumnDef, ColumnFiltersState, SortingState } from '@tanstack/react-table';
-import { InlineFormRenderParams } from './data-table-inline-form';
+
+// Re-export InlineContentRenderParams from data-table-inline-content for convenience
+export type { InlineContentRenderParams } from '../features/inline-content/data-table-inline-content';
 
 export type SearchParams = {
   [key: string]: string | string[] | undefined;
@@ -69,47 +72,51 @@ export interface DataTableProps<TData, TValue> {
   emptyContent?: EmptyContentProps;
 
   // ========================================
-  // Inline Form Configuration
+  // Inline Content Configuration
   // ========================================
 
   /**
-   * Enable inline form functionality
+   * Enable inline content functionality
+   * Displays custom content inline with table rows
    * @default false
    */
-  enableInlineForm?: boolean;
+  enableInlineContent?: boolean;
 
   /**
-   * Render function for form content
-   * Form component handles ALL logic (validation, submission, etc.)
-   * DataTable only manages show/hide state
+   * Render function for inline content
+   * Content component handles ALL logic (validation, submission, etc.)
+   * DataTable only manages show/hide state and animations
+   *
+   * Position is automatically determined:
+   * - Create mode: Always renders at top (first row)
+   * - Edit mode: Always replaces the editing row
+   *
+   * @example Form usage
+   * inlineContent={({ mode, data, onClose }) => (
+   *   <RecordForm mode={mode} data={data} onClose={onClose} />
+   * )}
+   *
+   * @example Preview/Details usage
+   * inlineContent={({ mode, data, onClose }) => (
+   *   <RecordDetails data={data} onClose={onClose} />
+   * )}
    */
-  inlineFormContent?: (params: InlineFormRenderParams<TData>) => React.ReactNode;
+  inlineContent?: (params: InlineContentRenderParams<TData>) => React.ReactNode;
 
   /**
-   * Custom className for inline form container row
+   * Custom className for inline content container row
    */
-  inlineFormClassName?: string;
+  inlineContentClassName?: string;
 
   /**
-   * Form position: 'top' (first row) or 'replace' (replaces editing row)
-   * @default 'top'
+   * Callback when inline content opens (optional, for side effects)
    */
-  inlineFormPosition?: 'top' | 'replace';
+  onInlineContentOpen?: (mode: 'create' | 'edit', data?: TData) => void;
 
   /**
-   * Callback when form opens (optional, for side effects)
+   * Callback when inline content closes (optional, for side effects)
    */
-  onInlineFormOpen?: (mode: 'create' | 'edit', data?: TData) => void;
-
-  /**
-   * Callback when form closes (optional, for side effects)
-   */
-  onInlineFormClose?: () => void;
-
-  /**
-   * Default data for create mode (optional)
-   */
-  inlineFormDefaultData?: Partial<TData>;
+  onInlineContentClose?: () => void;
 }
 
 export interface DataTableRowActionsProps<TData> {
@@ -126,8 +133,8 @@ export interface DataTableRowActionsProps<TData> {
   tooltip?: string | React.ReactNode | ((row: TData) => string | React.ReactNode | undefined); // Tooltip text - can be static string or function that receives row data
   /**
    * Mark this action as inline-edit trigger
-   * When clicked, opens inline form instead of only calling action()
-   * The action() callback will still be called before opening the form (for optional pre-edit logic)
+   * When clicked, opens inline content in edit mode
+   * The action() callback will still be called before opening (for optional pre-logic)
    */
   triggerInlineEdit?: boolean;
 }
@@ -198,42 +205,42 @@ export interface DataTableToolbarConfig {
 
 /**
  * Ref interface for DataTable component
- * Allows external components to control inline form state
+ * Allows external components to control inline content state
  *
  * @example
  * const tableRef = useRef<DataTableRef<User>>(null);
  *
- * // Open create form
- * tableRef.current?.openCreateForm();
+ * // Open create content
+ * tableRef.current?.openCreate();
  *
- * // Open edit form for specific row
- * tableRef.current?.openEditForm(row.id, row.original);
+ * // Open edit content for specific row
+ * tableRef.current?.openEdit(row.id, row.original);
  *
- * // Close form
- * tableRef.current?.closeForm();
+ * // Close content
+ * tableRef.current?.close();
  */
 export interface DataTableRef<TData> {
   /**
-   * Open inline form in create mode
+   * Open inline content in create mode
    */
-  openCreateForm: () => void;
+  openCreate: () => void;
 
   /**
-   * Open inline form in edit mode for a specific row
+   * Open inline content in edit mode for a specific row
    * @param rowId - ID of the row to edit
    * @param rowData - Data of the row to edit
    */
-  openEditForm: (rowId: string, rowData: TData) => void;
+  openEdit: (rowId: string, rowData: TData) => void;
 
   /**
-   * Close the inline form
+   * Close the inline content
    */
-  closeForm: () => void;
+  close: () => void;
 
   /**
-   * Get current inline form state
+   * Get current inline content state
    */
-  getFormState: () => {
+  getState: () => {
     isOpen: boolean;
     mode: 'create' | 'edit' | null;
     editingRowId: string | null;

@@ -1,14 +1,14 @@
-import { useArrayFilter } from '../../hooks/useFilterQueryState';
+import { useStringFilter } from '../../../hooks/useFilterQueryState';
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Checkbox } from '@shadcn/ui/checkbox';
 import { Label } from '@shadcn/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@shadcn/ui/radio-group';
 import { ChevronDown, X } from 'lucide-react';
 import { ReactNode, useState, useMemo } from 'react';
 
-export interface CheckboxOption {
+export interface RadioOption {
   label: string;
   value: string;
   description?: string;
@@ -16,50 +16,37 @@ export interface CheckboxOption {
   icon?: ReactNode;
 }
 
-export interface CheckboxPopoverFilterProps {
+export interface RadioPopoverFilterProps {
   filterKey: string;
   label?: string;
   description?: string;
   className?: string;
   disabled?: boolean;
-  options: CheckboxOption[];
+  options: RadioOption[];
 }
 
-export function CheckboxPopoverFilter({
+export function RadioPopoverFilter({
   filterKey,
   label,
   description,
   className,
   disabled = false,
   options,
-}: CheckboxPopoverFilterProps) {
-  const { value, setValue } = useArrayFilter(filterKey);
-  const selectedValues = Array.isArray(value) ? value : [];
+}: RadioPopoverFilterProps) {
+  const { value, setValue } = useStringFilter(filterKey);
   const [open, setOpen] = useState(false);
 
   const displayLabel = useMemo(() => {
     return label || `Filter ${filterKey}`;
   }, [label, filterKey]);
 
-  const selectedOptions = useMemo(() => {
-    return options.filter((option) => selectedValues.includes(option.value));
-  }, [options, selectedValues]);
+  const selectedOption = useMemo(() => {
+    return options.find((option) => option.value === value);
+  }, [options, value]);
 
-  const handleChange = (optionValue: string, checked: boolean | string) => {
-    if (checked) {
-      setValue([...selectedValues, optionValue]);
-    } else {
-      setValue(selectedValues.filter((v) => v !== optionValue));
-    }
-  };
-
-  const handleRemoveSelection = (optionValue: string, e: React.MouseEvent) => {
+  const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setValue(selectedValues.filter((v) => v !== optionValue));
-  };
-
-  const handleClearAll = () => {
-    setValue([]);
+    setValue('');
   };
 
   return (
@@ -75,24 +62,14 @@ export function CheckboxPopoverFilter({
             aria-expanded={open}
             className="h-8 w-full justify-between"
             disabled={disabled}>
-            <div className="flex flex-wrap gap-1">
-              {selectedOptions.length === 0 ? (
-                <span className="text-muted-foreground">Select options...</span>
-              ) : selectedOptions.length <= 2 ? (
-                selectedOptions.map((option) => (
-                  <Badge
-                    key={option.value}
-                    type="secondary"
-                    className="h-5 px-1 text-xs"
-                    onClick={(e) => handleRemoveSelection(option.value, e)}>
-                    {option.label}
-                    <X className="ml-1 h-3 w-3 cursor-pointer" />
-                  </Badge>
-                ))
-              ) : (
-                <Badge type="secondary" className="h-5 px-1 text-xs">
-                  {selectedOptions.length} selected
+            <div className="flex items-center gap-2">
+              {selectedOption ? (
+                <Badge type="secondary" className="h-5 px-1 text-xs" onClick={handleClear}>
+                  {selectedOption.label}
+                  <X className="ml-1 h-3 w-3 cursor-pointer" />
                 </Badge>
+              ) : (
+                <span className="text-muted-foreground">Select option...</span>
               )}
             </div>
             <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -102,25 +79,31 @@ export function CheckboxPopoverFilter({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">{displayLabel}</span>
-              {selectedValues.length > 0 && (
+              {value && (
                 <Button
                   type="quaternary"
                   theme="borderless"
                   size="small"
-                  onClick={handleClearAll}
+                  onClick={() => setValue('')}
                   className="h-6 px-2 text-xs">
                   Clear
                 </Button>
               )}
             </div>
-            <div className="max-h-48 space-y-2 overflow-y-auto">
+            <RadioGroup
+              value={value}
+              onValueChange={(newValue) => {
+                setValue(newValue);
+                setOpen(false);
+              }}
+              disabled={disabled}
+              className="space-y-2">
               {options.map((option) => (
                 <div key={option.value} className="flex items-center space-x-2">
-                  <Checkbox
+                  <RadioGroupItem
+                    value={option.value}
                     id={`${filterKey}-${option.value}`}
-                    checked={selectedValues.includes(option.value)}
-                    onCheckedChange={(checked) => handleChange(option.value, checked)}
-                    disabled={disabled || option.disabled}
+                    disabled={option.disabled}
                   />
                   <Label
                     htmlFor={`${filterKey}-${option.value}`}
@@ -129,7 +112,7 @@ export function CheckboxPopoverFilter({
                   </Label>
                 </div>
               ))}
-            </div>
+            </RadioGroup>
           </div>
         </PopoverContent>
       </Popover>

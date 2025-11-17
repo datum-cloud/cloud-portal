@@ -1,4 +1,4 @@
-import { useDataTableFilter } from '../data-table.context';
+import { useDataTableFilter } from '../../core/data-table.context';
 import { CheckboxFilter } from './components/checkbox';
 import { CheckboxPopoverFilter } from './components/checkbox-popover';
 import { DatePickerFilter } from './components/datepicker';
@@ -201,5 +201,5 @@ export {
 };
 
 // Export context and hooks
-export { useDataTableFilter, useFilter } from '../data-table.context';
-export type { FilterState, FilterValue } from '../data-table.context';
+export { useDataTableFilter, useFilter } from '../../core/data-table.context';
+export type { FilterState, FilterValue } from '../../core/data-table.context';

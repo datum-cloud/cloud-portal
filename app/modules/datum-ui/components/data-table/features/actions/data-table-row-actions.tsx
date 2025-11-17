@@ -1,5 +1,5 @@
+import { DataTableRowActionsProps } from '../../core/data-table.types';
 import { DataTableInlineActions } from './data-table-inline-actions';
-import { DataTableRowActionsProps } from './data-table.types';
 import { MoreActions, MoreActionsProps } from '@/components/more-actions/more-actions';
 
 const RowMoreActions = <TData,>({

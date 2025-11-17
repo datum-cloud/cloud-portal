@@ -1,5 +1,5 @@
-import { deserializeDateRange, isDateRangeFormat } from './utils/date-serialization';
-import { useInlineForm, InlineFormState } from './hooks/useInlineForm';
+import { useInlineContent, InlineContentState } from '../hooks/useInlineContent';
+import { deserializeDateRange, isDateRangeFormat } from '../utils/date-serialization';
 import type {
   ColumnDef,
   ColumnFiltersState,
@@ -83,10 +83,10 @@ interface DataTableContextType<TData = unknown, TValue = unknown> {
   // Filter strategy
   serverSideFiltering: boolean;
 
-  // Inline form state and actions
-  inlineFormState: InlineFormState<TData>;
-  openInlineForm: (mode: 'create' | 'edit', rowData?: TData, rowId?: string) => void;
-  closeInlineForm: () => void;
+  // Inline content state and actions
+  inlineContentState: InlineContentState<TData>;
+  openInlineContent: (mode: 'create' | 'edit', rowData?: TData, rowId?: string) => void;
+  closeInlineContent: () => void;
   isRowEditing: (rowId: string) => boolean;
 }
 
@@ -127,9 +127,9 @@ export interface DataTableProviderProps<TData, TValue> {
     excludeColumns?: string[];
   }>;
 
-  // Inline form callbacks
-  onInlineFormOpen?: (mode: 'create' | 'edit', data?: TData) => void;
-  onInlineFormClose?: () => void;
+  // Inline content callbacks
+  onInlineContentOpen?: (mode: 'create' | 'edit', data?: TData) => void;
+  onInlineContentClose?: () => void;
 }
 
 export function DataTableProvider<TData, TValue>({
@@ -152,8 +152,8 @@ export function DataTableProvider<TData, TValue>({
   defaultFilters = {},
   serverSideFiltering = false,
   globalSearchOptionsRef,
-  onInlineFormOpen,
-  onInlineFormClose,
+  onInlineContentOpen,
+  onInlineContentClose,
 }: DataTableProviderProps<TData, TValue>) {
   // Registry for dynamic parser registration
   const parsersRef = useRef<FilterParserRegistry>({});
@@ -180,22 +180,22 @@ export function DataTableProvider<TData, TValue>({
     };
   }, []);
 
-  // Inline form state management
-  const inlineForm = useInlineForm<TData>();
+  // Inline content state management
+  const inlineContent = useInlineContent<TData>();
 
   // Wrap open/close with callbacks for side effects
-  const openInlineForm = useCallback(
+  const openInlineContent = useCallback(
     (mode: 'create' | 'edit', rowData?: TData, rowId?: string) => {
-      inlineForm.openForm(mode, rowData, rowId);
-      onInlineFormOpen?.(mode, rowData);
+      inlineContent.open(mode, rowData, rowId);
+      onInlineContentOpen?.(mode, rowData);
     },
-    [inlineForm.openForm, onInlineFormOpen]
+    [inlineContent.open, onInlineContentOpen]
   );
 
-  const closeInlineForm = useCallback(() => {
-    inlineForm.closeForm();
-    onInlineFormClose?.();
-  }, [inlineForm.closeForm, onInlineFormClose]);
+  const closeInlineContent = useCallback(() => {
+    inlineContent.close();
+    onInlineContentClose?.();
+  }, [inlineContent.close, onInlineContentClose]);
 
   // Filter state management with nuqs - using individual useQueryState for each filter
   const [internalFilterState, setInternalFilterState] = useState<FilterState>({});
@@ -389,11 +389,11 @@ export function DataTableProvider<TData, TValue>({
       // Filter strategy
       serverSideFiltering,
 
-      // Inline form
-      inlineFormState: inlineForm.state,
-      openInlineForm,
-      closeInlineForm,
-      isRowEditing: inlineForm.isRowEditing,
+      // Inline content
+      inlineContentState: inlineContent.state,
+      openInlineContent,
+      closeInlineContent,
+      isRowEditing: inlineContent.isRowEditing,
     }),
     [
       // Table props
@@ -437,11 +437,11 @@ export function DataTableProvider<TData, TValue>({
       // Filter strategy
       serverSideFiltering,
 
-      // Inline form
-      inlineForm.state,
-      openInlineForm,
-      closeInlineForm,
-      inlineForm.isRowEditing,
+      // Inline content
+      inlineContent.state,
+      openInlineContent,
+      closeInlineContent,
+      inlineContent.isRowEditing,
     ]
   );
 

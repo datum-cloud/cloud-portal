@@ -1,12 +1,14 @@
-import { DataTableInlineForm, InlineFormRenderParams } from './data-table-inline-form';
-import { DataTableRowActions } from './data-table-row-actions';
-import { DataTableRowActionsProps } from './data-table.types';
+import { DataTableRowActions } from '../features/actions/data-table-row-actions';
+import {
+  DataTableInlineContent,
+  InlineContentRenderParams,
+} from '../features/inline-content/data-table-inline-content';
 import { useDataTable } from './data-table.context';
+import { DataTableRowActionsProps } from './data-table.types';
 import { EmptyContent } from '@/components/empty-content/empty-content';
 import { cn } from '@shadcn/lib/utils';
 import { TableBody, TableCell, TableRow } from '@shadcn/ui/table';
 import { Table as TTable, flexRender } from '@tanstack/react-table';
-import { Fragment } from 'react';
 
 export interface DataTableViewProps<TData> {
   table: TTable<TData>;
@@ -18,10 +20,9 @@ export interface DataTableViewProps<TData> {
   onRowClick?: (row: TData) => void;
   rowClassName?: (row: TData) => string;
   // Inline form props
-  enableInlineForm?: boolean;
-  inlineFormContent?: (params: InlineFormRenderParams<TData>) => React.ReactNode;
-  inlineFormClassName?: string;
-  inlineFormPosition?: 'top' | 'replace';
+  enableInlineContent?: boolean;
+  inlineContent?: (params: InlineContentRenderParams<TData>) => React.ReactNode;
+  inlineContentClassName?: string;
 }
 
 export const DataTableView = <TData,>({
@@ -33,12 +34,11 @@ export const DataTableView = <TData,>({
   maxInlineActions = 3,
   onRowClick,
   rowClassName,
-  enableInlineForm = false,
-  inlineFormContent,
-  inlineFormClassName,
-  inlineFormPosition = 'top',
+  enableInlineContent = false,
+  inlineContent,
+  inlineContentClassName,
 }: DataTableViewProps<TData>) => {
-  const { inlineFormState, isRowEditing, closeInlineForm } = useDataTable<TData>();
+  const { inlineContentState, isRowEditing, closeInlineContent } = useDataTable<TData>();
 
   // Calculate total column count for inline form
   const columnCount = columns.length + (rowActions.length > 0 ? 1 : 0);
@@ -47,39 +47,39 @@ export const DataTableView = <TData,>({
     <TableBody>
       {table.getRowModel().rows.length > 0 ? (
         <>
-          {/* Inline Form at Top (create mode or edit mode with 'top' position) */}
-          {enableInlineForm &&
-            inlineFormState.isOpen &&
-            inlineFormPosition === 'top' &&
-            inlineFormContent && (
-              <DataTableInlineForm
-                mode={inlineFormState.mode!}
-                data={inlineFormState.editingRowData}
-                rowId={inlineFormState.editingRowId}
+          {/* Inline Form at Top (create mode only) */}
+          {enableInlineContent &&
+            inlineContentState.isOpen &&
+            inlineContentState.mode === 'create' &&
+            inlineContent && (
+              <DataTableInlineContent
+                mode="create"
+                data={null}
+                rowId={null}
                 columnCount={columnCount}
-                onClose={closeInlineForm}
-                className={inlineFormClassName}>
-                {inlineFormContent}
-              </DataTableInlineForm>
+                onClose={closeInlineContent}
+                className={inlineContentClassName}>
+                {inlineContent}
+              </DataTableInlineContent>
             )}
 
           {/* Table Rows */}
           {table.getRowModel().rows.map((row) => {
-            const isEditing = enableInlineForm && isRowEditing(row.id);
+            const isEditing = enableInlineContent && isRowEditing(row.id);
 
-            // Replace row with form (edit mode with 'replace' position)
-            if (isEditing && inlineFormPosition === 'replace' && inlineFormContent) {
+            // Replace row with form (edit mode only)
+            if (isEditing && inlineContent) {
               return (
-                <DataTableInlineForm
+                <DataTableInlineContent
                   key={row.id}
                   mode="edit"
                   data={row.original}
                   rowId={row.id}
                   columnCount={columnCount}
-                  onClose={closeInlineForm}
-                  className={inlineFormClassName}>
-                  {inlineFormContent}
-                </DataTableInlineForm>
+                  onClose={closeInlineContent}
+                  className={inlineContentClassName}>
+                  {inlineContent}
+                </DataTableInlineContent>
               );
             }
 

@@ -1,13 +1,13 @@
+import { DataTableColumnHeader } from '../features/columns/data-table-column-header';
+import { DataTablePagination } from '../features/pagination/data-table-pagination';
+import { DataTableToolbar } from '../features/toolbar/data-table-toolbar';
+import { createGlobalSearchFilter } from '../utils/global-search.helpers';
+import { createNestedAccessor, getSortingFnByType } from '../utils/sorting.helpers';
 import { DataTableCardView } from './data-table-card-view';
-import { DataTableColumnHeader } from './data-table-column-header';
 import { DataTableLoadingContent } from './data-table-loading';
-import { DataTablePagination } from './data-table-pagination';
-import { DataTableToolbar } from './data-table-toolbar';
 import { DataTableView } from './data-table-view';
 import { DataTableProvider, useDataTable } from './data-table.context';
 import { DataTableProps, DataTableRef } from './data-table.types';
-import { createGlobalSearchFilter } from './utils/global-search.helpers';
-import { createNestedAccessor, getSortingFnByType } from './utils/sorting.helpers';
 import { EmptyContent } from '@/components/empty-content/empty-content';
 import { cn } from '@shadcn/lib/utils';
 import { Table } from '@shadcn/ui/table';
@@ -63,14 +63,12 @@ function DataTableInternal<TData, TValue>(
     tableCardClassName,
     isLoading,
     loadingText,
-    // Inline form props
-    enableInlineForm = false,
-    inlineFormContent,
-    inlineFormClassName,
-    inlineFormPosition = 'top',
-    onInlineFormOpen,
-    onInlineFormClose,
-    inlineFormDefaultData,
+    // Inline content props
+    enableInlineContent = false,
+    inlineContent,
+    inlineContentClassName,
+    onInlineContentOpen,
+    onInlineContentClose,
   }: DataTableProps<TData, TValue>,
   ref: Ref<DataTableRef<TData>>
 ) {
@@ -221,8 +219,8 @@ function DataTableInternal<TData, TValue>(
       onFilteringEnd={onFilteringEnd}
       serverSideFiltering={serverSideFiltering}
       globalSearchOptionsRef={globalSearchOptionsRef}
-      onInlineFormOpen={onInlineFormOpen}
-      onInlineFormClose={onInlineFormClose}>
+      onInlineContentOpen={onInlineContentOpen}
+      onInlineContentClose={onInlineContentClose}>
       <DataTableContent
         ref={ref}
         className={className}
@@ -250,11 +248,9 @@ function DataTableInternal<TData, TValue>(
         tableCardClassName={tableCardClassName}
         hidePagination={hidePagination}
         emptyContent={emptyContent}
-        enableInlineForm={enableInlineForm}
-        inlineFormContent={inlineFormContent}
-        inlineFormClassName={inlineFormClassName}
-        inlineFormPosition={inlineFormPosition}
-        inlineFormDefaultData={inlineFormDefaultData}
+        enableInlineContent={enableInlineContent}
+        inlineContent={inlineContent}
+        inlineContentClassName={inlineContentClassName}
       />
     </DataTableProvider>
   );
@@ -287,11 +283,9 @@ interface DataTableContentProps<TData, TValue> {
   tableCardClassName?: string;
   hidePagination: boolean;
   emptyContent: any;
-  enableInlineForm: boolean;
-  inlineFormContent?: any;
-  inlineFormClassName?: string;
-  inlineFormPosition: 'top' | 'replace';
-  inlineFormDefaultData?: Partial<TData>;
+  enableInlineContent: boolean;
+  inlineContent?: any;
+  inlineContentClassName?: string;
 }
 
 const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
@@ -321,37 +315,34 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
     tableCardClassName,
     hidePagination,
     emptyContent,
-    enableInlineForm,
-    inlineFormContent,
-    inlineFormClassName,
-    inlineFormPosition,
-    inlineFormDefaultData,
+    enableInlineContent,
+    inlineContent,
+    inlineContentClassName,
   }: DataTableContentProps<TData, TValue>,
   ref: Ref<DataTableRef<TData>>
 ) {
-  const { openInlineForm, closeInlineForm, inlineFormState } = useDataTable<TData>();
+  const { openInlineContent, closeInlineContent, inlineContentState } = useDataTable<TData>();
 
   // Expose ref methods for external control
   useImperativeHandle(
     ref,
     () => ({
-      openCreateForm: () => {
-        const defaultData = (inlineFormDefaultData || null) as TData;
-        openInlineForm('create', defaultData);
+      openCreate: () => {
+        openInlineContent('create');
       },
-      openEditForm: (rowId: string, rowData: TData) => {
-        openInlineForm('edit', rowData, rowId);
+      openEdit: (rowId: string, rowData: TData) => {
+        openInlineContent('edit', rowData, rowId);
       },
-      closeForm: () => {
-        closeInlineForm();
+      close: () => {
+        closeInlineContent();
       },
-      getFormState: () => ({
-        isOpen: inlineFormState.isOpen,
-        mode: inlineFormState.mode,
-        editingRowId: inlineFormState.editingRowId,
+      getState: () => ({
+        isOpen: inlineContentState.isOpen,
+        mode: inlineContentState.mode,
+        editingRowId: inlineContentState.editingRowId,
       }),
     }),
-    [openInlineForm, closeInlineForm, inlineFormState, inlineFormDefaultData]
+    [openInlineContent, closeInlineContent, inlineContentState]
   );
 
   return (
@@ -392,10 +383,9 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
                   maxInlineActions={maxInlineActions}
                   onRowClick={onRowClick}
                   rowClassName={rowClassName}
-                  enableInlineForm={enableInlineForm}
-                  inlineFormContent={inlineFormContent}
-                  inlineFormClassName={inlineFormClassName}
-                  inlineFormPosition={inlineFormPosition}
+                  enableInlineContent={enableInlineContent}
+                  inlineContent={inlineContent}
+                  inlineContentClassName={inlineContentClassName}
                 />
               ) : (
                 <DataTableCardView

@@ -1,4 +1,4 @@
-import { useStringFilter, useArrayFilter } from '../../hooks/useFilterQueryState';
+import { useStringFilter, useArrayFilter } from '../../../hooks/useFilterQueryState';
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';

@@ -1,7 +1,7 @@
-import { useDataTable } from './data-table.context';
-import { DataTableSearchConfig } from './data-table.types';
-import { GlobalSearchFilter } from './filter/components/global-search';
-import { SearchFilter } from './filter/components/search';
+import { useDataTable } from '../../core/data-table.context';
+import { DataTableSearchConfig } from '../../core/data-table.types';
+import { GlobalSearchFilter } from '../filter/components/global-search';
+import { SearchFilter } from '../filter/components/search';
 import { cn } from '@shadcn/lib/utils';
 
 export interface DataTableToolbarSearchProps {

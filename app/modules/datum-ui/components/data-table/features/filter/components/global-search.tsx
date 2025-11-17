@@ -1,8 +1,8 @@
-import { useDataTable } from '../../data-table.context';
+import { useDataTable } from '../../../core/data-table.context';
 import {
   getSearchableColumnIds,
   getSearchableColumnNames,
-} from '../../utils/global-search.helpers';
+} from '../../../utils/global-search.helpers';
 import { SearchInput } from './shared/search-input';
 import { useSearchState } from './shared/use-search-state';
 import { cn } from '@shadcn/lib/utils';
