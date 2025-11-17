@@ -85,7 +85,9 @@ export default function DnsRecordsPage() {
       // Inline form configuration
       enableInlineContent={true}
       inlineContent={({ mode, data, onClose }) => (
-        <DnsRecordInlineForm mode={mode} initialData={data} onClose={onClose} />
+        <div className="rounded-lg border px-7 py-5 shadow-sm">
+          <DnsRecordInlineForm mode={mode} initialData={data} onClose={onClose} />
+        </div>
       )}
       ref={tableRef}
     />

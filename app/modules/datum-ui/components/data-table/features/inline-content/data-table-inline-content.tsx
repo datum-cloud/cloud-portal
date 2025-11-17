@@ -95,7 +95,7 @@ export function DataTableInlineContent<TData>({
       data-inline-content
       data-mode={mode}
       className={cn(
-        'border-l-primary bg-muted/50 hover:bg-muted/50 border-l-4',
+        'bg-table-cell hover:bg-table-cell',
         // Animation classes
         'transition-all duration-200 ease-in-out',
         'transform-gpu', // Use GPU acceleration
@@ -103,7 +103,7 @@ export function DataTableInlineContent<TData>({
         isVisible && !isExiting ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0',
         className
       )}>
-      <TableCell colSpan={columnCount} className="p-0">
+      <TableCell colSpan={columnCount} className="p-3.5">
         {children({ mode, data, onClose: handleClose })}
       </TableCell>
     </TableRow>

@@ -1,0 +1,80 @@
+import { Field } from '@/components/field/field';
+import { CAARecordSchema } from '@/resources/schemas/dns-record.schema';
+import { getInputProps, useForm } from '@conform-to/react';
+import { Input } from '@shadcn/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+
+const CAA_TAGS = [
+  { value: 'issue', label: 'issue - Authorization to issue certificates' },
+  { value: 'issuewild', label: 'issuewild - Authorization to issue wildcard certificates' },
+  { value: 'iodef', label: 'iodef - URL for incident reporting' },
+];
+
+export const CAARecordField = ({
+  fields,
+}: {
+  fields: ReturnType<typeof useForm<CAARecordSchema>>[1];
+  defaultValue?: CAARecordSchema;
+}) => {
+  // Always use the first (and only) item in the array
+  const caaList = fields.caa.getFieldList();
+  const caaFields = caaList[0]?.getFieldset();
+
+  if (!caaFields) return null;
+
+  return (
+    <div className="flex w-full flex-col gap-3">
+      <div className="flex gap-2">
+        <Field
+          isRequired
+          label="Flag"
+          errors={caaFields.flag.errors}
+          className="w-20"
+          tooltipInfo="Usually 0 (non-critical) or 128 (critical)">
+          <Input
+            {...getInputProps(caaFields.flag, { type: 'number' })}
+            key={caaFields.flag.id}
+            placeholder="0"
+            min={0}
+            max={255}
+          />
+        </Field>
+
+        <Field
+          isRequired
+          label="Tag"
+          errors={caaFields.tag.errors}
+          className="flex-1">
+          <Select
+            key={caaFields.tag.id}
+            name={caaFields.tag.name}
+            defaultValue="issue">
+            <SelectTrigger>
+              <SelectValue placeholder="Select tag" />
+            </SelectTrigger>
+            <SelectContent>
+              {CAA_TAGS.map((tag) => (
+                <SelectItem key={tag.value} value={tag.value}>
+                  {tag.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </div>
+
+      <Field
+        isRequired
+        label="Value"
+        errors={caaFields.value.errors}
+        className="w-full"
+        tooltipInfo="CA domain or reporting URL (e.g., letsencrypt.org)">
+        <Input
+          {...getInputProps(caaFields.value, { type: 'text' })}
+          key={caaFields.value.id}
+          placeholder="e.g., letsencrypt.org"
+        />
+      </Field>
+    </div>
+  );
+};
