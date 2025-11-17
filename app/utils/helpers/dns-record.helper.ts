@@ -1,4 +1,6 @@
+import { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-plane/dns-networking';
 import { IDnsRecordSetControlResponse } from '@/resources/interfaces/dns.interface';
+import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
 
 /**
  * Get sort priority for DNS record types
@@ -106,12 +108,22 @@ export function flattenDnsRecordSets(
     });
   });
 
-  // Sort by type priority, then by name
+  // Sort descending by createdAt (most recent first), then by name for same timestamp
   return flattened.sort((a, b) => {
-    const priorityDiff = getDnsRecordTypePriority(a.type) - getDnsRecordTypePriority(b.type);
-    if (priorityDiff !== 0) return priorityDiff;
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    if (dateA !== dateB) {
+      return dateB - dateA;
+    }
     return a.name.localeCompare(b.name);
   });
+
+  // Sort by type priority, then by name
+  // return flattened.sort((a, b) => {
+  //   const priorityDiff = getDnsRecordTypePriority(a.type) - getDnsRecordTypePriority(b.type);
+  //   if (priorityDiff !== 0) return priorityDiff;
+  //   return a.name.localeCompare(b.name);
+  // });
 }
 
 /**
@@ -144,10 +156,10 @@ function extractValues(record: any, recordType: string | undefined): string[] {
 
     case 'SOA':
       // record.soa: { mname, rname, refresh, retry, expire, serial, ttl }
+      // Return as JSON string to preserve object structure for editing
+      // Format will be applied in table cell renderer
       if (record.soa) {
-        return [
-          `${record.soa.mname} ${record.soa.rname} ${record.soa.refresh || 0} ${record.soa.retry || 0} ${record.soa.expire || 0} ${record.soa.ttl || 0}`,
-        ];
+        return [JSON.stringify(record.soa)];
       }
       return [];
 
@@ -228,7 +240,7 @@ function extractValues(record: any, recordType: string | undefined): string[] {
  */
 function extractTTL(record: any): number | undefined {
   // SOA has TTL in soa.ttl
-  if (record.soa?.ttl) return record.soa.ttl;
+  // if (record.soa?.ttl) return record.soa.ttl;
 
   // Other types might have TTL at record level
   if (record.ttl) return record.ttl;
@@ -251,4 +263,576 @@ function extractStatus(status: any): 'Active' | 'Pending' | 'Error' {
   if (isAccepted && isProgrammed) return 'Active';
   if (accepted?.status === 'False' || programmed?.status === 'False') return 'Error';
   return 'Pending';
+}
+
+// =============================================================================
+// Transformation Helpers: Form ↔ K8s RecordSet
+// =============================================================================
+
+/**
+ * Transform UI form data to K8s Record format
+ * Converts CreateDnsRecordSchema to DNSRecordSet['spec']['records'][0]
+ */
+export function transformFormToRecord(
+  formData: CreateDnsRecordSchema
+): ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet['spec']['records'][0] {
+  const { recordType, name, ttl, ...typeData } = formData as any;
+
+  const record: any = {
+    name: name || '@',
+    // Only include ttl if it's not null/undefined (null means "Auto" - use default TTL)
+    ...(ttl != null && { ttl }),
+  };
+
+  // Map type-specific fields to K8s format
+  switch (recordType) {
+    case 'A':
+      // Form: { a: { content: string } }
+      // K8s:  { a: { content: string[] } }
+      if (typeData.a) {
+        record.a = { content: [typeData.a.content] };
+      }
+      break;
+
+    case 'AAAA':
+      if (typeData.aaaa) {
+        record.aaaa = { content: [typeData.aaaa.content] };
+      }
+      break;
+
+    case 'CNAME':
+      // Form: { cname: { content: string } }
+      // K8s:  { cname: { content: string } }
+      if (typeData.cname) {
+        record.cname = { content: typeData.cname.content };
+      }
+      break;
+
+    case 'TXT':
+      if (typeData.txt) {
+        record.txt = { content: [typeData.txt.content] };
+      }
+      break;
+
+    case 'NS':
+      // Form: { ns: { content: string } }
+      // K8s:  { raw: string[] }
+      if (typeData.ns) {
+        record.raw = [typeData.ns.content];
+      }
+      break;
+
+    case 'PTR':
+      if (typeData.ptr) {
+        record.raw = [typeData.ptr.content];
+      }
+      break;
+
+    case 'MX':
+      // Form: { mx: [{ exchange, preference }] }
+      // K8s:  { mx: [{ exchange, preference }] }
+      if (typeData.mx) {
+        record.mx = typeData.mx;
+      }
+      break;
+
+    case 'SRV':
+      if (typeData.srv) {
+        record.srv = typeData.srv;
+      }
+      break;
+
+    case 'CAA':
+      if (typeData.caa) {
+        record.caa = typeData.caa;
+      }
+      break;
+
+    case 'TLSA':
+      if (typeData.tlsa) {
+        record.tlsa = typeData.tlsa;
+      }
+      break;
+
+    case 'HTTPS':
+      if (typeData.https) {
+        record.https = typeData.https;
+      }
+      break;
+
+    case 'SVCB':
+      if (typeData.svcb) {
+        record.svcb = typeData.svcb;
+      }
+      break;
+
+    case 'SOA':
+      // Form: { soa: { mname, rname, ... } }
+      // K8s:  { soa: { mname, rname, ... } }
+      if (typeData.soa) {
+        record.soa = typeData.soa;
+      }
+      break;
+  }
+
+  return record;
+}
+
+/**
+ * Merge new record values into existing record
+ * For types with content arrays (A, AAAA, TXT, NS, PTR), merges the arrays
+ * For types with object arrays (MX, SRV, CAA, etc.), appends to the array
+ * For single-value types (CNAME, SOA), replaces the value
+ */
+export function mergeRecordValues(existingRecord: any, newRecord: any, recordType: string): any {
+  const merged = { ...existingRecord };
+
+  switch (recordType) {
+    case 'A':
+      // Merge content arrays, avoiding duplicates
+      if (newRecord.a?.content && existingRecord.a?.content) {
+        const existingContent = existingRecord.a.content;
+        const newContent = newRecord.a.content;
+        merged.a = {
+          content: [
+            ...existingContent,
+            ...newContent.filter((ip: string) => !existingContent.includes(ip)),
+          ],
+        };
+      } else if (newRecord.a) {
+        merged.a = newRecord.a;
+      }
+      break;
+
+    case 'AAAA':
+      if (newRecord.aaaa?.content && existingRecord.aaaa?.content) {
+        const existingContent = existingRecord.aaaa.content;
+        const newContent = newRecord.aaaa.content;
+        merged.aaaa = {
+          content: [
+            ...existingContent,
+            ...newContent.filter((ip: string) => !existingContent.includes(ip)),
+          ],
+        };
+      } else if (newRecord.aaaa) {
+        merged.aaaa = newRecord.aaaa;
+      }
+      break;
+
+    case 'TXT':
+      if (newRecord.txt?.content && existingRecord.txt?.content) {
+        const existingContent = existingRecord.txt.content;
+        const newContent = newRecord.txt.content;
+        merged.txt = {
+          content: [
+            ...existingContent,
+            ...newContent.filter((text: string) => !existingContent.includes(text)),
+          ],
+        };
+      } else if (newRecord.txt) {
+        merged.txt = newRecord.txt;
+      }
+      break;
+
+    case 'NS':
+    case 'PTR':
+      if (newRecord.raw && existingRecord.raw) {
+        const existingRaw = existingRecord.raw;
+        const newRaw = newRecord.raw;
+        merged.raw = [
+          ...existingRaw,
+          ...newRaw.filter((value: string) => !existingRaw.includes(value)),
+        ];
+      } else if (newRecord.raw) {
+        merged.raw = newRecord.raw;
+      }
+      break;
+
+    case 'MX':
+      // Append to array, check for duplicates by exchange
+      if (newRecord.mx && existingRecord.mx) {
+        const existingExchanges = existingRecord.mx.map((mx: any) => mx.exchange);
+        const newMx = newRecord.mx.filter((mx: any) => !existingExchanges.includes(mx.exchange));
+        merged.mx = [...existingRecord.mx, ...newMx];
+      } else if (newRecord.mx) {
+        merged.mx = newRecord.mx;
+      }
+      break;
+
+    case 'SRV':
+      // Append to array, check for duplicates by target
+      if (newRecord.srv && existingRecord.srv) {
+        const existingTargets = existingRecord.srv.map((srv: any) => srv.target);
+        const newSrv = newRecord.srv.filter((srv: any) => !existingTargets.includes(srv.target));
+        merged.srv = [...existingRecord.srv, ...newSrv];
+      } else if (newRecord.srv) {
+        merged.srv = newRecord.srv;
+      }
+      break;
+
+    case 'CAA':
+      // Append to array, check for duplicates by value
+      if (newRecord.caa && existingRecord.caa) {
+        const existingValues = existingRecord.caa.map((caa: any) => caa.value);
+        const newCaa = newRecord.caa.filter((caa: any) => !existingValues.includes(caa.value));
+        merged.caa = [...existingRecord.caa, ...newCaa];
+      } else if (newRecord.caa) {
+        merged.caa = newRecord.caa;
+      }
+      break;
+
+    case 'TLSA':
+      // Append to array, check for duplicates by certData
+      if (newRecord.tlsa && existingRecord.tlsa) {
+        const existingCerts = existingRecord.tlsa.map((tlsa: any) => tlsa.certData);
+        const newTlsa = newRecord.tlsa.filter(
+          (tlsa: any) => !existingCerts.includes(tlsa.certData)
+        );
+        merged.tlsa = [...existingRecord.tlsa, ...newTlsa];
+      } else if (newRecord.tlsa) {
+        merged.tlsa = newRecord.tlsa;
+      }
+      break;
+
+    case 'HTTPS':
+      // Append to array, check for duplicates by target
+      if (newRecord.https && existingRecord.https) {
+        const existingTargets = existingRecord.https.map((https: any) => https.target);
+        const newHttps = newRecord.https.filter(
+          (https: any) => !existingTargets.includes(https.target)
+        );
+        merged.https = [...existingRecord.https, ...newHttps];
+      } else if (newRecord.https) {
+        merged.https = newRecord.https;
+      }
+      break;
+
+    case 'SVCB':
+      // Append to array, check for duplicates by target
+      if (newRecord.svcb && existingRecord.svcb) {
+        const existingTargets = existingRecord.svcb.map((svcb: any) => svcb.target);
+        const newSvcb = newRecord.svcb.filter(
+          (svcb: any) => !existingTargets.includes(svcb.target)
+        );
+        merged.svcb = [...existingRecord.svcb, ...newSvcb];
+      } else if (newRecord.svcb) {
+        merged.svcb = newRecord.svcb;
+      }
+      break;
+
+    case 'CNAME':
+    case 'SOA':
+      // Single-value types: replace entirely
+      return { ...existingRecord, ...newRecord };
+
+    default:
+      // Fallback: replace entirely
+      return { ...existingRecord, ...newRecord };
+  }
+
+  // Update TTL if provided in new record
+  // If newRecord.ttl is null, it means "Auto" - don't include it (delete from merged)
+  // If newRecord.ttl is a number, update it
+  // If newRecord.ttl is undefined, keep existing TTL
+  if (newRecord.ttl !== undefined) {
+    if (newRecord.ttl === null) {
+      delete merged.ttl; // Remove TTL to use default
+    } else {
+      merged.ttl = newRecord.ttl;
+    }
+  }
+
+  return merged;
+}
+
+/**
+ * Update a specific value in a record's value array
+ * Used for editing individual values (e.g., changing one IP to another in A record)
+ * @param record - The existing record
+ * @param newRecord - The new record data containing the updated value
+ * @param recordType - The DNS record type
+ * @param oldValue - The old value to find and replace
+ */
+export function updateValueInRecord(
+  record: any,
+  newRecord: any,
+  recordType: string,
+  oldValue: string
+): any {
+  const updatedRecord = { ...record };
+
+  switch (recordType) {
+    case 'A':
+      if (record.a?.content && newRecord.a?.content?.[0]) {
+        const newValue = newRecord.a.content[0];
+        updatedRecord.a = {
+          content: record.a.content.map((ip: string) => (ip === oldValue ? newValue : ip)),
+        };
+      }
+      break;
+
+    case 'AAAA':
+      if (record.aaaa?.content && newRecord.aaaa?.content?.[0]) {
+        const newValue = newRecord.aaaa.content[0];
+        updatedRecord.aaaa = {
+          content: record.aaaa.content.map((ip: string) => (ip === oldValue ? newValue : ip)),
+        };
+      }
+      break;
+
+    case 'TXT':
+      if (record.txt?.content && newRecord.txt?.content?.[0]) {
+        const newValue = newRecord.txt.content[0];
+        updatedRecord.txt = {
+          content: record.txt.content.map((text: string) => (text === oldValue ? newValue : text)),
+        };
+      }
+      break;
+
+    case 'NS':
+    case 'PTR':
+      if (record.raw && newRecord.raw?.[0]) {
+        const newValue = newRecord.raw[0];
+        updatedRecord.raw = record.raw.map((value: string) =>
+          value === oldValue ? newValue : value
+        );
+      }
+      break;
+
+    case 'MX':
+      if (record.mx && newRecord.mx?.[0]) {
+        const newMx = newRecord.mx[0];
+        // oldValue format: "preference|exchange"
+        updatedRecord.mx = record.mx.map((mx: any) =>
+          `${mx.preference}|${mx.exchange}` === oldValue ? newMx : mx
+        );
+      }
+      break;
+
+    case 'SRV':
+      if (record.srv && newRecord.srv?.[0]) {
+        const newSrv = newRecord.srv[0];
+        // oldValue format: "priority weight port target"
+        updatedRecord.srv = record.srv.map((srv: any) =>
+          `${srv.priority} ${srv.weight} ${srv.port} ${srv.target}` === oldValue ? newSrv : srv
+        );
+      }
+      break;
+
+    case 'CAA':
+      if (record.caa && newRecord.caa?.[0]) {
+        const newCaa = newRecord.caa[0];
+        // oldValue format: "flag tag "value""
+        updatedRecord.caa = record.caa.map((caa: any) =>
+          `${caa.flag} ${caa.tag} "${caa.value}"` === oldValue ? newCaa : caa
+        );
+      }
+      break;
+
+    case 'TLSA':
+      if (record.tlsa && newRecord.tlsa?.[0]) {
+        const newTlsa = newRecord.tlsa[0];
+        // oldValue is certData
+        updatedRecord.tlsa = record.tlsa.map((tlsa: any) =>
+          tlsa.certData === oldValue ? newTlsa : tlsa
+        );
+      }
+      break;
+
+    case 'HTTPS':
+      if (record.https && newRecord.https?.[0]) {
+        const newHttps = newRecord.https[0];
+        // oldValue is the target
+        updatedRecord.https = record.https.map((https: any) =>
+          https.target === oldValue ? newHttps : https
+        );
+      }
+      break;
+
+    case 'SVCB':
+      if (record.svcb && newRecord.svcb?.[0]) {
+        const newSvcb = newRecord.svcb[0];
+        // oldValue is the target
+        updatedRecord.svcb = record.svcb.map((svcb: any) =>
+          svcb.target === oldValue ? newSvcb : svcb
+        );
+      }
+      break;
+
+    case 'CNAME':
+    case 'SOA':
+      // Single-value types: replace entirely
+      return { ...record, ...newRecord };
+
+    default:
+      // Fallback: replace entirely
+      return { ...record, ...newRecord };
+  }
+
+  // Update TTL if provided in new record
+  if (newRecord.ttl !== undefined) {
+    if (newRecord.ttl === null) {
+      delete updatedRecord.ttl; // Remove TTL to use default
+    } else {
+      updatedRecord.ttl = newRecord.ttl;
+    }
+  }
+
+  return updatedRecord;
+}
+
+/**
+ * Remove a specific value from a record's value array
+ * Used for deleting individual values (e.g., one IP from A record with multiple IPs)
+ */
+export function removeValueFromRecord(record: any, recordType: string, valueToRemove: string): any {
+  const updatedRecord = { ...record };
+
+  switch (recordType) {
+    case 'A':
+      if (record.a?.content) {
+        updatedRecord.a = {
+          content: record.a.content.filter((ip: string) => ip !== valueToRemove),
+        };
+      }
+      break;
+
+    case 'AAAA':
+      if (record.aaaa?.content) {
+        updatedRecord.aaaa = {
+          content: record.aaaa.content.filter((ip: string) => ip !== valueToRemove),
+        };
+      }
+      break;
+
+    case 'TXT':
+      if (record.txt?.content) {
+        updatedRecord.txt = {
+          content: record.txt.content.filter((text: string) => text !== valueToRemove),
+        };
+      }
+      break;
+
+    case 'NS':
+    case 'PTR':
+      if (record.raw) {
+        updatedRecord.raw = record.raw.filter((value: string) => value !== valueToRemove);
+      }
+      break;
+
+    case 'MX':
+      if (record.mx) {
+        // valueToRemove format: "preference|exchange"
+        updatedRecord.mx = record.mx.filter(
+          (mx: any) => `${mx.preference}|${mx.exchange}` !== valueToRemove
+        );
+      }
+      break;
+
+    case 'SRV':
+      if (record.srv) {
+        // valueToRemove format: "priority weight port target"
+        updatedRecord.srv = record.srv.filter(
+          (srv: any) => `${srv.priority} ${srv.weight} ${srv.port} ${srv.target}` !== valueToRemove
+        );
+      }
+      break;
+
+    case 'CAA':
+      if (record.caa) {
+        // valueToRemove format: "flag tag "value""
+        updatedRecord.caa = record.caa.filter(
+          (caa: any) => `${caa.flag} ${caa.tag} "${caa.value}"` !== valueToRemove
+        );
+      }
+      break;
+
+    case 'TLSA':
+      if (record.tlsa) {
+        // valueToRemove format: "usage selector matchingType certData"
+        updatedRecord.tlsa = record.tlsa.filter(
+          (tlsa: any) =>
+            `${tlsa.usage} ${tlsa.selector} ${tlsa.matchingType} ${tlsa.certData}` !== valueToRemove
+        );
+      }
+      break;
+
+    case 'HTTPS':
+      if (record.https) {
+        // valueToRemove format: "priority target [params]"
+        updatedRecord.https = record.https.filter((https: any) => {
+          const params = https.params
+            ? ` ${Object.entries(https.params)
+                .map(([k, v]) => `${k}=${v}`)
+                .join(' ')}`
+            : '';
+          return `${https.priority} ${https.target}${params}` !== valueToRemove;
+        });
+      }
+      break;
+
+    case 'SVCB':
+      if (record.svcb) {
+        updatedRecord.svcb = record.svcb.filter((svcb: any) => {
+          const params = svcb.params
+            ? ` ${Object.entries(svcb.params)
+                .map(([k, v]) => `${k}=${v}`)
+                .join(' ')}`
+            : '';
+          return `${svcb.priority} ${svcb.target}${params}` !== valueToRemove;
+        });
+      }
+      break;
+
+    case 'CNAME':
+      // CNAME is single-value, so removing it means setting content to undefined/null
+      if (record.cname?.content === valueToRemove) {
+        delete updatedRecord.cname;
+      }
+      break;
+
+    case 'SOA':
+      // SOA is single-value, so removing it means deleting the soa object
+      if (record.soa && JSON.stringify(record.soa) === valueToRemove) {
+        delete updatedRecord.soa;
+      }
+      break;
+  }
+
+  return updatedRecord;
+}
+
+/**
+ * Check if a record has no more values left
+ */
+export function isRecordEmpty(record: any, recordType: string): boolean {
+  switch (recordType) {
+    case 'A':
+      return !record.a?.content || record.a.content.length === 0;
+    case 'AAAA':
+      return !record.aaaa?.content || record.aaaa.content.length === 0;
+    case 'CNAME':
+      return !record.cname?.content;
+    case 'TXT':
+      return !record.txt?.content || record.txt.content.length === 0;
+    case 'NS':
+    case 'PTR':
+      return !record.raw || record.raw.length === 0;
+    case 'SOA':
+      return !record.soa;
+    case 'MX':
+      return !record.mx || record.mx.length === 0;
+    case 'SRV':
+      return !record.srv || record.srv.length === 0;
+    case 'CAA':
+      return !record.caa || record.caa.length === 0;
+    case 'TLSA':
+      return !record.tlsa || record.tlsa.length === 0;
+    case 'HTTPS':
+      return !record.https || record.https.length === 0;
+    case 'SVCB':
+      return !record.svcb || record.svcb.length === 0;
+    default:
+      return true;
+  }
 }

@@ -57,6 +57,12 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
     return data({ success: true, data: response });
   } catch (error) {
-    return data({ success: false, error: 'Failed to load notifications' }, { status: 500 });
+    return data(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to load notifications',
+      },
+      { status: 500 }
+    );
   }
 };

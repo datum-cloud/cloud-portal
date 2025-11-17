@@ -2,9 +2,9 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DnsHostChips } from '@/components/dns-host-chips';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
-import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
-import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table/data-table.types';
-import { DataTableFilter } from '@/modules/datum-ui/components/data-table/filter/data-table-filter';
+import { DataTable } from '@/modules/datum-ui/components/data-table';
+import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
+import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
 import { createDomainsControl } from '@/resources/control-plane';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';

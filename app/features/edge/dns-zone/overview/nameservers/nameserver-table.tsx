@@ -1,7 +1,7 @@
 import { DnsHostChips } from '@/components/dns-host-chips';
 import { EmptyContentProps } from '@/components/empty-content/empty-content';
-import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
-import { DataTableTitleProps } from '@/modules/datum-ui/components/data-table/data-table.types';
+import { DataTable } from '@/modules/datum-ui/components/data-table';
+import { DataTableTitleProps } from '@/modules/datum-ui/components/data-table';
 import { IDnsNameserver, IDnsRegistration } from '@/resources/interfaces/dns.interface';
 import { Badge } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';

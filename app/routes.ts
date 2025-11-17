@@ -251,6 +251,10 @@ export default [
       // Roles
       route('roles', 'routes/api/roles/index.ts'),
 
+      // DNS Records
+      route('dns-records', 'routes/api/dns-records/index.ts'),
+      route('dns-records/:id', 'routes/api/dns-records/$id.ts'),
+
       // Third-party APIs
       // Cloud Validations
       route('cloudvalid/dns', 'routes/api/cloudvalid/dns.ts'),

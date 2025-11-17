@@ -1,9 +1,9 @@
 import { getPolicyBindingColumns } from './policy-binding.columns';
-import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
+import { DataTable } from '@/modules/datum-ui/components/data-table';
 import {
   DataTableRowActionsProps,
   DataTableTitleProps,
-} from '@/modules/datum-ui/components/data-table/data-table.types';
+} from '@/modules/datum-ui/components/data-table';
 import { IPolicyBindingControlResponse } from '@/resources/interfaces/policy-binding.interface';
 
 export type PolicyBindingTableProps = {

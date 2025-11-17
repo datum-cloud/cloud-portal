@@ -1,6 +1,6 @@
 import { ActivityLogItem } from './list-item';
 import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
-import { DataTable } from '@/modules/datum-ui/components/data-table/data-table';
+import { DataTable } from '@/modules/datum-ui/components/data-table';
 import type { ActivityLogEntry, QueryParams } from '@/modules/loki/types';
 import { ROUTE_PATH as ACTIVITY_ROUTE_PATH } from '@/routes/api/activity';
 import { toast } from '@datum-ui/components';

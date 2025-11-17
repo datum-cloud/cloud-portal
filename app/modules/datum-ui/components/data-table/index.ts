@@ -9,29 +9,46 @@
 // =============================================================================
 
 // Main DataTable component and provider
-export { DataTable } from './data-table';
-export { DataTableProvider } from './data-table.context';
-
-// Table sub-components
-export { DataTableColumnHeader } from './data-table-column-header';
-export { DataTableToolbar } from './data-table-toolbar';
-export { DataTableToolbarSearch } from './data-table-toolbar-search';
-export { DataTableToolbarFilterDropdown } from './data-table-toolbar-filter-dropdown';
-export { DataTablePagination } from './data-table-pagination';
-export { DataTableRowActions } from './data-table-row-actions';
-export { DataTableLoadingContent } from './data-table-loading';
+export { DataTable } from './core/data-table';
+export { DataTableProvider } from './core/data-table.context';
 
 // Table view components
-export { DataTableView } from './data-table-view';
-export { DataTableCardView } from './data-table-card-view';
+export { DataTableView } from './core/data-table-view';
+export { DataTableCardView } from './core/data-table-card-view';
+export { DataTableLoadingContent } from './core/data-table-loading';
 
 // Table sub-component types
-export type { DataTableColumnHeaderProps } from './data-table-column-header';
-export type { DataTableToolbarProps } from './data-table-toolbar';
-export type { DataTableToolbarSearchProps } from './data-table-toolbar-search';
-export type { DataTableToolbarFilterDropdownProps } from './data-table-toolbar-filter-dropdown';
-export type { DataTableViewProps } from './data-table-view';
-export type { DataTableCardViewProps } from './data-table-card-view';
+export type { DataTableViewProps } from './core/data-table-view';
+export type { DataTableCardViewProps } from './core/data-table-card-view';
+
+// =============================================================================
+// Feature Components
+// =============================================================================
+
+// Column components
+export { DataTableColumnHeader } from './features/columns/data-table-column-header';
+export type { DataTableColumnHeaderProps } from './features/columns/data-table-column-header';
+
+// Toolbar components
+export { DataTableToolbar } from './features/toolbar/data-table-toolbar';
+export { DataTableToolbarSearch } from './features/toolbar/data-table-toolbar-search';
+export { DataTableToolbarFilterDropdown } from './features/toolbar/data-table-toolbar-filter-dropdown';
+export type { DataTableToolbarProps } from './features/toolbar/data-table-toolbar';
+export type { DataTableToolbarSearchProps } from './features/toolbar/data-table-toolbar-search';
+export type { DataTableToolbarFilterDropdownProps } from './features/toolbar/data-table-toolbar-filter-dropdown';
+
+// Pagination components
+export { DataTablePagination } from './features/pagination/data-table-pagination';
+
+// Action components
+export { DataTableRowActions } from './features/actions/data-table-row-actions';
+
+// Inline content components
+export { DataTableInlineContent } from './features/inline-content/data-table-inline-content';
+export type {
+  DataTableInlineContentProps,
+  InlineContentRenderParams,
+} from './features/inline-content/data-table-inline-content';
 
 // =============================================================================
 // Core Types
@@ -44,12 +61,13 @@ export type {
   DataTableTitleProps,
   DataTableToolbarConfig,
   DataTableSearchConfig,
+  DataTableRef,
   SearchParams,
-} from './data-table.types';
+} from './core/data-table.types';
 
 // Column types (includes module augmentation for TanStack Table)
-export type { ColumnHeaderTooltip } from './data-table-column.types';
-export { isTooltipConfig, normalizeTooltip } from './data-table-column.types';
+export type { ColumnHeaderTooltip } from './features/columns/data-table-column.types';
+export { isTooltipConfig, normalizeTooltip } from './features/columns/data-table-column.types';
 
 // Context types
 export type {
@@ -58,14 +76,14 @@ export type {
   FilterParser,
   FilterParserRegistry,
   DataTableProviderProps,
-} from './data-table.context';
+} from './core/data-table.context';
 
 // =============================================================================
 // Core Context & Hooks
 // =============================================================================
 
 // Context
-export { DataTableContext } from './data-table.context';
+export { DataTableContext } from './core/data-table.context';
 
 // Core hooks
 export {
@@ -75,7 +93,7 @@ export {
   useTableData,
   useFilterData,
   useTableState,
-} from './data-table.context';
+} from './core/data-table.context';
 
 // =============================================================================
 // URL-aware Filter Hooks
@@ -103,16 +121,16 @@ export {
   SelectFilter,
   RadioFilter,
   CheckboxFilter,
-} from './filter/data-table-filter';
+} from './features/filter/data-table-filter';
 
 // Filter component types
-export type { DataTableFilterProps } from './filter/data-table-filter';
-export type { SearchFilterProps } from './filter/components/search';
-export type { GlobalSearchFilterProps } from './filter/components/global-search';
-export type { DatePickerFilterProps } from './filter/components/datepicker';
-export type { SelectFilterProps, SelectOption } from './filter/components/select';
-export type { RadioFilterProps, RadioOption } from './filter/components/radio';
-export type { CheckboxFilterProps, CheckboxOption } from './filter/components/checkbox';
+export type { DataTableFilterProps } from './features/filter/data-table-filter';
+export type { SearchFilterProps } from './features/filter/components/search';
+export type { GlobalSearchFilterProps } from './features/filter/components/global-search';
+export type { DatePickerFilterProps } from './features/filter/components/datepicker';
+export type { SelectFilterProps, SelectOption } from './features/filter/components/select';
+export type { RadioFilterProps, RadioOption } from './features/filter/components/radio';
+export type { CheckboxFilterProps, CheckboxOption } from './features/filter/components/checkbox';
 
 // =============================================================================
 // Re-exports for Convenience
@@ -120,7 +138,7 @@ export type { CheckboxFilterProps, CheckboxOption } from './filter/components/ch
 
 // Re-export everything from filter for backward compatibility
 // This ensures existing imports from '@/modules/datum-ui/components/data-table/filter' continue to work
-export * from './filter';
+export * from './features/filter';
 
 // =============================================================================
 // Utilities

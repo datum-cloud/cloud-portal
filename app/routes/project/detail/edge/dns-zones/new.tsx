@@ -47,9 +47,8 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
 
     const dryRunRes = await dnsZonesControl.create(projectId, parsed.value, true);
 
-    let res: IDnsZoneControlResponse = {};
     if (dryRunRes) {
-      res = await dnsZonesControl.create(projectId, parsed.value, false);
+      await dnsZonesControl.create(projectId, parsed.value, false);
     }
 
     return redirect(

@@ -34,7 +34,7 @@ export const Field = ({
         />
       )}
       {children}
-      {description && <p className="text-muted-foreground text-sm">{description}</p>}
+      {description && <p className="text-ring text-xs text-wrap">{description}</p>}
       {errors && (
         <ul
           className={cn(

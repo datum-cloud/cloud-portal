@@ -4,7 +4,7 @@ import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
 export const ROUTE_PATH = '/api/organizations' as const;
 
-export const loader = async ({ context, request }: LoaderFunctionArgs) => {
+export const loader = async ({ context }: LoaderFunctionArgs) => {
   const { cache, iamResourceClient } = context as AppLoadContext;
 
   // const url = new URL(request.url);
