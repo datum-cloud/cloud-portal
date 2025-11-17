@@ -82,7 +82,7 @@ export default function DnsZoneOverviewPage() {
                 icon={<PencilIcon size={12} />}
                 iconPosition="right"
                 size="xs">
-                Edit nameservers
+                View nameservers
               </LinkButton>
             }
           />
