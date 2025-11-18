@@ -33,6 +33,7 @@ import {
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button, toast } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
 import { Input } from '@shadcn/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { Loader2 } from 'lucide-react';
@@ -41,6 +42,7 @@ import { Form } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 interface DnsRecordFormProps {
+  style?: 'inline' | 'modal';
   mode: 'create' | 'edit';
   defaultValue?: CreateDnsRecordSchema;
   projectId: string;
@@ -56,6 +58,7 @@ interface DnsRecordFormProps {
 }
 
 export function DnsRecordForm({
+  style = 'inline',
   mode,
   defaultValue,
   projectId,
@@ -138,9 +141,12 @@ export function DnsRecordForm({
             throw new Error(result.error || `Failed to ${mode} DNS record`);
           }
 
-          // Success!
-          onSuccess?.();
-          onClose();
+          if (result.success) {
+            onSuccess?.();
+            onClose();
+          } else {
+            throw new Error(result?.error || `Failed to ${mode} DNS record`);
+          }
         } catch (error: any) {
           toast.error(error.message || `Failed to ${mode} DNS record. Please try again.`);
         } finally {
@@ -181,7 +187,10 @@ export function DnsRecordForm({
 
   return (
     <FormProvider context={form.context}>
-      <Form {...getFormProps(form)} method="POST" className="flex flex-row items-start gap-5">
+      <Form
+        {...getFormProps(form)}
+        method="POST"
+        className={cn('flex flex-row items-start gap-5', style === 'modal' && 'flex-col')}>
         {loading && (
           <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 backdrop-blur-xs">
             <Loader2 className="size-4 animate-spin" />
@@ -189,7 +198,7 @@ export function DnsRecordForm({
           </div>
         )}
 
-        <div className="grid flex-1 grid-cols-4 gap-5">
+        <div className={cn('grid flex-1 grid-cols-4 gap-5', style === 'modal' && 'grid-cols-2')}>
           {/* Record Type */}
           <Field isRequired label="Type" errors={fields.recordType.errors}>
             <SelectBox
@@ -259,15 +268,21 @@ export function DnsRecordForm({
         </div>
 
         {/* Form Actions */}
-        <div className="flex items-center justify-start pt-5">
-          {/* <Button
-            htmlType="button"
-            type="quaternary"
-            theme="borderless"
-            onClick={onClose}
-            disabled={loading}>
-            Cancel
-          </Button> */}
+        <div
+          className={cn(
+            'flex items-center justify-start pt-5',
+            style === 'modal' && 'w-full justify-end gap-2 pt-0'
+          )}>
+          {style === 'modal' && (
+            <Button
+              htmlType="button"
+              type="quaternary"
+              theme="borderless"
+              onClick={onClose}
+              disabled={loading}>
+              Cancel
+            </Button>
+          )}
           <Button htmlType="submit" disabled={loading} className="h-10" type="secondary">
             {mode === 'create' ? 'Add' : 'Save'}
           </Button>
