@@ -280,7 +280,7 @@ interface DataTableContentProps<TData, TValue> {
   rowClassName?: (row: TData) => string;
   tableContainerClassName?: string;
   tableClassName?: string;
-  tableCardClassName?: string;
+  tableCardClassName?: string | ((row: TData) => string | undefined);
   hidePagination: boolean;
   emptyContent: any;
   enableInlineContent: boolean;

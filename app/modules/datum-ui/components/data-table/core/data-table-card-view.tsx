@@ -14,7 +14,7 @@ export interface DataTableCardViewProps<TData> {
   maxInlineActions?: number;
   onRowClick?: (row: TData) => void;
   hideHeader?: boolean;
-  tableCardClassName?: string;
+  tableCardClassName?: string | ((row: TData) => string | undefined);
 }
 
 export const DataTableCardView = <TData,>({
@@ -37,38 +37,42 @@ export const DataTableCardView = <TData,>({
               <TableCell
                 colSpan={columns.length + (rowActions.length > 0 ? 1 : 0)}
                 className={cn('p-0 pb-4', !hideHeader && 'first:pt-3')}>
-                <div
-                  onClick={() => onRowClick?.(row.original)}
-                  className={cn(
-                    'bg-card group relative rounded-lg border p-6 shadow-none transition-all duration-200',
-                    'hover:border-primary hover:text-primary',
-                    onRowClick && 'cursor-pointer',
-                    row.getIsSelected() && 'ring-primary ring-2 ring-offset-2',
-                    tableCardClassName
-                  )}>
-                  {/* Card Content */}
-                  <div className="space-y-2">
-                    {row.getVisibleCells().map((cell) => (
-                      <div
-                        key={cell.id}
-                        className={cn('text-sm', cell.column.columnDef.meta?.className)}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Card Actions */}
-                  {rowActions && rowActions.length > 0 && (
-                    <div className="absolute top-2 right-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                      <DataTableRowActions
-                        row={row.original}
-                        actions={rowActions}
-                        hideRowActions={hideRowActions}
-                        disableRowActions={disableRowActions}
-                        maxInlineActions={maxInlineActions}
-                      />
+                <div className="bg-card rounded-lg">
+                  <div
+                    onClick={() => onRowClick?.(row.original)}
+                    className={cn(
+                      'bg-card group relative rounded-lg border p-6 shadow-none transition-all duration-200',
+                      'hover:border-primary hover:text-primary',
+                      onRowClick && 'cursor-pointer',
+                      row.getIsSelected() && 'ring-primary ring-2 ring-offset-2',
+                      typeof tableCardClassName === 'function'
+                        ? tableCardClassName(row.original)
+                        : tableCardClassName
+                    )}>
+                    {/* Card Content */}
+                    <div className="space-y-2">
+                      {row.getVisibleCells().map((cell) => (
+                        <div
+                          key={cell.id}
+                          className={cn('text-sm', cell.column.columnDef.meta?.className)}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </div>
+                      ))}
                     </div>
-                  )}
+
+                    {/* Card Actions */}
+                    {rowActions && rowActions.length > 0 && (
+                      <div className="absolute top-2 right-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                        <DataTableRowActions
+                          row={row.original}
+                          actions={rowActions}
+                          hideRowActions={hideRowActions}
+                          disableRowActions={disableRowActions}
+                          maxInlineActions={maxInlineActions}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </TableCell>
             </TableRow>

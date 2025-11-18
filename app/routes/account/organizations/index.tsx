@@ -115,6 +115,11 @@ export default function AccountOrganizations() {
             hidePagination
             columns={columns}
             data={orgsList}
+            tableCardClassName={(row: IOrganization) => {
+              return row.type === OrganizationType.Personal
+                ? 'text-primary border-primary bg-primary/10 hover:border-secondary hover:text-secondary'
+                : '';
+            }}
             onRowClick={(row) => {
               navigate(getPathWithParams(paths.org.detail.root, { orgId: row.name }));
             }}
