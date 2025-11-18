@@ -12,32 +12,32 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
     const url = new URL(request.url);
     const orgId = url.searchParams.get('orgId');
-    const noCache = false;
+    // const noCache = false;
 
     if (!orgId) {
       throw new BadRequestError('Organization ID is required');
     }
 
-    const key = `members:${orgId}`;
+    // const key = `members:${orgId}`;
 
-    // Try to get cached secrets if caching is enabled
-    const [isCached, cachedMembers] = await Promise.all([
-      !noCache && cache.hasItem(key),
-      !noCache && cache.getItem(key),
-    ]);
+    // // Try to get cached secrets if caching is enabled
+    // const [isCached, cachedMembers] = await Promise.all([
+    //   !noCache && cache.hasItem(key),
+    //   !noCache && cache.getItem(key),
+    // ]);
 
-    // Return cached secrets if available and caching is enabled
-    if (isCached && cachedMembers) {
-      return data({ success: true, data: cachedMembers }, { status: 200 });
-    }
+    // // Return cached secrets if available and caching is enabled
+    // if (isCached && cachedMembers) {
+    //   return data({ success: true, data: cachedMembers }, { status: 200 });
+    // }
 
     // Fetch fresh members from control plane
     const members = await membersControl.list(orgId);
 
     // Cache the fresh members if caching is enabled
-    await cache.setItem(key, members).catch((error) => {
-      console.error('Failed to cache members:', error);
-    });
+    // await cache.setItem(key, members).catch((error) => {
+    //   console.error('Failed to cache members:', error);
+    // });
 
     return data({ success: true, data: members }, { status: 200 });
   } catch (error: any) {

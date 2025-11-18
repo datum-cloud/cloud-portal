@@ -26,7 +26,7 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
     const orgAPI = createOrganizationsControl(iamResourceClient as Client);
     const organizations = await orgAPI.list();
 
-    await cache.setItem('organizations', organizations);
+    // await cache.setItem('organizations', organizations);
     return data({ success: true, data: organizations });
   } catch (error) {
     return data(

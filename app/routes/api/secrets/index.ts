@@ -15,32 +15,32 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
     const url = new URL(request.url);
     const projectId = url.searchParams.get('projectId');
-    const noCache = false;
+    // const noCache = false;
 
     if (!projectId) {
       throw new BadRequestError('Project ID is required');
     }
 
-    const key = `secrets:${projectId}`;
+    // const key = `secrets:${projectId}`;
 
     // Try to get cached secrets if caching is enabled
-    const [isCached, cachedSecrets] = await Promise.all([
-      !noCache && cache.hasItem(key),
-      !noCache && cache.getItem(key),
-    ]);
+    // const [isCached, cachedSecrets] = await Promise.all([
+    //   !noCache && cache.hasItem(key),
+    //   !noCache && cache.getItem(key),
+    // ]);
 
     // Return cached secrets if available and caching is enabled
-    if (isCached && cachedSecrets) {
-      return data({ success: true, data: cachedSecrets }, { status: 200 });
-    }
+    // if (isCached && cachedSecrets) {
+    //   return data({ success: true, data: cachedSecrets }, { status: 200 });
+    // }
 
     // Fetch fresh secrets from control plane
     const secrets = await secretsControl.list(projectId);
 
     // Cache the fresh secrets if caching is enabled
-    await cache.setItem(key, secrets).catch((error) => {
-      console.error('Failed to cache secrets:', error);
-    });
+    // await cache.setItem(key, secrets).catch((error) => {
+    //   console.error('Failed to cache secrets:', error);
+    // });
     return data({ success: true, data: secrets }, { status: 200 });
   } catch (error: any) {
     return data(
