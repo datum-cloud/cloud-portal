@@ -50,14 +50,11 @@ export const DataTableInlineActions = <TData,>({
         const button = (
           <Button
             type={action.variant === 'destructive' ? 'danger' : 'quaternary'}
-            theme={action.variant === 'destructive' ? 'solid' : 'borderless'}
+            theme={action.variant === 'destructive' ? 'solid' : 'outline'}
             size={showLabel ? 'small' : 'icon'}
             onClick={handleClick}
             disabled={isActionDisabled}
-            className={cn(
-              'flex size-6 items-center justify-center border p-0 focus-visible:ring-0 focus-visible:ring-offset-0',
-              action.className
-            )}>
+            className={cn('h-7 px-2', action.className)}>
             {action.icon}
             {showLabel && <span className="text-xs">{action.label}</span>}
           </Button>

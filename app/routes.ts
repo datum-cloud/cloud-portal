@@ -91,7 +91,7 @@ export default [
         // Settings of an organization
         layout('routes/project/detail/settings/layout.tsx', [
           route('preferences', 'routes/project/detail/settings/preferences.tsx'),
-          route('quotas', 'routes/project/detail/settings/quotas.tsx'),
+          // route('quotas', 'routes/project/detail/settings/quotas.tsx'),
           route('activity', 'routes/project/detail/settings/activity.tsx'),
         ]),
 
