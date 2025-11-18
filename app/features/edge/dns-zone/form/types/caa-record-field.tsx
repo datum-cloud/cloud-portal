@@ -16,11 +16,7 @@ export const CAARecordField = ({
   fields: ReturnType<typeof useForm<CAARecordSchema>>[1];
   defaultValue?: CAARecordSchema;
 }) => {
-  // Always use the first (and only) item in the array
-  const caaList = fields.caa.getFieldList();
-  const caaFields = caaList[0]?.getFieldset();
-
-  if (!caaFields) return null;
+  const caaFields = fields.caa.getFieldset();
 
   return (
     <>

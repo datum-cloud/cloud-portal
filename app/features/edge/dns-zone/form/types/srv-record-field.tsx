@@ -9,11 +9,7 @@ export const SRVRecordField = ({
   fields: ReturnType<typeof useForm<SRVRecordSchema>>[1];
   defaultValue?: SRVRecordSchema;
 }) => {
-  // Always use the first (and only) item in the array
-  const srvList = fields.srv.getFieldList();
-  const srvFields = srvList[0]?.getFieldset();
-
-  if (!srvFields) return null;
+  const srvFields = fields.srv.getFieldset();
 
   return (
     <>

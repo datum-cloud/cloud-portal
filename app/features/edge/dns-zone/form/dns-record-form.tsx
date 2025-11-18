@@ -81,13 +81,13 @@ export function DnsRecordForm({
       name: '',
       ttl: null, // Auto by default
       a: { content: '' },
-      // Initialize all array types with single empty item
-      mx: [{ exchange: '', preference: 10 }],
-      srv: [{ target: '', port: 443, priority: 10, weight: 5 }],
-      caa: [{ flag: 0, tag: 'issue', value: '' }],
-      tlsa: [{ usage: 3, selector: 1, matchingType: 1, certData: '' }],
-      https: [{ priority: 1, target: '', params: {} }],
-      svcb: [{ priority: 1, target: '', params: {} }],
+      // Initialize all complex types with single object (not arrays)
+      mx: { exchange: '', preference: 10 },
+      srv: { target: '', port: 443, priority: 10, weight: 5 },
+      caa: { flag: 0, tag: 'issue', value: '' },
+      tlsa: { usage: 3, selector: 1, matchingType: 1, certData: '' },
+      https: { priority: 1, target: '', params: {} },
+      svcb: { priority: 1, target: '', params: {} },
       dnsZoneRef: dnsZoneName ? { name: dnsZoneName } : undefined,
     } as Partial<CreateDnsRecordSchema>;
   };

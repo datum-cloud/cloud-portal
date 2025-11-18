@@ -62,38 +62,50 @@ export type ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet = {
        * Exactly one of the following type-specific fields should be set matching RecordType.
        */
       a?: {
-        content: Array<string>;
+        content: string;
       };
       aaaa?: {
-        content: Array<string>;
+        content: string;
       };
-      caa?: Array<{
+      caa?: {
+        /**
+         * 0–255 flag
+         */
         flag: number;
+        /**
+         * RFC-style tags: keep it simple: [a-z0-9]+
+         */
         tag: string;
         value: string;
-      }>;
+      };
       cname?: {
         content: string;
       };
-      https?: Array<{
+      https?: {
         params?: {
           [key: string]: string;
         };
         priority: number;
         target: string;
-      }>;
-      mx?: Array<{
+      };
+      mx?: {
         exchange: string;
         preference: number;
-      }>;
+      };
       /**
        * Name is the owner name (relative to the zone or FQDN).
        */
       name: string;
-      /**
-       * Raw contains raw RDATA strings when used instead of typed fields.
-       */
-      raw?: Array<string>;
+      ns?: {
+        /**
+         * Require a hostname (FQDN or relative), allow optional trailing dot, no underscores.
+         * Labels: 1-63 chars, alphanum with interior hyphens, total length <=253.
+         */
+        content: string;
+      };
+      ptr?: {
+        content: string;
+      };
       soa?: {
         expire?: number;
         mname: string;
@@ -103,31 +115,31 @@ export type ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet = {
         serial?: number;
         ttl?: number;
       };
-      srv?: Array<{
+      srv?: {
         port: number;
         priority: number;
         target: string;
         weight: number;
-      }>;
-      svcb?: Array<{
+      };
+      svcb?: {
         params?: {
           [key: string]: string;
         };
         priority: number;
         target: string;
-      }>;
-      tlsa?: Array<{
+      };
+      tlsa?: {
         certData: string;
         matchingType: number;
         selector: number;
         usage: number;
-      }>;
+      };
       /**
        * TTL optionally overrides TTL for this owner/RRset.
        */
       ttl?: bigint | number;
       txt?: {
-        content: Array<string>;
+        content: string;
       };
     }>;
   };

@@ -9,11 +9,7 @@ export const MXRecordField = ({
   fields: ReturnType<typeof useForm<MXRecordSchema>>[1];
   defaultValue?: MXRecordSchema;
 }) => {
-  // Always use the first (and only) item in the array
-  const mxList = fields.mx.getFieldList();
-  const mxFields = mxList[0]?.getFieldset();
-
-  if (!mxFields) return null;
+  const mxFields = fields.mx.getFieldset();
 
   return (
     <>
