@@ -253,7 +253,12 @@ export default [
 
       // DNS Records
       route('dns-records', 'routes/api/dns-records/index.ts'),
+      route('dns-records/bulk-import', 'routes/api/dns-records/bulk-import.ts'),
       route('dns-records/:id', 'routes/api/dns-records/$id.ts'),
+
+      // DNS Zone Discoveries
+      route('dns-zone-discoveries', 'routes/api/dns-zone-discoveries/index.ts'),
+      route('dns-zone-discoveries/:id', 'routes/api/dns-zone-discoveries/$id.ts'),
 
       // Third-party APIs
       // Cloud Validations

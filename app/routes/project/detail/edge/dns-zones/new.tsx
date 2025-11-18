@@ -1,17 +1,19 @@
+import { DnsZoneDiscoveryPreview } from '@/features/edge/dns-zone/discovery-preview';
 import { DnsZoneForm } from '@/features/edge/dns-zone/form';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
+import { createDnsZoneDiscoveriesControl } from '@/resources/control-plane/dns-networking/dns-zone-discoveries.control';
+import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { formDnsZoneSchema } from '@/resources/schemas/dns-zone.schema';
-import { paths } from '@/utils/config/paths.config';
 import { dataWithToast, validateCSRF } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod/v4';
 import { Client } from '@hey-api/client-axios';
 import {
   ActionFunctionArgs,
   AppLoadContext,
   MetaFunction,
-  redirect,
+  data,
+  useActionData,
   useParams,
 } from 'react-router';
 
@@ -46,15 +48,20 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
 
     const dryRunRes = await dnsZonesControl.create(projectId, parsed.value, true);
 
+    let res: IDnsZoneControlResponse = {};
     if (dryRunRes) {
-      await dnsZonesControl.create(projectId, parsed.value, false);
+      res = await dnsZonesControl.create(projectId, parsed.value, false);
     }
 
-    return redirect(
-      getPathWithParams(paths.project.detail.dnsZones.root, {
-        projectId,
-      })
+    // Create DNS Zone Discovery
+    const dnsZoneDiscoveriesControl = createDnsZoneDiscoveriesControl(controlPlaneClient as Client);
+    const dnsDiscoveryRes = await dnsZoneDiscoveriesControl.create(
+      projectId,
+      res.name ?? '',
+      false
     );
+
+    return data({ dnsZone: res, dnsDiscovery: dnsDiscoveryRes });
   } catch (error) {
     return dataWithToast(null, {
       title: 'Error',
@@ -65,11 +72,20 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
 };
 
 export default function DnsZoneNewPage() {
+  const res = useActionData<typeof action>();
   const { projectId } = useParams();
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      <DnsZoneForm projectId={projectId ?? ''} />
+      {res && res?.dnsZone && res?.dnsDiscovery ? (
+        <DnsZoneDiscoveryPreview
+          projectId={projectId ?? ''}
+          dnsZoneId={res.dnsZone.name ?? ''}
+          dnsZoneDiscoveryId={res.dnsDiscovery.name ?? ''}
+        />
+      ) : (
+        <DnsZoneForm projectId={projectId ?? ''} />
+      )}
     </div>
   );
 }

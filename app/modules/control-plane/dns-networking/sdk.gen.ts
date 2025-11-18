@@ -8,6 +8,9 @@ import type {
   CreateDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetErrors,
   CreateDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetResponses,
   CreateDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneData,
+  CreateDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryData,
+  CreateDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryErrors,
+  CreateDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryResponses,
   CreateDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneErrors,
   CreateDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneResponses,
   DeleteDnsNetworkingMiloapisComV1Alpha1CollectionDnsZoneClassData,
@@ -17,6 +20,9 @@ import type {
   DeleteDnsNetworkingMiloapisComV1Alpha1CollectionNamespacedDnsRecordSetErrors,
   DeleteDnsNetworkingMiloapisComV1Alpha1CollectionNamespacedDnsRecordSetResponses,
   DeleteDnsNetworkingMiloapisComV1Alpha1CollectionNamespacedDnsZoneData,
+  DeleteDnsNetworkingMiloapisComV1Alpha1CollectionNamespacedDnsZoneDiscoveryData,
+  DeleteDnsNetworkingMiloapisComV1Alpha1CollectionNamespacedDnsZoneDiscoveryErrors,
+  DeleteDnsNetworkingMiloapisComV1Alpha1CollectionNamespacedDnsZoneDiscoveryResponses,
   DeleteDnsNetworkingMiloapisComV1Alpha1CollectionNamespacedDnsZoneErrors,
   DeleteDnsNetworkingMiloapisComV1Alpha1CollectionNamespacedDnsZoneResponses,
   DeleteDnsNetworkingMiloapisComV1Alpha1DnsZoneClassData,
@@ -26,6 +32,9 @@ import type {
   DeleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetErrors,
   DeleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetResponses,
   DeleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneData,
+  DeleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryData,
+  DeleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryErrors,
+  DeleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryResponses,
   DeleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneErrors,
   DeleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneResponses,
   ListDnsNetworkingMiloapisComV1Alpha1DnsRecordSetForAllNamespacesData,
@@ -34,6 +43,9 @@ import type {
   ListDnsNetworkingMiloapisComV1Alpha1DnsZoneClassData,
   ListDnsNetworkingMiloapisComV1Alpha1DnsZoneClassErrors,
   ListDnsNetworkingMiloapisComV1Alpha1DnsZoneClassResponses,
+  ListDnsNetworkingMiloapisComV1Alpha1DnsZoneDiscoveryForAllNamespacesData,
+  ListDnsNetworkingMiloapisComV1Alpha1DnsZoneDiscoveryForAllNamespacesErrors,
+  ListDnsNetworkingMiloapisComV1Alpha1DnsZoneDiscoveryForAllNamespacesResponses,
   ListDnsNetworkingMiloapisComV1Alpha1DnsZoneForAllNamespacesData,
   ListDnsNetworkingMiloapisComV1Alpha1DnsZoneForAllNamespacesErrors,
   ListDnsNetworkingMiloapisComV1Alpha1DnsZoneForAllNamespacesResponses,
@@ -41,6 +53,9 @@ import type {
   ListDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetErrors,
   ListDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetResponses,
   ListDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneData,
+  ListDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryData,
+  ListDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryErrors,
+  ListDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryResponses,
   ListDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneErrors,
   ListDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneResponses,
   PatchDnsNetworkingMiloapisComV1Alpha1DnsZoneClassData,
@@ -56,6 +71,12 @@ import type {
   PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetStatusErrors,
   PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetStatusResponses,
   PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneData,
+  PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryData,
+  PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryErrors,
+  PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryResponses,
+  PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusData,
+  PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusErrors,
+  PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusResponses,
   PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneErrors,
   PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneResponses,
   PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneStatusData,
@@ -74,6 +95,12 @@ import type {
   ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetStatusErrors,
   ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetStatusResponses,
   ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneData,
+  ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryData,
+  ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryErrors,
+  ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryResponses,
+  ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusData,
+  ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusErrors,
+  ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusResponses,
   ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneErrors,
   ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneResponses,
   ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneStatusData,
@@ -92,6 +119,12 @@ import type {
   ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetStatusErrors,
   ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetStatusResponses,
   ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneData,
+  ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryData,
+  ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryErrors,
+  ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryResponses,
+  ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusData,
+  ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusErrors,
+  ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusResponses,
   ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneErrors,
   ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneResponses,
   ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneStatusData,
@@ -354,6 +387,28 @@ export const replaceDnsNetworkingMiloapisComV1Alpha1DnsZoneClassStatus = <
 };
 
 /**
+ * list objects of kind DNSZoneDiscovery
+ */
+export const listDnsNetworkingMiloapisComV1Alpha1DnsZoneDiscoveryForAllNamespaces = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<
+    ListDnsNetworkingMiloapisComV1Alpha1DnsZoneDiscoveryForAllNamespacesData,
+    ThrowOnError
+  >
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ListDnsNetworkingMiloapisComV1Alpha1DnsZoneDiscoveryForAllNamespacesResponses,
+    ListDnsNetworkingMiloapisComV1Alpha1DnsZoneDiscoveryForAllNamespacesErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/apis/dns.networking.miloapis.com/v1alpha1/dnszonediscoveries',
+    ...options,
+  });
+};
+
+/**
  * list objects of kind DNSZone
  */
 export const listDnsNetworkingMiloapisComV1Alpha1DnsZoneForAllNamespaces = <
@@ -590,6 +645,244 @@ export const replaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetStatus
   >({
     responseType: 'json',
     url: '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/{namespace}/dnsrecordsets/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * delete collection of DNSZoneDiscovery
+ */
+export const deleteDnsNetworkingMiloapisComV1Alpha1CollectionNamespacedDnsZoneDiscovery = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    DeleteDnsNetworkingMiloapisComV1Alpha1CollectionNamespacedDnsZoneDiscoveryData,
+    ThrowOnError
+  >
+) => {
+  return (options?.client ?? _heyApiClient).delete<
+    DeleteDnsNetworkingMiloapisComV1Alpha1CollectionNamespacedDnsZoneDiscoveryResponses,
+    DeleteDnsNetworkingMiloapisComV1Alpha1CollectionNamespacedDnsZoneDiscoveryErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/{namespace}/dnszonediscoveries',
+    ...options,
+  });
+};
+
+/**
+ * list objects of kind DNSZoneDiscovery
+ */
+export const listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscovery = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ListDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ListDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryResponses,
+    ListDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/{namespace}/dnszonediscoveries',
+    ...options,
+  });
+};
+
+/**
+ * create a DNSZoneDiscovery
+ */
+export const createDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscovery = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    CreateDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryData,
+    ThrowOnError
+  >
+) => {
+  return (options?.client ?? _heyApiClient).post<
+    CreateDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryResponses,
+    CreateDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/{namespace}/dnszonediscoveries',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * delete a DNSZoneDiscovery
+ */
+export const deleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscovery = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    DeleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryData,
+    ThrowOnError
+  >
+) => {
+  return (options?.client ?? _heyApiClient).delete<
+    DeleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryResponses,
+    DeleteDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/{namespace}/dnszonediscoveries/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * read the specified DNSZoneDiscovery
+ */
+export const readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscovery = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryData, ThrowOnError>
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryResponses,
+    ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/{namespace}/dnszonediscoveries/{name}',
+    ...options,
+  });
+};
+
+/**
+ * partially update the specified DNSZoneDiscovery
+ */
+export const patchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscovery = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryData,
+    ThrowOnError
+  >
+) => {
+  return (options?.client ?? _heyApiClient).patch<
+    PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryResponses,
+    PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/{namespace}/dnszonediscoveries/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * replace the specified DNSZoneDiscovery
+ */
+export const replaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscovery = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryData,
+    ThrowOnError
+  >
+) => {
+  return (options?.client ?? _heyApiClient).put<
+    ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryResponses,
+    ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/{namespace}/dnszonediscoveries/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * read status of the specified DNSZoneDiscovery
+ */
+export const readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusData,
+    ThrowOnError
+  >
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusResponses,
+    ReadDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/{namespace}/dnszonediscoveries/{name}/status',
+    ...options,
+  });
+};
+
+/**
+ * partially update status of the specified DNSZoneDiscovery
+ */
+export const patchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusData,
+    ThrowOnError
+  >
+) => {
+  return (options?.client ?? _heyApiClient).patch<
+    PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusResponses,
+    PatchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/{namespace}/dnszonediscoveries/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+};
+
+/**
+ * replace status of the specified DNSZoneDiscovery
+ */
+export const replaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusData,
+    ThrowOnError
+  >
+) => {
+  return (options?.client ?? _heyApiClient).put<
+    ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusResponses,
+    ReplaceDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZoneDiscoveryStatusErrors,
+    ThrowOnError
+  >({
+    responseType: 'json',
+    url: '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/{namespace}/dnszonediscoveries/{name}/status',
     ...options,
     headers: {
       'Content-Type': 'application/json',
