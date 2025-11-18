@@ -3,16 +3,16 @@ import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent } from '@datum-ui/components';
 import { HomeIcon, RefreshCcwIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+// import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
 export const GenericError = ({ message }: { message: string }) => {
   const navigate = useNavigate();
-  const [isDebug, setIsDebug] = useState(false);
+  // const [isDebug, setIsDebug] = useState(false);
 
-  useEffect(() => {
-    setIsDebug(window.ENV?.DEBUG || ['localhost', '127.0.0.1'].includes(window.location.hostname));
-  }, []);
+  // useEffect(() => {
+  //   setIsDebug(window.ENV?.DEBUG || ['localhost', '127.0.0.1'].includes(window.location.hostname));
+  // }, []);
 
   return (
     <Card>
@@ -29,11 +29,11 @@ export const GenericError = ({ message }: { message: string }) => {
             </Link>
             .
           </p>
-          {isDebug && (
-            <div className="text-muted-foreground rounded-r-md border-l-4 border-red-500 bg-red-50 p-4 text-center text-sm dark:bg-red-950/20">
-              {message}
-            </div>
-          )}
+          {/* {isDebug && ( */}
+          <div className="text-muted-foreground rounded-r-md border-l-4 border-red-500 bg-red-50 p-4 text-center text-sm dark:bg-red-950/20">
+            {message}
+          </div>
+          {/* )} */}
         </div>
         <div className="flex items-center gap-2">
           <Link to={paths.home}>
