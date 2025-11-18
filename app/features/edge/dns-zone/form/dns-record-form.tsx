@@ -141,9 +141,12 @@ export function DnsRecordForm({
             throw new Error(result.error || `Failed to ${mode} DNS record`);
           }
 
-          // Success!
-          onSuccess?.();
-          onClose();
+          if (result.success) {
+            onSuccess?.();
+            onClose();
+          } else {
+            throw new Error(result?.error || `Failed to ${mode} DNS record`);
+          }
         } catch (error: any) {
           toast.error(error.message || `Failed to ${mode} DNS record. Please try again.`);
         } finally {

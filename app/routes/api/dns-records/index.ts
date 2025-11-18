@@ -101,6 +101,39 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
           // With new schema: Each record = one value, so just append the new record
           const newRecord = transformFormToRecord(recordSchema);
 
+          // Check for duplicate before appending
+          const isDuplicate = existingRecordSet.records?.some((r: any) => {
+            // Must match name
+            if (r.name !== newRecord.name) return false;
+
+            // Must match value
+            const existingValue = extractValue(r, recordType);
+            const newValue = extractValue(newRecord, recordType);
+            if (existingValue !== newValue) return false;
+
+            // Must match TTL (accounting for null/undefined as "auto")
+            const existingTTL = r.ttl ?? null;
+            const newTTL = newRecord.ttl ?? null;
+            if (existingTTL !== newTTL) return false;
+
+            return true; // Exact duplicate found
+          });
+
+          if (isDuplicate) {
+            if (redirectUri) {
+              return redirectWithToast(redirectUri as string, {
+                title: `${recordType} record already exists`,
+                description: 'The record already exists.',
+                type: 'error',
+              });
+            }
+
+            return data({
+              success: false,
+              error: 'The record already exists.',
+            });
+          }
+
           const updatedRecords = [...(existingRecordSet.records || []), newRecord];
 
           const dryRunRes = await dnsRecordSetsControl.update(
@@ -162,27 +195,34 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         // DELETE RECORD: Find and remove the matching record
         // ===================================================================
         // With new schema: Each record = one value, so deleting a value = deleting the record
-        // Find the record by name, value (if provided), and ttl (if provided)
-        const updatedRecords = recordSet.records!.filter((r: any) => {
+        // Find the first matching record by name, value (if provided), and ttl (if provided)
+        const recordIndex = recordSet.records!.findIndex((r: any) => {
           // Must match name
-          if (r.name !== recordName) return true;
+          if (r.name !== recordName) return false;
 
           // If value provided, must match value
           if (value) {
             const recordValue = extractValue(r, recordType as string);
-            if (recordValue !== value) return true;
+            if (recordValue !== value) return false;
           }
 
           // If ttl provided, must match ttl
           if (ttl !== undefined) {
             const recordTTL = r.ttl ?? null;
             const targetTTL = ttl === '' || ttl === 'null' ? null : Number(ttl);
-            if (recordTTL !== targetTTL) return true;
+            if (recordTTL !== targetTTL) return false;
           }
 
-          // This record matches all criteria → exclude it (delete it)
-          return false;
+          // This record matches all criteria
+          return true;
         });
+
+        if (recordIndex === -1) {
+          throw new BadRequestError('Record not found');
+        }
+
+        // Remove only the first matching record
+        const updatedRecords = recordSet.records!.filter((_, index) => index !== recordIndex);
 
         if (updatedRecords.length === 0) {
           // Last record → delete entire RecordSet
