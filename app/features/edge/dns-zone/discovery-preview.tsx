@@ -168,9 +168,7 @@ export const DnsZoneDiscoveryPreview = ({
             transition={{ duration: 0.5 }}>
             <CardContent className="flex min-h-[346px] flex-col items-center justify-center gap-4">
               <Loader2 className="text-primary h-8 w-8 animate-spin" />
-              <p className="text-muted-foreground text-sm">
-                Discovering DNS records... ({pollCountRef.current}/{MAX_POLL_ATTEMPTS})
-              </p>
+              <p className="text-muted-foreground text-sm">Discovering DNS records...</p>
             </CardContent>
           </motion.div>
         ) : dnsRecords.length > 0 ? (
