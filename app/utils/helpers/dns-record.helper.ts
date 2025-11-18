@@ -1,5 +1,9 @@
 import { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-plane/dns-networking';
-import { IDnsRecordSetControlResponse } from '@/resources/interfaces/dns.interface';
+import {
+  IDnsRecordSetControlResponse,
+  IDnsZoneDiscoveryRecordSet,
+  IFlattenedDnsRecord,
+} from '@/resources/interfaces/dns.interface';
 import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
 
 /**
@@ -49,35 +53,51 @@ export function formatTTL(ttlSeconds?: number): string {
   return parts.slice(0, 2).join(' ');
 }
 
-/**
- * Flattened DNS record for UI display
- * Each record object becomes a separate row
- */
-export interface IFlattenedDnsRecord {
-  // RecordSet metadata
-  recordSetId: string;
-  recordSetName: string;
-  createdAt: Date;
-  dnsZoneId: string;
-
-  // Record details
-  type: string; // Record type (NS, A, AAAA, CNAME, MX, etc.)
-  name: string; // Record name (recordSet name, not record.name)
-  value: string; // Single value (MX format: "preference|exchange")
-  ttl?: number; // TTL if available
-
-  // Status
-  status: 'Active' | 'Pending' | 'Error';
-
-  // Raw data for editing
-  rawData: any;
-}
+// =============================================================================
+// Flattening Functions: Transform K8s schemas to UI-friendly format
+// =============================================================================
 
 /**
  * Transform K8s DNSRecordSet array to flattened records for UI display
  * Each record in spec.records[] becomes a separate table row
+ *
+ * @overload For managed DNS RecordSets
  */
 export function flattenDnsRecordSets(
+  recordSets: IDnsRecordSetControlResponse[]
+): IFlattenedDnsRecord[];
+
+/**
+ * Transform DNS Zone Discovery recordSets to flattened records for UI display
+ *
+ * @overload For discovered DNS records
+ */
+export function flattenDnsRecordSets(
+  recordSets: IDnsZoneDiscoveryRecordSet[],
+  dnsZoneId: string
+): IFlattenedDnsRecord[];
+
+/**
+ * Implementation: Handles both DNSRecordSet and Discovery schemas
+ */
+export function flattenDnsRecordSets(
+  recordSets: any[],
+  dnsZoneIdOrUndefined?: string
+): IFlattenedDnsRecord[] {
+  // Detect if it's discovery by checking second parameter
+  const isDiscovery = typeof dnsZoneIdOrUndefined === 'string';
+
+  if (isDiscovery) {
+    return flattenDiscoveryRecordSets(recordSets, dnsZoneIdOrUndefined);
+  }
+
+  return flattenManagedRecordSets(recordSets);
+}
+
+/**
+ * Flatten managed DNS RecordSets (from DNSRecordSet resources)
+ */
+function flattenManagedRecordSets(
   recordSets: IDnsRecordSetControlResponse[]
 ): IFlattenedDnsRecord[] {
   const flattened: IFlattenedDnsRecord[] = [];
@@ -86,42 +106,87 @@ export function flattenDnsRecordSets(
     const records = recordSet.records || [];
     const status = extractStatus(recordSet.status);
 
-    // Each record object contains exactly one value in the new schema
-    records.forEach((record: any) => {
-      const value = extractValue(record, recordSet.recordType);
-      const ttl = extractTTL(record);
-
-      flattened.push({
-        recordSetId: recordSet.uid || '',
-        recordSetName: recordSet.name || '',
-        createdAt: recordSet.createdAt || new Date(),
-        dnsZoneId: recordSet.dnsZoneId || '',
-        type: recordSet.recordType || '',
-        name: record.name || '',
-        value: value,
-        ttl: ttl,
-        status: status,
-        rawData: record,
-      });
+    const entries = flattenRecordEntries(recordSet.recordType || '', records, {
+      recordSetId: recordSet.uid || '',
+      recordSetName: recordSet.name || '',
+      createdAt: recordSet.createdAt || new Date(),
+      dnsZoneId: recordSet.dnsZoneId || '',
+      status: status,
     });
+
+    flattened.push(...entries);
   });
 
   // Sort descending by createdAt (most recent first), then by name for same timestamp
   return flattened.sort((a, b) => {
-    const dateA = new Date(a.createdAt).getTime();
-    const dateB = new Date(b.createdAt).getTime();
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     if (dateA !== dateB) {
       return dateB - dateA;
     }
     return a.name.localeCompare(b.name);
   });
+}
+
+/**
+ * Flatten DNS Zone Discovery recordSets
+ */
+function flattenDiscoveryRecordSets(
+  recordSets: IDnsZoneDiscoveryRecordSet[],
+  dnsZoneId: string
+): IFlattenedDnsRecord[] {
+  const flattened: IFlattenedDnsRecord[] = [];
+
+  recordSets.forEach((recordSet) => {
+    const records = recordSet.records || [];
+
+    const entries = flattenRecordEntries(recordSet.recordType || '', records, {
+      dnsZoneId: dnsZoneId,
+      // No recordSetId, recordSetName, createdAt, status for discovery
+    });
+
+    flattened.push(...entries);
+  });
 
   // Sort by type priority, then by name
-  // return flattened.sort((a, b) => {
-  //   const priorityDiff = getDnsRecordTypePriority(a.type) - getDnsRecordTypePriority(b.type);
-  //   if (priorityDiff !== 0) return priorityDiff;
-  //   return a.name.localeCompare(b.name);
-  // });
+  return flattened.sort((a, b) => {
+    const priorityDiff = getDnsRecordTypePriority(a.type) - getDnsRecordTypePriority(b.type);
+    if (priorityDiff !== 0) return priorityDiff;
+    return a.name.localeCompare(b.name);
+  });
+}
+
+/**
+ * Shared helper: Flatten record entries with given metadata
+ */
+function flattenRecordEntries(
+  recordType: string,
+  records: any[],
+  metadata: {
+    recordSetId?: string;
+    recordSetName?: string;
+    createdAt?: Date;
+    dnsZoneId: string;
+    status?: 'Active' | 'Pending' | 'Error';
+  }
+): IFlattenedDnsRecord[] {
+  const flattened: IFlattenedDnsRecord[] = [];
+
+  records.forEach((record: any) => {
+    const value = extractValue(record, recordType);
+    const ttl = extractTTL(record);
+
+    flattened.push({
+      ...metadata,
+      type: recordType,
+      name: record.name || '',
+      value: value,
+      ttl: ttl,
+      rawData: record,
+    });
+  });
+
+  return flattened;
 }
 
 /**

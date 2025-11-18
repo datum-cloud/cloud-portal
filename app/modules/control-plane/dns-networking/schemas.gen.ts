@@ -69,6 +69,7 @@ More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/nam
           description:
             'Records contains one or more owner names with values appropriate for the RecordType.',
           type: 'array',
+          minItems: 1,
           items: {
             description: 'RecordEntry represents one owner name and its values.',
             type: 'object',
@@ -81,10 +82,8 @@ More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/nam
                 required: ['content'],
                 properties: {
                   content: {
-                    type: 'array',
-                    items: {
-                      type: 'string',
-                    },
+                    type: 'string',
+                    format: 'ipv4',
                   },
                 },
               },
@@ -93,28 +92,30 @@ More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/nam
                 required: ['content'],
                 properties: {
                   content: {
-                    type: 'array',
-                    items: {
-                      type: 'string',
-                    },
+                    type: 'string',
+                    format: 'ipv6',
                   },
                 },
               },
               caa: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  required: ['flag', 'tag', 'value'],
-                  properties: {
-                    flag: {
-                      type: 'integer',
-                    },
-                    tag: {
-                      type: 'string',
-                    },
-                    value: {
-                      type: 'string',
-                    },
+                type: 'object',
+                required: ['flag', 'tag', 'value'],
+                properties: {
+                  flag: {
+                    description: '0–255 flag',
+                    type: 'integer',
+                    maximum: 255,
+                    minimum: 0,
+                  },
+                  tag: {
+                    description: 'RFC-style tags: keep it simple: [a-z0-9]+',
+                    type: 'string',
+                    minLength: 1,
+                    pattern: '^[a-z0-9]+$',
+                  },
+                  value: {
+                    type: 'string',
+                    minLength: 1,
                   },
                 },
               },
@@ -124,54 +125,76 @@ More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/nam
                 properties: {
                   content: {
                     type: 'string',
+                    maxLength: 253,
+                    minLength: 1,
+                    pattern:
+                      '^([A-Za-z0-9_](?:[-A-Za-z0-9_]{0,61}[A-Za-z0-9_])?)(?:\\.([A-Za-z0-9_](?:[-A-Za-z0-9_]{0,61}[A-Za-z0-9_])?))*\\.?$',
                   },
                 },
               },
               https: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  required: ['priority', 'target'],
-                  properties: {
-                    params: {
-                      type: 'object',
-                      additionalProperties: {
-                        type: 'string',
-                      },
-                    },
-                    priority: {
-                      type: 'integer',
-                    },
-                    target: {
+                type: 'object',
+                required: ['priority', 'target'],
+                properties: {
+                  params: {
+                    type: 'object',
+                    additionalProperties: {
                       type: 'string',
                     },
+                  },
+                  priority: {
+                    type: 'integer',
+                    maximum: 65535,
+                    minimum: 0,
+                  },
+                  target: {
+                    type: 'string',
                   },
                 },
               },
               mx: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  required: ['exchange', 'preference'],
-                  properties: {
-                    exchange: {
-                      type: 'string',
-                    },
-                    preference: {
-                      type: 'integer',
-                    },
+                type: 'object',
+                required: ['exchange', 'preference'],
+                properties: {
+                  exchange: {
+                    type: 'string',
+                    minLength: 1,
+                  },
+                  preference: {
+                    type: 'integer',
+                    maximum: 65535,
+                    minimum: 0,
                   },
                 },
               },
               name: {
                 description: 'Name is the owner name (relative to the zone or FQDN).',
                 type: 'string',
+                minLength: 1,
+                pattern: '^(@|[A-Za-z0-9*._-]+)$',
               },
-              raw: {
-                description: 'Raw contains raw RDATA strings when used instead of typed fields.',
-                type: 'array',
-                items: {
-                  type: 'string',
+              ns: {
+                type: 'object',
+                required: ['content'],
+                properties: {
+                  content: {
+                    description: `Require a hostname (FQDN or relative), allow optional trailing dot, no underscores.
+Labels: 1-63 chars, alphanum with interior hyphens, total length <=253.`,
+                    type: 'string',
+                    maxLength: 253,
+                    minLength: 1,
+                    pattern:
+                      '^([A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)(?:\\.([A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?))*\\.?$',
+                  },
+                },
+              },
+              ptr: {
+                type: 'object',
+                required: ['content'],
+                properties: {
+                  content: {
+                    type: 'string',
+                  },
                 },
               },
               soa: {
@@ -184,6 +207,7 @@ More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/nam
                   },
                   mname: {
                     type: 'string',
+                    minLength: 1,
                   },
                   refresh: {
                     type: 'integer',
@@ -195,6 +219,7 @@ More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/nam
                   },
                   rname: {
                     type: 'string',
+                    minLength: 1,
                   },
                   serial: {
                     type: 'integer',
@@ -207,65 +232,65 @@ More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/nam
                 },
               },
               srv: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  required: ['port', 'priority', 'target', 'weight'],
-                  properties: {
-                    port: {
-                      type: 'integer',
-                    },
-                    priority: {
-                      type: 'integer',
-                    },
-                    target: {
-                      type: 'string',
-                    },
-                    weight: {
-                      type: 'integer',
-                    },
+                type: 'object',
+                required: ['port', 'priority', 'target', 'weight'],
+                properties: {
+                  port: {
+                    type: 'integer',
+                    maximum: 65535,
+                    minimum: 0,
+                  },
+                  priority: {
+                    type: 'integer',
+                    maximum: 65535,
+                    minimum: 0,
+                  },
+                  target: {
+                    type: 'string',
+                    minLength: 1,
+                  },
+                  weight: {
+                    type: 'integer',
+                    maximum: 65535,
+                    minimum: 0,
                   },
                 },
               },
               svcb: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  required: ['priority', 'target'],
-                  properties: {
-                    params: {
-                      type: 'object',
-                      additionalProperties: {
-                        type: 'string',
-                      },
-                    },
-                    priority: {
-                      type: 'integer',
-                    },
-                    target: {
+                type: 'object',
+                required: ['priority', 'target'],
+                properties: {
+                  params: {
+                    type: 'object',
+                    additionalProperties: {
                       type: 'string',
                     },
+                  },
+                  priority: {
+                    type: 'integer',
+                    maximum: 65535,
+                    minimum: 0,
+                  },
+                  target: {
+                    type: 'string',
                   },
                 },
               },
               tlsa: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  required: ['certData', 'matchingType', 'selector', 'usage'],
-                  properties: {
-                    certData: {
-                      type: 'string',
-                    },
-                    matchingType: {
-                      type: 'integer',
-                    },
-                    selector: {
-                      type: 'integer',
-                    },
-                    usage: {
-                      type: 'integer',
-                    },
+                type: 'object',
+                required: ['certData', 'matchingType', 'selector', 'usage'],
+                properties: {
+                  certData: {
+                    type: 'string',
+                  },
+                  matchingType: {
+                    type: 'integer',
+                  },
+                  selector: {
+                    type: 'integer',
+                  },
+                  usage: {
+                    type: 'integer',
                   },
                 },
               },
@@ -279,10 +304,7 @@ More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/nam
                 required: ['content'],
                 properties: {
                   content: {
-                    type: 'array',
-                    items: {
-                      type: 'string',
-                    },
+                    type: 'string',
                   },
                 },
               },
@@ -351,11 +373,6 @@ This field may not be empty.`,
           },
           'x-kubernetes-list-map-keys': ['type'],
           'x-kubernetes-list-type': 'map',
-        },
-        observedGeneration: {
-          description: 'ObservedGeneration is the last processed generation.',
-          type: 'integer',
-          format: 'int64',
         },
       },
     },
@@ -454,7 +471,7 @@ export const com_miloapis_networking_dns_v1alpha1_DNSZoneSchema = {
     spec: {
       description: 'spec defines the desired state of DNSZone',
       type: 'object',
-      required: ['domainName'],
+      required: ['dnsZoneClassName', 'domainName'],
       properties: {
         dnsZoneClassName: {
           description: 'DNSZoneClassName references the DNSZoneClass used to provision this zone.',
@@ -800,6 +817,453 @@ export const com_miloapis_networking_dns_v1alpha1_DNSZoneClassListSchema = {
     },
   ],
   'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_networking_dns_v1alpha1_DNSZoneDiscoverySchema = {
+  description: 'DNSZoneDiscovery is the Schema for the DNSZone discovery API.',
+  type: 'object',
+  required: ['spec'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description: 'spec defines the desired target for discovery.',
+      type: 'object',
+      required: ['dnsZoneRef'],
+      properties: {
+        dnsZoneRef: {
+          description: 'DNSZoneRef references the DNSZone (same namespace) this discovery targets.',
+          type: 'object',
+          properties: {
+            name: {
+              description: `Name of the referent.
+This field is effectively required, but due to backwards compatibility is
+allowed to be empty. Instances of this type with an empty value here are
+almost certainly wrong.
+More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names`,
+              type: 'string',
+              default: '',
+            },
+          },
+          'x-kubernetes-map-type': 'atomic',
+        },
+      },
+    },
+    status: {
+      description: 'status contains the discovered data (write-once).',
+      type: 'object',
+      properties: {
+        conditions: {
+          description: 'Conditions includes Accepted and Discovered.',
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
+This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description: `message is a human readable message indicating details about the transition.
+This may be an empty string.`,
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
+For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+with respect to the current state of the instance.`,
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
+Producers of specific condition types may define expected values and meanings for this field,
+and whether the values are considered a guaranteed API.
+The value should be a CamelCase string.
+This field may not be empty.`,
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        recordSets: {
+          description: 'RecordSets is the set of discovered RRsets grouped by RecordType.',
+          type: 'array',
+          items: {
+            description: 'DiscoveredRecordSet groups discovered records by type.',
+            type: 'object',
+            required: ['recordType', 'records'],
+            properties: {
+              recordType: {
+                description: 'RecordType is the DNS RR type for this recordset.',
+                type: 'string',
+                enum: [
+                  'A',
+                  'AAAA',
+                  'CNAME',
+                  'TXT',
+                  'MX',
+                  'SRV',
+                  'CAA',
+                  'NS',
+                  'SOA',
+                  'PTR',
+                  'TLSA',
+                  'HTTPS',
+                  'SVCB',
+                ],
+              },
+              records: {
+                description: `Records contains one or more owner names with values appropriate for the RecordType.
+The RecordEntry schema is shared with DNSRecordSet for easy translation.`,
+                type: 'array',
+                items: {
+                  description: 'RecordEntry represents one owner name and its values.',
+                  type: 'object',
+                  required: ['name'],
+                  properties: {
+                    a: {
+                      description:
+                        'Exactly one of the following type-specific fields should be set matching RecordType.',
+                      type: 'object',
+                      required: ['content'],
+                      properties: {
+                        content: {
+                          type: 'string',
+                          format: 'ipv4',
+                        },
+                      },
+                    },
+                    aaaa: {
+                      type: 'object',
+                      required: ['content'],
+                      properties: {
+                        content: {
+                          type: 'string',
+                          format: 'ipv6',
+                        },
+                      },
+                    },
+                    caa: {
+                      type: 'object',
+                      required: ['flag', 'tag', 'value'],
+                      properties: {
+                        flag: {
+                          description: '0–255 flag',
+                          type: 'integer',
+                          maximum: 255,
+                          minimum: 0,
+                        },
+                        tag: {
+                          description: 'RFC-style tags: keep it simple: [a-z0-9]+',
+                          type: 'string',
+                          minLength: 1,
+                          pattern: '^[a-z0-9]+$',
+                        },
+                        value: {
+                          type: 'string',
+                          minLength: 1,
+                        },
+                      },
+                    },
+                    cname: {
+                      type: 'object',
+                      required: ['content'],
+                      properties: {
+                        content: {
+                          type: 'string',
+                          maxLength: 253,
+                          minLength: 1,
+                          pattern:
+                            '^([A-Za-z0-9_](?:[-A-Za-z0-9_]{0,61}[A-Za-z0-9_])?)(?:\\.([A-Za-z0-9_](?:[-A-Za-z0-9_]{0,61}[A-Za-z0-9_])?))*\\.?$',
+                        },
+                      },
+                    },
+                    https: {
+                      type: 'object',
+                      required: ['priority', 'target'],
+                      properties: {
+                        params: {
+                          type: 'object',
+                          additionalProperties: {
+                            type: 'string',
+                          },
+                        },
+                        priority: {
+                          type: 'integer',
+                          maximum: 65535,
+                          minimum: 0,
+                        },
+                        target: {
+                          type: 'string',
+                        },
+                      },
+                    },
+                    mx: {
+                      type: 'object',
+                      required: ['exchange', 'preference'],
+                      properties: {
+                        exchange: {
+                          type: 'string',
+                          minLength: 1,
+                        },
+                        preference: {
+                          type: 'integer',
+                          maximum: 65535,
+                          minimum: 0,
+                        },
+                      },
+                    },
+                    name: {
+                      description: 'Name is the owner name (relative to the zone or FQDN).',
+                      type: 'string',
+                      minLength: 1,
+                      pattern: '^(@|[A-Za-z0-9*._-]+)$',
+                    },
+                    ns: {
+                      type: 'object',
+                      required: ['content'],
+                      properties: {
+                        content: {
+                          description: `Require a hostname (FQDN or relative), allow optional trailing dot, no underscores.
+Labels: 1-63 chars, alphanum with interior hyphens, total length <=253.`,
+                          type: 'string',
+                          maxLength: 253,
+                          minLength: 1,
+                          pattern:
+                            '^([A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)(?:\\.([A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?))*\\.?$',
+                        },
+                      },
+                    },
+                    ptr: {
+                      type: 'object',
+                      required: ['content'],
+                      properties: {
+                        content: {
+                          type: 'string',
+                        },
+                      },
+                    },
+                    soa: {
+                      type: 'object',
+                      required: ['mname', 'rname'],
+                      properties: {
+                        expire: {
+                          type: 'integer',
+                          format: 'int32',
+                        },
+                        mname: {
+                          type: 'string',
+                          minLength: 1,
+                        },
+                        refresh: {
+                          type: 'integer',
+                          format: 'int32',
+                        },
+                        retry: {
+                          type: 'integer',
+                          format: 'int32',
+                        },
+                        rname: {
+                          type: 'string',
+                          minLength: 1,
+                        },
+                        serial: {
+                          type: 'integer',
+                          format: 'int32',
+                        },
+                        ttl: {
+                          type: 'integer',
+                          format: 'int32',
+                        },
+                      },
+                    },
+                    srv: {
+                      type: 'object',
+                      required: ['port', 'priority', 'target', 'weight'],
+                      properties: {
+                        port: {
+                          type: 'integer',
+                          maximum: 65535,
+                          minimum: 0,
+                        },
+                        priority: {
+                          type: 'integer',
+                          maximum: 65535,
+                          minimum: 0,
+                        },
+                        target: {
+                          type: 'string',
+                          minLength: 1,
+                        },
+                        weight: {
+                          type: 'integer',
+                          maximum: 65535,
+                          minimum: 0,
+                        },
+                      },
+                    },
+                    svcb: {
+                      type: 'object',
+                      required: ['priority', 'target'],
+                      properties: {
+                        params: {
+                          type: 'object',
+                          additionalProperties: {
+                            type: 'string',
+                          },
+                        },
+                        priority: {
+                          type: 'integer',
+                          maximum: 65535,
+                          minimum: 0,
+                        },
+                        target: {
+                          type: 'string',
+                        },
+                      },
+                    },
+                    tlsa: {
+                      type: 'object',
+                      required: ['certData', 'matchingType', 'selector', 'usage'],
+                      properties: {
+                        certData: {
+                          type: 'string',
+                        },
+                        matchingType: {
+                          type: 'integer',
+                        },
+                        selector: {
+                          type: 'integer',
+                        },
+                        usage: {
+                          type: 'integer',
+                        },
+                      },
+                    },
+                    ttl: {
+                      description: 'TTL optionally overrides TTL for this owner/RRset.',
+                      type: 'integer',
+                      format: 'int64',
+                    },
+                    txt: {
+                      type: 'object',
+                      required: ['content'],
+                      properties: {
+                        content: {
+                          type: 'string',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'dns.networking.miloapis.com',
+      kind: 'DNSZoneDiscovery',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'spec.dnsZoneRef.name',
+    },
+  ],
+} as const;
+
+export const com_miloapis_networking_dns_v1alpha1_DNSZoneDiscoveryListSchema = {
+  description: 'DNSZoneDiscoveryList is a list of DNSZoneDiscovery',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of dnszonediscoveries. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.networking.dns.v1alpha1.DNSZoneDiscovery',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'dns.networking.miloapis.com',
+      kind: 'DNSZoneDiscoveryList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'spec.dnsZoneRef.name',
+    },
+  ],
 } as const;
 
 export const com_miloapis_networking_dns_v1alpha1_DNSZoneListSchema = {

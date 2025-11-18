@@ -1,6 +1,7 @@
 import {
   ComMiloapisNetworkingDnsV1Alpha1DnsZone,
   ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet,
+  ComMiloapisNetworkingDnsV1Alpha1DnsZoneDiscovery,
 } from '@/modules/control-plane/dns-networking';
 import { ComDatumapisNetworkingV1AlphaDomain } from '@/modules/control-plane/networking';
 
@@ -20,6 +21,29 @@ export interface IDnsZoneControlResponse {
 }
 
 // ============================================
+// DNS Zone Discovery Interfaces
+// ============================================
+export interface IDnsZoneDiscoveryControlResponse {
+  name?: string;
+  createdAt?: Date;
+  uid?: string;
+  resourceVersion?: string;
+  recordSets?: NonNullable<
+    NonNullable<ComMiloapisNetworkingDnsV1Alpha1DnsZoneDiscovery['status']>['recordSets']
+  >;
+}
+
+/**
+ * Individual RecordSet from DNS Zone Discovery
+ * Extracted from IDnsZoneDiscoveryControlResponse['recordSets'][number]
+ */
+export type IDnsZoneDiscoveryRecordSet = NonNullable<
+  NonNullable<
+    NonNullable<ComMiloapisNetworkingDnsV1Alpha1DnsZoneDiscovery['status']>['recordSets']
+  >[number]
+>;
+
+// ============================================
 // DNS Record Set Interfaces
 // ============================================
 export interface IDnsRecordSetControlResponse {
@@ -36,17 +60,25 @@ export interface IDnsRecordSetControlResponse {
 // ============================================
 // Flattened DNS Record for UI Display
 // Each VALUE in each record becomes a separate row
+// Supports both DNSRecordSet (managed) and Discovery records
 // ============================================
 export interface IFlattenedDnsRecord {
-  recordSetId: string;
-  recordSetName: string;
-  createdAt: Date;
+  // RecordSet metadata (optional for discovery records)
+  recordSetId?: string;
+  recordSetName?: string;
+  createdAt?: Date;
   dnsZoneId: string;
+
+  // Record details (always present)
   type: string;
   name: string;
   value: string; // Single value per row (MX format: "preference|exchange")
   ttl?: number;
-  status: 'Active' | 'Pending' | 'Error';
+
+  // Status (only for managed recordsets, undefined for discovery)
+  status?: 'Active' | 'Pending' | 'Error';
+
+  // Raw data for editing/display
   rawData: any;
 }
 

@@ -278,7 +278,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         throw new HttpError('Method not allowed', 405);
     }
   } catch (error: any) {
-    console.error('DNS Records API Error:', error);
     return data(
       { success: false, error: error.message || 'An error occurred' },
       { status: error.status || 500 }

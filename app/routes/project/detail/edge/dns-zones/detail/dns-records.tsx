@@ -75,10 +75,10 @@ export default function DnsRecordsPage() {
           {
             projectId: projectId!,
             recordSetName: record.recordSetName,
-            recordName: record.name,
-            recordType: record.type,
-            value: record.value,
-          },
+            recordName: record.name ?? '',
+            recordType: record.type ?? '',
+            value: record.value ?? '',
+          } as unknown as FormData,
           {
             method: 'DELETE',
             action: DNS_RECORDS_ACTIONS_PATH,

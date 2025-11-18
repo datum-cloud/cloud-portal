@@ -17,6 +17,7 @@ import { forwardRef, useMemo } from 'react';
 interface DnsRecordTableBaseProps {
   data: IFlattenedDnsRecord[];
   className?: string;
+  tableContainerClassName?: string;
   emptyContent?: EmptyContentProps;
 }
 
@@ -55,7 +56,7 @@ export type DnsRecordTableProps = DnsRecordTableCompactProps | DnsRecordTableFul
  * Each value in DNS records becomes a separate row
  */
 export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsRecordTableProps>(
-  ({ data, mode = 'compact', className, emptyContent, ...props }, ref) => {
+  ({ data, mode = 'compact', className, emptyContent, tableContainerClassName, ...props }, ref) => {
     const columns: ColumnDef<IFlattenedDnsRecord>[] = useMemo(
       () => [
         {
@@ -90,6 +91,9 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
           header: 'Content',
           accessorKey: 'value',
           enableSorting: false,
+          meta: {
+            className: 'max-w-96 break-all text-wrap whitespace-normal',
+          },
           cell: ({ row }) => {
             const { type, value } = row.original;
 
@@ -155,6 +159,7 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
         <DataTable
           ref={ref}
           className={className}
+          tableContainerClassName={tableContainerClassName}
           hidePagination
           columns={columns}
           data={data}
