@@ -251,15 +251,15 @@ export const txtRecordSchema = baseRecordFieldSchema.extend({
 });
 
 export const mxRecordSchema = baseRecordFieldSchema.extend({
-  mx: z.array(mxRecordDataSchema).min(1, 'At least one MX record is required.'),
+  mx: mxRecordDataSchema,
 });
 
 export const srvRecordSchema = baseRecordFieldSchema.extend({
-  srv: z.array(srvRecordDataSchema).min(1, 'At least one SRV record is required.'),
+  srv: srvRecordDataSchema,
 });
 
 export const caaRecordSchema = baseRecordFieldSchema.extend({
-  caa: z.array(caaRecordDataSchema).min(1, 'At least one CAA record is required.'),
+  caa: caaRecordDataSchema,
 });
 
 export const nsRecordSchema = baseRecordFieldSchema.extend({
@@ -275,15 +275,15 @@ export const ptrRecordSchema = baseRecordFieldSchema.extend({
 });
 
 export const tlsaRecordSchema = baseRecordFieldSchema.extend({
-  tlsa: z.array(tlsaRecordDataSchema).min(1, 'At least one TLSA record is required.'),
+  tlsa: tlsaRecordDataSchema,
 });
 
 export const httpsRecordSchema = baseRecordFieldSchema.extend({
-  https: z.array(httpsRecordDataSchema).min(1, 'At least one HTTPS record is required.'),
+  https: httpsRecordDataSchema,
 });
 
 export const svcbRecordSchema = baseRecordFieldSchema.extend({
-  svcb: z.array(svcbRecordDataSchema).min(1, 'At least one SVCB record is required.'),
+  svcb: svcbRecordDataSchema,
 });
 
 // Main DNS Record Set Schema

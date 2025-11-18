@@ -10,11 +10,7 @@ export const TLSARecordField = ({
   fields: ReturnType<typeof useForm<TLSARecordSchema>>[1];
   defaultValue?: TLSARecordSchema;
 }) => {
-  // Always use the first (and only) item in the array
-  const tlsaList = fields.tlsa.getFieldList();
-  const tlsaFields = tlsaList[0]?.getFieldset();
-
-  if (!tlsaFields) return null;
+  const tlsaFields = fields.tlsa.getFieldset();
 
   return (
     <>

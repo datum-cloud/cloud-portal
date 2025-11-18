@@ -2,12 +2,7 @@ import { createDnsRecordSetsControl } from '@/resources/control-plane';
 import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
 import { redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { BadRequestError, HttpError } from '@/utils/errors';
-import {
-  isRecordEmpty,
-  mergeRecordValues,
-  removeValueFromRecord,
-  transformFormToRecord,
-} from '@/utils/helpers/dns-record.helper';
+import { extractValue, transformFormToRecord } from '@/utils/helpers/dns-record.helper';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 
@@ -17,9 +12,12 @@ export const ROUTE_PATH = '/api/dns-records' as const;
  * DNS Records API Route
  * Handles create (POST) and delete (DELETE) operations
  *
- * Key Logic:
- * - POST: Create new RecordSet OR append to existing RecordSet
- * - DELETE: Remove value from record, remove record, or delete entire RecordSet
+ * Key Logic (New Schema):
+ * - POST: Create new RecordSet OR append record to existing RecordSet
+ * - DELETE: Remove record from RecordSet or delete entire RecordSet
+ *
+ * Note: With the new schema, each record contains exactly ONE value.
+ * To have multiple values, create multiple record objects in the records[] array.
  */
 export const action = async ({ request, context }: ActionFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext;
@@ -62,11 +60,27 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
           // ===================================================================
           const newRecord = transformFormToRecord(recordSchema);
 
-          await dnsRecordSetsControl.create(projectId, {
-            dnsZoneRef: { name: dnsZoneId },
-            recordType: recordType,
-            records: [newRecord],
-          });
+          const dryRunRes = await dnsRecordSetsControl.create(
+            projectId,
+            {
+              dnsZoneRef: { name: dnsZoneId },
+              recordType: recordType,
+              records: [newRecord],
+            },
+            true
+          );
+
+          if (dryRunRes) {
+            await dnsRecordSetsControl.create(
+              projectId,
+              {
+                dnsZoneRef: { name: dnsZoneId },
+                recordType: recordType,
+                records: [newRecord],
+              },
+              false
+            );
+          }
 
           if (redirectUri) {
             return redirectWithToast(redirectUri as string, {
@@ -82,59 +96,32 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
           );
         } else {
           // ===================================================================
-          // APPEND: RecordSet exists → Add to records[] array
+          // APPEND: RecordSet exists → Add new record to records[] array
           // ===================================================================
+          // With new schema: Each record = one value, so just append the new record
           const newRecord = transformFormToRecord(recordSchema);
-          const recordName = recordSchema.name || '@';
 
-          // TODO: Need to confirm with backend team:
-          // Should records with the same name but different TTLs be separate entries?
-          // Currently checking both name AND ttl to determine if it's the same record.
-          // If backend confirms TTL should be ignored, change this to only check name.
-          //
-          // Current behavior: Different TTLs = separate records
-          // Alternative behavior: Same name = merge regardless of TTL
-          const existingRecord = existingRecordSet.records?.find((r: any) => {
-            if (r.name !== recordName) return false;
+          const updatedRecords = [...(existingRecordSet.records || []), newRecord];
 
-            // For SOA records, TTL can be at record level OR inside soa object
-            if (recordType === 'SOA') {
-              const recordTTL = r.ttl ?? r.soa?.ttl ?? null;
-              const newRecordTTL = newRecord.ttl ?? newRecord.soa?.ttl ?? null;
-              return recordTTL === newRecordTTL;
-            }
+          const dryRunRes = await dnsRecordSetsControl.update(
+            projectId,
+            existingRecordSet.name!,
+            {
+              records: updatedRecords,
+            },
+            true
+          );
 
-            // For other record types, compare TTL at record level
-            // Compare TTL: undefined/null treated as equal (both "Auto")
-            return (r.ttl ?? null) === (newRecord.ttl ?? null);
-          });
-
-          let updatedRecords;
-          if (existingRecord) {
-            // Record with same name AND ttl exists → merge values (append to content arrays)
-            updatedRecords = existingRecordSet.records?.map((r: any) => {
-              if (r.name !== recordName) return r;
-
-              // For SOA records, check TTL in both locations
-              if (recordType === 'SOA') {
-                const recordTTL = r.ttl ?? r.soa?.ttl ?? null;
-                const newRecordTTL = newRecord.ttl ?? newRecord.soa?.ttl ?? null;
-                return recordTTL === newRecordTTL ? mergeRecordValues(r, newRecord, recordType) : r;
-              }
-
-              // For other record types, compare TTL at record level
-              return (r.ttl ?? null) === (newRecord.ttl ?? null)
-                ? mergeRecordValues(r, newRecord, recordType)
-                : r;
-            });
-          } else {
-            // New record (different name OR different ttl) → append to array
-            updatedRecords = [...(existingRecordSet.records || []), newRecord];
+          if (dryRunRes) {
+            await dnsRecordSetsControl.update(
+              projectId,
+              existingRecordSet.name!,
+              {
+                records: updatedRecords,
+              },
+              false
+            );
           }
-
-          await dnsRecordSetsControl.update(projectId, existingRecordSet.name!, {
-            records: updatedRecords,
-          });
 
           if (redirectUri) {
             return redirectWithToast(redirectUri as string, {
@@ -152,11 +139,12 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
       }
 
       // =======================================================================
-      // DELETE DNS RECORD OR VALUE
+      // DELETE DNS RECORD
       // =======================================================================
       case 'DELETE': {
         const formData = Object.fromEntries(await request.formData());
-        const { projectId, recordSetName, recordName, recordType, value, redirectUri } = formData;
+        const { projectId, recordSetName, recordName, recordType, value, ttl, redirectUri } =
+          formData;
 
         if (!projectId || !recordSetName || !recordName || !recordType) {
           throw new BadRequestError(
@@ -170,129 +158,79 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
           recordSetName as string
         );
 
-        // Find the record by name
-        const recordIndex = recordSet.records?.findIndex((r: any) => r.name === recordName);
+        // ===================================================================
+        // DELETE RECORD: Find and remove the matching record
+        // ===================================================================
+        // With new schema: Each record = one value, so deleting a value = deleting the record
+        // Find the record by name, value (if provided), and ttl (if provided)
+        const updatedRecords = recordSet.records!.filter((r: any) => {
+          // Must match name
+          if (r.name !== recordName) return true;
 
-        if (recordIndex === undefined || recordIndex === -1) {
-          throw new BadRequestError(`Record with name "${recordName}" not found`);
-        }
-
-        const record = recordSet.records![recordIndex];
-
-        if (value) {
-          // ===================================================================
-          // DELETE SPECIFIC VALUE: Remove from value array
-          // ===================================================================
-          const updatedRecord = removeValueFromRecord(
-            record,
-            recordType as string,
-            value as string
-          );
-
-          if (isRecordEmpty(updatedRecord, recordType as string)) {
-            // Last value removed → delete entire record
-            const updatedRecords = recordSet.records!.filter(
-              (_: any, i: number) => i !== recordIndex
-            );
-
-            if (updatedRecords.length === 0) {
-              // Last record → delete RecordSet
-              await dnsRecordSetsControl.delete(projectId as string, recordSetName as string);
-
-              if (redirectUri) {
-                return redirectWithToast(redirectUri as string, {
-                  title: 'DNS record deleted',
-                  description: 'The last record has been removed and RecordSet deleted',
-                  type: 'success',
-                });
-              }
-
-              return data(
-                { success: true, message: 'RecordSet deleted successfully' },
-                { status: 200 }
-              );
-            } else {
-              // Update RecordSet without this record
-              await dnsRecordSetsControl.update(projectId as string, recordSetName as string, {
-                records: updatedRecords,
-              });
-
-              if (redirectUri) {
-                return redirectWithToast(redirectUri as string, {
-                  title: 'DNS record deleted',
-                  description: 'The record has been deleted successfully',
-                  type: 'success',
-                });
-              }
-
-              return data(
-                { success: true, message: 'Record deleted successfully' },
-                { status: 200 }
-              );
-            }
-          } else {
-            // Update record with remaining values
-            const updatedRecords = recordSet.records!.map((r: any, i: number) =>
-              i === recordIndex ? updatedRecord : r
-            );
-
-            await dnsRecordSetsControl.update(projectId as string, recordSetName as string, {
-              records: updatedRecords,
-            });
-
-            if (redirectUri) {
-              return redirectWithToast(redirectUri as string, {
-                title: 'DNS record value deleted',
-                description: 'The record value has been deleted successfully',
-                type: 'success',
-              });
-            }
-
-            return data(
-              { success: true, message: 'Record value deleted successfully' },
-              { status: 200 }
-            );
+          // If value provided, must match value
+          if (value) {
+            const recordValue = extractValue(r, recordType as string);
+            if (recordValue !== value) return true;
           }
+
+          // If ttl provided, must match ttl
+          if (ttl !== undefined) {
+            const recordTTL = r.ttl ?? null;
+            const targetTTL = ttl === '' || ttl === 'null' ? null : Number(ttl);
+            if (recordTTL !== targetTTL) return true;
+          }
+
+          // This record matches all criteria → exclude it (delete it)
+          return false;
+        });
+
+        if (updatedRecords.length === 0) {
+          // Last record → delete entire RecordSet
+          await dnsRecordSetsControl.delete(projectId as string, recordSetName as string);
+
+          if (redirectUri) {
+            return redirectWithToast(redirectUri as string, {
+              title: 'DNS record deleted',
+              description: 'The last record has been removed and RecordSet deleted',
+              type: 'success',
+            });
+          }
+
+          return data(
+            { success: true, message: 'RecordSet deleted successfully' },
+            { status: 200 }
+          );
         } else {
-          // ===================================================================
-          // DELETE ENTIRE RECORD: Remove from records[] array
-          // ===================================================================
-          const updatedRecords = recordSet.records!.filter(
-            (_: any, i: number) => i !== recordIndex
+          // Update RecordSet without the deleted record
+          const dryRunRes = await dnsRecordSetsControl.update(
+            projectId as string,
+            recordSetName as string,
+            {
+              records: updatedRecords,
+            },
+            true
           );
 
-          if (updatedRecords.length === 0) {
-            // Last record → delete RecordSet
-            await dnsRecordSetsControl.delete(projectId as string, recordSetName as string);
-
-            if (redirectUri) {
-              return redirectWithToast(redirectUri as string, {
-                title: 'DNS record deleted',
-                description: 'The last record has been removed and RecordSet deleted',
-                type: 'success',
-              });
-            }
-
-            return data(
-              { success: true, message: 'RecordSet deleted successfully' },
-              { status: 200 }
+          if (dryRunRes) {
+            await dnsRecordSetsControl.update(
+              projectId as string,
+              recordSetName as string,
+              {
+                records: updatedRecords,
+              },
+              false
             );
-          } else {
-            // Update RecordSet without this record
-            await dnsRecordSetsControl.update(projectId as string, recordSetName as string, {
-              records: updatedRecords,
-            });
-
-            if (redirectUri) {
-              return redirectWithToast(redirectUri as string, {
-                title: 'DNS record deleted',
-                description: 'The record has been deleted successfully',
-                type: 'success',
-              });
-            }
-
-            return data({ success: true, message: 'Record deleted successfully' }, { status: 200 });
           }
+
+          if (redirectUri) {
+            return redirectWithToast(redirectUri as string, {
+              title: 'DNS record deleted',
+              description: 'The record has been deleted successfully',
+              type: 'success',
+            });
+          }
+
+          return data({ success: true, message: 'Record deleted successfully' }, { status: 200 });
         }
       }
 

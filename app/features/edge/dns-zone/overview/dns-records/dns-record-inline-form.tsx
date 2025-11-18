@@ -40,62 +40,49 @@ export function DnsRecordInlineForm({
         ...(initialData.type === 'NS' && { ns: { content: initialData.value || '' } }),
         ...(initialData.type === 'PTR' && { ptr: { content: initialData.value || '' } }),
 
-        // Array types (wrap in array) - TODO: enhance based on IFlattenedDnsRecord structure
+        // Complex types (use raw K8s data from record)
         ...(initialData.type === 'MX' && {
-          mx: [
-            {
-              // Decode pipe-separated format: "preference|exchange"
-              exchange: initialData.value?.split('|')[1] || '',
-              preference: Number(initialData.value?.split('|')[0]) || 10,
-            },
-          ],
+          mx: initialData.rawData?.mx || {
+            exchange: '',
+            preference: 10,
+          },
         }),
         ...(initialData.type === 'SRV' && {
-          srv: [
-            {
-              target: initialData.value || '',
-              port: (initialData as any).port || 443,
-              priority: (initialData as any).priority || 10,
-              weight: (initialData as any).weight || 5,
-            },
-          ],
+          srv: initialData.rawData?.srv || {
+            target: '',
+            port: 443,
+            priority: 10,
+            weight: 5,
+          },
         }),
         ...(initialData.type === 'CAA' && {
-          caa: [
-            {
-              flag: (initialData as any).flag || 0,
-              tag: (initialData as any).tag || 'issue',
-              value: initialData.value || '',
-            },
-          ],
+          caa: initialData.rawData?.caa || {
+            flag: 0,
+            tag: 'issue',
+            value: '',
+          },
         }),
         ...(initialData.type === 'TLSA' && {
-          tlsa: [
-            {
-              usage: (initialData as any).usage || 3,
-              selector: (initialData as any).selector || 1,
-              matchingType: (initialData as any).matchingType || 1,
-              certData: initialData.value || '',
-            },
-          ],
+          tlsa: initialData.rawData?.tlsa || {
+            usage: 3,
+            selector: 1,
+            matchingType: 1,
+            certData: '',
+          },
         }),
         ...(initialData.type === 'HTTPS' && {
-          https: [
-            {
-              priority: (initialData as any).priority || 1,
-              target: initialData.value || '',
-              params: (initialData as any).params || {},
-            },
-          ],
+          https: initialData.rawData?.https || {
+            priority: 1,
+            target: '',
+            params: {},
+          },
         }),
         ...(initialData.type === 'SVCB' && {
-          svcb: [
-            {
-              priority: (initialData as any).priority || 1,
-              target: initialData.value || '',
-              params: (initialData as any).params || {},
-            },
-          ],
+          svcb: initialData.rawData?.svcb || {
+            priority: 1,
+            target: '',
+            params: {},
+          },
         }),
         ...(initialData.type === 'SOA' &&
           (() => {

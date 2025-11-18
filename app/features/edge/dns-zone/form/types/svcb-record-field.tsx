@@ -11,17 +11,15 @@ export const SVCBRecordField = ({
   fields: ReturnType<typeof useForm<SVCBRecordSchema>>[1];
   defaultValue?: SVCBRecordSchema;
 }) => {
-  // Always use the first (and only) item in the array
-  const svcbList = fields.svcb.getFieldList();
-  const svcbFields = svcbList[0]?.getFieldset();
+  const svcbFields = fields.svcb.getFieldset();
 
   // State for params string representation
   const [paramsString, setParamsString] = useState('');
 
   // Initialize params string from defaultValue
   useEffect(() => {
-    if (defaultValue?.svcb?.[0]?.params) {
-      const params = defaultValue.svcb[0].params;
+    if (defaultValue?.svcb?.params) {
+      const params = defaultValue.svcb.params;
       const paramsStr = Object.entries(params)
         .map(([key, value]) => `${key}="${value}"`)
         .join(' ');

@@ -2,13 +2,7 @@ import { createDnsRecordSetsControl } from '@/resources/control-plane';
 import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
 import { redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
-import {
-  isRecordEmpty,
-  mergeRecordValues,
-  removeValueFromRecord,
-  transformFormToRecord,
-  updateValueInRecord,
-} from '@/utils/helpers/dns-record.helper';
+import { extractValue, transformFormToRecord } from '@/utils/helpers/dns-record.helper';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data, LoaderFunctionArgs } from 'react-router';
 
@@ -77,117 +71,70 @@ export const action = async ({ params, request, context }: ActionFunctionArgs) =
 
         const recordSchema = recordData as CreateDnsRecordSchema;
         const recordType = recordSchema.recordType;
-        const newTTL = recordSchema.ttl;
 
         // Get existing RecordSet
         const recordSet = await dnsRecordSetsControl.detail(projectId, id);
 
-        // TODO: Need to confirm with backend team:
-        // Should records with the same name but different TTLs be separate entries?
-        // Currently checking both name AND ttl to find the correct record to update.
-        // If backend confirms TTL should be ignored, change this to only check name.
-        //
-        // Find the record by name AND ttl (to support multiple records with same name)
+        // ===================================================================
+        // UPDATE RECORD: Find and replace the matching record
+        // ===================================================================
+        // With new schema: Each record = one value, so updating a record = replacing it
+        // Find the record by name, value (if provided), and ttl (if provided)
         const recordIndex = recordSet.records?.findIndex((r: any) => {
+          // Must match name
           if (r.name !== recordName) return false;
 
-          // For SOA records, TTL can be at record level OR inside soa object
-          if (recordType === 'SOA') {
-            const recordTTL = r.ttl ?? r.soa?.ttl ?? null;
-            return recordTTL === (oldTTL ?? null);
+          // If oldValue provided, must match value
+          if (oldValue) {
+            const recordValue = extractValue(r, recordType);
+            if (recordValue !== oldValue) return false;
           }
 
-          // For other record types, compare TTL at record level
-          // Compare TTL: undefined/null treated as equal (both "Auto")
-          return (r.ttl ?? null) === (oldTTL ?? null);
+          // If oldTTL provided, must match ttl
+          if (oldTTL !== undefined) {
+            const recordTTL = r.ttl ?? null;
+            const targetTTL = oldTTL === '' || oldTTL === null ? null : oldTTL;
+            if (recordTTL !== targetTTL) return false;
+          }
+
+          // This record matches all criteria
+          return true;
         });
 
         if (recordIndex === undefined || recordIndex === -1) {
           throw new BadRequestError(
-            `Record with name "${recordName}" and TTL "${oldTTL}" not found`
+            `Record with name "${recordName}"${oldValue ? `, value "${oldValue}"` : ''}${oldTTL !== undefined ? `, and TTL "${oldTTL}"` : ''} not found`
           );
         }
-
-        const existingRecord = recordSet.records![recordIndex];
 
         // Transform form data to K8s record format
         const newRecordData = transformFormToRecord(recordSchema);
 
-        // Check if TTL is changing
-        const isTTLChanging = (newTTL ?? null) !== (oldTTL ?? null);
-
-        let updatedRecords;
-
-        if (isTTLChanging && oldValue) {
-          // TTL is changing for a specific value → Move value to different record
-          // 1. Remove the value from current record (with oldTTL)
-          const updatedOldRecord = removeValueFromRecord(existingRecord, recordType, oldValue);
-
-          // 2. Check if old record becomes empty after removing the value
-          const isOldRecordEmpty = isRecordEmpty(updatedOldRecord, recordType);
-
-          // 3. Find or prepare target record (with newTTL)
-          const targetRecordIndex = recordSet.records?.findIndex(
-            (r: any) =>
-              r.name === recordName &&
-              // Find record with the NEW TTL
-              (r.ttl ?? null) === (newTTL ?? null)
-          );
-
-          if (
-            targetRecordIndex !== undefined &&
-            targetRecordIndex !== -1 &&
-            targetRecordIndex !== recordIndex
-          ) {
-            // Target record exists → merge the new value into it
-            const targetRecord = recordSet.records![targetRecordIndex];
-            const mergedTargetRecord = mergeRecordValues(targetRecord, newRecordData, recordType);
-
-            // Update records array
-            updatedRecords = recordSet
-              .records!.map((r: any, i: number) => {
-                if (i === recordIndex) {
-                  return isOldRecordEmpty ? null : updatedOldRecord; // Remove or update old record
-                }
-                if (i === targetRecordIndex) {
-                  return mergedTargetRecord; // Merge into target record
-                }
-                return r;
-              })
-              .filter((r: any) => r !== null); // Remove empty records
-          } else {
-            // Target record doesn't exist → create new record with new TTL
-            // Keep old record with remaining values, add new record with the updated value
-            if (isOldRecordEmpty) {
-              // Old record is now empty → replace it with new record
-              updatedRecords = recordSet.records!.map((r: any, i: number) =>
-                i === recordIndex ? newRecordData : r
-              );
-            } else {
-              // Old record still has values → keep it and append new record
-              updatedRecords = [
-                ...recordSet.records!.map((r: any, i: number) =>
-                  i === recordIndex ? updatedOldRecord : r
-                ),
-                newRecordData,
-              ];
-            }
-          }
-        } else {
-          // TTL not changing OR no specific value → normal update
-          const updatedRecord = oldValue
-            ? updateValueInRecord(existingRecord, newRecordData, recordType, oldValue)
-            : newRecordData;
-
-          updatedRecords = recordSet.records!.map((r: any, i: number) =>
-            i === recordIndex ? updatedRecord : r
-          );
-        }
+        // Replace the matching record
+        const updatedRecords = recordSet.records!.map((r: any, i: number) =>
+          i === recordIndex ? newRecordData : r
+        );
 
         // Update RecordSet with PATCH
-        await dnsRecordSetsControl.update(projectId, id, {
-          records: updatedRecords,
-        });
+        const dryRunRes = await dnsRecordSetsControl.update(
+          projectId,
+          id,
+          {
+            records: updatedRecords,
+          },
+          true
+        );
+
+        if (dryRunRes) {
+          await dnsRecordSetsControl.update(
+            projectId,
+            id,
+            {
+              records: updatedRecords,
+            },
+            false
+          );
+        }
 
         if (redirectUri) {
           return redirectWithToast(redirectUri as string, {

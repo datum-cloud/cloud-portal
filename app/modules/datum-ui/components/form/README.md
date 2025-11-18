@@ -64,7 +64,7 @@ import { Input } from '@datum-ui/components';
   type="text"
   placeholder="Enter your name"
   className="custom-class" // Datum-specific or custom classes
-/>
+/>;
 ```
 
 ### Example: Checkbox
@@ -72,11 +72,7 @@ import { Input } from '@datum-ui/components';
 ```tsx
 import { Checkbox } from '@datum-ui/components';
 
-<Checkbox
-  checked={isChecked}
-  onCheckedChange={setIsChecked}
-  className="custom-class"
-/>
+<Checkbox checked={isChecked} onCheckedChange={setIsChecked} className="custom-class" />;
 ```
 
 ### Example: Select Dropdown
@@ -98,7 +94,7 @@ import {
     <SelectItem value="option1">Option 1</SelectItem>
     <SelectItem value="option2">Option 2</SelectItem>
   </SelectContent>
-</Select>
+</Select>;
 ```
 
 ### Example: Radio Group
@@ -116,7 +112,7 @@ import { Label } from '@datum-ui/components';
     <RadioGroupItem value="option2" id="option2" />
     <Label htmlFor="option2">Option 2</Label>
   </div>
-</RadioGroup>
+</RadioGroup>;
 ```
 
 ## Customization
@@ -135,8 +131,8 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
         className={cn(
           // Add Datum-specific defaults here
           'focus-visible:ring-primary/20', // Custom focus ring
-          'border-border/50',                // Softer border
-          className                          // User classes (highest priority)
+          'border-border/50', // Softer border
+          className // User classes (highest priority)
         )}
         {...props}
       />
@@ -150,13 +146,10 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
 These components work seamlessly with Conform form validation:
 
 ```tsx
-import { Input } from '@datum-ui/components';
 import { getInputProps } from '@conform-to/react';
+import { Input } from '@datum-ui/components';
 
-<Input
-  {...getInputProps(field, { type: 'text' })}
-  placeholder="Enter text..."
-/>
+<Input {...getInputProps(field, { type: 'text' })} placeholder="Enter text..." />;
 ```
 
 ## Migration from shadcn
@@ -164,12 +157,14 @@ import { getInputProps } from '@conform-to/react';
 If you're currently using shadcn components directly:
 
 **Before:**
+
 ```tsx
-import { Input } from '@shadcn/ui/input';
 import { Checkbox } from '@shadcn/ui/checkbox';
+import { Input } from '@shadcn/ui/input';
 ```
 
 **After:**
+
 ```tsx
 import { Input, Checkbox } from '@datum-ui/components';
 ```
@@ -189,4 +184,3 @@ The API is identical, so no code changes are needed beyond the import path.
 - [shadcn/ui Documentation](https://ui.shadcn.com/)
 - [Datum UI Components](../README.md)
 - [Conform Form Library](https://conform.guide/)
-

@@ -11,17 +11,15 @@ export const HTTPSRecordField = ({
   fields: ReturnType<typeof useForm<HTTPSRecordSchema>>[1];
   defaultValue?: HTTPSRecordSchema;
 }) => {
-  // Always use the first (and only) item in the array
-  const httpsList = fields.https.getFieldList();
-  const httpsFields = httpsList[0]?.getFieldset();
+  const httpsFields = fields.https.getFieldset();
 
   // State for params string representation
   const [paramsString, setParamsString] = useState('');
 
   // Initialize params string from defaultValue
   useEffect(() => {
-    if (defaultValue?.https?.[0]?.params) {
-      const params = defaultValue.https[0].params;
+    if (defaultValue?.https?.params) {
+      const params = defaultValue.https.params;
       const paramsStr = Object.entries(params)
         .map(([key, value]) => `${key}="${value}"`)
         .join(' ');
