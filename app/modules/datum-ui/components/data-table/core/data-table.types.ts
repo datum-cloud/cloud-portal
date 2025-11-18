@@ -53,7 +53,7 @@ export interface DataTableProps<TData, TValue> {
   className?: string;
   tableContainerClassName?: string;
   tableClassName?: string;
-  tableCardClassName?: string;
+  tableCardClassName?: string | ((row: TData) => string | undefined);
 
   // Actions and behavior props
   rowActions?: DataTableRowActionsProps<TData>[];

@@ -69,13 +69,16 @@ export const DataTableInlineActions = <TData,>({
             typeof action.tooltip === 'function'
               ? action.tooltip(row)
               : (action.tooltip ?? action.label);
-          return (
-            <div key={action.key} className="pointer-events-auto">
-              <Tooltip message={tooltipText}>
-                <span className="inline-block">{button}</span>
-              </Tooltip>
-            </div>
-          );
+
+          if (tooltipText) {
+            return (
+              <div key={action.key} className="pointer-events-auto">
+                <Tooltip message={tooltipText}>
+                  <span className="inline-block">{button}</span>
+                </Tooltip>
+              </div>
+            );
+          }
         }
 
         return <div key={action.key}>{button}</div>;
