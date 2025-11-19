@@ -16,14 +16,18 @@ interface TooltipProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   contentClassName?: string;
+  arrowClassName?: string;
 }
 
 const TooltipContent = ({
   className,
+  arrowClassName,
   sideOffset = 0,
   children,
   ...props
-}: React.ComponentProps<typeof TooltipPrimitiveRadix.Content>) => {
+}: React.ComponentProps<typeof TooltipPrimitiveRadix.Content> & {
+  arrowClassName?: string;
+}) => {
   return (
     <TooltipPrimitiveRadix.Portal>
       <TooltipPrimitiveRadix.Content
@@ -36,7 +40,15 @@ const TooltipContent = ({
         )}
         {...props}>
         {children}
-        <TooltipPrimitiveRadix.Arrow className="bg-secondary fill-secondary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
+        <TooltipPrimitiveRadix.Arrow
+          className={cn(
+            'fill-secondary -my-px border-none drop-shadow-[0_1px_0_secondary]',
+            arrowClassName
+          )}
+          width={12}
+          height={7}
+          aria-hidden="true"
+        />
       </TooltipPrimitiveRadix.Content>
     </TooltipPrimitiveRadix.Portal>
   );
@@ -53,6 +65,7 @@ export default function Tooltip({
   open,
   onOpenChange,
   contentClassName,
+  arrowClassName,
 }: TooltipProps) {
   return (
     <TooltipPrimitive delayDuration={delayDuration} open={open} onOpenChange={onOpenChange}>
@@ -62,7 +75,8 @@ export default function Tooltip({
         align={align}
         sideOffset={sideOffset}
         hidden={hidden}
-        className={contentClassName}>
+        className={contentClassName}
+        arrowClassName={arrowClassName}>
         <span>{message}</span>
       </TooltipContent>
     </TooltipPrimitive>
