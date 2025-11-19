@@ -1,17 +1,7 @@
 import { DnsRecordForm } from '../../form/dns-record-form';
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
 import { recordToFormDefaultValue } from '@/utils/helpers/dns-record.helper';
-
-interface DnsRecordInlineFormProps {
-  mode: 'create' | 'edit';
-  initialData: IFlattenedDnsRecord | null;
-  projectId: string;
-  dnsZoneId: string;
-  dnsZoneName?: string;
-  onClose: () => void;
-  onSuccess?: () => void;
-}
+import type { DnsRecordInlineFormProps } from './types';
 
 /**
  * Inline form wrapper for creating/editing DNS records in DataTable

@@ -1,14 +1,9 @@
 import { DnsRecordTable } from './dns-record-table';
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { useMemo } from 'react';
+import type { DnsRecordCardProps } from './types';
 
-export interface DnsRecordCardProps {
-  records: IFlattenedDnsRecord[];
-  maxRows?: number;
-  title?: string;
-  actions?: React.ReactNode;
-}
+export type { DnsRecordCardProps } from './types';
 
 /**
  * Card wrapper for DNS record table in compact mode

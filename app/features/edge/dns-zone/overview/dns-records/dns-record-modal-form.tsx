@@ -10,17 +10,9 @@ import {
   DialogDescription,
 } from '@shadcn/ui/dialog';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import type { DnsRecordModalFormProps, DnsRecordModalFormRef } from './types';
 
-interface DnsRecordModalFormProps {
-  projectId: string;
-  dnsZoneId: string;
-  dnsZoneName?: string;
-  onSuccess?: () => void;
-}
-
-export interface DnsRecordModalFormRef {
-  show: (mode: 'create' | 'edit', initialData?: IFlattenedDnsRecord) => Promise<boolean>;
-}
+export type { DnsRecordModalFormRef } from './types';
 
 export const DnsRecordModalForm = forwardRef<DnsRecordModalFormRef, DnsRecordModalFormProps>(
   ({ projectId, dnsZoneId, dnsZoneName, onSuccess }, ref) => {

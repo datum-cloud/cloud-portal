@@ -1,4 +1,5 @@
 import { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-plane/dns-networking';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import {
   IDnsRecordSetControlResponse,
   IDnsZoneDiscoveryRecordSet,
@@ -137,7 +138,7 @@ function flattenManagedRecordSets(
 
   recordSets.forEach((recordSet) => {
     const records = recordSet.records || [];
-    const status = extractStatus(recordSet.status);
+    const { status, message } = extractStatus(recordSet.status);
 
     const entries = flattenRecordEntries(recordSet.recordType || '', records, {
       recordSetId: recordSet.uid || '',
@@ -145,6 +146,7 @@ function flattenManagedRecordSets(
       createdAt: recordSet.createdAt || new Date(),
       dnsZoneId: recordSet.dnsZoneId || '',
       status: status,
+      statusMessage: message,
     });
 
     flattened.push(...entries);
@@ -200,7 +202,8 @@ function flattenRecordEntries(
     recordSetName?: string;
     createdAt?: Date;
     dnsZoneId: string;
-    status?: 'Active' | 'Pending' | 'Error';
+    status?: ControlPlaneStatus;
+    statusMessage?: string;
   }
 ): IFlattenedDnsRecord[] {
   const flattened: IFlattenedDnsRecord[] = [];
@@ -326,10 +329,25 @@ function extractTTL(record: any): number | undefined {
 }
 
 /**
- * Extract status from K8s conditions
+ * Extract status and message from K8s conditions
+ * Similar to transformControlPlaneStatus in control-plane.helper.ts
+ *
+ * Status logic:
+ * - Active: All conditions (Accepted AND Programmed) are True
+ * - Pending: Any condition is not True (includes False, missing, etc.)
+ *
+ * Message: Only returned when Pending (to explain why it's pending)
  */
-function extractStatus(status: any): 'Active' | 'Pending' | 'Error' {
-  if (!status?.conditions) return 'Pending';
+function extractStatus(status: any): {
+  status: ControlPlaneStatus;
+  message?: string;
+} {
+  if (!status?.conditions || status.conditions.length === 0) {
+    return {
+      status: ControlPlaneStatus.Pending,
+      message: 'Resource is being provisioned...',
+    };
+  }
 
   const accepted = status.conditions.find((c: any) => c.type === 'Accepted');
   const programmed = status.conditions.find((c: any) => c.type === 'Programmed');
@@ -337,9 +355,27 @@ function extractStatus(status: any): 'Active' | 'Pending' | 'Error' {
   const isAccepted = accepted?.status === 'True';
   const isProgrammed = programmed?.status === 'True';
 
-  if (isAccepted && isProgrammed) return 'Active';
-  if (accepted?.status === 'False' || programmed?.status === 'False') return 'Error';
-  return 'Pending';
+  // Both conditions are True - resource is active (Success)
+  if (isAccepted && isProgrammed) {
+    return { status: ControlPlaneStatus.Success };
+  }
+
+  // At least one condition is not True - resource is pending
+  // Collect messages from non-True conditions to explain why pending
+  const messages: string[] = [];
+
+  if (!isAccepted && accepted) {
+    messages.push(accepted.message || 'Awaiting acceptance');
+  }
+
+  if (!isProgrammed && programmed) {
+    messages.push(programmed.message || 'Awaiting programming');
+  }
+
+  return {
+    status: ControlPlaneStatus.Pending,
+    message: messages.length > 0 ? messages.join('; ') : 'Resource is being provisioned...',
+  };
 }
 
 // =============================================================================
