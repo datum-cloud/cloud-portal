@@ -81,7 +81,7 @@ export default function DnsZoneOverviewPage() {
             <Tooltip message="This will refresh your DNS records">
               <Button
                 htmlType="button"
-                type="secondary"
+                type="primary"
                 theme="solid"
                 size="xs"
                 icon={<RefreshCcwIcon size={12} />}

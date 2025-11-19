@@ -1,10 +1,11 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { NoteCard } from '@/components/note-card/note-card';
 import { NameserverTable } from '@/features/edge/dns-zone/overview/nameservers';
+import { useIsPending } from '@/hooks/useIsPending';
 import { IDnsNameserver } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
-import { Col, Row, toast } from '@datum-ui/components';
-import { InfoIcon } from 'lucide-react';
+import { Button, Col, Row, Tooltip, toast } from '@datum-ui/components';
+import { InfoIcon, RefreshCcwIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { useFetcher, useParams, useRouteLoaderData } from 'react-router';
 
@@ -17,6 +18,7 @@ export default function DnsZoneNameserversPage() {
 
   const { projectId } = useParams();
   const refreshFetcher = useFetcher({ key: 'refresh-domain' });
+  const pending = useIsPending({ fetcherKey: 'refresh-domain' });
 
   const dnsHost = useMemo(() => {
     return domain?.status?.nameservers?.[0]?.ips?.[0]?.registrantName;
@@ -74,17 +76,24 @@ export default function DnsZoneNameserversPage() {
         <NameserverTable
           tableTitle={{
             title: 'Nameservers',
+            actions: (
+              <Tooltip message="This will refresh your nameservers">
+                <Button
+                  htmlType="button"
+                  type="primary"
+                  theme="solid"
+                  size="xs"
+                  icon={<RefreshCcwIcon size={12} />}
+                  onClick={() => refreshDomain()}
+                  disabled={pending}
+                  loading={pending}>
+                  Refresh
+                </Button>
+              </Tooltip>
+            ),
           }}
           data={domain?.status?.nameservers ?? []}
           registration={domain?.status?.registration ?? {}}
-          rowActions={[
-            {
-              key: 'refresh',
-              label: 'Refresh',
-              variant: 'default',
-              action: () => refreshDomain(),
-            },
-          ]}
         />
       </Col>
       {!nameserverSetup.isFullySetup && (
