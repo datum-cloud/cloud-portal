@@ -1,8 +1,9 @@
 import { ProjectDangerCard } from '@/features/project/settings/danger-card';
 import { ProjectGeneralCard } from '@/features/project/settings/general-card';
 import { createProjectsControl } from '@/resources/control-plane';
-import { IProjectControlResponse, ICachedProject } from '@/resources/interfaces/project.interface';
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
+import { ResourceCache, RESOURCE_CACHE_CONFIG } from '@/utils/cache';
 import { paths } from '@/utils/config/paths.config';
 import { dataWithToast, redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { HttpError } from '@/utils/errors';
@@ -88,35 +89,22 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
       const formData = Object.fromEntries(await request.formData());
       const { projectName, orgId: orgEntityId } = formData;
 
+      // Initialize cache manager for projects
+      const projectCache = new ResourceCache(
+        cache,
+        RESOURCE_CACHE_CONFIG.projects,
+        RESOURCE_CACHE_CONFIG.projects.getCacheKey(orgEntityId as string)
+      );
+
       try {
         // 1. Mark project as "deleting" in cache to hide it from UI immediately
-        const cachedProjects = (await cache.getItem(`projects:${orgEntityId}`)) as
-          | ICachedProject[]
-          | null;
-
-        if (cachedProjects && Array.isArray(cachedProjects)) {
-          const updatedProjects = cachedProjects.map((project) =>
-            project.name === projectName
-              ? {
-                  ...project,
-                  _meta: {
-                    status: 'deleting' as const,
-                    deletedAt: new Date().toISOString(),
-                  },
-                }
-              : project
-          );
-          await cache.setItem(`projects:${orgEntityId}`, updatedProjects);
-        }
+        await projectCache.markAsDeleting(projectName as string);
 
         // 2. Await the actual deletion
         await projectsControl.delete(orgEntityId as string, projectName as string);
 
-        // 3. Remove project from cache after successful deletion
-        if (cachedProjects && Array.isArray(cachedProjects)) {
-          const filteredProjects = cachedProjects.filter((project) => project.name !== projectName);
-          await cache.setItem(`projects:${orgEntityId}`, filteredProjects);
-        }
+        // 3. Keep the "deleting" status in cache - don't remove yet
+        // The loader's merge() will handle cleanup when API stops returning it
 
         // 4. Redirect with success message
         return redirectWithToast(
@@ -131,20 +119,7 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
         );
       } catch (error) {
         // If deletion fails, revert the cache status
-        const cachedProjects = (await cache.getItem(`projects:${orgEntityId}`)) as
-          | ICachedProject[]
-          | null;
-
-        if (cachedProjects && Array.isArray(cachedProjects)) {
-          const revertedProjects = cachedProjects.map((project) => {
-            if (project.name === projectName && project._meta?.status === 'deleting') {
-              const { _meta, ...projectWithoutMeta } = project;
-              return projectWithoutMeta;
-            }
-            return project;
-          });
-          await cache.setItem(`projects:${orgEntityId}`, revertedProjects);
-        }
+        await projectCache.revert(projectName as string);
 
         return redirectWithToast(
           getPathWithParams(paths.org.detail.projects.root, {

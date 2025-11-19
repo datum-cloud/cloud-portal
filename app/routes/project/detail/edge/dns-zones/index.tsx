@@ -6,6 +6,7 @@ import { createDnsZonesControl } from '@/resources/control-plane/dns-networking'
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
 import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
+import { ResourceCache, RESOURCE_CACHE_CONFIG } from '@/utils/cache';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -32,19 +33,42 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
+  const { controlPlaneClient, cache } = context as AppLoadContext;
   const dnsZonesControl = createDnsZonesControl(controlPlaneClient as Client);
 
   if (!projectId) {
     throw new BadRequestError('Project ID is required');
   }
 
-  const httpProxies = await dnsZonesControl.list(projectId);
-  return httpProxies;
+  // Initialize cache manager for DNS zones
+  const dnsZoneCache = new ResourceCache<IDnsZoneControlResponse>(
+    cache,
+    RESOURCE_CACHE_CONFIG.dnsZones,
+    RESOURCE_CACHE_CONFIG.dnsZones.getCacheKey(projectId)
+  );
+
+  // Fetch fresh data from API
+  const freshDnsZones = await dnsZonesControl.list(projectId);
+
+  // Merge cached metadata with fresh data (handles delayed deletions)
+  const mergedDnsZones = await dnsZoneCache.merge(freshDnsZones);
+
+  // Check if any DNS zones are in "deleting" state for polling
+  const hasDeleting = mergedDnsZones.some((zone) => zone._meta?.status === 'deleting');
+
+  // Check if any DNS zones don't have nameservers data yet
+  const hasIncompleteData = mergedDnsZones.some(
+    (zone) => !zone.status?.domainRef?.status?.nameservers
+  );
+
+  // Should poll if there are deleting items OR incomplete data
+  const shouldPoll = hasDeleting || hasIncompleteData;
+
+  return { zones: mergedDnsZones, shouldPoll };
 };
 
 export default function DnsZonesPage() {
-  const data = useLoaderData<typeof loader>();
+  const { zones, shouldPoll } = useLoaderData<typeof loader>();
   const { projectId } = useParams();
   const fetcher = useFetcher({ key: 'delete-dns-zone' });
   const refreshFetcher = useFetcher({ key: 'refresh-domain' });
@@ -52,10 +76,14 @@ export default function DnsZonesPage() {
 
   const { confirm } = useConfirmationDialog();
 
+  // Filter out items marked as "deleting" from the UI
+  const visibleDnsZones = useMemo(() => {
+    return zones?.filter((zone) => zone._meta?.status !== 'deleting') ?? [];
+  }, [zones]);
+
   // revalidate every 5 seconds to keep DNS zones list fresh
   const { start: startRevalidator, clear: clearRevalidator } = useRevalidateOnInterval({
     interval: 5000,
-    enabled: false,
   });
 
   const refreshDomain = async (dnsZone: IDnsZoneControlResponse) => {
@@ -206,15 +234,13 @@ export default function DnsZonesPage() {
   );
 
   useEffect(() => {
-    // Start revalidator if any DNS zone doesn't have nameservers data yet
-    const hasIncompleteData = data?.some((zone) => !zone.status?.domainRef?.status?.nameservers);
-
-    if (hasIncompleteData) {
+    // Start revalidator if there are deleting items OR incomplete data
+    if (shouldPoll) {
       startRevalidator();
     } else {
       clearRevalidator();
     }
-  }, [data]);
+  }, [shouldPoll, startRevalidator, clearRevalidator]);
 
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
@@ -243,7 +269,7 @@ export default function DnsZonesPage() {
   return (
     <DataTable
       columns={columns}
-      data={data ?? []}
+      data={visibleDnsZones}
       rowActions={rowActions}
       onRowClick={(row) => {
         navigate(

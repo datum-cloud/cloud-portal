@@ -4,6 +4,7 @@ import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ICachedProject } from '@/resources/interfaces/project.interface';
+import { ResourceCache, RESOURCE_CACHE_CONFIG } from '@/utils/cache';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
@@ -36,33 +37,18 @@ export const loader = async ({ params, request, context }: LoaderFunctionArgs) =
       throw new BadRequestError('Organization ID is required');
     }
 
-    const key = `projects:${orgId}`;
-    const cachedProjects = (await cache.getItem(key)) as ICachedProject[] | null;
+    // Initialize cache manager for projects
+    const projectCache = new ResourceCache<ICachedProject>(
+      cache,
+      RESOURCE_CACHE_CONFIG.projects,
+      RESOURCE_CACHE_CONFIG.projects.getCacheKey(orgId)
+    );
 
     // Fetch fresh data from API
     const freshProjects = await projectsControl.list(orgId);
 
-    // Merge cached metadata with fresh data
-    let mergedProjects: ICachedProject[] = freshProjects;
-
-    if (cachedProjects && Array.isArray(cachedProjects)) {
-      mergedProjects = freshProjects.map((freshProject) => {
-        const cachedProject = cachedProjects.find((cp) => cp.name === freshProject.name);
-
-        // If cached project has "deleting" status and still exists in API, keep the metadata
-        if (cachedProject?._meta?.status === 'deleting') {
-          return { ...freshProject, _meta: cachedProject._meta };
-        }
-
-        return freshProject;
-      });
-
-      // Update cache with merged data
-      await cache.setItem(key, mergedProjects);
-    } else {
-      // No cache exists, save fresh data
-      await cache.setItem(key, mergedProjects);
-    }
+    // Merge cached metadata with fresh data (handles delayed deletions)
+    const mergedProjects = await projectCache.merge(freshProjects);
 
     // Check if any projects are in "deleting" state for polling
     const hasDeleting = mergedProjects.some((p) => p._meta?.status === 'deleting');

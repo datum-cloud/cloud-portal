@@ -1,5 +1,5 @@
 import { createProjectsControl } from '@/resources/control-plane';
-import { ICachedProject } from '@/resources/interfaces/project.interface';
+import { ResourceCache, RESOURCE_CACHE_CONFIG } from '@/utils/cache';
 import { BadRequestError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
@@ -18,42 +18,18 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       throw new BadRequestError('Organization ID is required');
     }
 
-    const key = `projects:${orgId}`;
-    const cachedProjects = (await cache.getItem(key)) as ICachedProject[] | null;
+    // Initialize cache manager for projects
+    const projectCache = new ResourceCache(
+      cache,
+      RESOURCE_CACHE_CONFIG.projects,
+      RESOURCE_CACHE_CONFIG.projects.getCacheKey(orgId)
+    );
 
     // Fetch fresh data from API
-    const freshProjects = await projectsControl.list(orgId ?? '');
+    const freshProjects = await projectsControl.list(orgId);
 
-    // Merge cached metadata with fresh data
-    let mergedProjects: ICachedProject[] = freshProjects;
-
-    if (cachedProjects && Array.isArray(cachedProjects)) {
-      mergedProjects = freshProjects.map((freshProject) => {
-        const cachedProject = cachedProjects.find((cp) => cp.name === freshProject.name);
-
-        // If cached project has "deleting" status and still exists in API, keep the metadata
-        if (cachedProject?._meta?.status === 'deleting') {
-          return { ...freshProject, _meta: cachedProject._meta };
-        }
-
-        return freshProject;
-      });
-
-      // Remove projects from cache that are no longer returned by API (fully deleted)
-      const freshProjectNames = new Set(freshProjects.map((p) => p.name));
-      const stillDeleting = cachedProjects.filter(
-        (cp) => cp._meta?.status === 'deleting' && !freshProjectNames.has(cp.name)
-      );
-
-      // If there were deleting projects that are now gone, they're fully deleted
-      if (stillDeleting.length > 0) {
-        // Update cache to remove fully deleted projects
-        await cache.setItem(key, mergedProjects);
-      }
-    } else {
-      // No cache exists, save fresh data
-      await cache.setItem(key, mergedProjects);
-    }
+    // Merge cached metadata with fresh data (handles delayed deletions)
+    const mergedProjects = await projectCache.merge(freshProjects);
 
     return data({ success: true, data: mergedProjects }, { status: 200 });
   } catch (error: any) {

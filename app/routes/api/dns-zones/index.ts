@@ -1,5 +1,6 @@
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
 import { formDnsZoneSchema } from '@/resources/schemas/dns-zone.schema';
+import { ResourceCache, RESOURCE_CACHE_CONFIG } from '@/utils/cache';
 import { redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
@@ -8,7 +9,7 @@ import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 export const ROUTE_PATH = '/api/dns-zones' as const;
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
-  const { controlPlaneClient } = context as AppLoadContext;
+  const { controlPlaneClient, cache } = context as AppLoadContext;
   try {
     const dnsZonesControl = createDnsZonesControl(controlPlaneClient as Client);
 
@@ -55,17 +56,38 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         const formData = Object.fromEntries(await request.formData());
         const { id, projectId, redirectUri } = formData;
 
-        await dnsZonesControl.delete(projectId as string, id as string);
+        // Initialize cache manager for DNS zones
+        const dnsZoneCache = new ResourceCache(
+          cache,
+          RESOURCE_CACHE_CONFIG.dnsZones,
+          RESOURCE_CACHE_CONFIG.dnsZones.getCacheKey(projectId as string)
+        );
 
-        if (redirectUri) {
-          return redirectWithToast(redirectUri as string, {
-            title: 'DNS Zone deleted successfully',
-            description: 'The DNS Zone has been deleted successfully',
-            type: 'success',
-          });
+        try {
+          // 1. Mark DNS zone as "deleting" in cache to hide it from UI immediately
+          await dnsZoneCache.markAsDeleting(id as string);
+
+          // 2. Await the actual deletion
+          await dnsZonesControl.delete(projectId as string, id as string);
+
+          // 3. Keep the "deleting" status in cache - don't remove yet
+          // The loader's merge() will handle cleanup when API stops returning it
+
+          // 4. Return success response
+          if (redirectUri) {
+            return redirectWithToast(redirectUri as string, {
+              title: 'DNS Zone deleted successfully',
+              description: 'The DNS Zone has been deleted successfully',
+              type: 'success',
+            });
+          }
+
+          return data({ success: true, message: 'DNS Zone deleted successfully' }, { status: 200 });
+        } catch (error) {
+          // If deletion fails, revert the cache status
+          await dnsZoneCache.revert(id as string);
+          throw error;
         }
-
-        return data({ success: true, message: 'DNS Zone deleted successfully' }, { status: 200 });
       }
       default:
         throw new HttpError('Method not allowed', 405);
