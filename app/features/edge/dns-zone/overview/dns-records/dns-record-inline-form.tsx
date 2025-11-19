@@ -1,7 +1,7 @@
 import { DnsRecordForm } from '../../form/dns-record-form';
+import type { DnsRecordInlineFormProps } from './types';
 import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
 import { recordToFormDefaultValue } from '@/utils/helpers/dns-record.helper';
-import type { DnsRecordInlineFormProps } from './types';
 
 /**
  * Inline form wrapper for creating/editing DNS records in DataTable

@@ -1,9 +1,7 @@
 import { DnsRecordTable } from './dns-record-table';
+import type { DnsRecordCardProps } from './types';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { useMemo } from 'react';
-import type { DnsRecordCardProps } from './types';
-
-export type { DnsRecordCardProps } from './types';
 
 /**
  * Card wrapper for DNS record table in compact mode

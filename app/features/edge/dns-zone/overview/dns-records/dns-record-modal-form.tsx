@@ -1,4 +1,5 @@
 import { DnsRecordForm } from '../../form/dns-record-form';
+import type { DnsRecordModalFormProps, DnsRecordModalFormRef } from './types';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
 import { recordToFormDefaultValue } from '@/utils/helpers/dns-record.helper';
@@ -10,7 +11,6 @@ import {
   DialogDescription,
 } from '@shadcn/ui/dialog';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import type { DnsRecordModalFormProps, DnsRecordModalFormRef } from './types';
 
 export type { DnsRecordModalFormRef } from './types';
 

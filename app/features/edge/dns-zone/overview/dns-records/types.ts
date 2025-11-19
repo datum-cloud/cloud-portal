@@ -1,7 +1,6 @@
 /**
  * Shared type definitions for DNS Records components
  */
-
 import { EmptyContentProps } from '@/components/empty-content/empty-content';
 import { DataTableProps } from '@/modules/datum-ui/components/data-table';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
