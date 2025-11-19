@@ -35,7 +35,7 @@ function DataTableInternal<TData, TValue>(
     data,
     defaultColumnFilters = [],
     defaultSorting = [],
-    pageSize = 20,
+    pageSize = 50,
     filterComponent,
     filters,
     defaultFilters,

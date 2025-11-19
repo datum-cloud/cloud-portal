@@ -4,6 +4,7 @@ import {
   ComMiloapisNetworkingDnsV1Alpha1DnsZoneDiscovery,
 } from '@/modules/control-plane/dns-networking';
 import { ComDatumapisNetworkingV1AlphaDomain } from '@/modules/control-plane/networking';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 
 // ============================================
 // DNS Zone Interfaces
@@ -76,7 +77,8 @@ export interface IFlattenedDnsRecord {
   ttl?: number;
 
   // Status (only for managed recordsets, undefined for discovery)
-  status?: 'Active' | 'Pending' | 'Error';
+  status?: ControlPlaneStatus;
+  statusMessage?: string; // Pending message from K8s conditions (only when status is Pending)
 
   // Raw data for editing/display
   rawData: any;

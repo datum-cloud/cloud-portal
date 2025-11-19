@@ -176,7 +176,7 @@ export default function AppWithProviders() {
   }, []);
 
   useEffect(() => {
-    if (navigation.state === 'loading') {
+    if (state === 'loading') {
       startProgress();
     } else {
       stopProgress();

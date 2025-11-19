@@ -2,13 +2,17 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { NoteCard } from '@/components/note-card/note-card';
 import { NameserverTable } from '@/features/edge/dns-zone/overview/nameservers';
 import { IDnsNameserver } from '@/resources/interfaces/dns.interface';
-import { Col, Row } from '@datum-ui/components';
+import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
+import { Col, Row, toast } from '@datum-ui/components';
 import { InfoIcon } from 'lucide-react';
-import { useMemo } from 'react';
-import { useRouteLoaderData } from 'react-router';
+import { useEffect, useMemo } from 'react';
+import { useFetcher, useParams, useRouteLoaderData } from 'react-router';
 
 export default function DnsZoneNameserversPage() {
   const { dnsZone, domain } = useRouteLoaderData('dns-zone-detail');
+
+  const { projectId } = useParams();
+  const refreshFetcher = useFetcher({ key: 'refresh-domain' });
 
   const dnsHost = useMemo(() => {
     return domain?.status?.nameservers?.[0]?.ips?.[0]?.registrantName;
@@ -35,6 +39,31 @@ export default function DnsZoneNameserversPage() {
     };
   }, [dnsZone]);
 
+  const refreshDomain = async () => {
+    await refreshFetcher.submit(
+      {
+        id: domain?.name ?? '',
+        projectId: projectId ?? '',
+      },
+      {
+        method: 'PATCH',
+        action: DOMAINS_REFRESH_PATH,
+      }
+    );
+  };
+
+  useEffect(() => {
+    if (refreshFetcher.data && refreshFetcher.state === 'idle') {
+      if (refreshFetcher.data.success) {
+        toast.success('Nameservers refreshed successfully', {
+          description: 'The Nameservers have been refreshed successfully',
+        });
+      } else {
+        toast.error(refreshFetcher.data.error);
+      }
+    }
+  }, [refreshFetcher.data, refreshFetcher.state]);
+
   return (
     <Row gutter={[0, 32]}>
       <Col span={24}>
@@ -44,6 +73,14 @@ export default function DnsZoneNameserversPage() {
           }}
           data={domain?.status?.nameservers ?? []}
           registration={domain?.status?.registration ?? {}}
+          rowActions={[
+            {
+              key: 'refresh',
+              label: 'Refresh',
+              variant: 'default',
+              action: () => refreshDomain(),
+            },
+          ]}
         />
       </Col>
       {!nameserverSetup.isFullySetup && (

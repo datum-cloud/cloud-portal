@@ -24,6 +24,11 @@ export type ComDatumapisNetworkingV1AlphaDomain = {
      * DomainName is the fully qualified domain name (FQDN) to be managed
      */
     domainName: string;
+
+    /**
+     * DesiredRegistrationRefreshAttempt is the desired time of the next registration refresh attempt.
+     */
+    desiredRegistrationRefreshAttempt?: string;
   };
   /**
    * DomainStatus defines the observed state of Domain

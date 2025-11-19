@@ -2,50 +2,16 @@ import { Field } from '@/components/field/field';
 import { HTTPSRecordSchema } from '@/resources/schemas/dns-record.schema';
 import { getInputProps, useForm } from '@conform-to/react';
 import { Input } from '@shadcn/ui/input';
-import { useEffect, useState } from 'react';
 
 export const HTTPSRecordField = ({
   fields,
-  defaultValue,
 }: {
   fields: ReturnType<typeof useForm<HTTPSRecordSchema>>[1];
   defaultValue?: HTTPSRecordSchema;
 }) => {
   const httpsFields = fields.https.getFieldset();
 
-  // State for params string representation
-  const [paramsString, setParamsString] = useState('');
-
-  // Initialize params string from defaultValue
-  useEffect(() => {
-    if (defaultValue?.https?.params) {
-      const params = defaultValue.https.params;
-      const paramsStr = Object.entries(params)
-        .map(([key, value]) => `${key}="${value}"`)
-        .join(' ');
-      setParamsString(paramsStr);
-    }
-  }, [defaultValue]);
-
   if (!httpsFields) return null;
-
-  // Parse params string into key-value object
-  const parseParams = (input: string): Record<string, string> => {
-    if (!input.trim()) return {};
-
-    const params: Record<string, string> = {};
-    // Match key="value" or key=value patterns
-    const regex = /(\w+)=(?:"([^"]*)"|(\S+))/g;
-    let match;
-
-    while ((match = regex.exec(input)) !== null) {
-      const key = match[1];
-      const value = match[2] || match[3];
-      params[key] = value;
-    }
-
-    return params;
-  };
 
   return (
     <>
@@ -69,30 +35,9 @@ export const HTTPSRecordField = ({
 
       <Field label="Value" errors={httpsFields.params?.errors} className="col-span-2">
         <Input
-          name={httpsFields.params?.name}
+          {...getInputProps(httpsFields.params, { type: 'text' })}
           key={httpsFields.params?.id}
           placeholder='e.g., alpn="h3,h2" ipv4hint="127.0.0.1" ipv6hint="::1"'
-          value={paramsString}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = e.target.value;
-            setParamsString(value);
-
-            // Parse and store as hidden JSON field
-            const parsedParams = parseParams(value);
-            const paramsInput = document.getElementById(
-              `${httpsFields.params?.id}-json`
-            ) as HTMLInputElement;
-            if (paramsInput) {
-              paramsInput.value = JSON.stringify(parsedParams);
-            }
-          }}
-        />
-        {/* Hidden field to store parsed params as JSON */}
-        <input
-          type="hidden"
-          id={`${httpsFields.params?.id}-json`}
-          name={httpsFields.params?.name}
-          defaultValue="{}"
         />
       </Field>
     </>

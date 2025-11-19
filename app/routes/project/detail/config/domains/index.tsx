@@ -9,6 +9,7 @@ import { createDomainsControl } from '@/resources/control-plane';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
+import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -74,7 +75,8 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 export default function DomainsPage() {
   const { projectId } = useParams();
   const data = useLoaderData<typeof loader>();
-  const fetcher = useFetcher({ key: 'delete-domain' });
+  const deleteFetcher = useFetcher({ key: 'delete-domain' });
+  const refreshFetcher = useFetcher({ key: 'refresh-domain' });
   const navigate = useNavigate();
 
   const { confirm } = useConfirmationDialog();
@@ -93,7 +95,7 @@ export default function DomainsPage() {
       variant: 'destructive',
       showConfirmInput: true,
       onSubmit: async () => {
-        await fetcher.submit(
+        await deleteFetcher.submit(
           {
             id: domain?.name ?? '',
             projectId: projectId ?? '',
@@ -105,6 +107,19 @@ export default function DomainsPage() {
         );
       },
     });
+  };
+
+  const refreshDomain = async (domain: FormattedDomain) => {
+    await refreshFetcher.submit(
+      {
+        id: domain?.name ?? '',
+        projectId: projectId ?? '',
+      },
+      {
+        method: 'PATCH',
+        action: DOMAINS_REFRESH_PATH,
+      }
+    );
   };
 
   const columns: ColumnDef<FormattedDomain>[] = useMemo(
@@ -183,6 +198,12 @@ export default function DomainsPage() {
   const rowActions: DataTableRowActionsProps<FormattedDomain>[] = useMemo(
     () => [
       {
+        key: 'refresh',
+        label: 'Refresh',
+        variant: 'default',
+        action: (row) => refreshDomain(row),
+      },
+      {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
@@ -193,20 +214,31 @@ export default function DomainsPage() {
   );
 
   useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data.success) {
+    if (deleteFetcher.data && deleteFetcher.state === 'idle') {
+      if (deleteFetcher.data.success) {
         toast.success('Domain deleted successfully', {
           description: 'The domain has been deleted successfully',
         });
       } else {
-        toast.error(fetcher.data.error);
+        toast.error(deleteFetcher.data.error);
       }
     }
-  }, [fetcher.data, fetcher.state]);
+  }, [deleteFetcher.data, deleteFetcher.state]);
+
+  useEffect(() => {
+    if (refreshFetcher.data && refreshFetcher.state === 'idle') {
+      if (refreshFetcher.data.success) {
+        toast.success('Domain refreshed successfully', {
+          description: 'The domain has been refreshed successfully',
+        });
+      } else {
+        toast.error(refreshFetcher.data.error);
+      }
+    }
+  }, [refreshFetcher.data, refreshFetcher.state]);
 
   return (
     <DataTable
-      className="max-w-(--breakpoint-2xl)"
       pageSize={50}
       columns={columns}
       data={(data ?? []) as FormattedDomain[]}

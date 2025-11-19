@@ -62,12 +62,12 @@ export const createDomainsControl = (client: Client) => {
         throw e;
       }
     },
-    delete: async (projectId: string, uid: string) => {
+    delete: async (projectId: string, name: string) => {
       try {
         const response = await deleteNetworkingDatumapisComV1AlphaNamespacedDomain({
           client,
           baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-          path: { namespace: 'default', name: uid },
+          path: { namespace: 'default', name },
         });
 
         return response.data;
@@ -108,7 +108,7 @@ export const createDomainsControl = (client: Client) => {
     },
     update: async (
       projectId: string,
-      uid: string,
+      name: string,
       payload: DomainSchema,
       dryRun: boolean = false
     ) => {
@@ -116,7 +116,7 @@ export const createDomainsControl = (client: Client) => {
         const response = await patchNetworkingDatumapisComV1AlphaNamespacedDomain({
           client,
           baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-          path: { namespace: 'default', name: uid },
+          path: { namespace: 'default', name },
           query: {
             dryRun: dryRun ? 'All' : undefined,
             fieldManager: 'datum-cloud-portal',
@@ -140,17 +140,46 @@ export const createDomainsControl = (client: Client) => {
         throw e;
       }
     },
-    getStatus: async (projectId: string, uid: string) => {
+    getStatus: async (projectId: string, name: string) => {
       try {
         const response = await readNetworkingDatumapisComV1AlphaNamespacedDomainStatus({
           client,
           baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
-          path: { namespace: 'default', name: uid },
+          path: { namespace: 'default', name },
         });
 
         const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
 
         return transformControlPlaneStatus(domain.status);
+      } catch (e) {
+        throw e;
+      }
+    },
+    refreshRegistration: async (projectId: string, name: string, dryRun: boolean = false) => {
+      try {
+        const response = await patchNetworkingDatumapisComV1AlphaNamespacedDomain({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name },
+          query: {
+            dryRun: dryRun ? 'All' : undefined,
+            fieldManager: 'datum-cloud-portal',
+          },
+          headers: {
+            'Content-Type': 'application/merge-patch+json',
+          },
+          body: {
+            kind: 'Domain',
+            apiVersion: 'networking.datumapis.com/v1alpha',
+            spec: {
+              desiredRegistrationRefreshAttempt: new Date().toISOString(), // Set the desired time of the next registration refresh attempt to the current time
+            },
+          },
+        });
+
+        const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
+
+        return dryRun ? domain : transformDomain(domain);
       } catch (e) {
         throw e;
       }

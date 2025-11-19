@@ -1,51 +1,13 @@
-import { EmptyContentProps } from '@/components/empty-content/empty-content';
+import type { DnsRecordTableProps } from './types';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
-import { DataTableProps, DataTableRef } from '@/modules/datum-ui/components/data-table';
+import { DataTableRef } from '@/modules/datum-ui/components/data-table';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { formatTTL } from '@/utils/helpers/dns-record.helper';
 import { Badge, Tooltip } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
+import { TriangleAlertIcon } from 'lucide-react';
 import { forwardRef, useMemo } from 'react';
-
-// =============================================================================
-// Type Definitions
-// =============================================================================
-
-/**
- * Base props shared by both compact and full modes
- */
-interface DnsRecordTableBaseProps {
-  data: IFlattenedDnsRecord[];
-  className?: string;
-  tableContainerClassName?: string;
-  emptyContent?: EmptyContentProps;
-}
-
-/**
- * Compact mode props
- * Simple table without actions, pagination, or toolbar (for overview pages)
- */
-interface DnsRecordTableCompactProps extends DnsRecordTableBaseProps {
-  mode: 'compact';
-}
-
-/**
- * Full mode props
- * Inherits ALL DataTable props for complete functionality (for standalone pages)
- */
-interface DnsRecordTableFullProps
-  extends DnsRecordTableBaseProps,
-    Omit<
-      DataTableProps<IFlattenedDnsRecord, any>,
-      'data' | 'columns' | 'className' | 'emptyContent' | 'mode'
-    > {
-  mode: 'full';
-}
-
-/**
- * Discriminated union: mode determines available props
- */
-export type DnsRecordTableProps = DnsRecordTableCompactProps | DnsRecordTableFullProps;
 
 /**
  * Unified DNS record table component
@@ -65,9 +27,20 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
           size: 80,
           cell: ({ row }) => {
             return (
-              <Badge type="quaternary" theme="outline">
-                {row.original.type}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge type="quaternary" theme="outline">
+                  {row.original.type}
+                </Badge>
+
+                {row.original.status && row.original.status === ControlPlaneStatus.Pending && (
+                  <Tooltip
+                    side="bottom"
+                    message={row.original.statusMessage}
+                    contentClassName="max-w-64">
+                    <TriangleAlertIcon className="text-secondary/60 size-3.5" />
+                  </Tooltip>
+                )}
+              </div>
             );
           },
           meta: {

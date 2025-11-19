@@ -25,6 +25,9 @@ const ipv4Regex =
 const ipv6Regex = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
 const domainRegex =
   /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.?$/;
+// SVCB/HTTPS target regex: allows single dot (.) OR valid domain name (RFC 9460)
+const svcbTargetRegex =
+  /^(\.|(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.?)$/;
 
 // TTL options in seconds - null/undefined means "Auto"
 export const TTL_OPTIONS = [
@@ -217,8 +220,8 @@ export const httpsRecordDataSchema = z.object({
     .max(65535, 'Priority must be less than 65536.'),
   target: z
     .string({ error: 'Target is required.' })
-    .regex(domainRegex, { message: 'Invalid target domain.' }),
-  params: z.record(z.string(), z.string()).optional(),
+    .regex(svcbTargetRegex, { message: 'Invalid target (use . or valid domain name).' }),
+  params: z.string().optional(), // String format: key="value" key2="value2"
 });
 
 // SVCB Record - Service binding
@@ -229,8 +232,8 @@ export const svcbRecordDataSchema = z.object({
     .max(65535, 'Priority must be less than 65536.'),
   target: z
     .string({ error: 'Target is required.' })
-    .regex(domainRegex, { message: 'Invalid target domain.' }),
-  params: z.record(z.string(), z.string()).optional(),
+    .regex(svcbTargetRegex, { message: 'Invalid target (use . or valid domain name).' }),
+  params: z.string().optional(), // String format: key="value" key2="value2"
 });
 
 // Individual record schemas (combining base + type-specific)
