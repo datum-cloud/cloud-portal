@@ -351,7 +351,7 @@ function extractStatus(status: any): {
   if (!status?.conditions || status.conditions.length === 0) {
     return {
       status: ControlPlaneStatus.Pending,
-      message: 'Resource is being provisioned...',
+      message: 'Resource is being provisioned',
     };
   }
 
@@ -363,7 +363,11 @@ function extractStatus(status: any): {
 
   // Both conditions are True - resource is active (Success)
   if (isAccepted && isProgrammed) {
-    return { status: ControlPlaneStatus.Success, isProgrammed: true, programmedReason: programmed?.reason };
+    return {
+      status: ControlPlaneStatus.Success,
+      isProgrammed: true,
+      programmedReason: programmed?.reason,
+    };
   }
 
   // At least one condition is not True - resource is pending
@@ -380,7 +384,7 @@ function extractStatus(status: any): {
 
   return {
     status: ControlPlaneStatus.Pending,
-    message: messages.length > 0 ? messages.join('; ') : 'Resource is being provisioned...',
+    message: messages.length > 0 ? messages.join('; ') : 'Resource is being provisioned',
     isProgrammed,
     programmedReason: programmed?.reason,
   };

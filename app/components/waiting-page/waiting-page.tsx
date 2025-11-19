@@ -20,7 +20,7 @@ export const WaitingPage = ({ title, className }: { title: string; className?: s
             href="https://docs.datum.net/"
             target="_blank"
             rel="noreferrer"
-            className="text-accent ml-1 underline">
+            className="text-primary ml-1 underline">
             Documentation
           </a>
         </div>

@@ -8,29 +8,17 @@ export const ROUTE_PATH = '/api/organizations/:id' as const;
 
 export const loader = async ({ context, params, request }: LoaderFunctionArgs) => {
   try {
-    const { iamResourceClient, cache } = context as AppLoadContext;
+    const { iamResourceClient } = context as AppLoadContext;
     const { id } = params;
 
     if (!id) {
       throw new BadRequestError('Organization ID is required');
     }
 
-    const key = `organizations:${id}`;
-
-    const isCached = await cache.hasItem(key);
-    if (isCached) {
-      const org = await cache.getItem(key);
-
-      const { headers } = await setOrgSession(request, id);
-      return data({ success: true, data: org }, { headers, status: 200 });
-    }
-
     const orgAPI = createOrganizationsControl(iamResourceClient as Client);
     const org = await orgAPI.detail(id);
 
     const { headers } = await setOrgSession(request, id);
-
-    await cache.setItem(key, org);
 
     return data({ success: true, data: org }, { headers, status: 200 });
   } catch (error) {
@@ -41,7 +29,7 @@ export const loader = async ({ context, params, request }: LoaderFunctionArgs) =
 
 export const action = async ({ request, context, params }: ActionFunctionArgs) => {
   try {
-    const { controlPlaneClient, cache } = context as AppLoadContext;
+    const { controlPlaneClient } = context as AppLoadContext;
     const { id } = params;
 
     if (!id) {
@@ -56,9 +44,6 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
         const { redirectUri } = formData;
 
         await orgAPI.delete(id);
-        await cache.removeItem(`organizations:${id}`);
-
-        await cache.removeItem('organizations');
 
         if (redirectUri) {
           return redirectWithToast(redirectUri as string, {

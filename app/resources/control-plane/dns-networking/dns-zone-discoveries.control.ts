@@ -18,7 +18,7 @@ export const createDnsZoneDiscoveriesControl = (client: Client) => {
   const transformDnsZoneDiscovery = (
     dnsZoneDiscovery: ComMiloapisNetworkingDnsV1Alpha1DnsZoneDiscovery
   ): IDnsZoneDiscoveryControlResponse => {
-    const { metadata, spec } = dnsZoneDiscovery;
+    const { metadata } = dnsZoneDiscovery;
     return {
       name: metadata?.name ?? '',
       createdAt: metadata?.creationTimestamp ?? new Date(),

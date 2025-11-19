@@ -1,7 +1,6 @@
 import { ProjectDangerCard } from '@/features/project/settings/danger-card';
 import { ProjectGeneralCard } from '@/features/project/settings/general-card';
 import { createProjectsControl } from '@/resources/control-plane';
-import { IProjectControlResponse, ICachedProject } from '@/resources/interfaces/project.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
 import { paths } from '@/utils/config/paths.config';
 import { dataWithToast, redirectWithToast, validateCSRF } from '@/utils/cookies';
@@ -21,7 +20,7 @@ export const meta: MetaFunction = mergeMeta(() => {
 });
 
 export const action = async ({ request, context, params }: ActionFunctionArgs) => {
-  const { controlPlaneClient, cache } = context as AppLoadContext;
+  const { controlPlaneClient } = context as AppLoadContext;
   const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
   switch (request.method) {
@@ -49,26 +48,7 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
         const dryRunRes = await projectsControl.update(projectId, parsed.value, true);
 
         if (dryRunRes) {
-          const res = (await projectsControl.update(
-            projectId,
-            parsed.value,
-            false
-          )) as IProjectControlResponse;
-
-          const orgId = res.organizationId;
-          const projects = await cache.getItem(`projects:${orgId}`);
-          if (projects) {
-            const newProjects = (projects as IProjectControlResponse[]).map(
-              (project: IProjectControlResponse) => {
-                if (project.name === projectId) {
-                  return res;
-                }
-                return project;
-              }
-            );
-
-            await cache.setItem(`projects:${orgId}`, newProjects);
-          }
+          await projectsControl.update(projectId, parsed.value, false);
         }
 
         return dataWithToast(null, {
@@ -89,36 +69,8 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
       const { projectName, orgId: orgEntityId } = formData;
 
       try {
-        // 1. Mark project as "deleting" in cache to hide it from UI immediately
-        const cachedProjects = (await cache.getItem(`projects:${orgEntityId}`)) as
-          | ICachedProject[]
-          | null;
-
-        if (cachedProjects && Array.isArray(cachedProjects)) {
-          const updatedProjects = cachedProjects.map((project) =>
-            project.name === projectName
-              ? {
-                  ...project,
-                  _meta: {
-                    status: 'deleting' as const,
-                    deletedAt: new Date().toISOString(),
-                  },
-                }
-              : project
-          );
-          await cache.setItem(`projects:${orgEntityId}`, updatedProjects);
-        }
-
-        // 2. Await the actual deletion
         await projectsControl.delete(orgEntityId as string, projectName as string);
 
-        // 3. Remove project from cache after successful deletion
-        if (cachedProjects && Array.isArray(cachedProjects)) {
-          const filteredProjects = cachedProjects.filter((project) => project.name !== projectName);
-          await cache.setItem(`projects:${orgEntityId}`, filteredProjects);
-        }
-
-        // 4. Redirect with success message
         return redirectWithToast(
           getPathWithParams(paths.org.detail.projects.root, {
             orgId: orgEntityId as string,
@@ -130,22 +82,6 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
           }
         );
       } catch (error) {
-        // If deletion fails, revert the cache status
-        const cachedProjects = (await cache.getItem(`projects:${orgEntityId}`)) as
-          | ICachedProject[]
-          | null;
-
-        if (cachedProjects && Array.isArray(cachedProjects)) {
-          const revertedProjects = cachedProjects.map((project) => {
-            if (project.name === projectName && project._meta?.status === 'deleting') {
-              const { _meta, ...projectWithoutMeta } = project;
-              return projectWithoutMeta;
-            }
-            return project;
-          });
-          await cache.setItem(`projects:${orgEntityId}`, revertedProjects);
-        }
-
         return redirectWithToast(
           getPathWithParams(paths.org.detail.projects.root, {
             orgId: orgEntityId as string,

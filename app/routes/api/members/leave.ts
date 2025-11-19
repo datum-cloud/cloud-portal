@@ -24,13 +24,10 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
       throw new BadRequestError('Member ID is required');
     }
 
-    const { controlPlaneClient, cache } = context as AppLoadContext;
+    const { controlPlaneClient } = context as AppLoadContext;
     const membersControl = createMembersControl(controlPlaneClient as Client);
 
     await membersControl.delete(orgId as string, id as string);
-
-    // reset organization
-    await cache.removeItem('organizations');
 
     if (redirectUri) {
       return redirectWithToast(redirectUri as string, {

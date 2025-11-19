@@ -14,7 +14,7 @@ export const meta: MetaFunction = mergeMeta(() => {
 });
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
-  const { controlPlaneClient, cache } = context as AppLoadContext;
+  const { controlPlaneClient } = context as AppLoadContext;
   const orgAPI = createOrganizationsControl(controlPlaneClient as Client);
 
   const clonedRequest = request.clone();
@@ -37,9 +37,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     if (validateRes) {
       await orgAPI.create(payload);
     }
-
-    // Invalidate the organizations cache
-    await cache.removeItem('organizations');
 
     return redirect(
       getPathWithParams(paths.org.detail.root, {

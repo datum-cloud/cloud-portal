@@ -20,7 +20,7 @@ export const meta: MetaFunction = mergeMeta(() => {
 });
 
 export const action = withMiddleware(async ({ request, context }: ActionFunctionArgs) => {
-  const { controlPlaneClient, cache } = context as AppLoadContext;
+  const { controlPlaneClient } = context as AppLoadContext;
   const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
   const clonedRequest = request.clone();
@@ -45,9 +45,6 @@ export const action = withMiddleware(async ({ request, context }: ActionFunction
     if (dryRunRes) {
       await projectsControl.create(payload, false);
     }
-
-    // Invalidate the projects cache
-    await cache.removeItem(`projects:${payload.orgEntityId}`);
 
     return redirect(
       getPathWithParams(paths.project.detail.root, {

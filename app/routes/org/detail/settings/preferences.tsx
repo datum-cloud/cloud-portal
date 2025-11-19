@@ -23,7 +23,7 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export const action = async ({ request, params, context }: ActionFunctionArgs) => {
   const { orgId } = params;
-  const { controlPlaneClient, cache } = context as AppLoadContext;
+  const { controlPlaneClient } = context as AppLoadContext;
 
   try {
     if (!orgId) {
@@ -53,9 +53,6 @@ export const action = async ({ request, params, context }: ActionFunctionArgs) =
     if (validateRes) {
       await orgAPI.update(orgId, payload);
     }
-
-    await cache.removeItem('organizations');
-    await cache.removeItem(`organizations:${orgId}`);
 
     return dataWithToast(null, {
       title: 'Organization updated successfully',

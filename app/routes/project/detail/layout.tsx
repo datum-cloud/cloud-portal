@@ -3,7 +3,7 @@ import { useApp } from '@/providers/app.provider';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { IProjectControlResponse, ICachedProject } from '@/resources/interfaces/project.interface';
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
 import { paths } from '@/utils/config/paths.config';
 import { getOrgSession, redirectWithToast, setOrgSession } from '@/utils/cookies';
@@ -22,7 +22,7 @@ export interface ProjectLayoutLoaderData {
 }
 
 export const loader = async ({ params, context, request }: LoaderFunctionArgs) => {
-  const { controlPlaneClient, cache } = context as AppLoadContext;
+  const { controlPlaneClient } = context as AppLoadContext;
   const { projectId } = params;
 
   const projectsControl = createProjectsControl(controlPlaneClient as Client);
@@ -38,17 +38,6 @@ export const loader = async ({ params, context, request }: LoaderFunctionArgs) =
     }
 
     const orgId = project.organizationId;
-
-    // Check cache for deletion status
-    const cachedProjects = (await cache.getItem(`projects:${orgId}`)) as ICachedProject[] | null;
-    const cachedProject = cachedProjects?.find((p) => p.name === projectId);
-
-    // Block access if project is marked as deleting
-    if (cachedProject?._meta?.status === 'deleting') {
-      throw new BadRequestError(
-        'This project is being deleted and is no longer accessible. Please wait for the deletion to complete.'
-      );
-    }
 
     // get org detail
     const res = await fetch(
@@ -66,7 +55,6 @@ export const loader = async ({ params, context, request }: LoaderFunctionArgs) =
     }
 
     const orgData = await res.json();
-
     const orgSession = await setOrgSession(request, orgData.data.name);
 
     return data({ project, org: orgData.data }, { headers: orgSession.headers });

@@ -7,7 +7,7 @@ export const ROUTE_PATH = '/api/members' as const;
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   try {
-    const { controlPlaneClient, cache } = context as AppLoadContext;
+    const { controlPlaneClient } = context as AppLoadContext;
     const membersControl = createMembersControl(controlPlaneClient as Client);
 
     const url = new URL(request.url);
