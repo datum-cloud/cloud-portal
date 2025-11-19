@@ -95,9 +95,7 @@ export const GrafanaCompletedCard = ({
   const navigate = useNavigate();
 
   const handleDone = (): void => {
-    navigate(
-      getPathWithParams(paths.project.detail.httpProxy.detail.overview, { projectId, proxyId })
-    );
+    navigate(getPathWithParams(paths.project.detail.proxy.detail.overview, { projectId, proxyId }));
   };
 
   return (
@@ -127,7 +125,7 @@ export const GrafanaCompletedCard = ({
                 Integration Ready!
               </CardTitle>
               <CardDescription className="mx-auto max-w-xl text-lg leading-relaxed text-gray-600">
-                Your HTTPProxy is now connected to Grafana Cloud. Metrics will start flowing
+                Your Proxy is now connected to Grafana Cloud. Metrics will start flowing
                 automatically.
               </CardDescription>
             </motion.div>
@@ -151,7 +149,7 @@ export const GrafanaCompletedCard = ({
                   {
                     icon: Activity,
                     title: 'Active Streaming',
-                    description: 'HTTPProxy now sending metrics to Grafana Cloud',
+                    description: 'Proxy now sending metrics to Grafana Cloud',
                   },
                 ].map((feature, index) => (
                   <motion.div

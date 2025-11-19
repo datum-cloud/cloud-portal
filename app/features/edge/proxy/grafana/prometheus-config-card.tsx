@@ -1,7 +1,7 @@
 import { CodeEditor } from '@/components/code-editor/code-editor';
 import { Field } from '@/components/field/field';
-import { GuideStepItem } from '@/features/edge/httpproxy/grafana/step-item';
-import { DeployFormValues } from '@/features/edge/httpproxy/grafana/stepper.schema';
+import { GuideStepItem } from '@/features/edge/proxy/grafana/step-item';
+import { DeployFormValues } from '@/features/edge/proxy/grafana/stepper.schema';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { Alert, AlertDescription } from '@datum-ui/components';

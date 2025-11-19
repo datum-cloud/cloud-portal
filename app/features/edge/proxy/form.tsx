@@ -1,11 +1,11 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
 import { InputName } from '@/components/input-name/input-name';
-import { HostnamesForm } from '@/features/edge/httpproxy/form/hostnames-form';
+import { HostnamesForm } from '@/features/edge/proxy/form/hostnames-form';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
-import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
+import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/proxy';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
@@ -41,7 +41,7 @@ export const HttpProxyForm = ({
   const isHydrated = useHydrated();
   const isPending = useIsPending();
   const { confirm } = useConfirmationDialog();
-  const fetcher = useFetcher({ key: 'delete-httpproxy' });
+  const fetcher = useFetcher({ key: 'delete-proxy' });
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -51,7 +51,7 @@ export const HttpProxyForm = ({
 
   const deleteHttpProxy = async () => {
     await confirm({
-      title: 'Delete HTTPProxy',
+      title: 'Delete Proxy',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
@@ -67,7 +67,7 @@ export const HttpProxyForm = ({
           {
             id: defaultValue?.name ?? '',
             projectId: projectId ?? '',
-            redirectUri: getPathWithParams(paths.project.detail.httpProxy.root, {
+            redirectUri: getPathWithParams(paths.project.detail.proxy.root, {
               projectId,
             }),
           },
@@ -107,9 +107,9 @@ export const HttpProxyForm = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEdit ? 'Edit HTTPProxy' : 'Create a new HTTPProxy'}</CardTitle>
+        <CardTitle>{isEdit ? 'Edit Proxy' : 'Create a new Proxy'}</CardTitle>
         <CardDescription>
-          {`${isEdit ? 'Edit' : 'Create'} an HTTPProxy to expose your service on a custom domain — with automatic HTTPS, smart routing, and zero hassle. Just tell us your backend endpoint, and we'll handle the rest.`}
+          {`${isEdit ? 'Edit' : 'Create'} an Proxy to expose your service on a custom domain — with automatic HTTPS, smart routing, and zero hassle. Just tell us your backend endpoint, and we'll handle the rest.`}
         </CardDescription>
       </CardHeader>
       <FormProvider context={form.context}>
@@ -122,7 +122,7 @@ export const HttpProxyForm = ({
           <AuthenticityTokenInput />
           <CardContent className="space-y-10">
             <InputName
-              description="This unique resource name will be used to identify your HTTPProxy resource and cannot be changed."
+              description="This unique resource name will be used to identify your Proxy resource and cannot be changed."
               readOnly={isEdit}
               required={true}
               field={fields.name}

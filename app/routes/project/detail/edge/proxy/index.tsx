@@ -6,7 +6,7 @@ import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-tab
 import { createHttpProxiesControl } from '@/resources/control-plane';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
+import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/proxy';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -29,7 +29,7 @@ import {
 } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('HTTPProxy');
+  return metaObject('Proxy');
 });
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
@@ -48,14 +48,14 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 export default function HttpProxyPage() {
   const { projectId } = useParams();
   const data = useLoaderData<typeof loader>();
-  const fetcher = useFetcher({ key: 'delete-httpproxy' });
+  const fetcher = useFetcher({ key: 'delete-proxy' });
   const navigate = useNavigate();
 
   const { confirm } = useConfirmationDialog();
 
   const deleteHttpProxy = async (httpProxy: IHttpProxyControlResponse) => {
     await confirm({
-      title: 'Delete HTTPProxy',
+      title: 'Delete Proxy',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
@@ -135,7 +135,7 @@ export default function HttpProxyPage() {
         label: 'Edit',
         action: (row) => {
           navigate(
-            getPathWithParams(paths.project.detail.httpProxy.detail.edit, {
+            getPathWithParams(paths.project.detail.proxy.detail.edit, {
               projectId,
               proxyId: row.name,
             })
@@ -155,7 +155,7 @@ export default function HttpProxyPage() {
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
       if (fetcher.data.success) {
-        toast.success('HTTPProxy deleted successfully');
+        toast.success('Proxy deleted successfully');
       } else {
         toast.error(fetcher.data.error);
       }
@@ -168,19 +168,19 @@ export default function HttpProxyPage() {
       data={data ?? []}
       onRowClick={(row) => {
         navigate(
-          getPathWithParams(paths.project.detail.httpProxy.detail.overview, {
+          getPathWithParams(paths.project.detail.proxy.detail.overview, {
             projectId,
             proxyId: row.name,
           })
         );
       }}
       emptyContent={{
-        title: "Looks like you don't have any HTTPProxy added yet",
+        title: "Looks like you don't have any Proxy added yet",
         actions: [
           {
             type: 'link',
-            label: 'Add a HTTPProxy',
-            to: getPathWithParams(paths.project.detail.httpProxy.new, {
+            label: 'Add a Proxy',
+            to: getPathWithParams(paths.project.detail.proxy.new, {
               projectId,
             }),
             variant: 'default',
@@ -190,10 +190,10 @@ export default function HttpProxyPage() {
         ],
       }}
       tableTitle={{
-        title: 'HTTPProxy',
+        title: 'Proxy',
         actions: (
           <Link
-            to={getPathWithParams(paths.project.detail.httpProxy.new, {
+            to={getPathWithParams(paths.project.detail.proxy.new, {
               projectId,
             })}>
             <Button type="primary" theme="solid" size="small">

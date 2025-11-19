@@ -1,5 +1,5 @@
 import { DateTime } from '@/components/date-time';
-import { HttpProxyUpstreamTable } from '@/features/edge/httpproxy/metrics/upstream-table';
+import { HttpProxyUpstreamTable } from '@/features/edge/proxy/metrics/upstream-table';
 import {
   MetricChart,
   MetricChartTooltipContent,

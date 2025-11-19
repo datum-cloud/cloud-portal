@@ -92,7 +92,7 @@ export const HttpProxyHostnamesCard = ({
                         {val.valid ? 'HTTP/HTTPS' : 'Invalid'}
                       </Badge>
                     </Tooltip>
-                    <span className="text-sm font-medium">{val.hostname}</span>
+                    <span className="text-sm font-medium break-all">{val.hostname}</span>
                   </div>
                   <Button
                     type="quaternary"

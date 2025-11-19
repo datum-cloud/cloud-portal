@@ -4,7 +4,7 @@ import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { SubLayout } from '@/layouts';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/httpproxy';
+import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/proxy';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-ui/components';
@@ -14,17 +14,17 @@ import { useMemo } from 'react';
 import { Outlet, Link, useParams, useFetcher, useRouteLoaderData } from 'react-router';
 
 export default function HttpProxyDetailLayout() {
-  const httpProxy = useRouteLoaderData('httpproxy-detail');
+  const httpProxy = useRouteLoaderData('proxy-detail');
   const { projectId } = useParams();
 
-  const fetcher = useFetcher({ key: 'delete-httpproxy' });
+  const fetcher = useFetcher({ key: 'delete-proxy' });
   const { confirm } = useConfirmationDialog();
 
   const navItems: NavItem[] = useMemo(() => {
     return [
       {
         title: 'Overview',
-        href: getPathWithParams(paths.project.detail.httpProxy.detail.overview, {
+        href: getPathWithParams(paths.project.detail.proxy.detail.overview, {
           projectId,
           proxyId: httpProxy?.name ?? '',
         }),
@@ -32,7 +32,7 @@ export default function HttpProxyDetailLayout() {
       },
       {
         title: 'Metrics',
-        href: getPathWithParams(paths.project.detail.httpProxy.detail.metrics, {
+        href: getPathWithParams(paths.project.detail.proxy.detail.metrics, {
           projectId,
           proxyId: httpProxy?.name ?? '',
         }),
@@ -43,7 +43,7 @@ export default function HttpProxyDetailLayout() {
 
   const deleteHttpProxy = async () => {
     await confirm({
-      title: 'Delete HTTPProxy',
+      title: 'Delete Proxy',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
@@ -59,7 +59,7 @@ export default function HttpProxyDetailLayout() {
           {
             id: httpProxy?.name ?? '',
             projectId: projectId ?? '',
-            redirectUri: getPathWithParams(paths.project.detail.httpProxy.root, {
+            redirectUri: getPathWithParams(paths.project.detail.proxy.root, {
               projectId,
             }),
           },
@@ -78,7 +78,7 @@ export default function HttpProxyDetailLayout() {
       sidebarHeader={
         <div className="flex flex-col gap-3.5">
           <BackButton
-            to={getPathWithParams(paths.project.detail.httpProxy.root, {
+            to={getPathWithParams(paths.project.detail.proxy.root, {
               projectId,
             })}>
             Back to Proxy
@@ -90,7 +90,7 @@ export default function HttpProxyDetailLayout() {
       <div className="mb-6 flex items-start justify-between">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-semibold">
-            {(httpProxy as IHttpProxyControlResponse)?.name ?? 'HTTPProxy'}
+            {(httpProxy as IHttpProxyControlResponse)?.name ?? 'Proxy'}
           </h1>
           <div className="flex items-center gap-1">
             <ClockIcon className="text-muted-foreground h-4 w-4" />
@@ -105,7 +105,7 @@ export default function HttpProxyDetailLayout() {
           <Button type="quaternary" theme="outline" size="small">
             <Link
               className="flex items-center gap-2"
-              to={getPathWithParams(paths.project.detail.httpProxy.detail.edit, {
+              to={getPathWithParams(paths.project.detail.proxy.detail.edit, {
                 projectId,
                 proxyId: httpProxy?.name ?? '',
               })}>
