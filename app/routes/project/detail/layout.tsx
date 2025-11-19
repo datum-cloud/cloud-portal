@@ -16,6 +16,11 @@ import { AreaChartIcon, FolderDot, HomeIcon, NetworkIcon, SettingsIcon } from 'l
 import { useEffect, useMemo } from 'react';
 import { AppLoadContext, LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
 
+export interface ProjectLayoutLoaderData {
+  project: IProjectControlResponse;
+  org: IOrganization;
+}
+
 export const loader = async ({ params, context, request }: LoaderFunctionArgs) => {
   const { controlPlaneClient, cache } = context as AppLoadContext;
   const { projectId } = params;
@@ -82,8 +87,7 @@ export const loader = async ({ params, context, request }: LoaderFunctionArgs) =
 };
 
 export default function ProjectLayout() {
-  const { project, org }: { project: IProjectControlResponse; org: IOrganization } =
-    useLoaderData<typeof loader>();
+  const { project, org } = useLoaderData<ProjectLayoutLoaderData>();
 
   const { setOrganization, setProject } = useApp();
 

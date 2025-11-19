@@ -1,7 +1,7 @@
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { RbacProvider } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
-import { OrganizationType } from '@/resources/interfaces/organization.interface';
+import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
 import { paths } from '@/utils/config/paths.config';
 import { redirectWithToast } from '@/utils/cookies';
@@ -11,6 +11,10 @@ import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { FolderRoot, SettingsIcon, UsersIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
+
+export const handle = {
+  breadcrumb: (data: IOrganization) => <span>{data?.displayName}</span>,
+};
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   try {

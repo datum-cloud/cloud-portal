@@ -13,7 +13,7 @@ import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, useRouteLoaderData } from 'react-router';
 
 export const handle = {
-  breadcrumb: () => <span>Project Preferences</span>,
+  breadcrumb: () => <span>Preferences</span>,
 };
 
 export const meta: MetaFunction = mergeMeta(() => {

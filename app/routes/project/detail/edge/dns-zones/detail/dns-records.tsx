@@ -24,6 +24,10 @@ import {
   useRevalidator,
 } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>DNS Records</span>,
+};
+
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId, dnsZoneId } = params;
   const { controlPlaneClient } = context as AppLoadContext;
