@@ -218,7 +218,7 @@ export const httpsRecordDataSchema = z.object({
   target: z
     .string({ error: 'Target is required.' })
     .regex(domainRegex, { message: 'Invalid target domain.' }),
-  params: z.record(z.string(), z.string()).optional(),
+  params: z.string().optional(), // String format: key="value" key2="value2"
 });
 
 // SVCB Record - Service binding
@@ -230,7 +230,7 @@ export const svcbRecordDataSchema = z.object({
   target: z
     .string({ error: 'Target is required.' })
     .regex(domainRegex, { message: 'Invalid target domain.' }),
-  params: z.record(z.string(), z.string()).optional(),
+  params: z.string().optional(), // String format: key="value" key2="value2"
 });
 
 // Individual record schemas (combining base + type-specific)

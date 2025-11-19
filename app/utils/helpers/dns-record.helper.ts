@@ -53,6 +53,39 @@ export function formatTTL(ttlSeconds?: number): string {
   return parts.slice(0, 2).join(' ');
 }
 
+/**
+ * Parse SVCB/HTTPS params string into key-value object
+ * Example: 'alpn="h3,h2" ipv4hint="127.0.0.1"' -> { alpn: "h3,h2", ipv4hint: "127.0.0.1" }
+ */
+export function parseSvcbParams(input?: string): Record<string, string> {
+  if (!input?.trim()) return {};
+
+  const params: Record<string, string> = {};
+  // Match key="value" or key=value patterns
+  const regex = /(\w+)=(?:"([^"]*)"|(\S+))/g;
+  let match;
+
+  while ((match = regex.exec(input)) !== null) {
+    const key = match[1];
+    const value = match[2] || match[3];
+    params[key] = value;
+  }
+
+  return params;
+}
+
+/**
+ * Format SVCB/HTTPS params object to string representation
+ * Example: { alpn: "h3,h2", ipv4hint: "127.0.0.1" } -> 'alpn="h3,h2" ipv4hint="127.0.0.1"'
+ */
+export function formatSvcbParams(params?: Record<string, string>): string {
+  if (!params || Object.keys(params).length === 0) return '';
+
+  return Object.entries(params)
+    .map(([key, value]) => `${key}="${value}"`)
+    .join(' ');
+}
+
 // =============================================================================
 // Flattening Functions: Transform K8s schemas to UI-friendly format
 // =============================================================================
@@ -411,18 +444,26 @@ export function transformFormToRecord(
       break;
 
     case 'HTTPS':
-      // Form: { https: { priority, target, params } }
-      // K8s:  { https: { priority, target, params } }
+      // Form: { https: { priority, target, params: string } }
+      // K8s:  { https: { priority, target, params: Record<string, string> } }
       if (typeData.https) {
-        record.https = typeData.https;
+        record.https = {
+          priority: typeData.https.priority,
+          target: typeData.https.target,
+          params: parseSvcbParams(typeData.https.params),
+        };
       }
       break;
 
     case 'SVCB':
-      // Form: { svcb: { priority, target, params } }
-      // K8s:  { svcb: { priority, target, params } }
+      // Form: { svcb: { priority, target, params: string } }
+      // K8s:  { svcb: { priority, target, params: Record<string, string> } }
       if (typeData.svcb) {
-        record.svcb = typeData.svcb;
+        record.svcb = {
+          priority: typeData.svcb.priority,
+          target: typeData.svcb.target,
+          params: parseSvcbParams(typeData.svcb.params),
+        };
       }
       break;
 
@@ -436,6 +477,119 @@ export function transformFormToRecord(
   }
 
   return record;
+}
+
+/**
+ * Transform flattened DNS record to form default value
+ * Inverse of transformFormToRecord() - converts IFlattenedDnsRecord → CreateDnsRecordSchema
+ *
+ * Used when editing existing records in both inline and modal forms
+ */
+export function recordToFormDefaultValue(
+  record: IFlattenedDnsRecord
+): Omit<CreateDnsRecordSchema, 'dnsZoneRef'> {
+  const base = {
+    recordType: record.type as any,
+    name: record.name,
+    ttl: record.ttl,
+  };
+
+  // Use rawData (K8s record) to reconstruct form values
+  const rawData = record.rawData;
+
+  switch (record.type) {
+    // Simple types - extract from value string
+    case 'A':
+      return { ...base, a: { content: record.value || '' } } as any;
+    case 'AAAA':
+      return { ...base, aaaa: { content: record.value || '' } } as any;
+    case 'CNAME':
+      return { ...base, cname: { content: record.value || '' } } as any;
+    case 'TXT':
+      return { ...base, txt: { content: record.value || '' } } as any;
+    case 'NS':
+      return { ...base, ns: { content: record.value || '' } } as any;
+    case 'PTR':
+      return { ...base, ptr: { content: record.value || '' } } as any;
+
+    // Complex types - use rawData (K8s format)
+    case 'MX':
+      return {
+        ...base,
+        mx: rawData?.mx || { exchange: '', preference: 10 },
+      } as any;
+    case 'SRV':
+      return {
+        ...base,
+        srv: rawData?.srv || { target: '', port: 443, priority: 10, weight: 5 },
+      } as any;
+    case 'CAA':
+      return {
+        ...base,
+        caa: rawData?.caa || { flag: 0, tag: 'issue', value: '' },
+      } as any;
+    case 'TLSA':
+      return {
+        ...base,
+        tlsa: rawData?.tlsa || { usage: 3, selector: 1, matchingType: 1, certData: '' },
+      } as any;
+
+    // HTTPS/SVCB - convert params object → string
+    case 'HTTPS':
+      return {
+        ...base,
+        https: rawData?.https
+          ? {
+              priority: rawData.https.priority,
+              target: rawData.https.target,
+              params: formatSvcbParams(rawData.https.params),
+            }
+          : { priority: 1, target: '', params: '' },
+      } as any;
+    case 'SVCB':
+      return {
+        ...base,
+        svcb: rawData?.svcb
+          ? {
+              priority: rawData.svcb.priority,
+              target: rawData.svcb.target,
+              params: formatSvcbParams(rawData.svcb.params),
+            }
+          : { priority: 1, target: '', params: '' },
+      } as any;
+
+    // SOA - parse JSON value
+    case 'SOA':
+      try {
+        const soa = JSON.parse(record.value || '{}');
+        return {
+          ...base,
+          soa: {
+            mname: soa.mname || '',
+            rname: soa.rname || '',
+            refresh: soa.refresh || 3600,
+            retry: soa.retry || 600,
+            expire: soa.expire || 86400,
+            ttl: soa.ttl || 3600,
+          },
+        } as any;
+      } catch {
+        return {
+          ...base,
+          soa: {
+            mname: '',
+            rname: '',
+            refresh: 3600,
+            retry: 600,
+            expire: 86400,
+            ttl: 3600,
+          },
+        } as any;
+      }
+
+    default:
+      return base as any;
+  }
 }
 
 /**
