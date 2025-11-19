@@ -14,7 +14,7 @@ export function MinimalLayout({
       {/* Header at the top - outside sidebar context */}
       <Header />
 
-      <ContentWrapper containerClassName="overflow-auto p-9" contentClassName={className}>
+      <ContentWrapper containerClassName="overflow-auto p-9 gap-6" contentClassName={className}>
         {/* <Breadcrumb /> - Future implementation */}
         {children}
       </ContentWrapper>
