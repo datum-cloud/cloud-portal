@@ -32,7 +32,8 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
                   {row.original.type}
                 </Badge>
 
-                {row.original.status && row.original.status === ControlPlaneStatus.Pending && (
+                {row.original.isProgrammed === false &&
+                  row.original.programmedReason === 'InvalidDNSRecordSet' && (
                   <Tooltip
                     message={row.original.statusMessage}
                     contentClassName="max-w-64 bg-card text-destructive border"

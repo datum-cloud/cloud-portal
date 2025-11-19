@@ -79,6 +79,8 @@ export interface IFlattenedDnsRecord {
   // Status (only for managed recordsets, undefined for discovery)
   status?: ControlPlaneStatus;
   statusMessage?: string; // Pending message from K8s conditions (only when status is Pending)
+  isProgrammed?: boolean; // Programmed condition state (True/False)
+  programmedReason?: string; // Reason from Programmed condition (e.g., InvalidDNSRecordSet)
 
   // Raw data for editing/display
   rawData: any;
