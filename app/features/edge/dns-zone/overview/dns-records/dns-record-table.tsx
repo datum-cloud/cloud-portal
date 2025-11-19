@@ -34,10 +34,16 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
 
                 {row.original.status && row.original.status === ControlPlaneStatus.Pending && (
                   <Tooltip
-                    side="bottom"
                     message={row.original.statusMessage}
-                    contentClassName="max-w-64">
-                    <TriangleAlertIcon className="text-secondary/60 size-3.5" />
+                    contentClassName="max-w-64 bg-card text-destructive border"
+                    arrowClassName="fill-card drop-shadow-[0_1px_0_var(--border)]">
+                    <Badge
+                      type="danger"
+                      theme="solid"
+                      className="flex cursor-pointer items-center gap-1 rounded-lg px-2 py-0.5">
+                      <TriangleAlertIcon className="size-3" />
+                      <span className="text-xs font-semibold">Error</span>
+                    </Badge>
                   </Tooltip>
                 )}
               </div>
