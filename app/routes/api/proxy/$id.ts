@@ -3,7 +3,7 @@ import { BadRequestError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { AppLoadContext, LoaderFunctionArgs } from 'react-router';
 
-export const ROUTE_PATH = '/api/httpproxy/:id' as const;
+export const ROUTE_PATH = '/api/proxy/:id' as const;
 
 export const loader = async ({ params, context, request }: LoaderFunctionArgs) => {
   const { id } = params;

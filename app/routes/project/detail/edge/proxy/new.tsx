@@ -1,5 +1,5 @@
-import { HttpProxyForm } from '@/features/edge/httpproxy/form';
-import { HttpProxyPreview } from '@/features/edge/httpproxy/preview';
+import { HttpProxyForm } from '@/features/edge/proxy/form';
+import { HttpProxyPreview } from '@/features/edge/proxy/preview';
 import { createHttpProxiesControl } from '@/resources/control-plane';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
@@ -21,7 +21,7 @@ export const handle = {
 };
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('New HTTPProxy');
+  return metaObject('New Proxy');
 });
 
 export const action = async ({ request, params, context }: ActionFunctionArgs) => {

@@ -4,7 +4,7 @@ import { HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 
-export const ROUTE_PATH = '/api/httpproxy' as const;
+export const ROUTE_PATH = '/api/proxy' as const;
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext;
@@ -20,13 +20,13 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
 
         if (redirectUri) {
           return redirectWithToast(redirectUri as string, {
-            title: 'HTTPProxy deleted successfully',
-            description: 'The HTTPProxy has been deleted successfully',
+            title: 'Proxy deleted successfully',
+            description: 'The Proxy has been deleted successfully',
             type: 'success',
           });
         }
 
-        return data({ success: true, message: 'HTTPProxy deleted successfully' }, { status: 200 });
+        return data({ success: true, message: 'Proxy deleted successfully' }, { status: 200 });
       }
       default:
         throw new HttpError('Method not allowed', 405);

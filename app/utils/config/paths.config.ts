@@ -65,15 +65,15 @@ export const paths = {
           },
         },
       },
-      httpProxy: {
-        root: '/project/[projectId]/httpproxy',
-        new: '/project/[projectId]/httpproxy/new',
+      proxy: {
+        root: '/project/[projectId]/proxy',
+        new: '/project/[projectId]/proxy/new',
         detail: {
-          root: '/project/[projectId]/httpproxy/[proxyId]',
-          overview: '/project/[projectId]/httpproxy/[proxyId]/overview',
-          edit: '/project/[projectId]/httpproxy/[proxyId]/edit',
-          grafana: '/project/[projectId]/httpproxy/[proxyId]/grafana',
-          metrics: '/project/[projectId]/httpproxy/[proxyId]/metrics',
+          root: '/project/[projectId]/proxy/[proxyId]',
+          overview: '/project/[projectId]/proxy/[proxyId]/overview',
+          edit: '/project/[projectId]/proxy/[proxyId]/edit',
+          grafana: '/project/[projectId]/proxy/[proxyId]/grafana',
+          metrics: '/project/[projectId]/proxy/[proxyId]/metrics',
         },
       },
       domains: {

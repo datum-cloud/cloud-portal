@@ -115,27 +115,24 @@ export default [
             ),
           ]),
 
-          // HTTPProxy
-          route('httpproxy', 'routes/project/detail/edge/httpproxy/layout.tsx', [
-            index('routes/project/detail/edge/httpproxy/index.tsx'),
-            route('new', 'routes/project/detail/edge/httpproxy/new.tsx'),
+          // Proxies
+          route('proxy', 'routes/project/detail/edge/proxy/layout.tsx', [
+            index('routes/project/detail/edge/proxy/index.tsx'),
+            route('new', 'routes/project/detail/edge/proxy/new.tsx'),
 
             route(
               ':proxyId',
-              'routes/project/detail/edge/httpproxy/detail/layout.tsx',
-              { id: 'httpproxy-detail' },
+              'routes/project/detail/edge/proxy/detail/layout.tsx',
+              { id: 'proxy-detail' },
               [
-                index('routes/project/detail/edge/httpproxy/detail/index.tsx'),
-                route('grafana', 'routes/project/detail/edge/httpproxy/detail/grafana.tsx'),
-                route('edit', 'routes/project/detail/edge/httpproxy/detail/edit.tsx'),
+                index('routes/project/detail/edge/proxy/detail/index.tsx'),
+                route('grafana', 'routes/project/detail/edge/proxy/detail/grafana.tsx'),
+                route('edit', 'routes/project/detail/edge/proxy/detail/edit.tsx'),
 
-                route('', 'routes/project/detail/edge/httpproxy/detail/tabs/layout.tsx', [
+                route('', 'routes/project/detail/edge/proxy/detail/tabs/layout.tsx', [
                   // Tabs Layout
-                  route(
-                    'overview',
-                    'routes/project/detail/edge/httpproxy/detail/tabs/overview.tsx'
-                  ),
-                  route('metrics', 'routes/project/detail/edge/httpproxy/detail/tabs/metrics.tsx'),
+                  route('overview', 'routes/project/detail/edge/proxy/detail/tabs/overview.tsx'),
+                  route('metrics', 'routes/project/detail/edge/proxy/detail/tabs/metrics.tsx'),
                 ]),
               ]
             ),
@@ -242,8 +239,8 @@ export default [
       route('dns-zones', 'routes/api/dns-zones/index.ts'),
 
       // HTTPProxies
-      route('httpproxy', 'routes/api/httpproxy/index.ts'),
-      route('httpproxy/:id', 'routes/api/httpproxy/$id.ts'),
+      route('proxy', 'routes/api/proxy/index.ts'),
+      route('proxy/:id', 'routes/api/proxy/$id.ts'),
 
       // Export Policies
       route('export-policies', 'routes/api/export-policies/index.ts'),

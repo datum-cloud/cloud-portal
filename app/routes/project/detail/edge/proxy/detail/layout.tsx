@@ -11,7 +11,7 @@ export const handle = {
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
   const httpProxy = loaderData as IHttpProxyControlResponse;
-  return metaObject(httpProxy?.name || 'HTTPProxy');
+  return metaObject(httpProxy?.name || 'Proxy');
 });
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
@@ -27,7 +27,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const httpProxy = await httpProxiesControl.detail(projectId, proxyId);
 
   if (!httpProxy) {
-    throw new NotFoundError('HTTPProxy not found');
+    throw new NotFoundError('Proxy not found');
   }
 
   return data(httpProxy);

@@ -113,7 +113,7 @@ export default function ProjectLayout() {
       },
       {
         title: 'Runtime',
-        href: getPathWithParams(paths.project.detail.httpProxy.root, {
+        href: getPathWithParams(paths.project.detail.proxy.root, {
           projectId,
         }),
         type: 'collapsible',
@@ -129,7 +129,7 @@ export default function ProjectLayout() {
           },
           {
             title: 'Proxy',
-            href: getPathWithParams(paths.project.detail.httpProxy.root, {
+            href: getPathWithParams(paths.project.detail.proxy.root, {
               projectId,
             }),
             type: 'link',

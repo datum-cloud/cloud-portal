@@ -1,6 +1,6 @@
 import { Field } from '@/components/field/field';
-import { GuideStep, GuideStepItem } from '@/features/edge/httpproxy/grafana/step-item';
-import { InstanceFormValues } from '@/features/edge/httpproxy/grafana/stepper.schema';
+import { GuideStep, GuideStepItem } from '@/features/edge/proxy/grafana/step-item';
+import { InstanceFormValues } from '@/features/edge/proxy/grafana/stepper.schema';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';

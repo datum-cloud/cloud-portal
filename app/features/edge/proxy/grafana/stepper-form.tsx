@@ -1,12 +1,12 @@
-import { GrafanaAccessCard } from '@/features/edge/httpproxy/grafana/grafana-access-card';
-import { PrometheusConfigCard } from '@/features/edge/httpproxy/grafana/prometheus-config-card';
+import { GrafanaAccessCard } from '@/features/edge/proxy/grafana/grafana-access-card';
+import { PrometheusConfigCard } from '@/features/edge/proxy/grafana/prometheus-config-card';
 import {
   DeployFormValues,
   InstanceFormValues,
   PrometheusConfig,
   deploySchema,
   instanceSchema,
-} from '@/features/edge/httpproxy/grafana/stepper.schema';
+} from '@/features/edge/proxy/grafana/stepper.schema';
 import { useIsPending } from '@/hooks/useIsPending';
 import {
   ExportPolicyAuthenticationType,
@@ -220,7 +220,7 @@ export default function GrafanaStepperForm({
               onClick={() => {
                 stepper.isFirst ? navigate(-1) : stepper.prev();
               }}>
-              {stepper.isFirst ? 'Back to HTTPProxy' : 'Previous'}
+              {stepper.isFirst ? 'Back to Proxy' : 'Previous'}
             </Button>
             <Button loading={isPending} disabled={isPending}>
               {stepper.isLast ? 'Submit' : 'Next'}

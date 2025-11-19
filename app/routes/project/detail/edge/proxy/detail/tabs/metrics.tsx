@@ -1,6 +1,6 @@
-import { HttpProxyGlobalUpstreamLatency } from '@/features/edge/httpproxy/metrics/global-upstream-latency';
-import { HttpProxyUpstreamResponse } from '@/features/edge/httpproxy/metrics/upstream-response';
-import { HttpProxyUpstreamRps } from '@/features/edge/httpproxy/metrics/upstream-rps';
+import { HttpProxyGlobalUpstreamLatency } from '@/features/edge/proxy/metrics/global-upstream-latency';
+import { HttpProxyUpstreamResponse } from '@/features/edge/proxy/metrics/upstream-response';
+import { HttpProxyUpstreamRps } from '@/features/edge/proxy/metrics/upstream-rps';
 import { MetricsProvider, MetricsToolbar } from '@/modules/metrics';
 import { RegionsFilter } from '@/modules/metrics/components/filters/regions-filter';
 import { useParams } from 'react-router';

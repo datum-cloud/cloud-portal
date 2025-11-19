@@ -37,11 +37,10 @@ export default function ProjectDashboardPage() {
   const explorerList = useMemo(() => {
     return [
       {
-        title: 'Configure HTTPProxy',
-        description:
-          'Set up and manage HTTPProxy to control and secure your web traffic at the edge.',
+        title: 'Configure Proxy',
+        description: 'Set up and manage Proxy to control and secure your web traffic at the edge.',
         icon: <Waypoints />,
-        link: getPathWithParams(paths.project.detail.httpProxy.root, {
+        link: getPathWithParams(paths.project.detail.proxy.root, {
           projectId: project.name,
         }),
       },
@@ -162,20 +161,20 @@ export default function ProjectDashboardPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 }}>
-                  <SectionTitle>Get started with HTTPProxy configuration</SectionTitle>
+                  <SectionTitle>Get started with Proxy configuration</SectionTitle>
                   <SectionDescription>
-                    Set up and manage your first HTTPProxy resource to route traffic to your
-                    services with{' '}
+                    Set up and manage your first Proxy resource to route traffic to your services
+                    with{' '}
                     <strong className="font-bold">Datum&apos;s powerful proxy capabilities</strong>.
                   </SectionDescription>
 
                   <div className="flex gap-3">
                     <Button type="quaternary" theme="outline" size="small" className="h-7 w-fit">
                       <Link
-                        to={getPathWithParams(paths.project.detail.httpProxy.root, {
+                        to={getPathWithParams(paths.project.detail.proxy.root, {
                           projectId: project.name,
                         })}>
-                        Explore HTTPProxy
+                        Explore Proxy
                       </Link>
                     </Button>
                     <Button type="quaternary" theme="outline" size="small" className="h-7 w-fit">
@@ -184,7 +183,7 @@ export default function ProjectDashboardPage() {
                         target="_blank"
                         rel="noreferrer"
                         className="flex items-center gap-2">
-                        About HTTPProxy
+                        About Proxy
                         <ArrowRight className="size-4" />
                       </a>
                     </Button>

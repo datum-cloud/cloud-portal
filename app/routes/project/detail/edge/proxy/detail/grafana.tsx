@@ -1,6 +1,6 @@
 import { PageTitle } from '@/components/page-title/page-title';
-import { GrafanaCompletedCard } from '@/features/edge/httpproxy/grafana/completed-card';
-import GrafanaStepperForm from '@/features/edge/httpproxy/grafana/stepper-form';
+import { GrafanaCompletedCard } from '@/features/edge/proxy/grafana/completed-card';
+import GrafanaStepperForm from '@/features/edge/proxy/grafana/stepper-form';
 import { useState } from 'react';
 import { useParams } from 'react-router';
 

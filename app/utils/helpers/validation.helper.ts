@@ -64,7 +64,7 @@ export const createFqdnSchema = (fieldName = 'Domain') =>
 /**
  * Creates a reusable Zod schema for validating hostnames according to RFC 1123 definition.
  *
- * This schema is designed for HTTPProxy hostnames that match against the HTTP Host header.
+ * This schema is designed for Proxy hostnames that match against the HTTP Host header.
  * Valid hostnames are determined by RFC 1123 definition with one notable exception: IPs are not allowed.
  *
  * @param fieldName The name of the field to be used in validation messages. Defaults to 'Hostname'.

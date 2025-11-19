@@ -1,4 +1,4 @@
-import { HttpProxyForm } from '@/features/edge/httpproxy/form';
+import { HttpProxyForm } from '@/features/edge/proxy/form';
 import { createHttpProxiesControl } from '@/resources/control-plane';
 import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
 import { paths } from '@/utils/config/paths.config';
@@ -41,12 +41,12 @@ export const action = async ({ params, context, request }: ActionFunctionArgs) =
     }
 
     return redirectWithToast(
-      getPathWithParams(paths.project.detail.httpProxy.root, {
+      getPathWithParams(paths.project.detail.proxy.root, {
         projectId,
       }),
       {
-        title: 'HTTPProxy updated successfully',
-        description: 'You have successfully updated an HTTPProxy.',
+        title: 'Proxy updated successfully',
+        description: 'You have successfully updated an Proxy.',
         type: 'success',
       }
     );
@@ -60,7 +60,7 @@ export const action = async ({ params, context, request }: ActionFunctionArgs) =
 };
 
 export default function HttpProxyEditPage() {
-  const httpProxy = useRouteLoaderData('httpproxy-detail');
+  const httpProxy = useRouteLoaderData('proxy-detail');
 
   const { projectId } = useParams();
 

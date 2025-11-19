@@ -15,10 +15,10 @@ export const GrafanaTutorialCard = ({
 }) => {
   const navigate = useNavigate();
   return (
-    <Alert variant="info">
-      <SignalHighIcon className="text-info-500 size-4" />
-      <AlertTitle className="dark:text-info-300">Want to see some metrics in Grafana?</AlertTitle>
-      <AlertDescription className="dark:text-info-500">
+    <Alert variant="default" className="bg-card text-card-foreground">
+      <SignalHighIcon className="size-4" />
+      <AlertTitle>Want to see some metrics in Grafana?</AlertTitle>
+      <AlertDescription>
         <p>
           Learn how to export metrics from your Datum project to Grafana Cloud using Prometheus
           remote write. This tutorial walks you through generating credentials, configuring secrets,
@@ -30,7 +30,7 @@ export const GrafanaTutorialCard = ({
           size="small"
           onClick={() => {
             navigate(
-              getPathWithParams(paths.project.detail.httpProxy.detail.grafana, {
+              getPathWithParams(paths.project.detail.proxy.detail.grafana, {
                 projectId,
                 proxyId: proxy?.name,
               })

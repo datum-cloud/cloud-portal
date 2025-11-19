@@ -1,8 +1,8 @@
-import { GrafanaTutorialCard } from '@/features/edge/httpproxy/overview/grafana-tutorial-card';
-import { HttpProxyHostnamesCard } from '@/features/edge/httpproxy/overview/hostnames-card';
+import { GrafanaTutorialCard } from '@/features/edge/proxy/overview/grafana-tutorial-card';
+import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames-card';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { ROUTE_PATH as HTTP_PROXY_DETAIL_PATH } from '@/routes/api/httpproxy/$id';
+import { ROUTE_PATH as HTTP_PROXY_DETAIL_PATH } from '@/routes/api/proxy/$id';
 import { paths } from '@/utils/config/paths.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -119,8 +119,8 @@ export const HttpProxyPreview = ({ data, projectId }: HttpProxyPreviewProps) => 
               </motion.div>
               <motion.div variants={itemVariants}>
                 <CardDescription className="text-center">
-                  Your HTTPProxy is now configured to securely route external traffic to your
-                  backend service.
+                  Your Proxy is now configured to securely route external traffic to your backend
+                  service.
                 </CardDescription>
               </motion.div>
             </CardHeader>
@@ -159,7 +159,7 @@ export const HttpProxyPreview = ({ data, projectId }: HttpProxyPreviewProps) => 
               <Button
                 htmlType="button"
                 onClick={() =>
-                  navigate(getPathWithParams(paths.project.detail.httpProxy.root, { projectId }))
+                  navigate(getPathWithParams(paths.project.detail.proxy.root, { projectId }))
                 }>
                 Done
               </Button>
