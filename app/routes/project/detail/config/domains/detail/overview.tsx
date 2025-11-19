@@ -26,10 +26,6 @@ import {
   useSearchParams,
 } from 'react-router';
 
-export const handle = {
-  breadcrumb: () => <span>Overview</span>,
-};
-
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const cloudvalid = url.searchParams.get('cloudvalid') as string;

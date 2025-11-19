@@ -1,4 +1,5 @@
 import { ContentWrapperProps } from './content-wrapper.types';
+import { Breadcrumb } from '@datum-ui/components/header';
 import { cn } from '@shadcn/lib/utils';
 
 export function ContentWrapper({
@@ -8,6 +9,7 @@ export function ContentWrapper({
 }: ContentWrapperProps) {
   return (
     <div className={cn('mx-auto flex h-full w-full flex-col', containerClassName)}>
+      <Breadcrumb />
       <div className={cn('flex max-w-full flex-1 flex-col', contentClassName)}>{children}</div>
     </div>
   );

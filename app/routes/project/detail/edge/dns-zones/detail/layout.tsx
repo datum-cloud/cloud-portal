@@ -21,7 +21,9 @@ import {
 } from 'react-router';
 
 export const handle = {
-  breadcrumb: (data: IDnsZoneControlResponse) => <span>{data?.domainName}</span>,
+  breadcrumb: (data: { dnsZone: IDnsZoneControlResponse }) => (
+    <span>{data?.dnsZone?.domainName}</span>
+  ),
 };
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {

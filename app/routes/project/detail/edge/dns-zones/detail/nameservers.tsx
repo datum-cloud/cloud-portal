@@ -8,6 +8,10 @@ import { InfoIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { useFetcher, useParams, useRouteLoaderData } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>Nameservers</span>,
+};
+
 export default function DnsZoneNameserversPage() {
   const { dnsZone, domain } = useRouteLoaderData('dns-zone-detail');
 

@@ -13,10 +13,6 @@ import { ClockIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useFetcher, useParams, useRouteLoaderData } from 'react-router';
 
-export const handle = {
-  breadcrumb: () => <span>Edit</span>,
-};
-
 export default function EditSecret() {
   const secret = useRouteLoaderData('secret-detail');
   const { projectId } = useParams();

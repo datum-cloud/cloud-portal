@@ -9,6 +9,10 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-ui/components';
 import { useFetcher, useParams, useRouteLoaderData } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>Settings</span>,
+};
+
 export default function DnsZoneSettingsPage() {
   const { projectId } = useParams();
   const { dnsZone } = useRouteLoaderData('dns-zone-detail');

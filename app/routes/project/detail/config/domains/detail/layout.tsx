@@ -6,7 +6,7 @@ import { Client } from '@hey-api/client-axios';
 import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction, Outlet } from 'react-router';
 
 export const handle = {
-  breadcrumb: (data: IDomainControlResponse) => <span>{data?.name}</span>,
+  breadcrumb: (data: IDomainControlResponse) => <span>{data?.domainName}</span>,
 };
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {

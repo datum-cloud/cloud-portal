@@ -198,8 +198,11 @@ function DataTableInternal<TData, TValue>(
   // Show toolbar if:
   // 1. Not loading AND has data (even if filtered to 0 results)
   // 2. Has any toolbar content (title, filters, or toolbar config)
-  const showToolbar =
-    !isLoading && hasData && Boolean(filterComponent || filters || tableTitle || toolbar);
+  // const showToolbar =
+  //   !isLoading && hasData && Boolean(filterComponent || filters || tableTitle || toolbar);
+
+  // So currently we are showing the toolbar always
+  const showToolbar = true;
 
   return (
     <DataTableProvider

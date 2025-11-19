@@ -6,6 +6,12 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
 import { Outlet, useRouteLoaderData } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>Organization Settings</span>,
+  path: (data: IOrganization) =>
+    getPathWithParams(paths.org.detail.settings.preferences, { orgId: data?.name }),
+};
+
 export default function OrgSettingsLayout() {
   const org = useRouteLoaderData<IOrganization>('org-detail');
 

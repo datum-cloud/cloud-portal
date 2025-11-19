@@ -16,6 +16,11 @@ import { motion } from 'motion/react';
 import { useEffect, useMemo, useRef } from 'react';
 import { Link, useRevalidator, useRouteLoaderData } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>Home</span>,
+  hideBreadcrumb: true,
+};
+
 export default function ProjectDashboardPage() {
   const { project } = useRouteLoaderData('project-detail');
   const intervalId = useRef<NodeJS.Timeout | null>(null);

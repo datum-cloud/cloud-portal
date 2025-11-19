@@ -9,6 +9,10 @@ import {
   useRouteLoaderData,
 } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>Quotas</span>,
+};
+
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params;
 

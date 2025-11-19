@@ -16,10 +16,6 @@ import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link, MetaFunction, useFetcher, useParams, useRouteLoaderData } from 'react-router';
 
-export const handle = {
-  breadcrumb: () => <span>Overview</span>,
-};
-
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find((match) => match.id === 'export-policy-detail') as any;
 

@@ -95,97 +95,109 @@ export default [
           route('activity', 'routes/project/detail/settings/activity.tsx'),
         ]),
 
-        // Config
-        route('secrets', 'routes/project/detail/config/secrets/layout.tsx', [
-          index('routes/project/detail/config/secrets/index.tsx'),
-          route('new', 'routes/project/detail/config/secrets/new.tsx'),
-          route(
-            ':secretId',
-            'routes/project/detail/config/secrets/detail/layout.tsx',
-            { id: 'secret-detail' },
-            [
-              index('routes/project/detail/config/secrets/detail/index.tsx'),
-              route('edit', 'routes/project/detail/config/secrets/detail/edit.tsx'),
-            ]
-          ),
+        // Edge Group
+        layout('routes/project/detail/edge/layout.tsx', [
+          // DNS Zones
+          route('dns-zones', 'routes/project/detail/edge/dns-zones/layout.tsx', [
+            index('routes/project/detail/edge/dns-zones/index.tsx'),
+            route('new', 'routes/project/detail/edge/dns-zones/new.tsx'),
+            route(
+              ':dnsZoneId',
+              'routes/project/detail/edge/dns-zones/detail/layout.tsx',
+              { id: 'dns-zone-detail' },
+              [
+                index('routes/project/detail/edge/dns-zones/detail/index.tsx'),
+                route('overview', 'routes/project/detail/edge/dns-zones/detail/overview.tsx'),
+                route('dns-records', 'routes/project/detail/edge/dns-zones/detail/dns-records.tsx'),
+                route('nameservers', 'routes/project/detail/edge/dns-zones/detail/nameservers.tsx'),
+                route('settings', 'routes/project/detail/edge/dns-zones/detail/settings.tsx'),
+              ]
+            ),
+          ]),
+
+          // HTTPProxy
+          route('httpproxy', 'routes/project/detail/edge/httpproxy/layout.tsx', [
+            index('routes/project/detail/edge/httpproxy/index.tsx'),
+            route('new', 'routes/project/detail/edge/httpproxy/new.tsx'),
+
+            route(
+              ':proxyId',
+              'routes/project/detail/edge/httpproxy/detail/layout.tsx',
+              { id: 'httpproxy-detail' },
+              [
+                index('routes/project/detail/edge/httpproxy/detail/index.tsx'),
+                route('grafana', 'routes/project/detail/edge/httpproxy/detail/grafana.tsx'),
+                route('edit', 'routes/project/detail/edge/httpproxy/detail/edit.tsx'),
+
+                route('', 'routes/project/detail/edge/httpproxy/detail/tabs/layout.tsx', [
+                  // Tabs Layout
+                  route(
+                    'overview',
+                    'routes/project/detail/edge/httpproxy/detail/tabs/overview.tsx'
+                  ),
+                  route('metrics', 'routes/project/detail/edge/httpproxy/detail/tabs/metrics.tsx'),
+                ]),
+              ]
+            ),
+          ]),
         ]),
 
-        // HTTPProxy
-        route('httpproxy', 'routes/project/detail/edge/httpproxy/layout.tsx', [
-          index('routes/project/detail/edge/httpproxy/index.tsx'),
-          route('new', 'routes/project/detail/edge/httpproxy/new.tsx'),
+        // Workflows Group
+        layout('routes/project/detail/metrics/layout.tsx', [
+          // Export Policies
+          route('export-policies', 'routes/project/detail/metrics/export-policies/layout.tsx', [
+            index('routes/project/detail/metrics/export-policies/index.tsx'),
+            route('new', 'routes/project/detail/metrics/export-policies/new.tsx'),
 
-          route(
-            ':proxyId',
-            'routes/project/detail/edge/httpproxy/detail/layout.tsx',
-            { id: 'httpproxy-detail' },
-            [
-              index('routes/project/detail/edge/httpproxy/detail/index.tsx'),
-              route('grafana', 'routes/project/detail/edge/httpproxy/detail/grafana.tsx'),
-              route('edit', 'routes/project/detail/edge/httpproxy/detail/edit.tsx'),
-
-              route('', 'routes/project/detail/edge/httpproxy/detail/tabs/layout.tsx', [
-                // Tabs Layout
-                route('overview', 'routes/project/detail/edge/httpproxy/detail/tabs/overview.tsx'),
-                route('metrics', 'routes/project/detail/edge/httpproxy/detail/tabs/metrics.tsx'),
-              ]),
-            ]
-          ),
+            route(
+              ':exportPolicyId',
+              'routes/project/detail/metrics/export-policies/detail/layout.tsx',
+              { id: 'export-policy-detail' },
+              [
+                index('routes/project/detail/metrics/export-policies/detail/index.tsx'),
+                route(
+                  'overview',
+                  'routes/project/detail/metrics/export-policies/detail/overview.tsx'
+                ),
+                route('edit', 'routes/project/detail/metrics/export-policies/detail/edit.tsx'),
+              ]
+            ),
+          ]),
         ]),
 
-        // Domains
-        route('domains', 'routes/project/detail/config/domains/layout.tsx', [
-          index('routes/project/detail/config/domains/index.tsx'),
-          route('new', 'routes/project/detail/config/domains/new.tsx'),
+        // Assets Group
+        layout('routes/project/detail/config/layout.tsx', [
+          // Domains
+          route('domains', 'routes/project/detail/config/domains/layout.tsx', [
+            index('routes/project/detail/config/domains/index.tsx'),
+            route('new', 'routes/project/detail/config/domains/new.tsx'),
 
-          route(
-            ':domainId',
-            'routes/project/detail/config/domains/detail/layout.tsx',
-            { id: 'domain-detail' },
-            [
-              index('routes/project/detail/config/domains/detail/index.tsx'),
-              route('overview', 'routes/project/detail/config/domains/detail/overview.tsx'),
-              // route('edit', 'routes/project/detail/config/domains/detail/edit.tsx'),
-            ]
-          ),
-        ]),
+            route(
+              ':domainId',
+              'routes/project/detail/config/domains/detail/layout.tsx',
+              { id: 'domain-detail' },
+              [
+                index('routes/project/detail/config/domains/detail/index.tsx'),
+                route('overview', 'routes/project/detail/config/domains/detail/overview.tsx'),
+                // route('edit', 'routes/project/detail/config/domains/detail/edit.tsx'),
+              ]
+            ),
+          ]),
 
-        // DNS Zones
-        route('dns-zones', 'routes/project/detail/edge/dns-zones/layout.tsx', [
-          index('routes/project/detail/edge/dns-zones/index.tsx'),
-          route('new', 'routes/project/detail/edge/dns-zones/new.tsx'),
-          route(
-            ':dnsZoneId',
-            'routes/project/detail/edge/dns-zones/detail/layout.tsx',
-            { id: 'dns-zone-detail' },
-            [
-              index('routes/project/detail/edge/dns-zones/detail/index.tsx'),
-              route('overview', 'routes/project/detail/edge/dns-zones/detail/overview.tsx'),
-              route('dns-records', 'routes/project/detail/edge/dns-zones/detail/dns-records.tsx'),
-              route('nameservers', 'routes/project/detail/edge/dns-zones/detail/nameservers.tsx'),
-              route('settings', 'routes/project/detail/edge/dns-zones/detail/settings.tsx'),
-            ]
-          ),
-        ]),
-
-        // Export Policies
-        route('export-policies', 'routes/project/detail/metrics/export-policies/layout.tsx', [
-          index('routes/project/detail/metrics/export-policies/index.tsx'),
-          route('new', 'routes/project/detail/metrics/export-policies/new.tsx'),
-
-          route(
-            ':exportPolicyId',
-            'routes/project/detail/metrics/export-policies/detail/layout.tsx',
-            { id: 'export-policy-detail' },
-            [
-              index('routes/project/detail/metrics/export-policies/detail/index.tsx'),
-              route(
-                'overview',
-                'routes/project/detail/metrics/export-policies/detail/overview.tsx'
-              ),
-              route('edit', 'routes/project/detail/metrics/export-policies/detail/edit.tsx'),
-            ]
-          ),
+          // Config
+          route('secrets', 'routes/project/detail/config/secrets/layout.tsx', [
+            index('routes/project/detail/config/secrets/index.tsx'),
+            route('new', 'routes/project/detail/config/secrets/new.tsx'),
+            route(
+              ':secretId',
+              'routes/project/detail/config/secrets/detail/layout.tsx',
+              { id: 'secret-detail' },
+              [
+                index('routes/project/detail/config/secrets/detail/index.tsx'),
+                route('edit', 'routes/project/detail/config/secrets/detail/edit.tsx'),
+              ]
+            ),
+          ]),
         ]),
       ]),
     ]),
