@@ -1,6 +1,6 @@
 import { DnsHostChips } from '@/components/dns-host-chips';
 import { EmptyContentProps } from '@/components/empty-content/empty-content';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
+import { DataTable, DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { DataTableTitleProps } from '@/modules/datum-ui/components/data-table';
 import { IDnsNameserver, IDnsRegistration } from '@/resources/interfaces/dns.interface';
 import { Badge } from '@datum-ui/components';
@@ -13,6 +13,7 @@ export interface NameserverTableProps {
   tableTitle?: DataTableTitleProps;
   emptyContent?: EmptyContentProps;
   className?: string;
+  rowActions?: DataTableRowActionsProps<IDnsNameserver>[];
 }
 
 export const NameserverTable = ({
@@ -21,6 +22,7 @@ export const NameserverTable = ({
   tableTitle,
   emptyContent,
   className,
+  rowActions,
 }: NameserverTableProps) => {
   const columns: ColumnDef<IDnsNameserver>[] = useMemo(
     () => [
@@ -89,6 +91,7 @@ export const NameserverTable = ({
           title: 'No nameservers found',
         }
       }
+      rowActions={rowActions}
     />
   );
 };

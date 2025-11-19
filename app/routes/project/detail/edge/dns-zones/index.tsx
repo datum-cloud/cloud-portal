@@ -5,6 +5,7 @@ import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
+import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -46,7 +47,10 @@ export default function DnsZonesPage() {
   const data = useLoaderData<typeof loader>();
   const { projectId } = useParams();
   const fetcher = useFetcher({ key: 'delete-dns-zone' });
+  const refreshFetcher = useFetcher({ key: 'refresh-domain' });
   const navigate = useNavigate();
+
+  const { confirm } = useConfirmationDialog();
 
   // revalidate every 5 seconds to keep DNS zones list fresh
   const { start: startRevalidator, clear: clearRevalidator } = useRevalidateOnInterval({
@@ -54,7 +58,18 @@ export default function DnsZonesPage() {
     enabled: false,
   });
 
-  const { confirm } = useConfirmationDialog();
+  const refreshDomain = async (dnsZone: IDnsZoneControlResponse) => {
+    await refreshFetcher.submit(
+      {
+        id: dnsZone?.status?.domainRef?.name ?? '',
+        projectId: projectId ?? '',
+      },
+      {
+        method: 'PATCH',
+        action: DOMAINS_REFRESH_PATH,
+      }
+    );
+  };
 
   const deleteDnsZone = async (dnsZone: IDnsZoneControlResponse) => {
     await confirm({
@@ -175,6 +190,12 @@ export default function DnsZonesPage() {
           ),
       },
       {
+        key: 'refresh',
+        label: 'Refresh',
+        variant: 'default',
+        action: (row) => refreshDomain(row),
+      },
+      {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
@@ -206,6 +227,18 @@ export default function DnsZonesPage() {
       }
     }
   }, [fetcher.data, fetcher.state]);
+
+  useEffect(() => {
+    if (refreshFetcher.data && refreshFetcher.state === 'idle') {
+      if (refreshFetcher.data.success) {
+        toast.success('DNS Zone refreshed successfully', {
+          description: 'The DNS Zone has been refreshed successfully',
+        });
+      } else {
+        toast.error(refreshFetcher.data.error);
+      }
+    }
+  }, [refreshFetcher.data, refreshFetcher.state]);
 
   return (
     <DataTable
