@@ -138,7 +138,7 @@ function flattenManagedRecordSets(
 
   recordSets.forEach((recordSet) => {
     const records = recordSet.records || [];
-    const { status, message } = extractStatus(recordSet.status);
+    const { status, message, isProgrammed, programmedReason } = extractStatus(recordSet.status);
 
     const entries = flattenRecordEntries(recordSet.recordType || '', records, {
       recordSetId: recordSet.uid || '',
@@ -147,6 +147,8 @@ function flattenManagedRecordSets(
       dnsZoneId: recordSet.dnsZoneId || '',
       status: status,
       statusMessage: message,
+      isProgrammed,
+      programmedReason,
     });
 
     flattened.push(...entries);
@@ -204,6 +206,8 @@ function flattenRecordEntries(
     dnsZoneId: string;
     status?: ControlPlaneStatus;
     statusMessage?: string;
+    isProgrammed?: boolean;
+    programmedReason?: string;
   }
 ): IFlattenedDnsRecord[] {
   const flattened: IFlattenedDnsRecord[] = [];
@@ -341,6 +345,8 @@ function extractTTL(record: any): number | undefined {
 function extractStatus(status: any): {
   status: ControlPlaneStatus;
   message?: string;
+  isProgrammed?: boolean;
+  programmedReason?: string;
 } {
   if (!status?.conditions || status.conditions.length === 0) {
     return {
@@ -357,7 +363,7 @@ function extractStatus(status: any): {
 
   // Both conditions are True - resource is active (Success)
   if (isAccepted && isProgrammed) {
-    return { status: ControlPlaneStatus.Success };
+    return { status: ControlPlaneStatus.Success, isProgrammed: true, programmedReason: programmed?.reason };
   }
 
   // At least one condition is not True - resource is pending
@@ -375,6 +381,8 @@ function extractStatus(status: any): {
   return {
     status: ControlPlaneStatus.Pending,
     message: messages.length > 0 ? messages.join('; ') : 'Resource is being provisioned...',
+    isProgrammed,
+    programmedReason: programmed?.reason,
   };
 }
 
