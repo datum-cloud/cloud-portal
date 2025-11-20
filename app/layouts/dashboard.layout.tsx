@@ -1,8 +1,8 @@
 import { ContentWrapper } from '@/components/content-wrapper';
+import { Header } from '@/components/header/header';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { SidebarInset, SidebarProvider, useSidebar } from '@datum-ui/components';
-import { Header } from '@datum-ui/components/header/header';
 import { AppSidebar, NavItem } from '@datum-ui/components/sidebar';
 import { cn } from '@shadcn/lib/utils';
 import React, { useLayoutEffect, useState } from 'react';

@@ -1,5 +1,5 @@
 import { ContentWrapper } from '@/components/content-wrapper';
-import { Header } from '@datum-ui/components/header/header';
+import { Header } from '@/components/header/header';
 import React from 'react';
 
 export function MinimalLayout({

@@ -2,12 +2,12 @@ import { OrganizationSwitcher } from './org-switcher';
 import { ProjectSwitcher } from './project-switcher';
 import { UserDropdown } from './user-dropdown';
 import { LogoIcon } from '@/components/logo/logo-icon';
+import { NotificationDropdown } from '@/components/notification';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
-import { NotificationDropdown } from '@datum-ui/components/notification';
 import { BookOpen, SlashIcon } from 'lucide-react';
 import { Link } from 'react-router';
 
