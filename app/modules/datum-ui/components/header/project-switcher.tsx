@@ -77,7 +77,9 @@ export const ProjectSwitcher = ({
         })}
         className="flex w-fit items-center justify-between text-left">
         <FolderRoot size={14} className="text-secondary/60" />
-        <span className="ml-2.5 text-sm">{currentProject?.description}</span>
+        <span className="ml-2.5 max-w-[100px] truncate text-sm sm:max-w-36 md:max-w-none">
+          {currentProject?.description}
+        </span>
       </Link>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>

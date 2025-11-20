@@ -17,8 +17,12 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: IOrganization
         to={getPathWithParams(paths.org.detail.projects.root, { orgId: currentOrg?.name })}
         className="flex w-fit items-center justify-between text-left">
         <Building size={14} className="text-secondary/60" />
-        <span className="ml-2.5 text-sm">{currentOrg?.displayName ?? currentOrg?.name}</span>
-        {currentOrg?.type === OrganizationType.Personal && <PersonalBadge className="ml-3" />}
+        <span className="ml-2.5 max-w-[120px] truncate text-sm sm:max-w-36 md:max-w-none">
+          {currentOrg?.displayName ?? currentOrg?.name}
+        </span>
+        {currentOrg?.type === OrganizationType.Personal && (
+          <PersonalBadge className="ml-3 hidden sm:block" />
+        )}
       </Link>
       <SelectOrganization
         triggerClassName="h-7 w-fit"

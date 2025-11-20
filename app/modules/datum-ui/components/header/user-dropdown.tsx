@@ -31,10 +31,10 @@ export const UserDropdown = ({ className }: { className?: string }) => {
           theme="solid"
           size="small"
           className={cn(
-            'h-8 w-8 cursor-pointer rounded-xl border-none p-0 focus-visible:ring-0 focus-visible:ring-offset-0',
+            'size-[30px] cursor-pointer rounded-xl border-none p-0 focus-visible:ring-0 focus-visible:ring-offset-0',
             className
           )}>
-          <Avatar className="size-8 rounded-xl">
+          <Avatar className="size-full rounded-xl">
             {/* <AvatarImage src={user?.avatarRemoteURL} alt={fullName} /> */}
             <AvatarFallback className="rounded-xl bg-transparent font-semibold">
               {getInitials(user?.fullName || '')}
