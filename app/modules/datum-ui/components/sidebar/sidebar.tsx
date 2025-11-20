@@ -30,6 +30,7 @@ type SidebarContext = {
   handleMouseEnter: () => void;
   handleMouseLeave: () => void;
   forceClose: () => void;
+  closeForNavigation: () => void;
   hasSubLayout: boolean;
   setHasSubLayout: (value: boolean) => void;
   expandBehavior: 'push' | 'overlay';
@@ -71,6 +72,7 @@ const SidebarProvider = ({
   const [isHovered, setIsHovered] = React.useState(false);
   const [hasSubLayout, setHasSubLayout] = React.useState(false);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const hoverLockRef = React.useRef(false);
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -94,6 +96,8 @@ const SidebarProvider = ({
   // Handlers for the hover functionality.
   const handleMouseEnter = React.useCallback(() => {
     if (!expandOnHover) return;
+    // Prevent hover expansion if we just closed on navigation
+    if (hoverLockRef.current) return;
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
@@ -143,6 +147,28 @@ const SidebarProvider = ({
     }
   }, [isMobile, setOpen, setOpenMobile]);
 
+  // Close sidebar on navigation with hover lock to prevent immediate re-expansion
+  // The hover lock prevents the sidebar from immediately re-expanding when clicking
+  // menu items while the mouse is still hovering over the sidebar
+  const closeForNavigation = React.useCallback(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+      return;
+    }
+
+    setOpen(false);
+    setIsHovered(false);
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    // Lock hover expansion for a short time to prevent immediate re-expansion
+    // when clicking menu items while mouse is still over the sidebar
+    hoverLockRef.current = true;
+    setTimeout(() => {
+      hoverLockRef.current = false;
+    }, 300);
+  }, [isMobile, setOpen, setOpenMobile]);
+
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -175,6 +201,7 @@ const SidebarProvider = ({
       handleMouseEnter,
       handleMouseLeave,
       forceClose,
+      closeForNavigation,
       hasSubLayout,
       setHasSubLayout,
       expandBehavior,
@@ -191,6 +218,7 @@ const SidebarProvider = ({
       handleMouseEnter,
       handleMouseLeave,
       forceClose,
+      closeForNavigation,
       hasSubLayout,
       setHasSubLayout,
       expandBehavior,
@@ -759,7 +787,7 @@ const SidebarMenuSub = ({ className, ...props }: React.ComponentProps<'ul'>) => 
       data-slot="sidebar-menu-sub"
       data-sidebar="menu-sub"
       className={cn(
-        'border-sidebar-border mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l px-2.5 py-0.5',
+        'border-sidebar-border mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 px-2.5 py-0.5',
         'group-data-[collapsible=icon]:hidden',
         className
       )}

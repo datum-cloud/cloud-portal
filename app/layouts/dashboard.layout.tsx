@@ -59,6 +59,7 @@ export function DashboardLayout({
   containerClassName,
   expandBehavior = 'push',
   showBackdrop = false,
+  closeOnNavigation = false,
 }: {
   children: React.ReactNode;
   navItems: NavItem[];
@@ -70,6 +71,7 @@ export function DashboardLayout({
   containerClassName?: string;
   expandBehavior?: 'push' | 'overlay';
   showBackdrop?: boolean;
+  closeOnNavigation?: boolean;
 }) {
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden">
@@ -95,6 +97,7 @@ export function DashboardLayout({
           navItems={navItems}
           collapsible={sidebarCollapsible}
           className="top-[54px]"
+          closeOnNavigation={closeOnNavigation}
         />
         <SidebarInset>
           <DashboardContent

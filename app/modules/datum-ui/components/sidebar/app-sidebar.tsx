@@ -12,10 +12,12 @@ import { useSearchParams } from 'react-router';
 export function AppSidebar({
   navItems,
   title,
+  closeOnNavigation,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   navItems: NavItem[];
   title?: string | React.ReactNode;
+  closeOnNavigation?: boolean;
 }) {
   const { setOpen } = useSidebar();
   const [searchParams] = useSearchParams();
@@ -33,7 +35,9 @@ export function AppSidebar({
       <SidebarContent className="gap-0">
         {title && <SidebarHeader className="px-4 pt-4 pb-0">{title}</SidebarHeader>}
 
-        {navItems.length > 0 && <NavMain className="py-3.5" items={navItems} />}
+        {navItems.length > 0 && (
+          <NavMain className="py-3.5" items={navItems} closeOnNavigation={closeOnNavigation} />
+        )}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

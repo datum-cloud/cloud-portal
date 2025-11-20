@@ -206,8 +206,9 @@ export default function ProjectLayout() {
       sidebarCollapsible="icon"
       currentProject={project}
       currentOrg={org}
-      expandBehavior="overlay"
-      showBackdrop>
+      expandBehavior="push"
+      showBackdrop={false}
+      closeOnNavigation={true}>
       <Outlet />
     </DashboardLayout>
   );
