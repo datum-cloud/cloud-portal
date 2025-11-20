@@ -44,10 +44,15 @@ export const createProjectsControl = (client: Client) => {
           baseURL: `${baseUrl}/organizations/${orgEntityId}/control-plane`,
         });
         const projectList = response?.data as ComMiloapisResourcemanagerV1Alpha1ProjectList;
+
         return (
-          projectList?.items?.map((project: ComMiloapisResourcemanagerV1Alpha1Project) =>
-            transform(project)
-          ) ?? []
+          projectList?.items
+            ?.filter(
+              // Filter out projects that are being deleted
+              (project: ComMiloapisResourcemanagerV1Alpha1Project) =>
+                typeof project.metadata?.deletionTimestamp === 'undefined'
+            )
+            .map((project: ComMiloapisResourcemanagerV1Alpha1Project) => transform(project)) ?? []
         );
       } catch (e) {
         throw e;

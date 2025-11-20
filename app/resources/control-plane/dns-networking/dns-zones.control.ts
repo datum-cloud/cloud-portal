@@ -44,7 +44,15 @@ export const createDnsZonesControl = (client: Client) => {
 
         const dnsZones = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsZoneList;
 
-        return dnsZones.items.map(transformDnsZone);
+        return (
+          dnsZones.items
+            // Filter out DNS zones that are being deleted
+            ?.filter(
+              (dnsZone: ComMiloapisNetworkingDnsV1Alpha1DnsZone) =>
+                typeof dnsZone.metadata?.deletionTimestamp === 'undefined'
+            )
+            .map((dnsZone: ComMiloapisNetworkingDnsV1Alpha1DnsZone) => transformDnsZone(dnsZone))
+        );
       } catch (e) {
         throw e;
       }

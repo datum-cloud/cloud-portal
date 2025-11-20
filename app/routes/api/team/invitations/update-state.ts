@@ -34,7 +34,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
       throw new BadRequestError('State must be either "Accepted" or "Declined"');
     }
 
-    const { controlPlaneClient, cache } = context as AppLoadContext;
+    const { controlPlaneClient } = context as AppLoadContext;
     const invitationsControl = createInvitationsControl(controlPlaneClient as Client);
 
     // Get current invitation to validate
@@ -64,9 +64,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
       invitationId as string,
       state as 'Accepted' | 'Declined'
     );
-
-    // Invalidate the organizations cache
-    await cache.removeItem('organizations');
 
     if (redirectUri) {
       return redirectWithToast(redirectUri as string, {

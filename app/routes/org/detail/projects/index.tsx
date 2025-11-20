@@ -1,6 +1,5 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
-import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ICachedProject } from '@/resources/interfaces/project.interface';
@@ -29,43 +28,15 @@ import {
 export const loader = async ({ params, request, context }: LoaderFunctionArgs) => {
   try {
     const { orgId } = params;
-    const { controlPlaneClient, cache } = context as AppLoadContext;
+    const { controlPlaneClient } = context as AppLoadContext;
     const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
     if (!orgId) {
       throw new BadRequestError('Organization ID is required');
     }
 
-    const key = `projects:${orgId}`;
-    const cachedProjects = (await cache.getItem(key)) as ICachedProject[] | null;
-
     // Fetch fresh data from API
-    const freshProjects = await projectsControl.list(orgId);
-
-    // Merge cached metadata with fresh data
-    let mergedProjects: ICachedProject[] = freshProjects;
-
-    if (cachedProjects && Array.isArray(cachedProjects)) {
-      mergedProjects = freshProjects.map((freshProject) => {
-        const cachedProject = cachedProjects.find((cp) => cp.name === freshProject.name);
-
-        // If cached project has "deleting" status and still exists in API, keep the metadata
-        if (cachedProject?._meta?.status === 'deleting') {
-          return { ...freshProject, _meta: cachedProject._meta };
-        }
-
-        return freshProject;
-      });
-
-      // Update cache with merged data
-      await cache.setItem(key, mergedProjects);
-    } else {
-      // No cache exists, save fresh data
-      await cache.setItem(key, mergedProjects);
-    }
-
-    // Check if any projects are in "deleting" state for polling
-    const hasDeleting = mergedProjects.some((p) => p._meta?.status === 'deleting');
+    const projects = await projectsControl.list(orgId);
 
     // Get alert state from server-side cookie
     const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
@@ -73,16 +44,13 @@ export const loader = async ({ params, request, context }: LoaderFunctionArgs) =
       'projects_understanding'
     );
 
-    return data(
-      { projects: mergedProjects, shouldPoll: hasDeleting, alertClosed },
-      { headers: alertHeaders }
-    );
+    return data({ projects, alertClosed }, { headers: alertHeaders });
   } catch {
     const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
       request,
       'projects_understanding'
     );
-    return data({ projects: [], shouldPoll: false, alertClosed }, { headers: alertHeaders });
+    return data({ projects: [], alertClosed }, { headers: alertHeaders });
   }
 };
 
@@ -92,13 +60,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function OrgProjectsPage() {
-  // revalidate every 10 seconds to keep project list fresh
-  const { start: startRevalidator, clear: clearRevalidator } = useRevalidateOnInterval({
-    interval: 10000,
-  });
-
   const { orgId } = useParams();
-  const { projects, shouldPoll, alertClosed } = useLoaderData<typeof loader>();
+  const { projects, alertClosed } = useLoaderData<typeof loader>();
 
   const navigate = useNavigate();
   const fetcher = useFetcher();
@@ -111,11 +74,6 @@ export default function OrgProjectsPage() {
       revalidator.revalidate();
     }
   }, [fetcher.data, revalidator]);
-
-  const visibleProjects = useMemo(
-    () => projects.filter((project) => project._meta?.status !== 'deleting'),
-    [projects]
-  );
 
   const columns: ColumnDef<ICachedProject>[] = useMemo(
     () => [
@@ -152,14 +110,6 @@ export default function OrgProjectsPage() {
     []
   );
 
-  useEffect(() => {
-    if (shouldPoll) {
-      startRevalidator();
-    } else {
-      clearRevalidator();
-    }
-  }, [shouldPoll, startRevalidator, clearRevalidator]);
-
   const handleAlertClose = () => {
     // Save the close state via server-side cookie
     fetcher.submit({}, { method: 'POST' });
@@ -172,7 +122,7 @@ export default function OrgProjectsPage() {
         mode="card"
         hidePagination
         columns={columns}
-        data={visibleProjects ?? []}
+        data={projects ?? []}
         onRowClick={(row) => {
           if (row.name) {
             return navigate(getPathWithParams(paths.project.detail.root, { projectId: row.name }));

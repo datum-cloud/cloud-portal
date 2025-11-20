@@ -34,7 +34,7 @@ const ExplorerCard = ({
     <Card
       className={cn(
         'flex h-full flex-col gap-3',
-        link && 'hover:bg-accent cursor-pointer transition-all'
+        link && 'hover:border-primary group cursor-pointer transition-all'
       )}
       onClick={() => {
         if (link) {
@@ -42,7 +42,7 @@ const ExplorerCard = ({
         }
       }}>
       <CardHeader className="pb-0!">
-        <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+        <CardTitle className="group-hover:text-primary flex items-center gap-2 text-lg font-semibold">
           {icon}
           {title}
         </CardTitle>

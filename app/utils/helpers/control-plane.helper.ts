@@ -19,6 +19,6 @@ export function transformControlPlaneStatus(status: any): IControlPlaneStatus {
 
   return {
     status: ControlPlaneStatus.Pending,
-    message: 'Resource is being provisioned...',
+    message: 'Resource is being provisioned',
   };
 }

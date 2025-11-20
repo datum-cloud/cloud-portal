@@ -1,7 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { DnsHostChips } from '@/components/dns-host-chips';
-import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
@@ -39,24 +38,20 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     throw new BadRequestError('Project ID is required');
   }
 
-  const httpProxies = await dnsZonesControl.list(projectId);
-  return httpProxies;
+  // Fetch fresh data from API
+  const zones = await dnsZonesControl.list(projectId);
+
+  return { zones };
 };
 
 export default function DnsZonesPage() {
-  const data = useLoaderData<typeof loader>();
+  const { zones } = useLoaderData<typeof loader>();
   const { projectId } = useParams();
   const fetcher = useFetcher({ key: 'delete-dns-zone' });
   const refreshFetcher = useFetcher({ key: 'refresh-domain' });
   const navigate = useNavigate();
 
   const { confirm } = useConfirmationDialog();
-
-  // revalidate every 5 seconds to keep DNS zones list fresh
-  const { start: startRevalidator, clear: clearRevalidator } = useRevalidateOnInterval({
-    interval: 5000,
-    enabled: false,
-  });
 
   const refreshDomain = async (dnsZone: IDnsZoneControlResponse) => {
     await refreshFetcher.submit(
@@ -206,17 +201,6 @@ export default function DnsZonesPage() {
   );
 
   useEffect(() => {
-    // Start revalidator if any DNS zone doesn't have nameservers data yet
-    const hasIncompleteData = data?.some((zone) => !zone.status?.domainRef?.status?.nameservers);
-
-    if (hasIncompleteData) {
-      startRevalidator();
-    } else {
-      clearRevalidator();
-    }
-  }, [data]);
-
-  useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
       if (fetcher.data.success) {
         toast.success('DNS Zone deleted successfully', {
@@ -243,7 +227,7 @@ export default function DnsZonesPage() {
   return (
     <DataTable
       columns={columns}
-      data={data ?? []}
+      data={zones}
       rowActions={rowActions}
       onRowClick={(row) => {
         navigate(
