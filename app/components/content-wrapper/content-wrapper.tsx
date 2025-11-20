@@ -1,5 +1,5 @@
 import { ContentWrapperProps } from './content-wrapper.types';
-import { Breadcrumb } from '@datum-ui/components/header';
+import { Breadcrumb } from '@/components/header';
 import { cn } from '@shadcn/lib/utils';
 
 export function ContentWrapper({

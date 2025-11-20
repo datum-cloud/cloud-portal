@@ -2,12 +2,12 @@ import { OrganizationSwitcher } from './org-switcher';
 import { ProjectSwitcher } from './project-switcher';
 import { UserDropdown } from './user-dropdown';
 import { LogoIcon } from '@/components/logo/logo-icon';
+import { NotificationDropdown } from '@/components/notification';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
-import { NotificationDropdown } from '@datum-ui/components/notification';
 import { BookOpen, SlashIcon } from 'lucide-react';
 import { Link } from 'react-router';
 
@@ -19,7 +19,7 @@ export const Header = ({
   currentOrg?: IOrganization;
 }) => {
   return (
-    <header className="bg-background sticky top-0 z-50 flex h-[54px] w-full shrink-0 items-center justify-between gap-4 border-b px-4 py-3.5">
+    <header className="bg-background sticky top-0 z-50 flex h-[54px] w-full max-w-screen shrink-0 items-center justify-between gap-4 border-b px-4 py-3.5">
       {/* Left Section */}
       <div className="flex flex-1 items-center">
         <Link to={paths.account.root} className="mr-6 flex size-7 items-center gap-2">
@@ -34,7 +34,7 @@ export const Header = ({
         )}
       </div>
       {/* Right Section */}
-      <div className="flex h-8 flex-1 items-center justify-end">
+      <div className="flex h-8 items-center justify-end">
         <div className="flex h-full items-center gap-1.5">
           <Tooltip message="Docs">
             <Link to="https://datum.net/docs/" target="_blank" rel="noreferrer">
@@ -42,7 +42,7 @@ export const Header = ({
                 type="quaternary"
                 theme="outline"
                 size="small"
-                className="h-8 w-8 rounded-xl p-0">
+                className="size-[30px] rounded-xl p-0">
                 <BookOpen size={14} className="text-quaternary-foreground" />
               </Button>
             </Link>

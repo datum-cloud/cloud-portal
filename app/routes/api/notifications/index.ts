@@ -1,7 +1,4 @@
-import type {
-  INotification,
-  NotificationSourceType,
-} from '@/modules/datum-ui/components/notification/types';
+import type { INotification, NotificationSourceType } from '@/components/notification/types';
 import { createInvitationsControl } from '@/resources/control-plane';
 import { IInvitationControlResponse } from '@/resources/interfaces/invitation.interface';
 import { getSession } from '@/utils/cookies';

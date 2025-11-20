@@ -63,8 +63,8 @@ export default function DnsZoneOverviewPage() {
   useEffect(() => {
     if (refreshFetcher.data && refreshFetcher.state === 'idle') {
       if (refreshFetcher.data.success) {
-        toast.success('DNS Records refreshed successfully', {
-          description: 'The DNS Records have been refreshed successfully',
+        toast.success('Nameservers refreshed successfully', {
+          description: 'The Nameservers have been refreshed successfully',
         });
       } else {
         toast.error(refreshFetcher.data.error);
@@ -78,7 +78,7 @@ export default function DnsZoneOverviewPage() {
         <PageTitle
           title={dnsZone?.domainName ?? 'DNS Zone'}
           actions={
-            <Tooltip message="This will refresh your DNS records">
+            <Tooltip message="Fetch latest configured nameservers">
               <Button
                 htmlType="button"
                 type="primary"

@@ -363,7 +363,11 @@ function extractStatus(status: any): {
 
   // Both conditions are True - resource is active (Success)
   if (isAccepted && isProgrammed) {
-    return { status: ControlPlaneStatus.Success, isProgrammed: true, programmedReason: programmed?.reason };
+    return {
+      status: ControlPlaneStatus.Success,
+      isProgrammed: true,
+      programmedReason: programmed?.reason,
+    };
   }
 
   // At least one condition is not True - resource is pending
