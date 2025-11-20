@@ -77,7 +77,7 @@ export default function DnsZoneNameserversPage() {
           tableTitle={{
             title: 'Nameservers',
             actions: (
-              <Tooltip message="This will refresh your nameservers">
+              <Tooltip message="Fetch latest configured nameservers">
                 <Button
                   htmlType="button"
                   type="primary"
