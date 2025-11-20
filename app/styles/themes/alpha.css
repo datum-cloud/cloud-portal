@@ -268,6 +268,8 @@ TAILWIND CUSTOM UTILITIES FOR THEME
   --color-table-cell: var(--table-cell);
 
   /* Font Sizes */
+  --text-sm: 13px;
+  --text-xs: 12px;
   --text-2xs: 9px;
 
   /* Badge */
