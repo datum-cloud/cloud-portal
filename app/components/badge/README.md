@@ -9,6 +9,7 @@ Centralized badge components for displaying status and error information across 
 Universal status badge component that displays resource status with optional tooltips and icons.
 
 **Features:**
+
 - Supports multiple status types (success, pending, error, etc.)
 - Optional tooltip with status messages
 - Configurable icons
@@ -57,6 +58,7 @@ import { AlertCircle } from 'lucide-react';
 Specialized badge for displaying K8s Programmed condition errors. Highly flexible with configurable error reasons.
 
 **Features:**
+
 - Automatic error detection based on `isProgrammed` condition
 - Configurable error reason filtering
 - Default error reasons from centralized constants
@@ -68,6 +70,7 @@ Specialized badge for displaying K8s Programmed condition errors. Highly flexibl
 #### 1. Basic Usage (Default Error Reasons)
 
 Uses default error reasons:
+
 - `InvalidDNSRecordSet`
 - `ProgrammingFailed`
 - `ConfigurationError`
@@ -80,7 +83,7 @@ import { BadgeProgrammingError } from '@/components/badge/badge-programming-erro
   isProgrammed={record.isProgrammed}
   programmedReason={record.programmedReason}
   statusMessage={record.statusMessage}
-/>
+/>;
 ```
 
 #### 2. Custom Error Reasons
@@ -146,11 +149,13 @@ const DnsRecordTable = ({ records }) => {
 ## Best Practices
 
 ### 1. Choose the Right Error Reason List
+
 - **Default (no prop)**: Use when displaying all common programming errors
 - **Custom array**: Use for resource-specific error handling (e.g., `['InvalidDNSRecordSet']` for DNS)
 - **null**: Use when you want to show all programming errors without filtering
 
 ### 2. Consistent Usage Across Similar Components
+
 If you have multiple tables showing the same resource type, use the same `errorReasons` configuration.
 
 ```tsx
@@ -162,16 +167,13 @@ If you have multiple tables showing the same resource type, use the same `errorR
 ```
 
 ### 3. Document Custom Error Reasons
+
 When using custom error reasons, add a comment explaining the logic:
 
 ```tsx
 // Only show certificate-specific errors in this table
 <BadgeProgrammingError
-  errorReasons={[
-    'CertificateValidationFailed',
-    'CertificateExpired',
-    'InvalidCertificate',
-  ]}
+  errorReasons={['CertificateValidationFailed', 'CertificateExpired', 'InvalidCertificate']}
   {...props}
 />
 ```
@@ -183,6 +185,7 @@ When using custom error reasons, add a comment explaining the logic:
 If you have existing custom error badge implementations:
 
 ### Before (Custom Implementation)
+
 ```tsx
 {row.original.isProgrammed === false &&
   row.original.programmedReason === 'InvalidDNSRecordSet' && (
@@ -196,6 +199,7 @@ If you have existing custom error badge implementations:
 ```
 
 ### After (Using BadgeProgrammingError)
+
 ```tsx
 import { BadgeProgrammingError } from '@/components/badge/badge-programming-error';
 import { DNS_ERROR_REASONS } from '@/constants/k8s-error-reasons';
@@ -205,10 +209,11 @@ import { DNS_ERROR_REASONS } from '@/constants/k8s-error-reasons';
   programmedReason={row.original.programmedReason}
   statusMessage={row.original.statusMessage}
   errorReasons={DNS_ERROR_REASONS}
-/>
+/>;
 ```
 
 **Benefits:**
+
 - 14 lines → 4 lines
 - Consistent styling across app
 - Centralized error reason management

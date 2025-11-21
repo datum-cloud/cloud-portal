@@ -191,7 +191,7 @@ export function DnsRecordForm({
         {...getFormProps(form)}
         method="POST"
         className={cn('flex flex-row items-start gap-5', style === 'modal' && 'flex-col')}>
-        {loading && (
+        {loading && style === 'inline' && (
           <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 backdrop-blur-xs">
             <Loader2 className="size-4 animate-spin" />
             {mode === 'create' ? 'Adding' : 'Saving'} DNS record...
@@ -283,8 +283,19 @@ export function DnsRecordForm({
               Cancel
             </Button>
           )}
-          <Button htmlType="submit" disabled={loading} className="h-10" type="secondary">
-            {mode === 'create' ? 'Add' : 'Save'}
+          <Button
+            htmlType="submit"
+            disabled={loading}
+            loading={loading && style === 'modal'}
+            className="h-10"
+            type="secondary">
+            {loading && style === 'modal'
+              ? mode === 'create'
+                ? 'Adding'
+                : 'Saving'
+              : mode === 'create'
+                ? 'Add'
+                : 'Save'}
           </Button>
         </div>
       </Form>

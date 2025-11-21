@@ -106,7 +106,6 @@ export default function DnsZonesPage() {
           const status = transformControlPlaneStatus(row.original.status, {
             includeConditionDetails: true,
           });
-          console.log('status', status);
           return (
             <div className="flex items-center gap-2">
               <span className="font-medium">{row.original.domainName}</span>

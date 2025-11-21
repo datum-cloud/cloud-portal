@@ -12,6 +12,7 @@ export const SelectRole = ({
   name,
   id,
   disabled,
+  modal = false,
 }: {
   defaultValue?: string;
   className?: string;
@@ -19,6 +20,7 @@ export const SelectRole = ({
   name?: string;
   id?: string;
   disabled?: boolean;
+  modal?: boolean;
 }) => {
   const fetcher = useFetcher({ key: 'select-role' });
   const [isLoading, setIsLoading] = useState(true);
@@ -115,6 +117,7 @@ export const SelectRole = ({
       placeholder="Select a Role"
       searchable={false}
       isLoading={isLoading}
+      modal={modal}
     />
   );
 };

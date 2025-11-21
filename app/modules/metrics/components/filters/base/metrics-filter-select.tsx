@@ -32,6 +32,7 @@ export interface MetricsFilterSelectProps {
   showSelectAll?: boolean;
   showClearButton?: boolean;
   itemPreview?: (option: SelectBoxOption) => React.ReactNode;
+  emptyContent?: string;
 }
 
 export function MetricsFilterSelect({
@@ -50,6 +51,7 @@ export function MetricsFilterSelect({
   showClearButton = true,
   itemPreview,
   isLoading = false,
+  emptyContent = 'No results found.',
 }: MetricsFilterSelectProps) {
   const { registerUrlState, updateUrlStateEntry } = useMetrics();
 
@@ -143,6 +145,7 @@ export function MetricsFilterSelect({
           showSelectAll={showSelectAll}
           showClearButton={showClearButton}
           isLoading={isLoading}
+          emptyContent={emptyContent}
         />
       ) : (
         <SelectBox
@@ -155,6 +158,7 @@ export function MetricsFilterSelect({
           searchable={searchable}
           itemPreview={itemPreview}
           isLoading={isLoading}
+          emptyContent={emptyContent}
         />
       )}
 

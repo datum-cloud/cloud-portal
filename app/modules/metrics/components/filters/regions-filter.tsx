@@ -16,6 +16,7 @@ export const RegionsFilter = () => {
       disabled={isLoading}
       isLoading={isLoading}
       maxCount={2}
+      emptyContent="No regions found."
     />
   );
 };

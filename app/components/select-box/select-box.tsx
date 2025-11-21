@@ -116,6 +116,8 @@ export const SelectBox = ({
   itemPreview,
   triggerClassName,
   popoverClassName,
+  emptyContent = 'No results found.',
+  modal = false,
 }: {
   /** Currently selected option value (for single-select mode) */
   value?: string;
@@ -158,6 +160,10 @@ export const SelectBox = ({
   triggerClassName?: string;
   /** Optional classes applied to the popover content */
   popoverClassName?: string;
+  /** Optional content to display when no options are found */
+  emptyContent?: string;
+  /** Whether the popover should be modal */
+  modal?: boolean;
 }) => {
   const triggerClasses = triggerClassName ?? className;
   const popoverClasses = popoverClassName ?? className;
@@ -220,7 +226,7 @@ export const SelectBox = ({
 
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal={modal}>
         <PopoverTrigger asChild>
           <button
             type="button"
@@ -258,8 +264,8 @@ export const SelectBox = ({
           <Command shouldFilter={true}>
             {searchable && <CommandInput placeholder={searchPlaceholder} />}
             <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              {allOptions.length > 0 && (
+              {searchable && <CommandEmpty>{emptyContent}</CommandEmpty>}
+              {allOptions.length > 0 ? (
                 <div className="max-h-[300px] overflow-y-auto">
                   {groups && groups.length > 0 ? (
                     // Render grouped options
@@ -328,6 +334,10 @@ export const SelectBox = ({
                     </CommandGroup>
                   )}
                 </div>
+              ) : (
+                <CommandItem disabled className="px-4 py-2.5">
+                  <span className="text-xs">{emptyContent}</span>
+                </CommandItem>
               )}
             </CommandList>
           </Command>

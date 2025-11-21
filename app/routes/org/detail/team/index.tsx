@@ -1,5 +1,9 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { ProfileIdentity } from '@/components/profile-identity';
+import {
+  ManageRoleModalForm,
+  ManageRoleModalFormRef,
+} from '@/features/organization/team/manage-role';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
@@ -8,8 +12,8 @@ import { createRolesControl } from '@/resources/control-plane/iam/roles.control'
 import { createMembersControl } from '@/resources/control-plane/resource-manager/members.control';
 import { IInvitationControlResponse } from '@/resources/interfaces/invitation.interface';
 import { IMemberControlResponse } from '@/resources/interfaces/member.interface';
+import { ROUTE_PATH as MEMBERS_REMOVE_ROUTE_PATH } from '@/routes/api/members';
 import { ROUTE_PATH as MEMBERS_LEAVE_ROUTE_PATH } from '@/routes/api/members/leave';
-import { ROUTE_PATH as MEMBERS_REMOVE_ROUTE_PATH } from '@/routes/api/members/remove';
 import { ROUTE_PATH as TEAM_INVITATIONS_CANCEL_ROUTE_PATH } from '@/routes/api/team/invitations/cancel';
 import { ROUTE_PATH as TEAM_INVITATIONS_RESEND_ROUTE_PATH } from '@/routes/api/team/invitations/resend';
 import { buildNamespace } from '@/utils/common';
@@ -21,8 +25,15 @@ import { Badge } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import {
+  ArrowRightIcon,
+  Redo2Icon,
+  TrashIcon,
+  UserIcon,
+  UserPenIcon,
+  UserPlusIcon,
+} from 'lucide-react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   AppLoadContext,
   Link,
@@ -134,6 +145,8 @@ export default function OrgTeamPage() {
   const fetcher = useFetcher();
   const { confirm } = useConfirmationDialog();
 
+  const manageRoleModalForm = useRef<ManageRoleModalFormRef>(null);
+
   const orderedTeamMembers = useMemo(() => {
     if (!user?.email) return teamMembers;
     const cloned = [...(teamMembers ?? [])];
@@ -160,6 +173,15 @@ export default function OrgTeamPage() {
     {
       namespace: buildNamespace('organization', orgId ?? ''),
       group: 'iam.miloapis.com',
+    }
+  );
+
+  const { hasPermission: hasEditMemberPermission } = useHasPermission(
+    'organizationmemberships',
+    'patch',
+    {
+      namespace: buildNamespace('organization', orgId ?? ''),
+      group: 'resourcemanager.miloapis.com',
     }
   );
 
@@ -233,75 +255,6 @@ export default function OrgTeamPage() {
     );
   };
 
-  const columns: ColumnDef<ITeamMember>[] = useMemo(() => {
-    return [
-      {
-        header: 'User',
-        id: 'user',
-        accessorKey: 'fullName',
-        enableSorting: false,
-        cell: ({ row }) => {
-          const name = row.original.fullName ?? row.original.email;
-          const subtitle = row.original.email;
-
-          return (
-            <div className="flex w-full items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <ProfileIdentity
-                  fallbackIcon={row.original.type === 'invitation' ? UserIcon : undefined}
-                  name={name}
-                  subtitle={row.original.type === 'member' ? subtitle : undefined}
-                  size="sm"
-                />
-                {row.original.email === user?.email && <Badge>You</Badge>}
-              </div>
-
-              {row.original.type === 'invitation' && (
-                <Badge
-                  type={row.original.invitationState === 'Pending' ? 'warning' : 'primary'}
-                  theme={row.original.invitationState === 'Pending' ? 'light' : 'solid'}>
-                  {row.original.invitationState === 'Pending'
-                    ? 'Invited'
-                    : row.original.invitationState}
-                </Badge>
-              )}
-            </div>
-          );
-        },
-      },
-      {
-        header: 'Role',
-        accessorKey: 'role',
-        enableSorting: false,
-        cell: ({ row }) => {
-          const roles = row.original.roles ?? [];
-          if (!roles.length) {
-            return <span className="text-muted-foreground text-xs">—</span>;
-          }
-          return (
-            <div className="flex flex-wrap gap-1">
-              {roles.map((role, idx) => {
-                const displayName = role.displayName || role.name;
-                const badge = <Badge key={`${role.name}-${idx}`}>{displayName}</Badge>;
-
-                // If there's a description, wrap with tooltip
-                if (role.description) {
-                  return (
-                    <Tooltip key={`${role.name}-${idx}`} message={role.description}>
-                      {badge}
-                    </Tooltip>
-                  );
-                }
-
-                return badge;
-              })}
-            </div>
-          );
-        },
-      },
-    ];
-  }, []);
-
   const removeMember = async (row: ITeamMember) => {
     await confirm({
       title: 'Remove Member',
@@ -362,15 +315,94 @@ export default function OrgTeamPage() {
     });
   };
 
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data.success) {
-        toast.success(fetcher.data.message);
-      } else {
-        toast.error(fetcher.data.error);
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
+  const columns: ColumnDef<ITeamMember>[] = useMemo(() => {
+    return [
+      {
+        header: 'User',
+        id: 'user',
+        accessorKey: 'fullName',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const name = row.original.fullName ?? row.original.email;
+          const subtitle = row.original.email;
+
+          return (
+            <div className="flex w-full items-center justify-between gap-2">
+              <div className="flex items-center gap-3">
+                <ProfileIdentity
+                  className="min-w-48"
+                  fallbackIcon={row.original.type === 'invitation' ? UserIcon : undefined}
+                  name={name}
+                  subtitle={row.original.type === 'member' ? subtitle : undefined}
+                  size="xs"
+                />
+                {row.original.email === user?.email && (
+                  <Badge
+                    type="quaternary"
+                    theme="outline"
+                    className="rounded-xl px-2.5 text-[13px] font-normal">
+                    You
+                  </Badge>
+                )}
+              </div>
+
+              {row.original.type === 'invitation' && (
+                <Badge
+                  type={row.original.invitationState === 'Pending' ? 'warning' : 'primary'}
+                  theme={row.original.invitationState === 'Pending' ? 'light' : 'solid'}>
+                  {row.original.invitationState === 'Pending'
+                    ? 'Invited'
+                    : row.original.invitationState}
+                </Badge>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        header: 'Role',
+        accessorKey: 'role',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const roles = row.original.roles ?? [];
+          if (!roles.length) {
+            return <span className="text-muted-foreground text-xs">—</span>;
+          }
+
+          return (
+            <div className="flex flex-wrap gap-1">
+              {roles.map((role, idx) => {
+                const displayName = role.displayName || role.name;
+                const roleColor = {
+                  owner: 'success',
+                  editor: 'info',
+                  viewer: 'danger',
+                };
+                const badge = (
+                  <Badge
+                    key={`${role.name}-${idx}`}
+                    type={(roleColor[role.name as keyof typeof roleColor] as any) ?? 'primary'}>
+                    {displayName}
+                  </Badge>
+                );
+
+                // If there's a description, wrap with tooltip
+                if (role.description) {
+                  return (
+                    <Tooltip key={`${role.name}-${idx}`} message={role.description}>
+                      {badge}
+                    </Tooltip>
+                  );
+                }
+
+                return badge;
+              })}
+            </div>
+          );
+        },
+      },
+    ];
+  }, []);
 
   const rowActions = useMemo(
     () => [
@@ -391,6 +423,34 @@ export default function OrgTeamPage() {
         icon: <TrashIcon className="size-4" />,
         hidden: (row: ITeamMember) => row.type !== 'invitation',
         action: (row: ITeamMember) => cancelInvitation(row),
+      },
+      // Edit member (for members only)
+      {
+        key: 'edit-role',
+        label: 'Edit role',
+        variant: 'default' as const,
+        icon: <UserPenIcon className="size-4" />,
+        hidden: (row: ITeamMember) => {
+          // Hide if not a member
+          if (row.type !== 'member') return true;
+
+          // Hide if it's current user (use "Leave" instead)
+          if (row.email === user?.email) return true;
+
+          // Hide if no permission
+          if (!hasEditMemberPermission) return true;
+
+          return false;
+        },
+        action: (row: ITeamMember) => {
+          const role = row.roles?.[0];
+          if (!role) return;
+          manageRoleModalForm.current?.show({
+            id: row.name ?? '',
+            roleName: role.name,
+            roleNamespace: role.namespace ?? 'datum-cloud',
+          });
+        },
       },
       // Remove member (for OTHER members, not self)
       {
@@ -447,49 +507,70 @@ export default function OrgTeamPage() {
         action: (row: ITeamMember) => leaveTeam(row),
       },
     ],
-    [user?.email, hasRemoveMemberPermission, isLastOwner]
+    [user?.email, hasRemoveMemberPermission, hasEditMemberPermission, isLastOwner]
   );
 
+  useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      if (fetcher.data.success) {
+        toast.success(fetcher.data.message);
+      } else {
+        toast.error(fetcher.data.error);
+      }
+    }
+  }, [fetcher.data, fetcher.state]);
+
   return (
-    <DataTable
-      columns={columns}
-      data={orderedTeamMembers ?? []}
-      tableTitle={{
-        title: 'Team',
-        actions: hasInviteMemberPermission && (
-          <Link
-            to={getPathWithParams(paths.org.detail.team.invite, {
-              orgId,
-            })}>
-            <Button>
-              <UserPlusIcon className="size-4" />
-              Invite Member
-            </Button>
-          </Link>
-        ),
-      }}
-      toolbar={{
-        layout: 'compact',
-        includeSearch: {
-          placeholder: 'Search team members',
-        },
-      }}
-      rowActions={rowActions}
-      emptyContent={{
-        title: "Looks like you don't have any team members added yet",
-        actions: [
-          {
-            type: 'link',
-            label: 'Invite a team member',
-            to: getPathWithParams(paths.org.detail.team.invite, {
-              orgId,
-            }),
-            variant: 'default',
-            icon: <ArrowRightIcon className="size-4" />,
-            iconPosition: 'end',
+    <>
+      <ManageRoleModalForm
+        ref={manageRoleModalForm}
+        orgId={orgId ?? ''}
+        onSuccess={() => {
+          toast.success('Member role updated successfully', {
+            description: 'The member role has been updated successfully',
+          });
+        }}
+      />
+      <DataTable
+        columns={columns}
+        data={orderedTeamMembers ?? []}
+        tableTitle={{
+          title: 'Team',
+          actions: hasInviteMemberPermission && (
+            <Link
+              to={getPathWithParams(paths.org.detail.team.invite, {
+                orgId,
+              })}>
+              <Button>
+                <UserPlusIcon className="size-4" />
+                Invite Member
+              </Button>
+            </Link>
+          ),
+        }}
+        toolbar={{
+          layout: 'compact',
+          includeSearch: {
+            placeholder: 'Search team members',
           },
-        ],
-      }}
-    />
+        }}
+        rowActions={rowActions}
+        emptyContent={{
+          title: "Looks like you don't have any team members added yet",
+          actions: [
+            {
+              type: 'link',
+              label: 'Invite a team member',
+              to: getPathWithParams(paths.org.detail.team.invite, {
+                orgId,
+              }),
+              variant: 'default',
+              icon: <ArrowRightIcon className="size-4" />,
+              iconPosition: 'end',
+            },
+          ],
+        }}
+      />
+    </>
   );
 }
