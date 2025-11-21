@@ -35,26 +35,26 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 export default function WaitlistPage() {
   return (
     <BlankLayout>
-      <Card className="dark:border-primary w-full max-w-md rounded-lg border py-11 shadow-none">
-        <CardContent className="text-primary dark:text-foreground px-9">
-          <h2 className="mb-4 text-center text-2xl font-medium">You&apos;re on the list!</h2>
-          <div className="space-y-2 text-center text-sm leading-6 font-normal">
+      <Card className="bg-card text-foreground w-full max-w-full rounded-xl border p-3 sm:max-w-[400px] sm:p-4 md:p-6 lg:p-8 xl:p-[44px]">
+        <CardContent className="p-0">
+          <h2 className="mb-3 text-center text-xl font-medium">You&apos;re on the list!</h2>
+          <div className="space-y-2 text-center text-[14px] leading-5 font-normal">
             <p>
               Thanks so much for your interest in Datum Cloud. We&apos;re excited to get you onto
               the platform.
             </p>
             <p>
               Hang tight and be on the lookout for an email notification (we&apos;ll send you a note
-              when your account is ready to go). We&apos;ll be in touch soon!
+              when your account is ready to go).
             </p>
           </div>
-          <div className="border-secondary dark:border-primary dark:bg-card mt-5 rounded-lg border bg-white p-5 text-center text-sm leading-6 font-normal shadow-sm">
-            In the meantime, join us on{' '}
+          <div className="bg-background mt-6 rounded-xl border p-6 text-center text-[14px] leading-6 font-normal shadow-[0_2px_4px_2px_rgba(12,29,49,0.03)]">
+            <strong>In the meantime</strong> join us on{' '}
             <Link
               to="https://discord.com/invite/AeA9XZu4Py"
               target="_blank"
               rel="noreferrer"
-              className="text-muted-foreground font-semibold underline">
+              className="text-primary font-medium underline">
               Discord
             </Link>
             , drop by an upcoming{' '}
@@ -62,16 +62,15 @@ export default function WaitlistPage() {
               to="https://www.datum.net/community-huddle/"
               target="_blank"
               rel="noreferrer"
-              className="text-muted-foreground font-semibold underline">
+              className="text-primary font-medium underline">
               Community Huddle
             </Link>
-            , or check out <br />
-            our{' '}
+            , or check out our{' '}
             <Link
               to="https://www.datum.net/docs/"
               target="_blank"
               rel="noreferrer"
-              className="text-muted-foreground font-semibold underline">
+              className="text-primary font-medium underline">
               Docs
             </Link>
             .
@@ -79,7 +78,7 @@ export default function WaitlistPage() {
           <div className="mt-6 text-center">
             <Link
               to={paths.auth.logOut}
-              className="dark:text-foreground dark:hover:text-foreground text-sm text-gray-600 underline hover:text-gray-900">
+              className="dark:text-foreground dark:hover:text-foreground text-[14px] text-gray-600 underline hover:text-gray-900">
               Log out
             </Link>
           </div>

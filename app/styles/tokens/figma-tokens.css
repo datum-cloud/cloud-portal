@@ -107,25 +107,25 @@
 
 @theme {
   /* Collection: Color Palette */
-  --alert-red-dark: oklch(0.746 0.122 20.4);
-  --alert-red-light: oklch(0.621 0.151 22.5);
-  --app-dark-utility-1: oklch(0.308 0.038 253.5);
-  --app-dark-utility-2: oklch(0.386 0.032 253.8);
-  --app-dark-utility-3: oklch(0.544 0.021 250.7);
-  --app-dark-utility-4: oklch(0.67 0.011 248);
-  --app-dark-utility-5: oklch(0.913 0.004 91.4);
-  --aurora-moss: oklch(0.94 0.11 116.6);
-  --black: oklch(0 0 0);
-  --blush-quartz: oklch(0.881 0.031 17.8);
-  --canyon-clay: oklch(0.709 0.051 18.4);
-  --canyon-clay-links: oklch(0.61 0.044 18.4);
-  --glacier-mist-700: oklch(0.973 0.001 106.4);
-  --glacier-mist-800: oklch(0.952 0.003 106.5);
-  --glacier-mist-900: oklch(0.928 0.004 91.4);
-  --midnight-fjord: oklch(0.228 0.045 253.7);
-  --pine-forge: oklch(0.478 0.034 158.9);
-  --potted-olive: oklch(0.776 0.02 152.7);
-  --white: oklch(1 0 0);
+  --alert-red-dark: oklch(0.746 0.122 20.4); /* #bf2e24 */
+  --alert-red-light: oklch(0.621 0.151 22.5); /* #e15853 */
+  --app-dark-utility-1: oklch(0.308 0.038 253.5); /* #2c3454 */
+  --app-dark-utility-2: oklch(0.386 0.032 253.8); /* #394367 */
+  --app-dark-utility-3: oklch(0.544 0.021 250.7); /* #707ca7 */
+  --app-dark-utility-4: oklch(0.67 0.011 248); /* #aab4d2 */
+  --app-dark-utility-5: oklch(0.913 0.004 91.4); /* #e6ede0 */
+  --aurora-moss: oklch(0.94 0.11 116.6); /* #e6f59e */
+  --black: oklch(0 0 0); /* #000000 */
+  --blush-quartz: oklch(0.881 0.031 17.8); /* #f6e0dc */
+  --canyon-clay: oklch(0.709 0.051 18.4); /* #bf9595 */
+  --canyon-clay-links: oklch(0.61 0.044 18.4); /* #a46969 */
+  --glacier-mist-700: oklch(0.973 0.001 106.4); /* #fcfdf7 */
+  --glacier-mist-800: oklch(0.952 0.003 106.5); /* #f6f7ed */
+  --glacier-mist-900: oklch(0.928 0.004 91.4); /* #eeefe6 */
+  --midnight-fjord: oklch(0.228 0.045 253.7); /* #0c1d31 */
+  --pine-forge: oklch(0.478 0.034 158.9); /* #446e3d */
+  --potted-olive: oklch(0.776 0.02 152.7); /* #c2ddb6 */
+  --white: oklch(1 0 0); /* #ffffff */
 
   /* Collection: Typography */
   --app-body-font-family: var(--font-families-alliance);
