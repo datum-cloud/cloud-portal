@@ -28,25 +28,25 @@ export function ProfileIdentity({
 }: ProfileIdentityProps) {
   const sizeClasses = {
     xs: {
-      avatar: 'size-6',
+      avatar: 'size-8',
       name: 'text-xs font-medium',
       subtitle: 'text-xs text-muted-foreground',
       icon: 'size-3',
     },
     sm: {
-      avatar: 'size-8',
+      avatar: 'size-10',
       name: 'text-sm font-medium',
       subtitle: 'text-xs text-muted-foreground',
       icon: 'size-4',
     },
     md: {
-      avatar: 'size-10',
+      avatar: 'size-12',
       name: 'text-base font-semibold',
       subtitle: 'text-sm text-muted-foreground',
       icon: 'size-5',
     },
     lg: {
-      avatar: 'size-12',
+      avatar: 'size-14',
       name: 'text-lg font-semibold',
       subtitle: 'text-base text-muted-foreground',
       icon: 'size-6',
@@ -67,10 +67,10 @@ export function ProfileIdentity({
 
   if (avatarOnly) {
     return (
-      <Avatar className={cn(sizeClasses[size].avatar, 'rounded-md', className)}>
+      <Avatar className={cn(sizeClasses[size].avatar, 'rounded-xl', className)}>
         <AvatarImage src={avatarSrc} alt={name || 'Avatar'} />
         <AvatarFallback
-          className={cn('bg-primary text-primary-foreground rounded-md', fallbackClassName)}>
+          className={cn('bg-primary text-primary-foreground rounded-xl', fallbackClassName)}>
           {renderFallback()}
         </AvatarFallback>
       </Avatar>
@@ -79,10 +79,10 @@ export function ProfileIdentity({
 
   return (
     <div className={cn('flex items-center gap-3', className)}>
-      <Avatar className={cn(sizeClasses[size].avatar, 'rounded-md')}>
+      <Avatar className={cn(sizeClasses[size].avatar, 'rounded-xl')}>
         <AvatarImage src={avatarSrc} alt={name || 'Avatar'} />
         <AvatarFallback
-          className={cn('bg-primary text-primary-foreground rounded-md', fallbackClassName)}>
+          className={cn('bg-primary text-primary-foreground rounded-xl', fallbackClassName)}>
           {renderFallback()}
         </AvatarFallback>
       </Avatar>

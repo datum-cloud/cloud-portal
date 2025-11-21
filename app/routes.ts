@@ -227,7 +227,6 @@ export default [
 
       // Members
       route('members', 'routes/api/members/index.ts'),
-      route('members/remove', 'routes/api/members/remove.ts'),
       route('members/leave', 'routes/api/members/leave.ts'),
 
       // Domains

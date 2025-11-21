@@ -3,7 +3,6 @@ import { Badge } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandItem,
   CommandList,
@@ -171,6 +170,12 @@ interface MultiSelectProps
    * Optional, defaults to false.
    */
   isLoading?: boolean;
+
+  /**
+   * The content to display when no options are found.
+   * Optional, defaults to "No options found.".
+   */
+  emptyContent?: string;
 }
 
 export const MultiSelect = ({
@@ -197,6 +202,7 @@ export const MultiSelect = ({
   id,
   name,
   isLoading = false,
+  emptyContent = 'No results found.',
 }: MultiSelectProps) => {
   const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
 
@@ -364,8 +370,7 @@ export const MultiSelect = ({
           onEscapeKeyDown={() => setIsPopoverOpen(false)}>
           <Command>
             <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              {options.length > 0 && (
+              {options.length > 0 ? (
                 <CommandGroup className="max-h-[250px] overflow-y-auto">
                   {showSelectAll && (
                     <CommandItem key="all" onSelect={toggleAll} className="cursor-pointer">
@@ -405,6 +410,10 @@ export const MultiSelect = ({
                     );
                   })}
                 </CommandGroup>
+              ) : (
+                <CommandItem disabled className="px-4 py-2.5">
+                  <span className="text-xs">{emptyContent}</span>
+                </CommandItem>
               )}
               {actions && (
                 <>

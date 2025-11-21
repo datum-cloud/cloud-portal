@@ -90,7 +90,7 @@ export default function ExportPoliciesPage() {
         header: 'Resource Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return <span className="text-primary font-semibold">{row.original.name}</span>;
+          return <span className="font-medium">{row.original.name}</span>;
         },
       },
       {
