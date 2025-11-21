@@ -31,7 +31,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
           theme="solid"
           size="small"
           className={cn(
-            'size-[30px] cursor-pointer rounded-xl border-none p-0 focus-visible:ring-0 focus-visible:ring-offset-0',
+            'h-7 w-7 cursor-pointer rounded-xl border-none p-0 focus-visible:ring-0 focus-visible:ring-offset-0',
             className
           )}>
           <Avatar className="size-full rounded-xl">

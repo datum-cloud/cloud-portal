@@ -34,7 +34,7 @@ export const Header = ({
         )}
       </div>
       {/* Right Section */}
-      <div className="flex h-8 items-center justify-end">
+      <div className="flex items-center justify-end">
         <div className="flex h-full items-center gap-1.5">
           <Tooltip message="Docs">
             <Link to="https://datum.net/docs/" target="_blank" rel="noreferrer">
@@ -42,8 +42,8 @@ export const Header = ({
                 type="quaternary"
                 theme="outline"
                 size="small"
-                className="size-[30px] rounded-xl p-0">
-                <BookOpen size={14} className="text-quaternary-foreground" />
+                className="h-7 w-7 rounded-xl p-0">
+                <BookOpen className="text-quaternary-foreground size-3.5" />
               </Button>
             </Link>
           </Tooltip>

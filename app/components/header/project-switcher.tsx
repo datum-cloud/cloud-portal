@@ -76,8 +76,8 @@ export const ProjectSwitcher = ({
           projectId: currentProject.name,
         })}
         className="flex w-fit items-center justify-between text-left">
-        <FolderRoot size={14} className="text-secondary/60" />
-        <span className="ml-2.5 max-w-[100px] truncate text-sm sm:max-w-36 md:max-w-none">
+        <FolderRoot className="text-secondary/60 h-3.5" />
+        <span className="ml-2.5 max-w-[100px] truncate text-sm leading-3.5 sm:max-w-36 md:max-w-none">
           {currentProject?.description}
         </span>
       </Link>
@@ -88,7 +88,7 @@ export const ProjectSwitcher = ({
             theme="borderless"
             size="small"
             className={cn(
-              'flex h-full w-full cursor-pointer gap-2 border-none p-0 px-2 hover:bg-transparent data-[state=open]:bg-transparent',
+              'flex h-3.5 w-full cursor-pointer gap-2 border-none p-0 px-2 hover:bg-transparent active:bg-transparent data-[state=open]:bg-transparent',
               triggerClassName
             )}>
             <ChevronDown
