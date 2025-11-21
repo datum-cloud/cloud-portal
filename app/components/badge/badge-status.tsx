@@ -93,6 +93,10 @@ export interface BadgeStatusProps {
   // Override centralized config (use sparingly)
   badgeType?: BadgeProps['type'];
   badgeTheme?: BadgeProps['theme'];
+  // Custom icon (overrides default config icon)
+  customIcon?: ReactNode;
+  tooltipContentClassName?: string;
+  tooltipArrowClassName?: string;
 }
 
 export const BadgeStatus = ({
@@ -104,6 +108,9 @@ export const BadgeStatus = ({
   className,
   badgeType: overrideBadgeType,
   badgeTheme: overrideBadgeTheme,
+  tooltipContentClassName,
+  tooltipArrowClassName,
+  customIcon,
 }: BadgeStatusProps) => {
   // Handle legacy IControlPlaneStatus format
   let statusValue: string;
@@ -148,7 +155,7 @@ export const BadgeStatus = ({
         customColorClasses,
         className
       )}>
-      {showIcon && config.icon}
+      {showIcon && (customIcon || config.icon)}
       {displayLabel}
     </Badge>
   );
@@ -157,7 +164,12 @@ export const BadgeStatus = ({
   if (showTooltip && finalTooltipText && statusValue !== 'active') {
     return (
       <div className="w-fit">
-        <Tooltip message={finalTooltipText}>{badgeContent}</Tooltip>
+        <Tooltip
+          message={finalTooltipText}
+          contentClassName={tooltipContentClassName}
+          arrowClassName={tooltipArrowClassName}>
+          {badgeContent}
+        </Tooltip>
       </div>
     );
   }

@@ -29,6 +29,7 @@ export default function ProjectDashboardPage() {
   const REVALIDATE_INTERVAL = 5000;
 
   const status = useMemo(() => {
+    console.log('project', project);
     if (project) {
       return transformControlPlaneStatus(project.status);
     }
