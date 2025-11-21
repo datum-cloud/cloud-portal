@@ -11,10 +11,10 @@ export default function BlankLayout({
   return (
     <div
       className={cn(
-        'bg-background dark:bg-background relative flex min-h-screen w-full flex-col items-center justify-center',
+        'bg-background relative flex min-h-screen w-full flex-col items-center p-3 sm:p-4 md:p-6 lg:p-12 xl:p-[90px]',
         className
       )}>
-      <LogoStacked height={66} className="mb-12" />
+      <LogoStacked className="mb-12" />
       {children}
 
       <div className="absolute bottom-0 left-0 z-0 max-w-[300px] md:max-w-[416px]">
