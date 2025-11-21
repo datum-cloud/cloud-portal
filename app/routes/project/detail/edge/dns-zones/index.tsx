@@ -1,3 +1,4 @@
+import { BadgeProgrammingError } from '@/components/badge/badge-programming-error';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { DnsHostChips } from '@/components/dns-host-chips';
@@ -7,6 +8,7 @@ import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
 import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, DataTable, DataTableRowActionsProps, toast } from '@datum-ui/components';
@@ -101,7 +103,22 @@ export default function DnsZonesPage() {
         header: 'Zone Name',
         accessorKey: 'domainName',
         cell: ({ row }) => {
-          return <span className="font-medium">{row.original.domainName}</span>;
+          const status = transformControlPlaneStatus(row.original.status, {
+            includeConditionDetails: true,
+          });
+          console.log('status', status);
+          return (
+            <div className="flex items-center gap-2">
+              <span className="font-medium">{row.original.domainName}</span>
+              <BadgeProgrammingError
+                className="rounded-lg px-2 py-0.5"
+                isProgrammed={status.isProgrammed}
+                programmedReason={status.programmedReason}
+                statusMessage={status.message}
+                errorReasons={null}
+              />
+            </div>
+          );
         },
       },
       {

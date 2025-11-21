@@ -1,11 +1,11 @@
 import type { DnsRecordTableProps } from './types';
+import { BadgeProgrammingError } from '@/components/badge/badge-programming-error';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRef } from '@/modules/datum-ui/components/data-table';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { formatTTL } from '@/utils/helpers/dns-record.helper';
 import { Badge, Tooltip } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
-import { TriangleAlertIcon } from 'lucide-react';
 import { forwardRef, useMemo } from 'react';
 
 /**
@@ -31,21 +31,13 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
                   {row.original.type}
                 </Badge>
 
-                {row.original.isProgrammed === false &&
-                  row.original.programmedReason === 'InvalidDNSRecordSet' && (
-                    <Tooltip
-                      message={row.original.statusMessage}
-                      contentClassName="max-w-64 bg-card text-destructive border"
-                      arrowClassName="fill-card drop-shadow-[0_1px_0_var(--border)]">
-                      <Badge
-                        type="danger"
-                        theme="solid"
-                        className="flex cursor-pointer items-center gap-1 rounded-lg px-2 py-0.5">
-                        <TriangleAlertIcon className="size-3" />
-                        <span className="text-xs font-semibold">Error</span>
-                      </Badge>
-                    </Tooltip>
-                  )}
+                <BadgeProgrammingError
+                  className="rounded-lg px-2 py-0.5"
+                  isProgrammed={row.original.isProgrammed}
+                  programmedReason={row.original.programmedReason}
+                  statusMessage={row.original.statusMessage}
+                  errorReasons={['InvalidDNSRecordSet']}
+                />
               </div>
             );
           },
