@@ -3,8 +3,10 @@ import {
   ComMiloapisResourcemanagerV1Alpha1OrganizationMembershipList,
   deleteResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership,
   listResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership,
+  patchResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership,
 } from '@/modules/control-plane/resource-manager';
 import { IMemberControlResponse } from '@/resources/interfaces/member.interface';
+import { MemberUpdateRoleSchema } from '@/resources/schemas/member.schema';
 import { buildNamespace } from '@/utils/common';
 import { Client } from '@hey-api/client-axios';
 
@@ -66,6 +68,49 @@ export const createMembersControl = (client: Client) => {
           });
 
         return response.data;
+      } catch (error) {
+        throw error;
+      }
+    },
+    updateRole: async (
+      organizationId: string,
+      memberId: string,
+      payload: MemberUpdateRoleSchema,
+      dryRun: boolean = false
+    ): Promise<IMemberControlResponse> => {
+      try {
+        const response =
+          await patchResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership({
+            client,
+            baseURL: buildBaseUrl(client, organizationId),
+            path: { namespace: buildNamespace('organization', organizationId), name: memberId },
+            query: {
+              dryRun: dryRun ? 'All' : undefined,
+              fieldManager: 'datum-cloud-portal',
+            },
+            headers: {
+              'Content-Type': 'application/merge-patch+json',
+            },
+            body: {
+              apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
+              kind: 'OrganizationMembership',
+              metadata: {
+                name: memberId,
+              },
+              spec: {
+                roles: [
+                  {
+                    name: payload.role,
+                    namespace: payload.roleNamespace ?? 'milo-system',
+                  },
+                ],
+              },
+            },
+          });
+
+        const member = response.data as ComMiloapisResourcemanagerV1Alpha1OrganizationMembership;
+
+        return transform(member);
       } catch (error) {
         throw error;
       }

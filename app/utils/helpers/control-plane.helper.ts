@@ -1,6 +1,5 @@
 import {
   ControlPlaneStatus,
-  IControlPlaneStatus,
   IExtendedControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
 
@@ -170,8 +169,7 @@ export function transformControlPlaneStatus(
       }
     });
 
-    finalMessage =
-      messages.length > 0 ? messages.join('; ') : 'Resource is being provisioned';
+    finalMessage = messages.length > 0 ? messages.join('; ') : 'Resource is being provisioned';
   }
 
   // Base response
