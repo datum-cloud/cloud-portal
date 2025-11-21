@@ -68,7 +68,7 @@ export const SelectOrganization = ({
           theme="borderless"
           size="small"
           className={cn(
-            'flex h-full w-full cursor-pointer gap-2 border-none p-0 px-2 hover:bg-transparent data-[state=open]:bg-transparent',
+            'flex h-full w-full cursor-pointer gap-2 border-none p-0 px-2 hover:bg-transparent active:bg-transparent data-[state=open]:bg-transparent',
             triggerClassName
           )}>
           {!hideContent &&

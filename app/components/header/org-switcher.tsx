@@ -16,8 +16,8 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: IOrganization
       <Link
         to={getPathWithParams(paths.org.detail.projects.root, { orgId: currentOrg?.name })}
         className="flex w-fit items-center justify-between text-left">
-        <Building size={14} className="text-secondary/60" />
-        <span className="ml-2.5 max-w-[120px] truncate text-sm sm:max-w-36 md:max-w-none">
+        <Building className="text-secondary/60 h-3.5" />
+        <span className="ml-2.5 max-w-[120px] truncate text-sm leading-3.5 sm:max-w-36 md:max-w-none">
           {currentOrg?.displayName ?? currentOrg?.name}
         </span>
         {currentOrg?.type === OrganizationType.Personal && (
@@ -25,7 +25,7 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: IOrganization
         )}
       </Link>
       <SelectOrganization
-        triggerClassName="h-7 w-fit"
+        triggerClassName="h-3.5"
         currentOrg={currentOrg!}
         hideContent
         onSelect={(org: IOrganization) => {
