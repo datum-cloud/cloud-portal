@@ -84,6 +84,7 @@ export const ExportPolicyUpdateForm = ({
     },
     onSubmit(event, { submission }) {
       event.preventDefault();
+      event.stopPropagation();
 
       const data: any = submission?.status === 'success' ? submission.value : {};
 
@@ -223,7 +224,6 @@ export const ExportPolicyUpdateForm = ({
         <Form
           {...getFormProps(form)}
           id={form.id}
-          method="POST"
           autoComplete="off"
           className="flex flex-col gap-6">
           <input type="hidden" name="resourceVersion" value={defaultValue?.resourceVersion} />

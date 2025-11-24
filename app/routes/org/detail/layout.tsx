@@ -53,7 +53,7 @@ export default function OrgLayout() {
 
   const navItems: NavItem[] = useMemo(() => {
     const orgId = org?.name;
-    const settingsPreferences = getPathWithParams(paths.org.detail.settings.preferences, { orgId });
+    const settingsPreferences = getPathWithParams(paths.org.detail.settings.general, { orgId });
     const settingsActivity = getPathWithParams(paths.org.detail.settings.activity, { orgId });
     const settingsQuotas = getPathWithParams(paths.org.detail.settings.quotas, { orgId });
     // const settingsPolicyBindings = getPathWithParams(paths.org.detail.policyBindings.root, {

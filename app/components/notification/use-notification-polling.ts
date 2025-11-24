@@ -12,7 +12,7 @@ import { useFetcher } from 'react-router';
  * Fixed: Prevents spam requests on initial load by properly separating polling and visibility concerns
  */
 export function useNotificationPolling(options: UseNotificationPollingOptions = {}) {
-  const { interval = 60000, enabled = true, sources, onUpdate } = options;
+  const { interval = 15 * 60 * 1000, enabled = true, sources, onUpdate } = options;
 
   const fetcher = useFetcher<NotificationResponse>();
   const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -66,26 +66,10 @@ export function useNotificationPolling(options: UseNotificationPollingOptions = 
     setReadIds(new Set(notifications.map((n) => n.id)));
   }, [notifications]);
 
-  // Helper function to start polling
-  const startPolling = useCallback(() => {
-    const { enabled, interval, apiUrl } = configRef.current;
-
-    if (!enabled) return;
-
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-
-    // Fetch immediately only if not initial mount (initial mount is handled separately)
-    if (!isInitialMount.current) {
-      fetcher.load(apiUrl);
-    }
-
-    // Setup polling interval
-    intervalRef.current = setInterval(() => {
-      fetcher.load(configRef.current.apiUrl);
-    }, interval);
+  // Store fetcher.load in ref to avoid dependency issues
+  const fetcherRef = useRef(fetcher);
+  useEffect(() => {
+    fetcherRef.current = fetcher;
   }, [fetcher]);
 
   // Helper function to stop polling
@@ -96,10 +80,33 @@ export function useNotificationPolling(options: UseNotificationPollingOptions = 
     }
   }, []);
 
-  // Manual refresh - properly includes fetcher in dependencies
+  // Helper function to start polling
+  const startPolling = useCallback(
+    (fetchImmediately = true) => {
+      const { enabled, interval, apiUrl } = configRef.current;
+
+      if (!enabled) return;
+
+      // Clear any existing interval first
+      stopPolling();
+
+      // Fetch immediately if requested (default true)
+      if (fetchImmediately) {
+        fetcherRef.current.load(apiUrl);
+      }
+
+      // Setup polling interval
+      intervalRef.current = setInterval(() => {
+        fetcherRef.current.load(configRef.current.apiUrl);
+      }, interval);
+    },
+    [stopPolling]
+  );
+
+  // Manual refresh
   const refresh = useCallback(() => {
-    fetcher.load(configRef.current.apiUrl);
-  }, [fetcher]);
+    fetcherRef.current.load(configRef.current.apiUrl);
+  }, []);
 
   // Main polling effect - handles initial fetch and polling setup
   useEffect(() => {
@@ -109,20 +116,19 @@ export function useNotificationPolling(options: UseNotificationPollingOptions = 
     }
 
     // Initial fetch on mount (only once)
-    if (isInitialMount.current) {
-      fetcher.load(apiUrl);
+    const isInitial = isInitialMount.current;
+    if (isInitial) {
       isInitialMount.current = false;
     }
 
-    // Setup polling interval
-    intervalRef.current = setInterval(() => {
-      fetcher.load(configRef.current.apiUrl);
-    }, interval);
+    // Start polling (will fetch immediately if initial mount, or when interval/apiUrl changes)
+    startPolling(isInitial);
 
     return () => {
       stopPolling();
     };
-  }, [enabled, interval, apiUrl, fetcher, stopPolling]);
+    // Only depend on enabled, interval, and apiUrl - not fetcher or stopPolling
+  }, [enabled, interval, apiUrl]);
 
   // Visibility change effect - SEPARATE concern with stable dependencies only
   useEffect(() => {
@@ -133,8 +139,8 @@ export function useNotificationPolling(options: UseNotificationPollingOptions = 
         // Stop polling when tab is hidden
         stopPolling();
       } else if (enabled) {
-        // Resume polling when tab becomes visible
-        startPolling();
+        // Resume polling when tab becomes visible - fetch immediately
+        startPolling(true);
       }
     };
 
@@ -143,7 +149,8 @@ export function useNotificationPolling(options: UseNotificationPollingOptions = 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [startPolling, stopPolling]); // Only depend on stable callbacks
+    // Only depend on stable callbacks
+  }, [stopPolling, startPolling]);
 
   // Notify on count changes - use ref to prevent dependency issues
   const onUpdateRef = useRef(onUpdate);

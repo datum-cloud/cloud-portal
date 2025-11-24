@@ -59,7 +59,7 @@ export const ManageRoleModalForm = forwardRef<ManageRoleModalFormRef, ManageRole
         role: '',
         roleNamespace: '',
       },
-      async onSubmit(event, { submission }) {
+      onSubmit(event, { submission }) {
         event.preventDefault();
         event.stopPropagation();
 

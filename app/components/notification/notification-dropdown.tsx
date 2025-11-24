@@ -14,16 +14,12 @@ import { useState } from 'react';
 /**
  * NotificationDropdown component - main dropdown with tabs for different notification sources
  */
-export function NotificationDropdown({
-  pollingInterval = 60000, // 1 minute
-  defaultTab = 'invitation',
-}: NotificationDropdownProps) {
+export function NotificationDropdown({ defaultTab = 'invitation' }: NotificationDropdownProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<NotificationSourceType>(defaultTab);
 
   // Polling hook
   const { notifications, counts, markAsRead, refresh, error } = useNotificationPolling({
-    interval: pollingInterval,
     enabled: true,
   });
 

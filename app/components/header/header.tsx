@@ -48,7 +48,8 @@ export const Header = ({
             </Link>
           </Tooltip>
 
-          <NotificationDropdown pollingInterval={60000} defaultTab="invitation" />
+          {/* Notification Dropdown, polling every 15 minutes */}
+          <NotificationDropdown defaultTab="invitation" />
 
           <UserDropdown />
         </div>

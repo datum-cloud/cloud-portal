@@ -11,9 +11,9 @@ import { parseWithZod } from '@conform-to/zod/v4';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, useRouteLoaderData } from 'react-router';
 
-export const handle = {
-  breadcrumb: () => <span>Preferences</span>,
-};
+// export const handle = {
+//   breadcrumb: () => <span>Preferences</span>,
+// };
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Project Preferences');
