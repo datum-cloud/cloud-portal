@@ -214,6 +214,7 @@ export default function GrafanaStepperForm({
           })}
           <Stepper.Controls>
             <Button
+              htmlType="button"
               type="quaternary"
               theme="borderless"
               disabled={isPending}
@@ -222,7 +223,7 @@ export default function GrafanaStepperForm({
               }}>
               {stepper.isFirst ? 'Back to Proxy' : 'Previous'}
             </Button>
-            <Button loading={isPending} disabled={isPending}>
+            <Button htmlType="submit" loading={isPending} disabled={isPending}>
               {stepper.isLast ? 'Submit' : 'Next'}
             </Button>
           </Stepper.Controls>
