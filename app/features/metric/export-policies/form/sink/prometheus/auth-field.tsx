@@ -1,4 +1,5 @@
 import { Field } from '@/components/field/field';
+import { SelectBox } from '@/components/select-box/select-box';
 import { SelectSecret } from '@/components/select-secret/select-secret';
 import { SINK_AUTH_TYPES } from '@/features/metric/constants';
 import { ExportPolicyAuthenticationType } from '@/resources/interfaces/export-policy.interface';
@@ -74,27 +75,21 @@ export const AuthField = ({
           label="Authentication Type"
           errors={fields.authType.errors}
           className="w-1/3">
-          <Select
+          <SelectBox
             {...getSelectProps(fields.authType, { value: false })}
             name={fields.authType.name}
+            id={fields.authType.id}
             key={fields.authType.id}
-            value={authTypeControl.value}
-            defaultValue={undefined}
-            onValueChange={(value) => {
-              authTypeControl.change(value);
+            options={Object.values(ExportPolicyAuthenticationType).map((type) => ({
+              value: type,
+              label: SINK_AUTH_TYPES[type as keyof typeof SINK_AUTH_TYPES].label,
+            }))}
+            onChange={(value) => {
+              authTypeControl.change(value?.value);
               secretNameControl.change(undefined);
-            }}>
-            <SelectTrigger disabled className="h-auto min-h-10 w-full">
-              <SelectValue placeholder="Select a type" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.keys(SINK_AUTH_TYPES).map((type) => (
-                <SelectItem key={type} value={type}>
-                  {SINK_AUTH_TYPES[type as keyof typeof SINK_AUTH_TYPES].label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            }}
+            value={authTypeControl.value ?? undefined}
+          />
         </Field>
         <Field
           isRequired={isAuthenticationEnabled}

@@ -159,7 +159,9 @@ export default function ExportPoliciesPage() {
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
       if (fetcher.data.success) {
-        toast.success('Export policy deleted successfully');
+        toast.success('Export policy deleted successfully', {
+          description: 'The export policy has been deleted successfully',
+        });
       } else {
         toast.error(fetcher.data.error);
       }

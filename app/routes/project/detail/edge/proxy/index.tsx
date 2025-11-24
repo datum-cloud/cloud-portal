@@ -155,7 +155,9 @@ export default function HttpProxyPage() {
   useEffect(() => {
     if (fetcher.data && fetcher.state === 'idle') {
       if (fetcher.data.success) {
-        toast.success('Proxy deleted successfully');
+        toast.success('Proxy deleted successfully', {
+          description: 'The proxy has been deleted successfully',
+        });
       } else {
         toast.error(fetcher.data.error);
       }

@@ -8,7 +8,7 @@ export default function HttpProxyGrafanaPage() {
   const { projectId, proxyId } = useParams();
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-4 py-8">
+    <div className="mx-auto w-full max-w-4xl space-y-4">
       {isCompleted ? (
         <GrafanaCompletedCard projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
       ) : (
