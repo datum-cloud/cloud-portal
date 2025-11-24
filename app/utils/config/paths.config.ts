@@ -42,7 +42,7 @@ export const paths = {
         edit: '/org/[orgId]/policy-bindings/[policyBindingId]/edit',
       },
       settings: {
-        preferences: '/org/[orgId]/preferences',
+        general: '/org/[orgId]/general',
         quotas: '/org/[orgId]/quotas',
         activity: '/org/[orgId]/activity',
       },

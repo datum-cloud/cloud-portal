@@ -19,7 +19,7 @@ export const DangerCard = ({
       <CardContent className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-8">
           <TriangleAlertIcon size={34} className="text-destructive stroke-1" />
-          <div className="text-destructive flex max-w-md flex-col gap-2">
+          <div className="text-destructive flex max-w-xl flex-col gap-2">
             <span className="text-sm font-semibold">{title}</span>
             <span className="text-xs leading-relaxed font-normal">{description}</span>
           </div>

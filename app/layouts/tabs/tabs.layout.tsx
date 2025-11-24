@@ -21,11 +21,11 @@ export default function TabsLayout({
   return (
     <div
       className={cn(
-        '-mx-5 flex h-full w-[calc(100%+2.5rem)] flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto',
+        'flex h-full flex-1 flex-col gap-8 overflow-x-hidden overflow-y-auto',
         className
       )}>
       {tabsTitle && (
-        <div className={cn('mx-auto w-full max-w-5xl px-5', containerClassName)}>
+        <div className={cn('w-full', containerClassName)}>
           <PageTitle
             title={tabsTitle.title}
             description={tabsTitle.description}
@@ -37,7 +37,7 @@ export default function TabsLayout({
 
       <div className="relative">
         <div className="absolute inset-x-0 bottom-0 z-10 border-b" />
-        <div className={cn('mx-auto w-full max-w-5xl px-5', containerClassName)}>
+        <div className={cn('w-full', containerClassName)}>
           <Tabs value={activeTab}>
             <TabsList className="bg-background flex w-full justify-start rounded-none p-0">
               {(navItems ?? [])
@@ -48,10 +48,10 @@ export default function TabsLayout({
                     value={nav.value}
                     to={nav.to}
                     className={cn(
-                      'flex h-full w-fit items-center gap-2 rounded-none border-b-2 border-transparent',
+                      'flex h-full w-fit items-center gap-2 rounded-none border-b-2 border-transparent px-0',
                       'bg-background focus-visible:ring-0 focus-visible:outline-hidden',
-                      'data-[state=active]:border-primary data-[state=active]:shadow-none',
-                      'hover:text-foreground !flex-none transition-all'
+                      'data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none',
+                      'hover:text-foreground mx-3.5 !flex-none text-sm font-medium transition-all first:ml-0 last:mr-0'
                     )}>
                     {nav.icon && <nav.icon className="size-4" />}
                     {nav.label}
@@ -62,7 +62,7 @@ export default function TabsLayout({
         </div>
       </div>
 
-      <div className={cn('mx-auto h-full w-full max-w-5xl px-5 pt-2', containerClassName)}>
+      <div className={cn('h-full w-full pt-2', containerClassName)}>
         <div className="flex h-full flex-1 flex-col">{children}</div>
       </div>
     </div>

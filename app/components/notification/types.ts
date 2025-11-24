@@ -57,6 +57,7 @@ export interface UseNotificationPollingOptions {
 export interface NotificationDropdownProps {
   pollingInterval?: number;
   defaultTab?: NotificationSourceType;
+  enabled?: boolean;
 }
 
 /**

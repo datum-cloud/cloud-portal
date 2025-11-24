@@ -9,7 +9,7 @@ import { Outlet, useRouteLoaderData } from 'react-router';
 export const handle = {
   breadcrumb: () => <span>Organization Settings</span>,
   path: (data: IOrganization) =>
-    getPathWithParams(paths.org.detail.settings.preferences, { orgId: data?.name }),
+    getPathWithParams(paths.org.detail.settings.general, { orgId: data?.name }),
 };
 
 export default function OrgSettingsLayout() {
@@ -19,9 +19,9 @@ export default function OrgSettingsLayout() {
     const orgId = org?.name;
     return [
       {
-        value: 'preferences',
-        label: 'Preferences',
-        to: getPathWithParams(paths.org.detail.settings.preferences, { orgId }),
+        value: 'general',
+        label: 'General',
+        to: getPathWithParams(paths.org.detail.settings.general, { orgId }),
       },
       /* {
         value: 'policy-bindings',

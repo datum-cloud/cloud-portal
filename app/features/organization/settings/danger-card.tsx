@@ -1,12 +1,10 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { DangerCard } from '@/components/danger-card/danger-card';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_ACTION_PATH } from '@/routes/api/organizations/$id';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
-import { Button, toast } from '@datum-ui/components';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
-import { CircleAlertIcon } from 'lucide-react';
+import { toast } from '@datum-ui/components';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';
 
@@ -57,26 +55,12 @@ export const OrganizationDangerCard = ({ organization }: { organization: IOrgani
   }, [fetcher.data, fetcher.state]);
 
   return (
-    <Card className="border-destructive/50 hover:border-destructive border pb-0 transition-colors">
-      <CardHeader>
-        <CardTitle className="text-destructive">Danger zone</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Alert variant="destructive">
-          <CircleAlertIcon className="size-5 shrink-0" />
-          <AlertTitle className="text-sm font-semibold">Warning: Destructive Action</AlertTitle>
-          <AlertDescription>
-            This action cannot be undone. Once deleted, this organization and all its resources will
-            be permanently removed. The organization name will be reserved and cannot be reused for
-            future organizations to prevent deployment conflicts.
-          </AlertDescription>
-        </Alert>
-      </CardContent>
-      <CardFooter className="border-destructive/50 bg-destructive/10 flex justify-end border-t px-6 py-2">
-        <Button type="danger" theme="solid" onClick={() => deleteOrganization()}>
-          Delete
-        </Button>
-      </CardFooter>
-    </Card>
+    <DangerCard
+      title="Deleting this organization will also remove its projects"
+      description="Make sure you have made a backup of your projects if you want to keep your data."
+      deleteText="Delete organization"
+      loading={fetcher.state === 'submitting'}
+      onDelete={deleteOrganization}
+    />
   );
 };

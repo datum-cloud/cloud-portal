@@ -10,8 +10,9 @@ export { NotificationItemWrapper } from './notification-item-wrapper';
 // Resource-specific items
 export { InvitationNotificationItem } from './items';
 
-// Hook
-export { useNotificationPolling } from './use-notification-polling';
+// Hooks
+export { useNotificationPolling } from '../../hooks/useNotificationPolling';
+export { NotificationProvider, useNotifications } from './notification-context';
 
 // Types
 export type {

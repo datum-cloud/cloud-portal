@@ -66,7 +66,7 @@ export default function SearchBar({ className }: { className?: string }) {
                   </Link>
                 </CommandItem>
                 <CommandItem asChild>
-                  <Link to={getPathWithParams(paths.org.detail.settings.preferences, { orgId })}>
+                  <Link to={getPathWithParams(paths.org.detail.settings.general, { orgId })}>
                     Org Settings
                   </Link>
                 </CommandItem>
