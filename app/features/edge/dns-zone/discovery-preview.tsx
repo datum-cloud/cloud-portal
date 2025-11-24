@@ -187,6 +187,8 @@ export const DnsZoneDiscoveryPreview = ({
             </CardHeader>
             <CardContent className="p-5">
               <DnsRecordTable
+                projectId={projectId}
+                showStatus={false}
                 className="rounded-xl"
                 tableContainerClassName="rounded-xl"
                 data={dnsRecords}

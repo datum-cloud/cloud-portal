@@ -114,10 +114,15 @@ export default function DnsRecordsPage() {
   }, [fetcher.data, fetcher.state]);
 
   const handleOnSuccess = (mode: 'create' | 'edit' = 'create') => {
-    // Reload data after successful add/save
-    toast.success(`DNS record ${mode === 'create' ? 'added' : 'saved'} successfully`, {
-      description: `The ${mode === 'create' ? 'DNS record has been added' : 'DNS record has been saved'} successfully`,
-    });
+    if (mode === 'create') {
+      toast.success('DNS record submitted. Validating…', {
+        description: 'The DNS record is being validated by the DNS server.',
+      });
+    } else {
+      toast.success('DNS record updated. Validating…', {
+        description: 'The DNS record changes are being validated by the DNS server.',
+      });
+    }
 
     revalidator.revalidate();
   };
@@ -134,6 +139,7 @@ export default function DnsRecordsPage() {
       <DnsRecordTable
         mode="full"
         data={dnsRecordSets}
+        projectId={projectId!}
         emptyContent={{
           title: 'No DNS records found',
           actions: [
@@ -154,7 +160,11 @@ export default function DnsRecordsPage() {
               type="primary"
               theme="solid"
               size="small"
-              onClick={() => tableRef.current?.openCreate()}>
+              onClick={() =>
+                dnsRecordSets.length > 0
+                  ? tableRef.current?.openCreate()
+                  : dnsRecordModalFormRef.current?.show('create')
+              }>
               <PlusIcon className="size-4" />
               Add record
             </Button>

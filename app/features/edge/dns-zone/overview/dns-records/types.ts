@@ -14,9 +14,11 @@ import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
  */
 export interface DnsRecordTableBaseProps {
   data: IFlattenedDnsRecord[];
+  projectId: string;
   className?: string;
   tableContainerClassName?: string;
   emptyContent?: EmptyContentProps;
+  showStatus?: boolean;
 }
 
 /**
@@ -55,6 +57,7 @@ export type DnsRecordTableProps = DnsRecordTableCompactProps | DnsRecordTableFul
  */
 export interface DnsRecordCardProps {
   records: IFlattenedDnsRecord[];
+  projectId: string;
   maxRows?: number;
   title?: string;
   actions?: React.ReactNode;

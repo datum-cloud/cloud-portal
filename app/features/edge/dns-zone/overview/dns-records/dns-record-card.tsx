@@ -9,6 +9,7 @@ import { useMemo } from 'react';
  */
 export const DnsRecordCard = ({
   records,
+  projectId,
   maxRows = 5,
   title = 'DNS Records',
   actions,
@@ -28,7 +29,7 @@ export const DnsRecordCard = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <DnsRecordTable data={displayData} mode="compact" />
+        <DnsRecordTable projectId={projectId} data={displayData} mode="compact" />
       </CardContent>
     </Card>
   );
