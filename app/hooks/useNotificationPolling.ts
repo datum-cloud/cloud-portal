@@ -9,29 +9,32 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';
 
 /**
- * User context for tracking notification history
+ * User context for tracking notification state
  */
 interface NotificationUserContext {
-  totalNotificationsEver: number; // Track if user ever had notifications
-  lastNotificationTime: Date | null;
   hasUnreadNotifications: boolean;
 }
 
 /**
- * Custom hook for optimized notification polling with smart intervals and triggers
+ * Custom hook for notification polling with configurable intervals and smart refresh triggers
  *
  * Features:
- * - Smart polling: 30min default intervals, no polling for users who never had notifications
+ * - Simple polling: Fixed interval (default 5 minutes, configurable via NotificationProvider)
  * - Intelligent refresh: Triggers on user interaction, page visibility, and dropdown opens
- * - Reduced requests: 90% fewer polling requests while maintaining instant UX
  * - Activity tracking: Respects user activity patterns for optimal timing
- * - Date handling: Uses date-fns for robust date/time calculations
+ * - Date handling: Uses date-fns for robust date-time calculations
  * - Route stability: Persistent fetcher prevents unnecessary requests during navigation
+ * - Debounced refresh: Prevents spam requests with minimum time intervals
+ *
+ * Polling Strategy:
+ * - Background polling: 5 minutes by default (configurable)
+ * - Smart refresh: Additional refreshes on user interaction, dropdown opens, page visibility changes
+ * - Debouncing: 2-minute minimum between manual refreshes, 5-minute between visibility refreshes
  *
  * Usage:
- * - Background polling: 30min for users with notification history
- * - No polling: Users who never received notifications
+ * - Configure interval in root NotificationProvider
  * - Smart refresh: On dropdown open, page visibility change, user activity
+ * - Configurable: Set custom intervals via NotificationProvider options
  */
 export function useNotificationPolling(options: UseNotificationPollingOptions = {}) {
   const { interval, enabled = true, sources, onUpdate } = options;
@@ -44,10 +47,8 @@ export function useNotificationPolling(options: UseNotificationPollingOptions = 
   const lastPollTime = useRef<Date>(new Date());
   const userActivityTime = useRef<Date>(new Date());
 
-  // User context tracking for smart polling
+  // User context tracking for notification state
   const [userContext, setUserContext] = useState<NotificationUserContext>({
-    totalNotificationsEver: 0,
-    lastNotificationTime: null,
     hasUnreadNotifications: false,
   });
 
@@ -56,17 +57,12 @@ export function useNotificationPolling(options: UseNotificationPollingOptions = 
   const isInitialMount = useRef(true);
 
   /**
-   * Calculate smart polling interval based on user context and activity
+   * Calculate polling interval - simply use the provided interval or default to 5 minutes
    */
   const getSmartInterval = useCallback(
-    (currentContext: NotificationUserContext): number | null => {
-      // If user never had notifications, don't poll at all
-      if (currentContext.totalNotificationsEver === 0) {
-        return null;
-      }
-
-      // Use provided interval or default to 30 minutes
-      return interval || 30 * 60 * 1000;
+    (): number => {
+      // Simple fixed interval polling
+      return interval || 5 * 60 * 1000; // 5 minutes default
     },
     [interval]
   );
@@ -80,9 +76,9 @@ export function useNotificationPolling(options: UseNotificationPollingOptions = 
 
   // Update config ref when values change
   useEffect(() => {
-    const smartInterval = getSmartInterval(userContext);
-    configRef.current = { enabled, interval: smartInterval || 0, apiUrl };
-  }, [enabled, interval, apiUrl, userContext, getSmartInterval]);
+    const smartInterval = getSmartInterval();
+    configRef.current = { enabled, interval: smartInterval, apiUrl };
+  }, [enabled, interval, apiUrl, getSmartInterval]);
 
   // Calculate notifications with read state and update user context
   const notifications = useMemo(() => {
@@ -93,14 +89,11 @@ export function useNotificationPolling(options: UseNotificationPollingOptions = 
 
     // Update user context when we get new data
     if (fetcher.data?.data?.notifications) {
-      const totalNotifications = fetcher.data.data.notifications.length;
       const hasUnread = notificationsList.some((n) => !n.isRead);
 
-      setUserContext((prev) => ({
-        totalNotificationsEver: Math.max(prev.totalNotificationsEver, totalNotifications),
-        lastNotificationTime: totalNotifications > 0 ? new Date() : prev.lastNotificationTime,
+      setUserContext({
         hasUnreadNotifications: hasUnread,
-      }));
+      });
     }
 
     return notificationsList;

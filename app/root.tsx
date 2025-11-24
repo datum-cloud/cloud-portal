@@ -200,7 +200,7 @@ export default function AppWithProviders() {
       <AuthenticityTokenProvider token={csrfToken}>
         <QueryClientProvider client={queryClient}>
           <NuqsAdapter>
-            <NotificationProvider>
+            <NotificationProvider options={{ interval: 5 * 60 * 1000 }}>
               <Outlet />
             </NotificationProvider>
           </NuqsAdapter>
