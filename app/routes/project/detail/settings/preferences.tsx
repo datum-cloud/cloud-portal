@@ -77,7 +77,7 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
           }),
           {
             title: 'Project deleted successfully',
-            description: 'The project has been deleted',
+            description: 'The project has been deleted successfully',
             type: 'success',
           }
         );
