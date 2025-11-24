@@ -3,6 +3,7 @@ import { SubLayout } from '@/layouts';
 import { createDomainsControl } from '@/resources/control-plane';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
+import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -47,9 +48,12 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     throw new NotFoundError('DNS not found');
   }
 
-  // Get Domain Detail
-  const domainsControl = createDomainsControl(controlPlaneClient as Client);
-  const domain = await domainsControl.detail(projectId, dnsZone.status?.domainRef?.name ?? '');
+  let domain: IDomainControlResponse | null = null;
+  if (dnsZone.status?.domainRef?.name) {
+    // Get Domain Detail
+    const domainsControl = createDomainsControl(controlPlaneClient as Client);
+    domain = await domainsControl.detail(projectId, dnsZone.status?.domainRef?.name ?? '');
+  }
 
   return data({ dnsZone, domain });
 };

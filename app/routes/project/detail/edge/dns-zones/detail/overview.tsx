@@ -97,6 +97,7 @@ export default function DnsZoneOverviewPage() {
       <Col span={24}>
         <TaskRecordCard projectId={projectId ?? ''} dnsZone={dnsZone!} />
         {/* <DnsRecordCard
+          projectId={projectId ?? ''}
           records={flattenedRecords}
           maxRows={5}
           title="DNS Records"

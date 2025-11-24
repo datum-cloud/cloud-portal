@@ -1,5 +1,8 @@
 import { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-plane/dns-networking';
-import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
+import {
+  ControlPlaneStatus,
+  IExtendedControlPlaneStatus,
+} from '@/resources/interfaces/control-plane.interface';
 import {
   IDnsRecordSetControlResponse,
   IDnsZoneDiscoveryRecordSet,
@@ -151,10 +154,7 @@ function flattenManagedRecordSets(
       recordSetName: recordSet.name || '',
       createdAt: recordSet.createdAt || new Date(),
       dnsZoneId: recordSet.dnsZoneId || '',
-      status: statusInfo.status,
-      statusMessage: statusInfo.message,
-      isProgrammed: statusInfo.isProgrammed,
-      programmedReason: statusInfo.programmedReason,
+      status: statusInfo,
     });
 
     flattened.push(...entries);
@@ -210,10 +210,7 @@ function flattenRecordEntries(
     recordSetName?: string;
     createdAt?: Date;
     dnsZoneId: string;
-    status?: ControlPlaneStatus;
-    statusMessage?: string;
-    isProgrammed?: boolean;
-    programmedReason?: string;
+    status?: IExtendedControlPlaneStatus;
   }
 ): IFlattenedDnsRecord[] {
   const flattened: IFlattenedDnsRecord[] = [];

@@ -1,5 +1,5 @@
+import { DnsRecordStatus } from './dns-record-status';
 import type { DnsRecordTableProps } from './types';
-import { BadgeProgrammingError } from '@/components/badge/badge-programming-error';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRef } from '@/modules/datum-ui/components/data-table';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
@@ -17,13 +17,25 @@ import { forwardRef, useMemo } from 'react';
  * Each value in DNS records becomes a separate row
  */
 export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsRecordTableProps>(
-  ({ data, mode = 'compact', className, emptyContent, tableContainerClassName, ...props }, ref) => {
+  (
+    {
+      data,
+      mode = 'compact',
+      className,
+      emptyContent,
+      tableContainerClassName,
+      projectId,
+      showStatus = true,
+      ...props
+    },
+    ref
+  ) => {
     const columns: ColumnDef<IFlattenedDnsRecord>[] = useMemo(
       () => [
         {
           header: 'Type',
           accessorKey: 'type',
-          size: 80,
+          size: 120,
           cell: ({ row }) => {
             return (
               <div className="flex items-center gap-2">
@@ -31,13 +43,13 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
                   {row.original.type}
                 </Badge>
 
-                <BadgeProgrammingError
-                  className="rounded-lg px-2 py-0.5"
-                  isProgrammed={row.original.isProgrammed}
-                  programmedReason={row.original.programmedReason}
-                  statusMessage={row.original.statusMessage}
-                  errorReasons={['InvalidDNSRecordSet']}
-                />
+                {showStatus && (
+                  <DnsRecordStatus
+                    record={row.original}
+                    projectId={projectId}
+                    className="rounded-lg px-2 py-0.5"
+                  />
+                )}
               </div>
             );
           },

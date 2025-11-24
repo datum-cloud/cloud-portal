@@ -6,11 +6,17 @@ import {
   listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet,
   patchDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet,
   readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSet,
+  readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetStatus,
 } from '@/modules/control-plane/dns-networking';
+import {
+  IControlPlaneStatus,
+  IExtendedControlPlaneStatus,
+} from '@/resources/interfaces/control-plane.interface';
 import {
   IDnsRecordSetControlResponse,
   IFlattenedDnsRecord,
 } from '@/resources/interfaces/dns.interface';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { flattenDnsRecordSets } from '@/utils/helpers/dns-record.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { Client } from '@hey-api/client-axios';
@@ -208,6 +214,28 @@ export const createDnsRecordSetsControl = (client: Client) => {
       const dnsRecordSets = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsRecordSetList;
       const items = dnsRecordSets.items.map(transformDnsRecordSet);
       return items.length > 0 ? items[0] : undefined;
+    },
+
+    /**
+     * Get status of a DNS Record Set
+     */
+    getStatus: async (
+      projectId: string,
+      recordSetId: string
+    ): Promise<ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet['status']> => {
+      try {
+        const response = await readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetStatus({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: { namespace: 'default', name: recordSetId },
+        });
+
+        const dnsRecordSet = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet;
+
+        return dnsRecordSet.status;
+      } catch (e) {
+        throw e;
+      }
     },
   };
 };

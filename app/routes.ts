@@ -264,6 +264,7 @@ export default [
       route('dns-records', 'routes/api/dns-records/index.ts'),
       route('dns-records/bulk-import', 'routes/api/dns-records/bulk-import.ts'),
       route('dns-records/:id', 'routes/api/dns-records/$id.ts'),
+      route('dns-records/:id/status', 'routes/api/dns-records/status.ts'),
 
       // DNS Zone Discoveries
       route('dns-zone-discoveries', 'routes/api/dns-zone-discoveries/index.ts'),
