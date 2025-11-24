@@ -2,6 +2,7 @@ import { AuthError } from '@/components/error/auth';
 import { GenericError } from '@/components/error/generic';
 import { ClientHintCheck } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
+import { NotificationProvider } from '@/components/notification/notification-context';
 import { useNonce } from '@/hooks/useNonce';
 import { FathomAnalytics } from '@/modules/fathom/fathom';
 import MarkerIoEmbed from '@/modules/markerio';
@@ -199,7 +200,9 @@ export default function AppWithProviders() {
       <AuthenticityTokenProvider token={csrfToken}>
         <QueryClientProvider client={queryClient}>
           <NuqsAdapter>
-            <Outlet />
+            <NotificationProvider>
+              <Outlet />
+            </NotificationProvider>
           </NuqsAdapter>
         </QueryClientProvider>
       </AuthenticityTokenProvider>

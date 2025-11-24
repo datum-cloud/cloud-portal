@@ -1,8 +1,8 @@
 import { NotificationBell } from './notification-bell';
+import { useNotifications } from './notification-context';
 import { NotificationEmpty } from './notification-empty';
 import { NotificationList } from './notification-list';
 import type { NotificationDropdownProps, NotificationSourceType, NotificationTab } from './types';
-import { useNotificationPolling } from './use-notification-polling';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,10 +18,9 @@ export function NotificationDropdown({ defaultTab = 'invitation' }: Notification
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<NotificationSourceType>(defaultTab);
 
-  // Polling hook
-  const { notifications, counts, markAsRead, refresh, error } = useNotificationPolling({
-    enabled: true,
-  });
+  // Use global notification state - persists across layout changes
+  const { notifications, counts, markAsRead, refresh, refreshOnInteraction, error } =
+    useNotifications();
 
   // Filter notifications by active tab
   const filteredNotifications = notifications.filter((n) => n.source === activeTab);
@@ -39,10 +38,15 @@ export function NotificationDropdown({ defaultTab = 'invitation' }: Notification
   // Mark all in current tab as read when opened
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
-    if (isOpen && filteredNotifications.length > 0) {
-      setTimeout(() => {
-        filteredNotifications.forEach((n) => markAsRead(n.id));
-      }, 1500);
+    if (isOpen) {
+      // Smart refresh when user opens dropdown - ensures latest data
+      refreshOnInteraction();
+
+      if (filteredNotifications.length > 0) {
+        setTimeout(() => {
+          filteredNotifications.forEach((n) => markAsRead(n.id));
+        }, 1500);
+      }
     }
   };
 
