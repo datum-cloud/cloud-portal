@@ -5,7 +5,7 @@ import { IProjectControlResponse } from '@/resources/interfaces/project.interfac
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
 import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
-import { Button } from '@datum-ui/components';
+import { Button, CardHeader, CardTitle, Col, Row } from '@datum-ui/components';
 import { Card, CardContent, CardFooter } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
 import { useEffect } from 'react';
@@ -49,29 +49,39 @@ export const ProjectGeneralCard = ({ project }: { project: IProjectControlRespon
   }, [project]);
 
   return (
-    <Card>
+    <Card className="py-4">
       <FormProvider context={form.context}>
+        <CardHeader className="border-b px-5 pb-4">
+          <CardTitle>Project Info</CardTitle>
+        </CardHeader>
         <fetcher.Form
           method="POST"
           autoComplete="off"
           {...getFormProps(form)}
-          className="flex flex-col gap-6">
-          <CardContent>
+          className="flex flex-col gap-5">
+          <CardContent className="space-y-5 px-5">
             <AuthenticityTokenInput />
 
-            <div className="flex flex-col gap-6">
-              <Field isRequired label="Description" errors={fields.description?.errors}>
-                <Input
-                  placeholder="e.g. My Project"
-                  {...getInputProps(fields.description, { type: 'text' })}
-                />
-              </Field>
-              <Field label="Resource Name">
-                <TextCopyBox value={project?.name ?? ''} />
-              </Field>
-            </div>
+            <Row gutter={16}>
+              <Col span={8}>
+                <Field isRequired label="Description" errors={fields.description?.errors}>
+                  <Input
+                    placeholder="e.g. My Project"
+                    {...getInputProps(fields.description, { type: 'text' })}
+                  />
+                </Field>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={8}>
+                <Field label="Resource Name">
+                  <TextCopyBox value={project?.name ?? ''} />
+                </Field>
+              </Col>
+            </Row>
           </CardContent>
-          <CardFooter className="flex justify-end gap-2">
+          <CardFooter className="flex justify-end gap-2 border-t px-5 pt-4">
             {/* <Button type="button" variant="link" disabled={isPending} onClick={handleReset}>
               Cancel
             </Button> */}
