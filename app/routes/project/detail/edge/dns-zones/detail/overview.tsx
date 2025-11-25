@@ -48,6 +48,7 @@ export default function DnsZoneOverviewPage() {
   }, [dnsZone]);
 
   const refreshDomain = async () => {
+    if (!domain?.name) return;
     await refreshFetcher.submit(
       {
         id: domain?.name ?? '',
@@ -78,19 +79,21 @@ export default function DnsZoneOverviewPage() {
         <PageTitle
           title={dnsZone?.domainName ?? 'DNS Zone'}
           actions={
-            <Tooltip message="Fetch latest configured nameservers">
-              <Button
-                htmlType="button"
-                type="primary"
-                theme="solid"
-                size="xs"
-                icon={<RefreshCcwIcon size={12} />}
-                onClick={() => refreshDomain()}
-                disabled={pending}
-                loading={pending}>
-                Refresh
-              </Button>
-            </Tooltip>
+            domain?.name && (
+              <Tooltip message="Fetch latest configured nameservers">
+                <Button
+                  htmlType="button"
+                  type="primary"
+                  theme="solid"
+                  size="xs"
+                  icon={<RefreshCcwIcon size={12} />}
+                  onClick={() => refreshDomain()}
+                  disabled={pending}
+                  loading={pending}>
+                  Refresh
+                </Button>
+              </Tooltip>
+            )
           }
         />
       </Col>
@@ -134,7 +137,7 @@ export default function DnsZoneOverviewPage() {
             }
           />
         ) : (
-          <TaskNameserverCard dnsZone={dnsZone!} />
+          domain?.name && <TaskNameserverCard dnsZone={dnsZone!} />
         )}
       </Col>
     </Row>
