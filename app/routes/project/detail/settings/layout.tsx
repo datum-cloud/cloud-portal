@@ -38,10 +38,7 @@ export default function OrgSettingsLayout() {
     ];
   }, [project]);
   return (
-    <TabsLayout
-      tabsTitle={{ title: 'Project Settings' }}
-      navItems={navItems}
-      className="mx-auto max-w-[1528px]">
+    <TabsLayout tabsTitle={{ title: 'Project Settings' }} navItems={navItems}>
       <Outlet />
     </TabsLayout>
   );

@@ -1,9 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { DangerCard } from '@/components/danger-card/danger-card';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
-import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
-import { Button } from '@datum-ui/components';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
-import { CircleAlertIcon } from 'lucide-react';
 import { useFetcher } from 'react-router';
 
 export const ProjectDangerCard = ({ project }: { project: IProjectControlResponse }) => {
@@ -39,27 +36,14 @@ export const ProjectDangerCard = ({ project }: { project: IProjectControlRespons
       },
     });
   };
+
   return (
-    <Card className="border-destructive/50 hover:border-destructive border pb-0 transition-colors">
-      <CardHeader>
-        <CardTitle className="text-destructive">Danger zone</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Alert variant="destructive">
-          <CircleAlertIcon className="size-5 shrink-0" />
-          <AlertTitle className="text-sm font-semibold">Warning: Destructive Action</AlertTitle>
-          <AlertDescription>
-            This action cannot be undone. Once deleted, this project and all its resources will be
-            permanently removed. The project name will be reserved and cannot be reused for future
-            projects to prevent deployment conflicts.
-          </AlertDescription>
-        </Alert>
-      </CardContent>
-      <CardFooter className="border-destructive/50 bg-destructive/10 flex justify-end border-t px-6 py-2">
-        <Button type="danger" theme="solid" onClick={() => deleteProject()}>
-          Delete
-        </Button>
-      </CardFooter>
-    </Card>
+    <DangerCard
+      title="Warning: This action is irreversible"
+      description="Make sure you have made a backup if you want to keep your data."
+      deleteText="Delete project"
+      loading={fetcher.state === 'submitting'}
+      onDelete={deleteProject}
+    />
   );
 };

@@ -8,6 +8,7 @@ import { HttpError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod/v4';
+import { Col, Row } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, MetaFunction, useRouteLoaderData } from 'react-router';
 
@@ -103,12 +104,20 @@ export default function ProjectSettingsPage() {
   const { project } = useRouteLoaderData('project-detail');
 
   return (
-    <div className="mx-auto flex w-full flex-col gap-6">
-      <ProjectGeneralCard project={project} />
-      {/* Labels */}
-      {/* <ProjectLabelCard labels={project?.labels ?? {}} /> */}
-      {/* Danger Zone */}
-      <ProjectDangerCard project={project} />
+    <div className="flex w-full flex-col gap-8">
+      <Row gutter={[0, 32]}>
+        <Col span={24}>
+          <ProjectGeneralCard project={project} />
+        </Col>
+
+        {/* Labels */}
+        {/* <ProjectLabelCard labels={project?.labels ?? {}} /> */}
+        {/* Danger Zone */}
+        <Col span={24}>
+          <h3 className="mb-4 text-base font-medium">Delete Project</h3>
+          <ProjectDangerCard project={project} />
+        </Col>
+      </Row>
     </div>
   );
 }
