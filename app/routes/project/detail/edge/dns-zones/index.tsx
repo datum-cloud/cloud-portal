@@ -56,6 +56,7 @@ export default function DnsZonesPage() {
   const { confirm } = useConfirmationDialog();
 
   const refreshDomain = async (dnsZone: IDnsZoneControlResponse) => {
+    if (!dnsZone?.status?.domainRef?.name) return;
     await refreshFetcher.submit(
       {
         id: dnsZone?.status?.domainRef?.name ?? '',
@@ -204,6 +205,7 @@ export default function DnsZonesPage() {
         key: 'refresh',
         label: 'Refresh',
         variant: 'default',
+        hidden: (row) => !row.status?.domainRef?.name,
         action: (row) => refreshDomain(row),
       },
       {

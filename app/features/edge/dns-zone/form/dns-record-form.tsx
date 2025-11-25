@@ -236,31 +236,25 @@ export function DnsRecordForm({
             label="TTL"
             errors={fields.ttl.errors}
             description="The amount of time DNS servers will wait before refreshing the record">
-            <Select
-              key={fields.ttl.id}
+            <SelectBox
+              {...getSelectProps(fields.ttl, { value: false })}
+              searchable
               name={fields.ttl.name}
+              id={fields.ttl.id}
+              key={fields.ttl.id}
               value={
                 ttlControl.value === null || ttlControl.value === undefined
                   ? 'auto'
                   : String(ttlControl.value)
               }
-              disabled={loading}
-              onValueChange={(value) => {
-                ttlControl.change(value === 'auto' ? '' : value);
-              }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Auto" />
-              </SelectTrigger>
-              <SelectContent>
-                {TTL_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value === null ? 'auto' : option.value}
-                    value={option.value === null ? 'auto' : String(option.value)}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(value) => {
+                ttlControl.change(value.value === 'auto' ? '' : String(value.value));
+              }}
+              options={TTL_OPTIONS.map((option) => ({
+                value: option.value === null ? 'auto' : String(option.value),
+                label: option.label,
+              }))}
+            />
           </Field>
 
           {/* Type-Specific Fields */}

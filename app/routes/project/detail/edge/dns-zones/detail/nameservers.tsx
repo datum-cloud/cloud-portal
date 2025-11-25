@@ -46,6 +46,7 @@ export default function DnsZoneNameserversPage() {
   }, [dnsZone]);
 
   const refreshDomain = async () => {
+    if (!domain?.name) return;
     await refreshFetcher.submit(
       {
         id: domain?.name ?? '',
@@ -76,7 +77,7 @@ export default function DnsZoneNameserversPage() {
         <NameserverTable
           tableTitle={{
             title: 'Nameservers',
-            actions: (
+            actions: domain?.name && (
               <Tooltip message="Fetch latest configured nameservers">
                 <Button
                   htmlType="button"
@@ -96,7 +97,7 @@ export default function DnsZoneNameserversPage() {
           registration={domain?.status?.registration ?? {}}
         />
       </Col>
-      {!nameserverSetup.isFullySetup && (
+      {!nameserverSetup.isFullySetup && domain?.name && (
         <Col span={24}>
           <NoteCard
             icon={<InfoIcon className="size-5" />}
