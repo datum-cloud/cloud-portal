@@ -10,6 +10,7 @@ export interface DataTableToolbarFilterDropdownProps {
   showFilterCount?: boolean;
   className?: string;
   dropdownClassName?: string;
+  excludeColumns?: string[];
 }
 
 /**
@@ -29,12 +30,13 @@ export const DataTableToolbarFilterDropdown = ({
   showFilterCount = true,
   className,
   dropdownClassName,
+  excludeColumns,
 }: DataTableToolbarFilterDropdownProps) => {
   const { hasActiveFilters, getActiveFilterCount } = useDataTableFilter();
   const [open, setOpen] = useState(false);
 
-  const hasFilters = hasActiveFilters();
-  const filterCount = getActiveFilterCount();
+  const hasFilters = hasActiveFilters(excludeColumns);
+  const filterCount = getActiveFilterCount(excludeColumns);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>

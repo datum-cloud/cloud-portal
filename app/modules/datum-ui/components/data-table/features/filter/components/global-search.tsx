@@ -1,4 +1,5 @@
 import { useDataTable } from '../../../core/data-table.context';
+import { useStringFilter } from '../../../hooks/useFilterQueryState';
 import {
   getSearchableColumnIds,
   getSearchableColumnNames,
@@ -29,8 +30,18 @@ import { useMemo, useEffect } from 'react';
  *   excludeColumns={['id', 'createdAt']}
  *   placeholder="Search all except ID and dates..."
  * />
+ *
+ * @example
+ * // Custom filterKey for URL sync
+ * <DataTableFilter.GlobalSearch
+ *   filterKey="search"
+ *   placeholder="Search..."
+ * />
  */
 export interface GlobalSearchFilterProps {
+  // Filter key for URL sync (default: 'q')
+  filterKey?: string;
+
   // Column selection
   searchableColumns?: string[];
   excludeColumns?: string[];
@@ -50,6 +61,7 @@ export interface GlobalSearchFilterProps {
 }
 
 export function GlobalSearchFilter({
+  filterKey = 'q',
   label,
   placeholder = 'Search...',
   description,
@@ -64,6 +76,9 @@ export function GlobalSearchFilter({
 }: GlobalSearchFilterProps) {
   const { columns, globalFilter, setGlobalFilter, setGlobalSearchOptions } = useDataTable();
 
+  // Use useStringFilter for URL sync via nuqs
+  const { value: urlValue, setValue: setUrlValue } = useStringFilter(filterKey);
+
   // Update global search options when props change
   useEffect(() => {
     setGlobalSearchOptions({
@@ -71,6 +86,13 @@ export function GlobalSearchFilter({
       excludeColumns,
     });
   }, [searchableColumns, excludeColumns, setGlobalSearchOptions]);
+
+  // Sync URL value to table's globalFilter on initial load
+  useEffect(() => {
+    if (urlValue && urlValue !== globalFilter) {
+      setGlobalFilter(urlValue);
+    }
+  }, [urlValue, globalFilter, setGlobalFilter]);
 
   // Get searchable column information
   const searchInfo = useMemo(() => {
@@ -87,12 +109,18 @@ export function GlobalSearchFilter({
     return { columnIds, columnNames };
   }, [columns, searchableColumns, excludeColumns]);
 
+  // Combined handler that updates both URL (nuqs) and table globalFilter
+  const handleDebouncedChange = (value: string) => {
+    setUrlValue(value); // Update URL via nuqs
+    setGlobalFilter(value); // Update table's globalFilter for actual filtering
+  };
+
   // Use shared search state hook
   const { localValue, handleChange, handleClear } = useSearchState({
-    initialValue: globalFilter || '',
+    initialValue: urlValue || globalFilter || '',
     debounceMs,
     immediate,
-    onDebouncedChange: setGlobalFilter,
+    onDebouncedChange: handleDebouncedChange,
   });
 
   // Build description with searchable columns info
