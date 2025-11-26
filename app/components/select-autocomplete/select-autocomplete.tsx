@@ -1,9 +1,10 @@
 import { Option, SelectAutocompleteProps } from './select-autocomplete.types';
 import { VirtualizedList } from './virtualized-list';
+import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
-import { ChevronDown, Loader2 } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 
 export const SelectAutocomplete = React.forwardRef<
@@ -76,11 +77,7 @@ export const SelectAutocomplete = React.forwardRef<
                 triggerClassName
               )}
               disabled={disabled || isLoading}>
-              {isLoading && (
-                <div className="bg-background/80 absolute inset-0 flex items-center justify-center">
-                  <Loader2 className="mx-auto size-4 animate-spin" />
-                </div>
-              )}
+              {isLoading && <LoaderOverlay />}
               <div>{triggerContent}</div>
               <ChevronDown className="size-4 opacity-50" />
             </Button>

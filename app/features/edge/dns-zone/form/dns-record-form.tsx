@@ -12,6 +12,7 @@ import { SVCBRecordField } from './types/svcb-record-field';
 import { TLSARecordField } from './types/tlsa-record-field';
 import { TXTRecordField } from './types/txt-record-field';
 import { Field } from '@/components/field/field';
+import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { SelectBox } from '@/components/select-box/select-box';
 import {
   CreateDnsRecordSchema,
@@ -35,8 +36,6 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button, toast } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Input } from '@shadcn/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
-import { Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Form } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
@@ -192,10 +191,10 @@ export function DnsRecordForm({
         method="POST"
         className={cn('flex flex-row items-start gap-5', style === 'modal' && 'flex-col')}>
         {loading && style === 'inline' && (
-          <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 backdrop-blur-xs">
-            <Loader2 className="size-4 animate-spin" />
-            {mode === 'create' ? 'Adding' : 'Saving'} DNS record...
-          </div>
+          <LoaderOverlay
+            message={`${mode === 'create' ? 'Adding' : 'Saving'} DNS record...`}
+            className="rounded-lg"
+          />
         )}
 
         <div className={cn('grid flex-1 grid-cols-4 gap-5', style === 'modal' && 'grid-cols-2')}>

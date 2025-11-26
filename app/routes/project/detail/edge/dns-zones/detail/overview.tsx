@@ -2,42 +2,32 @@ import { PageTitle } from '@/components/page-title/page-title';
 import { NameserverCard } from '@/features/edge/dns-zone/overview/nameservers';
 import { TaskNameserverCard } from '@/features/edge/dns-zone/overview/task-nameserver-card';
 import { TaskRecordCard } from '@/features/edge/dns-zone/overview/task-record-card';
+import { useFetcherWithToast } from '@/hooks/useFetcherWithToast';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IDnsNameserver, IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, Col, LinkButton, Row, Tooltip, toast } from '@datum-ui/components';
+import { Button, Col, LinkButton, Row, Tooltip } from '@datum-ui/components';
 import { PencilIcon, RefreshCcwIcon } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
-import { useFetcher, useParams, useRouteLoaderData } from 'react-router';
-
-/* export const loader = async ({ context, params }: LoaderFunctionArgs) => {
-  const { projectId, dnsZoneId } = params;
-
-  if (!projectId || !dnsZoneId) {
-    throw new BadRequestError('Project ID and DNS ID are required');
-  }
-
-  const { controlPlaneClient } = context as AppLoadContext;
-  const dnsRecordSetsControl = createDnsRecordSetsControl(controlPlaneClient as Client);
-
-  // List returns flattened records (one row per value)
-  const flattenedRecords = await dnsRecordSetsControl.list(projectId, dnsZoneId);
-
-  return data(flattenedRecords);
-}; */
+import { useMemo } from 'react';
+import { useParams, useRouteLoaderData } from 'react-router';
 
 export default function DnsZoneOverviewPage() {
   const { dnsZone, domain } =
     useRouteLoaderData<{ dnsZone: IDnsZoneControlResponse; domain: IDomainControlResponse }>(
       'dns-zone-detail'
     ) ?? {};
-  // const flattenedRecords = useLoaderData<typeof loader>();
   const { projectId } = useParams();
-  const refreshFetcher = useFetcher({ key: 'refresh-domain' });
-  const pending = useIsPending({ fetcherKey: 'refresh-domain' });
+  const refreshFetcher = useFetcherWithToast({
+    key: 'refresh-nameservers',
+    success: {
+      title: 'Nameservers refreshed successfully',
+      description: 'The Nameservers have been refreshed successfully',
+    },
+  });
+  const pending = useIsPending({ fetcherKey: 'refresh-nameservers' });
 
   const hasNameserverSetup = useMemo(() => {
     const datumNs = dnsZone?.status?.nameservers ?? [];
@@ -60,18 +50,6 @@ export default function DnsZoneOverviewPage() {
       }
     );
   };
-
-  useEffect(() => {
-    if (refreshFetcher.data && refreshFetcher.state === 'idle') {
-      if (refreshFetcher.data.success) {
-        toast.success('Nameservers refreshed successfully', {
-          description: 'The Nameservers have been refreshed successfully',
-        });
-      } else {
-        toast.error(refreshFetcher.data.error);
-      }
-    }
-  }, [refreshFetcher.data, refreshFetcher.state]);
 
   return (
     <Row gutter={[0, 28]}>

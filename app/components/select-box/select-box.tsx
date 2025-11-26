@@ -1,3 +1,4 @@
+import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,
@@ -8,7 +9,7 @@ import {
   CommandList,
 } from '@shadcn/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
-import { CheckIcon, ChevronDown, Loader2 } from 'lucide-react';
+import { CheckIcon, ChevronDown } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 /**
@@ -250,11 +251,7 @@ export const SelectBox = ({
               )}
             </div>
             <ChevronDown className="text-muted-foreground absolute top-1/2 right-3 size-4 -translate-y-1/2" />
-            {isLoading && (
-              <div className="bg-background/80 absolute inset-0 flex items-center justify-center">
-                <Loader2 className="text-muted-foreground size-4 animate-spin" />
-              </div>
-            )}
+            {isLoading && <LoaderOverlay />}
           </button>
         </PopoverTrigger>
         <PopoverContent

@@ -2,6 +2,7 @@ import { SinksForm } from './sink/sinks-form';
 import { SinksPreview } from './sink/sinks-preview';
 import { SourcesForm } from './source/sources-form';
 import { SourcesPreview } from './source/sources-preview';
+import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { MetadataForm } from '@/components/metadata/metadata-form';
 import { MetadataPreview } from '@/components/metadata/metadata-preview';
 import { useIsPending } from '@/hooks/useIsPending';
@@ -26,7 +27,7 @@ import { Button } from '@datum-ui/components';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { defineStepper } from '@stepperize/react';
-import { FileIcon, Layers, Loader2, Terminal } from 'lucide-react';
+import { FileIcon, Layers, Terminal } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { Form, useNavigate, useSubmit } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
@@ -194,10 +195,7 @@ export const ExportPolicyStepperForm = ({
           className="flex flex-col gap-6">
           <CardContent className="relative">
             {isPending && (
-              <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 backdrop-blur-xs">
-                <Loader2 className="size-4 animate-spin" />
-                {isEdit ? 'Saving' : 'Creating'} export policy...
-              </div>
+              <LoaderOverlay message={`${isEdit ? 'Saving' : 'Creating'} export policy...`} />
             )}
             <nav aria-label="Export Policy Steps" className="group">
               <ol className="relative ml-4 border-s border-gray-200 dark:border-gray-700 dark:text-gray-400">

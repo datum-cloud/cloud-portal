@@ -73,7 +73,7 @@ export default function SearchBar({ className }: { className?: string }) {
               </>
             )}
             <CommandItem asChild>
-              <Link to="https://docs.datum.net/" target="_blank" rel="noreferrer">
+              <Link to="https://datum.net/docs/" target="_blank" rel="noreferrer">
                 Docs
               </Link>
             </CommandItem>

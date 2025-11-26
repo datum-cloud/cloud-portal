@@ -1,7 +1,10 @@
 import { BadgeProgrammingError } from '@/components/badge/badge-programming-error';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
-import { DnsHostChips } from '@/components/dns-host-chips';
+import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
+import { NameserverChips } from '@/components/nameserver-chips';
+import { useFetcherWithToast } from '@/hooks/useFetcherWithToast';
+import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
@@ -11,7 +14,7 @@ import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, DataTable, DataTableRowActionsProps, toast } from '@datum-ui/components';
+import { Button, DataTable, DataTableRowActionsProps } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, Loader2Icon, PlusIcon } from 'lucide-react';
@@ -21,7 +24,7 @@ import {
   Link,
   LoaderFunctionArgs,
   MetaFunction,
-  useFetcher,
+  data,
   useLoaderData,
   useNavigate,
   useParams,
@@ -43,15 +46,30 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   // Fetch fresh data from API
   const zones = await dnsZonesControl.list(projectId);
 
-  return { zones };
+  return data({ zones });
 };
 
 export default function DnsZonesPage() {
   const { zones } = useLoaderData<typeof loader>();
   const { projectId } = useParams();
-  const fetcher = useFetcher({ key: 'delete-dns-zone' });
-  const refreshFetcher = useFetcher({ key: 'refresh-domain' });
+  const deleteFetcher = useFetcherWithToast({
+    key: 'delete-dns-zone',
+    success: {
+      title: 'DNS deleted successfully',
+      description: 'The DNS has been deleted successfully',
+    },
+  });
+  const refreshFetcher = useFetcherWithToast({
+    key: 'refresh-dns',
+    success: {
+      title: 'DNS refreshed successfully',
+      description: 'The DNS has been refreshed successfully',
+    },
+  });
   const navigate = useNavigate();
+
+  // revalidate every 3 seconds to keep DNS zones list fresh
+  const revalidator = useRevalidateOnInterval({ enabled: false, interval: 3000 });
 
   const { confirm } = useConfirmationDialog();
 
@@ -83,7 +101,7 @@ export default function DnsZonesPage() {
       variant: 'destructive',
       showConfirmInput: true,
       onSubmit: async () => {
-        await fetcher.submit(
+        await deleteFetcher.submit(
           {
             id: dnsZone?.name ?? '',
             projectId: projectId ?? '',
@@ -96,6 +114,19 @@ export default function DnsZonesPage() {
       },
     });
   };
+
+  useEffect(() => {
+    const hasDeletingZones = zones.some((zone) => zone.deletionTimestamp !== undefined);
+    if (hasDeletingZones) {
+      revalidator.start();
+    } else {
+      revalidator.clear();
+    }
+
+    return () => {
+      revalidator.clear();
+    };
+  }, [zones]);
 
   const columns: ColumnDef<IDnsZoneControlResponse>[] = useMemo(
     () => [
@@ -117,6 +148,10 @@ export default function DnsZonesPage() {
                 statusMessage={status.message}
                 errorReasons={null}
               />
+
+              {row.original.deletionTimestamp && (
+                <LoaderOverlay message="Deleting DNS. This may take a moment..." />
+              )}
             </div>
           );
         },
@@ -133,7 +168,7 @@ export default function DnsZonesPage() {
             return <Loader2Icon className="text-muted-foreground size-4 animate-spin" />;
           }
 
-          return <DnsHostChips data={nameservers} maxVisible={2} />;
+          return <NameserverChips data={nameservers} maxVisible={2} />;
         },
         meta: {
           sortPath: 'status.domainRef.status.nameservers',
@@ -218,36 +253,15 @@ export default function DnsZonesPage() {
     [projectId]
   );
 
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data.success) {
-        toast.success('DNS Zone deleted successfully', {
-          description: 'The DNS Zone has been deleted successfully',
-        });
-      } else {
-        toast.error(fetcher.data.error);
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
-
-  useEffect(() => {
-    if (refreshFetcher.data && refreshFetcher.state === 'idle') {
-      if (refreshFetcher.data.success) {
-        toast.success('DNS Zone refreshed successfully', {
-          description: 'The DNS Zone has been refreshed successfully',
-        });
-      } else {
-        toast.error(refreshFetcher.data.error);
-      }
-    }
-  }, [refreshFetcher.data, refreshFetcher.state]);
-
   return (
     <DataTable
       columns={columns}
       data={zones}
       rowActions={rowActions}
       onRowClick={(row) => {
+        if (row.deletionTimestamp) {
+          return;
+        }
         navigate(
           getPathWithParams(paths.project.detail.dnsZones.detail.root, {
             projectId,

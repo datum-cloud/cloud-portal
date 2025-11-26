@@ -1,6 +1,6 @@
 import { DateTime } from '@/components/date-time';
-import { DnsHostChips } from '@/components/dns-host-chips';
 import { List, ListItem } from '@/components/list/list';
+import { NameserverChips } from '@/components/nameserver-chips';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
@@ -26,7 +26,7 @@ export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }
       {
         label: 'DNS Host',
         className: 'px-2',
-        content: <DnsHostChips data={domain?.status?.nameservers} maxVisible={2} wrap />,
+        content: <NameserverChips data={domain?.status?.nameservers} maxVisible={2} wrap />,
       },
       {
         label: 'Status',

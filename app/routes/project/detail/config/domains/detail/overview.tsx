@@ -47,7 +47,7 @@ export default function DomainOverviewPage() {
   const { confirm } = useConfirmationDialog();
   const { projectId } = useParams();
 
-  // revalidate every 5 seconds to keep deployment list fresh
+  // revalidate every 3 seconds to keep deployment list fresh
   const revalidator = useRevalidateOnInterval({ enabled: false, interval: 3000 });
   const [searchParams, setSearchParams] = useSearchParams();
 

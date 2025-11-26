@@ -1,4 +1,5 @@
 // src/components/multi-select.tsx
+import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { Badge } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import {
@@ -11,7 +12,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { Separator } from '@shadcn/ui/separator';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { CheckIcon, XCircle, ChevronDown, XIcon, WandSparkles, Loader2 } from 'lucide-react';
+import { CheckIcon, XCircle, ChevronDown, XIcon, WandSparkles } from 'lucide-react';
 import * as React from 'react';
 import { useEffect } from 'react';
 
@@ -357,11 +358,7 @@ export const MultiSelect = ({
               </div>
             )}
 
-            {isLoading && (
-              <div className="bg-background/20 absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-lg backdrop-blur-xs">
-                <Loader2 className="text-muted-foreground size-4 animate-spin" />
-              </div>
-            )}
+            {isLoading && <LoaderOverlay className="rounded-lg" />}
           </button>
         </PopoverTrigger>
         <PopoverContent

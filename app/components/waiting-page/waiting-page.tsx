@@ -17,7 +17,7 @@ export const WaitingPage = ({ title, className }: { title: string; className?: s
         <div className="text-muted-foreground text-center text-balance">
           While you wait, check out the Datum{' '}
           <a
-            href="https://docs.datum.net/"
+            href="https://datum.net/docs/"
             target="_blank"
             rel="noreferrer"
             className="text-primary ml-1 underline">

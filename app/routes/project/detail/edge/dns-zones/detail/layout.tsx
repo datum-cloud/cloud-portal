@@ -5,6 +5,7 @@ import { createDnsZonesControl } from '@/resources/control-plane/dns-networking'
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { paths } from '@/utils/config/paths.config';
+import { redirectWithToast } from '@/utils/cookies';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -46,6 +47,20 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 
   if (!dnsZone) {
     throw new NotFoundError('DNS not found');
+  }
+
+  // If the DNS zone is being deleted, redirect to the DNS zones page
+  if (dnsZone.deletionTimestamp) {
+    return redirectWithToast(
+      getPathWithParams(paths.project.detail.dnsZones.root, {
+        projectId,
+      }),
+      {
+        title: 'DNS is being deleted',
+        description: 'This DNS is currently being deleted and is no longer accessible',
+        type: 'message',
+      }
+    );
   }
 
   let domain: IDomainControlResponse | null = null;

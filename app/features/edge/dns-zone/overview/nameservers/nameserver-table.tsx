@@ -1,5 +1,5 @@
-import { DnsHostChips } from '@/components/dns-host-chips';
 import { EmptyContentProps } from '@/components/empty-content/empty-content';
+import { NameserverChips } from '@/components/nameserver-chips';
 import { DataTable, DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { DataTableTitleProps } from '@/modules/datum-ui/components/data-table';
 import { IDnsNameserver, IDnsRegistration } from '@/resources/interfaces/dns.interface';
@@ -54,7 +54,7 @@ export const NameserverTable = ({
         header: 'DNS Host',
         accessorKey: 'nameservers',
         cell: ({ row }) => {
-          return <DnsHostChips data={row.original.ips} maxVisible={2} />;
+          return <NameserverChips data={row.original.ips} maxVisible={2} />;
         },
         meta: {
           sortPath: 'status.nameservers',
