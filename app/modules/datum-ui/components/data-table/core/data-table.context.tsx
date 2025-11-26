@@ -252,6 +252,58 @@ export function DataTableProvider<TData, TValue>({
     }
   }, [serverSideFiltering, onFiltersChange, initialFiltersLoaded]);
 
+  // Handle initial filter state synchronization for client-side filtering
+  // This syncs URL params to table column filters on page refresh
+  useEffect(() => {
+    if (!initialFiltersLoaded && !serverSideFiltering) {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlFilters: Record<string, any> = {};
+
+        // Parse URL parameters into filter object
+        for (const [key, value] of urlParams.entries()) {
+          if (value && value.trim() !== '') {
+            // Check if it's a date range format (timestamp_timestamp)
+            if (isDateRangeFormat(value)) {
+              urlFilters[key] = deserializeDateRange(value);
+            } else {
+              // Try to parse as JSON for complex values, otherwise use as string
+              try {
+                if (value.startsWith('[') || value.startsWith('{')) {
+                  urlFilters[key] = JSON.parse(value);
+                } else {
+                  // Check if it's a comma-separated array (nuqs parseAsArrayOf format)
+                  if (value.includes(',')) {
+                    urlFilters[key] = value.split(',');
+                  } else {
+                    urlFilters[key] = value;
+                  }
+                }
+              } catch {
+                urlFilters[key] = value;
+              }
+            }
+          }
+        }
+
+        // Apply URL filters to table columns for client-side filtering
+        if (Object.keys(urlFilters).length > 0) {
+          for (const [key, filterValue] of Object.entries(urlFilters)) {
+            const column = table.getColumn(key);
+            if (column) {
+              column.setFilterValue(filterValue);
+            }
+          }
+          // Also update internal filter state so context is in sync
+          setInternalFilterState(urlFilters);
+          onFiltersChange?.(urlFilters);
+        }
+      }
+
+      setInitialFiltersLoaded(true);
+    }
+  }, [serverSideFiltering, initialFiltersLoaded, table, onFiltersChange]);
+
   // Filter actions
   // Register parser for dynamic nuqs integration
   const registerFilterParser = useCallback((key: string, parser: FilterParser) => {

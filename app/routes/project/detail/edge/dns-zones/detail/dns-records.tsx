@@ -5,9 +5,10 @@ import {
   DnsRecordModalForm,
   DnsRecordModalFormRef,
 } from '@/features/edge/dns-zone/overview/dns-records/dns-record-modal-form';
-import { DataTableRef } from '@/modules/datum-ui/components/data-table';
+import { DataTableFilter, DataTableRef } from '@/modules/datum-ui/components/data-table';
 import { createDnsRecordSetsControl } from '@/resources/control-plane/dns-networking/dns-record-set.control';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
+import { DNS_RECORD_TYPES } from '@/resources/schemas/dns-record.schema';
 import { ROUTE_PATH as DNS_RECORDS_ACTIONS_PATH } from '@/routes/api/dns-records';
 import { BadRequestError } from '@/utils/errors';
 import { Button, toast } from '@datum-ui/components';
@@ -137,6 +138,7 @@ export default function DnsRecordsPage() {
       />
 
       <DnsRecordTable
+        ref={tableRef}
         mode="full"
         data={dnsRecordSets}
         projectId={projectId!}
@@ -170,13 +172,6 @@ export default function DnsRecordsPage() {
             </Button>
           ),
         }}
-        toolbar={{
-          layout: 'compact',
-          includeSearch: {
-            placeholder: 'Search DNS records',
-          },
-          filtersDisplay: 'dropdown',
-        }}
         rowActions={[
           {
             key: 'edit',
@@ -196,6 +191,26 @@ export default function DnsRecordsPage() {
             action: (row) => handleDelete(row),
           },
         ]}
+        // Toolbar configuration
+        toolbar={{
+          layout: 'compact',
+          includeSearch: {
+            placeholder: 'Search DNS records',
+          },
+          filtersDisplay: 'dropdown',
+        }}
+        filters={
+          <>
+            <DataTableFilter.Tag
+              label="Record Type"
+              filterKey="type"
+              options={DNS_RECORD_TYPES.map((type) => ({
+                label: type,
+                value: type,
+              }))}
+            />
+          </>
+        }
         // Inline form configuration
         enableInlineContent={true}
         inlineContent={({ mode, data, onClose }) => (
@@ -216,7 +231,6 @@ export default function DnsRecordsPage() {
             />
           </div>
         )}
-        ref={tableRef}
       />
     </>
   );

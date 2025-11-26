@@ -7,8 +7,9 @@ import { RadioFilter } from './components/radio';
 import { RadioPopoverFilter } from './components/radio-popover';
 import { SearchFilter } from './components/search';
 import { SelectFilter } from './components/select';
+import { TagFilter } from './components/tag';
 import { Button } from '@datum-ui/components';
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { Card, CardContent, CardHeader, CardTitle, Badge } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronDown, Filter, RotateCcw } from 'lucide-react';
@@ -55,11 +56,7 @@ function FilterBar({
             <div className="flex items-center gap-2 text-lg font-semibold">
               <Filter className="h-4 w-4" />
               Filters
-              {hasActiveFiltersValue && (
-                <span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs">
-                  {activeCount}
-                </span>
-              )}
+              {/* {hasActiveFiltersValue && <Badge type="primary">{activeCount}</Badge>} */}
             </div>
             {hasActiveFiltersValue && (
               <Button
@@ -95,11 +92,7 @@ function FilterBar({
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <Filter className="h-4 w-4" />
               Filters
-              {hasActiveFiltersValue && (
-                <span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs">
-                  {activeCount}
-                </span>
-              )}
+              {/* {hasActiveFiltersValue && <Badge type="primary">{activeCount}</Badge>} */}
             </CardTitle>
             <div className="flex items-center gap-2">
               {hasActiveFiltersValue && (
@@ -180,6 +173,7 @@ const DataTableFilter = Object.assign(DataTableFilterBase, {
   Select: SelectFilter,
   Radio: RadioPopoverFilter, // 🎯 Popover version by default
   Checkbox: CheckboxPopoverFilter, // 🎯 Popover version by default
+  Tag: TagFilter, // 🎯 Inline multi-select with badges
 
   // Inline versions for when you want the old behavior
   RadioInline: RadioFilter,
@@ -198,6 +192,7 @@ export {
   CheckboxFilter,
   RadioPopoverFilter,
   CheckboxPopoverFilter,
+  TagFilter,
 };
 
 // Export context and hooks

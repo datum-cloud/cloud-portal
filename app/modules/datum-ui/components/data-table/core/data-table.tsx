@@ -14,7 +14,9 @@ import { Table } from '@shadcn/ui/table';
 import {
   ColumnDef,
   ColumnFiltersState,
+  FilterFn,
   PaginationState,
+  Row,
   SortingState,
   Table as TTable,
   getCoreRowModel,
@@ -27,6 +29,62 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { forwardRef, useImperativeHandle, useMemo, useState, useRef, Ref } from 'react';
+
+// Extend TanStack Table's FilterFns interface to include our custom filter functions
+declare module '@tanstack/react-table' {
+  interface FilterFns {
+    arrayOr: FilterFn<unknown>;
+  }
+}
+
+/**
+ * Custom filter function that supports both OR (arrIncludesSome) and AND logic
+ * Works with both array and non-array column values
+ *
+ * - When filterValue is an array: checks if column value matches ANY of the filter values (OR logic)
+ * - When filterValue is a string: checks if column value includes the string
+ */
+const arrayOrFilter: FilterFn<any> = <TData,>(
+  row: Row<TData>,
+  columnId: string,
+  filterValue: unknown
+): boolean => {
+  const cellValue = row.getValue(columnId);
+
+  // If no filter value, show all
+  if (filterValue === null || filterValue === undefined || filterValue === '') {
+    return true;
+  }
+
+  // If filter value is an array (multi-select)
+  if (Array.isArray(filterValue)) {
+    // Empty array means no filter
+    if (filterValue.length === 0) {
+      return true;
+    }
+
+    // If cell value is also an array, check if ANY filter value is in the cell array
+    if (Array.isArray(cellValue)) {
+      return filterValue.some((val) => cellValue.includes(val));
+    }
+
+    // If cell value is a single value, check if it's in the filter array
+    return filterValue.includes(cellValue);
+  }
+
+  // If filter value is a string (single select or search)
+  if (typeof filterValue === 'string') {
+    if (Array.isArray(cellValue)) {
+      return cellValue.some((val) =>
+        String(val).toLowerCase().includes(filterValue.toLowerCase())
+      );
+    }
+    return String(cellValue).toLowerCase().includes(filterValue.toLowerCase());
+  }
+
+  // Fallback: exact match
+  return cellValue === filterValue;
+};
 
 // Internal component that wraps the table content and provides ref access
 function DataTableInternal<TData, TValue>(
@@ -165,6 +223,10 @@ function DataTableInternal<TData, TValue>(
     onPaginationChange: setPagination,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn,
+    // Custom filter functions registry
+    filterFns: {
+      arrayOr: arrayOrFilter, // OR logic for multi-select filters
+    },
     getSortedRowModel: getSortedRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),

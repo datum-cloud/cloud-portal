@@ -1,5 +1,5 @@
 import { useDataTableFilter } from '../../core/data-table.context';
-import { Button } from '@datum-ui/components';
+import { Badge, Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@shadcn/ui/dropdown-menu';
 import { ListFilter } from 'lucide-react';
@@ -47,9 +47,9 @@ export const DataTableToolbarFilterDropdown = ({
           <ListFilter className="h-4 w-4" />
           Filters
           {showFilterCount && hasFilters && (
-            <span className="bg-primary text-primary-foreground text-2xs ml-1 size-4 rounded-md">
+            <Badge type="primary" theme="solid" className="text-2xs px-1 py-0.5">
               {filterCount}
-            </span>
+            </Badge>
           )}
         </Button>
       </DropdownMenuTrigger>
