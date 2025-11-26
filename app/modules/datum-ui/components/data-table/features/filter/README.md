@@ -201,6 +201,41 @@ Multi-selection with popover, badge display, and smart selection summary (defaul
 <DataTableFilter.CheckboxInline filterKey="tags" label="Tags" options={tagOptions} />
 ```
 
+### Tag Filter
+
+Inline multi-select using clickable badges. All options are displayed as badges, and users can toggle selection by clicking. Selected badges show an X button for easy deselection.
+
+```tsx
+<DataTableFilter.Tag
+  filterKey="type"
+  label="Record Type"
+  options={[
+    { label: 'A', value: 'A' },
+    { label: 'AAAA', value: 'AAAA' },
+    { label: 'CNAME', value: 'CNAME' },
+    { label: 'MX', value: 'MX', icon: <MailIcon className="h-3 w-3" /> },
+  ]}
+/>
+```
+
+**Features:**
+
+- All options visible as inline badges (no popover/dropdown)
+- Multi-select with toggle behavior
+- Selected badges show X button for quick deselection
+- Support for icons on options
+- URL state sync via nuqs
+- Works with `filterFn: 'arrayOr'` for OR logic filtering
+
+**When to use Tag vs Checkbox:**
+
+| Use Tag Filter                      | Use Checkbox Filter                    |
+| ----------------------------------- | -------------------------------------- |
+| Few options (< 8)                   | Many options (> 8)                     |
+| Options should always be visible    | Options can be hidden in popover       |
+| Quick visual scanning needed        | Space is limited                       |
+| e.g., Record types, Status badges   | e.g., Tags, Categories, Multi-select   |
+
 ## 🎛️ DataTableFilter Props
 
 | Prop              | Type                  | Default     | Description                                   |
@@ -409,6 +444,40 @@ Default variant uses flexible wrapping, card variant uses CSS Grid:
 
 ## 🔧 Advanced Usage
 
+### Multi-Select Filter Logic (OR vs AND)
+
+By default, TanStack Table uses AND logic for array filters. For multi-select filters (Tag, Checkbox, Select with `multiple`), you typically want OR logic - show rows that match **any** of the selected values.
+
+The DataTable provides a custom `arrayOr` filter function for this purpose.
+
+**Using OR Logic in Column Definition:**
+
+```tsx
+const columns = [
+  {
+    header: 'Type',
+    accessorKey: 'type',
+    filterFn: 'arrayOr', // Use OR logic for multi-select filter
+  },
+  {
+    header: 'Tags',
+    accessorKey: 'tags',
+    filterFn: 'arrayOr', // Works with array cell values too
+  },
+];
+```
+
+**Behavior:**
+
+| Filter Selection | Column Value | Result           |
+| ---------------- | ------------ | ---------------- |
+| `['A', 'CNAME']` | `'A'`        | ✅ Match (OR)    |
+| `['A', 'CNAME']` | `'MX'`       | ❌ No match      |
+| `['react']`      | `['react', 'vue']` | ✅ Match (array cell) |
+| `[]` or `null`   | any          | ✅ Show all      |
+
+**Important:** Always add `filterFn: 'arrayOr'` to columns that use Tag, Checkbox, or multi-select filters for correct filtering behavior.
+
 ### Creating Custom Filter Components
 
 ```tsx
@@ -576,6 +645,26 @@ const badOptions = [
 <DataTableFilter.Search filterKey="search" /> // ✅ Correct
 <DataTableFilter.Search key="search" />       // ❌ Wrong prop
 ```
+
+#### Q: Client-side filters not applied on page refresh
+
+If URL shows filters (e.g., `?type=A,CAA`) but data isn't filtered on refresh:
+
+1. **Check column has `filterFn`**: For multi-select filters, add `filterFn: 'arrayOr'` to the column
+2. **Ensure `filterKey` matches `accessorKey`**: The filter's `filterKey` must match the column's `accessorKey`
+
+```tsx
+// Column definition
+{
+  accessorKey: 'type',        // Must match filterKey
+  filterFn: 'arrayOr',        // Required for multi-select
+}
+
+// Filter component
+<DataTableFilter.Tag filterKey="type" />  // Matches accessorKey
+```
+
+The DataTable automatically syncs URL params to table column filters on initial load for client-side filtering.
 
 #### Q: TypeScript errors with filter values
 

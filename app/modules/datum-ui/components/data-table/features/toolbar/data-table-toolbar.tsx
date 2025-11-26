@@ -256,7 +256,9 @@ export const DataTableToolbar = ({
         {/* Right Section: Dropdown Filters + Actions */}
         <div className={cn('flex items-center justify-end gap-3', rightSectionClassName)}>
           {dropdownFilters && dropdownFilters.length > 0 && (
-            <DataTableToolbarFilterDropdown showFilterCount={toolbarConfig.showFilterCount}>
+            <DataTableToolbarFilterDropdown
+              showFilterCount={toolbarConfig.showFilterCount}
+              excludeColumns={['q', 'search']}>
               {dropdownFilters.map((filter, index) => (
                 <div key={index} className="border-b last:border-b-0">
                   {filter}

@@ -27,6 +27,25 @@ export interface FilterState {
   [key: string]: FilterValue;
 }
 
+// Helper function to check if a filter value is considered "active"
+function isActiveFilterValue(value: FilterValue): boolean {
+  if (value === null || value === undefined || value === '') return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (value instanceof Date) return true;
+  if (typeof value === 'object' && 'from' in value) {
+    return Boolean(value.from || (value as { to?: unknown }).to);
+  }
+  return Boolean(value);
+}
+
+// Helper function to count the number of active items in a filter value
+// For arrays, returns the count of items; for other types, returns 1 if active
+function getFilterValueCount(value: FilterValue): number {
+  if (!isActiveFilterValue(value)) return 0;
+  if (Array.isArray(value)) return value.length;
+  return 1;
+}
+
 // Parser types for nuqs integration
 export type FilterParser = any; // Simplified type for now since nuqs parsers are complex
 
@@ -61,8 +80,8 @@ interface DataTableContextType<TData = unknown, TValue = unknown> {
 
   // Filter utilities
   getFilterValue: <T = FilterValue>(key: string) => T;
-  hasActiveFilters: () => boolean;
-  getActiveFilterCount: () => number;
+  hasActiveFilters: (excludeKeys?: string[]) => boolean;
+  getActiveFilterCount: (excludeKeys?: string[]) => number;
 
   // Parser registration
   registerFilterParser: (key: string, parser: FilterParser) => void;
@@ -252,6 +271,63 @@ export function DataTableProvider<TData, TValue>({
     }
   }, [serverSideFiltering, onFiltersChange, initialFiltersLoaded]);
 
+  // Handle initial filter state synchronization for client-side filtering
+  // This syncs URL params to table column filters on page refresh
+  useEffect(() => {
+    if (!initialFiltersLoaded && !serverSideFiltering) {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlFilters: Record<string, any> = {};
+
+        // Parse URL parameters into filter object
+        for (const [key, value] of urlParams.entries()) {
+          if (value && value.trim() !== '') {
+            // Check if it's a date range format (timestamp_timestamp)
+            if (isDateRangeFormat(value)) {
+              urlFilters[key] = deserializeDateRange(value);
+            } else {
+              // Try to parse as JSON for complex values, otherwise use as string
+              try {
+                if (value.startsWith('[') || value.startsWith('{')) {
+                  urlFilters[key] = JSON.parse(value);
+                } else {
+                  // Check if it's a comma-separated array (nuqs parseAsArrayOf format)
+                  if (value.includes(',')) {
+                    urlFilters[key] = value.split(',');
+                  } else {
+                    urlFilters[key] = value;
+                  }
+                }
+              } catch {
+                urlFilters[key] = value;
+              }
+            }
+          }
+        }
+
+        // Apply URL filters to table columns for client-side filtering
+        if (Object.keys(urlFilters).length > 0) {
+          const columnIds = table.getAllColumns().map((col) => col.id);
+
+          for (const [key, filterValue] of Object.entries(urlFilters)) {
+            // Only apply to columns that exist (skip global search 'q' key)
+            if (columnIds.includes(key)) {
+              const column = table.getColumn(key);
+              if (column) {
+                column.setFilterValue(filterValue);
+              }
+            }
+          }
+          // Also update internal filter state so context is in sync
+          setInternalFilterState(urlFilters);
+          onFiltersChange?.(urlFilters);
+        }
+      }
+
+      setInitialFiltersLoaded(true);
+    }
+  }, [serverSideFiltering, initialFiltersLoaded, table, onFiltersChange]);
+
   // Filter actions
   // Register parser for dynamic nuqs integration
   const registerFilterParser = useCallback((key: string, parser: FilterParser) => {
@@ -266,8 +342,12 @@ export function DataTableProvider<TData, TValue>({
       setInternalFilterState((prev) => ({ ...prev, ...newState }));
 
       // Update table column filter only for client-side filtering
+      // Check if column exists first to avoid warnings for global search (which uses 'q' key but no column)
       if (!serverSideFiltering) {
-        table.getColumn(key)?.setFilterValue(value);
+        const columnIds = table.getAllColumns().map((col) => col.id);
+        if (columnIds.includes(key)) {
+          table.getColumn(key)?.setFilterValue(value);
+        }
       }
 
       // Call filtering start callback for server-side filtering
@@ -321,29 +401,25 @@ export function DataTableProvider<TData, TValue>({
     [mergedFilterState]
   );
 
-  const hasActiveFilters = useCallback(() => {
-    return Object.values(mergedFilterState).some((value) => {
-      if (value === null || value === undefined || value === '') return false;
-      if (Array.isArray(value)) return value.length > 0;
-      if (value instanceof Date) return true;
-      if (typeof value === 'object' && 'from' in value) {
-        return Boolean(value.from || (value as { to?: unknown }).to);
-      }
-      return Boolean(value);
-    });
-  }, [mergedFilterState]);
+  const hasActiveFilters = useCallback(
+    (excludeKeys?: string[]) => {
+      return Object.entries(mergedFilterState).some(([key, value]) => {
+        if (excludeKeys?.includes(key)) return false;
+        return isActiveFilterValue(value);
+      });
+    },
+    [mergedFilterState]
+  );
 
-  const getActiveFilterCount = useCallback(() => {
-    return Object.values(mergedFilterState).filter((value) => {
-      if (value === null || value === undefined || value === '') return false;
-      if (Array.isArray(value)) return value.length > 0;
-      if (value instanceof Date) return true;
-      if (typeof value === 'object' && 'from' in value) {
-        return Boolean(value.from || (value as { to?: unknown }).to);
-      }
-      return Boolean(value);
-    }).length;
-  }, [mergedFilterState]);
+  const getActiveFilterCount = useCallback(
+    (excludeKeys?: string[]) => {
+      return Object.entries(mergedFilterState).reduce((count, [key, value]) => {
+        if (excludeKeys?.includes(key)) return count;
+        return count + getFilterValueCount(value);
+      }, 0);
+    },
+    [mergedFilterState]
+  );
 
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(

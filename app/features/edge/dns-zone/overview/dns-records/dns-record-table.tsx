@@ -36,6 +36,7 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
           header: 'Type',
           accessorKey: 'type',
           size: 120,
+          filterFn: 'arrayOr', // Use OR logic for multi-select filter
           cell: ({ row }) => {
             return (
               <div className="flex items-center gap-2">

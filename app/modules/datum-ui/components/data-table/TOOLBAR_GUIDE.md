@@ -145,7 +145,53 @@ Products
 
 ---
 
-### 5. Global Search (Multi-column)
+### 5. Tag Filter (Inline Badges)
+
+```tsx
+<DataTable
+  tableTitle={{ title: 'DNS Records' }}
+  columns={[
+    {
+      accessorKey: 'type',
+      filterFn: 'arrayOr', // Required for OR logic with multi-select
+    },
+    // ... other columns
+  ]}
+  toolbar={{
+    layout: 'compact',
+    includeSearch: { placeholder: 'Search records...' },
+    filtersDisplay: 'dropdown',
+  }}
+  filters={
+    <DataTableFilter.Tag
+      filterKey="type"
+      label="Record Type"
+      options={[
+        { label: 'A', value: 'A' },
+        { label: 'AAAA', value: 'AAAA' },
+        { label: 'CNAME', value: 'CNAME' },
+        { label: 'MX', value: 'MX' },
+      ]}
+    />
+  }
+/>
+```
+
+**Result:**
+
+```
+DNS Records
+
+[🔍 Search records...]    [⚡ Filters]
+
+Inside dropdown:
+Record Type
+[A] [AAAA] [CNAME ✓ ✕] [MX ✓ ✕]
+```
+
+---
+
+### 6. Global Search (Multi-column)
 
 ```tsx
 <DataTable
@@ -165,7 +211,7 @@ Products
 
 ---
 
-### 6. Stacked Layout (Legacy Compatible)
+### 7. Stacked Layout (Legacy Compatible)
 
 ```tsx
 <DataTable
@@ -228,6 +274,7 @@ Manage your team members
 | **Smart Display**     | `filtersDisplay: 'auto'`                    | Auto-collapse excess           |
 | **Max 3 Inline**      | `maxInlineFilters: 3`                       | First 3 inline, rest dropdown  |
 | **Auto-wrap Filters** | `filters={<>...</>}`                        | No manual wrapper needed       |
+| **OR Filter Logic**   | Column: `filterFn: 'arrayOr'`               | Multi-select uses OR matching  |
 
 ---
 
@@ -355,11 +402,13 @@ interface DataTableToolbarConfig {
 
 ## Tips
 
-1. **Start Simple**: Use `search: true` and `filtersDisplay: 'auto'`
+1. **Start Simple**: Use `includeSearch: true` and `filtersDisplay: 'auto'`
 2. **Test Mobile**: The responsive mode auto-collapses filters
 3. **Filter Count**: The badge shows active filters in dropdown
 4. **Performance**: Use `debounce` for slow backends (default: 300ms)
 5. **Backwards Compatible**: Old API still works - migrate gradually
+6. **Multi-Select Filters**: Add `filterFn: 'arrayOr'` to column for OR logic
+7. **URL Persistence**: Filters sync with URL automatically (works on page refresh)
 
 ---
 

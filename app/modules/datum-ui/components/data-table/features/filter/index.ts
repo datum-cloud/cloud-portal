@@ -9,6 +9,7 @@ export {
   SelectFilter,
   RadioFilter,
   CheckboxFilter,
+  TagFilter,
 } from './data-table-filter';
 
 // Component-specific types
@@ -17,6 +18,7 @@ export type { DatePickerFilterProps } from './components/datepicker';
 export type { SelectFilterProps, SelectOption } from './components/select';
 export type { RadioFilterProps, RadioOption } from './components/radio';
 export type { CheckboxFilterProps, CheckboxOption } from './components/checkbox';
+export type { TagFilterProps, TagOption } from './components/tag';
 
 // Context and hooks (from unified context)
 export {
