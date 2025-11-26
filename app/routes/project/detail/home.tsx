@@ -236,7 +236,7 @@ export default function ProjectDashboardPage() {
                   <SectionDescription>
                     Check out the Datum{' '}
                     <a
-                      href="https://docs.datum.net/"
+                      href="https://datum.net/docs/"
                       target="_blank"
                       rel="noreferrer"
                       className="text-primary underline">
