@@ -50,7 +50,7 @@ export const baseRecordFieldSchema = z.object({
   name: z
     .string({ error: 'Name is required.' })
     .min(1, 'Name is required.')
-    .regex(/^(@|[a-zA-Z0-9]([a-zA-Z0-9-_.]*[a-zA-Z0-9])?)$/, {
+    .regex(/^(@|[_a-zA-Z0-9]([a-zA-Z0-9-_.]*[a-zA-Z0-9])?)$/, {
       message:
         'Name must be @ (root domain) or contain only alphanumeric characters, hyphens, underscores, and dots.',
     }),
