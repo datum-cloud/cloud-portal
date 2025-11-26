@@ -47,7 +47,7 @@ export interface DnsHostChipsProps {
  * Display DNS host provider names as chips
  * Extracts registrant names from nameserver or IP data
  */
-export const DnsHostChips = ({
+export const NameserverChips = ({
   data,
   maxVisible = 2,
   wrap = false,

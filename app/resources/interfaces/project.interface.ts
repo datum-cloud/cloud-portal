@@ -11,6 +11,7 @@ export interface IProjectControlResponse {
   status?: ComMiloapisResourcemanagerV1Alpha1Project['status'];
   labels?: ILabel;
   namespace?: string;
+  deletionTimestamp?: string | Date;
 }
 
 export interface IProjectMetadata {

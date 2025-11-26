@@ -6,15 +6,7 @@ import { ExportPolicyAuthenticationType } from '@/resources/interfaces/export-po
 import { SecretType } from '@/resources/interfaces/secret.interface';
 import { ExportPolicySinkAuthenticationSchema } from '@/resources/schemas/export-policy.schema';
 import { getSelectProps, useForm, useInputControl } from '@conform-to/react';
-import {
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Switch,
-} from '@datum-ui/components';
+import { Label, Switch } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { useEffect, useState } from 'react';
 

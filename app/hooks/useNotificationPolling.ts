@@ -9,13 +9,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFetcher } from 'react-router';
 
 /**
- * User context for tracking notification state
- */
-interface NotificationUserContext {
-  hasUnreadNotifications: boolean;
-}
-
-/**
  * Custom hook for notification polling with configurable intervals and smart refresh triggers
  *
  * Features:
@@ -47,11 +40,6 @@ export function useNotificationPolling(options: UseNotificationPollingOptions = 
   const lastPollTime = useRef<Date>(new Date());
   const userActivityTime = useRef<Date>(new Date());
 
-  // User context tracking for notification state
-  const [userContext, setUserContext] = useState<NotificationUserContext>({
-    hasUnreadNotifications: false,
-  });
-
   // Store current config in refs to avoid stale closures
   const configRef = useRef({ enabled, interval: 0, apiUrl: '' });
   const isInitialMount = useRef(true);
@@ -59,13 +47,10 @@ export function useNotificationPolling(options: UseNotificationPollingOptions = 
   /**
    * Calculate polling interval - simply use the provided interval or default to 5 minutes
    */
-  const getSmartInterval = useCallback(
-    (): number => {
-      // Simple fixed interval polling
-      return interval || 5 * 60 * 1000; // 5 minutes default
-    },
-    [interval]
-  );
+  const getSmartInterval = useCallback((): number => {
+    // Simple fixed interval polling
+    return interval || 5 * 60 * 1000; // 5 minutes default
+  }, [interval]);
 
   // Build API URL with source filter
   const apiUrl = useMemo(() => {
@@ -86,15 +71,6 @@ export function useNotificationPolling(options: UseNotificationPollingOptions = 
       ...n,
       isRead: readIds.has(n.id),
     }));
-
-    // Update user context when we get new data
-    if (fetcher.data?.data?.notifications) {
-      const hasUnread = notificationsList.some((n) => !n.isRead);
-
-      setUserContext({
-        hasUnreadNotifications: hasUnread,
-      });
-    }
 
     return notificationsList;
   }, [fetcher.data, readIds]);

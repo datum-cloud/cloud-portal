@@ -1,13 +1,14 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { NoteCard } from '@/components/note-card/note-card';
 import { NameserverTable } from '@/features/edge/dns-zone/overview/nameservers';
+import { useFetcherWithToast } from '@/hooks/useFetcherWithToast';
 import { useIsPending } from '@/hooks/useIsPending';
 import { IDnsNameserver } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
-import { Button, Col, Row, Tooltip, toast } from '@datum-ui/components';
+import { Button, Col, Row, Tooltip } from '@datum-ui/components';
 import { InfoIcon, RefreshCcwIcon } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
-import { useFetcher, useParams, useRouteLoaderData } from 'react-router';
+import { useMemo } from 'react';
+import { useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Nameservers</span>,
@@ -17,8 +18,14 @@ export default function DnsZoneNameserversPage() {
   const { dnsZone, domain } = useRouteLoaderData('dns-zone-detail');
 
   const { projectId } = useParams();
-  const refreshFetcher = useFetcher({ key: 'refresh-domain' });
-  const pending = useIsPending({ fetcherKey: 'refresh-domain' });
+  const refreshFetcher = useFetcherWithToast({
+    key: 'refresh-nameservers',
+    success: {
+      title: 'Nameservers refreshed successfully',
+      description: 'The Nameservers have been refreshed successfully',
+    },
+  });
+  const pending = useIsPending({ fetcherKey: 'refresh-nameservers' });
 
   const dnsHost = useMemo(() => {
     return domain?.status?.nameservers?.[0]?.ips?.[0]?.registrantName;
@@ -58,18 +65,6 @@ export default function DnsZoneNameserversPage() {
       }
     );
   };
-
-  useEffect(() => {
-    if (refreshFetcher.data && refreshFetcher.state === 'idle') {
-      if (refreshFetcher.data.success) {
-        toast.success('Nameservers refreshed successfully', {
-          description: 'The Nameservers have been refreshed successfully',
-        });
-      } else {
-        toast.error(refreshFetcher.data.error);
-      }
-    }
-  }, [refreshFetcher.data, refreshFetcher.state]);
 
   return (
     <Row gutter={[0, 32]}>

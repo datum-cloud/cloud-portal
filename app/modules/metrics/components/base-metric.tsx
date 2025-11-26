@@ -1,3 +1,4 @@
+import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { type PrometheusError } from '@/modules/prometheus';
 import { Alert, AlertDescription } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
@@ -77,11 +78,7 @@ export function BaseMetric({
 
     return (
       <div className="relative" style={containerStyle}>
-        {isFetching && !isLoading && (
-          <div className="bg-background/50 absolute inset-0 z-10 flex items-center justify-center rounded-lg backdrop-blur-sm">
-            <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
-          </div>
-        )}
+        {isFetching && !isLoading && <LoaderOverlay className="rounded-lg" />}
         {children}
       </div>
     );

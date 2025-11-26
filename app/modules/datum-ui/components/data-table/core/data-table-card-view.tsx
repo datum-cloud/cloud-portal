@@ -33,7 +33,7 @@ export const DataTableCardView = <TData,>({
       {table.getRowModel().rows.length > 0 ? (
         <>
           {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id} className="border-none hover:bg-transparent">
+            <TableRow key={row.id} className="relative border-none hover:bg-transparent">
               <TableCell
                 colSpan={columns.length + (rowActions.length > 0 ? 1 : 0)}
                 className={cn('p-0 pb-4', !hideHeader && 'first:pt-3')}>

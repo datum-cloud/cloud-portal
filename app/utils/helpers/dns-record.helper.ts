@@ -1,8 +1,5 @@
 import { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-plane/dns-networking';
-import {
-  ControlPlaneStatus,
-  IExtendedControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface';
+import { IExtendedControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import {
   IDnsRecordSetControlResponse,
   IDnsZoneDiscoveryRecordSet,

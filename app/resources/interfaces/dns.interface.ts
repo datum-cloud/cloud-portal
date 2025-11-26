@@ -4,11 +4,7 @@ import {
   ComMiloapisNetworkingDnsV1Alpha1DnsZoneDiscovery,
 } from '@/modules/control-plane/dns-networking';
 import { ComDatumapisNetworkingV1AlphaDomain } from '@/modules/control-plane/networking';
-import {
-  ControlPlaneStatus,
-  IControlPlaneStatus,
-  IExtendedControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface';
+import { IExtendedControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 
 // ============================================
 // DNS Zone Interfaces
@@ -23,6 +19,7 @@ export interface IDnsZoneControlResponse {
   description?: string;
   dnsZoneClassName?: string;
   status?: ComMiloapisNetworkingDnsV1Alpha1DnsZone['status'];
+  deletionTimestamp?: Date;
 }
 
 // ============================================

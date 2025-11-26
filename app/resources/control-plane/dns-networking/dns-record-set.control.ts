@@ -9,14 +9,9 @@ import {
   readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsRecordSetStatus,
 } from '@/modules/control-plane/dns-networking';
 import {
-  IControlPlaneStatus,
-  IExtendedControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface';
-import {
   IDnsRecordSetControlResponse,
   IFlattenedDnsRecord,
 } from '@/resources/interfaces/dns.interface';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { flattenDnsRecordSets } from '@/utils/helpers/dns-record.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { Client } from '@hey-api/client-axios';
