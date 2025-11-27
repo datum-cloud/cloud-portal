@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// DNS Record Types Enum
+// DNS Record Types Enum - Based on Cloudflare & Google Cloud DNS standards
 export const DNS_RECORD_TYPES = [
   'A',
   'AAAA',
@@ -22,14 +22,25 @@ export type DNSRecordType = (typeof DNS_RECORD_TYPES)[number];
 // Common validation helpers
 const ipv4Regex =
   /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-const ipv6Regex = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
+
+// IPv6 regex supporting all formats (full, compressed, IPv4-mapped)
+const ipv6Regex =
+  /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|::([fF]{4}(:0{1,4})?:)?((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))$/;
+
+// Domain regex - supports standard domains and trailing dot
 const domainRegex =
   /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.?$/;
+
 // SVCB/HTTPS target regex: allows single dot (.) OR valid domain name (RFC 9460)
 const svcbTargetRegex =
   /^(\.|(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.?)$/;
 
+// Hex string for TLSA certificate data
+const hexRegex = /^[0-9A-Fa-f]+$/;
+
 // TTL options in seconds - null/undefined means "Auto"
+// Cloudflare: 60-86400 (Enterprise zones allow 30 minimum)
+// Google Cloud: recommends 3600 (1 hour) or 86400 (1 day)
 export const TTL_OPTIONS = [
   { label: 'Auto', value: null },
   { label: '1 min', value: 60 },
@@ -50,9 +61,9 @@ export const baseRecordFieldSchema = z.object({
   name: z
     .string({ error: 'Name is required.' })
     .min(1, 'Name is required.')
-    .regex(/^(@|[_a-zA-Z0-9]([a-zA-Z0-9-_.]*[a-zA-Z0-9])?)$/, {
+    .regex(/^(@|\*|\*\.[a-zA-Z0-9._-]+|[*_a-zA-Z0-9]([a-zA-Z0-9-_.]*[a-zA-Z0-9])?)$/, {
       message:
-        'Name must be @ (root domain) or contain only alphanumeric characters, hyphens, underscores, and dots.',
+        'Name must be @ (root), * (wildcard), or contain alphanumeric characters, hyphens, underscores, and dots. Service records may start with underscore (e.g., _service._proto).',
     }),
   ttl: z
     .union([z.string(), z.number(), z.null(), z.undefined()])
@@ -78,26 +89,32 @@ export const aRecordDataSchema = z.object({
     .regex(ipv4Regex, { message: 'Invalid IPv4 address format.' }),
 });
 
-// AAAA Record - IPv6 addresses
+// AAAA Record - IPv6 addresses (supports all formats)
 export const aaaaRecordDataSchema = z.object({
-  content: z
-    .string({ error: 'IPv6 address is required.' })
-    .regex(ipv6Regex, { message: 'Invalid IPv6 address format.' }),
+  content: z.string({ error: 'IPv6 address is required.' }).regex(ipv6Regex, {
+    message: 'Invalid IPv6 address format (supports full, compressed, and IPv4-mapped formats).',
+  }),
 });
 
 // CNAME Record - Canonical name
+// Note: CNAME records cannot coexist with other record types on the same name
 export const cnameRecordDataSchema = z.object({
   content: z
     .string({ error: 'Target domain is required.' })
-    .regex(domainRegex, { message: 'Invalid domain name format.' }),
+    .regex(domainRegex, { message: 'Invalid domain name format.' })
+    .refine((val) => val !== '@', {
+      message: 'CNAME cannot point to @ (use A/AAAA record instead).',
+    }),
 });
 
 // TXT Record - Text content
+// Cloudflare: max 2,048 chars per record, max 8,192 total for same name
+// Google Cloud: Standard TXT record limits
 export const txtRecordDataSchema = z.object({
   content: z
     .string({ error: 'Text content is required.' })
     .min(1, 'Text content cannot be empty.')
-    .max(255, 'Text content cannot exceed 255 characters per string.'),
+    .max(2048, 'Text content cannot exceed 2,048 characters per record'),
 });
 
 // MX Record - Mail exchange
@@ -107,35 +124,45 @@ export const mxRecordDataSchema = z.object({
     .regex(domainRegex, { message: 'Invalid mail server domain.' }),
   preference: z.coerce
     .number({ error: 'Priority is required.' })
+    .int('Priority must be an integer.')
     .min(0, 'Priority must be 0 or greater.')
     .max(65535, 'Priority must be less than 65536.'),
 });
 
 // SRV Record - Service locator
+// Format: _service._proto.name
 export const srvRecordDataSchema = z.object({
   target: z
     .string({ error: 'Target server is required.' })
     .regex(domainRegex, { message: 'Invalid target domain.' }),
   port: z.coerce
     .number({ error: 'Port is required.' })
+    .int('Port must be an integer.')
     .min(1, 'Port must be between 1 and 65535.')
     .max(65535, 'Port must be between 1 and 65535.'),
   priority: z.coerce
     .number({ error: 'Priority is required.' })
+    .int('Priority must be an integer.')
     .min(0, 'Priority must be 0 or greater.')
     .max(65535, 'Priority must be less than 65536.'),
   weight: z.coerce
     .number({ error: 'Weight is required.' })
+    .int('Weight must be an integer.')
     .min(0, 'Weight must be 0 or greater.')
     .max(65535, 'Weight must be less than 65536.'),
 });
 
 // CAA Record - Certification Authority Authorization
+// Tags: issue, issuewild, iodef (RFC 8659)
 export const caaRecordDataSchema = z.object({
   flag: z.coerce
     .number({ error: 'Flag is required.' })
-    .min(0, 'Flag must be 0 or greater.')
-    .max(255, 'Flag must be less than 256.'),
+    .int('Flag must be an integer.')
+    .min(0, 'Flag must be 0 (non-critical) or 128 (critical).')
+    .max(255, 'Flag must be less than 256.')
+    .refine((val) => val === 0 || val === 128, {
+      message: 'Flag should typically be 0 (non-critical) or 128 (critical).',
+    }),
   tag: z.enum(['issue', 'issuewild', 'iodef'], {
     error: 'Tag must be one of: issue, issuewild, iodef.',
   }),
@@ -150,90 +177,114 @@ export const nsRecordDataSchema = z.object({
 });
 
 // SOA Record - Start of Authority
+// Note: Email format uses dots instead of @ (admin@example.com becomes admin.example.com)
 export const soaRecordDataSchema = z.object({
   mname: z
     .string({ error: 'Primary nameserver is required.' })
     .regex(domainRegex, { message: 'Invalid primary nameserver domain.' }),
   rname: z
     .string({ error: 'Responsible email is required.' })
-    .regex(/^[a-zA-Z0-9._%+-]+\.[a-zA-Z]{2,}$/, {
-      message: 'Invalid email format (use dot instead of @).',
+    .regex(/^[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+\.[a-zA-Z]{2,}\.?$/, {
+      message: 'Invalid email format. Use dot notation: admin.example.com (not admin@example.com)',
     }),
-  serial: z.coerce.number().optional(),
+  serial: z.coerce.number().int('Serial must be an integer.').optional(),
   refresh: z.coerce
     .number()
+    .int('Refresh must be an integer.')
     .optional()
     .refine((val) => !val || val >= 1200, {
-      message: 'Refresh must be at least 1200 seconds.',
+      message: 'Refresh must be at least 1200 seconds (20 minutes).',
     }),
   retry: z.coerce
     .number()
+    .int('Retry must be an integer.')
     .optional()
     .refine((val) => !val || val >= 600, {
-      message: 'Retry must be at least 600 seconds.',
+      message: 'Retry must be at least 600 seconds (10 minutes).',
     }),
   expire: z.coerce
     .number()
+    .int('Expire must be an integer.')
     .optional()
     .refine((val) => !val || val >= 604800, {
       message: 'Expire must be at least 604800 seconds (7 days).',
     }),
   ttl: z.coerce
     .number()
+    .int('TTL must be an integer.')
     .optional()
     .refine((val) => !val || (val >= 60 && val <= 86400), {
       message: 'TTL must be between 60 and 86400 seconds.',
     }),
 });
 
-// PTR Record - Pointer
+// PTR Record - Pointer (reverse DNS)
 export const ptrRecordDataSchema = z.object({
   content: z
     .string({ error: 'Target domain is required.' })
     .regex(domainRegex, { message: 'Invalid domain name format.' }),
 });
 
-// TLSA Record - TLS Authentication
+// TLSA Record - TLS Authentication (RFC 6698)
+// Format: _port._protocol.hostname
+// Usage: 0-3, Selector: 0-1, Matching Type: 0-2
 export const tlsaRecordDataSchema = z.object({
   usage: z.coerce
     .number({ error: 'Usage is required.' })
+    .int('Usage must be an integer.')
     .min(0, 'Usage must be between 0 and 3.')
     .max(3, 'Usage must be between 0 and 3.'),
   selector: z.coerce
     .number({ error: 'Selector is required.' })
-    .min(0, 'Selector must be 0 or 1.')
-    .max(1, 'Selector must be 0 or 1.'),
+    .int('Selector must be an integer.')
+    .min(0, 'Selector must be 0 (Full cert) or 1 (SubjectPublicKeyInfo).')
+    .max(1, 'Selector must be 0 (Full cert) or 1 (SubjectPublicKeyInfo).'),
   matchingType: z.coerce
     .number({ error: 'Matching type is required.' })
+    .int('Matching type must be an integer.')
     .min(0, 'Matching type must be between 0 and 2.')
     .max(2, 'Matching type must be between 0 and 2.'),
   certData: z
     .string({ error: 'Certificate data is required.' })
-    .regex(/^[0-9A-Fa-f]+$/, { message: 'Certificate data must be hexadecimal.' }),
+    .min(1, 'Certificate data cannot be empty.')
+    .regex(hexRegex, { message: 'Certificate data must be hexadecimal (0-9, A-F).' }),
 });
 
-// HTTPS Record - HTTPS service binding
+// HTTPS Record - HTTPS service binding (RFC 9460)
+// Priority 0 = alias mode, >0 = service mode
 export const httpsRecordDataSchema = z.object({
   priority: z.coerce
     .number({ error: 'Priority is required.' })
+    .int('Priority must be an integer.')
     .min(0, 'Priority must be 0 or greater.')
     .max(65535, 'Priority must be less than 65536.'),
-  target: z
-    .string({ error: 'Target is required.' })
-    .regex(svcbTargetRegex, { message: 'Invalid target (use . or valid domain name).' }),
-  params: z.string().optional(), // String format: key="value" key2="value2"
+  target: z.string({ error: 'Target is required.' }).regex(svcbTargetRegex, {
+    message: 'Invalid target. Use . (current origin) or valid domain name.',
+  }),
+  params: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^([a-z0-9-]+(=[^"\s]+)?(\s+|$))*$/.test(val.trim()), {
+      message: 'Params must be in format: key=value key2=value2 (e.g., alpn=h3,h2 port=443)',
+    }),
 });
 
-// SVCB Record - Service binding
+// SVCB Record - Service binding (RFC 9460)
 export const svcbRecordDataSchema = z.object({
   priority: z.coerce
     .number({ error: 'Priority is required.' })
+    .int('Priority must be an integer.')
     .min(0, 'Priority must be 0 or greater.')
     .max(65535, 'Priority must be less than 65536.'),
-  target: z
-    .string({ error: 'Target is required.' })
-    .regex(svcbTargetRegex, { message: 'Invalid target (use . or valid domain name).' }),
-  params: z.string().optional(), // String format: key="value" key2="value2"
+  target: z.string({ error: 'Target is required.' }).regex(svcbTargetRegex, {
+    message: 'Invalid target. Use . (current origin) or valid domain name.',
+  }),
+  params: z
+    .string()
+    .optional()
+    .refine((val) => !val || /^([a-z0-9-]+(=[^"\s]+)?(\s+|$))*$/.test(val.trim()), {
+      message: 'Params must be in format: key=value key2=value2',
+    }),
 });
 
 // Individual record schemas (combining base + type-specific)

@@ -9,7 +9,7 @@ import { SearchFilter } from './components/search';
 import { SelectFilter } from './components/select';
 import { TagFilter } from './components/tag';
 import { Button } from '@datum-ui/components';
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '@datum-ui/components';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronDown, Filter, RotateCcw } from 'lucide-react';

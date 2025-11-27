@@ -75,9 +75,7 @@ const arrayOrFilter: FilterFn<any> = <TData,>(
   // If filter value is a string (single select or search)
   if (typeof filterValue === 'string') {
     if (Array.isArray(cellValue)) {
-      return cellValue.some((val) =>
-        String(val).toLowerCase().includes(filterValue.toLowerCase())
-      );
+      return cellValue.some((val) => String(val).toLowerCase().includes(filterValue.toLowerCase()));
     }
     return String(cellValue).toLowerCase().includes(filterValue.toLowerCase());
   }
