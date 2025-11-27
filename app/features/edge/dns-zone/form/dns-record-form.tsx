@@ -54,6 +54,7 @@ interface DnsRecordFormProps {
   onClose: () => void;
   onSuccess?: () => void;
   isPending?: boolean;
+  testMode?: boolean; // Enable test mode: disables type selector and hides submit button
 }
 
 export function DnsRecordForm({
@@ -70,6 +71,7 @@ export function DnsRecordForm({
   onClose,
   onSuccess,
   isPending = false,
+  testMode = false,
 }: DnsRecordFormProps) {
   const csrf = useAuthenticityToken();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,7 +97,7 @@ export function DnsRecordForm({
   };
 
   const [form, fields] = useForm<CreateDnsRecordSchema>({
-    id: 'dns-record-form',
+    id: testMode ? `dns-record-form-${defaultValue?.recordType || 'A'}` : 'dns-record-form',
     constraint: getZodConstraint(createDnsRecordSchema),
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
@@ -214,6 +216,7 @@ export function DnsRecordForm({
                 value: kind,
                 label: kind,
               }))}
+              disabled={testMode}
             />
           </Field>
 
@@ -260,37 +263,39 @@ export function DnsRecordForm({
           {renderTypeSpecificFields}
         </div>
 
-        {/* Form Actions */}
-        <div
-          className={cn(
-            'flex items-center justify-start pt-5',
-            style === 'modal' && 'w-full justify-end gap-2 pt-0'
-          )}>
-          {style === 'modal' && (
+        {/* Form Actions - Hidden in test mode */}
+        {!testMode && (
+          <div
+            className={cn(
+              'flex items-center justify-start pt-5',
+              style === 'modal' && 'w-full justify-end gap-2 pt-0'
+            )}>
+            {style === 'modal' && (
+              <Button
+                htmlType="button"
+                type="quaternary"
+                theme="borderless"
+                onClick={onClose}
+                disabled={loading}>
+                Cancel
+              </Button>
+            )}
             <Button
-              htmlType="button"
-              type="quaternary"
-              theme="borderless"
-              onClick={onClose}
-              disabled={loading}>
-              Cancel
+              htmlType="submit"
+              disabled={loading}
+              loading={loading && style === 'modal'}
+              className="h-10"
+              type="secondary">
+              {loading && style === 'modal'
+                ? mode === 'create'
+                  ? 'Adding'
+                  : 'Saving'
+                : mode === 'create'
+                  ? 'Add'
+                  : 'Save'}
             </Button>
-          )}
-          <Button
-            htmlType="submit"
-            disabled={loading}
-            loading={loading && style === 'modal'}
-            className="h-10"
-            type="secondary">
-            {loading && style === 'modal'
-              ? mode === 'create'
-                ? 'Adding'
-                : 'Saving'
-              : mode === 'create'
-                ? 'Add'
-                : 'Save'}
-          </Button>
-        </div>
+          </div>
+        )}
       </Form>
     </FormProvider>
   );

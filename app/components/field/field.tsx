@@ -42,7 +42,9 @@ export const Field = ({
             errors.length > 1 && 'list-disc pl-4'
           )}>
           {errors.map((error) => (
-            <li key={error}>{error}</li>
+            <li key={error} className="text-wrap">
+              {error}
+            </li>
           ))}
         </ul>
       )}
