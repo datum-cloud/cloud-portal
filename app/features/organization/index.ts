@@ -10,4 +10,3 @@ export { OrganizationListCard as OrganizationListCardLegacy } from './list-card'
 // Settings components
 export * from './settings/danger-card';
 export * from './settings/general-card';
-export * from './settings/label-card';

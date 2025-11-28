@@ -1,21 +1,6 @@
-import { Field } from '@/components/field/field';
 import { InputName } from '@/components/input-name/input-name';
-import { TextCopyBox } from '@/components/text-copy/text-copy-box';
-import { useIsPending } from '@/hooks/useIsPending';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { organizationSchema } from '@/resources/schemas/organization.schema';
 import { paths } from '@/utils/config/paths.config';
-import { convertObjectToLabels } from '@/utils/helpers/object.helper';
-import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
-import {
-  FormProvider,
-  getFormProps,
-  getInputProps,
-  useForm,
-  useInputControl,
-} from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
-import { Button } from '@datum-ui/components';
 import {
   Card,
   CardContent,
@@ -24,126 +9,56 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
-import { Input } from '@datum-ui/components';
-import { cn } from '@shadcn/lib/utils';
-import { useEffect, useMemo, useRef } from 'react';
-import { Form, useNavigate } from 'react-router';
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
-import { useHydrated } from 'remix-utils/use-hydrated';
+import { Form } from '@datum-ui/new-form';
+import { useNavigate } from 'react-router';
 
-export const OrganizationForm = ({ defaultValue }: { defaultValue?: IOrganization }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const isHydrated = useHydrated();
-  const isPending = useIsPending();
+export const OrganizationForm = () => {
   const navigate = useNavigate();
-
-  const [form, { name, description }] = useForm({
-    constraint: getZodConstraint(organizationSchema),
-    shouldValidate: 'onBlur',
-    shouldRevalidate: 'onInput',
-    onValidate({ formData }) {
-      return parseWithZod(formData, { schema: organizationSchema });
-    },
-    defaultValue: {
-      name: '',
-      description: '',
-    },
-  });
-
-  useEffect(() => {
-    isHydrated && inputRef.current?.focus();
-  }, [isHydrated]);
-
-  const randomSuffix = useMemo(() => generateRandomString(6), []);
-
-  const nameControl = useInputControl(name);
-
-  const isEdit = useMemo(() => defaultValue?.name !== undefined, [defaultValue]);
-
-  useEffect(() => {
-    if (defaultValue) {
-      form.update({
-        value: {
-          name: defaultValue.name,
-          description: defaultValue.displayName,
-          labels: convertObjectToLabels(defaultValue.labels ?? {}),
-        },
-      });
-    }
-  }, [defaultValue]);
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isEdit ? 'Edit organization' : 'Create a new Standard organization'}</CardTitle>
-        <CardDescription>
-          {isEdit
-            ? 'Update the organization details to manage projects in Datum Cloud.'
-            : 'Ideal for teams with features likes groups, RBAC, etc.'}
-        </CardDescription>
+        <CardTitle>Create a new Standard organization</CardTitle>
+        <CardDescription>Ideal for teams with features likes groups, RBAC, etc.</CardDescription>
       </CardHeader>
-      <FormProvider context={form.context}>
-        <Form
-          method="POST"
-          autoComplete="off"
-          {...getFormProps(form)}
-          className="mt-6 flex flex-col gap-10">
-          <AuthenticityTokenInput />
+      <Form.Root
+        schema={organizationSchema}
+        defaultValues={{
+          name: '',
+          description: '',
+        }}
+        className="mt-6 flex flex-col gap-10">
+        <CardContent className="space-y-10">
+          <div className="flex flex-col gap-10">
+            {/* Description field with auto-generate name functionality */}
+            <Form.Field
+              name="description"
+              label="Description"
+              description="Enter a short, human-friendly name. Can be changed later."
+              required>
+              <Form.Input placeholder="e.g. My Organization" autoFocus />
+            </Form.Field>
 
-          <CardContent className="space-y-10">
-            {isEdit && (
-              <input type="hidden" name="resourceVersion" value={defaultValue?.resourceVersion} />
-            )}
-            <div className={cn('flex gap-10', isEdit ? 'flex-col-reverse' : 'flex-col')}>
-              <Field
-                isRequired
-                label="Description"
-                description="Enter a short, human-friendly name. Can be changed later."
-                errors={description.errors}>
-                <Input
-                  placeholder="e.g. My Organization"
-                  ref={inputRef}
-                  onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                    const value = (e.target as HTMLInputElement).value;
-
-                    if (value && !isEdit) {
-                      nameControl.change(generateId(value, { randomText: randomSuffix }));
-                    }
-                  }}
-                  {...getInputProps(description, { type: 'text' })}
+            {/* Resource name field using InputName component */}
+            <Form.Field name="name">
+              {({ field, fields }) => (
+                <InputName
+                  required
+                  description="This unique resource name will be used to identify your organization and cannot be changed."
+                  field={field}
+                  baseName={fields.description?.value as string}
                 />
-              </Field>
-              <InputName
-                required
-                description="This unique resource name will be used to identify your organization and cannot be changed."
-                field={name}
-                baseName={description.value}
-              />
-              {isEdit && (
-                <Field label="ID">
-                  <TextCopyBox value={defaultValue?.uid ?? ''} />
-                </Field>
               )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end gap-2">
-            {!isEdit && (
-              <Button
-                type="quaternary"
-                theme="borderless"
-                disabled={isPending}
-                onClick={() => {
-                  navigate(paths.account.organizations.root);
-                }}>
-                Return to List
-              </Button>
-            )}
-            <Button htmlType="submit" disabled={isPending} loading={isPending}>
-              {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
-            </Button>
-          </CardFooter>
-        </Form>
-      </FormProvider>
+            </Form.Field>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end gap-2">
+          <Form.Button onClick={() => navigate(paths.account.organizations.root)}>
+            Return to List
+          </Form.Button>
+          <Form.Submit loadingText="Creating">Create</Form.Submit>
+        </CardFooter>
+      </Form.Root>
     </Card>
   );
 };
