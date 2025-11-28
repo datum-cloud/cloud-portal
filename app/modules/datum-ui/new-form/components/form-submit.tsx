@@ -1,10 +1,10 @@
 'use client';
 
-import * as React from 'react';
-import { cn } from '@shadcn/lib/utils';
-import { Button } from '@datum-ui/components';
 import { useFormContext } from '../context/form-context';
 import type { FormSubmitProps } from '../types';
+import { Button } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
+import * as React from 'react';
 
 /**
  * Form.Submit - Submit button with automatic loading state
@@ -36,8 +36,7 @@ export function FormSubmit({
       size={size}
       disabled={isDisabled}
       loading={isSubmitting}
-      className={cn(className)}
-    >
+      className={cn(className)}>
       {isSubmitting && loadingText ? loadingText : children}
     </Button>
   );

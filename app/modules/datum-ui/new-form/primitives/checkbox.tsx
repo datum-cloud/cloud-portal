@@ -6,13 +6,7 @@ const Checkbox = React.forwardRef<
   React.ElementRef<typeof ShadcnCheckbox>,
   React.ComponentProps<typeof ShadcnCheckbox>
 >(({ className, ...props }, ref) => {
-  return (
-    <ShadcnCheckbox
-      ref={ref}
-      className={cn(className)}
-      {...props}
-    />
-  );
+  return <ShadcnCheckbox ref={ref} className={cn(className)} {...props} />;
 });
 
 Checkbox.displayName = 'Checkbox';

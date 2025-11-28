@@ -1,9 +1,9 @@
 'use client';
 
-import * as React from 'react';
-import { cn } from '@shadcn/lib/utils';
 import { useOptionalFieldContext } from '../context/field-context';
 import type { FormDescriptionProps } from '../types';
+import { cn } from '@shadcn/lib/utils';
+import * as React from 'react';
 
 /**
  * Form.Description - Display field description/helper text
@@ -23,10 +23,7 @@ export function FormDescription({ children, className }: FormDescriptionProps) {
   const id = fieldContext ? `${fieldContext.id}-description` : undefined;
 
   return (
-    <p
-      id={id}
-      className={cn('text-xs text-muted-foreground text-wrap', className)}
-    >
+    <p id={id} className={cn('text-muted-foreground text-xs text-wrap', className)}>
       {children}
     </p>
   );

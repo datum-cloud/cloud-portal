@@ -150,20 +150,17 @@ export function FormField({
     return current;
   }, [fields, name]);
 
-  if (!fieldMeta) {
-    console.warn(`Form.Field: Field "${name}" not found in form schema`);
-    return null;
-  }
-
-  const errors = fieldMeta.errors;
+  // Derive values from fieldMeta (may be undefined)
+  const errors = fieldMeta?.errors;
   const hasErrors = errors && errors.length > 0;
-  const fieldId = fieldMeta.id;
+  const fieldId = fieldMeta?.id ?? '';
   const descriptionId = description ? `${fieldId}-description` : undefined;
   const errorId = hasErrors ? `${fieldId}-error` : undefined;
 
+  // Context value - defined before early return to follow hooks rules
   const contextValue: FormFieldContextValue = React.useMemo(
     () => ({
-      name: fieldMeta.name,
+      name: fieldMeta?.name ?? '',
       id: fieldId,
       errors,
       required,
@@ -172,6 +169,12 @@ export function FormField({
     }),
     [fieldMeta, fieldId, errors, required, disabled]
   );
+
+  // Early return after all hooks
+  if (!fieldMeta) {
+    console.warn(`Form.Field: Field "${name}" not found in form schema`);
+    return null;
+  }
 
   // Determine if children is a render function
   const isRenderFunction = typeof children === 'function';

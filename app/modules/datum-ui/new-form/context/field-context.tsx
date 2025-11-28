@@ -1,8 +1,7 @@
 'use client';
 
-import * as React from 'react';
-import type { FieldMetadata } from '@conform-to/react';
 import type { FormFieldContextValue } from '../types';
+import * as React from 'react';
 
 const FieldContext = React.createContext<FormFieldContextValue | null>(null);
 
@@ -21,7 +20,7 @@ export function useFieldContext(): FormFieldContextValue {
   if (!context) {
     throw new Error(
       'useFieldContext must be used within a Form.Field component. ' +
-      'Make sure your input component is wrapped with Form.Field.'
+        'Make sure your input component is wrapped with Form.Field.'
     );
   }
 

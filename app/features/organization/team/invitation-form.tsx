@@ -10,13 +10,36 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
-import { Form } from '@datum-ui/new-form';
+import { Form, type FormFieldRenderProps } from '@datum-ui/new-form';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
 // Email validator for individual email tags
 const emailValidator = z.email({ error: 'Please enter a valid email address' });
+
+/**
+ * RoleFieldContent - Extracted component to properly use hooks
+ * This is needed because useInputControl cannot be called inside a callback
+ */
+const RoleFieldContent = ({ control, meta, fields }: FormFieldRenderProps) => {
+  const roleNamespaceControl = useInputControl(fields.roleNamespace as any);
+  const roleValue = Array.isArray(control.value) ? control.value[0] : control.value;
+
+  return (
+    <SelectRole
+      {...getSelectProps(fields.role)}
+      name={meta.name}
+      id={meta.id}
+      key={meta.id}
+      defaultValue={roleValue}
+      onSelect={(value) => {
+        control.change(value.value);
+        roleNamespaceControl.change(value.namespace ?? '');
+      }}
+    />
+  );
+};
 
 export const InvitationForm = () => {
   const navigate = useNavigate();
@@ -39,28 +62,9 @@ export const InvitationForm = () => {
         }}
         className="mt-6 flex flex-col gap-10">
         <CardContent className="space-y-10">
-          {/* Role field with render function pattern */}
+          {/* Role field with extracted component for proper hooks usage */}
           <Form.Field name="role" label="Role" required>
-            {({ control, meta, fields }) => {
-              const roleNamespaceControl = useInputControl(fields.roleNamespace as any);
-              const roleValue = Array.isArray(control.value)
-                ? control.value[0]
-                : control.value;
-
-              return (
-                <SelectRole
-                  {...getSelectProps(fields.role)}
-                  name={meta.name}
-                  id={meta.id}
-                  key={meta.id}
-                  defaultValue={roleValue}
-                  onSelect={(value) => {
-                    control.change(value.value);
-                    roleNamespaceControl.change(value.namespace ?? '');
-                  }}
-                />
-              );
-            }}
+            {(props) => <RoleFieldContent {...props} />}
           </Form.Field>
 
           {/* Emails field with render function pattern */}

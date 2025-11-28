@@ -1,12 +1,12 @@
 'use client';
 
-import * as React from 'react';
-import { useInputControl } from '@conform-to/react';
-import { cn } from '@shadcn/lib/utils';
 import { useFieldContext } from '../context/field-context';
 import { Checkbox } from '../primitives/checkbox';
 import { Label } from '../primitives/label';
 import type { FormCheckboxProps } from '../types';
+import { useInputControl } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
+import * as React from 'react';
 
 /**
  * Form.Checkbox - Checkbox input component
@@ -20,11 +20,7 @@ import type { FormCheckboxProps } from '../types';
  * </Form.Field>
  * ```
  */
-export function FormCheckbox({
-  label,
-  disabled,
-  className,
-}: FormCheckboxProps) {
+export function FormCheckbox({ label, disabled, className }: FormCheckboxProps) {
   const { fieldMeta, disabled: fieldDisabled, errors } = useFieldContext();
 
   const control = useInputControl(fieldMeta as any);
@@ -55,10 +51,9 @@ export function FormCheckbox({
         <Label
           htmlFor={checkboxId}
           className={cn(
-            'text-sm font-normal cursor-pointer',
+            'cursor-pointer text-sm font-normal',
             isDisabled && 'cursor-not-allowed opacity-70'
-          )}
-        >
+          )}>
           {label}
         </Label>
       )}

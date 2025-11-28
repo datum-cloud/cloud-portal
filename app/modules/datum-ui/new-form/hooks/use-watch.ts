@@ -1,8 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import { useInputControl } from '@conform-to/react';
 import { useFormContext } from '../context/form-context';
+import { useInputControl } from '@conform-to/react';
+import * as React from 'react';
 
 /**
  * Hook to watch a field's value
@@ -81,9 +81,7 @@ export function useWatch<T = unknown>(name: string): T | undefined {
  * }
  * ```
  */
-export function useWatchAll<T extends Record<string, unknown>>(
-  names: string[]
-): Partial<T> {
+export function useWatchAll<T extends Record<string, unknown>>(names: string[]): Partial<T> {
   const { fields } = useFormContext();
 
   return React.useMemo(() => {

@@ -1,9 +1,9 @@
 'use client';
 
-import * as React from 'react';
-import { cn } from '@shadcn/lib/utils';
 import { useStepperContext } from '../../context/stepper-context';
 import type { StepperNavigationProps } from '../../types';
+import { cn } from '@shadcn/lib/utils';
+import * as React from 'react';
 
 /**
  * Form.StepperNavigation - Step indicators/progress
@@ -27,8 +27,7 @@ export function StepperNavigation({
         'flex',
         variant === 'horizontal' ? 'flex-row items-start' : 'flex-col',
         className
-      )}
-    >
+      )}>
       {steps.map((step, index) => {
         const isActive = index === currentIndex;
         const isCompleted = index < currentIndex;
@@ -40,13 +39,9 @@ export function StepperNavigation({
             className={cn(
               'flex',
               variant === 'horizontal'
-                ? cn(
-                    'flex-1 items-center',
-                    labelOrientation === 'vertical' && 'flex-col'
-                  )
+                ? cn('flex-1 items-center', labelOrientation === 'vertical' && 'flex-col')
                 : 'flex-row items-start'
-            )}
-          >
+            )}>
             {/* Step indicator */}
             <div className="flex items-center">
               <div
@@ -56,21 +51,15 @@ export function StepperNavigation({
                   isCompleted && 'border-primary bg-primary text-primary-foreground',
                   !isActive && !isCompleted && 'border-muted-foreground/30 text-muted-foreground'
                 )}
-                aria-current={isActive ? 'step' : undefined}
-              >
+                aria-current={isActive ? 'step' : undefined}>
                 {isCompleted ? (
                   <svg
                     className="h-4 w-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5 13l4 4L19 7"
-                    />
+                    strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
                   index + 1
@@ -81,7 +70,7 @@ export function StepperNavigation({
               {variant === 'horizontal' && !isLast && labelOrientation !== 'vertical' && (
                 <div
                   className={cn(
-                    'mx-2 h-0.5 flex-1 min-w-8',
+                    'mx-2 h-0.5 min-w-8 flex-1',
                     isCompleted ? 'bg-primary' : 'bg-muted-foreground/30'
                   )}
                 />
@@ -96,22 +85,18 @@ export function StepperNavigation({
                   : variant === 'vertical'
                     ? 'ml-3 pb-8'
                     : 'ml-2'
-              )}
-            >
+              )}>
               <span
                 className={cn(
                   'text-sm font-medium',
                   isActive && 'text-foreground',
                   isCompleted && 'text-foreground',
                   !isActive && !isCompleted && 'text-muted-foreground'
-                )}
-              >
+                )}>
                 {step.label}
               </span>
               {step.description && (
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {step.description}
-                </p>
+                <p className="text-muted-foreground mt-0.5 text-xs">{step.description}</p>
               )}
             </div>
 
@@ -119,7 +104,7 @@ export function StepperNavigation({
             {variant === 'horizontal' && !isLast && labelOrientation === 'vertical' && (
               <div
                 className={cn(
-                  'mt-4 h-0.5 flex-1 mx-2',
+                  'mx-2 mt-4 h-0.5 flex-1',
                   isCompleted ? 'bg-primary' : 'bg-muted-foreground/30'
                 )}
               />
@@ -129,7 +114,7 @@ export function StepperNavigation({
             {variant === 'vertical' && !isLast && (
               <div
                 className={cn(
-                  'ml-4 w-0.5 flex-1 min-h-8',
+                  'ml-4 min-h-8 w-0.5 flex-1',
                   isCompleted ? 'bg-primary' : 'bg-muted-foreground/30'
                 )}
               />

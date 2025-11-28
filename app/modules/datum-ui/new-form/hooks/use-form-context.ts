@@ -19,6 +19,8 @@ import type { FormContextValue } from '../types';
  * }
  * ```
  */
-export function useFormContext<T extends Record<string, unknown> = Record<string, unknown>>(): FormContextValue<T> {
+export function useFormContext<
+  T extends Record<string, unknown> = Record<string, unknown>,
+>(): FormContextValue<T> {
   return useFormContextInternal<T>();
 }

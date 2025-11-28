@@ -1,8 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import type { FormMetadata, FieldMetadata } from '@conform-to/react';
 import type { FormContextValue } from '../types';
+import type { FieldMetadata } from '@conform-to/react';
+import * as React from 'react';
 
 const FormContext = React.createContext<FormContextValue | null>(null);
 
@@ -15,7 +15,9 @@ export function FormProvider({ children, value }: FormProviderProps) {
   return <FormContext.Provider value={value}>{children}</FormContext.Provider>;
 }
 
-export function useFormContext<T extends Record<string, unknown> = Record<string, unknown>>(): FormContextValue<T> {
+export function useFormContext<
+  T extends Record<string, unknown> = Record<string, unknown>,
+>(): FormContextValue<T> {
   const context = React.useContext(FormContext);
 
   if (!context) {

@@ -21,13 +21,7 @@ const SelectGroup = React.forwardRef<
   React.ElementRef<typeof ShadcnSelectGroup>,
   React.ComponentProps<typeof ShadcnSelectGroup>
 >(({ className, ...props }, ref) => {
-  return (
-    <ShadcnSelectGroup
-      ref={ref}
-      className={cn(className)}
-      {...props}
-    />
-  );
+  return <ShadcnSelectGroup ref={ref} className={cn(className)} {...props} />;
 });
 
 SelectGroup.displayName = 'SelectGroup';
@@ -62,13 +56,7 @@ const SelectContent = React.forwardRef<
   React.ElementRef<typeof ShadcnSelectContent>,
   React.ComponentProps<typeof ShadcnSelectContent>
 >(({ className, ...props }, ref) => {
-  return (
-    <ShadcnSelectContent
-      ref={ref}
-      className={cn(className)}
-      {...props}
-    />
-  );
+  return <ShadcnSelectContent ref={ref} className={cn(className)} {...props} />;
 });
 
 SelectContent.displayName = 'SelectContent';
@@ -77,13 +65,7 @@ const SelectLabel = React.forwardRef<
   React.ElementRef<typeof ShadcnSelectLabel>,
   React.ComponentProps<typeof ShadcnSelectLabel>
 >(({ className, ...props }, ref) => {
-  return (
-    <ShadcnSelectLabel
-      ref={ref}
-      className={cn(className)}
-      {...props}
-    />
-  );
+  return <ShadcnSelectLabel ref={ref} className={cn(className)} {...props} />;
 });
 
 SelectLabel.displayName = 'SelectLabel';
@@ -92,13 +74,7 @@ const SelectItem = React.forwardRef<
   React.ElementRef<typeof ShadcnSelectItem>,
   React.ComponentProps<typeof ShadcnSelectItem>
 >(({ className, ...props }, ref) => {
-  return (
-    <ShadcnSelectItem
-      ref={ref}
-      className={cn(className)}
-      {...props}
-    />
-  );
+  return <ShadcnSelectItem ref={ref} className={cn(className)} {...props} />;
 });
 
 SelectItem.displayName = 'SelectItem';
@@ -107,13 +83,7 @@ const SelectSeparator = React.forwardRef<
   React.ElementRef<typeof ShadcnSelectSeparator>,
   React.ComponentProps<typeof ShadcnSelectSeparator>
 >(({ className, ...props }, ref) => {
-  return (
-    <ShadcnSelectSeparator
-      ref={ref}
-      className={cn(className)}
-      {...props}
-    />
-  );
+  return <ShadcnSelectSeparator ref={ref} className={cn(className)} {...props} />;
 });
 
 SelectSeparator.displayName = 'SelectSeparator';
@@ -122,13 +92,7 @@ const SelectScrollUpButton = React.forwardRef<
   React.ElementRef<typeof ShadcnSelectScrollUpButton>,
   React.ComponentProps<typeof ShadcnSelectScrollUpButton>
 >(({ className, ...props }, ref) => {
-  return (
-    <ShadcnSelectScrollUpButton
-      ref={ref}
-      className={cn(className)}
-      {...props}
-    />
-  );
+  return <ShadcnSelectScrollUpButton ref={ref} className={cn(className)} {...props} />;
 });
 
 SelectScrollUpButton.displayName = 'SelectScrollUpButton';
@@ -137,13 +101,7 @@ const SelectScrollDownButton = React.forwardRef<
   React.ElementRef<typeof ShadcnSelectScrollDownButton>,
   React.ComponentProps<typeof ShadcnSelectScrollDownButton>
 >(({ className, ...props }, ref) => {
-  return (
-    <ShadcnSelectScrollDownButton
-      ref={ref}
-      className={cn(className)}
-      {...props}
-    />
-  );
+  return <ShadcnSelectScrollDownButton ref={ref} className={cn(className)} {...props} />;
 });
 
 SelectScrollDownButton.displayName = 'SelectScrollDownButton';

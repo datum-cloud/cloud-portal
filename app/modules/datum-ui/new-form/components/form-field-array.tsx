@@ -1,9 +1,9 @@
 'use client';
 
-import * as React from 'react';
-import { useFormMetadata } from '@conform-to/react';
 import { useFormContext } from '../context/form-context';
 import type { FormFieldArrayProps, FormFieldArrayRenderProps } from '../types';
+import { useFormMetadata } from '@conform-to/react';
+import * as React from 'react';
 
 /**
  * Form.FieldArray - Dynamic array of fields
@@ -61,6 +61,47 @@ export function FormFieldArray({ name, children }: FormFieldArrayProps) {
     return current;
   }, [fields, name]);
 
+  // Get the array field name for callbacks (use empty string if not found)
+  const arrayFieldName = arrayField?.name ?? '';
+
+  // Append handler - defined before early return to follow hooks rules
+  const append = React.useCallback(
+    (value: Record<string, unknown> = {}) => {
+      if (!arrayFieldName) return;
+      form.insert({
+        name: arrayFieldName,
+        defaultValue: value as any,
+      });
+    },
+    [form, arrayFieldName]
+  );
+
+  // Remove handler - defined before early return to follow hooks rules
+  const remove = React.useCallback(
+    (index: number) => {
+      if (!arrayFieldName) return;
+      form.remove({
+        name: arrayFieldName,
+        index,
+      });
+    },
+    [form, arrayFieldName]
+  );
+
+  // Move handler - defined before early return to follow hooks rules
+  const move = React.useCallback(
+    (from: number, to: number) => {
+      if (!arrayFieldName) return;
+      form.reorder({
+        name: arrayFieldName,
+        from,
+        to,
+      });
+    },
+    [form, arrayFieldName]
+  );
+
+  // Early return after all hooks
   if (!arrayField) {
     console.warn(`Form.FieldArray: Field "${name}" not found in form schema`);
     return null;
@@ -76,40 +117,6 @@ export function FormFieldArray({ name, children }: FormFieldArrayProps) {
       key: field.key,
       name: `${name}.${index}`,
     })
-  );
-
-  // Append handler
-  const append = React.useCallback(
-    (value: Record<string, unknown> = {}) => {
-      form.insert({
-        name: arrayField.name,
-        defaultValue: value as any,
-      });
-    },
-    [form, arrayField.name]
-  );
-
-  // Remove handler
-  const remove = React.useCallback(
-    (index: number) => {
-      form.remove({
-        name: arrayField.name,
-        index,
-      });
-    },
-    [form, arrayField.name]
-  );
-
-  // Move handler
-  const move = React.useCallback(
-    (from: number, to: number) => {
-      form.reorder({
-        name: arrayField.name,
-        from,
-        to,
-      });
-    },
-    [form, arrayField.name]
   );
 
   const renderProps: FormFieldArrayRenderProps = {

@@ -1,14 +1,14 @@
 'use client';
 
-import * as React from 'react';
+import { FormProvider } from '../context/form-context';
+import type { FormRootProps, FormRootRenderProps } from '../types';
 import { FormProvider as ConformFormProvider, useForm, getFormProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { cn } from '@shadcn/lib/utils';
+import * as React from 'react';
 import { Form as RouterForm } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
-import { cn } from '@shadcn/lib/utils';
-import { FormProvider } from '../context/form-context';
 import type { z } from 'zod';
-import type { FormRootProps, FormContextValue } from '../types';
 
 /**
  * Form.Root - The root form component
@@ -19,19 +19,37 @@ import type { FormRootProps, FormContextValue } from '../types';
  * - Conform integration
  * - React Router form support
  *
- * @example
+ * Supports two patterns:
+ * 1. ReactNode children - for standard forms
+ * 2. Render function - for forms needing access to form state
+ *
+ * @example Standard usage
  * ```tsx
- * <Form.Root
- *   schema={userSchema}
- *   onSubmit={async (data) => {
- *     await saveUser(data);
- *   }}
- *   defaultValues={{ role: 'user' }}
- * >
+ * <Form.Root schema={userSchema} onSubmit={handleSubmit}>
  *   <Form.Field name="email" label="Email" required>
  *     <Form.Input type="email" />
  *   </Form.Field>
  *   <Form.Submit>Save</Form.Submit>
+ * </Form.Root>
+ * ```
+ *
+ * @example Render function for form state access
+ * ```tsx
+ * <Form.Root schema={userSchema} onSubmit={handleSubmit}>
+ *   {({ form, fields, isSubmitting }) => (
+ *     <>
+ *       <Form.Field name="email" label="Email" required>
+ *         <Form.Input type="email" />
+ *       </Form.Field>
+ *       <Button
+ *         disabled={isSubmitting}
+ *         onClick={() => form.update({ value: { email: '' } })}
+ *       >
+ *         Cancel
+ *       </Button>
+ *       <Form.Submit>Save</Form.Submit>
+ *     </>
+ *   )}
  * </Form.Root>
  * ```
  */
@@ -125,6 +143,29 @@ export function FormRoot<T extends z.ZodType>({
     [form, fields, isSubmitting, submit, reset]
   );
 
+  // Determine if children is a render function
+  const isRenderFunction = typeof children === 'function';
+
+  // Create render props for render function pattern
+  const renderProps: FormRootRenderProps = React.useMemo(
+    () => ({
+      form: form as any,
+      fields: fields as unknown as Record<string, any>,
+      isSubmitting,
+      submit,
+      reset,
+    }),
+    [form, fields, isSubmitting, submit, reset]
+  );
+
+  // Render children - either as ReactNode or render function
+  const renderChildren = () => {
+    if (isRenderFunction) {
+      return (children as (props: FormRootRenderProps) => React.ReactNode)(renderProps);
+    }
+    return children;
+  };
+
   return (
     <FormProvider value={contextValue}>
       <ConformFormProvider context={form.context}>
@@ -134,10 +175,9 @@ export function FormRoot<T extends z.ZodType>({
           method={method}
           action={action}
           className={cn('space-y-6', className)}
-          autoComplete="off"
-        >
+          autoComplete="off">
           <AuthenticityTokenInput />
-          {children}
+          {renderChildren()}
         </RouterForm>
       </ConformFormProvider>
     </FormProvider>

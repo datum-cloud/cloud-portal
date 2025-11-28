@@ -1,11 +1,11 @@
 'use client';
 
-import * as React from 'react';
-import { getTextareaProps } from '@conform-to/react';
-import { cn } from '@shadcn/lib/utils';
 import { useFieldContext } from '../context/field-context';
 import { Textarea } from '../primitives/textarea';
 import type { FormTextareaProps } from '../types';
+import { getTextareaProps } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
+import * as React from 'react';
 
 /**
  * Form.Textarea - Multi-line text input component
@@ -35,9 +35,7 @@ export const FormTextarea = React.forwardRef<HTMLTextAreaElement, FormTextareaPr
         rows={rows}
         disabled={isDisabled}
         aria-invalid={hasErrors || undefined}
-        aria-describedby={
-          hasErrors ? `${fieldMeta.id}-error` : undefined
-        }
+        aria-describedby={hasErrors ? `${fieldMeta.id}-error` : undefined}
         className={cn(className)}
       />
     );

@@ -1,14 +1,14 @@
 'use client';
 
-import * as React from 'react';
-import { FormProvider as ConformFormProvider, useForm, getFormProps } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
-import { Form as RouterForm } from 'react-router';
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
-import { cn } from '@shadcn/lib/utils';
 import { FormProvider } from '../../context/form-context';
 import { StepperProvider, useStepperContext } from '../../context/stepper-context';
 import type { FormStepperProps } from '../../types';
+import { FormProvider as ConformFormProvider, useForm, getFormProps } from '@conform-to/react';
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
+import { cn } from '@shadcn/lib/utils';
+import * as React from 'react';
+import { Form as RouterForm } from 'react-router';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 
 /**
  * Form.Stepper - Multi-step form container
@@ -53,16 +53,8 @@ export function FormStepper({
   className,
 }: FormStepperProps) {
   return (
-    <StepperProvider
-      steps={steps}
-      initialStep={initialStep}
-      onStepChange={onStepChange}
-    >
-      <StepperFormContent
-        steps={steps}
-        onComplete={onComplete}
-        className={className}
-      >
+    <StepperProvider steps={steps} initialStep={initialStep} onStepChange={onStepChange}>
+      <StepperFormContent steps={steps} onComplete={onComplete} className={className}>
         {children}
       </StepperFormContent>
     </StepperProvider>
@@ -79,12 +71,7 @@ interface StepperFormContentProps {
   className?: string;
 }
 
-function StepperFormContent({
-  steps,
-  children,
-  onComplete,
-  className,
-}: StepperFormContentProps) {
+function StepperFormContent({ steps, children, onComplete, className }: StepperFormContentProps) {
   const stepper = useStepperContext();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -97,7 +84,10 @@ function StepperFormContent({
     constraint: getZodConstraint(currentSchema),
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
-    defaultValue: stepper.getMetadata(stepper.current.id) as Record<string, string | null | undefined>,
+    defaultValue: stepper.getMetadata(stepper.current.id) as Record<
+      string,
+      string | null | undefined
+    >,
     onValidate({ formData }) {
       const result = parseWithZod(formData, { schema: currentSchema });
 
@@ -174,8 +164,7 @@ function StepperFormContent({
           {...getFormProps(form)}
           method="POST"
           className={cn('space-y-6', className)}
-          autoComplete="off"
-        >
+          autoComplete="off">
           <AuthenticityTokenInput />
           {children}
         </RouterForm>

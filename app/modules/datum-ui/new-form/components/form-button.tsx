@@ -1,9 +1,9 @@
 'use client';
 
-import * as React from 'react';
-import { Button } from '@datum-ui/components';
 import { useFormContext } from '../context/form-context';
 import type { FormButtonProps } from '../types';
+import { Button } from '@datum-ui/components';
+import * as React from 'react';
 
 /**
  * Form.Button - A button for non-submit actions within a form
@@ -44,8 +44,7 @@ export function FormButton({
       size={size}
       disabled={isDisabled}
       className={className}
-      onClick={onClick}
-    >
+      onClick={onClick}>
       {children}
     </Button>
   );

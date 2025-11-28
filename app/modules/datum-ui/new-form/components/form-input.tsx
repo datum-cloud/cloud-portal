@@ -1,11 +1,11 @@
 'use client';
 
-import * as React from 'react';
-import { getInputProps } from '@conform-to/react';
-import { cn } from '@shadcn/lib/utils';
 import { useFieldContext } from '../context/field-context';
 import { Input } from '../primitives/input';
 import type { FormInputProps } from '../types';
+import { getInputProps } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
+import * as React from 'react';
 
 /**
  * Form.Input - Text input component
@@ -35,9 +35,7 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
         type={type}
         disabled={isDisabled}
         aria-invalid={hasErrors || undefined}
-        aria-describedby={
-          hasErrors ? `${fieldMeta.id}-error` : undefined
-        }
+        aria-describedby={hasErrors ? `${fieldMeta.id}-error` : undefined}
         className={cn(className)}
       />
     );

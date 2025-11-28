@@ -50,28 +50,28 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
           });
         }}
         className="flex flex-col gap-6">
-        <CardContent className="px-4.5 py-4">
-          <div className="flex max-w-sm flex-col gap-5">
-            {organization?.type === OrganizationType.Personal ? (
-              <div className="flex flex-col space-y-2">
-                <label className="text-sm font-medium">Organization Name</label>
-                <TextCopyBox value={organization?.displayName ?? ''} />
+        {({ form, isSubmitting }) => (
+          <>
+            <CardContent className="px-4.5 py-4">
+              <div className="flex max-w-sm flex-col gap-5">
+                {organization?.type === OrganizationType.Personal ? (
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-sm font-medium">Organization Name</label>
+                    <TextCopyBox value={organization?.displayName ?? ''} />
+                  </div>
+                ) : (
+                  <Form.Field name="description" label="Organization Name" required>
+                    <Form.Input placeholder="e.g. My Organization" />
+                  </Form.Field>
+                )}
+                <div className="flex flex-col space-y-2">
+                  <label className="text-sm font-medium">Resource ID</label>
+                  <TextCopyBox value={organization?.name ?? ''} />
+                </div>
               </div>
-            ) : (
-              <Form.Field name="description" label="Organization Name" required>
-                <Form.Input placeholder="e.g. My Organization" />
-              </Form.Field>
-            )}
-            <div className="flex flex-col space-y-2">
-              <label className="text-sm font-medium">Resource ID</label>
-              <TextCopyBox value={organization?.name ?? ''} />
-            </div>
-          </div>
-        </CardContent>
-        {organization && organization?.type !== OrganizationType.Personal && (
-          <CardFooter className="flex justify-end gap-2 border-t px-4.5 py-4">
-            <Form.Custom>
-              {({ form, isSubmitting }) => (
+            </CardContent>
+            {organization && organization?.type !== OrganizationType.Personal && (
+              <CardFooter className="flex justify-end gap-2 border-t px-4.5 py-4">
                 <Button
                   htmlType="button"
                   type="quaternary"
@@ -87,12 +87,12 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
                   }}>
                   Cancel
                 </Button>
-              )}
-            </Form.Custom>
-            <Form.Submit size="xs" loadingText="Saving">
-              Save
-            </Form.Submit>
-          </CardFooter>
+                <Form.Submit size="xs" loadingText="Saving">
+                  Save
+                </Form.Submit>
+              </CardFooter>
+            )}
+          </>
         )}
       </Form.Root>
     </Card>

@@ -58,7 +58,6 @@
  * </Form.When>
  * ```
  */
-
 // Import all components
 import {
   FormRoot,
@@ -83,7 +82,6 @@ import {
   StepperNavigation,
   StepperControls,
 } from './components';
-
 // Import hooks
 import {
   useFormContext,
@@ -209,6 +207,7 @@ export {
 // Export types
 export type {
   FormRootProps,
+  FormRootRenderProps,
   FormFieldProps,
   FormFieldRenderProps,
   FormFieldContextValue,

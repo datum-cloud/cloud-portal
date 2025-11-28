@@ -61,7 +61,9 @@ function UserForm() {
 
 #### `Form.Root`
 
-The root form component that provides context to all children.
+The root form component that provides context to all children. Supports two patterns:
+
+**Standard Pattern** - For simple forms:
 
 ```tsx
 <Form.Root
@@ -71,6 +73,7 @@ The root form component that provides context to all children.
   method="POST"                // HTTP method (default: POST)
   defaultValues={{ role: 'user' }}  // Default form values
   mode="onBlur"                // Validation mode: onBlur | onChange | onSubmit
+  isSubmitting={false}         // External submitting state (e.g., from useFetcher)
   onError={(errors) => {}}     // Validation error callback
   onSuccess={(data) => {}}     // Success callback
   className="space-y-4"        // Additional CSS classes
@@ -78,6 +81,41 @@ The root form component that provides context to all children.
   {children}
 </Form.Root>
 ```
+
+**Render Function Pattern** - For accessing form state:
+
+```tsx
+<Form.Root schema={zodSchema} onSubmit={handleSubmit}>
+  {({ form, fields, isSubmitting, submit, reset }) => (
+    <>
+      <Form.Field name="email" label="Email">
+        <Form.Input type="email" />
+      </Form.Field>
+
+      {/* Direct access to form state - no Form.Custom needed */}
+      <Button
+        disabled={isSubmitting}
+        onClick={() => form.update({ value: { email: '' } })}
+      >
+        Reset Email
+      </Button>
+
+      {/* Access field values directly */}
+      {fields.email?.value && <p>Current: {fields.email.value}</p>}
+
+      <Form.Submit>Save</Form.Submit>
+    </>
+  )}
+</Form.Root>
+```
+
+The render function receives:
+
+- `form` - Conform form metadata (for `form.update()`, `form.reset()`, etc.)
+- `fields` - All form fields with their metadata and values
+- `isSubmitting` - Whether the form is currently submitting
+- `submit` - Function to programmatically submit the form
+- `reset` - Function to reset form to default values
 
 #### `Form.Field`
 

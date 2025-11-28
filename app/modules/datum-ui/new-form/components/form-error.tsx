@@ -1,9 +1,9 @@
 'use client';
 
-import * as React from 'react';
-import { cn } from '@shadcn/lib/utils';
-import { useFieldContext, useOptionalFieldContext } from '../context/field-context';
+import { useOptionalFieldContext } from '../context/field-context';
 import type { FormErrorProps } from '../types';
+import { cn } from '@shadcn/lib/utils';
+import * as React from 'react';
 
 /**
  * Form.Error - Display field errors
@@ -50,8 +50,7 @@ export function FormError({ children, className }: FormErrorProps) {
         className
       )}
       role="alert"
-      aria-live="polite"
-    >
+      aria-live="polite">
       {errors.map((error) => (
         <li key={error} className="text-wrap">
           {error}

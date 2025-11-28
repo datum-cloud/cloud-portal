@@ -6,13 +6,7 @@ const Switch = React.forwardRef<
   React.ElementRef<typeof ShadcnSwitch>,
   React.ComponentProps<typeof ShadcnSwitch>
 >(({ className, ...props }, ref) => {
-  return (
-    <ShadcnSwitch
-      ref={ref}
-      className={cn(className)}
-      {...props}
-    />
-  );
+  return <ShadcnSwitch ref={ref} className={cn(className)} {...props} />;
 });
 
 Switch.displayName = 'Switch';

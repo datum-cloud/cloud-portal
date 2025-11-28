@@ -1,7 +1,7 @@
 'use client';
 
-import * as React from 'react';
 import type { StepConfig, StepperContextValue } from '../types';
+import * as React from 'react';
 
 const StepperContext = React.createContext<StepperContextValue | null>(null);
 
@@ -60,20 +60,14 @@ export function StepperProvider({
     [currentIndex, onStepChange, steps]
   );
 
-  const getMetadata = React.useCallback(
-    (stepId: string) => metadata[stepId],
-    [metadata]
-  );
+  const getMetadata = React.useCallback((stepId: string) => metadata[stepId], [metadata]);
 
-  const setMetadata = React.useCallback(
-    (stepId: string, data: Record<string, unknown>) => {
-      setMetadataState((prev) => ({
-        ...prev,
-        [stepId]: { ...prev[stepId], ...data },
-      }));
-    },
-    []
-  );
+  const setMetadata = React.useCallback((stepId: string, data: Record<string, unknown>) => {
+    setMetadataState((prev) => ({
+      ...prev,
+      [stepId]: { ...prev[stepId], ...data },
+    }));
+  }, []);
 
   const value: StepperContextValue = React.useMemo(
     () => ({
@@ -89,7 +83,19 @@ export function StepperProvider({
       setMetadata,
       allMetadata: metadata,
     }),
-    [steps, current, currentIndex, next, prev, goTo, isFirst, isLast, getMetadata, setMetadata, metadata]
+    [
+      steps,
+      current,
+      currentIndex,
+      next,
+      prev,
+      goTo,
+      isFirst,
+      isLast,
+      getMetadata,
+      setMetadata,
+      metadata,
+    ]
   );
 
   return <StepperContext.Provider value={value}>{children}</StepperContext.Provider>;

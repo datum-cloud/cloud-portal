@@ -6,11 +6,53 @@ import type { z } from 'zod';
 // Form Types
 // ============================================================================
 
+/**
+ * Render props passed to Form.Root when using render function pattern
+ */
+export interface FormRootRenderProps {
+  /** Conform form metadata (for form.update, form.reset, etc.) */
+  form: FormMetadata<Record<string, unknown>>;
+  /** All form fields with their metadata and values */
+  fields: Record<string, FieldMetadata<unknown>>;
+  /** Whether the form is currently submitting */
+  isSubmitting: boolean;
+  /** Programmatically submit the form */
+  submit: () => void;
+  /** Reset form to default values */
+  reset: () => void;
+}
+
 export interface FormRootProps<T extends z.ZodType> {
   /** Zod schema for validation */
   schema: T;
-  /** Form children */
-  children: React.ReactNode;
+  /**
+   * Form children - can be either:
+   * - ReactNode: Standard form content
+   * - Render function: For accessing form state (form, fields, isSubmitting, etc.)
+   *
+   * @example Standard usage
+   * ```tsx
+   * <Form.Root schema={schema}>
+   *   <Form.Field name="email"><Form.Input /></Form.Field>
+   *   <Form.Submit>Save</Form.Submit>
+   * </Form.Root>
+   * ```
+   *
+   * @example Render function for form state access
+   * ```tsx
+   * <Form.Root schema={schema}>
+   *   {({ form, fields, isSubmitting }) => (
+   *     <>
+   *       <Form.Field name="email"><Form.Input /></Form.Field>
+   *       <Button disabled={isSubmitting} onClick={() => form.update({...})}>
+   *         Cancel
+   *       </Button>
+   *     </>
+   *   )}
+   * </Form.Root>
+   * ```
+   */
+  children: React.ReactNode | ((props: FormRootRenderProps) => React.ReactNode);
 
   // Submission
   /** Client-side submit handler */

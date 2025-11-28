@@ -1,12 +1,12 @@
 'use client';
 
-import * as React from 'react';
+import { useFieldContext } from '../context/field-context';
+import { Label } from '../primitives/label';
+import { Switch } from '../primitives/switch';
+import type { FormSwitchProps } from '../types';
 import { useInputControl } from '@conform-to/react';
 import { cn } from '@shadcn/lib/utils';
-import { useFieldContext } from '../context/field-context';
-import { Switch } from '../primitives/switch';
-import { Label } from '../primitives/label';
-import type { FormSwitchProps } from '../types';
+import * as React from 'react';
 
 /**
  * Form.Switch - Toggle switch component
@@ -20,11 +20,7 @@ import type { FormSwitchProps } from '../types';
  * </Form.Field>
  * ```
  */
-export function FormSwitch({
-  label,
-  disabled,
-  className,
-}: FormSwitchProps) {
+export function FormSwitch({ label, disabled, className }: FormSwitchProps) {
   const { fieldMeta, disabled: fieldDisabled, errors } = useFieldContext();
 
   const control = useInputControl(fieldMeta as any);
@@ -55,10 +51,9 @@ export function FormSwitch({
         <Label
           htmlFor={switchId}
           className={cn(
-            'text-sm font-normal cursor-pointer',
+            'cursor-pointer text-sm font-normal',
             isDisabled && 'cursor-not-allowed opacity-70'
-          )}
-        >
+          )}>
           {label}
         </Label>
       )}

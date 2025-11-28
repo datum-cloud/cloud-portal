@@ -1,8 +1,5 @@
 'use client';
 
-import * as React from 'react';
-import { useInputControl } from '@conform-to/react';
-import { cn } from '@shadcn/lib/utils';
 import { useFieldContext } from '../context/field-context';
 import {
   Select,
@@ -12,6 +9,9 @@ import {
   SelectValue,
 } from '../primitives/select';
 import type { FormSelectProps, FormSelectItemProps } from '../types';
+import { useInputControl } from '@conform-to/react';
+import { cn } from '@shadcn/lib/utils';
+import * as React from 'react';
 
 /**
  * Form.Select - Select dropdown component
@@ -29,12 +29,7 @@ import type { FormSelectProps, FormSelectItemProps } from '../types';
  * </Form.Field>
  * ```
  */
-export function FormSelect({
-  placeholder,
-  disabled,
-  className,
-  children,
-}: FormSelectProps) {
+export function FormSelect({ placeholder, disabled, className, children }: FormSelectProps) {
   const { fieldMeta, disabled: fieldDisabled, errors } = useFieldContext();
 
   const control = useInputControl(fieldMeta as any);
@@ -49,19 +44,15 @@ export function FormSelect({
       name={fieldMeta.name}
       value={selectValue ?? ''}
       onValueChange={control.change}
-      disabled={isDisabled}
-    >
+      disabled={isDisabled}>
       <SelectTrigger
         id={fieldMeta.id}
         aria-invalid={hasErrors || undefined}
         aria-describedby={hasErrors ? `${fieldMeta.id}-error` : undefined}
-        className={cn(className)}
-      >
+        className={cn(className)}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent>
-        {children}
-      </SelectContent>
+      <SelectContent>{children}</SelectContent>
     </Select>
   );
 }
@@ -76,11 +67,7 @@ FormSelect.displayName = 'Form.Select';
  * <Form.SelectItem value="option1">Option 1</Form.SelectItem>
  * ```
  */
-export function FormSelectItem({
-  value,
-  children,
-  disabled,
-}: FormSelectItemProps) {
+export function FormSelectItem({ value, children, disabled }: FormSelectItemProps) {
   return (
     <SelectItem value={value} disabled={disabled}>
       {children}

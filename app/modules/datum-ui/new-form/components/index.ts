@@ -20,9 +20,4 @@ export { FormFieldArray } from './form-field-array';
 export { FormCustom } from './form-custom';
 
 // Stepper components
-export {
-  FormStepper,
-  FormStep,
-  StepperNavigation,
-  StepperControls,
-} from './stepper';
+export { FormStepper, FormStep, StepperNavigation, StepperControls } from './stepper';

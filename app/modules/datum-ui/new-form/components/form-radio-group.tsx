@@ -1,12 +1,12 @@
 'use client';
 
-import * as React from 'react';
+import { useFieldContext } from '../context/field-context';
+import { Label } from '../primitives/label';
+import { RadioGroup, RadioGroupItem } from '../primitives/radio-group';
+import type { FormRadioGroupProps, FormRadioItemProps } from '../types';
 import { useInputControl } from '@conform-to/react';
 import { cn } from '@shadcn/lib/utils';
-import { useFieldContext } from '../context/field-context';
-import { RadioGroup, RadioGroupItem } from '../primitives/radio-group';
-import { Label } from '../primitives/label';
-import type { FormRadioGroupProps, FormRadioItemProps } from '../types';
+import * as React from 'react';
 
 /**
  * Form.RadioGroup - Radio button group component
@@ -50,8 +50,7 @@ export function FormRadioGroup({
       className={cn(
         orientation === 'horizontal' ? 'flex flex-row space-x-4' : 'flex flex-col space-y-2',
         className
-      )}
-    >
+      )}>
       {children}
     </RadioGroup>
   );
@@ -67,37 +66,22 @@ FormRadioGroup.displayName = 'Form.RadioGroup';
  * <Form.RadioItem value="option1" label="Option 1" />
  * ```
  */
-export function FormRadioItem({
-  value,
-  label,
-  description,
-  disabled,
-}: FormRadioItemProps) {
+export function FormRadioItem({ value, label, description, disabled }: FormRadioItemProps) {
   const radioId = `radio-${value}`;
 
   return (
     <div className="flex items-start space-x-2">
-      <RadioGroupItem
-        id={radioId}
-        value={value}
-        disabled={disabled}
-        className="mt-1"
-      />
+      <RadioGroupItem id={radioId} value={value} disabled={disabled} className="mt-1" />
       <div className="flex flex-col">
         <Label
           htmlFor={radioId}
           className={cn(
-            'text-sm font-normal cursor-pointer',
+            'cursor-pointer text-sm font-normal',
             disabled && 'cursor-not-allowed opacity-70'
-          )}
-        >
+          )}>
           {label}
         </Label>
-        {description && (
-          <span className="text-xs text-muted-foreground">
-            {description}
-          </span>
-        )}
+        {description && <span className="text-muted-foreground text-xs">{description}</span>}
       </div>
     </div>
   );

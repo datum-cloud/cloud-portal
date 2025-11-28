@@ -1,11 +1,11 @@
 'use client';
 
-import * as React from 'react';
-import { cn } from '@shadcn/lib/utils';
-import { Button } from '@datum-ui/components';
-import { useStepperContext } from '../../context/stepper-context';
 import { useFormContext } from '../../context/form-context';
+import { useStepperContext } from '../../context/stepper-context';
 import type { StepperControlsProps } from '../../types';
+import { Button } from '@datum-ui/components';
+import { cn } from '@shadcn/lib/utils';
+import * as React from 'react';
 
 /**
  * Form.StepperControls - Navigation buttons (Previous/Next/Submit)
@@ -50,19 +50,13 @@ export function StepperControls({
             type="quaternary"
             theme="borderless"
             onClick={prev}
-            disabled={isFirst || isSubmitting}
-          >
+            disabled={isFirst || isSubmitting}>
             {getPrevLabel()}
           </Button>
         )}
       </div>
 
-      <Button
-        htmlType="submit"
-        type="primary"
-        loading={isSubmitting}
-        disabled={isSubmitting}
-      >
+      <Button htmlType="submit" type="primary" loading={isSubmitting} disabled={isSubmitting}>
         {isSubmitting && isLast ? 'Submitting...' : getNextLabel()}
       </Button>
     </div>

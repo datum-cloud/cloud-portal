@@ -1,8 +1,8 @@
 'use client';
 
-import * as React from 'react';
 import { useWatch } from '../hooks/use-watch';
 import type { FormWhenProps } from '../types';
+import * as React from 'react';
 
 /**
  * Form.When - Conditional rendering based on field values
@@ -32,14 +32,7 @@ import type { FormWhenProps } from '../types';
  * </Form.When>
  * ```
  */
-export function FormWhen({
-  field,
-  is,
-  isNot,
-  in: inArray,
-  notIn,
-  children,
-}: FormWhenProps) {
+export function FormWhen({ field, is, isNot, in: inArray, notIn, children }: FormWhenProps) {
   const value = useWatch(field);
 
   // Determine if we should render
