@@ -1,6 +1,3 @@
-// Organization Feature Components
-export { OrganizationForm } from './form';
-
 // Card Components
 export * from './cards';
 

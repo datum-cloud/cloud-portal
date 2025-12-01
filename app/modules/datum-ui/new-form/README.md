@@ -31,8 +31,7 @@ function UserForm() {
       onSubmit={async (data) => {
         console.log('Form submitted:', data);
         await saveUser(data);
-      }}
-    >
+      }}>
       <Form.Field name="name" label="Full Name" required>
         <Form.Input placeholder="John Doe" />
       </Form.Field>
@@ -67,16 +66,16 @@ The root form component that provides context to all children. Supports two patt
 
 ```tsx
 <Form.Root
-  schema={zodSchema}           // Required: Zod schema for validation
-  onSubmit={(data) => {}}      // Client-side submit handler
-  action="/api/users"          // OR: React Router action path
-  method="POST"                // HTTP method (default: POST)
-  defaultValues={{ role: 'user' }}  // Default form values
-  mode="onBlur"                // Validation mode: onBlur | onChange | onSubmit
-  isSubmitting={false}         // External submitting state (e.g., from useFetcher)
-  onError={(errors) => {}}     // Validation error callback
-  onSuccess={(data) => {}}     // Success callback
-  className="space-y-4"        // Additional CSS classes
+  schema={zodSchema} // Required: Zod schema for validation
+  onSubmit={(data) => {}} // Client-side submit handler
+  action="/api/users" // OR: React Router action path
+  method="POST" // HTTP method (default: POST)
+  defaultValues={{ role: 'user' }} // Default form values
+  mode="onBlur" // Validation mode: onBlur | onChange | onSubmit
+  isSubmitting={false} // External submitting state (e.g., from useFetcher)
+  onError={(errors) => {}} // Validation error callback
+  onSuccess={(data) => {}} // Success callback
+  className="space-y-4" // Additional CSS classes
 >
   {children}
 </Form.Root>
@@ -93,10 +92,7 @@ The root form component that provides context to all children. Supports two patt
       </Form.Field>
 
       {/* Direct access to form state - no Form.Custom needed */}
-      <Button
-        disabled={isSubmitting}
-        onClick={() => form.update({ value: { email: '' } })}
-      >
+      <Button disabled={isSubmitting} onClick={() => form.update({ value: { email: '' } })}>
         Reset Email
       </Button>
 
@@ -125,14 +121,14 @@ Field wrapper with automatic label and error handling. Supports two patterns:
 
 ```tsx
 <Form.Field
-  name="email"                 // Required: Field name (supports nested: "address.city")
-  label="Email Address"        // Field label
-  description="We'll never share your email"  // Helper text
-  tooltip="More information"   // Tooltip content
-  required                     // Show required indicator
-  disabled                     // Disable the field
-  className="custom-class"     // Wrapper CSS classes
-  labelClassName="font-bold"   // Label CSS classes
+  name="email" // Required: Field name (supports nested: "address.city")
+  label="Email Address" // Field label
+  description="We'll never share your email" // Helper text
+  tooltip="More information" // Tooltip content
+  required // Show required indicator
+  disabled // Disable the field
+  className="custom-class" // Wrapper CSS classes
+  labelClassName="font-bold" // Label CSS classes
 >
   <Form.Input />
 </Form.Field>
@@ -190,11 +186,11 @@ Submit button with automatic loading state.
 
 ```tsx
 <Form.Submit
-  loadingText="Saving..."      // Text shown while submitting
-  type="primary"               // Button variant
-  theme="solid"                // Button theme
-  size="default"               // Button size
-  disabled={false}             // Disable button
+  loadingText="Saving..." // Text shown while submitting
+  type="primary" // Button variant
+  theme="solid" // Button theme
+  size="default" // Button size
+  disabled={false} // Disable button
 >
   Save Changes
 </Form.Submit>
@@ -237,7 +233,7 @@ Props:
 ```tsx
 <Form.Field name="username">
   <Form.Input
-    type="text"                // text | email | password | number | tel | url | search | date | time
+    type="text" // text | email | password | number | tel | url | search | date | time
     placeholder="Enter username"
     disabled={false}
     className="w-full"
@@ -249,10 +245,7 @@ Props:
 
 ```tsx
 <Form.Field name="bio">
-  <Form.Textarea
-    rows={4}
-    placeholder="Tell us about yourself..."
-  />
+  <Form.Textarea rows={4} placeholder="Tell us about yourself..." />
 </Form.Field>
 ```
 
@@ -263,7 +256,9 @@ Props:
   <Form.Select placeholder="Select a country">
     <Form.SelectItem value="us">United States</Form.SelectItem>
     <Form.SelectItem value="uk">United Kingdom</Form.SelectItem>
-    <Form.SelectItem value="ca" disabled>Canada</Form.SelectItem>
+    <Form.SelectItem value="ca" disabled>
+      Canada
+    </Form.SelectItem>
   </Form.Select>
 </Form.Field>
 ```
@@ -394,8 +389,7 @@ const steps = [
   onStepChange={(stepId, direction) => {
     console.log(`Moving ${direction} to step: ${stepId}`);
   }}
-  initialStep="account"
->
+  initialStep="account">
   <Form.StepperNavigation variant="horizontal" labelOrientation="vertical" />
 
   <Form.Step id="account">
@@ -421,10 +415,10 @@ const steps = [
   </Form.Step>
 
   <Form.StepperControls
-    prevLabel={(isFirst) => isFirst ? 'Cancel' : 'Previous'}
-    nextLabel={(isLast) => isLast ? 'Submit' : 'Next'}
+    prevLabel={(isFirst) => (isFirst ? 'Cancel' : 'Previous')}
+    nextLabel={(isLast) => (isLast ? 'Submit' : 'Next')}
   />
-</Form.Stepper>
+</Form.Stepper>;
 ```
 
 ## Hooks
@@ -547,7 +541,7 @@ const [form, fields] = useForm({
     </Field>
     <Button type="submit">Submit</Button>
   </Form>
-</FormProvider>
+</FormProvider>;
 ```
 
 ### After

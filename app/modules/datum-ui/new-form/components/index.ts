@@ -21,3 +21,6 @@ export { FormCustom } from './form-custom';
 
 // Stepper components
 export { FormStepper, FormStep, StepperNavigation, StepperControls } from './stepper';
+
+// Dialog component
+export { FormDialog } from './form-dialog';

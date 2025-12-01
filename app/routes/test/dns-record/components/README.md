@@ -69,66 +69,79 @@ Navigate to `/test/dns-record` in your browser to access the test page.
 Each DNS record type includes 3 scenarios:
 
 ### A Record
+
 1. **Default Valid**: Standard subdomain with valid IPv4
 2. **Root Domain (@)**: Root domain configuration
 3. **Invalid IP Format**: Tests IPv4 validation (256.1.1.1)
 
 ### AAAA Record
+
 1. **Default Valid**: Standard IPv6 address
 2. **Compressed IPv6**: Shortened IPv6 notation (::1)
 3. **Invalid IPv6**: IPv4 address in IPv6 field
 
 ### CNAME Record
+
 1. **Default Valid**: Standard CNAME setup
 2. **Subdomain Target**: CNAME to subdomain
 3. **Invalid Root (@)**: CNAME cannot point to @
 
 ### TXT Record
+
 1. **Default Valid**: SPF record example
 2. **Site Verification**: Google verification format
 3. **Invalid Too Long**: Exceeds 2048 character limit
 
 ### MX Record
+
 1. **Default Valid**: Primary mail server
 2. **Backup Mail Server**: Secondary with higher priority
 3. **Invalid Priority**: Exceeds 65535 limit
 
 ### SRV Record
+
 1. **Default Valid**: HTTP service record
 2. **HTTPS Service**: HTTPS on port 443
 3. **Invalid Port**: Port exceeds 65535
 
 ### CAA Record
+
 1. **Default Valid**: Let's Encrypt CA authorization
 2. **Wildcard Issue**: Wildcard certificate authorization
 3. **Invalid Flag**: Flag must be 0 or 128
 
 ### NS Record
+
 1. **Default Valid**: Standard nameserver
 2. **Subdomain Delegation**: NS for subdomain
 3. **Invalid Domain**: Malformed domain name
 
 ### SOA Record
+
 1. **Default Valid**: Standard SOA configuration
 2. **Custom Timers**: Modified refresh/retry values
 3. **Invalid Refresh**: Refresh below 1200 seconds
 
 ### PTR Record
+
 1. **Default Valid**: IPv4 reverse DNS
 2. **IPv6 Reverse**: IPv6 reverse DNS format
 3. **Invalid Target**: Malformed domain
 
 ### TLSA Record
+
 1. **Default Valid**: Standard TLSA record
 2. **Full Certificate**: Full cert matching (selector 0)
 3. **Invalid Hex Data**: Non-hexadecimal characters
 
 ### HTTPS Record
+
 1. **Default Valid**: Service mode with ALPN
 2. **Alias Mode**: Priority 0 (alias)
 3. **Invalid Priority**: Exceeds 65535
 
 ### SVCB Record
+
 1. **Default Valid**: Standard service binding
 2. **Alias Mode**: Priority 0 configuration
 3. **Invalid Target**: Malformed target domain
@@ -146,6 +159,7 @@ Each DNS record type includes 3 scenarios:
 ### Sharing Scenarios
 
 **Export:**
+
 ```
 1. Create custom scenarios
 2. Click "Export Custom Scenarios"
@@ -153,6 +167,7 @@ Each DNS record type includes 3 scenarios:
 ```
 
 **Import:**
+
 ```
 1. Click "Import Scenarios"
 2. Select a JSON file
@@ -253,8 +268,8 @@ The test page reuses the actual `DnsRecordForm` component:
 Validation uses the same Zod schemas as production:
 
 ```typescript
-import { parseWithZod } from '@conform-to/zod/v4';
 import { createDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
+import { parseWithZod } from '@conform-to/zod/v4';
 
 const result = parseWithZod(formData, { schema: createDnsRecordSchema });
 // result.status === 'success' | 'error'
@@ -268,29 +283,32 @@ const result = parseWithZod(formData, { schema: createDnsRecordSchema });
 // Value: TestScenario[]
 
 interface TestScenario {
-  id: string;              // Unique identifier
-  name: string;            // Display name
+  id: string; // Unique identifier
+  name: string; // Display name
   recordType: DNSRecordType; // A, AAAA, CNAME, etc.
   data: CreateDnsRecordSchema; // Form data
-  isDefault: boolean;      // Cannot be deleted if true
+  isDefault: boolean; // Cannot be deleted if true
 }
 ```
 
 ## Benefits
 
 ### For Developers
+
 - Quick validation testing without API setup
 - Visual feedback on schema rules
 - Experiment with edge cases
 - Debug validation issues
 
 ### For QA/Testing
+
 - Comprehensive test scenarios
 - Export/import for test case management
 - Cypress integration for automation
 - No database or API dependencies
 
 ### For Documentation
+
 - Living examples of valid/invalid data
 - Schema validation rules demonstrated
 - Reference for all record types
@@ -323,6 +341,7 @@ Potential improvements:
 ## Support
 
 For issues or questions:
+
 1. Check the Cypress test file for usage examples
 2. Review default scenarios for valid data formats
 3. Inspect schema files for validation rules

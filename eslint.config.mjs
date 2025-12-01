@@ -9,7 +9,14 @@ import tseslint from 'typescript-eslint';
 export default [
   {
     files: ['**/*.ts', '**/*.tsx'],
-    ignores: ['!**/.server', '!**/.client', 'remix.init/*', 'public/js/elk-worker.min.js'],
+    ignores: [
+      '!**/.server',
+      '!**/.client',
+      'remix.init/*',
+      'public/js/elk-worker.min.js',
+      'node_modules/*',
+      'react-router/*',
+    ],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {

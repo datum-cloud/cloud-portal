@@ -44,7 +44,7 @@ const [form, fields] = useForm({
     </Field>
     <Button type="submit">Submit</Button>
   </Form>
-</FormProvider>
+</FormProvider>;
 ```
 
 ### Solution
@@ -68,14 +68,14 @@ A compound component library that reduces boilerplate by ~70%:
 
 ## Goals
 
-| Goal | Description |
-|------|-------------|
-| **Simplicity** | Reduce form boilerplate by 70% |
-| **Type Safety** | Full TypeScript inference from Zod schemas |
-| **Accessibility** | Built-in ARIA attributes, keyboard navigation |
-| **Flexibility** | Escape hatches for complex use cases |
-| **Isolation** | Zero dependencies on existing form components |
-| **Stepper Support** | First-class multi-step form support |
+| Goal                   | Description                                      |
+| ---------------------- | ------------------------------------------------ |
+| **Simplicity**         | Reduce form boilerplate by 70%                   |
+| **Type Safety**        | Full TypeScript inference from Zod schemas       |
+| **Accessibility**      | Built-in ARIA attributes, keyboard navigation    |
+| **Flexibility**        | Escape hatches for complex use cases             |
+| **Isolation**          | Zero dependencies on existing form components    |
+| **Stepper Support**    | First-class multi-step form support              |
 | **Conditional Fields** | Easy conditional rendering based on field values |
 
 ---
@@ -211,7 +211,7 @@ interface FormRootProps<T extends z.ZodType> {
 
   // Submission
   onSubmit?: (data: z.infer<T>) => void | Promise<void>;
-  action?: string;                    // React Router action path
+  action?: string; // React Router action path
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
   // Configuration
@@ -233,10 +233,9 @@ interface FormRootProps<T extends z.ZodType> {
   onSubmit={async (data) => {
     await saveUser(data);
   }}
-  defaultValues={{ role: 'user' }}
->
+  defaultValues={{ role: 'user' }}>
   {children}
-</Form.Root>
+</Form.Root>;
 ```
 
 #### `Form.Field`
@@ -246,7 +245,7 @@ Wrapper component for form fields with automatic label and error handling.
 ```tsx
 interface FormFieldProps {
   // Required
-  name: string;                       // Field path (supports nested: "address.city")
+  name: string; // Field path (supports nested: "address.city")
   children: React.ReactNode;
 
   // Labels & Help Text
@@ -264,14 +263,9 @@ interface FormFieldProps {
 }
 
 // Usage
-<Form.Field
-  name="email"
-  label="Email Address"
-  description="We'll never share your email"
-  required
->
+<Form.Field name="email" label="Email Address" description="We'll never share your email" required>
   <Form.Input type="email" />
-</Form.Field>
+</Form.Field>;
 ```
 
 #### `Form.Submit`
@@ -298,9 +292,7 @@ interface FormSubmitProps {
 }
 
 // Usage
-<Form.Submit loadingText="Saving...">
-  Save Changes
-</Form.Submit>
+<Form.Submit loadingText="Saving...">Save Changes</Form.Submit>;
 ```
 
 ### Input Components
@@ -319,7 +311,7 @@ interface FormInputProps {
 // Usage - automatically wired to parent Form.Field
 <Form.Field name="username">
   <Form.Input placeholder="Enter username" />
-</Form.Field>
+</Form.Field>;
 ```
 
 #### `Form.Textarea`
@@ -335,7 +327,7 @@ interface FormTextareaProps {
 // Usage
 <Form.Field name="bio">
   <Form.Textarea placeholder="Tell us about yourself" rows={4} />
-</Form.Field>
+</Form.Field>;
 ```
 
 #### `Form.Select`
@@ -345,7 +337,7 @@ interface FormSelectProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
-  children: React.ReactNode;  // Form.SelectItem children
+  children: React.ReactNode; // Form.SelectItem children
 }
 
 interface FormSelectItemProps {
@@ -361,14 +353,14 @@ interface FormSelectItemProps {
     <Form.SelectItem value="uk">United Kingdom</Form.SelectItem>
     <Form.SelectItem value="ca">Canada</Form.SelectItem>
   </Form.Select>
-</Form.Field>
+</Form.Field>;
 ```
 
 #### `Form.Checkbox`
 
 ```tsx
 interface FormCheckboxProps {
-  label?: string;             // Inline label next to checkbox
+  label?: string; // Inline label next to checkbox
   disabled?: boolean;
   className?: string;
 }
@@ -376,14 +368,14 @@ interface FormCheckboxProps {
 // Usage
 <Form.Field name="terms">
   <Form.Checkbox label="I agree to the terms and conditions" />
-</Form.Field>
+</Form.Field>;
 ```
 
 #### `Form.Switch`
 
 ```tsx
 interface FormSwitchProps {
-  label?: string;             // Inline label next to switch
+  label?: string; // Inline label next to switch
   disabled?: boolean;
   className?: string;
 }
@@ -391,7 +383,7 @@ interface FormSwitchProps {
 // Usage
 <Form.Field name="notifications">
   <Form.Switch label="Enable email notifications" />
-</Form.Field>
+</Form.Field>;
 ```
 
 #### `Form.RadioGroup`
@@ -401,7 +393,7 @@ interface FormRadioGroupProps {
   orientation?: 'horizontal' | 'vertical';
   disabled?: boolean;
   className?: string;
-  children: React.ReactNode;  // Form.RadioItem children
+  children: React.ReactNode; // Form.RadioItem children
 }
 
 interface FormRadioItemProps {
@@ -418,7 +410,7 @@ interface FormRadioItemProps {
     <Form.RadioItem value="pro" label="Pro" description="Advanced features" />
     <Form.RadioItem value="enterprise" label="Enterprise" description="Custom solutions" />
   </Form.RadioGroup>
-</Form.Field>
+</Form.Field>;
 ```
 
 ### Advanced Components
@@ -488,7 +480,7 @@ interface FormFieldArrayProps {
       <button onClick={() => append({ email: '' })}>Add Member</button>
     </>
   )}
-</Form.FieldArray>
+</Form.FieldArray>;
 ```
 
 #### `Form.Custom`
@@ -572,7 +564,7 @@ const steps = [
   </Form.Step>
 
   <Form.StepperControls />
-</Form.Stepper>
+</Form.Stepper>;
 ```
 
 #### `Form.Step`
@@ -581,7 +573,7 @@ Individual step content.
 
 ```tsx
 interface FormStepProps {
-  id: string;                         // Must match a step id from steps array
+  id: string; // Must match a step id from steps array
   children: React.ReactNode;
 }
 ```
@@ -624,17 +616,8 @@ const { field, control, meta, errors } = Form.useField('email');
 const value = Form.useWatch('contactMethod');
 
 // Access stepper state (inside Form.Stepper)
-const {
-  current,
-  steps,
-  next,
-  prev,
-  goTo,
-  isFirst,
-  isLast,
-  metadata,
-  setMetadata
-} = Form.useStepperContext();
+const { current, steps, next, prev, goTo, isFirst, isLast, metadata, setMetadata } =
+  Form.useStepperContext();
 ```
 
 ---
@@ -644,6 +627,7 @@ const {
 ### Phase 1: Core Foundation (Day 1-2)
 
 **Deliverables:**
+
 - [ ] Directory structure setup
 - [ ] Primitives (duplicated from existing)
   - [ ] `primitives/input.tsx`
@@ -670,6 +654,7 @@ const {
 ### Phase 2: Input Components (Day 2-3)
 
 **Deliverables:**
+
 - [ ] `components/form-input.tsx`
 - [ ] `components/form-textarea.tsx`
 - [ ] `components/form-select.tsx`
@@ -681,6 +666,7 @@ const {
 ### Phase 3: Advanced Features (Day 3-4)
 
 **Deliverables:**
+
 - [ ] `hooks/use-watch.ts`
 - [ ] `components/form-when.tsx`
 - [ ] `components/form-field-array.tsx`
@@ -689,6 +675,7 @@ const {
 ### Phase 4: Stepper System (Day 4-5)
 
 **Deliverables:**
+
 - [ ] `context/stepper-context.tsx`
 - [ ] `hooks/use-stepper.ts`
 - [ ] `components/stepper/form-stepper.tsx`
@@ -699,6 +686,7 @@ const {
 ### Phase 5: Integration & Export (Day 5)
 
 **Deliverables:**
+
 - [ ] `index.ts` - Main export with Form compound component
 - [ ] `types/index.ts` - All TypeScript types exported
 - [ ] `README.md` - Usage documentation
@@ -707,11 +695,11 @@ const {
 
 **Test with 3 forms covering all patterns:**
 
-| Form | Pattern | Location |
-|------|---------|----------|
-| Invitation Form | Simple fields | `app/features/member/` |
+| Form            | Pattern                          | Location                           |
+| --------------- | -------------------------------- | ---------------------------------- |
+| Invitation Form | Simple fields                    | `app/features/member/`             |
 | DNS Record Form | Conditional fields (`Form.When`) | `app/features/edge/dns-zone/form/` |
-| Grafana Stepper | Multi-step (`Form.Stepper`) | `app/features/edge/proxy/grafana/` |
+| Grafana Stepper | Multi-step (`Form.Stepper`)      | `app/features/edge/proxy/grafana/` |
 
 ### Phase 7: Full Migration (Day 8-12)
 
@@ -743,9 +731,8 @@ app/components/
 
 ```tsx
 // Old forms still use old imports
-import { Input } from '@datum-ui/components';
 import { Field } from '@/components/field/field';
-
+import { Input } from '@datum-ui/components';
 // New forms use new library
 import { Form } from '@datum-ui/new-form';
 ```
@@ -768,36 +755,36 @@ import { Form } from '@datum-ui/form';
 
 ### External (npm packages)
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `@conform-to/react` | ^1.10.1 | Form state management |
-| `@conform-to/zod` | ^1.10.1 | Zod integration |
-| `zod` | ^4.1.11 | Schema validation |
-| `@radix-ui/react-checkbox` | existing | Checkbox primitive |
-| `@radix-ui/react-select` | existing | Select primitive |
-| `@radix-ui/react-switch` | existing | Switch primitive |
+| Package                       | Version  | Purpose               |
+| ----------------------------- | -------- | --------------------- |
+| `@conform-to/react`           | ^1.10.1  | Form state management |
+| `@conform-to/zod`             | ^1.10.1  | Zod integration       |
+| `zod`                         | ^4.1.11  | Schema validation     |
+| `@radix-ui/react-checkbox`    | existing | Checkbox primitive    |
+| `@radix-ui/react-select`      | existing | Select primitive      |
+| `@radix-ui/react-switch`      | existing | Switch primitive      |
 | `@radix-ui/react-radio-group` | existing | Radio group primitive |
-| `@radix-ui/react-label` | existing | Label primitive |
-| `clsx` | existing | Class string builder |
-| `tailwind-merge` | existing | Tailwind class merger |
+| `@radix-ui/react-label`       | existing | Label primitive       |
+| `clsx`                        | existing | Class string builder  |
+| `tailwind-merge`              | existing | Tailwind class merger |
 
 ### Internal (shared utilities)
 
-| Import | Source | Purpose |
-|--------|--------|---------|
-| `cn` | `@shadcn/lib/utils` | Class name merger |
+| Import | Source              | Purpose           |
+| ------ | ------------------- | ----------------- |
+| `cn`   | `@shadcn/lib/utils` | Class name merger |
 
 ### Duplicated (from existing form components)
 
-| Component | Source | Destination |
-|-----------|--------|-------------|
-| Input | `@datum-ui/components/form/input.tsx` | `new-form/primitives/input.tsx` |
-| Textarea | `@datum-ui/components/form/textarea.tsx` | `new-form/primitives/textarea.tsx` |
-| Select | `@datum-ui/components/form/select.tsx` | `new-form/primitives/select.tsx` |
-| Checkbox | `@datum-ui/components/form/checkbox.tsx` | `new-form/primitives/checkbox.tsx` |
-| Switch | `@datum-ui/components/form/switch.tsx` | `new-form/primitives/switch.tsx` |
+| Component  | Source                                      | Destination                           |
+| ---------- | ------------------------------------------- | ------------------------------------- |
+| Input      | `@datum-ui/components/form/input.tsx`       | `new-form/primitives/input.tsx`       |
+| Textarea   | `@datum-ui/components/form/textarea.tsx`    | `new-form/primitives/textarea.tsx`    |
+| Select     | `@datum-ui/components/form/select.tsx`      | `new-form/primitives/select.tsx`      |
+| Checkbox   | `@datum-ui/components/form/checkbox.tsx`    | `new-form/primitives/checkbox.tsx`    |
+| Switch     | `@datum-ui/components/form/switch.tsx`      | `new-form/primitives/switch.tsx`      |
 | RadioGroup | `@datum-ui/components/form/radio-group.tsx` | `new-form/primitives/radio-group.tsx` |
-| Label | `@datum-ui/components/form/label.tsx` | `new-form/primitives/label.tsx` |
+| Label      | `@datum-ui/components/form/label.tsx`       | `new-form/primitives/label.tsx`       |
 
 ---
 
@@ -806,11 +793,11 @@ import { Form } from '@datum-ui/form';
 ### Before (Current Implementation)
 
 ```tsx
+import { Field } from '@/components/field/field';
 import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
-import { Field } from '@/components/field/field';
 import { Form } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 import { z } from 'zod';
@@ -845,10 +832,7 @@ export function UserForm({ onSuccess }: { onSuccess: () => void }) {
         <AuthenticityTokenInput />
 
         <Field isRequired label="Name" errors={fields.name.errors}>
-          <Input
-            {...getInputProps(fields.name, { type: 'text' })}
-            placeholder="John Doe"
-          />
+          <Input {...getInputProps(fields.name, { type: 'text' })} placeholder="John Doe" />
         </Field>
 
         <Field isRequired label="Email" errors={fields.email.errors}>
@@ -893,8 +877,7 @@ export function UserForm({ onSuccess }: { onSuccess: () => void }) {
       onSubmit={async (data) => {
         await saveUser(data);
         onSuccess();
-      }}
-    >
+      }}>
       <Form.Field name="name" label="Name" required>
         <Form.Input placeholder="John Doe" />
       </Form.Field>
@@ -924,16 +907,16 @@ export function UserForm({ onSuccess }: { onSuccess: () => void }) {
 
 ## Appendix: Supported Patterns
 
-| Pattern | Component | Status |
-|---------|-----------|--------|
-| Simple form | `Form.Root` + `Form.Field` | Planned |
-| Nested objects | `Form.Field name="address.city"` | Planned |
-| Array fields | `Form.FieldArray` | Planned |
-| Conditional fields | `Form.When` | Planned |
-| Multi-step forms | `Form.Stepper` | Planned |
-| Custom components | `Form.Custom` + hooks | Planned |
-| Server actions | `Form.Root action="/api/..."` | Planned |
-| Client submission | `Form.Root onSubmit={...}` | Planned |
-| Loading states | `Form.Submit` auto-loading | Planned |
-| Error display | `Form.Field` auto-errors | Planned |
-| Accessibility | Built-in ARIA | Planned |
+| Pattern            | Component                        | Status  |
+| ------------------ | -------------------------------- | ------- |
+| Simple form        | `Form.Root` + `Form.Field`       | Planned |
+| Nested objects     | `Form.Field name="address.city"` | Planned |
+| Array fields       | `Form.FieldArray`                | Planned |
+| Conditional fields | `Form.When`                      | Planned |
+| Multi-step forms   | `Form.Stepper`                   | Planned |
+| Custom components  | `Form.Custom` + hooks            | Planned |
+| Server actions     | `Form.Root action="/api/..."`    | Planned |
+| Client submission  | `Form.Root onSubmit={...}`       | Planned |
+| Loading states     | `Form.Submit` auto-loading       | Planned |
+| Error display      | `Form.Field` auto-errors         | Planned |
+| Accessibility      | Built-in ARIA                    | Planned |

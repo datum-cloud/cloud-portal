@@ -81,6 +81,7 @@ import {
   FormStep,
   StepperNavigation,
   StepperControls,
+  FormDialog,
 } from './components';
 // Import hooks
 import {
@@ -155,6 +156,9 @@ export const Form = {
   StepperNavigation: StepperNavigation,
   StepperControls: StepperControls,
 
+  // Dialog
+  Dialog: FormDialog,
+
   // Hooks
   useFormContext,
   useFieldContext,
@@ -194,6 +198,9 @@ export {
   FormStep,
   StepperNavigation,
   StepperControls,
+
+  // Dialog
+  FormDialog,
 
   // Hooks
   useFormContext,
@@ -237,4 +244,5 @@ export type {
   FormContextValue,
   UseFieldReturn,
   UseWatchReturn,
+  FormDialogProps,
 } from './types';
