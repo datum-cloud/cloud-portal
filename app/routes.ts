@@ -32,7 +32,6 @@ export default [
       // Account Organizations
       route('organizations', 'routes/account/organizations/layout.tsx', [
         index('routes/account/organizations/index.tsx'),
-        route('new', 'routes/account/organizations/new.tsx'),
       ]),
 
       // Account Preferences

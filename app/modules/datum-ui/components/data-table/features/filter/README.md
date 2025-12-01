@@ -229,12 +229,12 @@ Inline multi-select using clickable badges. All options are displayed as badges,
 
 **When to use Tag vs Checkbox:**
 
-| Use Tag Filter                      | Use Checkbox Filter                    |
-| ----------------------------------- | -------------------------------------- |
-| Few options (< 8)                   | Many options (> 8)                     |
-| Options should always be visible    | Options can be hidden in popover       |
-| Quick visual scanning needed        | Space is limited                       |
-| e.g., Record types, Status badges   | e.g., Tags, Categories, Multi-select   |
+| Use Tag Filter                    | Use Checkbox Filter                  |
+| --------------------------------- | ------------------------------------ |
+| Few options (< 8)                 | Many options (> 8)                   |
+| Options should always be visible  | Options can be hidden in popover     |
+| Quick visual scanning needed      | Space is limited                     |
+| e.g., Record types, Status badges | e.g., Tags, Categories, Multi-select |
 
 ## 🎛️ DataTableFilter Props
 
@@ -469,12 +469,12 @@ const columns = [
 
 **Behavior:**
 
-| Filter Selection | Column Value | Result           |
-| ---------------- | ------------ | ---------------- |
-| `['A', 'CNAME']` | `'A'`        | ✅ Match (OR)    |
-| `['A', 'CNAME']` | `'MX'`       | ❌ No match      |
+| Filter Selection | Column Value       | Result                |
+| ---------------- | ------------------ | --------------------- |
+| `['A', 'CNAME']` | `'A'`              | ✅ Match (OR)         |
+| `['A', 'CNAME']` | `'MX'`             | ❌ No match           |
 | `['react']`      | `['react', 'vue']` | ✅ Match (array cell) |
-| `[]` or `null`   | any          | ✅ Show all      |
+| `[]` or `null`   | any                | ✅ Show all           |
 
 **Important:** Always add `filterFn: 'arrayOr'` to columns that use Tag, Checkbox, or multi-select filters for correct filtering behavior.
 

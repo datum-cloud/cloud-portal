@@ -162,10 +162,16 @@ export default function AppWithProviders() {
    * the state of the global transition (Link and Form), then use them to
    * determine if the app is idle or if it's loading.
    * Here we consider both loading and submitting as loading.
+   *
+   * We filter fetchers to only include those that are actively submitting or loading
+   * with form data, excluding stale or cancelled fetchers that may not transition cleanly.
    */
   const state = useMemo<'idle' | 'loading'>(
     function getGlobalState() {
-      const states = [navigation.state, ...fetchers.map((fetcher) => fetcher.state)];
+      const activeFetchers = fetchers.filter(
+        (fetcher) => fetcher.state !== 'idle' && fetcher.formData
+      );
+      const states = [navigation.state, ...activeFetchers.map((fetcher) => fetcher.state)];
       if (states.every((state) => state === 'idle')) return 'idle';
       return 'loading';
     },
@@ -255,6 +261,8 @@ export function ErrorBoundary() {
     Sentry.captureException(error);
     message = error.message;
   }
+
+  console.log(error);
 
   return (
     <ErrorLayout>

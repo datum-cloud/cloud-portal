@@ -1,6 +1,6 @@
 import { createDnsZoneDiscoveriesControl } from '@/resources/control-plane/dns-networking/dns-zone-discoveries.control';
 import { validateCSRF } from '@/utils/cookies';
-import { BadRequestError } from '@/utils/errors';
+import { BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 
@@ -34,6 +34,9 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
           { success: true, message: 'DNS Zone Discovery created successfully' },
           { status: 201 }
         );
+      }
+      default: {
+        throw new HttpError('Method not allowed', 405);
       }
     }
   } catch (error: any) {

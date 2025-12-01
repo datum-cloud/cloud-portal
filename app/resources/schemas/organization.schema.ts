@@ -16,16 +16,16 @@ export const organizationMetadataSchema = z.object({
 export const organizationSchema = z
   .object({
     description: z
-      .string({ error: 'Description is required.' })
-      .max(100, { message: 'Description must be less than 100 characters long.' }),
+      .string({ error: 'Organization name is required.' })
+      .max(100, { message: 'Organization name must be less than 100 characters long.' }),
     resourceVersion: z.string().optional(),
   })
   .and(organizationMetadataSchema);
 
 export const updateOrganizationSchema = z.object({
   description: z
-    .string({ error: 'Description is required.' })
-    .max(100, { message: 'Description must be less than 100 characters long.' })
+    .string({ error: 'Organization name is required.' })
+    .max(100, { message: 'Organization name must be less than 100 characters long.' })
     .optional(),
   labels: z.array(z.string()).optional(),
 });

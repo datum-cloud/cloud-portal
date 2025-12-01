@@ -14,7 +14,6 @@ export const paths = {
     root: '/account',
     organizations: {
       root: '/account/organizations',
-      new: '/account/organizations/new',
     },
     projects: '/account/projects',
     apiKeys: {

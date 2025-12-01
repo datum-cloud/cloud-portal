@@ -1,7 +1,9 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
+import { InputName } from '@/components/input-name/input-name';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
-import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
+import { organizationSchema } from '@/resources/schemas/organization.schema';
+import { ROUTE_PATH as ORGANIZATIONS_PATH } from '@/routes/api/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -9,14 +11,15 @@ import {
   Alert,
   AlertDescription,
   AlertTitle,
+  Button,
   Col,
   DataTable,
-  LinkButton,
   Row,
 } from '@datum-ui/components';
+import { Form } from '@datum-ui/new-form';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, Building, PlusIcon, TriangleAlert } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
@@ -26,9 +29,11 @@ import {
   useNavigate,
   useRevalidator,
 } from 'react-router';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import z from 'zod';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const req = await fetch(`${process.env.APP_URL}${ORG_LIST_PATH}`, {
+  const req = await fetch(`${process.env.APP_URL}${ORGANIZATIONS_PATH}`, {
     method: 'GET',
     headers: {
       Cookie: request.headers.get('Cookie') || '',
@@ -54,8 +59,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function AccountOrganizations() {
   const { orgs, alertClosed } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
-  const fetcher = useFetcher();
+  const fetcher = useFetcher({ key: 'alert-closed' });
+  const createFetcher = useFetcher({ key: 'create-organization' });
   const revalidator = useRevalidator();
+  const csrf = useAuthenticityToken();
+
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   const orgsList = (orgs ?? []) as IOrganization[];
 
@@ -105,8 +114,20 @@ export default function AccountOrganizations() {
     []
   );
 
+  const handleSubmit = async (data: z.infer<typeof organizationSchema>) => {
+    return createFetcher.submit(
+      {
+        ...data,
+        redirectUri: getPathWithParams(paths.org.detail.root, { orgId: data.name }),
+        csrf: csrf as string,
+      },
+      { method: 'POST', action: ORGANIZATIONS_PATH, encType: 'application/json' }
+    );
+  };
+
   return (
     <div className="mx-auto flex w-full flex-col gap-6">
+      {/* Organizations Table */}
       <Row gutter={16}>
         <Col span={20} push={2}>
           <DataTable
@@ -126,23 +147,24 @@ export default function AccountOrganizations() {
             tableTitle={{
               title: 'Organizations',
               actions: (
-                <LinkButton
-                  to={getPathWithParams(paths.account.organizations.new)}
+                <Button
+                  htmlType="button"
+                  onClick={() => setOpenDialog(true)}
                   type="primary"
                   theme="solid"
                   size="small"
                   icon={<PlusIcon className="size-4" />}>
                   Create organization
-                </LinkButton>
+                </Button>
               ),
             }}
             emptyContent={{
               title: "Looks like you don't have any organizations added yet",
               actions: [
                 {
-                  type: 'link',
+                  type: 'button',
                   label: 'Add a organization',
-                  to: getPathWithParams(paths.account.organizations.new),
+                  onClick: () => setOpenDialog(true),
                   variant: 'default',
                   icon: <ArrowRightIcon className="size-4" />,
                   iconPosition: 'end',
@@ -156,30 +178,11 @@ export default function AccountOrganizations() {
               },
               filtersDisplay: 'dropdown',
             }}
-            // filters={
-            //   <>
-            //     <DataTableFilter.Select
-            //       label="Type"
-            //       placeholder="Type"
-            //       filterKey="type"
-            //       options={[
-            //         {
-            //           label: 'Personal',
-            //           value: 'personal',
-            //         },
-            //         {
-            //           label: 'Standard',
-            //           value: 'standard',
-            //         },
-            //       ]}
-            //       triggerClassName="min-w-32"
-            //     />
-            //   </>
-            // }
           />
         </Col>
       </Row>
 
+      {/* Alert for understanding organizations */}
       {showAlert && (
         <Row gutter={16}>
           <Col span={20} push={2}>
@@ -205,6 +208,47 @@ export default function AccountOrganizations() {
           </Col>
         </Row>
       )}
+
+      {/* Create Organization Dialog */}
+      <Form.Dialog
+        open={openDialog}
+        onOpenChange={setOpenDialog}
+        title="Create an Organization"
+        description="Add a Standard organization to enable team collaboration and manage production workloads."
+        schema={organizationSchema}
+        defaultValues={{
+          description: '',
+          name: '',
+        }}
+        closeOnSuccess
+        onSubmit={handleSubmit}
+        onSuccess={() => {
+          revalidator.revalidate();
+        }}
+        submitText="Confirm"
+        submitTextLoading="Creating..."
+        className="w-full sm:max-w-3xl">
+        <div className="divide-border space-y-0 divide-y [&>*]:px-5 [&>*]:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+          <Form.Field
+            name="description"
+            label="Organization Name"
+            description="Could be the name of your company or team. This can be changed."
+            required>
+            <Form.Input placeholder="e.g. My Organization" autoFocus />
+          </Form.Field>
+
+          <Form.Field name="name">
+            {({ field, fields }) => (
+              <InputName
+                required
+                description="This unique resource name will be used to identify your organization and cannot be changed."
+                field={field}
+                baseName={fields.description?.value as string}
+              />
+            )}
+          </Form.Field>
+        </div>
+      </Form.Dialog>
     </div>
   );
 }

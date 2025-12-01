@@ -80,7 +80,7 @@ export const InputName = ({
           </Tooltip>
         )}
       </div>
-      <Field isRequired={required} description={description} errors={field.errors}>
+      <Field isRequired={required} description={description}>
         <Input
           {...getInputProps(field, { type: 'text' })}
           readOnly={readOnly || auto}
