@@ -4,10 +4,11 @@ import { TaskNameserverCard } from '@/features/edge/dns-zone/overview/task-names
 import { TaskRecordCard } from '@/features/edge/dns-zone/overview/task-record-card';
 import { useFetcherWithToast } from '@/hooks/useFetcherWithToast';
 import { useIsPending } from '@/hooks/useIsPending';
-import { IDnsNameserver, IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
+import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
 import { paths } from '@/utils/config/paths.config';
+import { getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, Col, LinkButton, Row, Tooltip } from '@datum-ui/components';
 import { PencilIcon, RefreshCcwIcon } from 'lucide-react';
@@ -29,13 +30,7 @@ export default function DnsZoneOverviewPage() {
   });
   const pending = useIsPending({ fetcherKey: 'refresh-nameservers' });
 
-  const hasNameserverSetup = useMemo(() => {
-    const datumNs = dnsZone?.status?.nameservers ?? [];
-    const zoneNs =
-      dnsZone?.status?.domainRef?.status?.nameservers?.map((ns: IDnsNameserver) => ns.hostname) ??
-      [];
-    return datumNs.some((ns: string) => zoneNs.includes(ns));
-  }, [dnsZone]);
+  const nameserverSetup = useMemo(() => getNameserverSetupStatus(dnsZone), [dnsZone]);
 
   const refreshDomain = async () => {
     if (!domain?.name) return;
@@ -96,28 +91,30 @@ export default function DnsZoneOverviewPage() {
           }
         /> */}
       </Col>
-      <Col span={24}>
-        {hasNameserverSetup ? (
-          <NameserverCard
-            nameservers={domain?.status?.nameservers ?? []}
-            registration={domain?.status?.registration ?? {}}
-            actions={
-              <LinkButton
-                to={getPathWithParams(paths.project.detail.dnsZones.detail.nameservers, {
-                  projectId: projectId ?? '',
-                  dnsZoneId: dnsZone?.name ?? '',
-                })}
-                icon={<PencilIcon size={12} />}
-                iconPosition="right"
-                size="xs">
-                View nameservers
-              </LinkButton>
-            }
-          />
-        ) : (
-          domain?.name && <TaskNameserverCard dnsZone={dnsZone!} />
-        )}
-      </Col>
+      {domain?.name && (
+        <Col span={24}>
+          {nameserverSetup.hasAnySetup ? (
+            <NameserverCard
+              nameservers={dnsZone?.status?.domainRef?.status?.nameservers ?? []}
+              registration={domain?.status?.registration ?? {}}
+              actions={
+                <LinkButton
+                  to={getPathWithParams(paths.project.detail.dnsZones.detail.nameservers, {
+                    projectId: projectId ?? '',
+                    dnsZoneId: dnsZone?.name ?? '',
+                  })}
+                  icon={<PencilIcon size={12} />}
+                  iconPosition="right"
+                  size="xs">
+                  View nameservers
+                </LinkButton>
+              }
+            />
+          ) : (
+            domain?.name && <TaskNameserverCard dnsZone={dnsZone!} />
+          )}
+        </Col>
+      )}
     </Row>
   );
 }
