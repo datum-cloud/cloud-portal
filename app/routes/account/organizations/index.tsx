@@ -228,11 +228,11 @@ export default function AccountOrganizations() {
         submitText="Confirm"
         submitTextLoading="Creating..."
         className="w-full sm:max-w-3xl">
-        <div className="divide-border space-y-0 divide-y [&>*]:px-4 [&>*]:py-4 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+        <div className="divide-border space-y-0 divide-y [&>*]:px-5 [&>*]:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
           <Form.Field
             name="description"
-            label="Description"
-            description="Enter a short, human-friendly name. Can be changed later."
+            label="Organization Name"
+            description="Could be the name of your company or team. This can be changed."
             required>
             <Form.Input placeholder="e.g. My Organization" autoFocus />
           </Form.Field>

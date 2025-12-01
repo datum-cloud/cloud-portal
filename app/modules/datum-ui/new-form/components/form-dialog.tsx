@@ -7,6 +7,7 @@ import { Form } from '@datum-ui/new-form';
 import { cn } from '@shadcn/lib/utils';
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -14,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@shadcn/ui/dialog';
+import { CircleXIcon, XIcon } from 'lucide-react';
 import * as React from 'react';
 import type { z } from 'zod';
 
@@ -150,12 +152,19 @@ export function FormDialog<T extends z.ZodType>({
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
 
-      <DialogContent className={cn('gap-0 p-0', className)}>
-        <DialogHeader className="gap-2 border-b p-4">
+      <DialogContent className={cn('gap-0 p-0 [&>button:last-child]:hidden', className)}>
+        <DialogHeader className="relative gap-2 border-b p-5">
           <DialogTitle className="text-base font-semibold">{title}</DialogTitle>
           {description && (
             <DialogDescription className="text-sm font-normal">{description}</DialogDescription>
           )}
+
+          <DialogClose
+            className="absolute top-4 right-4 cursor-pointer"
+            onClick={handleCancel}
+            asChild>
+            <CircleXIcon className="fill-secondary/20 stroke-background hover:fill-secondary/40 hover:stroke-background size-6 transition-all" />
+          </DialogClose>
         </DialogHeader>
 
         <Form.Root
@@ -164,14 +173,15 @@ export function FormDialog<T extends z.ZodType>({
           onSubmit={handleSubmit}
           onError={onError}
           isSubmitting={isSubmitting}
+          mode="onSubmit"
           className={cn('space-y-0', formClassName)}>
           {(renderProps: FormRootRenderProps) => (
             <>
-              <div className="space-y-0 py-4">
+              <div className="space-y-0 py-5">
                 {/* Render children - support both patterns */}
                 {typeof children === 'function' ? children(renderProps) : children}
               </div>
-              <DialogFooter className="gap-3 border-t p-4">
+              <DialogFooter className="gap-3 border-t p-5">
                 {showCancel && (
                   <FormButton
                     type="quaternary"
