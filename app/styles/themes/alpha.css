@@ -47,7 +47,7 @@ Scope variables to the theme class so we can swap themes by class
   --popover-foreground: hsl(240 10% 3.9%);
 
   /* Primary colors - using Figma tokens */
-  --primary: var(--canyon-clay);
+  --primary: var(--canyon-clay-links);
   --primary-foreground: var(--white);
 
   /* Secondary colors - using Figma tokens */
