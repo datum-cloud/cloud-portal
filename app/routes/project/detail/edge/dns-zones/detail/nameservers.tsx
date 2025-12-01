@@ -3,8 +3,8 @@ import { NoteCard } from '@/components/note-card/note-card';
 import { NameserverTable } from '@/features/edge/dns-zone/overview/nameservers';
 import { useFetcherWithToast } from '@/hooks/useFetcherWithToast';
 import { useIsPending } from '@/hooks/useIsPending';
-import { IDnsNameserver } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
+import { getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
 import { Button, Col, Row, Tooltip } from '@datum-ui/components';
 import { InfoIcon, RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
@@ -35,22 +35,7 @@ export default function DnsZoneNameserversPage() {
     return domain?.status?.registration?.registrar?.name;
   }, [domain]);
 
-  const nameserverSetup = useMemo(() => {
-    const datumNs = dnsZone?.status?.nameservers ?? [];
-    const zoneNs =
-      dnsZone?.status?.domainRef?.status?.nameservers?.map((ns: IDnsNameserver) => ns.hostname) ??
-      [];
-
-    const setupCount = datumNs.filter((ns: string) => zoneNs.includes(ns)).length;
-    const totalCount = datumNs.length;
-
-    return {
-      isFullySetup: setupCount === totalCount && totalCount > 0,
-      isPartiallySetup: setupCount > 0 && setupCount < totalCount,
-      setupCount,
-      totalCount,
-    };
-  }, [dnsZone]);
+  const nameserverSetup = useMemo(() => getNameserverSetupStatus(dnsZone), [dnsZone]);
 
   const refreshDomain = async () => {
     if (!domain?.name) return;
@@ -88,7 +73,7 @@ export default function DnsZoneNameserversPage() {
               </Tooltip>
             ),
           }}
-          data={domain?.status?.nameservers ?? []}
+          data={dnsZone?.status?.domainRef?.status?.nameservers ?? []}
           registration={domain?.status?.registration ?? {}}
         />
       </Col>
