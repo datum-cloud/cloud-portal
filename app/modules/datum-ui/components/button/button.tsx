@@ -39,7 +39,8 @@ const buttonVariants = cva(
       {
         type: 'primary',
         theme: 'solid',
-        className: 'bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80',
+        className:
+          'bg-btn-primary border border-primary text-primary-foreground hover:bg-primary active:bg-primary disabled:bg-primary/60',
       },
       {
         type: 'primary',
@@ -65,7 +66,7 @@ const buttonVariants = cva(
         type: 'secondary',
         theme: 'solid',
         className:
-          'bg-secondary text-secondary-foreground hover:bg-secondary/90 active:bg-secondary/80',
+          'bg-btn-secondary border border-secondary text-secondary-foreground hover:bg-secondary active:bg-secondary disabled:bg-secondary/60',
       },
       {
         type: 'secondary',
@@ -91,7 +92,7 @@ const buttonVariants = cva(
         type: 'tertiary',
         theme: 'solid',
         className:
-          'bg-tertiary text-tertiary-foreground hover:bg-tertiary/90 active:bg-tertiary/80',
+          'bg-btn-tertiary border border-tertiary text-tertiary-foreground hover:bg-tertiary active:bg-tertiary disabled:bg-tertiary/60',
       },
       {
         type: 'tertiary',
@@ -117,7 +118,7 @@ const buttonVariants = cva(
         type: 'quaternary',
         theme: 'solid',
         className:
-          'bg-quaternary text-quaternary-foreground hover:bg-quaternary/90 active:bg-quaternary/80',
+          'bg-btn-quaternary border border-quaternary text-quaternary-foreground hover:bg-quaternary active:bg-quaternary disabled:bg-quaternary/60',
       },
       {
         type: 'quaternary',

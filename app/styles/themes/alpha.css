@@ -47,7 +47,7 @@ Scope variables to the theme class so we can swap themes by class
   --popover-foreground: hsl(240 10% 3.9%);
 
   /* Primary colors - using Figma tokens */
-  --primary: var(--canyon-clay);
+  --primary: var(--canyon-clay-links);
   --primary-foreground: var(--white);
 
   /* Secondary colors - using Figma tokens */
@@ -137,6 +137,11 @@ Scope variables to the theme class so we can swap themes by class
 
   --card-warning: #fffbc5;
   --card-warning-foreground: var(--midnight-fjord);
+
+  --btn-primary: rgba(156, 121, 121, 0.9);
+  --btn-secondary: rgba(56, 69, 85, 0.9);
+  --btn-tertiary: var(--tertiary);
+  --btn-quaternary: var(--quaternary);
 
   /* ========================================
    DARK MODE OVERRIDES
@@ -241,6 +246,11 @@ Scope variables to the theme class so we can swap themes by class
     --badge-danger-foreground: var(--destructive-foreground);
     --badge-warning: hsl(34, 100%, 50%);
     --badge-warning-foreground: var(--glacier-mist-700);
+
+    --btn-primary: rgba(230, 245, 159, 0.9);
+    --btn-secondary: var(--btn-primary);
+    --btn-tertiary: var(--btn-primary);
+    --btn-quaternary: var(--quaternary);
   }
 }
 
@@ -292,6 +302,11 @@ TAILWIND CUSTOM UTILITIES FOR THEME
 
   --color-card-warning: var(--card-warning);
   --color-card-warning-foreground: var(--card-warning-foreground);
+
+  --color-btn-primary: var(--btn-primary);
+  --color-btn-secondary: var(--btn-secondary);
+  --color-btn-tertiary: var(--btn-tertiary);
+  --color-btn-quaternary: var(--btn-quaternary);
 }
 
 /* ========================================
