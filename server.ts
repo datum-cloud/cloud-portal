@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createControlPlaneClient } from '@/modules/control-plane/control-plane.factory';
 import { createCacheClient } from '@/modules/unstorage/unstorage.js';
-import { sessionStorage, SESSION_KEY } from '@/utils/cookies/session.server';
 import { createRequestHandler } from '@react-router/express';
 import compression from 'compression';
 import express, { Request, Response } from 'express';
@@ -283,9 +282,11 @@ async function getBuild() {
   }
 }
 
-async function apiContext(request: Request) {
-  const session = await sessionStorage.getSession(request.headers.cookie);
-  const sessionData = session.get(SESSION_KEY);
+async function apiContext(request: any) {
+  const { getSession } = await import('@/utils/cookies/session.server');
+
+  // Get session with automatic token refresh
+  const { session: sessionData } = await getSession(request);
 
   // Create a general resource client by default
   const controlPlaneClient = createControlPlaneClient(sessionData?.accessToken);
