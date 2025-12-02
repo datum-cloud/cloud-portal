@@ -153,20 +153,40 @@ export async function isAuthenticated(
 
     // Check if session is expired
     if (tokenExpiryTime < Date.now()) {
+      console.debug('[Auth] Token has already expired', {
+        expiryTime: new Date(tokenExpiryTime).toISOString(),
+        currentTime: new Date().toISOString(),
+      });
       return redirect(paths.auth.logOut, {
         headers: currentHeaders,
       });
     }
 
     // Only refresh token if it's about to expire (e.g., within 5 minutes)
-    const FIVE_MINUTES = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const FIVE_MINUTES = 11 * 60 * 60 * 1000 + 58 * 60 * 1000; // 11 hours and 58 mins in milliseconds
     const currentTime = Date.now();
     const timeUntilExpiry = tokenExpiryTime - currentTime;
+
+    console.debug('[Auth] Token expiry check', {
+      timeUntilExpiry: `${(timeUntilExpiry / 1000 / 60).toFixed(2)} minutes`,
+      expiryTime: new Date(tokenExpiryTime).toISOString(),
+      currentTime: new Date(currentTime).toISOString(),
+      refreshThreshold: `${(FIVE_MINUTES / 1000 / 60).toFixed(2)} minutes`,
+      shouldRefresh: session.refreshToken && timeUntilExpiry < FIVE_MINUTES,
+    });
 
     // Refresh token only if it's about to expire (within 5 minutes) or already expired
     if (session.refreshToken && timeUntilExpiry < FIVE_MINUTES) {
       try {
+        console.debug('[Auth] Initiating token refresh');
+        const refreshStartTime = Date.now();
         const refreshSession = await zitadelStrategy.refreshToken(session.refreshToken);
+        const refreshDuration = Date.now() - refreshStartTime;
+
+        console.debug('[Auth] Token refresh successful', {
+          duration: `${refreshDuration}ms`,
+          newExpiryTime: new Date(refreshSession.accessTokenExpiresAt()).toISOString(),
+        });
 
         const { headers: sessionHeaders } = await setSession(request, {
           accessToken: refreshSession.accessToken(),
@@ -176,7 +196,11 @@ export async function isAuthenticated(
 
         currentHeaders = sessionHeaders;
       } catch (error) {
-        console.error('Refresh token failed:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[Auth] Token refresh failed', {
+          error: errorMessage,
+          errorStack: error instanceof Error ? error.stack : undefined,
+        });
         // If refresh fails, log the user out
         return redirect(paths.auth.logOut, {
           headers: currentHeaders,
