@@ -85,7 +85,7 @@
     "isbot": "^5.1.30",
     "js-yaml": "^4.1.0",
     "jwt-decode": "^4.0.0",
-    "lucide-react": "^0.552.0",
+    "lucide-react": "^0.555.0",
     "morgan": "^1.10.1",
     "motion": "^12.23.18",
     "nprogress": "^0.2.0",
