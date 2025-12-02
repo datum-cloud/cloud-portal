@@ -1,6 +1,4 @@
-import { LokiActivityLogsService, type QueryParams } from '@/modules/loki';
-import { getSession } from '@/utils/cookies';
-import { AuthenticationError } from '@/utils/errors';
+import { type QueryParams } from '@/modules/loki';
 import { data, type LoaderFunctionArgs } from 'react-router';
 
 /**
@@ -48,22 +46,20 @@ const parseActivityLogParams = (searchParams: URLSearchParams): QueryParams => {
 // Route configuration
 export const ROUTE_PATH = '/api/activity' as const;
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export const loader = async ({ context, request }: LoaderFunctionArgs) => {
   try {
-    // Get session for authentication
-    const sessionResponse = await getSession(request);
-    const session = sessionResponse.session;
+    // Get Loki service from context (already initialized with refreshed token)
+    const { lokiService } = context as any;
 
-    if (!session?.accessToken) {
-      throw new AuthenticationError('Unauthorized');
+    if (!lokiService) {
+      return data({ success: false, error: 'Service unavailable' }, { status: 503 });
     }
 
     // Parse and validate query parameters
     const url = new URL(request.url);
     const queryParams = parseActivityLogParams(url.searchParams);
 
-    const service = new LokiActivityLogsService(session.accessToken);
-    const activityLogsResponse = await service.getActivityLogs(queryParams);
+    const activityLogsResponse = await lokiService.getActivityLogs(queryParams);
 
     return data({
       success: true,

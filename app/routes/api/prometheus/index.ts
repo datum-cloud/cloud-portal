@@ -2,10 +2,8 @@
  * Prometheus API middleware route
  * Handles Prometheus queries server-side with proper authentication and environment variables
  */
-import { PrometheusService } from '@/modules/prometheus';
 import { PrometheusError } from '@/modules/prometheus/errors';
 import { getSharedEnvs } from '@/utils/config/env.config';
-import { getSession } from '@/utils/cookies';
 import { data, type ActionFunctionArgs } from 'react-router';
 
 export const ROUTE_PATH = '/api/prometheus' as const;
@@ -14,33 +12,14 @@ export const ROUTE_PATH = '/api/prometheus' as const;
  * POST /api/prometheus
  * Handles Prometheus queries with server-side configuration
  */
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ context, request }: ActionFunctionArgs) {
   try {
-    // Get environment variables server-side
-    const env = getSharedEnvs();
-    const prometheusUrl = env.PROMETHEUS_URL;
+    // Get Prometheus service from context (already initialized with refreshed token)
+    const { prometheusService } = context as any;
 
-    if (!prometheusUrl) {
-      return data({ error: 'Prometheus URL not configured' }, { status: 500 });
+    if (!prometheusService) {
+      return data({ error: 'Service unavailable' }, { status: 503 });
     }
-
-    // Get session for authentication
-    const sessionResponse = await getSession(request);
-    const session = sessionResponse.session;
-
-    if (!session?.accessToken) {
-      return data({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Initialize Prometheus service with server-side config
-    const prometheusService = new PrometheusService({
-      baseURL: prometheusUrl,
-      timeout: 30000,
-      retries: 1,
-      headers: {
-        Authorization: `Bearer ${session.accessToken}`,
-      },
-    });
 
     // Parse request body and handle the request
     const body = await request.json();

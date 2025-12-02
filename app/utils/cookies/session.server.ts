@@ -73,14 +73,54 @@ export async function setSession(
 }
 
 /**
- * Gets authentication session data
+ * Gets authentication session data with automatic token refresh if needed
  * @param request Request object
- * @returns Response with session data and headers
+ * @returns Response with session data (refreshed if necessary) and headers
  */
 export async function getSession(request: Request): Promise<SessionResponse> {
   const session = await sessionStorage.getSession(request.headers.get('Cookie'));
-  const sessionData = session.get(SESSION_KEY);
-  const cookieHeader = await sessionStorage.commitSession(session);
+  let sessionData = session.get(SESSION_KEY);
+  let cookieHeader = await sessionStorage.commitSession(session);
+
+  // Parse date strings back to Date objects
+  if (sessionData && typeof sessionData.expiredAt === 'string') {
+    sessionData.expiredAt = new Date(sessionData.expiredAt);
+  }
+
+  // Check if session is expired
+  if (sessionData) {
+    const tokenExpiryTime = new Date(sessionData.expiredAt).getTime();
+    if (tokenExpiryTime < Date.now()) {
+      return createSessionResponse(undefined, cookieHeader);
+    }
+
+    // Refresh token if it expires within the next 5 minutes
+    const REFRESH_THRESHOLD = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const timeUntilExpiry = tokenExpiryTime - Date.now();
+
+    if (sessionData.refreshToken && timeUntilExpiry < REFRESH_THRESHOLD) {
+      try {
+        const refreshSession = await zitadelStrategy.refreshToken(sessionData.refreshToken);
+
+        const refreshedSession: IAuthSession = {
+          accessToken: refreshSession.accessToken(),
+          refreshToken: refreshSession.refreshToken(),
+          expiredAt: refreshSession.accessTokenExpiresAt(),
+          sub: sessionData.sub,
+          idToken: sessionData.idToken,
+        };
+
+        // Update the session in cookies
+        const updatedSession = await sessionStorage.getSession(request.headers.get('Cookie'));
+        updatedSession.set(SESSION_KEY, refreshedSession);
+        cookieHeader = await sessionStorage.commitSession(updatedSession);
+        sessionData = refreshedSession;
+      } catch (error) {
+        console.error('Token refresh failed:', error);
+        return createSessionResponse(undefined, cookieHeader);
+      }
+    }
+  }
 
   return createSessionResponse(sessionData, cookieHeader);
 }
@@ -148,42 +188,7 @@ export async function isAuthenticated(
       throw error;
     }
   } else {
-    // Convert expiredAt to timestamp
-    const tokenExpiryTime = new Date(session.expiredAt).getTime();
-
-    // Check if session is expired
-    if (tokenExpiryTime < Date.now()) {
-      return redirect(paths.auth.logOut, {
-        headers: currentHeaders,
-      });
-    }
-
-    // Only refresh token if it's about to expire (e.g., within 5 minutes)
-    const FIVE_MINUTES = 5 * 60 * 1000; // 5 minutes in milliseconds
-    const currentTime = Date.now();
-    const timeUntilExpiry = tokenExpiryTime - currentTime;
-
-    // Refresh token only if it's about to expire (within 5 minutes) or already expired
-    if (session.refreshToken && timeUntilExpiry < FIVE_MINUTES) {
-      try {
-        const refreshSession = await zitadelStrategy.refreshToken(session.refreshToken);
-
-        const { headers: sessionHeaders } = await setSession(request, {
-          accessToken: refreshSession.accessToken(),
-          refreshToken: refreshSession.refreshToken(),
-          expiredAt: refreshSession.accessTokenExpiresAt(),
-        });
-
-        currentHeaders = sessionHeaders;
-      } catch (error) {
-        console.error('Refresh token failed:', error);
-        // If refresh fails, log the user out
-        return redirect(paths.auth.logOut, {
-          headers: currentHeaders,
-        });
-      }
-    }
-
+    // Session is valid and token has been refreshed (if needed) by getSession()
     if (redirectTo) {
       return redirect(redirectTo, { headers: currentHeaders });
     }
