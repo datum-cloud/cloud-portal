@@ -88,22 +88,19 @@ export const DataTableView = <TData,>({
                 data-state={row.getIsSelected() && 'selected'}
                 onClick={() => onRowClick?.(row.original)}
                 className={cn(
+                  'bg-table-cell hover:bg-table-cell-hover relative transition-colors',
                   onRowClick && 'cursor-pointer',
-                  rowClassName?.(row.original),
-                  'relative'
+                  rowClassName?.(row.original)
                 )}>
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className={cn(
-                      'bg-table-cell px-4 py-2.5',
-                      cell.column.columnDef.meta?.className
-                    )}>
+                    className={cn('px-4 py-2.5', cell.column.columnDef.meta?.className)}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
                 {rowActions && rowActions.length > 0 && (
-                  <TableCell className="bg-table-cell px-4 py-2.5">
+                  <TableCell className="px-4 py-2.5">
                     <DataTableRowActions
                       row={row.original}
                       rowId={row.id}

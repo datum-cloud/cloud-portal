@@ -1,11 +1,11 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { NoteCard } from '@/components/note-card/note-card';
 import { NameserverTable } from '@/features/edge/dns-zone/overview/nameservers';
-import { useFetcherWithToast } from '@/hooks/useFetcherWithToast';
+import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { useIsPending } from '@/hooks/useIsPending';
 import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
 import { getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
-import { Button, Col, Row, Tooltip } from '@datum-ui/components';
+import { Button, Col, Row, Tooltip, toast } from '@datum-ui/components';
 import { InfoIcon, RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { useParams, useRouteLoaderData } from 'react-router';
@@ -18,11 +18,15 @@ export default function DnsZoneNameserversPage() {
   const { dnsZone, domain } = useRouteLoaderData('dns-zone-detail');
 
   const { projectId } = useParams();
-  const refreshFetcher = useFetcherWithToast({
+  const refreshFetcher = useDatumFetcher({
     key: 'refresh-nameservers',
-    success: {
-      title: 'Nameservers refreshed successfully',
-      description: 'The Nameservers have been refreshed successfully',
+    onSuccess: () => {
+      toast.success('Nameservers refreshed successfully', {
+        description: 'The Nameservers have been refreshed successfully',
+      });
+    },
+    onError: (data) => {
+      toast.error(data.error || 'Failed to refresh Nameservers');
     },
   });
   const pending = useIsPending({ fetcherKey: 'refresh-nameservers' });

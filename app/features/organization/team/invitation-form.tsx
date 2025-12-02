@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
-import { Form, type FormFieldRenderProps } from '@datum-ui/new-form';
+import { Form, type FormFieldRenderProps } from '@datum-ui/components/new-form';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { z } from 'zod';

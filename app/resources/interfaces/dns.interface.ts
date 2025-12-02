@@ -5,6 +5,7 @@ import {
 } from '@/modules/control-plane/dns-networking';
 import { ComDatumapisNetworkingV1AlphaDomain } from '@/modules/control-plane/networking';
 import { IExtendedControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
+import { SupportedDnsRecordType } from '@/utils/helpers/dns-record.helper';
 
 // ============================================
 // DNS Zone Interfaces
@@ -72,7 +73,7 @@ export interface IFlattenedDnsRecord {
   dnsZoneId: string;
 
   // Record details (always present)
-  type: string;
+  type: SupportedDnsRecordType;
   name: string;
   value: string; // Single value per row (MX format: "preference|exchange")
   ttl?: number;

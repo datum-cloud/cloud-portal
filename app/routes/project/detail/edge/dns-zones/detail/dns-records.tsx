@@ -5,62 +5,61 @@ import {
   DnsRecordModalForm,
   DnsRecordModalFormRef,
 } from '@/features/edge/dns-zone/overview/dns-records/dns-record-modal-form';
+import { DnsRecordImportAction } from '@/features/edge/dns-zone/overview/dns-records/import-export/dns-record-import-action';
+import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { DataTableFilter, DataTableRef } from '@/modules/datum-ui/components/data-table';
-import { createDnsRecordSetsControl } from '@/resources/control-plane/dns-networking/dns-record-set.control';
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
+import { IDnsZoneControlResponse, IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { DNS_RECORD_TYPES } from '@/resources/schemas/dns-record.schema';
 import { ROUTE_PATH as DNS_RECORDS_ACTIONS_PATH } from '@/routes/api/dns-records';
-import { BadRequestError } from '@/utils/errors';
 import { Button, toast } from '@datum-ui/components';
-import { Client } from '@hey-api/client-axios';
 import { ArrowRightIcon, PencilIcon, PlusIcon, Trash2Icon, XCircleIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import {
-  AppLoadContext,
-  LoaderFunctionArgs,
-  data,
-  useFetcher,
-  useLoaderData,
-  useParams,
-  useRevalidator,
-} from 'react-router';
+import { useParams, useRevalidator, useRouteLoaderData } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>DNS Records</span>,
 };
 
-export const loader = async ({ context, params }: LoaderFunctionArgs) => {
-  const { projectId, dnsZoneId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
-
-  if (!projectId || !dnsZoneId) {
-    throw new BadRequestError('Project ID and DNS Zone ID are required');
-  }
-
-  const dnsRecordSetsControl = createDnsRecordSetsControl(controlPlaneClient as Client);
-  const dnsRecordSets = await dnsRecordSetsControl.list(projectId, dnsZoneId);
-
-  return data(dnsRecordSets);
-};
-
 export default function DnsRecordsPage() {
-  const loaderData = useLoaderData<typeof loader>();
+  const { dnsZone, dnsRecordSets } = useRouteLoaderData('dns-zone-detail') as {
+    dnsZone: IDnsZoneControlResponse;
+    dnsRecordSets: IFlattenedDnsRecord[];
+  };
   const { projectId, dnsZoneId } = useParams();
   const revalidator = useRevalidator();
   const tableRef = useRef<DataTableRef<IFlattenedDnsRecord>>(null);
   const dnsRecordModalFormRef = useRef<DnsRecordModalFormRef>(null);
 
   const { confirm } = useConfirmationDialog();
-  const fetcher = useFetcher({ key: 'delete-dns-record' });
+  const deleteFetcher = useDatumFetcher({
+    key: 'delete-dns-record',
+    onSuccess: () => {
+      toast.success('DNS record deleted successfully', {
+        description: 'The DNS record has been deleted successfully',
+      });
+
+      setDnsRecords((prev) =>
+        prev.filter(
+          (r) =>
+            r.value !== currentRecord?.value ||
+            r.name !== currentRecord?.name ||
+            r.ttl !== currentRecord?.ttl
+        )
+      );
+    },
+    onError: (data) => {
+      toast.error(data.error || 'Failed to delete DNS record');
+    },
+  });
 
   // Local state for DNS records that we can manipulate
-  const [dnsRecordSets, setDnsRecordSets] = useState<IFlattenedDnsRecord[]>(loaderData);
+  const [dnsRecords, setDnsRecords] = useState<IFlattenedDnsRecord[]>(dnsRecordSets);
   const [currentRecord, setCurrentRecord] = useState<IFlattenedDnsRecord | null>(null);
 
   // Update local state when loader data changes (e.g., after revalidation)
   useEffect(() => {
-    setDnsRecordSets(loaderData);
-  }, [loaderData]);
+    setDnsRecords(dnsRecordSets);
+  }, [dnsRecordSets]);
 
   const handleDelete = async (record: IFlattenedDnsRecord) => {
     await confirm({
@@ -76,7 +75,7 @@ export default function DnsRecordsPage() {
       variant: 'destructive',
       onSubmit: async () => {
         setCurrentRecord(record);
-        await fetcher.submit(
+        await deleteFetcher.submit(
           {
             projectId: projectId!,
             recordSetName: record.recordSetName,
@@ -92,27 +91,6 @@ export default function DnsRecordsPage() {
       },
     });
   };
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data?.success) {
-        toast.success('DNS record deleted successfully', {
-          description: 'The DNS record has been deleted successfully',
-        });
-
-        setDnsRecordSets((prev) =>
-          prev.filter(
-            (r) =>
-              r.value !== currentRecord?.value ||
-              r.name !== currentRecord?.name ||
-              r.ttl !== currentRecord?.ttl
-          )
-        );
-      } else {
-        toast.error(fetcher.data?.error);
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   const handleOnSuccess = (mode: 'create' | 'edit' = 'create') => {
     if (mode === 'create') {
@@ -140,7 +118,7 @@ export default function DnsRecordsPage() {
       <DnsRecordTable
         ref={tableRef}
         mode="full"
-        data={dnsRecordSets}
+        data={dnsRecords}
         projectId={projectId!}
         emptyContent={{
           title: 'No DNS records found',
@@ -158,18 +136,28 @@ export default function DnsRecordsPage() {
         tableTitle={{
           title: 'DNS Records',
           actions: (
-            <Button
-              type="primary"
-              theme="solid"
-              size="small"
-              onClick={() =>
-                dnsRecordSets.length > 0
-                  ? tableRef.current?.openCreate()
-                  : dnsRecordModalFormRef.current?.show('create')
-              }>
-              <PlusIcon className="size-4" />
-              Add record
-            </Button>
+            <div className="flex items-center justify-end gap-3">
+              <DnsRecordImportAction
+                origin={dnsZone?.domainName}
+                existingRecords={dnsRecords}
+                projectId={projectId!}
+                dnsZoneId={dnsZoneId!}
+                onSuccess={revalidator.revalidate}
+              />
+              <Button
+                htmlType="button"
+                type="primary"
+                theme="solid"
+                size="small"
+                onClick={() =>
+                  dnsRecords.length > 0
+                    ? tableRef.current?.openCreate()
+                    : dnsRecordModalFormRef.current?.show('create')
+                }>
+                <PlusIcon className="size-4" />
+                Add record
+              </Button>
+            </div>
           ),
         }}
         rowActions={[

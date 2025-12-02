@@ -18,6 +18,18 @@ interface ImportOptions {
 }
 
 /**
+ * Individual record import detail
+ */
+interface ImportRecordDetail {
+  recordType: string;
+  name: string;
+  value: string;
+  ttl?: number;
+  action: 'created' | 'updated' | 'skipped' | 'failed';
+  message?: string;
+}
+
+/**
  * Bulk import response
  */
 interface BulkImportResponse {
@@ -30,16 +42,7 @@ interface BulkImportResponse {
     skipped: number;
     failed: number;
   };
-  details: Array<{
-    recordType: string;
-    action: 'created' | 'updated' | 'skipped' | 'failed';
-    recordCount: number;
-    message?: string;
-  }>;
-  errors?: Array<{
-    recordType: string;
-    error: string;
-  }>;
+  details: ImportRecordDetail[];
 }
 
 /**
@@ -61,53 +64,106 @@ function groupDiscoveryRecordsByType(
 }
 
 /**
- * Merge incoming records with existing records
- * Handles duplicate detection based on name, value, and TTL
+ * Check if a record is a duplicate of any existing record
  */
-function mergeRecords(
+function isDuplicateRecord(
+  newRecord: any,
+  existingRecords: any[],
+  recordType: string
+): boolean {
+  return existingRecords.some((r) => {
+    // Must match name
+    if (r.name !== newRecord.name) return false;
+
+    // Must match value
+    const existingValue = extractValue(r, recordType);
+    const newValue = extractValue(newRecord, recordType);
+    if (existingValue !== newValue) return false;
+
+    // Must match TTL (accounting for null/undefined as "auto")
+    const existingTTL = r.ttl ?? null;
+    const newTTL = newRecord.ttl ?? null;
+    if (existingTTL !== newTTL) return false;
+
+    return true; // Exact duplicate found
+  });
+}
+
+/**
+ * Process records and return individual details for each record
+ */
+function processRecordsWithDetails(
   existingRecords: any[],
   incomingRecords: any[],
   recordType: string,
-  options: Required<ImportOptions>
-): { merged: any[]; skippedCount: number } {
-  // Replace strategy: replace all existing records
+  options: Required<ImportOptions>,
+  isNewRecordSet: boolean
+): {
+  merged: any[];
+  recordDetails: ImportRecordDetail[];
+  counts: { created: number; updated: number; skipped: number };
+} {
+  const recordDetails: ImportRecordDetail[] = [];
+  const counts = { created: 0, updated: 0, skipped: 0 };
+
+  // Replace strategy: all incoming records replace existing
   if (options.mergeStrategy === 'replace') {
-    return {
-      merged: incomingRecords,
-      skippedCount: 0,
-    };
+    for (const record of incomingRecords) {
+      const value = extractValue(record, recordType);
+      recordDetails.push({
+        recordType,
+        name: record.name,
+        value,
+        ttl: record.ttl,
+        action: isNewRecordSet ? 'created' : 'updated',
+        message: isNewRecordSet ? 'Created' : 'Replaced existing record',
+      });
+      if (isNewRecordSet) {
+        counts.created++;
+      } else {
+        counts.updated++;
+      }
+    }
+    return { merged: incomingRecords, recordDetails, counts };
   }
 
   // Append strategy: merge with duplicate detection
   const merged = [...existingRecords];
-  let skippedCount = 0;
 
   for (const newRecord of incomingRecords) {
-    const isDuplicate = existingRecords.some((r) => {
-      // Must match name
-      if (r.name !== newRecord.name) return false;
-
-      // Must match value
-      const existingValue = extractValue(r, recordType);
-      const newValue = extractValue(newRecord, recordType);
-      if (existingValue !== newValue) return false;
-
-      // Must match TTL (accounting for null/undefined as "auto")
-      const existingTTL = r.ttl ?? null;
-      const newTTL = newRecord.ttl ?? null;
-      if (existingTTL !== newTTL) return false;
-
-      return true; // Exact duplicate found
-    });
+    const value = extractValue(newRecord, recordType);
+    const isDuplicate = isDuplicateRecord(newRecord, existingRecords, recordType);
 
     if (isDuplicate && options.skipDuplicates) {
-      skippedCount++;
+      recordDetails.push({
+        recordType,
+        name: newRecord.name,
+        value,
+        ttl: newRecord.ttl,
+        action: 'skipped',
+        message: 'Record already exists',
+      });
+      counts.skipped++;
     } else {
       merged.push(newRecord);
+      const action = isNewRecordSet ? 'created' : 'updated';
+      recordDetails.push({
+        recordType,
+        name: newRecord.name,
+        value,
+        ttl: newRecord.ttl,
+        action,
+        message: isNewRecordSet ? 'Created' : 'Added to existing RecordSet',
+      });
+      if (isNewRecordSet) {
+        counts.created++;
+      } else {
+        counts.updated++;
+      }
     }
   }
 
-  return { merged, skippedCount };
+  return { merged, recordDetails, counts };
 }
 
 /**
@@ -118,7 +174,7 @@ function mergeRecords(
  * - Groups discovery records by type
  * - For each type: create new RecordSet OR append to existing RecordSet
  * - Supports duplicate detection and merge strategies
- * - Returns detailed summary of operations
+ * - Returns detailed summary with individual record results
  */
 export const action = async ({ request, context }: ActionFunctionArgs) => {
   const { controlPlaneClient } = context as AppLoadContext;
@@ -173,17 +229,16 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
       failed: 0,
     };
 
-    const details: BulkImportResponse['details'] = [];
-    const errors: BulkImportResponse['errors'] = [];
+    const allDetails: ImportRecordDetail[] = [];
 
     // Group discovery records by type
     const grouped = groupDiscoveryRecordsByType(discoveryRecordSets);
 
     // Process each record type
     for (const [recordType, records] of grouped) {
-      try {
-        summary.totalRecords += records.length;
+      summary.totalRecords += records.length;
 
+      try {
         // Check if RecordSet exists for this type + zone
         const existingRecordSet = await dnsRecordSetsControl.findByTypeAndZone(
           projectId,
@@ -191,54 +246,47 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
           recordType
         );
 
-        if (!existingRecordSet) {
-          // ===================================================================
-          // CREATE: No RecordSet exists → Create new RecordSet with all records
-          // ===================================================================
-          const dryRunRes = await dnsRecordSetsControl.create(
-            projectId,
-            {
-              dnsZoneRef: { name: dnsZoneId },
-              recordType: recordType as any,
-              records: records,
-            },
-            true // dry run
-          );
+        const isNewRecordSet = !existingRecordSet;
+        const existingRecords = existingRecordSet?.records || [];
 
-          if (dryRunRes && !options.dryRun) {
-            await dnsRecordSetsControl.create(
+        // Process records and get individual details
+        const { merged, recordDetails, counts } = processRecordsWithDetails(
+          existingRecords,
+          records,
+          recordType,
+          options,
+          isNewRecordSet
+        );
+
+        // Only proceed if there are records to add/update
+        const hasChanges = merged.length > existingRecords.length || options.mergeStrategy === 'replace';
+
+        if (hasChanges) {
+          if (isNewRecordSet) {
+            // CREATE: No RecordSet exists → Create new RecordSet with all records
+            const dryRunRes = await dnsRecordSetsControl.create(
               projectId,
               {
                 dnsZoneRef: { name: dnsZoneId },
                 recordType: recordType as any,
-                records: records,
+                records: merged,
               },
-              false
+              true // dry run
             );
-          }
 
-          summary.created++;
-          details.push({
-            recordType,
-            action: 'created',
-            recordCount: records.length,
-            message: `Created new ${recordType} RecordSet with ${records.length} record(s)`,
-          });
-        } else {
-          // ===================================================================
-          // APPEND/REPLACE: RecordSet exists → Merge records
-          // ===================================================================
-          const { merged, skippedCount } = mergeRecords(
-            existingRecordSet.records || [],
-            records,
-            recordType,
-            options
-          );
-
-          const addedCount = merged.length - (existingRecordSet.records?.length || 0);
-
-          if (addedCount > 0 || options.mergeStrategy === 'replace') {
-            // Update RecordSet with merged records
+            if (dryRunRes && !options.dryRun) {
+              await dnsRecordSetsControl.create(
+                projectId,
+                {
+                  dnsZoneRef: { name: dnsZoneId },
+                  recordType: recordType as any,
+                  records: merged,
+                },
+                false
+              );
+            }
+          } else {
+            // UPDATE: RecordSet exists → Update with merged records
             const dryRunRes = await dnsRecordSetsControl.update(
               projectId,
               existingRecordSet.name!,
@@ -254,57 +302,60 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
                 false
               );
             }
-
-            summary.updated++;
-            summary.skipped += skippedCount;
-            details.push({
-              recordType,
-              action: 'updated',
-              recordCount: addedCount,
-              message: `Added ${addedCount} record(s), skipped ${skippedCount} duplicate(s)`,
-            });
-          } else {
-            // All records are duplicates
-            summary.skipped += records.length;
-            details.push({
-              recordType,
-              action: 'skipped',
-              recordCount: records.length,
-              message: 'All records already exist',
-            });
           }
         }
+
+        // Add record details and update summary counts
+        allDetails.push(...recordDetails);
+        summary.created += counts.created;
+        summary.updated += counts.updated;
+        summary.skipped += counts.skipped;
       } catch (error: any) {
-        summary.failed++;
-        errors.push({
-          recordType,
-          error: error.message || 'Unknown error',
-        });
-        details.push({
-          recordType,
-          action: 'failed',
-          recordCount: records.length,
-          message: error.message || 'Unknown error',
-        });
+        // Mark all records of this type as failed
+        for (const record of records) {
+          const value = extractValue(record, recordType);
+          allDetails.push({
+            recordType,
+            name: record.name,
+            value,
+            ttl: record.ttl,
+            action: 'failed',
+            message: error.message || 'Unknown error',
+          });
+          summary.failed++;
+        }
       }
     }
 
+    const hasErrors = summary.failed > 0;
     const response: BulkImportResponse = {
-      success: errors.length === 0,
+      success: !hasErrors,
       summary,
-      details,
-      errors: errors.length > 0 ? errors : undefined,
+      details: allDetails,
     };
 
-    if (redirectUri && response.success) {
-      return redirectWithToast(redirectUri as string, {
-        title: 'DNS records imported successfully',
-        description: 'The DNS records have been imported successfully',
-        type: 'success',
-      });
+    if (!hasErrors) {
+      if (redirectUri) {
+        return redirectWithToast(redirectUri as string, {
+          title: 'DNS records imported successfully',
+          description: 'The DNS records have been imported successfully',
+          type: 'success',
+        });
+      }
+
+      return data({ success: true, data: { summary, details: allDetails } }, { status: 200 });
     }
 
-    return data(response, { status: errors.length === 0 ? 200 : 207 }); // 207 = Multi-Status
+    // Partial success or all failed
+    const successCount = summary.created + summary.updated + summary.skipped;
+    return data(
+      {
+        success: successCount > 0,
+        error: `${summary.failed} record(s) failed to import`,
+        data: { summary, details: allDetails },
+      },
+      { status: successCount > 0 ? 207 : 400 } // 207 = Multi-Status for partial success
+    );
   } catch (error: any) {
     return data(
       { success: false, error: error.message || 'An error occurred during bulk import' },

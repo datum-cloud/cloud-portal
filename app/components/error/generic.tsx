@@ -36,12 +36,17 @@ export const GenericError = ({ message }: { message: string }) => {
           {/* )} */}
         </div>
         <div className="flex items-center gap-2">
-          <Link to={paths.home}>
-            <Button size="small">
-              <HomeIcon className="size-4" />
-              Back to Home
-            </Button>
-          </Link>
+          <Button
+            size="small"
+            type="primary"
+            theme="solid"
+            icon={<HomeIcon className="size-4" />}
+            className="bg-primary hover:bg-primary/90 active:bg-primary/80"
+            onClick={() => {
+              navigate(paths.home);
+            }}>
+            Back to Home
+          </Button>
           <Button
             type="quaternary"
             theme="outline"

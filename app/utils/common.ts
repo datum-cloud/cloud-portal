@@ -89,3 +89,21 @@ export function removeUndefined<T extends Record<string, any>>(obj: T): Partial<
 export function buildNamespace(type: 'organization' | 'project', id: string): string {
   return `${type}-${id}`;
 }
+
+/**
+ * Trigger a file download in the browser
+ * @param content - File content as string
+ * @param filename - Name of the file to download
+ * @param mimeType - MIME type of the file (default: 'text/plain')
+ */
+export function downloadFile(content: string, filename: string, mimeType = 'text/plain'): void {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}

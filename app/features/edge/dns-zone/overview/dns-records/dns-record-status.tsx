@@ -57,10 +57,20 @@ export const DnsRecordStatus = ({ record, projectId, className }: DnsRecordStatu
       !record.status ||
       (!record.status?.isProgrammed && record.status?.programmedReason !== 'InvalidDNSRecordSet')
     ) {
-      loadStatus();
+      // Defer initial load to avoid state update before mount
+      const timeoutId = setTimeout(loadStatus, 0);
 
       // Set up polling interval
       intervalRef.current = setInterval(loadStatus, 10000);
+
+      // Clean up timeout on unmount
+      return () => {
+        clearTimeout(timeoutId);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      };
     }
 
     // Clean up interval on unmount
