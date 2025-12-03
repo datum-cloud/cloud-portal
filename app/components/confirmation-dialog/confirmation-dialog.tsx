@@ -126,7 +126,6 @@ export const ConfirmationDialog = ({
           title={dialogProps.title}
           description={dialogProps.description}
           onClose={handleCancel}
-          className="border-b-0"
         />
         {dialogProps.showAlert || dialogProps.showConfirmInput ? (
           <Dialog.Body className="px-5">
@@ -153,7 +152,7 @@ export const ConfirmationDialog = ({
           <></>
         )}
 
-        <Dialog.Footer className="border-t-0">
+        <Dialog.Footer>
           <Button type="quaternary" theme="borderless" onClick={handleCancel} disabled={isPending}>
             {dialogProps.cancelText}
           </Button>

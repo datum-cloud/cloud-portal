@@ -1,12 +1,6 @@
 import { LabelForm } from './label-form';
 import { LabelFormSchema } from '@/resources/schemas/metadata.schema';
-import {
-  DialogContent,
-  Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@shadcn/ui/dialog';
+import { Dialog } from '@datum-ui/components/dialog';
 import { useImperativeHandle, useRef, useState } from 'react';
 
 interface LabelFormDialogProps {
@@ -51,26 +45,29 @@ export const LabelFormDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Label</DialogTitle>
-          <DialogDescription>
-            Create labels to organize resources. Use key/value pairs to categorize and filter
-            objects.
-          </DialogDescription>
-        </DialogHeader>
-        <LabelForm
-          defaultValue={defaultValue}
-          onSubmit={(value) => {
-            onSubmit?.(value);
-            setIsOpen(false);
-          }}
-          onCancel={() => {
+      <Dialog.Content>
+        <Dialog.Header
+          title="Add Label"
+          description="Create labels to organize resources. Use key/value pairs to categorize and filter objects."
+          onClose={() => {
             onCancel?.();
             setIsOpen(false);
           }}
         />
-      </DialogContent>
+        <Dialog.Body className="px-5">
+          <LabelForm
+            defaultValue={defaultValue}
+            onSubmit={(value) => {
+              onSubmit?.(value);
+              setIsOpen(false);
+            }}
+            onCancel={() => {
+              onCancel?.();
+              setIsOpen(false);
+            }}
+          />
+        </Dialog.Body>
+      </Dialog.Content>
     </Dialog>
   );
 };

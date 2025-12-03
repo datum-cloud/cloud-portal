@@ -73,7 +73,7 @@ interface DialogHeaderProps {
 
 function Header({ title, description, onClose, className }: DialogHeaderProps) {
   return (
-    <div className={cn('relative flex flex-col gap-2 border-b p-5', className)}>
+    <div className={cn('relative flex flex-col gap-2 p-5', className)}>
       <DialogTitle className="text-base font-semibold">{title}</DialogTitle>
       {description && (
         <DialogDescription className="text-sm font-normal">{description}</DialogDescription>
@@ -111,11 +111,7 @@ interface DialogFooterProps {
 }
 
 function Footer({ children, className }: DialogFooterProps) {
-  return (
-    <ShadcnDialogFooter className={cn('gap-3 border-t p-5', className)}>
-      {children}
-    </ShadcnDialogFooter>
-  );
+  return <ShadcnDialogFooter className={cn('gap-3 p-5', className)}>{children}</ShadcnDialogFooter>;
 }
 
 /* -----------------------------------------------------------------------------

@@ -139,8 +139,6 @@ export function FormDialog<T extends z.ZodType>({
       {trigger && <Dialog.Trigger>{trigger}</Dialog.Trigger>}
 
       <Dialog.Content className={className}>
-        <Dialog.Header title={title} description={description} onClose={handleCancel} />
-
         <Form.Root
           schema={schema}
           defaultValues={defaultValues}
@@ -151,11 +149,18 @@ export function FormDialog<T extends z.ZodType>({
           className={cn('space-y-0', formClassName)}>
           {(renderProps: FormRootRenderProps) => (
             <>
+              <Dialog.Header
+                title={title}
+                description={description}
+                onClose={handleCancel}
+                className="border-b"
+              />
+
               <Dialog.Body className="space-y-0">
                 {/* Render children - support both patterns */}
                 {typeof children === 'function' ? children(renderProps) : children}
               </Dialog.Body>
-              <Dialog.Footer>
+              <Dialog.Footer className="border-t">
                 {showCancel && (
                   <Form.Button
                     type="quaternary"

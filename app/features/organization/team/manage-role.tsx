@@ -11,13 +11,7 @@ import {
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button, toast } from '@datum-ui/components';
-import {
-  DialogContent,
-  Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@shadcn/ui/dialog';
+import { Dialog } from '@datum-ui/components/dialog';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
@@ -134,61 +128,63 @@ export const ManageRoleModalForm = forwardRef<ManageRoleModalFormRef, ManageRole
 
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Member Role</DialogTitle>
-            <DialogDescription>Edit the role of the member in the organization.</DialogDescription>
-          </DialogHeader>
-          <FormProvider context={form.context}>
-            <Form
-              {...getFormProps(form)}
-              id={form.id}
-              method="POST"
-              autoComplete="off"
-              className="flex flex-col gap-5">
-              <Field isRequired label="Role" errors={fields.role.errors}>
-                <SelectRole
-                  {...getSelectProps(fields.role)}
-                  modal
-                  name={fields.role.name}
-                  id={fields.role.id}
-                  key={fields.role.id}
-                  defaultValue={roleControl.value}
-                  onSelect={(value) => {
-                    roleControl.change(value.value);
-                    roleNamespaceControl.change(value.namespace ?? 'datum-cloud');
-                  }}
+        <Dialog.Content>
+          <Dialog.Header
+            title="Edit Member Role"
+            description="Edit the role of the member in the organization."
+            onClose={handleClose}
+          />
+          <Dialog.Body className="px-5">
+            <FormProvider context={form.context}>
+              <Form
+                {...getFormProps(form)}
+                id={form.id}
+                method="POST"
+                autoComplete="off"
+                className="flex flex-col gap-5">
+                <Field isRequired label="Role" errors={fields.role.errors}>
+                  <SelectRole
+                    {...getSelectProps(fields.role)}
+                    modal
+                    name={fields.role.name}
+                    id={fields.role.id}
+                    key={fields.role.id}
+                    defaultValue={roleControl.value}
+                    onSelect={(value) => {
+                      roleControl.change(value.value);
+                      roleNamespaceControl.change(value.namespace ?? 'datum-cloud');
+                    }}
+                  />
+                </Field>
+
+                <input
+                  type="hidden"
+                  name={fields.roleNamespace.name}
+                  value={roleNamespaceControl.value}
                 />
-              </Field>
-
-              <input
-                type="hidden"
-                name={fields.roleNamespace.name}
-                value={roleNamespaceControl.value}
-              />
-
-              <div className="flex w-full items-center justify-end gap-2">
-                <Button
-                  htmlType="button"
-                  type="quaternary"
-                  theme="borderless"
-                  onClick={handleClose}
-                  disabled={loading}>
-                  Cancel
-                </Button>
-
-                <Button
-                  htmlType="submit"
-                  className="h-10"
-                  type="secondary"
-                  disabled={loading}
-                  loading={loading}>
-                  {loading ? 'Saving' : 'Save'}
-                </Button>
-              </div>
-            </Form>
-          </FormProvider>
-        </DialogContent>
+              </Form>
+            </FormProvider>
+          </Dialog.Body>
+          <Dialog.Footer>
+            <Button
+              htmlType="button"
+              type="quaternary"
+              theme="borderless"
+              onClick={handleClose}
+              disabled={loading}>
+              Cancel
+            </Button>
+            <Button
+              htmlType="submit"
+              form={form.id}
+              className="h-10"
+              type="secondary"
+              disabled={loading}
+              loading={loading}>
+              {loading ? 'Saving' : 'Save'}
+            </Button>
+          </Dialog.Footer>
+        </Dialog.Content>
       </Dialog>
     );
   }

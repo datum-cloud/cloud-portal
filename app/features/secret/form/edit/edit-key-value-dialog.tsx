@@ -7,14 +7,7 @@ import { getFormProps, getTextareaProps, useForm, useInputControl } from '@confo
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button, toast } from '@datum-ui/components';
 import { Textarea } from '@datum-ui/components';
-import {
-  DialogContent,
-  Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@shadcn/ui/dialog';
+import { Dialog } from '@datum-ui/components/dialog';
 import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
@@ -133,58 +126,58 @@ export const EditKeyValueDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit Key-Value Pair</DialogTitle>
-          <DialogDescription>
-            If not already base64-encoded, values will be encoded automatically.
-          </DialogDescription>
-        </DialogHeader>
-        <Form
-          {...getFormProps(form)}
-          id={form.id}
-          method="POST"
-          autoComplete="off"
-          className="flex flex-col gap-6">
-          <div className="space-y-4">
-            <Field label="Key">
-              <span className="text-base">{keyId}</span>
-            </Field>
-            <Field
-              isRequired
-              label="Value"
-              errors={fields.value.errors}
-              className="w-full max-w-[460px]">
-              <Textarea
-                {...getTextareaProps(fields.value)}
-                className="min-h-20 w-full"
-                rows={1}
-                key={fields.value.id}
-                ref={textAreaRef}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                  const value = (e.target as HTMLTextAreaElement).value;
-                  valueControl.change(value);
-                }}
-              />
-            </Field>
-          </div>
-
-          <DialogFooter className="flex gap-2">
-            <Button
-              type="quaternary"
-              theme="borderless"
-              disabled={isPending}
-              onClick={() => {
-                handleOpenChange(false);
-              }}>
-              Cancel
-            </Button>
-            <Button htmlType="submit" disabled={isPending} loading={isPending}>
-              {isPending ? 'Saving' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </Form>
-      </DialogContent>
+      <Dialog.Content>
+        <Dialog.Header
+          title="Edit Key-Value Pair"
+          description="If not already base64-encoded, values will be encoded automatically."
+          onClose={() => handleOpenChange(false)}
+        />
+        <Dialog.Body className="px-5">
+          <Form
+            {...getFormProps(form)}
+            id={form.id}
+            method="POST"
+            autoComplete="off"
+            className="flex flex-col gap-6">
+            <div className="space-y-4">
+              <Field label="Key">
+                <span className="text-base">{keyId}</span>
+              </Field>
+              <Field
+                isRequired
+                label="Value"
+                errors={fields.value.errors}
+                className="w-full max-w-[460px]">
+                <Textarea
+                  {...getTextareaProps(fields.value)}
+                  className="min-h-20 w-full"
+                  rows={1}
+                  key={fields.value.id}
+                  ref={textAreaRef}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                    const value = (e.target as HTMLTextAreaElement).value;
+                    valueControl.change(value);
+                  }}
+                />
+              </Field>
+            </div>
+          </Form>
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Button
+            type="quaternary"
+            theme="borderless"
+            disabled={isPending}
+            onClick={() => {
+              handleOpenChange(false);
+            }}>
+            Cancel
+          </Button>
+          <Button htmlType="submit" form={form.id} disabled={isPending} loading={isPending}>
+            {isPending ? 'Saving' : 'Save'}
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
     </Dialog>
   );
 };
