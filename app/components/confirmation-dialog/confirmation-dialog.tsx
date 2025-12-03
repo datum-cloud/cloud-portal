@@ -1,14 +1,7 @@
 import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Input, Label } from '@datum-ui/components';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@shadcn/ui/dialog';
+import { Dialog } from '@datum-ui/components/dialog';
 import { AlertCircle } from 'lucide-react';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
@@ -128,30 +121,39 @@ export const ConfirmationDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{dialogProps.title}</DialogTitle>
-          <DialogDescription>{dialogProps.description}</DialogDescription>
-        </DialogHeader>
-        {dialogProps.showAlert && (
-          <Alert variant={dialogProps.alertVariant} className={dialogProps.alertClassName}>
-            {dialogProps.alertIcon}
-            <AlertTitle>{dialogProps.alertTitle}</AlertTitle>
-            <AlertDescription>{dialogProps.alertDescription}</AlertDescription>
-          </Alert>
+      <Dialog.Content>
+        <Dialog.Header
+          title={dialogProps.title}
+          description={dialogProps.description}
+          onClose={handleCancel}
+          className="border-b-0"
+        />
+        {dialogProps.showAlert || dialogProps.showConfirmInput ? (
+          <Dialog.Body className="px-5">
+            {dialogProps.showAlert && (
+              <Alert variant={dialogProps.alertVariant} className={dialogProps.alertClassName}>
+                {dialogProps.alertIcon}
+                <AlertTitle>{dialogProps.alertTitle}</AlertTitle>
+                <AlertDescription>{dialogProps.alertDescription}</AlertDescription>
+              </Alert>
+            )}
+            {dialogProps.showConfirmInput && (
+              <div className="mt-2 flex flex-col gap-3">
+                <Label>{dialogProps.confirmInputLabel}</Label>
+                <Input
+                  type="text"
+                  placeholder={dialogProps.confirmInputPlaceholder}
+                  value={confirmValidationValue}
+                  onChange={(e) => setConfirmValidationValue(e.target.value)}
+                />
+              </div>
+            )}
+          </Dialog.Body>
+        ) : (
+          <></>
         )}
-        {dialogProps.showConfirmInput && (
-          <div className="mt-2 flex flex-col gap-3">
-            <Label>{dialogProps.confirmInputLabel}</Label>
-            <Input
-              type="text"
-              placeholder={dialogProps.confirmInputPlaceholder}
-              value={confirmValidationValue}
-              onChange={(e) => setConfirmValidationValue(e.target.value)}
-            />
-          </div>
-        )}
-        <DialogFooter className="flex gap-2">
+
+        <Dialog.Footer className="border-t-0">
           <Button type="quaternary" theme="borderless" onClick={handleCancel} disabled={isPending}>
             {dialogProps.cancelText}
           </Button>
@@ -163,8 +165,8 @@ export const ConfirmationDialog = ({
             loading={isPending}>
             {dialogProps.submitText}
           </Button>
-        </DialogFooter>
-      </DialogContent>
+        </Dialog.Footer>
+      </Dialog.Content>
     </Dialog>
   );
 };

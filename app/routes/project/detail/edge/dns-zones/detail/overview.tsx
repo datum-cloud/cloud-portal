@@ -1,36 +1,49 @@
 import { PageTitle } from '@/components/page-title/page-title';
+import { DnsRecordCard } from '@/features/edge/dns-zone/overview/dns-records';
 import { NameserverCard } from '@/features/edge/dns-zone/overview/nameservers';
 import { TaskNameserverCard } from '@/features/edge/dns-zone/overview/task-nameserver-card';
 import { TaskRecordCard } from '@/features/edge/dns-zone/overview/task-record-card';
-import { useFetcherWithToast } from '@/hooks/useFetcherWithToast';
+import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { useIsPending } from '@/hooks/useIsPending';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
+import { IDnsZoneControlResponse, IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
 import { paths } from '@/utils/config/paths.config';
-import { getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
+import { getDnsSetupStatus, getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, Col, LinkButton, Row, Tooltip } from '@datum-ui/components';
+import { Button, Col, LinkButton, Row, Tooltip, toast } from '@datum-ui/components';
 import { PencilIcon, RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { useParams, useRouteLoaderData } from 'react-router';
 
 export default function DnsZoneOverviewPage() {
-  const { dnsZone, domain } =
-    useRouteLoaderData<{ dnsZone: IDnsZoneControlResponse; domain: IDomainControlResponse }>(
-      'dns-zone-detail'
-    ) ?? {};
+  const { dnsZone, domain, dnsRecordSets } =
+    useRouteLoaderData<{
+      dnsZone: IDnsZoneControlResponse;
+      domain: IDomainControlResponse;
+      dnsRecordSets: IFlattenedDnsRecord[];
+    }>('dns-zone-detail') ?? {};
+
   const { projectId } = useParams();
-  const refreshFetcher = useFetcherWithToast({
+  const refreshFetcher = useDatumFetcher({
     key: 'refresh-nameservers',
-    success: {
-      title: 'Nameservers refreshed successfully',
-      description: 'The Nameservers have been refreshed successfully',
+    onSuccess: () => {
+      toast.success('Nameservers refreshed successfully', {
+        description: 'The Nameservers have been refreshed successfully',
+      });
+    },
+    onError: (data) => {
+      toast.error(data.error || 'Failed to refresh Nameservers');
     },
   });
   const pending = useIsPending({ fetcherKey: 'refresh-nameservers' });
 
   const nameserverSetup = useMemo(() => getNameserverSetupStatus(dnsZone), [dnsZone]);
+
+  const dnsSetupStatus = useMemo(
+    () => getDnsSetupStatus(dnsRecordSets ?? [], dnsZone?.domainName),
+    [dnsRecordSets, dnsZone?.domainName]
+  );
 
   const refreshDomain = async () => {
     if (!domain?.name) return;
@@ -71,25 +84,28 @@ export default function DnsZoneOverviewPage() {
         />
       </Col>
       <Col span={24}>
-        <TaskRecordCard projectId={projectId ?? ''} dnsZone={dnsZone!} />
-        {/* <DnsRecordCard
-          projectId={projectId ?? ''}
-          records={flattenedRecords}
-          maxRows={5}
-          title="DNS Records"
-          actions={
-            <LinkButton
-              to={getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
-                projectId: projectId ?? '',
-                dnsZoneId: dnsZoneId ?? '',
-              })}
-              icon={<PencilIcon size={12} />}
-              iconPosition="right"
-              size="xs">
-              Edit DNS records
-            </LinkButton>
-          }
-        /> */}
+        {dnsSetupStatus.hasAnySetup ? (
+          <DnsRecordCard
+            projectId={projectId ?? ''}
+            records={dnsSetupStatus.relevantRecords}
+            maxRows={5}
+            title="DNS Records"
+            actions={
+              <LinkButton
+                to={getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
+                  projectId: projectId ?? '',
+                  dnsZoneId: dnsZone?.name ?? '',
+                })}
+                icon={<PencilIcon size={12} />}
+                iconPosition="right"
+                size="xs">
+                Edit DNS records
+              </LinkButton>
+            }
+          />
+        ) : (
+          <TaskRecordCard projectId={projectId ?? ''} dnsZone={dnsZone!} />
+        )}
       </Col>
       {domain?.name && (
         <Col span={24}>
@@ -103,8 +119,6 @@ export default function DnsZoneOverviewPage() {
                     projectId: projectId ?? '',
                     dnsZoneId: dnsZone?.name ?? '',
                   })}
-                  icon={<PencilIcon size={12} />}
-                  iconPosition="right"
                   size="xs">
                   View nameservers
                 </LinkButton>

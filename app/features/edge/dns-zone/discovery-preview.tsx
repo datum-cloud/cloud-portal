@@ -3,7 +3,7 @@ import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DNS_RECORDS_BULK_IMPORT_PATH } from '@/routes/api/dns-records/bulk-import';
 import { ROUTE_PATH as DNS_ZONE_DISCOVERY_DETAIL_PATH } from '@/routes/api/dns-zone-discoveries/$id';
 import { paths } from '@/utils/config/paths.config';
-import { flattenDnsRecordSets } from '@/utils/helpers/dns-record.helper';
+import { flattenDnsRecordSets, type ImportResult } from '@/utils/helpers/dns-record.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   Button,
@@ -146,12 +146,39 @@ export const DnsZoneDiscoveryPreview = ({
 
   useEffect(() => {
     if (importFetcher.data && importFetcher.state === 'idle') {
-      if (importFetcher.data?.success) {
-        toast.success('DNS records imported successfully', {
-          description: 'The DNS records have been imported successfully',
+      const data = importFetcher.data as {
+        success: boolean;
+        error?: string;
+        data?: ImportResult;
+      };
+
+      // Show summary toast based on import result
+      if (data.data) {
+        const { summary } = data.data;
+        const importedCount = summary.created + summary.updated;
+        const failedCount = summary.failed;
+
+        if (failedCount === 0 && importedCount > 0) {
+          toast.success('DNS records', {
+            description: `${importedCount} records imported successfully`,
+          });
+        } else if (importedCount > 0 && failedCount > 0) {
+          toast.warning('DNS records', {
+            description: `${importedCount} records imported, ${failedCount} failed`,
+          });
+        } else if (failedCount > 0) {
+          toast.error('DNS records', {
+            description: `${failedCount} records failed to import`,
+          });
+        }
+      } else if (data.success) {
+        toast.success('DNS records', {
+          description: 'Imported successfully.',
         });
       } else {
-        toast.error(importFetcher.data?.error || 'An unexpected error occurred');
+        toast.error('DNS records', {
+          description: data.error || 'An unexpected error occurred',
+        });
       }
     }
   }, [importFetcher.data, importFetcher.state]);
@@ -190,7 +217,7 @@ export const DnsZoneDiscoveryPreview = ({
                 projectId={projectId}
                 showStatus={false}
                 className="rounded-xl"
-                tableContainerClassName="rounded-xl"
+                tableContainerClassName="max-h-[400px] overflow-y-auto rounded-xl"
                 data={dnsRecords}
                 mode="compact"
               />

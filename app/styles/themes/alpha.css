@@ -116,6 +116,7 @@ Scope variables to the theme class so we can swap themes by class
   /* Table */
   --table-accent: var(--glacier-mist-800);
   --table-cell: hsl(0 0% 100%);
+  --table-cell-hover: var(--glacier-mist-700);
 
   /* Badge */
   --badge-primary: var(--primary);
@@ -228,6 +229,7 @@ Scope variables to the theme class so we can swap themes by class
 
     --table-accent: var(--app-dark-utility-1);
     --table-cell: var(--midnight-fjord);
+    --table-cell-hover: var(--app-dark-utility-1);
 
     /* Badge */
     --badge-primary: var(--primary);
@@ -276,6 +278,7 @@ TAILWIND CUSTOM UTILITIES FOR THEME
 
   --color-table-accent: var(--table-accent);
   --color-table-cell: var(--table-cell);
+  --color-table-cell-hover: var(--table-cell-hover);
 
   /* Font Sizes */
   --text-sm: 13px;

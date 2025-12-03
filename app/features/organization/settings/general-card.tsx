@@ -1,12 +1,12 @@
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
-import { useFetcherWithToast } from '@/hooks/useFetcherWithToast';
+import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { updateOrganizationSchema } from '@/resources/schemas/organization.schema';
 import { ROUTE_PATH as ORGANIZATION_UPDATE_ACTION } from '@/routes/api/organizations/$id';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, CardHeader, CardTitle } from '@datum-ui/components';
+import { Button, CardHeader, CardTitle, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter } from '@datum-ui/components';
-import { Form } from '@datum-ui/new-form';
+import { Form } from '@datum-ui/components/new-form';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 const schema = updateOrganizationSchema.pick({ description: true });
@@ -16,11 +16,15 @@ const schema = updateOrganizationSchema.pick({ description: true });
  * Displays and allows editing of general organization settings
  */
 export const OrganizationGeneralCard = ({ organization }: { organization: IOrganization }) => {
-  const fetcher = useFetcherWithToast({
+  const fetcher = useDatumFetcher({
     key: 'update-organization',
-    success: {
-      title: 'Organization updated successfully',
-      description: 'You have successfully updated your organization.',
+    onSuccess: () => {
+      toast.success('Organization updated successfully', {
+        description: 'The Organization has been updated successfully',
+      });
+    },
+    onError: (data) => {
+      toast.error(data.error || 'Failed to update organization');
     },
   });
   const csrf = useAuthenticityToken();

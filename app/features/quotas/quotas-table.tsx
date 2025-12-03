@@ -1,8 +1,8 @@
 import { DataTable } from '@/modules/datum-ui/components/data-table';
-import { helpScoutAPI } from '@/modules/helpscout';
 import { IAllowanceBucketControlResponse } from '@/resources/interfaces/allowance-bucket.interface';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import { openSupportMessage } from '@/utils/open-support-message';
 import { Button } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpIcon } from 'lucide-react';
@@ -39,18 +39,18 @@ export const QuotasTable = ({
   };
 
   const handleRequestIncrease = (quota: IAllowanceBucketControlResponse) => {
-    helpScoutAPI.open();
-    helpScoutAPI.navigate('/ask/message/');
+    const resourceInfo =
+      resourceType === 'organization'
+        ? `- Organization: ${(resource as IOrganization)?.displayName} (${(resource as IOrganization)?.name})\n`
+        : `- Project: ${(resource as IProjectControlResponse)?.description} (${(resource as IProjectControlResponse)?.name})\n`;
 
-    helpScoutAPI.prefill({
+    openSupportMessage({
       subject: `Quota increase request: ${quota.resourceType}`,
       text:
         `Hello team,\n\n` +
         `I'd like to request an increase for the "${quota.resourceType}" quota.\n\n` +
         `Details:\n` +
-        (resourceType === 'organization'
-          ? `- Organization: ${(resource as IOrganization)?.displayName} (${(resource as IOrganization)?.name})\n`
-          : `- Project: ${(resource as IProjectControlResponse)?.description} (${(resource as IProjectControlResponse)?.name})\n`) +
+        resourceInfo +
         `- Requested new limit: [please specify]\n` +
         `- Reason/justification: [brief context, e.g., upcoming workload/traffic]\n\n` +
         `Thank you!`,

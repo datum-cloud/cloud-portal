@@ -1,7 +1,10 @@
 import { BackButton } from '@/components/back-button';
 import { SubLayout } from '@/layouts';
 import { createDomainsControl } from '@/resources/control-plane';
-import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
+import {
+  createDnsRecordSetsControl,
+  createDnsZonesControl,
+} from '@/resources/control-plane/dns-networking';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { paths } from '@/utils/config/paths.config';
@@ -70,7 +73,10 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     domain = await domainsControl.detail(projectId, dnsZone.status?.domainRef?.name ?? '');
   }
 
-  return data({ dnsZone, domain });
+  const dnsRecordSetsControl = createDnsRecordSetsControl(controlPlaneClient as Client);
+  const dnsRecordSets = await dnsRecordSetsControl.list(projectId, dnsZoneId);
+
+  return data({ dnsZone, domain, dnsRecordSets });
 };
 
 export default function DnsZoneDetailLayout() {

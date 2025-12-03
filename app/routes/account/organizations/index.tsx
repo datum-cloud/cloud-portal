@@ -16,7 +16,7 @@ import {
   DataTable,
   Row,
 } from '@datum-ui/components';
-import { Form } from '@datum-ui/new-form';
+import { Form } from '@datum-ui/components/new-form';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, Building, PlusIcon, TriangleAlert } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';

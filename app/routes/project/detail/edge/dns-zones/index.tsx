@@ -3,7 +3,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { NameserverChips } from '@/components/nameserver-chips';
-import { useFetcherWithToast } from '@/hooks/useFetcherWithToast';
+import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
@@ -14,7 +14,7 @@ import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, DataTable, DataTableRowActionsProps } from '@datum-ui/components';
+import { Button, DataTable, DataTableRowActionsProps, toast } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, Loader2Icon, PlusIcon } from 'lucide-react';
@@ -31,7 +31,7 @@ import {
 } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('DNS Zones');
+  return metaObject('DNS');
 });
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
@@ -52,18 +52,26 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 export default function DnsZonesPage() {
   const { zones } = useLoaderData<typeof loader>();
   const { projectId } = useParams();
-  const deleteFetcher = useFetcherWithToast({
+  const deleteFetcher = useDatumFetcher({
     key: 'delete-dns-zone',
-    success: {
-      title: 'DNS deleted successfully',
-      description: 'The DNS has been deleted successfully',
+    onSuccess: () => {
+      toast.success('DNS deleted successfully', {
+        description: 'The DNS has been deleted successfully',
+      });
+    },
+    onError: (data) => {
+      toast.error(data.error || 'Failed to delete DNS');
     },
   });
-  const refreshFetcher = useFetcherWithToast({
+  const refreshFetcher = useDatumFetcher({
     key: 'refresh-dns',
-    success: {
-      title: 'DNS refreshed successfully',
-      description: 'The DNS has been refreshed successfully',
+    onSuccess: () => {
+      toast.success('DNS refreshed successfully', {
+        description: 'The DNS has been refreshed successfully',
+      });
+    },
+    onError: (data) => {
+      toast.error(data.error || 'Failed to refresh DNS');
     },
   });
   const navigate = useNavigate();

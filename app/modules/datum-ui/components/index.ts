@@ -12,6 +12,7 @@ export * from './calendar';
 export * from './calendar-date-picker';
 export * from './card';
 export * from './data-table';
+export * from './dialog';
 export * from './dropdown';
 export * from './form';
 export * from './input-number';
