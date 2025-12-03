@@ -129,19 +129,15 @@ export const ManageRoleModalForm = forwardRef<ManageRoleModalFormRef, ManageRole
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <Dialog.Content>
-          <Dialog.Header
-            title="Edit Member Role"
-            description="Edit the role of the member in the organization."
-            onClose={handleClose}
-          />
-          <Dialog.Body className="px-5">
-            <FormProvider context={form.context}>
-              <Form
-                {...getFormProps(form)}
-                id={form.id}
-                method="POST"
-                autoComplete="off"
-                className="flex flex-col gap-5">
+          <FormProvider context={form.context}>
+            <Form {...getFormProps(form)} id={form.id} method="POST" autoComplete="off">
+              <Dialog.Header
+                title="Edit Member Role"
+                description="Edit the role of the member in the organization."
+                onClose={handleClose}
+                className="border-b"
+              />
+              <Dialog.Body className="flex flex-col gap-5 px-5">
                 <Field isRequired label="Role" errors={fields.role.errors}>
                   <SelectRole
                     {...getSelectProps(fields.role)}
@@ -162,28 +158,27 @@ export const ManageRoleModalForm = forwardRef<ManageRoleModalFormRef, ManageRole
                   name={fields.roleNamespace.name}
                   value={roleNamespaceControl.value}
                 />
-              </Form>
-            </FormProvider>
-          </Dialog.Body>
-          <Dialog.Footer>
-            <Button
-              htmlType="button"
-              type="quaternary"
-              theme="borderless"
-              onClick={handleClose}
-              disabled={loading}>
-              Cancel
-            </Button>
-            <Button
-              htmlType="submit"
-              form={form.id}
-              className="h-10"
-              type="secondary"
-              disabled={loading}
-              loading={loading}>
-              {loading ? 'Saving' : 'Save'}
-            </Button>
-          </Dialog.Footer>
+              </Dialog.Body>
+              <Dialog.Footer className="border-t">
+                <Button
+                  htmlType="button"
+                  type="quaternary"
+                  theme="borderless"
+                  onClick={handleClose}
+                  disabled={loading}>
+                  Cancel
+                </Button>
+                <Button
+                  htmlType="submit"
+                  form={form.id}
+                  type="primary"
+                  disabled={loading}
+                  loading={loading}>
+                  {loading ? 'Saving' : 'Save'}
+                </Button>
+              </Dialog.Footer>
+            </Form>
+          </FormProvider>
         </Dialog.Content>
       </Dialog>
     );

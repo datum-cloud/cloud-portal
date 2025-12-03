@@ -128,7 +128,7 @@ export const ConfirmationDialog = ({
           onClose={handleCancel}
         />
         {dialogProps.showAlert || dialogProps.showConfirmInput ? (
-          <Dialog.Body className="px-5">
+          <Dialog.Body className="px-5 py-0">
             {dialogProps.showAlert && (
               <Alert variant={dialogProps.alertVariant} className={dialogProps.alertClassName}>
                 {dialogProps.alertIcon}
@@ -137,7 +137,7 @@ export const ConfirmationDialog = ({
               </Alert>
             )}
             {dialogProps.showConfirmInput && (
-              <div className="mt-2 flex flex-col gap-3">
+              <div className="flex flex-col gap-3">
                 <Label>{dialogProps.confirmInputLabel}</Label>
                 <Input
                   type="text"

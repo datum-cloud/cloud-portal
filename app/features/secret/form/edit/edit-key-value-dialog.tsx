@@ -127,27 +127,19 @@ export const EditKeyValueDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <Dialog.Content>
-        <Dialog.Header
-          title="Edit Key-Value Pair"
-          description="If not already base64-encoded, values will be encoded automatically."
-          onClose={() => handleOpenChange(false)}
-        />
-        <Dialog.Body className="px-5">
-          <Form
-            {...getFormProps(form)}
-            id={form.id}
-            method="POST"
-            autoComplete="off"
-            className="flex flex-col gap-6">
+        <Form {...getFormProps(form)} id={form.id} method="POST" autoComplete="off">
+          <Dialog.Header
+            title="Edit Key-Value Pair"
+            description="If not already base64-encoded, values will be encoded automatically."
+            onClose={() => handleOpenChange(false)}
+            className="border-b"
+          />
+          <Dialog.Body className="px-5">
             <div className="space-y-4">
               <Field label="Key">
-                <span className="text-base">{keyId}</span>
+                <span className="text-sm">{keyId}</span>
               </Field>
-              <Field
-                isRequired
-                label="Value"
-                errors={fields.value.errors}
-                className="w-full max-w-[460px]">
+              <Field isRequired label="Value" errors={fields.value.errors} className="w-full">
                 <Textarea
                   {...getTextareaProps(fields.value)}
                   className="min-h-20 w-full"
@@ -161,22 +153,22 @@ export const EditKeyValueDialog = ({
                 />
               </Field>
             </div>
-          </Form>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Button
-            type="quaternary"
-            theme="borderless"
-            disabled={isPending}
-            onClick={() => {
-              handleOpenChange(false);
-            }}>
-            Cancel
-          </Button>
-          <Button htmlType="submit" form={form.id} disabled={isPending} loading={isPending}>
-            {isPending ? 'Saving' : 'Save'}
-          </Button>
-        </Dialog.Footer>
+          </Dialog.Body>
+          <Dialog.Footer className="border-t">
+            <Button
+              type="quaternary"
+              theme="borderless"
+              disabled={isPending}
+              onClick={() => {
+                handleOpenChange(false);
+              }}>
+              Cancel
+            </Button>
+            <Button htmlType="submit" form={form.id} disabled={isPending} loading={isPending}>
+              {isPending ? 'Saving' : 'Save'}
+            </Button>
+          </Dialog.Footer>
+        </Form>
       </Dialog.Content>
     </Dialog>
   );
