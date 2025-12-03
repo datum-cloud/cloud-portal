@@ -11,13 +11,7 @@ import {
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button, toast } from '@datum-ui/components';
-import {
-  DialogContent,
-  Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@shadcn/ui/dialog';
+import { Dialog } from '@datum-ui/components/dialog';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Form, useFetcher } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
@@ -134,40 +128,38 @@ export const ManageRoleModalForm = forwardRef<ManageRoleModalFormRef, ManageRole
 
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Member Role</DialogTitle>
-            <DialogDescription>Edit the role of the member in the organization.</DialogDescription>
-          </DialogHeader>
+        <Dialog.Content>
           <FormProvider context={form.context}>
-            <Form
-              {...getFormProps(form)}
-              id={form.id}
-              method="POST"
-              autoComplete="off"
-              className="flex flex-col gap-5">
-              <Field isRequired label="Role" errors={fields.role.errors}>
-                <SelectRole
-                  {...getSelectProps(fields.role)}
-                  modal
-                  name={fields.role.name}
-                  id={fields.role.id}
-                  key={fields.role.id}
-                  defaultValue={roleControl.value}
-                  onSelect={(value) => {
-                    roleControl.change(value.value);
-                    roleNamespaceControl.change(value.namespace ?? 'datum-cloud');
-                  }}
-                />
-              </Field>
-
-              <input
-                type="hidden"
-                name={fields.roleNamespace.name}
-                value={roleNamespaceControl.value}
+            <Form {...getFormProps(form)} id={form.id} method="POST" autoComplete="off">
+              <Dialog.Header
+                title="Edit Member Role"
+                description="Edit the role of the member in the organization."
+                onClose={handleClose}
+                className="border-b"
               />
+              <Dialog.Body className="flex flex-col gap-5 px-5">
+                <Field isRequired label="Role" errors={fields.role.errors}>
+                  <SelectRole
+                    {...getSelectProps(fields.role)}
+                    modal
+                    name={fields.role.name}
+                    id={fields.role.id}
+                    key={fields.role.id}
+                    defaultValue={roleControl.value}
+                    onSelect={(value) => {
+                      roleControl.change(value.value);
+                      roleNamespaceControl.change(value.namespace ?? 'datum-cloud');
+                    }}
+                  />
+                </Field>
 
-              <div className="flex w-full items-center justify-end gap-2">
+                <input
+                  type="hidden"
+                  name={fields.roleNamespace.name}
+                  value={roleNamespaceControl.value}
+                />
+              </Dialog.Body>
+              <Dialog.Footer className="border-t">
                 <Button
                   htmlType="button"
                   type="quaternary"
@@ -176,19 +168,18 @@ export const ManageRoleModalForm = forwardRef<ManageRoleModalFormRef, ManageRole
                   disabled={loading}>
                   Cancel
                 </Button>
-
                 <Button
                   htmlType="submit"
-                  className="h-10"
-                  type="secondary"
+                  form={form.id}
+                  type="primary"
                   disabled={loading}
                   loading={loading}>
                   {loading ? 'Saving' : 'Save'}
                 </Button>
-              </div>
+              </Dialog.Footer>
             </Form>
           </FormProvider>
-        </DialogContent>
+        </Dialog.Content>
       </Dialog>
     );
   }

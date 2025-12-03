@@ -126,10 +126,9 @@ export const ConfirmationDialog = ({
           title={dialogProps.title}
           description={dialogProps.description}
           onClose={handleCancel}
-          className="border-b-0"
         />
         {dialogProps.showAlert || dialogProps.showConfirmInput ? (
-          <Dialog.Body className="px-5">
+          <Dialog.Body className="px-5 py-0">
             {dialogProps.showAlert && (
               <Alert variant={dialogProps.alertVariant} className={dialogProps.alertClassName}>
                 {dialogProps.alertIcon}
@@ -138,7 +137,7 @@ export const ConfirmationDialog = ({
               </Alert>
             )}
             {dialogProps.showConfirmInput && (
-              <div className="mt-2 flex flex-col gap-3">
+              <div className="flex flex-col gap-3">
                 <Label>{dialogProps.confirmInputLabel}</Label>
                 <Input
                   type="text"
@@ -153,7 +152,7 @@ export const ConfirmationDialog = ({
           <></>
         )}
 
-        <Dialog.Footer className="border-t-0">
+        <Dialog.Footer>
           <Button type="quaternary" theme="borderless" onClick={handleCancel} disabled={isPending}>
             {dialogProps.cancelText}
           </Button>
