@@ -2,7 +2,6 @@ node_modules
 
 /.cache
 /build
-.env
 .DS_Store
 .react-router/
 
@@ -12,3 +11,4 @@ node_modules
 cypress/screenshots
 cypress/videos
 cypress/results
+config.bat
