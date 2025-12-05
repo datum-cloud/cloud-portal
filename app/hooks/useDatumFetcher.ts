@@ -1,3 +1,4 @@
+import { useIsPending } from '@/hooks/useIsPending';
 import { useCallback, useEffect, useRef } from 'react';
 import { useFetcher } from 'react-router';
 
@@ -59,6 +60,7 @@ export function useDatumFetcher<T extends FetcherData = FetcherData>(
 ) {
   const fetcher = useFetcher<T>({ key: options.key });
   const hasSubmitted = useRef(false);
+  const isPending = useIsPending({ fetcherKey: options.key ?? 'default' });
 
   const submit = useCallback(
     (...args: Parameters<typeof fetcher.submit>) => {
@@ -84,5 +86,6 @@ export function useDatumFetcher<T extends FetcherData = FetcherData>(
   return {
     ...fetcher,
     submit,
+    isPending,
   };
 }

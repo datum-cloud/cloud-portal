@@ -26,6 +26,7 @@ export const createDomainsControl = (client: Client) => {
       domainName: spec?.domainName ?? '',
       status: status as any,
       namespace: metadata?.namespace ?? '',
+      desiredRegistrationRefreshAttempt: spec?.desiredRegistrationRefreshAttempt ?? '',
     };
   };
 
@@ -179,6 +180,7 @@ export const createDomainsControl = (client: Client) => {
 
         const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
 
+        console.log(JSON.stringify(domain, null, 2));
         return dryRun ? domain : transformDomain(domain);
       } catch (e) {
         throw e;
