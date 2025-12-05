@@ -53,7 +53,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
             encType: 'application/json',
           });
         }}
-        className="flex flex-col gap-6">
+        className="flex flex-col space-y-0">
         {({ form, isSubmitting }) => (
           <>
             <CardContent className="px-4.5 py-4">
@@ -62,6 +62,9 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
                   <div className="flex flex-col space-y-2">
                     <label className="text-sm font-medium">Organization Name</label>
                     <TextCopyBox value={organization?.displayName ?? ''} />
+                    <p className="text-muted-foreground text-xs">
+                      Personal organization names cannot be changed
+                    </p>
                   </div>
                 ) : (
                   <Form.Field name="description" label="Organization Name" required>
