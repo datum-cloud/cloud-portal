@@ -28,6 +28,7 @@ export const ActivityLogList = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isFiltering, setIsFiltering] = useState(false);
   const [filters, setFilters] = useState<{ q?: string; date?: DateRange }>({});
+  const [emptyMessage, setEmptyMessage] = useState<string | undefined>(undefined);
 
   // Calculate default date range (last 7 days) to match the default query
   const defaultDateRange = useMemo(() => {
@@ -120,8 +121,12 @@ export const ActivityLogList = ({
     if (fetcher.data && fetcher.state === 'idle') {
       if (fetcher.data?.success) {
         setLogs(fetcher.data?.data?.logs ?? []);
+        // Set empty message if provided (e.g., timeout message)
+        setEmptyMessage(fetcher.data?.message);
       } else {
+        // Only show toast for actual errors, not timeout cases
         toast.error(fetcher.data?.error ?? 'An error occurred');
+        setEmptyMessage(undefined);
       }
 
       setIsLoading(false);
@@ -136,7 +141,7 @@ export const ActivityLogList = ({
       columns={columns}
       data={logs}
       emptyContent={{
-        title: 'No activity found.',
+        title: emptyMessage || 'No activity found.',
       }}
       tableTitle={title ? { title } : undefined}
       tableClassName="table-fixed"

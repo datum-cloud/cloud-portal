@@ -76,6 +76,25 @@ export class SentryProvider extends BaseProvider {
     return this.matchesPatterns(error, this.errorPatterns);
   }
 
+  /**
+   * Capture an exception to Sentry
+   * @param error - The error to capture
+   * @param hint - Optional hint object for additional context
+   */
+  captureException(error: Error | any, hint?: any): void {
+    if (!this.isEnabled || this.circuitBreakerOpen) {
+      return;
+    }
+
+    try {
+      Sentry.captureException(error, hint);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.warn('⚠️ Failed to capture exception to Sentry:', errorMessage);
+      this.handleBeforeSendError(err);
+    }
+  }
+
   // Override base status to include Sentry-specific state
   getStatus(): { name: string; healthy: boolean; initialized: boolean } {
     return {
