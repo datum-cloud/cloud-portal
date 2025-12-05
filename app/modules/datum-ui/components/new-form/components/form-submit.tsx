@@ -14,27 +14,15 @@ import * as React from 'react';
  * </Form.Submit>
  * ```
  */
-export function FormSubmit({
-  children,
-  loadingText,
-  type = 'primary',
-  theme = 'solid',
-  size = 'default',
-  disabled = false,
-  className,
-}: FormSubmitProps) {
+export function FormSubmit({ children, loadingText, ...props }: FormSubmitProps) {
   const { isSubmitting } = useFormContext();
-  const isDisabled = disabled || isSubmitting;
 
   return (
     <Button
       htmlType="submit"
-      type={type}
-      theme={theme}
-      size={size}
-      disabled={isDisabled}
+      disabled={props.disabled || isSubmitting}
       loading={isSubmitting}
-      className={cn(className)}>
+      {...props}>
       {isSubmitting && loadingText ? loadingText : children}
     </Button>
   );
