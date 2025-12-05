@@ -1,6 +1,6 @@
 import { BaseProvider } from './base';
 import { Client, credentials } from '@grpc/grpc-js';
-import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
+import { diag, DiagConsoleLogger, DiagLogLevel, trace, SpanStatusCode } from '@opentelemetry/api';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 import { NodeSDK } from '@opentelemetry/sdk-node';
@@ -83,6 +83,46 @@ export class OtelProvider extends BaseProvider {
 
   isError(error: Error | any): boolean {
     return this.matchesPatterns(error, this.errorPatterns);
+  }
+
+  /**
+   * Capture an exception to OpenTelemetry
+   * @param error - The error to capture
+   * @param _hint - Optional hint object for additional context (not used in OTel, but kept for API consistency)
+   */
+  captureException(error: Error | any, _hint?: any): void {
+    if (!this.isEnabled || this.circuitBreakerOpen || !this.isInitialized) {
+      return;
+    }
+
+    try {
+      const span = trace.getActiveSpan();
+      if (span) {
+        span.recordException(error);
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      } else {
+        // If there's no active span, create a new span for the exception
+        const tracer = trace.getTracer('observability-manual');
+        tracer.startActiveSpan('exception', (span) => {
+          try {
+            span.recordException(error);
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: error instanceof Error ? error.message : String(error),
+            });
+          } finally {
+            span.end();
+          }
+        });
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.warn('⚠️ Failed to capture exception to OpenTelemetry:', errorMessage);
+      this.handleExportError(err, null);
+    }
   }
 
   // Override base status to include OTEL-specific state
