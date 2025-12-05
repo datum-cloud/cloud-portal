@@ -8,7 +8,7 @@ export type DomainSchema = z.infer<typeof domainSchema>;
 
 const parseDomains = (value: string) =>
   value
-    .split('\n')
+    .split(/[\n,]+/)
     .map((d) => d.trim().toLowerCase())
     .filter(Boolean);
 

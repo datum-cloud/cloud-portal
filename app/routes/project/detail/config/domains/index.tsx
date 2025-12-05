@@ -1,7 +1,7 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { NameserverChips } from '@/components/nameserver-chips';
-import { BulkAddDomainsAction } from '@/features/edge/domain/bulk-add';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
+import { BulkAddDomainsAction } from '@/features/edge/domain/import-action';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
@@ -270,7 +270,7 @@ export default function DomainsPage() {
         title: 'Domains',
         actions: (
           <div className="flex items-center gap-3">
-            <BulkAddDomainsAction />
+            <BulkAddDomainsAction projectId={projectId!} />
             <Link
               to={getPathWithParams(paths.project.detail.domains.new, {
                 projectId,

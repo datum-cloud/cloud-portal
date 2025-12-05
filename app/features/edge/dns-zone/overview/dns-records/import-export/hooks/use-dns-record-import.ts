@@ -181,7 +181,7 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
         dnsZoneId,
         discoveryRecordSets: rawRecordSets,
         importOptions: { skipDuplicates: true, mergeStrategy: 'append' },
-        csrf: csrf as string,
+        csrf,
       }),
       {
         method: 'POST',

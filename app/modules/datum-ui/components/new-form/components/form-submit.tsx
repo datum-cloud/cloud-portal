@@ -1,8 +1,6 @@
 import { useFormContext } from '../context/form-context';
 import type { FormSubmitProps } from '../types';
 import { Button } from '@datum-ui/components';
-import { cn } from '@shadcn/lib/utils';
-import * as React from 'react';
 
 /**
  * Form.Submit - Submit button with automatic loading state
@@ -14,16 +12,14 @@ import * as React from 'react';
  * </Form.Submit>
  * ```
  */
-export function FormSubmit({ children, loadingText, ...props }: FormSubmitProps) {
+export function FormSubmit({ children, loadingText, loading = false, ...props }: FormSubmitProps) {
   const { isSubmitting } = useFormContext();
 
+  const isLoading = loading || isSubmitting;
+
   return (
-    <Button
-      htmlType="submit"
-      disabled={props.disabled || isSubmitting}
-      loading={isSubmitting}
-      {...props}>
-      {isSubmitting && loadingText ? loadingText : children}
+    <Button htmlType="submit" disabled={props.disabled || isLoading} loading={isLoading} {...props}>
+      {isLoading && loadingText ? loadingText : children}
     </Button>
   );
 }

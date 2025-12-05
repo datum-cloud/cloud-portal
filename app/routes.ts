@@ -232,6 +232,7 @@ export default [
       // Domains
       route('domains', 'routes/api/domains/index.ts'),
       route('domains/refresh', 'routes/api/domains/refresh.ts'),
+      route('domains/bulk-import', 'routes/api/domains/bulk-import.ts'),
       route('domains/:id/status', 'routes/api/domains/status.ts'),
 
       // DNS Zones
