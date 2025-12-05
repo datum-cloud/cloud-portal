@@ -28,29 +28,36 @@ export const bulkDomainsSchema = z.object({
         return;
       }
 
-      // Check for duplicates
+      // Single loop: check duplicates and validate FQDN
       const seen = new Set<string>();
+      const duplicates: string[] = [];
+      const invalidDomains: string[] = [];
+
       for (const domain of domains) {
         if (seen.has(domain)) {
-          ctx.addIssue({
-            code: 'custom',
-            message: `Duplicate domain: ${domain}`,
-          });
-          return;
+          duplicates.push(domain);
+        } else {
+          seen.add(domain);
+          if (!fqdnSchema.safeParse(domain).success) {
+            invalidDomains.push(domain);
+          }
         }
-        seen.add(domain);
       }
 
-      // Validate each domain
-      for (const domain of domains) {
-        const result = fqdnSchema.safeParse(domain);
-        if (!result.success) {
-          ctx.addIssue({
-            code: 'custom',
-            message: result.error.issues[0]?.message ?? `Invalid domain: ${domain}`,
-          });
-          return;
-        }
+      // Build combined error message
+      const errors: string[] = [];
+      if (duplicates.length > 0) {
+        errors.push(`Duplicate domains: ${duplicates.join(', ')}`);
+      }
+      if (invalidDomains.length > 0) {
+        errors.push(`Invalid domains: ${invalidDomains.join(', ')}`);
+      }
+
+      if (errors.length > 0) {
+        ctx.addIssue({
+          code: 'custom',
+          message: errors.join('. '),
+        });
       }
     })
     .transform((value) => parseDomains(value)),
