@@ -1,4 +1,4 @@
-import { DnsRecordTable } from '@/features/edge/dns-zone/overview/dns-records';
+import { DnsRecordTable } from '@/features/edge/dns-records';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DNS_RECORDS_BULK_IMPORT_PATH } from '@/routes/api/dns-records/bulk-import';
 import { ROUTE_PATH as DNS_ZONE_DISCOVERY_DETAIL_PATH } from '@/routes/api/dns-zone-discoveries/$id';

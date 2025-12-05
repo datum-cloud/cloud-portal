@@ -33,7 +33,6 @@ export {
   parseBindZoneFile,
   transformParsedToFlattened,
   transformParsedToRecordSets,
-  readFileAsText,
   type ParsedDnsRecord,
   type BindParseResult,
 } from './bind-import.helper';

@@ -17,7 +17,6 @@ const fqdnSchema = createFqdnSchema('Domain');
 export const bulkDomainsSchema = z.object({
   domains: z
     .string({ error: 'At least one domain is required' })
-    .min(1, 'At least one domain is required')
     .superRefine((value, ctx) => {
       const domains = parseDomains(value);
 

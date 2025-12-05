@@ -4,10 +4,10 @@ import {
   IFlattenedDnsRecord,
 } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DNS_RECORDS_BULK_IMPORT_PATH } from '@/routes/api/dns-records/bulk-import';
+import { readFileAsText } from '@/utils/common';
 import {
   ImportResult,
   parseBindZoneFile,
-  readFileAsText,
   SUPPORTED_DNS_RECORD_TYPES,
   transformParsedToFlattened,
   transformParsedToRecordSets,
