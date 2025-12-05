@@ -1,10 +1,10 @@
+import { normalizeTxtValue } from './record-type.helper';
 import {
   IDnsZoneDiscoveryRecordSet,
   IFlattenedDnsRecord,
 } from '@/resources/interfaces/dns.interface';
 import { DNSRecordType } from '@/resources/schemas/dns-record.schema';
 import zonefile from 'dns-zonefile';
-import { normalizeTxtValue, normalizeCaaValue } from './record-type.helper';
 
 // =============================================================================
 // BIND Zone File Parsing - Hybrid Implementation
@@ -29,15 +29,11 @@ export interface BindParseResult {
  * Parse TLSA records from raw zone file content
  * Format: <name> [TTL] [CLASS] TLSA <usage> <selector> <matching-type> <cert-data>
  */
-function parseTlsaRecords(
-  content: string,
-  defaultTTL: number | null
-): ParsedDnsRecord[] {
+function parseTlsaRecords(content: string, defaultTTL: number | null): ParsedDnsRecord[] {
   const records: ParsedDnsRecord[] = [];
   // Match TLSA records - handles optional TTL and CLASS
   // Example: _443._tcp.example.com. 3600 IN TLSA 3 1 1 abc123...
-  const tlsaRegex =
-    /^(\S+)\s+(?:(\d+)\s+)?(?:IN\s+)?TLSA\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)/gim;
+  const tlsaRegex = /^(\S+)\s+(?:(\d+)\s+)?(?:IN\s+)?TLSA\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)/gim;
 
   let match;
   while ((match = tlsaRegex.exec(content)) !== null) {
@@ -65,15 +61,11 @@ function parseTlsaRecords(
  * Parse HTTPS records from raw zone file content
  * Format: <name> [TTL] [CLASS] HTTPS <priority> <target> [params...]
  */
-function parseHttpsRecords(
-  content: string,
-  defaultTTL: number | null
-): ParsedDnsRecord[] {
+function parseHttpsRecords(content: string, defaultTTL: number | null): ParsedDnsRecord[] {
   const records: ParsedDnsRecord[] = [];
   // Match HTTPS records
   // Example: example.com. 3600 IN HTTPS 1 . alpn="h3,h2" ipv4hint="192.0.2.1"
-  const httpsRegex =
-    /^(\S+)\s+(?:(\d+)\s+)?(?:IN\s+)?HTTPS\s+(\d+)\s+(\S+)(?:\s+(.+))?$/gim;
+  const httpsRegex = /^(\S+)\s+(?:(\d+)\s+)?(?:IN\s+)?HTTPS\s+(\d+)\s+(\S+)(?:\s+(.+))?$/gim;
 
   let match;
   while ((match = httpsRegex.exec(content)) !== null) {
@@ -81,9 +73,7 @@ function parseHttpsRecords(
     const ttl = ttlStr ? parseInt(ttlStr, 10) : defaultTTL;
     const params = parseSvcParams(paramsStr || '');
 
-    const value = paramsStr
-      ? `${priority} ${target} ${paramsStr}`
-      : `${priority} ${target}`;
+    const value = paramsStr ? `${priority} ${target} ${paramsStr}` : `${priority} ${target}`;
 
     records.push({
       name: name.replace(/\.$/, ''),
@@ -105,15 +95,11 @@ function parseHttpsRecords(
  * Parse SVCB records from raw zone file content
  * Format: <name> [TTL] [CLASS] SVCB <priority> <target> [params...]
  */
-function parseSvcbRecords(
-  content: string,
-  defaultTTL: number | null
-): ParsedDnsRecord[] {
+function parseSvcbRecords(content: string, defaultTTL: number | null): ParsedDnsRecord[] {
   const records: ParsedDnsRecord[] = [];
   // Match SVCB records
   // Example: _dns.example.com. 3600 IN SVCB 1 dns.example.com. alpn="dot"
-  const svcbRegex =
-    /^(\S+)\s+(?:(\d+)\s+)?(?:IN\s+)?SVCB\s+(\d+)\s+(\S+)(?:\s+(.+))?$/gim;
+  const svcbRegex = /^(\S+)\s+(?:(\d+)\s+)?(?:IN\s+)?SVCB\s+(\d+)\s+(\S+)(?:\s+(.+))?$/gim;
 
   let match;
   while ((match = svcbRegex.exec(content)) !== null) {
@@ -121,9 +107,7 @@ function parseSvcbRecords(
     const ttl = ttlStr ? parseInt(ttlStr, 10) : defaultTTL;
     const params = parseSvcParams(paramsStr || '');
 
-    const value = paramsStr
-      ? `${priority} ${target} ${paramsStr}`
-      : `${priority} ${target}`;
+    const value = paramsStr ? `${priority} ${target} ${paramsStr}` : `${priority} ${target}`;
 
     records.push({
       name: name.replace(/\.$/, ''),
@@ -371,15 +355,11 @@ export function parseBindZoneFile(content: string): BindParseResult {
 
     // Check for unsupported record types and add warnings
     if (parsed.spf && parsed.spf.length > 0) {
-      warnings.push(
-        `Found ${parsed.spf.length} SPF record(s) - SPF records should be TXT records`
-      );
+      warnings.push(`Found ${parsed.spf.length} SPF record(s) - SPF records should be TXT records`);
     }
 
     if (parsed.ds && parsed.ds.length > 0) {
-      warnings.push(
-        `Found ${parsed.ds.length} DS record(s) - DS records are not supported`
-      );
+      warnings.push(`Found ${parsed.ds.length} DS record(s) - DS records are not supported`);
     }
 
     // Check for other unsupported types in raw content
