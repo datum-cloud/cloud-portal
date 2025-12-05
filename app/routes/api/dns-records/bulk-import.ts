@@ -66,11 +66,7 @@ function groupDiscoveryRecordsByType(
 /**
  * Check if a record is a duplicate of any existing record
  */
-function isDuplicateRecord(
-  newRecord: any,
-  existingRecords: any[],
-  recordType: string
-): boolean {
+function isDuplicateRecord(newRecord: any, existingRecords: any[], recordType: string): boolean {
   return existingRecords.some((r) => {
     // Must match name
     if (r.name !== newRecord.name) return false;
@@ -259,7 +255,8 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         );
 
         // Only proceed if there are records to add/update
-        const hasChanges = merged.length > existingRecords.length || options.mergeStrategy === 'replace';
+        const hasChanges =
+          merged.length > existingRecords.length || options.mergeStrategy === 'replace';
 
         if (hasChanges) {
           if (isNewRecordSet) {
