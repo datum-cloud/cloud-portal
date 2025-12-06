@@ -100,6 +100,21 @@ app.use(
 app.set('trust proxy', 1);
 
 /**
+ * Debug: Log requests with rate limit info (development only)
+ */
+if (IS_DEV) {
+  app.use((req, _res, next) => {
+    console.log(`[REQUEST]`, {
+      method: req.method,
+      path: req.path,
+      ip: req.ip,
+      timestamp: new Date().toISOString(),
+    });
+    next();
+  });
+}
+
+/**
  * Clean route paths by removing trailing slashes
  * Improves SEO by preventing duplicate content URLs
  */
@@ -118,7 +133,7 @@ app.use((req, res, next) => {
  * Implementation based on github.com/epicweb-dev/epic-stack
  * Disabled in development/test environments
  */
-const MAX_LIMIT_MULTIPLE = !IS_DEV ? 10_000 : 1;
+const MAX_LIMIT_MULTIPLE = !IS_DEV ? 10_000 : 100;
 
 const defaultRateLimit = {
   windowMs: 60 * 1000,

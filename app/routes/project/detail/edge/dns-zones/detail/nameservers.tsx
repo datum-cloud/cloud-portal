@@ -1,7 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { NoteCard } from '@/components/note-card/note-card';
 import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/refresh-nameservers-button';
-import { NameserverTable } from '@/features/edge/dns-zone/overview/nameservers';
+import { NameserverTable } from '@/features/edge/nameservers';
 import { getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
 import { Col, Row } from '@datum-ui/components';
 import { InfoIcon, RefreshCcwIcon } from 'lucide-react';

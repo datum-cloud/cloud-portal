@@ -272,21 +272,11 @@ export interface FormRadioItemProps {
 // Submit & Error Types
 // ============================================================================
 
-export interface FormSubmitProps {
+export interface FormSubmitProps extends ButtonProps {
   /** Button content */
   children: React.ReactNode;
   /** Text to show while loading */
   loadingText?: string;
-  /** Button variant */
-  type?: ButtonProps['type'];
-  /** Button theme */
-  theme?: ButtonProps['theme'];
-  /** Button size */
-  size?: ButtonProps['size'];
-  /** Disable the button */
-  disabled?: boolean;
-  /** Additional CSS classes */
-  className?: string;
 }
 
 export interface FormButtonProps {
