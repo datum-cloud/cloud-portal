@@ -44,37 +44,16 @@ export default function DnsZoneOverviewPage() {
             maxRows={5}
             title="DNS Records"
             actions={
-              <div className="flex items-center gap-2.5">
-                {domain?.name && (
-                  <RefreshNameserversButton
-                    size="xs"
-                    type="secondary"
-                    theme="outline"
-                    domainName={domain?.name ?? ''}
-                    lastRefreshAttempt={domain?.desiredRegistrationRefreshAttempt}
-                    projectId={projectId ?? ''}
-                    label="Refresh DNS records"
-                    successMessage={{
-                      title: 'DNS records refreshed successfully',
-                      description: 'The DNS records have been refreshed successfully',
-                    }}
-                    errorMessage={{
-                      title: 'Failed to refresh DNS records',
-                      description: 'Failed to refresh DNS records',
-                    }}
-                  />
-                )}
-                <LinkButton
-                  to={getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
-                    projectId: projectId ?? '',
-                    dnsZoneId: dnsZone?.name ?? '',
-                  })}
-                  icon={<PencilIcon size={12} />}
-                  iconPosition="right"
-                  size="xs">
-                  Edit DNS records
-                </LinkButton>
-              </div>
+              <LinkButton
+                to={getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
+                  projectId: projectId ?? '',
+                  dnsZoneId: dnsZone?.name ?? '',
+                })}
+                icon={<PencilIcon size={12} />}
+                iconPosition="right"
+                size="xs">
+                Edit DNS records
+              </LinkButton>
             }
           />
         ) : (
