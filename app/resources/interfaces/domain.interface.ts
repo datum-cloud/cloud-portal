@@ -16,4 +16,5 @@ export interface IDomainControlResponse {
   namespace?: string;
   domainName?: string;
   status?: ComDatumapisNetworkingV1AlphaDomain['status'];
+  desiredRegistrationRefreshAttempt?: string;
 }

@@ -1,11 +1,9 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { NoteCard } from '@/components/note-card/note-card';
-import { NameserverTable } from '@/features/edge/dns-zone/overview/nameservers';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import { useIsPending } from '@/hooks/useIsPending';
-import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
+import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/refresh-nameservers-button';
+import { NameserverTable } from '@/features/edge/nameservers';
 import { getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
-import { Button, Col, Row, Tooltip, toast } from '@datum-ui/components';
+import { Col, Row } from '@datum-ui/components';
 import { InfoIcon, RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { useParams, useRouteLoaderData } from 'react-router';
@@ -18,18 +16,6 @@ export default function DnsZoneNameserversPage() {
   const { dnsZone, domain } = useRouteLoaderData('dns-zone-detail');
 
   const { projectId } = useParams();
-  const refreshFetcher = useDatumFetcher({
-    key: 'refresh-nameservers',
-    onSuccess: () => {
-      toast.success('Nameservers refreshed successfully', {
-        description: 'The Nameservers have been refreshed successfully',
-      });
-    },
-    onError: (data) => {
-      toast.error(data.error || 'Failed to refresh Nameservers');
-    },
-  });
-  const pending = useIsPending({ fetcherKey: 'refresh-nameservers' });
 
   const dnsHost = useMemo(() => {
     return domain?.status?.nameservers?.[0]?.ips?.[0]?.registrantName;
@@ -41,20 +27,6 @@ export default function DnsZoneNameserversPage() {
 
   const nameserverSetup = useMemo(() => getNameserverSetupStatus(dnsZone), [dnsZone]);
 
-  const refreshDomain = async () => {
-    if (!domain?.name) return;
-    await refreshFetcher.submit(
-      {
-        id: domain?.name ?? '',
-        projectId: projectId ?? '',
-      },
-      {
-        method: 'PATCH',
-        action: DOMAINS_REFRESH_PATH,
-      }
-    );
-  };
-
   return (
     <Row gutter={[0, 32]}>
       <Col span={24}>
@@ -62,19 +34,16 @@ export default function DnsZoneNameserversPage() {
           tableTitle={{
             title: 'Nameservers',
             actions: domain?.name && (
-              <Tooltip message="Fetch latest configured nameservers">
-                <Button
-                  htmlType="button"
-                  type="primary"
-                  theme="solid"
-                  size="xs"
-                  icon={<RefreshCcwIcon size={12} />}
-                  onClick={() => refreshDomain()}
-                  disabled={pending}
-                  loading={pending}>
-                  Refresh
-                </Button>
-              </Tooltip>
+              <RefreshNameserversButton
+                size="xs"
+                type="secondary"
+                theme="outline"
+                lastRefreshAttempt={domain?.desiredRegistrationRefreshAttempt}
+                domainName={domain?.name ?? ''}
+                projectId={projectId ?? ''}
+                label="Refresh nameservers"
+                icon={<RefreshCcwIcon size={12} />}
+              />
             ),
           }}
           data={dnsZone?.status?.domainRef?.status?.nameservers ?? []}

@@ -1,4 +1,4 @@
-import { DnsRecordTable } from '@/features/edge/dns-zone/overview/dns-records';
+import { DnsRecordTable } from '@/features/edge/dns-records';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DNS_RECORDS_BULK_IMPORT_PATH } from '@/routes/api/dns-records/bulk-import';
 import { ROUTE_PATH as DNS_ZONE_DISCOVERY_DETAIL_PATH } from '@/routes/api/dns-zone-discoveries/$id';
@@ -95,29 +95,24 @@ export const DnsZoneDiscoveryPreview = ({
       return;
     }
 
-    try {
-      const payload = {
+    importFetcher.submit(
+      JSON.stringify({
         projectId,
         dnsZoneId,
-        discoveryRecordSets: rawRecordSets, // Send raw recordSets, not flattened
+        discoveryRecordSets: rawRecordSets,
         importOptions: { skipDuplicates: true, mergeStrategy: 'append' },
-        csrf: csrf as string,
+        csrf,
         redirectUri: getPathWithParams(paths.project.detail.dnsZones.detail.root, {
           projectId,
           dnsZoneId,
         }),
-      };
-
-      importFetcher.submit(JSON.stringify(payload), {
+      }),
+      {
         method: 'POST',
         action: DNS_RECORDS_BULK_IMPORT_PATH,
         encType: 'application/json',
-      });
-    } catch (error: any) {
-      toast.error('Failed to add DNS records', {
-        description: error.message || 'An unexpected error occurred',
-      });
-    }
+      }
+    );
   };
 
   useEffect(() => {

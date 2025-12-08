@@ -14,7 +14,6 @@ export const ROUTE_PATH = '/api/dns-records/bulk-import' as const;
 interface ImportOptions {
   skipDuplicates?: boolean; // Skip duplicate records (default: true)
   mergeStrategy?: 'append' | 'replace'; // Append or replace existing records (default: 'append')
-  dryRun?: boolean; // Preview changes without applying (default: false)
 }
 
 /**
@@ -66,11 +65,7 @@ function groupDiscoveryRecordsByType(
 /**
  * Check if a record is a duplicate of any existing record
  */
-function isDuplicateRecord(
-  newRecord: any,
-  existingRecords: any[],
-  recordType: string
-): boolean {
+function isDuplicateRecord(newRecord: any, existingRecords: any[], recordType: string): boolean {
   return existingRecords.some((r) => {
     // Must match name
     if (r.name !== newRecord.name) return false;
@@ -187,8 +182,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     const dnsRecordSetsControl = createDnsRecordSetsControl(controlPlaneClient as Client);
 
     // Parse request body
-    const formData = await request.text();
-    const payload = JSON.parse(formData);
+    const payload = await request.json();
 
     const {
       projectId,
@@ -216,7 +210,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     const options: Required<ImportOptions> = {
       skipDuplicates: importOptions.skipDuplicates ?? true,
       mergeStrategy: importOptions.mergeStrategy ?? 'append',
-      dryRun: importOptions.dryRun ?? false,
     };
 
     // Initialize response summary
@@ -259,49 +252,27 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         );
 
         // Only proceed if there are records to add/update
-        const hasChanges = merged.length > existingRecords.length || options.mergeStrategy === 'replace';
+        const hasChanges =
+          merged.length > existingRecords.length || options.mergeStrategy === 'replace';
 
         if (hasChanges) {
           if (isNewRecordSet) {
-            // CREATE: No RecordSet exists → Create new RecordSet with all records
-            const dryRunRes = await dnsRecordSetsControl.create(
+            await dnsRecordSetsControl.create(
               projectId,
               {
                 dnsZoneRef: { name: dnsZoneId },
                 recordType: recordType as any,
                 records: merged,
               },
-              true // dry run
+              false
             );
-
-            if (dryRunRes && !options.dryRun) {
-              await dnsRecordSetsControl.create(
-                projectId,
-                {
-                  dnsZoneRef: { name: dnsZoneId },
-                  recordType: recordType as any,
-                  records: merged,
-                },
-                false
-              );
-            }
           } else {
-            // UPDATE: RecordSet exists → Update with merged records
-            const dryRunRes = await dnsRecordSetsControl.update(
+            await dnsRecordSetsControl.update(
               projectId,
               existingRecordSet.name!,
               { records: merged },
-              true
+              false
             );
-
-            if (dryRunRes && !options.dryRun) {
-              await dnsRecordSetsControl.update(
-                projectId,
-                existingRecordSet.name!,
-                { records: merged },
-                false
-              );
-            }
           }
         }
 
@@ -343,7 +314,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         });
       }
 
-      return data({ success: true, data: { summary, details: allDetails } }, { status: 200 });
+      return data({ success: true, data: response }, { status: 200 });
     }
 
     // Partial success or all failed
@@ -352,7 +323,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
       {
         success: successCount > 0,
         error: `${summary.failed} record(s) failed to import`,
-        data: { summary, details: allDetails },
+        data: response,
       },
       { status: successCount > 0 ? 207 : 400 } // 207 = Multi-Status for partial success
     );

@@ -1,4 +1,4 @@
-import { DnsRecordForm } from '../../form/dns-record-form';
+import { DnsRecordForm } from '../dns-zone/form/dns-record-form';
 import type { DnsRecordModalFormProps, DnsRecordModalFormRef } from './types';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';

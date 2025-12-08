@@ -1,9 +1,20 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
+import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/refresh-nameservers-button';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
+import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
-export const TaskNameserverCard = ({ dnsZone }: { dnsZone: IDnsZoneControlResponse }) => {
+export const TaskNameserverCard = ({
+  dnsZone,
+  projectId,
+  domain,
+}: {
+  dnsZone: IDnsZoneControlResponse;
+  projectId: string;
+  domain: IDomainControlResponse;
+}) => {
   const dnsHost = useMemo(() => {
     return dnsZone?.status?.domainRef?.status?.nameservers?.[0].ips?.[0]?.registrantName;
   }, [dnsZone]);
@@ -41,6 +52,20 @@ export const TaskNameserverCard = ({ dnsZone }: { dnsZone: IDnsZoneControlRespon
             />
           ))}
         </div>
+
+        {domain?.name && (
+          <div className="mt-6">
+            <RefreshNameserversButton
+              icon={<RefreshCcwIcon size={12} />}
+              size="small"
+              lastRefreshAttempt={domain?.desiredRegistrationRefreshAttempt}
+              domainName={domain?.name ?? ''}
+              projectId={projectId ?? ''}
+              className="text-xs font-semibold"
+              containerClassName="flex-row-reverse justify-end"
+            />
+          </div>
+        )}
 
         <img
           src={'/images/scene-4.png'}

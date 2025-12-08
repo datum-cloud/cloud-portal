@@ -151,9 +151,7 @@ export const ImportResultTable = ({ details }: ImportResultTableProps) => {
                   {statusConfig.label}
                 </span>
               </div>
-              {message && (
-                <span className="text-muted-foreground text-xs pl-5.5">{message}</span>
-              )}
+              {message && <span className="text-muted-foreground pl-5.5 text-xs">{message}</span>}
             </div>
           );
         },
