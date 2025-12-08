@@ -1,6 +1,7 @@
 import { LokiActivityLogsService, type QueryParams } from '@/modules/loki';
 import { getSession } from '@/utils/cookies';
 import { AuthenticationError } from '@/utils/errors';
+import { isTimeoutOrNetworkError } from '@/utils/errors/axios';
 import { data, type LoaderFunctionArgs } from 'react-router';
 
 /**
@@ -70,6 +71,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       data: activityLogsResponse,
     });
   } catch (error) {
+    // Handle timeout and network errors gracefully
+    if (isTimeoutOrNetworkError(error)) {
+      return data({
+        success: true,
+        data: {
+          logs: [],
+          query: '',
+          timeRange: {
+            start: '',
+            end: '',
+          },
+        },
+        message: 'Activity logs are not available at the moment. Please try again later.',
+      });
+    }
+
+    // For other errors, return error response
     const message = (error as any).message ?? 'Internal Server Error';
 
     return data({ success: false, error: message });

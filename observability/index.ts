@@ -49,6 +49,24 @@ export class ObservabilityManager {
     return this.detectObservabilityError(error);
   }
 
+  /**
+   * Capture an exception to observability providers
+   * @param error - The error to capture
+   * @param hint - Optional hint object for additional context
+   */
+  captureException(error: Error | any, hint?: any): void {
+    for (const [name, provider] of this.providers) {
+      if ('captureException' in provider && typeof provider.captureException === 'function') {
+        try {
+          provider.captureException(error, hint);
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          console.warn(`⚠️ Failed to capture exception to ${name}:`, errorMessage);
+        }
+      }
+    }
+  }
+
   // ============================================================================
   // STATIC METHODS
   // ============================================================================
@@ -311,6 +329,17 @@ export const shutdownObservability = (): void => {
   if (singletonManager) {
     singletonManager.shutdown();
     singletonManager = null;
+  }
+};
+
+/**
+ * Capture an exception using the observability singleton
+ * @param error - The error to capture
+ * @param hint - Optional hint object for additional context
+ */
+export const captureObservabilityException = (error: Error | any, hint?: any): void => {
+  if (singletonManager) {
+    singletonManager.captureException(error, hint);
   }
 };
 
