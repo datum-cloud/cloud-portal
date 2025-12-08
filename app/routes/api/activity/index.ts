@@ -2,7 +2,6 @@ import { LokiActivityLogsService, type QueryParams } from '@/modules/loki';
 import { getSession } from '@/utils/cookies';
 import { AuthenticationError } from '@/utils/errors';
 import { isTimeoutOrNetworkError } from '@/utils/errors/axios';
-import { captureObservabilityException } from 'observability';
 import { data, type LoaderFunctionArgs } from 'react-router';
 
 /**
@@ -74,9 +73,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } catch (error) {
     // Handle timeout and network errors gracefully
     if (isTimeoutOrNetworkError(error)) {
-      // Manually capture error to observability
-      captureObservabilityException(error);
-
       return data({
         success: true,
         data: {
