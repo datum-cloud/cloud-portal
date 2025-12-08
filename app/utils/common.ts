@@ -107,3 +107,15 @@ export function downloadFile(content: string, filename: string, mimeType = 'text
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+
+/**
+ * Read file content as text
+ */
+export async function readFileAsText(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsText(file);
+  });
+}

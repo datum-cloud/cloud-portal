@@ -1,9 +1,9 @@
 import { PageTitle } from '@/components/page-title/page-title';
+import { DnsRecordCard } from '@/features/edge/dns-records';
 import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/refresh-nameservers-button';
-import { DnsRecordCard } from '@/features/edge/dns-zone/overview/dns-records';
-import { NameserverCard } from '@/features/edge/dns-zone/overview/nameservers';
 import { TaskNameserverCard } from '@/features/edge/dns-zone/overview/task-nameserver-card';
 import { TaskRecordCard } from '@/features/edge/dns-zone/overview/task-record-card';
+import { NameserverCard } from '@/features/edge/nameservers';
 import { IDnsZoneControlResponse, IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { paths } from '@/utils/config/paths.config';

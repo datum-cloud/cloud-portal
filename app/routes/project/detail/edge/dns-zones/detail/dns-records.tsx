@@ -1,11 +1,11 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DnsRecordTable } from '@/features/edge/dns-zone/overview/dns-records';
-import { DnsRecordInlineForm } from '@/features/edge/dns-zone/overview/dns-records/dns-record-inline-form';
+import { DnsRecordTable } from '@/features/edge/dns-records';
+import { DnsRecordInlineForm } from '@/features/edge/dns-records/dns-record-inline-form';
 import {
   DnsRecordModalForm,
   DnsRecordModalFormRef,
-} from '@/features/edge/dns-zone/overview/dns-records/dns-record-modal-form';
-import { DnsRecordImportAction } from '@/features/edge/dns-zone/overview/dns-records/import-export/dns-record-import-action';
+} from '@/features/edge/dns-records/dns-record-modal-form';
+import { DnsRecordImportAction } from '@/features/edge/dns-records/import-export/dns-record-import-action';
 import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { DataTableFilter, DataTableRef } from '@/modules/datum-ui/components/data-table';
 import { IDnsZoneControlResponse, IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';

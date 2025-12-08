@@ -1,6 +1,6 @@
 import { DropzoneStateContent, ImportResultTable } from './components';
 import { useDnsRecordExport, useDnsRecordImport } from './hooks';
-import { DnsRecordTable } from '@/features/edge/dns-zone/overview/dns-records';
+import { DnsRecordTable } from '@/features/edge/dns-records';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 import { getImportResultStatus } from '@/utils/helpers/dns-record.helper';
 import { openSupportMessage } from '@/utils/open-support-message';

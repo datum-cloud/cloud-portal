@@ -1,4 +1,4 @@
-import { DnsRecordForm } from '../../form/dns-record-form';
+import { DnsRecordForm } from '../dns-zone/form/dns-record-form';
 import type { DnsRecordInlineFormProps } from './types';
 import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
 import { recordToFormDefaultValue } from '@/utils/helpers/dns-record.helper';
