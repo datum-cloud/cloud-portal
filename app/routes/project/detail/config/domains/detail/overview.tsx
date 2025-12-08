@@ -41,7 +41,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function DomainOverviewPage() {
-  const domain = useRouteLoaderData('domain-detail');
+  const { domain, dnsZone } = useRouteLoaderData('domain-detail');
 
   const fetcher = useFetcher({ key: 'delete-domain' });
   const { confirm } = useConfirmationDialog();
@@ -188,7 +188,7 @@ export default function DomainOverviewPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4 }}>
-          <DomainGeneralCard domain={domain} />
+          <DomainGeneralCard domain={domain} dnsZone={dnsZone} projectId={projectId} />
         </motion.div>
         {status.status === ControlPlaneStatus.Pending && (
           <div className="flex flex-col gap-6">

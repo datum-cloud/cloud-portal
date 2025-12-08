@@ -25,7 +25,7 @@ import {
 } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
 import { useEffect, useMemo, useRef } from 'react';
-import { Form, useFetcher } from 'react-router';
+import { Form, useFetcher, useSearchParams } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 
@@ -39,7 +39,9 @@ export const DnsZoneForm = ({
   const isHydrated = useHydrated();
   const isPending = useIsPending();
   const inputRef = useRef<HTMLInputElement>(null);
+  const descriptionInputRef = useRef<HTMLInputElement>(null);
   const fetcher = useFetcher({ key: 'delete-dns-zone' });
+  const [searchParams] = useSearchParams();
 
   const { confirm } = useConfirmationDialog();
   const deleteDnsZone = async () => {
@@ -78,6 +80,9 @@ export const DnsZoneForm = ({
   }, [defaultValue]);
 
   const [form, fields] = useForm({
+    defaultValue: {
+      domainName: searchParams.get('domainName') ?? '',
+    },
     id: 'dns-zone-form',
     constraint: getZodConstraint(formDnsZoneSchema),
     shouldValidate: 'onBlur',
@@ -91,8 +96,20 @@ export const DnsZoneForm = ({
   const descriptionControl = useInputControl(fields.description);
 
   useEffect(() => {
-    isHydrated && inputRef.current?.focus();
-  }, [isHydrated]);
+    if (!isHydrated) return;
+
+    const domainName = searchParams.get('domainName');
+    if (domainName && !isEdit) {
+      // If domain is in searchParams, focus description input
+      descriptionInputRef.current?.focus();
+    } else if (!isEdit) {
+      // Otherwise, focus domain name input (create mode)
+      inputRef.current?.focus();
+    } else {
+      // Edit mode: focus description input
+      descriptionInputRef.current?.focus();
+    }
+  }, [isHydrated, searchParams, isEdit]);
 
   useEffect(() => {
     if (defaultValue && defaultValue.domainName) {
@@ -137,7 +154,7 @@ export const DnsZoneForm = ({
                 {...getInputProps(fields.description, { type: 'text' })}
                 key={fields.description.id}
                 placeholder="e.g. Our main marketing site"
-                ref={isEdit ? inputRef : undefined}
+                ref={descriptionInputRef}
               />
             </Field>
           </CardContent>
