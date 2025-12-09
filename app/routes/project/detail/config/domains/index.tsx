@@ -64,8 +64,6 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     .filter((domainName) => domainName !== undefined);
   const dnsZones = await dnsZonesControl.list(projectId, domainNames);
 
-  console.log('DNS ZONES', dnsZones);
-
   const formattedDomains = domains.map((domain) => {
     const controlledStatus = transformControlPlaneStatus(domain.status);
 
@@ -242,7 +240,6 @@ export default function DomainsPage() {
         label: 'Manage DNS Zone',
         variant: 'default',
         action: (row) => (row.dnsZone ? editDnsZone(row) : addDnsZone(row)),
-        hidden: (row) => row.statusType === 'pending',
       },
       {
         key: 'delete',
