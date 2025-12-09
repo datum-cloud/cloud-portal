@@ -167,7 +167,6 @@ export default [
           // Domains
           route('domains', 'routes/project/detail/config/domains/layout.tsx', [
             index('routes/project/detail/config/domains/index.tsx'),
-            route('new', 'routes/project/detail/config/domains/new.tsx'),
 
             route(
               ':domainId',
@@ -176,7 +175,6 @@ export default [
               [
                 index('routes/project/detail/config/domains/detail/index.tsx'),
                 route('overview', 'routes/project/detail/config/domains/detail/overview.tsx'),
-                // route('edit', 'routes/project/detail/config/domains/detail/edit.tsx'),
               ]
             ),
           ]),

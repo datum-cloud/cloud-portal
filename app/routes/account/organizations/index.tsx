@@ -220,7 +220,6 @@ export default function AccountOrganizations() {
           description: '',
           name: '',
         }}
-        closeOnSuccess
         onSubmit={handleSubmit}
         onSuccess={() => {
           revalidator.revalidate();

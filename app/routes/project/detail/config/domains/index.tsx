@@ -3,12 +3,15 @@ import { NameserverChips } from '@/components/nameserver-chips';
 import { BulkAddDomainsAction } from '@/features/edge/domain/bulk-add';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
+import { useDatumFetcher } from '@/hooks/useDatumFetcher';
+import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
 import { createDomainsControl } from '@/resources/control-plane';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { domainSchema } from '@/resources/schemas/domain.schema';
 import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
 import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
 import { paths } from '@/utils/config/paths.config';
@@ -17,20 +20,21 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
+import { Form } from '@datum-ui/components/new-form';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, PlusIcon } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AppLoadContext,
-  Link,
   LoaderFunctionArgs,
   MetaFunction,
-  useFetcher,
   useLoaderData,
   useNavigate,
   useParams,
 } from 'react-router';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { z } from 'zod';
 
 type FormattedDomain = {
   name: string;
@@ -76,11 +80,71 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 export default function DomainsPage() {
   const { projectId } = useParams();
   const data = useLoaderData<typeof loader>();
-  const deleteFetcher = useFetcher({ key: 'delete-domain' });
-  const refreshFetcher = useFetcher({ key: 'refresh-domain' });
   const navigate = useNavigate();
+  const csrf = useAuthenticityToken();
 
+  const revalidator = useRevalidateOnInterval({ enabled: false });
   const { confirm } = useConfirmationDialog();
+
+  const deleteFetcher = useDatumFetcher({
+    key: 'delete-domain',
+    onSuccess: () => {
+      toast.success('Domain', {
+        description: 'The domain has been deleted successfully',
+      });
+      revalidator.revalidate();
+    },
+    onError: (data) => {
+      toast.error('Domain', {
+        description: data.error || 'Failed to delete domain',
+      });
+    },
+  });
+  const refreshFetcher = useDatumFetcher({
+    key: 'refresh-domain',
+    onSuccess: () => {
+      toast.success('Domain', {
+        description: 'The domain has been refreshed successfully',
+      });
+    },
+    onError: (data) => {
+      toast.error('Domain', {
+        description: data.error || 'Failed to refresh domain',
+      });
+    },
+  });
+  const createFetcher = useDatumFetcher({
+    key: 'create-domain',
+    onSuccess: () => {
+      toast.success('Domain', {
+        description: 'The domain has been added to your project',
+      });
+      setOpenAddDialog(false);
+      revalidator.revalidate();
+    },
+    onError: (data) => {
+      toast.error('Domain', {
+        description: data.error || 'Failed to add domain',
+      });
+    },
+  });
+
+  const [openAddDialog, setOpenAddDialog] = useState(false);
+
+  const handleAddDomain = async (formData: z.infer<typeof domainSchema>) => {
+    return createFetcher.submit(
+      {
+        domain: formData.domain,
+        projectId: projectId ?? '',
+        csrf,
+      },
+      {
+        method: 'POST',
+        action: DOMAINS_ACTIONS_PATH,
+        encType: 'application/json',
+      }
+    );
+  };
 
   const deleteDomain = async (domain: FormattedDomain) => {
     await confirm({
@@ -214,103 +278,99 @@ export default function DomainsPage() {
     [projectId]
   );
 
-  useEffect(() => {
-    if (deleteFetcher.data && deleteFetcher.state === 'idle') {
-      if (deleteFetcher.data.success) {
-        toast.success('Domain deleted successfully', {
-          description: 'The domain has been deleted successfully',
-        });
-      } else {
-        toast.error(deleteFetcher.data.error);
-      }
-    }
-  }, [deleteFetcher.data, deleteFetcher.state]);
-
-  useEffect(() => {
-    if (refreshFetcher.data && refreshFetcher.state === 'idle') {
-      if (refreshFetcher.data.success) {
-        toast.success('Domain refreshed successfully', {
-          description: 'The domain has been refreshed successfully',
-        });
-      } else {
-        toast.error(refreshFetcher.data.error);
-      }
-    }
-  }, [refreshFetcher.data, refreshFetcher.state]);
-
   return (
-    <DataTable
-      pageSize={50}
-      columns={columns}
-      data={(data ?? []) as FormattedDomain[]}
-      onRowClick={(row) => {
-        navigate(
-          getPathWithParams(paths.project.detail.domains.detail.overview, {
-            projectId,
-            domainId: row.name,
-          })
-        );
-      }}
-      emptyContent={{
-        title: "Looks like you don't have any domains added yet",
-        actions: [
-          {
-            type: 'link',
-            label: 'Add a domain',
-            to: getPathWithParams(paths.project.detail.domains.new, {
+    <>
+      <DataTable
+        pageSize={50}
+        columns={columns}
+        data={(data ?? []) as FormattedDomain[]}
+        onRowClick={(row) => {
+          navigate(
+            getPathWithParams(paths.project.detail.domains.detail.overview, {
               projectId,
-            }),
-            variant: 'default',
-            icon: <ArrowRightIcon className="size-4" />,
-            iconPosition: 'end',
-          },
-        ],
-      }}
-      tableTitle={{
-        title: 'Domains',
-        actions: (
-          <div className="flex items-center gap-3">
-            <BulkAddDomainsAction projectId={projectId!} />
-            <Link
-              to={getPathWithParams(paths.project.detail.domains.new, {
-                projectId,
-              })}>
-              <Button type="primary" theme="solid" size="small">
+              domainId: row.name,
+            })
+          );
+        }}
+        emptyContent={{
+          title: "Looks like you don't have any domains added yet",
+          actions: [
+            {
+              type: 'button',
+              label: 'Add a domain',
+              onClick: () => setOpenAddDialog(true),
+              variant: 'default',
+              icon: <ArrowRightIcon className="size-4" />,
+              iconPosition: 'end',
+            },
+          ],
+        }}
+        tableTitle={{
+          title: 'Domains',
+          actions: (
+            <div className="flex items-center gap-3">
+              <BulkAddDomainsAction projectId={projectId!} />
+              <Button
+                type="primary"
+                theme="solid"
+                size="small"
+                onClick={() => setOpenAddDialog(true)}>
                 <PlusIcon className="size-4" />
                 Add domain
               </Button>
-            </Link>
-          </div>
-        ),
-      }}
-      toolbar={{
-        layout: 'compact',
-        includeSearch: {
-          placeholder: 'Search domains',
-        },
-        filtersDisplay: 'dropdown',
-      }}
-      filters={
-        <>
-          <DataTableFilter.Select
-            label="Status"
-            placeholder="Status"
-            filterKey="statusType"
-            options={[
-              {
-                label: 'Verified',
-                value: 'verified',
-              },
-              {
-                label: 'Pending',
-                value: 'pending',
-              },
-            ]}
-            triggerClassName="min-w-32"
-          />
-        </>
-      }
-      rowActions={rowActions}
-    />
+            </div>
+          ),
+        }}
+        toolbar={{
+          layout: 'compact',
+          includeSearch: {
+            placeholder: 'Search domains',
+          },
+          filtersDisplay: 'dropdown',
+        }}
+        filters={
+          <>
+            <DataTableFilter.Select
+              label="Status"
+              placeholder="Status"
+              filterKey="statusType"
+              options={[
+                {
+                  label: 'Verified',
+                  value: 'verified',
+                },
+                {
+                  label: 'Pending',
+                  value: 'pending',
+                },
+              ]}
+              triggerClassName="min-w-32"
+            />
+          </>
+        }
+        rowActions={rowActions}
+      />
+
+      <Form.Dialog
+        closeOnSuccess={false}
+        open={openAddDialog}
+        onOpenChange={setOpenAddDialog}
+        title="Add a Domain"
+        description="To use a custom domain for your services, you must first verify ownership. This form creates a domain resource that provides the necessary DNS records for verification. Once verified, you can securely use your domain in HTTPProxies and Gateways."
+        schema={domainSchema}
+        onSubmit={handleAddDomain}
+        submitText="Add domain"
+        submitTextLoading="Adding..."
+        className="w-full sm:max-w-2xl">
+        <Form.Field
+          name="domain"
+          label="Domain"
+          description="Enter the domain where your service is running"
+          required
+          className="px-5">
+          <Form.Input placeholder="e.g. example.com" autoFocus />
+        </Form.Field>
+      </Form.Dialog>
+    </>
   );
 }

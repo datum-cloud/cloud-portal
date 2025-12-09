@@ -1,7 +1,7 @@
 import { createDomainsControl } from '@/resources/control-plane/networking/domains.control';
 import { validateCSRF } from '@/utils/cookies';
 import { BadRequestError, HttpError } from '@/utils/errors';
-import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
+import { generateId } from '@/utils/helpers/text.helper';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 
@@ -106,11 +106,9 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
       }
 
       // Generate resource name
-      const resourceName = generateId(domain, {
-        randomText: generateRandomString(6),
-      });
+      const resourceName = generateId(domain, { randomLength: 0 });
 
-      const domainPayload = { name: resourceName, domain: domainLower };
+      const domainPayload = { name: resourceName, domainName: domainLower };
 
       try {
         await domainsControl.create(projectId, domainPayload, false);

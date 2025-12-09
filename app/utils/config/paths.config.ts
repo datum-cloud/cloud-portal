@@ -77,7 +77,6 @@ export const paths = {
       },
       domains: {
         root: '/project/[projectId]/domains',
-        new: '/project/[projectId]/domains/new',
         detail: {
           root: '/project/[projectId]/domains/[domainId]',
           overview: '/project/[projectId]/domains/[domainId]/overview',

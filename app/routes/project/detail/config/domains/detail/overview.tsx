@@ -67,9 +67,8 @@ export default function DomainOverviewPage() {
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
-      showConfirmInput: true,
+      showConfirmInput: false,
       onSubmit: async () => {
-        // Clear the interval when deleting a export policy
         revalidator.clear();
 
         await fetcher.submit(
