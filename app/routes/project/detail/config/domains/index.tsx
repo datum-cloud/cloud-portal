@@ -275,8 +275,6 @@ export default function DomainsPage() {
     }
   }, [refreshFetcher.data, refreshFetcher.state]);
 
-  console.log('DATA', data);
-
   return (
     <DataTable
       pageSize={50}
