@@ -45,10 +45,6 @@ export const createDnsZonesControl = (client: Client) => {
           path: {
             namespace: 'default',
           },
-          query: {
-            fieldSelector:
-              domainNames?.length === 1 ? `spec.domainName=${domainNames[0]}` : undefined,
-          },
         });
 
         const dnsZones = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsZoneList;
@@ -56,7 +52,7 @@ export const createDnsZonesControl = (client: Client) => {
         let filteredZones = dnsZones.items;
 
         // Filter by domain names client-side if multiple domains provided
-        if (domainNames && domainNames.length > 1) {
+        if (domainNames?.length) {
           const domainNameSet = new Set(domainNames);
           filteredZones = filteredZones.filter(
             (dnsZone: ComMiloapisNetworkingDnsV1Alpha1DnsZone) =>
