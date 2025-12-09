@@ -74,7 +74,6 @@
     "cross-env": "^10.0.0",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
-    "dns-zonefile": "^0.3.2",
     "dotenv": "^17.2.2",
     "elkjs": "^0.11.0",
     "es-toolkit": "^1.39.10",

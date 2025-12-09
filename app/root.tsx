@@ -262,8 +262,6 @@ export function ErrorBoundary() {
     message = error.message;
   }
 
-  console.log(error);
-
   return (
     <ErrorLayout>
       <GenericError message={message} />

@@ -1,3 +1,4 @@
+import { SUPPORTED_DNS_RECORD_TYPES } from './constants';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 
 // =============================================================================
@@ -94,21 +95,6 @@ export function generateBindZoneFile(
 
   // Group records by type for organized output
   const recordsByType = new Map<string, IFlattenedDnsRecord[]>();
-  const typeOrder = [
-    'SOA',
-    'NS',
-    'A',
-    'AAAA',
-    'CNAME',
-    'MX',
-    'TXT',
-    'SRV',
-    'CAA',
-    'PTR',
-    'TLSA',
-    'HTTPS',
-    'SVCB',
-  ];
 
   for (const record of records) {
     const existing = recordsByType.get(record.type) || [];
@@ -117,7 +103,7 @@ export function generateBindZoneFile(
   }
 
   // Generate records in type order
-  for (const type of typeOrder) {
+  for (const type of SUPPORTED_DNS_RECORD_TYPES) {
     const typeRecords = recordsByType.get(type);
     if (!typeRecords || typeRecords.length === 0) continue;
 
@@ -136,7 +122,7 @@ export function generateBindZoneFile(
 
   // Handle any remaining types not in our order list
   for (const [type, typeRecords] of recordsByType) {
-    if (typeOrder.includes(type)) continue;
+    if (SUPPORTED_DNS_RECORD_TYPES.includes(type as any)) continue;
 
     lines.push(`; ${type} Records`);
     for (const record of typeRecords) {

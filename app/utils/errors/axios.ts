@@ -10,7 +10,7 @@ import {
   TokenError,
   ValidationError,
 } from '@/utils/errors';
-import type { AxiosError } from 'axios';
+import { isAxiosError, type AxiosError } from 'axios';
 
 /**
  * Extract a human-friendly error message from various upstream response shapes.
@@ -127,4 +127,39 @@ export function mapAxiosErrorToAppError(error: AxiosError): AppError {
     default:
       return new HttpError(msg, status, requestId);
   }
+}
+
+/**
+ * Checks if an error is a timeout or network error.
+ * Reuses the logic from mapAxiosErrorToAppError for AxiosErrors.
+ */
+export function isTimeoutOrNetworkError(error: any): boolean {
+  // If it's an AxiosError, use the existing mapping logic
+  if (isAxiosError(error)) {
+    const appError = mapAxiosErrorToAppError(error);
+    // Timeout errors have status 504, network errors have status 503
+    return appError.statusCode === 504 || appError.statusCode === 503;
+  }
+
+  // Fallback: check for timeout error codes directly
+  if (error?.code === 'ECONNABORTED' || error?.code === 'ETIMEDOUT') {
+    return true;
+  }
+
+  // Fallback: check for timeout in error message
+  const errorMessage = error?.message?.toLowerCase() || '';
+  if (
+    errorMessage.includes('timeout') ||
+    errorMessage.includes('timed out') ||
+    errorMessage.includes('econnaborted')
+  ) {
+    return true;
+  }
+
+  // Fallback: check if it's a network error (no response received)
+  if (error?.request && !error?.response) {
+    return true;
+  }
+
+  return false;
 }

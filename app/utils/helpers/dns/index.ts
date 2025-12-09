@@ -3,7 +3,11 @@
 // =============================================================================
 
 // Constants
-export { SUPPORTED_DNS_RECORD_TYPES, type SupportedDnsRecordType } from './constants';
+export {
+  SUPPORTED_DNS_RECORD_TYPES,
+  SUPPORTED_DNS_RECORD_TYPES_SET,
+  type SupportedDnsRecordType,
+} from './constants';
 
 // Nameserver helpers
 export { getNameserverSetupStatus, type INameserverSetupStatus } from './nameserver.helper';
@@ -24,6 +28,13 @@ export {
 
 // Flatten helpers
 export { flattenDnsRecordSets, extractValue, isRecordEmpty } from './flatten.helper';
+
+// Record comparison helpers
+export {
+  normalizeRecordName,
+  isDuplicateRecord,
+  findRecordIndex,
+} from './record-comparison.helper';
 
 // Form transform helpers
 export { transformFormToRecord, recordToFormDefaultValue } from './form-transform.helper';
