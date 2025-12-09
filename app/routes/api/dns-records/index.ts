@@ -2,7 +2,11 @@ import { createDnsRecordSetsControl } from '@/resources/control-plane';
 import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
 import { redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { BadRequestError, HttpError } from '@/utils/errors';
-import { extractValue, transformFormToRecord } from '@/utils/helpers/dns-record.helper';
+import {
+  findRecordIndex,
+  isDuplicateRecord,
+  transformFormToRecord,
+} from '@/utils/helpers/dns-record.helper';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 
@@ -102,24 +106,8 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
           const newRecord = transformFormToRecord(recordSchema);
 
           // Check for duplicate before appending
-          const isDuplicate = existingRecordSet.records?.some((r: any) => {
-            // Must match name
-            if (r.name !== newRecord.name) return false;
-
-            // Must match value
-            const existingValue = extractValue(r, recordType);
-            const newValue = extractValue(newRecord, recordType);
-            if (existingValue !== newValue) return false;
-
-            // Must match TTL (accounting for null/undefined as "auto")
-            const existingTTL = r.ttl ?? null;
-            const newTTL = newRecord.ttl ?? null;
-            if (existingTTL !== newTTL) return false;
-
-            return true; // Exact duplicate found
-          });
-
-          if (isDuplicate) {
+          const existingRecords = existingRecordSet.records || [];
+          if (isDuplicateRecord(newRecord, existingRecords, recordType)) {
             if (redirectUri) {
               return redirectWithToast(redirectUri as string, {
                 title: `${recordType} record already exists`,
@@ -134,7 +122,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
             });
           }
 
-          const updatedRecords = [...(existingRecordSet.records || []), newRecord];
+          const updatedRecords = [...existingRecords, newRecord];
 
           const dryRunRes = await dnsRecordSetsControl.update(
             projectId,
@@ -196,25 +184,11 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         // ===================================================================
         // With new schema: Each record = one value, so deleting a value = deleting the record
         // Find the first matching record by name, value (if provided), and ttl (if provided)
-        const recordIndex = recordSet.records!.findIndex((r: any) => {
-          // Must match name
-          if (r.name !== recordName) return false;
-
-          // If value provided, must match value
-          if (value) {
-            const recordValue = extractValue(r, recordType as string);
-            if (recordValue !== value) return false;
-          }
-
-          // If ttl provided, must match ttl
-          if (ttl !== undefined) {
-            const recordTTL = r.ttl ?? null;
-            const targetTTL = ttl === '' || ttl === 'null' ? null : Number(ttl);
-            if (recordTTL !== targetTTL) return false;
-          }
-
-          // This record matches all criteria
-          return true;
+        const parsedTTL = ttl === '' || ttl === 'null' ? null : ttl ? Number(ttl) : undefined;
+        const recordIndex = findRecordIndex(recordSet.records || [], recordType as string, {
+          name: recordName as string,
+          value: value as string | undefined,
+          ttl: parsedTTL as number | null | undefined,
         });
 
         if (recordIndex === -1) {

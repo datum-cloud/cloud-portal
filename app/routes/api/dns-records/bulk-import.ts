@@ -2,7 +2,7 @@ import { createDnsRecordSetsControl } from '@/resources/control-plane';
 import { IDnsZoneDiscoveryRecordSet } from '@/resources/interfaces/dns.interface';
 import { redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { BadRequestError, HttpError } from '@/utils/errors';
-import { extractValue } from '@/utils/helpers/dns-record.helper';
+import { extractValue, isDuplicateRecord } from '@/utils/helpers/dns-record.helper';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 
@@ -60,28 +60,6 @@ function groupDiscoveryRecordsByType(
   });
 
   return grouped;
-}
-
-/**
- * Check if a record is a duplicate of any existing record
- */
-function isDuplicateRecord(newRecord: any, existingRecords: any[], recordType: string): boolean {
-  return existingRecords.some((r) => {
-    // Must match name
-    if (r.name !== newRecord.name) return false;
-
-    // Must match value
-    const existingValue = extractValue(r, recordType);
-    const newValue = extractValue(newRecord, recordType);
-    if (existingValue !== newValue) return false;
-
-    // Must match TTL (accounting for null/undefined as "auto")
-    const existingTTL = r.ttl ?? null;
-    const newTTL = newRecord.ttl ?? null;
-    if (existingTTL !== newTTL) return false;
-
-    return true; // Exact duplicate found
-  });
 }
 
 /**
