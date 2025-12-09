@@ -1,6 +1,5 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "cloud-portal",
@@ -56,7 +55,6 @@
         "cross-env": "^10.0.0",
         "date-fns": "^4.1.0",
         "date-fns-tz": "^3.2.0",
-        "dns-zonefile": "^0.3.2",
         "dotenv": "^17.2.2",
         "elkjs": "^0.11.0",
         "es-toolkit": "^1.39.10",
@@ -1288,8 +1286,6 @@
     "detect-libc": ["detect-libc@2.1.2", "", {}, "sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ=="],
 
     "detect-node-es": ["detect-node-es@1.1.0", "", {}, "sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ=="],
-
-    "dns-zonefile": ["dns-zonefile@0.3.2", "", { "bin": { "zonefile": "bin/zonefile-cli.js" } }, "sha512-dHeztCHUexop8cEfR5qsG9PFFH+cqBgtuxKRZc3p6LY2boAuPsO8rz6xAejJi74gbC8gsGE7neJpJ5n6NSe6rA=="],
 
     "doctrine": ["doctrine@2.1.0", "", { "dependencies": { "esutils": "^2.0.2" } }, "sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw=="],
 

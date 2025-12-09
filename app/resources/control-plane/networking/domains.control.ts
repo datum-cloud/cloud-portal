@@ -180,7 +180,6 @@ export const createDomainsControl = (client: Client) => {
 
         const domain = response.data as ComDatumapisNetworkingV1AlphaDomain;
 
-        console.log(JSON.stringify(domain, null, 2));
         return dryRun ? domain : transformDomain(domain);
       } catch (e) {
         throw e;

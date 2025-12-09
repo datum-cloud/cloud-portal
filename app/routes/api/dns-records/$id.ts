@@ -2,7 +2,7 @@ import { createDnsRecordSetsControl } from '@/resources/control-plane';
 import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
 import { redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
-import { extractValue, transformFormToRecord } from '@/utils/helpers/dns-record.helper';
+import { findRecordIndex, transformFormToRecord } from '@/utils/helpers/dns-record.helper';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data, LoaderFunctionArgs } from 'react-router';
 
@@ -80,28 +80,14 @@ export const action = async ({ params, request, context }: ActionFunctionArgs) =
         // ===================================================================
         // With new schema: Each record = one value, so updating a record = replacing it
         // Find the record by name, value (if provided), and ttl (if provided)
-        const recordIndex = recordSet.records?.findIndex((r: any) => {
-          // Must match name
-          if (r.name !== recordName) return false;
-
-          // If oldValue provided, must match value
-          if (oldValue) {
-            const recordValue = extractValue(r, recordType);
-            if (recordValue !== oldValue) return false;
-          }
-
-          // If oldTTL provided, must match ttl
-          if (oldTTL !== undefined) {
-            const recordTTL = r.ttl ?? null;
-            const targetTTL = oldTTL === '' || oldTTL === null ? null : oldTTL;
-            if (recordTTL !== targetTTL) return false;
-          }
-
-          // This record matches all criteria
-          return true;
+        const parsedTTL = oldTTL === '' || oldTTL === null ? null : oldTTL;
+        const recordIndex = findRecordIndex(recordSet.records || [], recordType, {
+          name: recordName,
+          value: oldValue,
+          ttl: parsedTTL,
         });
 
-        if (recordIndex === undefined || recordIndex === -1) {
+        if (recordIndex === -1) {
           throw new BadRequestError(
             `Record with name "${recordName}"${oldValue ? `, value "${oldValue}"` : ''}${oldTTL !== undefined ? `, and TTL "${oldTTL}"` : ''} not found`
           );

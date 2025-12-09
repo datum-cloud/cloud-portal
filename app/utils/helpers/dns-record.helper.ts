@@ -6,6 +6,7 @@
 export {
   // Constants
   SUPPORTED_DNS_RECORD_TYPES,
+  SUPPORTED_DNS_RECORD_TYPES_SET,
   type SupportedDnsRecordType,
 
   // Nameserver helpers
@@ -27,6 +28,11 @@ export {
   flattenDnsRecordSets,
   extractValue,
   isRecordEmpty,
+
+  // Record comparison helpers
+  normalizeRecordName,
+  isDuplicateRecord,
+  findRecordIndex,
 
   // Form transform helpers
   transformFormToRecord,

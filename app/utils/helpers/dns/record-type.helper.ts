@@ -1,4 +1,4 @@
-import { SupportedDnsRecordType } from './constants';
+import { SUPPORTED_DNS_RECORD_TYPES, SupportedDnsRecordType } from './constants';
 
 // =============================================================================
 // DNS Record Type Helpers
@@ -7,25 +7,11 @@ import { SupportedDnsRecordType } from './constants';
 /**
  * Get sort priority for DNS record types
  * Lower numbers appear first in sorted lists
+ * Uses the order defined in SUPPORTED_DNS_RECORD_TYPES constant
  */
 export function getDnsRecordTypePriority(recordType: SupportedDnsRecordType): number {
-  const priorities: Record<SupportedDnsRecordType, number> = {
-    SOA: 1,
-    NS: 2,
-    A: 3,
-    AAAA: 4,
-    CNAME: 5,
-    MX: 6,
-    TXT: 7,
-    SRV: 8,
-    CAA: 9,
-    PTR: 10,
-    TLSA: 11,
-    HTTPS: 12,
-    SVCB: 13,
-  };
-
-  return priorities[recordType] || 999;
+  const index = SUPPORTED_DNS_RECORD_TYPES.indexOf(recordType);
+  return index === -1 ? 999 : index + 1;
 }
 
 /**
