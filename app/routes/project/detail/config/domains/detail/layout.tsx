@@ -26,7 +26,8 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const dnsZonesControl = createDnsZonesControl(controlPlaneClient as Client);
 
   const domain = await domainsControl.detail(projectId, domainId);
-  const dnsZone = await dnsZonesControl.list(projectId, [domain?.domainName ?? '']);
+  const dnsZones = await dnsZonesControl.list(projectId, [domain?.domainName ?? '']);
+  const dnsZone = dnsZones.find((zone) => zone.domainName === domain?.domainName) ?? null;
 
   if (!domain) {
     throw new NotFoundError('Domain not found');

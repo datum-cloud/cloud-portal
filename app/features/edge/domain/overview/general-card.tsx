@@ -72,7 +72,7 @@ export const DomainGeneralCard = ({
         ),
       },
     ];
-  }, [domain]);
+  }, [domain, dnsZone]);
 
   return (
     <Card className="w-full">

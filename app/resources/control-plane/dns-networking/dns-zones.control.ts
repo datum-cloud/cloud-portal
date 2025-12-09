@@ -36,9 +36,7 @@ export const createDnsZonesControl = (client: Client) => {
   return {
     list: async (projectId: string, domainNames?: string[]) => {
       try {
-        // Kubernetes field selectors only support =, ==, and != operators
-        // They don't support 'in' operator, so we can only use field selector for a single domain
-        // For multiple domains, we fetch all and filter client-side
+        //TODO: Kubernetes field selectors only support =, ==, and != operators so for now we fetch all and filter client-side
         const response = await listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone({
           client,
           baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
@@ -51,7 +49,7 @@ export const createDnsZonesControl = (client: Client) => {
 
         let filteredZones = dnsZones.items;
 
-        // Filter by domain names client-side if multiple domains provided
+        // Filter by domain names
         if (domainNames?.length) {
           const domainNameSet = new Set(domainNames);
           filteredZones = filteredZones.filter(
