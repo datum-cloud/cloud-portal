@@ -62,8 +62,7 @@ export const loader = withMiddleware(
 );
 
 export default function PrivateLayout() {
-  const data: { user: IUser; helpscoutSignature: string | null; ENV: any } =
-    useLoaderData<typeof loader>();
+  const data = useLoaderData<{ user: IUser; helpscoutSignature: string | null; ENV: any }>();
 
   const [helpscoutEnv, setHelpscoutEnv] = useState<{
     HELPSCOUT_BEACON_ID: string;
