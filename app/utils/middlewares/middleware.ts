@@ -5,7 +5,7 @@
  * It allows you to chain multiple middleware functions that can process requests before they reach
  * the final handler.
  */
-import { ActionFunction, LoaderFunction, LoaderFunctionArgs } from 'react-router';
+import { ActionFunction, LoaderFunction, LoaderFunctionArgs, data } from 'react-router';
 
 /**
  * Represents the next middleware function in the chain
@@ -73,6 +73,44 @@ export function createMiddleware(...middlewares: MiddlewareFunction[]) {
   return (request: Request, finalHandler: NextFunction) => {
     return chain.execute(request, finalHandler);
   };
+}
+
+/**
+ * Context for storing auth headers that need to be merged with loader responses
+ */
+const authHeadersContext = new WeakMap<Request, Headers>();
+
+/**
+ * Context for storing refreshed session data
+ */
+const refreshedSessionContext = new WeakMap<Request, any>();
+
+/**
+ * Gets auth headers from the request context
+ */
+export function getAuthHeaders(request: Request): Headers | undefined {
+  return authHeadersContext.get(request);
+}
+
+/**
+ * Sets auth headers in the request context
+ */
+export function setAuthHeaders(request: Request, headers: Headers): void {
+  authHeadersContext.set(request, headers);
+}
+
+/**
+ * Gets refreshed session data from the request context
+ */
+export function getRefreshedSession(request: Request): any | undefined {
+  return refreshedSessionContext.get(request);
+}
+
+/**
+ * Sets refreshed session data in the request context
+ */
+export function setRefreshedSession(request: Request, session: any): void {
+  refreshedSessionContext.set(request, session);
 }
 
 /**
@@ -151,6 +189,29 @@ export function withMiddleware(
     if (response instanceof Response) {
       // If it's already a Response, return it directly
       return response;
+    }
+
+    // Check if there are auth headers to merge with non-Response returns
+    const authHeaders = getAuthHeaders(request);
+    if (authHeaders && response && typeof response === 'object' && response !== null) {
+      // Check if this looks like a data() return (has data property or is a plain object)
+      // React Router's data() returns a Response, but loaders can also return plain objects
+      // If it's a plain object, we need to wrap it with data() and headers
+      const responseObj = response as Record<string, unknown>;
+      if ('data' in responseObj) {
+        // This might be a data() return - try to preserve its structure
+        const dataResponse = responseObj as { data: unknown; headers?: Headers };
+        const { combineHeaders } = await import('@/utils/helpers/path.helper');
+        const mergedHeaders = combineHeaders(
+          authHeaders,
+          dataResponse.headers ? new Headers(dataResponse.headers) : undefined
+        );
+        // Re-wrap with data() to ensure proper React Router handling
+        return data(dataResponse.data, { headers: mergedHeaders });
+      } else {
+        // Plain object return - wrap with data() and auth headers
+        return data(responseObj, { headers: authHeaders });
+      }
     }
 
     // Return non-Response data directly
