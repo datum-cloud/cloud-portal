@@ -4,7 +4,7 @@ import { DateTime } from '@/components/date-time';
 import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { useRevalidation } from '@/hooks/useRevalidation';
 import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
@@ -18,7 +18,7 @@ import { Button, DataTable, DataTableRowActionsProps, toast } from '@datum-ui/co
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, Loader2Icon, PlusIcon } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   AppLoadContext,
   Link,
@@ -55,29 +55,42 @@ export default function DnsZonesPage() {
   const deleteFetcher = useDatumFetcher({
     key: 'delete-dns-zone',
     onSuccess: () => {
-      toast.success('DNS deleted successfully', {
+      toast.success('DNS', {
         description: 'The DNS has been deleted successfully',
       });
+      revalidate();
     },
     onError: (data) => {
-      toast.error(data.error || 'Failed to delete DNS');
+      toast.error('DNS', {
+        description: data.error || 'Failed to delete DNS',
+      });
     },
   });
   const refreshFetcher = useDatumFetcher({
     key: 'refresh-dns',
     onSuccess: () => {
-      toast.success('DNS refreshed successfully', {
+      toast.success('DNS', {
         description: 'The DNS has been refreshed successfully',
       });
     },
     onError: (data) => {
-      toast.error(data.error || 'Failed to refresh DNS');
+      toast.error('DNS', {
+        description: data.error || 'Failed to refresh DNS',
+      });
     },
   });
   const navigate = useNavigate();
 
-  // revalidate every 3 seconds to keep DNS zones list fresh
-  const revalidator = useRevalidateOnInterval({ enabled: false, interval: 3000 });
+  // Check if any zone is being deleted
+  const hasDeletingZones = useMemo(
+    () => zones.some((zone) => zone.deletionTimestamp !== undefined),
+    [zones]
+  );
+
+  // Revalidate every 3 seconds when zones are being deleted
+  const { revalidate } = useRevalidation({
+    interval: hasDeletingZones ? 3000 : false,
+  });
 
   const { confirm } = useConfirmationDialog();
 
@@ -122,19 +135,6 @@ export default function DnsZonesPage() {
       },
     });
   };
-
-  useEffect(() => {
-    const hasDeletingZones = zones.some((zone) => zone.deletionTimestamp !== undefined);
-    if (hasDeletingZones) {
-      revalidator.start();
-    } else {
-      revalidator.clear();
-    }
-
-    return () => {
-      revalidator.clear();
-    };
-  }, [zones]);
 
   const columns: ColumnDef<IDnsZoneControlResponse>[] = useMemo(
     () => [

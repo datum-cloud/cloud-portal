@@ -43,6 +43,8 @@ export const createDomainsControl = (client: Client) => {
 
         const domains = response.data as ComDatumapisNetworkingV1AlphaDomainList;
 
+        console.log('domains', JSON.stringify(domains, null, 2));
+
         return domains.items.map(transformDomain);
       } catch (e) {
         throw e;
@@ -76,7 +78,11 @@ export const createDomainsControl = (client: Client) => {
         throw e;
       }
     },
-    create: async (projectId: string, payload: DomainSchema, dryRun: boolean = false) => {
+    create: async (
+      projectId: string,
+      payload: { domainName: string; name: string },
+      dryRun: boolean = false
+    ) => {
       try {
         const response = await createNetworkingDatumapisComV1AlphaNamespacedDomain({
           client,
@@ -95,7 +101,7 @@ export const createDomainsControl = (client: Client) => {
               name: payload.name,
             },
             spec: {
-              domainName: payload.domain,
+              domainName: payload.domainName,
             },
           },
         });

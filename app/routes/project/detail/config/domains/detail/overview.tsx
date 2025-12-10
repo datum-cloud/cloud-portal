@@ -5,7 +5,7 @@ import { PageTitle } from '@/components/page-title/page-title';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
 import { QuickSetupCard } from '@/features/edge/domain/overview/quick-setup-card';
 import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
-import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { useRevalidation } from '@/hooks/useRevalidation';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
@@ -16,7 +16,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { toast } from '@datum-ui/components';
 import { ClockIcon, TrashIcon } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import {
   LoaderFunctionArgs,
   data,
@@ -47,15 +47,20 @@ export default function DomainOverviewPage() {
   const { confirm } = useConfirmationDialog();
   const { projectId } = useParams();
 
-  // revalidate every 3 seconds to keep deployment list fresh
-  const revalidator = useRevalidateOnInterval({ enabled: false, interval: 3000 });
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Track previous status for transition detection
   const previousStatusRef = useRef<ControlPlaneStatus | null>(null);
 
   const status = useMemo(() => transformControlPlaneStatus(domain?.status), [domain]);
-  const deleteDomain = async () => {
+  const isPending = status.status === ControlPlaneStatus.Pending;
+
+  // Revalidation with polling (when pending), focus refresh, and reconnect refresh
+  const { stop: stopRevalidation } = useRevalidation({
+    interval: isPending ? 10000 : false,
+  });
+
+  const handleDeleteDomain = async () => {
     await confirm({
       title: 'Delete Domain',
       description: (
@@ -67,10 +72,9 @@ export default function DomainOverviewPage() {
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
-      showConfirmInput: true,
+      showConfirmInput: false,
       onSubmit: async () => {
-        // Clear the interval when deleting a export policy
-        revalidator.clear();
+        stopRevalidation();
 
         await fetcher.submit(
           {
@@ -88,18 +92,6 @@ export default function DomainOverviewPage() {
       },
     });
   };
-
-  useEffect(() => {
-    if (status.status !== ControlPlaneStatus.Pending) {
-      revalidator.clear();
-    } else {
-      revalidator.start();
-    }
-
-    return () => {
-      revalidator.clear();
-    };
-  }, [status]);
 
   // Handle status transitions and show success toast
   useEffect(() => {
@@ -164,7 +156,7 @@ export default function DomainOverviewPage() {
                     label: 'Delete',
                     variant: 'destructive',
                     icon: <TrashIcon />,
-                    action: deleteDomain,
+                    action: handleDeleteDomain,
                   },
                 ]}
               />
@@ -190,7 +182,7 @@ export default function DomainOverviewPage() {
           transition={{ delay: 0.3, duration: 0.4 }}>
           <DomainGeneralCard domain={domain} dnsZone={dnsZone} projectId={projectId} />
         </motion.div>
-        {status.status === ControlPlaneStatus.Pending && (
+        {isPending && (
           <div className="flex flex-col gap-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

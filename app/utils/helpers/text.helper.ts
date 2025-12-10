@@ -148,7 +148,9 @@ export const generateRandomString = (length: number): string => {
 interface IdGeneratorOptions {
   prefix?: string;
   suffix?: string;
+  /** Length of random string to append. Set to 0 to disable random part. */
   randomLength?: number;
+  /** Custom random text to use instead of auto-generated. Only used if randomLength > 0. */
   randomText?: string;
   maxLength?: number;
   separator?: string;
@@ -220,13 +222,14 @@ export const generateId = (name: string, options: IdGeneratorOptions = {}): stri
     let baseId = parts.join(config.separator);
 
     // Calculate remaining length for random part
-    const randomPart = config.randomText
-      ? config.randomText
-      : generateRandomString(config.randomLength);
+    const randomPart =
+      config.randomLength > 0 ? config.randomText || generateRandomString(config.randomLength) : '';
     const timestampPart = config.includeTimestamp ? getTimestamp() : '';
 
-    const maxBaseLength =
-      config.maxLength - randomPart.length - (timestampPart ? timestampPart.length + 1 : 0) - 1;
+    // Calculate max base length accounting for random and timestamp parts
+    const randomPartLength = randomPart ? randomPart.length + 1 : 0; // +1 for separator
+    const timestampPartLength = timestampPart ? timestampPart.length + 1 : 0; // +1 for separator
+    const maxBaseLength = config.maxLength - randomPartLength - timestampPartLength;
 
     // Truncate if necessary
     if (baseId.length > maxBaseLength) {
@@ -234,9 +237,10 @@ export const generateId = (name: string, options: IdGeneratorOptions = {}): stri
     }
 
     // Build final ID
-    const finalId = [baseId, randomPart, ...(timestampPart ? [timestampPart] : [])].join(
-      config.separator
-    );
+    const idParts = [baseId];
+    if (randomPart) idParts.push(randomPart);
+    if (timestampPart) idParts.push(timestampPart);
+    const finalId = idParts.join(config.separator);
 
     // Validate
     if (!validateId(finalId) || !config.customValidation(finalId)) {

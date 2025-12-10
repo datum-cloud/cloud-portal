@@ -12,7 +12,6 @@ export { InvitationNotificationItem } from './items';
 
 // Hooks
 export { useNotificationPolling } from '../../hooks/useNotificationPolling';
-export { NotificationProvider, useNotifications } from './notification-context';
 
 // Types
 export type {
