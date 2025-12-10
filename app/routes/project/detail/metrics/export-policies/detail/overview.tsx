@@ -5,7 +5,7 @@ import { PageTitle } from '@/components/page-title/page-title';
 import { ExportPolicyGeneralCard } from '@/features/metric/export-policies/general-card';
 import { WorkloadSinksTable } from '@/features/metric/export-policies/sinks-table';
 import { WorkloadSourcesTable } from '@/features/metric/export-policies/sources-table';
-import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { useRevalidation } from '@/hooks/useRevalidation';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/export-policies/';
 import { paths } from '@/utils/config/paths.config';
@@ -30,8 +30,10 @@ export default function ExportPolicyOverview() {
   const { confirm } = useConfirmationDialog();
   const { projectId } = useParams();
 
-  // revalidate every 10 seconds to keep deployment list fresh
-  const revalidator = useRevalidateOnInterval({ enabled: true, interval: 10000 });
+  // Revalidate every 10 seconds to keep deployment list fresh
+  const { stop: stopRevalidation } = useRevalidation({
+    interval: 10000,
+  });
 
   const deleteExportPolicy = async () => {
     await confirm({
@@ -47,8 +49,8 @@ export default function ExportPolicyOverview() {
       variant: 'destructive',
       showConfirmInput: true,
       onSubmit: async () => {
-        // Clear the interval when deleting a export policy
-        revalidator.clear();
+        // Stop revalidation when deleting an export policy
+        stopRevalidation();
 
         await fetcher.submit(
           {

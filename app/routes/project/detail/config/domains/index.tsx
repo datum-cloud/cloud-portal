@@ -4,7 +4,7 @@ import { BulkAddDomainsAction } from '@/features/edge/domain/bulk-add';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import { useRevalidateOnInterval } from '@/hooks/useRevalidatorInterval';
+import { useRevalidation } from '@/hooks/useRevalidation';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
@@ -24,7 +24,7 @@ import { Form } from '@datum-ui/components/new-form';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, PlusIcon } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   AppLoadContext,
   LoaderFunctionArgs,
@@ -88,26 +88,10 @@ export default function DomainsPage() {
     return (data ?? []).some((domain) => domain.statusType === 'pending');
   }, [data]);
 
-  // Revalidator for manual triggers and interval-based polling
-  const revalidator = useRevalidateOnInterval({
-    enabled: false,
-    interval: 15000, // 15 seconds
+  // Revalidation with polling (when pending), focus refresh, and reconnect refresh
+  const { revalidate } = useRevalidation({
+    interval: hasPendingDomains ? 10000 : false,
   });
-
-  // Start/stop polling based on pending domains (after mount)
-  useEffect(() => {
-    // Skip the initial render to avoid React state update warning
-    const timeoutId = setTimeout(() => {
-      if (hasPendingDomains) {
-        revalidator.start();
-      }
-    }, 0);
-
-    return () => {
-      clearTimeout(timeoutId);
-      revalidator.clear();
-    };
-  }, [hasPendingDomains]);
 
   const { confirm } = useConfirmationDialog();
 
@@ -117,7 +101,7 @@ export default function DomainsPage() {
       toast.success('Domain', {
         description: 'The domain has been deleted successfully',
       });
-      revalidator.revalidate();
+      revalidate();
     },
     onError: (data) => {
       toast.error('Domain', {
@@ -145,7 +129,7 @@ export default function DomainsPage() {
         description: 'The domain has been added to your project',
       });
       setOpenAddDialog(false);
-      revalidator.revalidate();
+      revalidate();
     },
     onError: (data) => {
       toast.error('Domain', {
@@ -266,9 +250,7 @@ export default function DomainsPage() {
         header: 'Status',
         accessorKey: 'statusType',
         cell: ({ row }) => {
-          return (
-            row.original.status && <DomainStatus domainStatus={row.original.status} />
-          );
+          return row.original.status && <DomainStatus domainStatus={row.original.status} />;
         },
         meta: {
           sortable: false,
