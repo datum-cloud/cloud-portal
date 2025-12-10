@@ -219,6 +219,15 @@ export function DataTableProvider<TData, TValue>({
   // Filter state management with nuqs - using individual useQueryState for each filter
   const [internalFilterState, setInternalFilterState] = useState<FilterState>({});
   const initialFiltersLoadedRef = useRef(false);
+  const isMountedRef = useRef(false);
+
+  // Track component mount state
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Merge default filters with internal state
   const mergedFilterState = useMemo(
@@ -267,11 +276,13 @@ export function DataTableProvider<TData, TValue>({
       }
 
       // If there are URL filters, call onFiltersChange
-      // Defer to ensure component is mounted
+      // Defer to ensure component is mounted using requestAnimationFrame
       if (Object.keys(urlFilters).length > 0) {
-        setTimeout(() => {
-          onFiltersChange?.(urlFilters);
-        }, 0);
+        requestAnimationFrame(() => {
+          if (isMountedRef.current) {
+            onFiltersChange?.(urlFilters);
+          }
+        });
       }
     }
   }, [serverSideFiltering, onFiltersChange]);
@@ -316,9 +327,11 @@ export function DataTableProvider<TData, TValue>({
       }
 
       // Apply URL filters to table columns for client-side filtering
-      // Defer state updates to ensure component is mounted
+      // Defer state updates to ensure component is mounted using requestAnimationFrame
       if (Object.keys(urlFilters).length > 0) {
-        setTimeout(() => {
+        requestAnimationFrame(() => {
+          if (!isMountedRef.current) return;
+
           const columnIds = table.getAllColumns().map((col) => col.id);
 
           for (const [key, filterValue] of Object.entries(urlFilters)) {
@@ -333,7 +346,7 @@ export function DataTableProvider<TData, TValue>({
           // Also update internal filter state so context is in sync
           setInternalFilterState(urlFilters);
           onFiltersChange?.(urlFilters);
-        }, 0);
+        });
       }
     }
   }, [serverSideFiltering, table, onFiltersChange]);

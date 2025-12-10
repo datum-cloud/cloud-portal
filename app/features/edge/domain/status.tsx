@@ -1,16 +1,10 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
-import {
-  ControlPlaneStatus,
-  IControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface';
+import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
-import { ROUTE_PATH as DOMAIN_STATUS_ROUTE_PATH } from '@/routes/api/domains/status';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { cn } from '@shadcn/lib/utils';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@shadcn/ui/hover-card';
-import { useEffect, useRef, useState, useMemo } from 'react';
-import { useFetcher } from 'react-router';
+import { useMemo } from 'react';
 
 type Condition = {
   type: string;
@@ -35,72 +29,13 @@ const getConditionTitle = (condition: Condition): string => {
 };
 
 export const DomainStatus = ({
-  domainId,
-  projectId,
   domainStatus,
 }: {
-  domainId?: string;
-  projectId?: string;
   domainStatus: IDomainControlResponse['status'];
 }) => {
-  const fetcher = useFetcher({ key: `domain-status-${domainId}` });
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [status, setStatus] = useState<IControlPlaneStatus>();
-
   const currentStatus = useMemo(() => {
     return transformControlPlaneStatus(domainStatus);
   }, [domainStatus]);
-
-  useEffect(() => {
-    setStatus(currentStatus);
-  }, [currentStatus]);
-
-  useEffect(() => {
-    // Only set up polling if we have the required IDs
-    if (!projectId || !domainId) {
-      return;
-    }
-
-    const loadStatus = () => {
-      if (domainId && projectId) {
-        fetcher.load(
-          `${getPathWithParams(DOMAIN_STATUS_ROUTE_PATH, { id: domainId })}?projectId=${projectId}`
-        );
-      }
-    };
-
-    // Initial load if:
-    // 1. No current status exists, or
-    // 2. Current status is pending
-    if (!currentStatus || currentStatus?.status === ControlPlaneStatus.Pending) {
-      loadStatus();
-
-      // Set up polling interval
-      intervalRef.current = setInterval(loadStatus, 10000);
-    }
-
-    // Clean up interval on unmount
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [projectId, domainId, currentStatus]);
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const statusData = fetcher.data as IControlPlaneStatus;
-      setStatus(statusData);
-      if (
-        (statusData.status === ControlPlaneStatus.Success ||
-          statusData.status === ControlPlaneStatus.Error) &&
-        intervalRef.current
-      ) {
-        clearInterval(intervalRef.current);
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   const conditions = useMemo(() => {
     return (domainStatus?.conditions || []) as unknown as Condition[];
@@ -122,7 +57,11 @@ export const DomainStatus = ({
     return undefined; // Use default
   };
 
-  return status ? (
+  if (!currentStatus) {
+    return null;
+  }
+
+  return (
     <HoverCard openDelay={300}>
       <HoverCardTrigger
         className={cn(
@@ -166,7 +105,5 @@ export const DomainStatus = ({
         )}
       </HoverCardContent>
     </HoverCard>
-  ) : (
-    <></>
   );
 };

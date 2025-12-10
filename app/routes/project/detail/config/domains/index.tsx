@@ -24,7 +24,7 @@ import { Form } from '@datum-ui/components/new-form';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, PlusIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AppLoadContext,
   LoaderFunctionArgs,
@@ -83,7 +83,32 @@ export default function DomainsPage() {
   const navigate = useNavigate();
   const csrf = useAuthenticityToken();
 
-  const revalidator = useRevalidateOnInterval({ enabled: false });
+  // Check if any domain is pending verification
+  const hasPendingDomains = useMemo(() => {
+    return (data ?? []).some((domain) => domain.statusType === 'pending');
+  }, [data]);
+
+  // Revalidator for manual triggers and interval-based polling
+  const revalidator = useRevalidateOnInterval({
+    enabled: false,
+    interval: 15000, // 15 seconds
+  });
+
+  // Start/stop polling based on pending domains (after mount)
+  useEffect(() => {
+    // Skip the initial render to avoid React state update warning
+    const timeoutId = setTimeout(() => {
+      if (hasPendingDomains) {
+        revalidator.start();
+      }
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+      revalidator.clear();
+    };
+  }, [hasPendingDomains]);
+
   const { confirm } = useConfirmationDialog();
 
   const deleteFetcher = useDatumFetcher({
@@ -146,7 +171,7 @@ export default function DomainsPage() {
     );
   };
 
-  const deleteDomain = async (domain: FormattedDomain) => {
+  const handleDeleteDomain = async (domain: FormattedDomain) => {
     await confirm({
       title: 'Delete Domain',
       description: (
@@ -174,7 +199,7 @@ export default function DomainsPage() {
     });
   };
 
-  const refreshDomain = async (domain: FormattedDomain) => {
+  const handleRefreshDomain = async (domain: FormattedDomain) => {
     await refreshFetcher.submit(
       {
         id: domain?.name ?? '',
@@ -242,13 +267,7 @@ export default function DomainsPage() {
         accessorKey: 'statusType',
         cell: ({ row }) => {
           return (
-            row.original.status && (
-              <DomainStatus
-                domainId={row.original.name}
-                projectId={projectId}
-                domainStatus={row.original.status}
-              />
-            )
+            row.original.status && <DomainStatus domainStatus={row.original.status} />
           );
         },
         meta: {
@@ -266,13 +285,13 @@ export default function DomainsPage() {
         key: 'refresh',
         label: 'Refresh',
         variant: 'default',
-        action: (row) => refreshDomain(row),
+        action: (row) => handleRefreshDomain(row),
       },
       {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
-        action: (row) => deleteDomain(row),
+        action: (row) => handleDeleteDomain(row),
       },
     ],
     [projectId]

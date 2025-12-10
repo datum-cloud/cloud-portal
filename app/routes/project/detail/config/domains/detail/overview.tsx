@@ -48,14 +48,14 @@ export default function DomainOverviewPage() {
   const { projectId } = useParams();
 
   // revalidate every 3 seconds to keep deployment list fresh
-  const revalidator = useRevalidateOnInterval({ enabled: false, interval: 3000 });
+  const revalidator = useRevalidateOnInterval({ enabled: false, interval: 10000 });
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Track previous status for transition detection
   const previousStatusRef = useRef<ControlPlaneStatus | null>(null);
 
   const status = useMemo(() => transformControlPlaneStatus(domain?.status), [domain]);
-  const deleteDomain = async () => {
+  const handleDeleteDomain = async () => {
     await confirm({
       title: 'Delete Domain',
       description: (
@@ -163,7 +163,7 @@ export default function DomainOverviewPage() {
                     label: 'Delete',
                     variant: 'destructive',
                     icon: <TrashIcon />,
-                    action: deleteDomain,
+                    action: handleDeleteDomain,
                   },
                 ]}
               />
