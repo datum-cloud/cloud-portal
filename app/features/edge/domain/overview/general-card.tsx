@@ -4,11 +4,22 @@ import { NameserverChips } from '@/components/nameserver-chips';
 import { TextCopy } from '@/components/text-copy/text-copy';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
-import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
-import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
+import type { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
+import type { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Card, CardHeader, CardTitle, CardContent, LinkButton } from '@datum-ui/components';
 import { useMemo } from 'react';
 
-export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }) => {
+export const DomainGeneralCard = ({
+  domain,
+  dnsZone,
+  projectId,
+}: {
+  domain: IDomainControlResponse;
+  dnsZone?: IDnsZoneControlResponse;
+  projectId?: string;
+}) => {
   const listItems: ListItem[] = useMemo(() => {
     if (!domain) return [];
 
@@ -43,8 +54,25 @@ export const DomainGeneralCard = ({ domain }: { domain: IDomainControlResponse }
         className: 'px-2',
         content: <DateTime className="text-sm" date={domain?.createdAt ?? ''} variant="both" />,
       },
+      {
+        hidden: !dnsZone,
+        label: 'DNS Zone',
+        className: 'px-2',
+        content: (
+          <LinkButton
+            type="primary"
+            theme="link"
+            size="link"
+            to={getPathWithParams(paths.project.detail.dnsZones.detail.overview, {
+              projectId: projectId ?? '',
+              dnsZoneId: dnsZone?.name,
+            })}>
+            {domain.domainName}
+          </LinkButton>
+        ),
+      },
     ];
-  }, [domain]);
+  }, [domain, dnsZone]);
 
   return (
     <Card className="w-full">

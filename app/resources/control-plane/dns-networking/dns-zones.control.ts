@@ -34,20 +34,37 @@ export const createDnsZonesControl = (client: Client) => {
   };
 
   return {
-    list: async (projectId: string) => {
+    list: async (projectId: string, domainNames?: string[]) => {
       try {
+        //TODO: Kubernetes field selectors only support =, ==, and != operators so for now we fetch all and filter client-side
         const response = await listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone({
           client,
           baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
           path: {
             namespace: 'default',
           },
+          query: {
+            fieldSelector:
+              // if there's only one domain name we can use the field selector to filter by domain name
+              domainNames?.length === 1 ? `spec.domainName=${domainNames[0]}` : undefined,
+          },
         });
 
         const dnsZones = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsZoneList;
 
+        let filteredZones = dnsZones.items;
+
+        // Filter by domain names (only when there are multiple domain names)
+        if (domainNames && domainNames.length > 1) {
+          const domainNameSet = new Set(domainNames);
+          filteredZones = filteredZones.filter(
+            (dnsZone: ComMiloapisNetworkingDnsV1Alpha1DnsZone) =>
+              dnsZone.spec?.domainName && domainNameSet.has(dnsZone.spec.domainName)
+          );
+        }
+
         return (
-          dnsZones.items
+          filteredZones
             // // Filter out DNS zones that are being deleted
             // ?.filter(
             //   (dnsZone: ComMiloapisNetworkingDnsV1Alpha1DnsZone) =>
@@ -93,7 +110,7 @@ export const createDnsZonesControl = (client: Client) => {
         throw e;
       }
     },
-    detail: async (projectId: string, id: string) => {
+    detail: async (projectId: string, id: string, domainName?: string) => {
       try {
         const response = await readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone({
           client,

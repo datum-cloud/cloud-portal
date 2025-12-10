@@ -6,8 +6,9 @@ import { DomainStatus } from '@/features/edge/domain/status';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
-import { createDomainsControl } from '@/resources/control-plane';
+import { createDnsZonesControl, createDomainsControl } from '@/resources/control-plane';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
+import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
 import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
@@ -40,6 +41,7 @@ type FormattedDomain = {
   expiresAt: string;
   status: IDomainControlResponse['status'];
   statusType: 'success' | 'pending';
+  dnsZone?: IDnsZoneControlResponse;
 };
 
 export const meta: MetaFunction = mergeMeta(() => {
@@ -50,12 +52,17 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params;
   const { controlPlaneClient } = context as AppLoadContext;
   const domainsControl = createDomainsControl(controlPlaneClient as Client);
+  const dnsZonesControl = createDnsZonesControl(controlPlaneClient as Client);
 
   if (!projectId) {
     throw new BadRequestError('Project ID is required');
   }
 
   const domains = await domainsControl.list(projectId);
+  const domainNames = domains
+    .map((domain) => domain.domainName)
+    .filter((domainName) => domainName !== undefined);
+  const dnsZones = await dnsZonesControl.list(projectId, domainNames);
 
   const formattedDomains = domains.map((domain) => {
     const controlledStatus = transformControlPlaneStatus(domain.status);
@@ -68,6 +75,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
       expiresAt: domain.status?.registration?.expiresAt,
       status: domain.status,
       statusType: controlledStatus.status === ControlPlaneStatus.Success ? 'verified' : 'pending',
+      dnsZone: dnsZones.find((dnsZone) => dnsZone.domainName === domain.domainName),
     };
   });
   return formattedDomains;
@@ -120,6 +128,29 @@ export default function DomainsPage() {
         method: 'PATCH',
         action: DOMAINS_REFRESH_PATH,
       }
+    );
+  };
+
+  const addDnsZone = async (domain: FormattedDomain) => {
+    navigate(
+      getPathWithParams(
+        paths.project.detail.dnsZones.new,
+        {
+          projectId,
+        },
+        new URLSearchParams({
+          domainName: domain.domainName,
+        })
+      )
+    );
+  };
+
+  const editDnsZone = async (domain: FormattedDomain) => {
+    navigate(
+      getPathWithParams(paths.project.detail.dnsZones.detail.overview, {
+        projectId,
+        dnsZoneId: domain.dnsZone?.name ?? '',
+      })
     );
   };
 
@@ -203,6 +234,12 @@ export default function DomainsPage() {
         label: 'Refresh',
         variant: 'default',
         action: (row) => refreshDomain(row),
+      },
+      {
+        key: 'dns',
+        label: 'Manage DNS Zone',
+        variant: 'default',
+        action: (row) => (row.dnsZone ? editDnsZone(row) : addDnsZone(row)),
       },
       {
         key: 'delete',

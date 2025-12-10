@@ -21,6 +21,7 @@ const buttonVariants = cva(
         light: '',
         outline: 'border',
         borderless: 'border-0 bg-transparent',
+        link: 'text-primary underline-offset-2 underline hover:opacity-80',
       },
       size: {
         xs: 'h-7 px-2.5 text-xs',
@@ -28,6 +29,7 @@ const buttonVariants = cva(
         default: 'h-9 px-4 py-2',
         large: 'h-11 px-8 text-base',
         icon: 'h-9 w-9',
+        link: 'px-0 py-0',
       },
       block: {
         true: 'w-full',

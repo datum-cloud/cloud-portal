@@ -49,7 +49,12 @@ type QueryParams = Record<string, Param>;
  * @param params - Object containing parameter values
  * @returns Path with parameters replaced
  */
-export function getPathWithParams(path: string, params: QueryParams = {}): string {
+export function getPathWithParams(
+  path: string,
+  params: QueryParams = {},
+  searchParams?: URLSearchParams
+): string {
+  const searchParamsString = searchParams ? `?${searchParams.toString()}` : '';
   const toString = (val: Param): string => {
     if (val === null || typeof val === 'undefined') {
       return '';
@@ -65,7 +70,7 @@ export function getPathWithParams(path: string, params: QueryParams = {}): strin
         // /my/:dynamic/path
         .replace(`:${key}`, encodeURIComponent(toString(value)))
     );
-  }, path);
+  }, path + searchParamsString);
 }
 
 /**
