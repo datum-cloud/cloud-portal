@@ -1,9 +1,9 @@
 import { destroyLocalSessions } from '@/features/auth/utils';
 import { AuthService } from '@/utils/auth';
 import { getIdTokenSession } from '@/utils/cookies';
-import type { ActionFunctionArgs, LoaderFunctionArgs, AppLoadContext } from 'react-router';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
 
-const signOut = async (request: Request, context: AppLoadContext) => {
+const signOut = async (request: Request) => {
   try {
     // Get ID token for OIDC end_session
     const { idToken } = await getIdTokenSession(request);
@@ -13,19 +13,19 @@ const signOut = async (request: Request, context: AppLoadContext) => {
     await AuthService.logout(cookieHeader, idToken);
 
     // Destroy all local sessions and redirect to login
-    return destroyLocalSessions(request, context);
+    return destroyLocalSessions(request);
   } catch (error) {
     console.error('[Auth] Error during sign out process:', error);
 
     // Fallback: destroy sessions anyway
-    return destroyLocalSessions(request, context);
+    return destroyLocalSessions(request);
   }
 };
 
-export async function action({ request, context }: ActionFunctionArgs) {
-  return signOut(request, context);
+export async function action({ request }: ActionFunctionArgs) {
+  return signOut(request);
 }
 
-export async function loader({ request, context }: LoaderFunctionArgs) {
-  return signOut(request, context);
+export async function loader({ request }: LoaderFunctionArgs) {
+  return signOut(request);
 }

@@ -123,7 +123,13 @@ export class AuthService {
     sessionRaw: Awaited<ReturnType<typeof sessionStorage.getSession>>,
     refreshRaw: Awaited<ReturnType<typeof refreshTokenStorage.getSession>>
   ): Promise<{ session: IAccessTokenSession; headers: Headers }> {
-    debugLog('Attempting token refresh...');
+    debugLog('Attempting token refresh...', {
+      refreshTokenPrefix: refreshToken?.substring(0, 20) + '...',
+      refreshTokenLength: refreshToken?.length,
+      refreshTokenType: typeof refreshToken,
+      refreshTokenHasWhitespace: /\s/.test(refreshToken || ''),
+      refreshTokenStartsWithBearer: refreshToken?.startsWith('Bearer '),
+    });
 
     const refreshedTokens = await zitadelStrategy.refreshToken(refreshToken);
 
@@ -181,11 +187,9 @@ export class AuthService {
 
     // Case 1: No session exists
     if (!session) {
-      debugLog('No session found');
-
       // Try to restore using refresh token
       if (refreshToken) {
-        debugLog('Attempting to restore session using refresh token...');
+        debugLog('No session found, attempting to restore using refresh token...');
 
         try {
           const { session: newSession, headers } = await this.refreshTokens(
@@ -215,14 +219,6 @@ export class AuthService {
     // Case 2: Session exists - check if refresh is needed
     const { isExpired, isNearExpiry } = this.shouldRefresh(session);
 
-    debugLog('Session status', {
-      isExpired,
-      isNearExpiry,
-      timeUntilExpiry:
-        Math.round((new Date(session.expiredAt).getTime() - Date.now()) / 1000 / 60) + ' minutes',
-      hasRefreshToken: !!refreshToken,
-    });
-
     // Need to refresh
     if (isExpired || isNearExpiry) {
       if (refreshToken) {
@@ -235,18 +231,51 @@ export class AuthService {
           return { session: newSession, headers, refreshed: true };
         } catch (error) {
           const refreshError = categorizeRefreshError(error);
+          const tokenExpiryTime = new Date(session.expiredAt).getTime();
+          const timeUntilExpiry = tokenExpiryTime - Date.now();
+          const minutesUntilExpiry = Math.round(timeUntilExpiry / 1000 / 60);
 
-          // For network errors, if token is not yet expired, continue with current session
-          if (
-            refreshError instanceof RefreshError &&
-            refreshError.type === 'NETWORK_ERROR' &&
-            !isExpired
-          ) {
-            debugLog('Network error during refresh, continuing with current session');
+          // Log full error details for debugging
+          const errorDetails: Record<string, unknown> = {
+            message: String(error),
+            isExpired,
+            isNearExpiry,
+            minutesUntilExpiry,
+          };
+
+          if (error instanceof Error) {
+            errorDetails.name = error.name;
+            errorDetails.stack = error.stack;
+            // Check for OAuth2RequestError from arctic library
+            if ('code' in error) errorDetails.oauthCode = (error as any).code;
+            if ('description' in error) errorDetails.oauthDescription = (error as any).description;
+            if ('uri' in error) errorDetails.oauthUri = (error as any).uri;
+            if ('state' in error) errorDetails.oauthState = (error as any).state;
+            // Check for other error details
+            if ('cause' in error) errorDetails.cause = error.cause;
+            if ('response' in error) errorDetails.response = (error as any).response;
+            if ('body' in error) errorDetails.body = (error as any).body;
+            if ('status' in error) errorDetails.status = (error as any).status;
+          }
+
+          debugLog('Refresh failed - full error details', errorDetails);
+
+          // If token has enough time left (> 5 minutes), continue with current session
+          // This handles both network errors and other transient failures gracefully
+          const MIN_BUFFER_MS = 5 * 60 * 1000; // 5 minutes minimum buffer
+          if (!isExpired && timeUntilExpiry > MIN_BUFFER_MS) {
+            debugLog('Token has sufficient time remaining, continuing with current session', {
+              minutesUntilExpiry,
+            });
             return { session, headers: defaultHeaders, refreshed: false };
           }
 
-          // Clean up and return null session
+          // Token is expired - check if it's a network error (might recover on retry)
+          if (refreshError instanceof RefreshError && refreshError.type === 'NETWORK_ERROR') {
+            debugLog('Network error during refresh of expired token');
+          }
+
+          // Clean up invalid refresh token and return null session
           const destroyHeader = await refreshTokenStorage.destroySession(refreshRaw);
           const headers = new Headers();
           headers.append('Set-Cookie', sessionCookieHeader);
