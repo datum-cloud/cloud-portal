@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createControlPlaneClient } from '@/modules/control-plane/control-plane.factory';
 import { createCacheClient } from '@/modules/unstorage/unstorage.js';
-import { sessionStorage, SESSION_KEY } from '@/utils/cookies/session.server';
+import { AuthService } from '@/utils/auth';
 import { createRequestHandler } from '@react-router/express';
 import compression from 'compression';
 import express, { Request, Response } from 'express';
@@ -298,18 +298,30 @@ async function getBuild() {
   }
 }
 
-async function apiContext(request: Request) {
-  const session = await sessionStorage.getSession(request.headers.cookie);
-  const sessionData = session.get(SESSION_KEY);
+/**
+ * Creates API context with valid session data
+ * Uses AuthService for session validation and token refresh
+ */
+async function apiContext(request: Request, res: Response) {
+  const result = await AuthService.getValidSession(request.headers.cookie ?? null);
+
+  // Apply Set-Cookie headers from session validation/refresh
+  result.headers.forEach((value, key) => {
+    if (key.toLowerCase() === 'set-cookie') {
+      res.appendHeader('Set-Cookie', value);
+    }
+  });
+
+  const session = result.session;
 
   // Create a general resource client by default
-  const controlPlaneClient = createControlPlaneClient(sessionData?.accessToken);
+  const controlPlaneClient = createControlPlaneClient(session?.accessToken);
 
   // Construct the base URLs
-  const iamBaseUrl = `${process.env.API_URL}/apis/iam.miloapis.com/v1alpha1/users/${sessionData?.sub}/control-plane`;
+  const iamBaseUrl = `${process.env.API_URL}/apis/iam.miloapis.com/v1alpha1/users/${session?.sub}/control-plane`;
 
   // Create an IAM resource client
-  const iamClient = createControlPlaneClient(sessionData?.accessToken, iamBaseUrl);
+  const iamClient = createControlPlaneClient(session?.accessToken, iamBaseUrl);
 
   return {
     controlPlaneClient,
@@ -318,10 +330,8 @@ async function apiContext(request: Request) {
 }
 
 async function cacheContext(request: Request) {
-  const session = await sessionStorage.getSession(request.headers.cookie);
-  const sessionData = session.get(SESSION_KEY);
-
-  return createCacheClient(sessionData?.sub ?? 'cloud-portal');
+  const { session } = await AuthService.getSession(request.headers.cookie ?? null);
+  return createCacheClient(session?.sub ?? 'cloud-portal');
 }
 
 // Health check endpoints
@@ -340,7 +350,7 @@ app.all(
       cspNonce: res.locals.cspNonce,
       serverBuild: await getBuild(),
       cache: await cacheContext(req),
-      ...(await apiContext(req)),
+      ...(await apiContext(req, res)),
     }),
     mode: MODE,
     build: async () => {
