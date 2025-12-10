@@ -70,14 +70,14 @@ export const ProjectSwitcher = ({
   }, [fetcher.data, fetcher.state]);
 
   return (
-    <div className="flex items-center gap-1 pl-2">
+    <div className="flex items-center gap-2.5 pl-2.5">
       <Link
         to={getPathWithParams(paths.project.detail.home, {
           projectId: currentProject.name,
         })}
-        className="flex w-fit items-center justify-between text-left">
-        <FolderRoot className="text-secondary/60 h-3.5" />
-        <span className="ml-2.5 max-w-[100px] truncate text-sm leading-3.5 sm:max-w-36 md:max-w-none">
+        className="flex w-fit items-center justify-between gap-2.5 text-left">
+        <FolderRoot className="text-icon-primary h-3.5 w-fit" />
+        <span className="max-w-[100px] truncate text-sm leading-3.5 sm:max-w-36 md:max-w-none">
           {currentProject?.description}
         </span>
       </Link>
@@ -88,11 +88,14 @@ export const ProjectSwitcher = ({
             theme="borderless"
             size="small"
             className={cn(
-              'flex h-3.5 w-full cursor-pointer gap-2 border-none p-0 px-2 hover:bg-transparent active:bg-transparent data-[state=open]:bg-transparent',
+              'flex cursor-pointer gap-2 border-none p-0 hover:bg-transparent active:bg-transparent data-[state=open]:bg-transparent',
               triggerClassName
             )}>
             <ChevronDown
-              className={cn('text-secondary/60 size-4 transition-all', open && 'rotate-180')}
+              className={cn(
+                'text-icon-secondary size-4 w-fit transition-all',
+                open && 'rotate-180'
+              )}
             />
           </Button>
         </PopoverTrigger>

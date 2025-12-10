@@ -1,5 +1,5 @@
 import { ContentWrapper } from '@/components/content-wrapper';
-import { Header } from '@/components/header/header';
+import { Header } from '@/components/header';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { SidebarInset, SidebarProvider, useSidebar } from '@datum-ui/components';

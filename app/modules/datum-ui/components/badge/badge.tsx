@@ -47,7 +47,7 @@ const badgeVariants = cva(
         type: 'primary',
         theme: 'light',
         className:
-          'border-[var(--color-badge-primary)] text-[var(--color-badge-primary)] bg-[var(--color-badge-primary)]/20 dark:border-[var(--color-badge-primary)] dark:text-[var(--color-badge-primary)] dark:bg-[var(--color-badge-primary)]/20',
+          'border-[var(--color-badge-primary)]/30 text-[var(--color-badge-primary)] bg-[var(--color-badge-primary)]/10 dark:border-[var(--color-badge-primary)] dark:text-[var(--color-badge-primary)] dark:bg-[var(--color-badge-primary)]/20',
       },
 
       // Secondary badge variants

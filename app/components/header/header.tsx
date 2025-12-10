@@ -8,7 +8,7 @@ import { IProjectControlResponse } from '@/resources/interfaces/project.interfac
 import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
-import { BookOpen, SlashIcon } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import { Link } from 'react-router';
 
 export const Header = ({
@@ -22,14 +22,28 @@ export const Header = ({
     <header className="bg-background sticky top-0 z-50 flex h-[54px] w-full max-w-screen shrink-0 items-center justify-between gap-4 border-b px-4 py-3.5">
       {/* Left Section */}
       <div className="flex flex-1 items-center">
-        <Link to={paths.account.root} className="mr-6 flex size-7 items-center gap-2">
+        <Link to={paths.account.root} className="mr-6 flex items-center justify-center">
           <LogoIcon width={21} />
         </Link>
         {currentOrg && <OrganizationSwitcher currentOrg={currentOrg} />}
         {currentProject && (
           <>
-            <SlashIcon size={14} className="text-foreground/10 mx-2.5" />
-            <ProjectSwitcher currentProject={currentProject} triggerClassName="h-7 w-fit" />
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path
+                opacity="0.1"
+                className="stroke-foreground"
+                d="M9.96004 1.31641L4.04004 12.6837"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+
+            <ProjectSwitcher currentProject={currentProject} triggerClassName="w-4 h-4" />
           </>
         )}
       </div>
@@ -42,8 +56,8 @@ export const Header = ({
                 type="quaternary"
                 theme="outline"
                 size="small"
-                className="h-7 w-7 rounded-xl p-0">
-                <BookOpen className="text-quaternary-foreground size-3.5" />
+                className="h-7 w-7 rounded-lg p-0">
+                <BookOpen className="text-icon-primary size-3.5" />
               </Button>
             </Link>
           </Tooltip>

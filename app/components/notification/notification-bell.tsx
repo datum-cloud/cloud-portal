@@ -14,9 +14,9 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
         type="quaternary"
         theme="outline"
         size="small"
-        className="relative h-7 w-7 cursor-pointer rounded-xl p-0"
+        className="relative h-7 w-7 cursor-pointer rounded-lg p-0"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}>
-        <Bell className="text-quaternary-foreground size-3.5" />
+        <Bell className="text-icon-primary size-3.5" />
         {unreadCount > 0 && (
           <Badge
             type="tertiary"

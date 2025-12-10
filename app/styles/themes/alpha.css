@@ -144,6 +144,13 @@ Scope variables to the theme class so we can swap themes by class
   --btn-tertiary: var(--tertiary);
   --btn-quaternary: var(--quaternary);
 
+  /* Icon Colors */
+  --icon-primary: var(--app-dark-utility-3);
+  --icon-secondary: var(--app-dark-utility-4);
+  --icon-tertiary: var(--app-dark-utility-5);
+  --icon-quaternary: var(--app-dark-utility-2);
+  --icon-quinary: var(--app-dark-utility-1);
+
   /* ========================================
    DARK MODE OVERRIDES
    ======================================== */
@@ -253,6 +260,13 @@ Scope variables to the theme class so we can swap themes by class
     --btn-secondary: var(--btn-primary);
     --btn-tertiary: var(--btn-primary);
     --btn-quaternary: var(--quaternary);
+
+    /* Icon Colors */
+    --icon-primary: var(--app-dark-utility-4);
+    --icon-secondary: var(--app-dark-utility-4);
+    --icon-tertiary: var(--app-dark-utility-3);
+    --icon-quaternary: var(--app-dark-utility-2);
+    --icon-quinary: var(--app-dark-utility-1);
   }
 }
 
@@ -279,6 +293,13 @@ TAILWIND CUSTOM UTILITIES FOR THEME
   --color-table-accent: var(--table-accent);
   --color-table-cell: var(--table-cell);
   --color-table-cell-hover: var(--table-cell-hover);
+
+  /* Icon Colors */
+  --color-icon-primary: var(--icon-primary);
+  --color-icon-secondary: var(--icon-secondary);
+  --color-icon-tertiary: var(--icon-tertiary);
+  --color-icon-quaternary: var(--icon-quaternary);
+  --color-icon-quinary: var(--icon-quinary);
 
   /* Font Sizes */
   --text-sm: 13px;
