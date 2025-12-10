@@ -1,8 +1,8 @@
 import { NotificationBell } from './notification-bell';
-import { useNotifications } from './notification-context';
 import { NotificationEmpty } from './notification-empty';
 import { NotificationList } from './notification-list';
 import type { NotificationDropdownProps, NotificationSourceType, NotificationTab } from './types';
+import { useNotificationPolling } from '@/hooks/useNotificationPolling';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,13 +14,16 @@ import { useState } from 'react';
 /**
  * NotificationDropdown component - main dropdown with tabs for different notification sources
  */
-export function NotificationDropdown({ defaultTab = 'invitation' }: NotificationDropdownProps) {
+export function NotificationDropdown({
+  defaultTab = 'invitation',
+  pollingInterval = 5 * 60 * 1000, // 5 minutes default
+}: NotificationDropdownProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<NotificationSourceType>(defaultTab);
 
-  // Use global notification state - persists across layout changes
+  // Use notification polling directly - no provider needed
   const { notifications, counts, markAsRead, refresh, refreshOnInteraction, error } =
-    useNotifications();
+    useNotificationPolling({ interval: pollingInterval });
 
   // Filter notifications by active tab
   const filteredNotifications = notifications.filter((n) => n.source === activeTab);

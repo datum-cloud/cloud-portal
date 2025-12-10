@@ -1,5 +1,4 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { NotificationProvider } from '@/components/notification';
 import { HelpScoutBeacon } from '@/modules/helpscout';
 import { AppProvider } from '@/providers/app.provider';
 import { createUserControl } from '@/resources/control-plane';
@@ -99,9 +98,7 @@ export default function PrivateLayout() {
     <AppProvider initialUser={data?.user}>
       <TooltipProvider>
         <ConfirmationDialogProvider>
-          <NotificationProvider options={{ interval: 5 * 60 * 1000 }}>
-            <Outlet />
-          </NotificationProvider>
+          <Outlet />
         </ConfirmationDialogProvider>
       </TooltipProvider>
 
