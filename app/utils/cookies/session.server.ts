@@ -38,15 +38,22 @@ export async function setSession(
 }
 
 /**
- * Gets authentication session data
+ * Gets authentication session data (simple read, no refresh)
+ *
+ * Note: Token refresh is handled centrally in server.ts apiContext().
+ * This function only reads the current session without triggering refresh
+ * to avoid race conditions with concurrent requests.
+ *
  * @param request Request object
  * @returns Response with session data and headers
  */
 export async function getSession(request: Request): Promise<SessionResponse> {
-  const result = await AuthService.getValidSession(request.headers.get('Cookie'));
+  const { session, rawSession } = await AuthService.getSession(request.headers.get('Cookie'));
+  const cookieHeader = await sessionStorage.commitSession(rawSession);
+
   return {
-    session: result.session ?? undefined,
-    headers: result.headers,
+    session: session ?? undefined,
+    headers: new Headers({ 'Set-Cookie': cookieHeader }),
   };
 }
 
@@ -63,7 +70,9 @@ export async function destroySession(request: Request): Promise<SessionResponse>
 /**
  * Checks if the user is authenticated and redirects to the login page if not
  *
- * Uses AuthService for session validation and refresh.
+ * Note: Token refresh is handled centrally in server.ts apiContext().
+ * This function only checks the current session without triggering refresh
+ * to avoid race conditions with concurrent requests.
  *
  * @param request Request object
  * @param redirectTo Optional redirect URL after successful auth
@@ -75,12 +84,14 @@ export async function isAuthenticated(
   redirectTo?: string,
   noAuthRedirect?: boolean
 ) {
-  const result = await AuthService.getValidSession(request.headers.get('Cookie'));
+  const { session, rawSession } = await AuthService.getSession(request.headers.get('Cookie'));
+  const cookieHeader = await sessionStorage.commitSession(rawSession);
+  const headers = new Headers({ 'Set-Cookie': cookieHeader });
 
   // Not authenticated
-  if (!result.session) {
+  if (!session) {
     if (noAuthRedirect) {
-      return redirect(paths.auth.logOut, { headers: result.headers });
+      return redirect(paths.auth.logOut, { headers });
     }
 
     // Save the current URL for post-login redirect
@@ -105,9 +116,9 @@ export async function isAuthenticated(
           error.headers.append('Set-Cookie', setCookieHeader);
         }
         // Also append session headers
-        result.headers.forEach((value, key) => {
+        headers.forEach((value: string, key: string) => {
           if (key.toLowerCase() === 'set-cookie') {
-            error.headers.append('Set-Cookie', value);
+            (error as any).headers.append('Set-Cookie', value);
           }
         });
         throw error;
@@ -118,7 +129,7 @@ export async function isAuthenticated(
 
   // Authenticated - redirect if requested
   if (redirectTo) {
-    return redirect(redirectTo, { headers: result.headers });
+    return redirect(redirectTo, { headers });
   }
 
   return true;

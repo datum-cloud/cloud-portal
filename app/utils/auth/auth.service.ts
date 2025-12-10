@@ -70,6 +70,49 @@ function debugLog(message: string, data?: Record<string, unknown>): void {
 }
 
 /**
+ * In-memory refresh lock to prevent concurrent refresh attempts
+ * Key: refresh token prefix (first 20 chars), Value: { promise, timestamp }
+ *
+ * This prevents race conditions when multiple concurrent requests
+ * try to refresh the same token (Zitadel uses token rotation).
+ */
+interface RefreshLockEntry {
+  promise: Promise<{ session: IAccessTokenSession; headers: Headers }>;
+  timestamp: number;
+}
+const refreshLocks = new Map<string, RefreshLockEntry>();
+
+/**
+ * Max age for lock entries (30 seconds) - prevents stale locks
+ */
+const LOCK_MAX_AGE_MS = 30 * 1000;
+
+/**
+ * Cleanup old locks after a delay
+ */
+function cleanupRefreshLock(key: string, delayMs: number = 5000): void {
+  setTimeout(() => {
+    refreshLocks.delete(key);
+  }, delayMs);
+}
+
+/**
+ * Cleanup stale locks (safety mechanism)
+ * Called periodically to prevent memory leaks from failed cleanups
+ */
+function cleanupStaleLocks(): void {
+  const now = Date.now();
+  for (const [key, entry] of refreshLocks) {
+    if (now - entry.timestamp > LOCK_MAX_AGE_MS) {
+      refreshLocks.delete(key);
+    }
+  }
+}
+
+// Run stale lock cleanup every 60 seconds
+setInterval(cleanupStaleLocks, 60 * 1000);
+
+/**
  * Authentication Service
  */
 export class AuthService {
@@ -117,19 +160,55 @@ export class AuthService {
   /**
    * Attempts to refresh tokens using refresh token
    * Returns new session data and Set-Cookie headers
+   *
+   * Uses an in-memory lock to prevent concurrent refresh attempts
+   * for the same refresh token (prevents race conditions with token rotation).
    */
   static async refreshTokens(
     refreshToken: string,
     sessionRaw: Awaited<ReturnType<typeof sessionStorage.getSession>>,
     refreshRaw: Awaited<ReturnType<typeof refreshTokenStorage.getSession>>
   ): Promise<{ session: IAccessTokenSession; headers: Headers }> {
-    debugLog('Attempting token refresh...', {
-      refreshTokenPrefix: refreshToken?.substring(0, 20) + '...',
-      refreshTokenLength: refreshToken?.length,
-      refreshTokenType: typeof refreshToken,
-      refreshTokenHasWhitespace: /\s/.test(refreshToken || ''),
-      refreshTokenStartsWithBearer: refreshToken?.startsWith('Bearer '),
+    // Use token prefix as lock key (tokens are unique enough in first 20 chars)
+    const lockKey = refreshToken.substring(0, 20);
+
+    // Check if there's already a refresh in progress for this token
+    const existingLock = refreshLocks.get(lockKey);
+    if (existingLock) {
+      debugLog('Refresh already in progress, waiting for result...');
+      return existingLock.promise;
+    }
+
+    // Create the refresh promise
+    const refreshPromise = this.doRefreshTokens(refreshToken, sessionRaw, refreshRaw);
+
+    // Store the promise with timestamp so concurrent requests can wait for it
+    refreshLocks.set(lockKey, {
+      promise: refreshPromise,
+      timestamp: Date.now(),
     });
+
+    try {
+      const result = await refreshPromise;
+      // Cleanup lock after a short delay (allow time for response to propagate)
+      cleanupRefreshLock(lockKey, 5000);
+      return result;
+    } catch (error) {
+      // Remove lock immediately on error so next request can retry
+      refreshLocks.delete(lockKey);
+      throw error;
+    }
+  }
+
+  /**
+   * Internal method that performs the actual token refresh
+   */
+  private static async doRefreshTokens(
+    refreshToken: string,
+    sessionRaw: Awaited<ReturnType<typeof sessionStorage.getSession>>,
+    refreshRaw: Awaited<ReturnType<typeof refreshTokenStorage.getSession>>
+  ): Promise<{ session: IAccessTokenSession; headers: Headers }> {
+    debugLog('Attempting token refresh...');
 
     const refreshedTokens = await zitadelStrategy.refreshToken(refreshToken);
 
@@ -235,38 +314,21 @@ export class AuthService {
           const timeUntilExpiry = tokenExpiryTime - Date.now();
           const minutesUntilExpiry = Math.round(timeUntilExpiry / 1000 / 60);
 
-          // Log full error details for debugging
-          const errorDetails: Record<string, unknown> = {
-            message: String(error),
-            isExpired,
-            isNearExpiry,
+          // Log error with OAuth details
+          const oauthCode = error instanceof Error && 'code' in error ? (error as any).code : null;
+          const oauthDesc =
+            error instanceof Error && 'description' in error ? (error as any).description : null;
+
+          debugLog('Refresh failed', {
+            error: oauthCode || String(error),
+            description: oauthDesc,
             minutesUntilExpiry,
-          };
-
-          if (error instanceof Error) {
-            errorDetails.name = error.name;
-            errorDetails.stack = error.stack;
-            // Check for OAuth2RequestError from arctic library
-            if ('code' in error) errorDetails.oauthCode = (error as any).code;
-            if ('description' in error) errorDetails.oauthDescription = (error as any).description;
-            if ('uri' in error) errorDetails.oauthUri = (error as any).uri;
-            if ('state' in error) errorDetails.oauthState = (error as any).state;
-            // Check for other error details
-            if ('cause' in error) errorDetails.cause = error.cause;
-            if ('response' in error) errorDetails.response = (error as any).response;
-            if ('body' in error) errorDetails.body = (error as any).body;
-            if ('status' in error) errorDetails.status = (error as any).status;
-          }
-
-          debugLog('Refresh failed - full error details', errorDetails);
+          });
 
           // If token has enough time left (> 5 minutes), continue with current session
           // This handles both network errors and other transient failures gracefully
           const MIN_BUFFER_MS = 5 * 60 * 1000; // 5 minutes minimum buffer
           if (!isExpired && timeUntilExpiry > MIN_BUFFER_MS) {
-            debugLog('Token has sufficient time remaining, continuing with current session', {
-              minutesUntilExpiry,
-            });
             return { session, headers: defaultHeaders, refreshed: false };
           }
 
