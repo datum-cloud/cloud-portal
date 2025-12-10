@@ -68,13 +68,13 @@ export const SelectOrganization = ({
           theme="borderless"
           size="small"
           className={cn(
-            'flex h-full w-full cursor-pointer gap-2 border-none p-0 px-2 hover:bg-transparent active:bg-transparent data-[state=open]:bg-transparent',
+            'flex cursor-pointer gap-2 border-none p-0 px-2 hover:bg-transparent active:bg-transparent data-[state=open]:bg-transparent',
             triggerClassName
           )}>
           {!hideContent &&
             (selectedContent ?? <OrganizationItem org={currentOrg} className="flex-1" />)}
           <ChevronDown
-            className={cn('text-secondary/60 size-4 transition-all', open && 'rotate-180')}
+            className={cn('text-icon-secondary size-4 w-fit transition-all', open && 'rotate-180')}
           />
         </Button>
       </PopoverTrigger>
