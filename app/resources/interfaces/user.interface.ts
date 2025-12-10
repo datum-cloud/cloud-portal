@@ -6,6 +6,11 @@ export enum RegistrationApproval {
   Pending = 'Pending',
 }
 
+export enum LastLoginProvider {
+  Google = 'google',
+  Github = 'github',
+}
+
 export interface IUserPreferences {
   theme: ThemeValue;
   timezone: string;
@@ -25,4 +30,6 @@ export interface IUser {
   onboardedAt?: string;
   registrationApproval?: RegistrationApproval;
   state?: string;
+  lastLoginProvider?: LastLoginProvider;
+  avatarUrl?: string;
 }

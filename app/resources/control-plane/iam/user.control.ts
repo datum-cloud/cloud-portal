@@ -1,6 +1,7 @@
 import {
   IUser,
   IUserPreferences,
+  LastLoginProvider,
   RegistrationApproval,
   ThemeValue,
 } from '@/resources/interfaces/user.interface';
@@ -28,6 +29,8 @@ export interface ComMiloapisIamV1Alpha1User {
   status: {
     registrationApproval: 'Approved' | 'Rejected' | 'Pending';
     state: string;
+    avatarUrl?: string;
+    lastLoginProvider?: 'google' | 'github';
   };
 }
 
@@ -57,6 +60,11 @@ export const createUserControl = (client: Client) => {
           ? (status.registrationApproval as RegistrationApproval)
           : undefined,
       state: status?.state,
+      avatarUrl: status?.avatarUrl,
+      lastLoginProvider:
+        status && typeof status.lastLoginProvider !== 'undefined'
+          ? (status.lastLoginProvider as LastLoginProvider)
+          : undefined,
     };
   };
 

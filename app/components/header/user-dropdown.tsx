@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Avatar, AvatarFallback } from '@shadcn/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@shadcn/ui/avatar';
 import { LogOut, UserCogIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSubmit } from 'react-router';
@@ -35,7 +35,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
             className
           )}>
           <Avatar className="size-full rounded-xl">
-            {/* <AvatarImage src={user?.avatarRemoteURL} alt={fullName} /> */}
+            {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user?.fullName || 'User'} />}
             <AvatarFallback className="rounded-xl bg-transparent font-semibold">
               {getInitials(user?.fullName || '')}
             </AvatarFallback>
