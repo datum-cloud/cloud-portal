@@ -12,20 +12,20 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: IOrganization
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-2.5">
       <Link
         to={getPathWithParams(paths.org.detail.projects.root, { orgId: currentOrg?.name })}
-        className="flex w-fit items-center justify-between text-left">
-        <Building className="text-secondary/60 h-3.5" />
-        <span className="ml-2.5 max-w-[120px] truncate text-sm leading-3.5 sm:max-w-36 md:max-w-none">
+        className="flex w-fit items-center justify-between gap-3 text-left">
+        <Building className="text-icon-primary h-3.5 w-fit" />
+        <span className="max-w-[120px] truncate text-sm leading-3.5 sm:max-w-36 md:max-w-none">
           {currentOrg?.displayName ?? currentOrg?.name}
         </span>
         {currentOrg?.type === OrganizationType.Personal && (
-          <PersonalBadge className="ml-3 hidden sm:block" />
+          <PersonalBadge className="hidden sm:block" />
         )}
       </Link>
       <SelectOrganization
-        triggerClassName="h-3.5"
+        triggerClassName="h-4 w-4 p-0 mr-2.5"
         currentOrg={currentOrg!}
         hideContent
         onSelect={(org: IOrganization) => {

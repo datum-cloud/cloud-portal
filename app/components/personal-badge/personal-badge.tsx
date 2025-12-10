@@ -6,7 +6,10 @@ export const PersonalBadge = ({ className }: { className?: string }) => {
     <Badge
       type="primary"
       theme="light"
-      className={cn('text-2xs px-1 py-1 leading-none uppercase', className)}>
+      className={cn(
+        'text-2xs px-1 py-1 leading-none font-medium tracking-wide uppercase',
+        className
+      )}>
       Personal
     </Badge>
   );
