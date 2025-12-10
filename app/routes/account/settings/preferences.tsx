@@ -1,6 +1,7 @@
 import { PageTitle } from '@/components/page-title/page-title';
 import { AccountDangerSettingsCard } from '@/features/account/settings/danger-card';
 import { AccountIdentitySettingsCard } from '@/features/account/settings/indetity-card';
+import { AccountLoginProviderCard } from '@/features/account/settings/login-provider-card';
 import { AccountPortalSettingsCard } from '@/features/account/settings/portal-card';
 import { AccountProfileSettingsCard } from '@/features/account/settings/profile-card';
 import { useApp } from '@/providers/app.provider';
@@ -83,6 +84,8 @@ export default function AccountPreferencesPage() {
       <AccountProfileSettingsCard />
 
       <AccountIdentitySettingsCard />
+
+      <AccountLoginProviderCard />
 
       <AccountPortalSettingsCard />
 

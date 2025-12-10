@@ -11,5 +11,5 @@ pre-commit:
       auto_add: true
     typecheck:
       glob: '*.{ts,tsx}'
-      run: bunx tsc --noEmit {staged_files}
-      auto_add: true
+      run: bunx tsc --noEmit
+      stage_fixed: false
