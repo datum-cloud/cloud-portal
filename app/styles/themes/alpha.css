@@ -75,7 +75,7 @@ Scope variables to the theme class so we can swap themes by class
   --destructive-foreground: var(--glacier-mist-700);
 
   /* UI elements */
-  --border: var(--app-dark-utility-5);
+  --border: var(--glacier-mist-900);
   --input: var(--app-dark-utility-5);
   --ring: var(--app-dark-utility-4);
 
@@ -93,7 +93,7 @@ Scope variables to the theme class so we can swap themes by class
   --sidebar-primary-foreground: var(--glacier-mist-900);
   --sidebar-accent: var(--glacier-mist-800);
   --sidebar-accent-foreground: var(--midnight-fjord);
-  --sidebar-border: var(--glacier-mist-800);
+  --sidebar-border: var(--glacier-mist-900);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 
   /* Status colors */

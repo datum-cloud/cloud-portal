@@ -27,14 +27,19 @@ export function SubLayout({
     <div className={cn('flex h-full w-full', className)}>
       {/* Sub Sidebar - Fixed width, always visible */}
       <aside
-        className="bg-sidebar h-full shrink-0 overflow-y-auto border-r"
+        className="bg-sidebar h-full shrink-0 overflow-y-auto border-r px-3.5 py-5"
         style={{ width: SUB_SIDEBAR_WIDTH }}>
         <div className="flex min-h-0 flex-1 flex-col gap-0 overflow-auto group-data-[collapsible=icon]:overflow-hidden">
           {/* Sidebar Header */}
-          {sidebarHeader && <div className="px-4 pt-4 pb-0">{sidebarHeader}</div>}
+          {sidebarHeader && <div className="px-2 pb-0">{sidebarHeader}</div>}
 
           {/* Navigation Items */}
-          <NavMain items={navItems} className="py-3.5" itemClassName="text-xs h-7" disableTooltip />
+          <NavMain
+            items={navItems}
+            className="px-0 py-3.5"
+            itemClassName="text-xs h-6"
+            disableTooltip
+          />
         </div>
       </aside>
 
