@@ -11,31 +11,14 @@ export const httpProxySchema = z
     endpoint: z.string({ error: 'Endpoint is required' }).refine(
       (value) => {
         try {
-          // Must have http:// or https:// protocol
-          if (!value.startsWith('http://') && !value.startsWith('https://')) {
-            return false;
-          }
-
-          // Parse as URL to validate format
           const url = new URL(value);
-
-          // Check if it's an IP address (not allowed)
-          const ipPattern = /^\d{1,3}(\.\d{1,3}){3}$/;
-          if (ipPattern.test(url.hostname)) {
-            return false;
-          }
-
-          // Ensure no path component (pathname should be just '/')
-          if (url.pathname !== '/' && url.pathname !== '') {
-            return false;
-          }
-
-          return true;
+          // Must have http:// or https:// protocol
+          return url.protocol === 'http:' || url.protocol === 'https:';
         } catch {
           return false;
         }
       },
-      { message: 'Endpoint must be a domain with HTTP/HTTPS protocol and no path' }
+      { message: 'Endpoint must be a valid URL with HTTP/HTTPS protocol' }
     ),
   })
   .and(httpProxyHostnameSchema)
