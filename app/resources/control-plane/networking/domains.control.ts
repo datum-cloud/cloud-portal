@@ -43,8 +43,6 @@ export const createDomainsControl = (client: Client) => {
 
         const domains = response.data as ComDatumapisNetworkingV1AlphaDomainList;
 
-        console.log('domains', JSON.stringify(domains, null, 2));
-
         return domains.items.map(transformDomain);
       } catch (e) {
         throw e;

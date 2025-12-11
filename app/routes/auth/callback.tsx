@@ -1,6 +1,7 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { authenticator } from '@/modules/auth/auth.server';
-import { IAuthSession } from '@/resources/interfaces/auth.interface';
+import { AUTH_CONFIG, AuthService } from '@/utils/auth';
+import type { IAuthSession } from '@/utils/auth';
 import { paths } from '@/utils/config/paths.config';
 import {
   clearRedirectIntent,
@@ -8,13 +9,21 @@ import {
   getSession,
   isValidRedirectPath,
   setIdTokenSession,
-  setSession,
 } from '@/utils/cookies';
 import { AuthenticationError } from '@/utils/errors';
 import { combineHeaders } from '@/utils/helpers/path.helper';
 import { jwtDecode } from 'jwt-decode';
 import { Loader2 } from 'lucide-react';
 import { LoaderFunctionArgs, redirect } from 'react-router';
+
+/**
+ * Debug logger - only logs in development
+ */
+function debugLog(message: string, data?: Record<string, unknown>): void {
+  if (AUTH_CONFIG.DEBUG) {
+    console.log(`[Auth Callback] ${message}`, data ?? '');
+  }
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
@@ -34,18 +43,34 @@ export async function loader({ request }: LoaderFunctionArgs) {
       throw new AuthenticationError('Authentication failed');
     }
 
-    const { idToken, ...rest } = credentials;
+    const { idToken, refreshToken, ...rest } = credentials;
+    const cookieHeader = request.headers.get('Cookie');
 
-    // Decode Access token
+    debugLog('Received tokens', {
+      hasAccessToken: !!rest.accessToken,
+      hasIdToken: !!idToken,
+      hasRefreshToken: !!refreshToken,
+      expiredAt: rest.expiredAt,
+    });
+
+    // Decode Access token to get sub
     const decoded = jwtDecode<{ sub: string; email: string }>(rest.accessToken);
 
-    // Handle auth session
-    const { headers: sessionHeaders } = await setSession(request, {
+    // Handle access token session (short-lived cookie)
+    const sessionHeaders = await AuthService.setSession(cookieHeader, {
       accessToken: rest.accessToken,
-      refreshToken: rest.refreshToken,
       expiredAt: rest.expiredAt,
       sub: decoded.sub,
     });
+
+    // Handle refresh token (long-lived cookie) - SEPARATE from session
+    let refreshTokenHeaders: Headers | undefined;
+    if (refreshToken) {
+      debugLog('Storing refresh token in cookie');
+      refreshTokenHeaders = await AuthService.setRefreshToken(cookieHeader, refreshToken);
+    } else {
+      console.warn('[Auth Callback] No refresh token received from Zitadel!');
+    }
 
     // Handle id token session
     let idTokenHeaders: Headers | undefined;
@@ -54,8 +79,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
       idTokenHeaders = idTokenResponse.headers;
     }
 
-    // Combine headers
-    let headers = combineHeaders(sessionHeaders, idTokenHeaders);
+    // Combine all headers
+    let headers = combineHeaders(sessionHeaders, refreshTokenHeaders, idTokenHeaders);
 
     // Get the intended redirect destination
     const redirectIntent = await getRedirectIntent(request);

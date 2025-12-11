@@ -1,4 +1,4 @@
-import { IAuthSession } from '@/resources/interfaces/auth.interface';
+import type { IAuthSession } from '@/utils/auth';
 import { paths } from '@/utils/config/paths.config';
 import { AuthenticationError } from '@/utils/errors';
 import 'dotenv/config';

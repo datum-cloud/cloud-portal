@@ -1,5 +1,5 @@
 import { zitadelStrategy } from './strategies/zitadel.server';
-import { IAuthSession } from '@/resources/interfaces/auth.interface';
+import type { IAuthSession } from '@/utils/auth';
 import { Authenticator } from 'remix-auth';
 
 export const authenticator = new Authenticator<IAuthSession>();

@@ -1,48 +1,30 @@
-import { destroyLocalSessions } from '@/features/auth/utils';
-import { zitadelIssuer, zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
-import { getIdTokenSession, getSession } from '@/utils/cookies';
-import { BadRequestError } from '@/utils/errors';
-import type { ActionFunctionArgs } from 'react-router';
-import { LoaderFunctionArgs, AppLoadContext } from 'react-router';
+import { AuthService, destroyLocalSessions } from '@/utils/auth';
+import { getIdTokenSession } from '@/utils/cookies';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
 
-const signOut = async (request: Request, context: AppLoadContext) => {
+const signOut = async (request: Request) => {
   try {
-    // 1. Revoke tokens
-    const { session } = await getSession(request);
-    if (session?.accessToken) {
-      await zitadelStrategy.revokeToken(session.accessToken);
-    }
-
-    // 2. Redirect to OIDC provider's end_session_endpoint
+    // Get ID token for OIDC end_session
     const { idToken } = await getIdTokenSession(request);
+    const cookieHeader = request.headers.get('Cookie');
 
-    if (!idToken) {
-      throw new BadRequestError('No id_token in request');
-    }
+    // Revoke tokens at Zitadel and end OIDC session
+    await AuthService.logout(cookieHeader, idToken);
 
-    const body = new URLSearchParams();
-    body.append('id_token_hint', idToken);
-
-    await fetch(`${zitadelIssuer}/oidc/v1/end_session`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body,
-    });
-
-    return destroyLocalSessions(request, context);
+    // Destroy all local sessions and redirect to login
+    return destroyLocalSessions(request);
   } catch (error) {
-    console.error('Error during sign out process:', error);
+    console.error('[Auth] Error during sign out process:', error);
 
-    return destroyLocalSessions(request, context);
+    // Fallback: destroy sessions anyway
+    return destroyLocalSessions(request);
   }
 };
 
-export async function action({ request, context }: ActionFunctionArgs) {
-  return signOut(request, context);
+export async function action({ request }: ActionFunctionArgs) {
+  return signOut(request);
 }
 
-export async function loader({ request, context }: LoaderFunctionArgs) {
-  return signOut(request, context);
+export async function loader({ request }: LoaderFunctionArgs) {
+  return signOut(request);
 }
