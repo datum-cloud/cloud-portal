@@ -1,5 +1,4 @@
-import { destroyLocalSessions } from '@/features/auth/utils';
-import { AuthService } from '@/utils/auth';
+import { AuthService, destroyLocalSessions } from '@/utils/auth';
 import { getIdTokenSession } from '@/utils/cookies';
 import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
 
