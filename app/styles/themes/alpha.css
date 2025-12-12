@@ -127,6 +127,8 @@ Scope variables to the theme class so we can swap themes by class
   --badge-tertiary-foreground: var(--tertiary-foreground);
   --badge-quaternary: var(--quaternary);
   --badge-quaternary-foreground: var(--quaternary-foreground);
+  --badge-muted: var(--glacier-mist-800);
+  --badge-muted-foreground: var(--midnight-fjord);
   --badge-success: hsl(112, 14%, 57%);
   --badge-success-foreground: var(--glacier-mist-700);
   --badge-info: hsl(202, 34%, 46%);
@@ -247,6 +249,8 @@ Scope variables to the theme class so we can swap themes by class
     --badge-tertiary-foreground: var(--tertiary-foreground);
     --badge-quaternary: var(--quaternary);
     --badge-quaternary-foreground: var(--quaternary-foreground);
+    --badge-muted: var(--glacier-mist-800);
+    --badge-muted-foreground: var(--accent-foreground);
     --badge-success: hsl(112, 14%, 57%);
     --badge-success-foreground: var(--glacier-mist-700);
     --badge-info: hsl(202, 34%, 46%);
@@ -315,6 +319,8 @@ TAILWIND CUSTOM UTILITIES FOR THEME
   --color-badge-tertiary-foreground: var(--badge-tertiary-foreground);
   --color-badge-quaternary: var(--badge-quaternary);
   --color-badge-quaternary-foreground: var(--badge-quaternary-foreground);
+  --color-badge-muted: var(--badge-muted);
+  --color-badge-muted-foreground: var(--badge-muted-foreground);
   --color-badge-success: var(--badge-success);
   --color-badge-success-foreground: var(--badge-success-foreground);
   --color-badge-info: var(--badge-info);

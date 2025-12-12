@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { ArrowRight } from 'lucide-react';
+import { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
@@ -54,4 +55,36 @@ const ExplorerCard = ({
   );
 };
 
-export { SectionTitle, SectionDescription, ArrowListItem, ExplorerCard };
+const ActionCard = ({
+  image,
+  title,
+  text,
+  primaryButton,
+  secondaryButton,
+  className,
+}: {
+  image?: ReactNode;
+  title: ReactNode;
+  text: ReactNode;
+  primaryButton?: ReactNode;
+  secondaryButton?: ReactNode;
+  className?: string;
+}) => {
+  return (
+    <Card className={className}>
+      <CardHeader className="gap-6 px-0">
+        <div className="bg-accent h-30 w-full rounded-lg">{image}</div>
+        <CardTitle className="text-center text-xl font-medium">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-6 px-6 text-center text-sm font-normal">
+        {text}
+        <div className="flex items-center justify-center gap-3">
+          {primaryButton}
+          {secondaryButton}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export { SectionTitle, SectionDescription, ArrowListItem, ExplorerCard, ActionCard };

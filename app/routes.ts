@@ -87,6 +87,7 @@ export default [
         index('routes/project/detail/index.tsx'),
 
         route('home', 'routes/project/detail/home.tsx'),
+        route('dashboard', 'routes/project/detail/dashboard.tsx'),
 
         // Settings of an organization
         layout('routes/project/detail/settings/layout.tsx', [
