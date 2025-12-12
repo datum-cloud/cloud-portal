@@ -12,8 +12,7 @@
       "labels": ["renovate"]
     },
     {
-      "matchVulnerabilityFixed": true,
-      "labels": ["security", "renovate"],
+      "matchCategories": ["security"],
       "prPriority": 10
     }
   ]
