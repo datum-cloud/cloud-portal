@@ -36,7 +36,7 @@ export function AppSidebar({
         {title && <SidebarHeader className="px-4 pt-4 pb-0">{title}</SidebarHeader>}
 
         {navItems.length > 0 && (
-          <NavMain className="py-3.5" items={navItems} closeOnNavigation={closeOnNavigation} />
+          <NavMain className="py-2" items={navItems} closeOnNavigation={closeOnNavigation} />
         )}
       </SidebarContent>
       <SidebarRail />

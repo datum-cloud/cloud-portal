@@ -48,8 +48,8 @@ const NAV_STYLES = {
   menuButton:
     'text-foreground rounded-lg h-8 font-normal transition-all px-2 py-1 data-[active=true]:bg-sidebar-accent data-[active=true]:text-foreground data-[active=true]:font-medium hover:bg-sidebar-accent hover:text-foreground',
   disabled: 'pointer-events-none opacity-50',
-  icon: 'text-foreground/50',
-  iconSmall: 'text-foreground/50 size-4',
+  icon: 'text-icon-primary',
+  iconSmall: 'text-icon-primary size-4',
 } as const;
 
 // Centralized icon renderer component
@@ -388,14 +388,14 @@ export const NavMain = forwardRef<
                   rel="noopener noreferrer"
                   className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {item?.icon && <item.icon className="text-foreground/50 size-4" />}
+                    {item?.icon && <item.icon className="text-icon-primary size-4" />}
                     <span className={cn(level >= 1 && 'text-xs')}>{item.title}</span>
                   </div>
                   <ExternalLinkIcon className="ml-auto size-4" />
                 </a>
               ) : (
                 <Link to={item.href || ''} onClick={handleNavigation}>
-                  {item?.icon && <item.icon className="text-foreground/50" />}
+                  {item?.icon && <item.icon className="text-icon-primary" />}
                   <span className={cn(level >= 1 && 'text-xs')}>{item.title}</span>
                 </Link>
               )}

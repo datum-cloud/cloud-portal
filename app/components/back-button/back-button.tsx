@@ -84,7 +84,7 @@ export const BackButton = ({
   };
 
   const icon = showIcon
-    ? customIcon || <ArrowLeft className="text-foreground/50 size-4" />
+    ? customIcon || <ArrowLeft className="text-icon-primary size-4" />
     : undefined;
 
   return (
@@ -95,7 +95,7 @@ export const BackButton = ({
       icon={icon}
       iconPosition="left"
       onClick={handleClick}
-      className="rounded-lg"
+      className="w-fit rounded-lg"
       {...buttonProps}>
       {children}
     </Button>
