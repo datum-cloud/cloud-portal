@@ -1,10 +1,20 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "renovate"]
+  },
+  "osvVulnerabilityAlerts": true,
   "packageRules": [
     {
       "matchPackagePatterns": [".*"],
       "labels": ["renovate"]
+    },
+    {
+      "matchVulnerabilityFixed": true,
+      "labels": ["security", "renovate"],
+      "prPriority": 10
     }
   ]
 }
