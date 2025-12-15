@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, CheckIcon } from 'lucide-react';
 import { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -61,24 +61,43 @@ const ActionCard = ({
   text,
   primaryButton,
   secondaryButton,
+  completed,
   className,
 }: {
-  image?: ReactNode;
+  image: string;
   title: ReactNode;
   text: ReactNode;
-  primaryButton?: ReactNode;
+  primaryButton: ReactNode;
   secondaryButton?: ReactNode;
+  completed?: boolean;
   className?: string;
 }) => {
   return (
-    <Card className={className}>
+    <Card
+      className={cn(
+        'h-full w-full gap-3 p-6 xl:p-8',
+        completed && 'border-card-success-border bg-card-success',
+        className
+      )}>
       <CardHeader className="gap-6 px-0">
-        <div className="bg-accent h-30 w-full rounded-lg">{image}</div>
+        <div className="bg-accent relative h-36 w-full overflow-hidden rounded-lg xl:h-31.5">
+          <img
+            src={image}
+            alt="Protect your app"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          {completed && (
+            <div className="text-card-success bg-card-success-secondary absolute -top-7 -right-7 flex h-14 w-14 items-center justify-center rounded-full">
+              <CheckIcon className="absolute bottom-3 left-3 size-3" />
+            </div>
+          )}
+        </div>
         <CardTitle className="text-center text-xl font-medium">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-6 px-6 text-center text-sm font-normal">
-        {text}
-        <div className="flex items-center justify-center gap-3">
+      <CardContent className="@container flex h-full w-full flex-col items-center justify-center gap-6 px-6 text-center text-sm font-normal">
+        <span className="max-w-sm">{text}</span>
+
+        <div className="mt-auto flex flex-row items-center justify-center gap-3">
           {primaryButton}
           {secondaryButton}
         </div>

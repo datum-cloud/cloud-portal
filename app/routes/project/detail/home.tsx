@@ -34,8 +34,6 @@ export default function ProjectDashboardPage() {
     }
   }, [project]);
 
-  console.log('status', project);
-
   const explorerList = useMemo(() => {
     return [
       {

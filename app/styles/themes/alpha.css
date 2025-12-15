@@ -140,6 +140,9 @@ Scope variables to the theme class so we can swap themes by class
 
   --card-warning: #fffbc5;
   --card-warning-foreground: var(--midnight-fjord);
+  --card-success-border: var(--potted-olive);
+  --card-success: #f4f9f5;
+  --card-success-secondary: #adbab0;
 
   --btn-primary: rgba(156, 121, 121, 0.9);
   --btn-secondary: rgba(56, 69, 85, 0.9);
@@ -260,6 +263,10 @@ Scope variables to the theme class so we can swap themes by class
     --badge-warning: hsl(34, 100%, 50%);
     --badge-warning-foreground: var(--glacier-mist-700);
 
+    --card-success-border: var(--potted-olive);
+    --card-success: #f4f9f53f;
+    --card-success-secondary: #adbab0;
+
     --btn-primary: rgba(230, 245, 159, 0.9);
     --btn-secondary: var(--btn-primary);
     --btn-tertiary: var(--btn-primary);
@@ -332,6 +339,9 @@ TAILWIND CUSTOM UTILITIES FOR THEME
 
   --color-card-warning: var(--card-warning);
   --color-card-warning-foreground: var(--card-warning-foreground);
+  --color-card-success-border: var(--card-success-border);
+  --color-card-success: var(--card-success);
+  --color-card-success-secondary: var(--card-success-secondary);
 
   --color-btn-primary: var(--btn-primary);
   --color-btn-secondary: var(--btn-secondary);
