@@ -205,3 +205,26 @@ export function transformControlPlaneStatus(
 
   return response;
 }
+
+/**
+ * Check if a dashboard item is considered completed
+ * An item is considered completed if:
+ * - There are resources for that item (e.g., domains.length > 0)
+ * - OR the project annotation indicates it was skipped
+ *
+ * @param project - The project object with annotations
+ * @param hasResources - Whether resources exist for this dashboard item
+ * @param annotationKey - The annotation key to check (e.g., 'dashboard.domains.skipped')
+ * @returns true if the dashboard item is completed (has resources or is skipped)
+ *
+ * @example
+ * isDashboardItemCompleted(project, domains.length > 0, 'dashboard.domains.skipped')
+ * // Returns true if domains exist OR if the annotation is set to 'true'
+ */
+export function isDashboardItemCompleted(
+  project: { annotations?: Record<string, string> },
+  hasResources: boolean,
+  annotationKey: string
+): boolean {
+  return hasResources || project.annotations?.[annotationKey] === 'true';
+}

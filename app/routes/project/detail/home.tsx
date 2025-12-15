@@ -1,282 +1,323 @@
-import { BadgeStatus } from '@/components/badge/badge-status';
+import { DateTime } from '@/components/date-time';
+import { ActivityLogList } from '@/features/activity-log/list';
+import { ActionCard } from '@/features/project/dashboard';
 import {
-  ArrowListItem,
-  ExplorerCard,
-  SectionDescription,
-  SectionTitle,
-} from '@/features/project/dashboard';
-import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
+  createDomainsControl,
+  createHttpProxiesControl,
+  createProjectsControl,
+} from '@/resources/control-plane';
+import { updateProjectSchema } from '@/resources/schemas/project.schema';
+import NotFound from '@/routes/not-found';
 import { paths } from '@/utils/config/paths.config';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { dataWithToast } from '@/utils/cookies';
+import { BadRequestError } from '@/utils/errors';
+import { isDashboardItemCompleted } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-ui/components';
-import { differenceInMinutes } from 'date-fns';
-import { ArrowRight, Binoculars, Mail, Waypoints } from 'lucide-react';
+import { parseWithZod } from '@conform-to/zod/v4';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  LinkButton,
+  toast,
+  Tooltip,
+} from '@datum-ui/components';
+import type { Client } from '@hey-api/client-axios';
+import { CopyIcon, DownloadIcon, PlusIcon } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useEffect, useMemo, useRef } from 'react';
-import { Link, useRevalidator, useRouteLoaderData } from 'react-router';
+import {
+  type ActionFunctionArgs,
+  type AppLoadContext,
+  data,
+  type LoaderFunctionArgs,
+  useFetcher,
+  useLoaderData,
+  useRouteLoaderData,
+} from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Home</span>,
   hideBreadcrumb: true,
 };
 
-export default function ProjectDashboardPage() {
-  const { project } = useRouteLoaderData('project-detail');
-  const intervalId = useRef<NodeJS.Timeout | null>(null);
+export const action = async ({ request, context, params }: ActionFunctionArgs) => {
+  const { projectId } = params;
+  if (!projectId) {
+    throw new BadRequestError('Project ID is required');
+  }
+  const { controlPlaneClient } = context as AppLoadContext;
+  const projectsControl = createProjectsControl(controlPlaneClient as Client);
 
-  const { revalidate } = useRevalidator();
-  const REVALIDATE_INTERVAL = 5000;
+  switch (request.method) {
+    case 'PATCH': {
+      try {
+        const clonedRequest = request.clone();
+        const formData = await clonedRequest.formData();
+        const parsed = parseWithZod(formData, {
+          schema: updateProjectSchema,
+        });
+        if (parsed.status !== 'success') {
+          throw new Error('Invalid form data');
+        }
 
-  const status = useMemo(() => {
-    if (project) {
-      return transformControlPlaneStatus(project.status);
-    }
-  }, [project]);
-
-  const explorerList = useMemo(() => {
-    return [
-      {
-        title: 'Configure Proxy',
-        description: 'Set up and manage Proxy to control and secure your web traffic at the edge.',
-        icon: <Waypoints />,
-        link: getPathWithParams(paths.project.detail.proxy.root, {
-          projectId: project.name,
-        }),
-      },
-      {
-        title: 'Define Log Export Policies',
-        description:
-          'Define policies to export logs and metrics for analysis, troubleshooting, and compliance purposes.',
-        icon: <Binoculars />,
-        link: getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
-          projectId: project.name,
-        }),
-      },
-    ];
-  }, [project]);
-
-  useEffect(() => {
-    // Clear any existing interval first
-    if (intervalId.current) {
-      clearInterval(intervalId.current);
-      intervalId.current = null;
-    }
-
-    // Only start new interval if status is Pending
-    if (status?.status === ControlPlaneStatus.Pending) {
-      intervalId.current = setInterval(revalidate, REVALIDATE_INTERVAL);
-    }
-
-    // Cleanup on unmount or status change
-    return () => {
-      if (intervalId.current) {
-        clearInterval(intervalId.current);
-        intervalId.current = null;
+        await projectsControl.update(projectId, parsed.value, false);
+        return dataWithToast(null, {
+          title: 'Project updated successfully',
+          description: 'You have successfully updated your project.',
+          type: 'success',
+        });
+      } catch (error) {
+        return dataWithToast(null, {
+          title: 'Failed to update project',
+          description: error instanceof Error ? error.message : (error as Response).statusText,
+          type: 'error',
+        });
       }
-    };
-  }, [revalidate, status]);
+    }
+  }
+};
 
-  const isNewProject = useMemo(() => {
-    return (
-      status?.status === ControlPlaneStatus.Success &&
-      project?.createdAt &&
-      differenceInMinutes(new Date(), new Date(project.createdAt)) < 5
-    );
-  }, [project, status]);
+export const loader = async ({ context, params }: LoaderFunctionArgs) => {
+  const { projectId } = params;
+  if (!projectId) {
+    throw new BadRequestError('Project ID is required');
+  }
+  const { controlPlaneClient } = context as AppLoadContext;
+  const domainsControl = createDomainsControl(controlPlaneClient as Client);
+  const httpProxiesControl = createHttpProxiesControl(controlPlaneClient as Client);
+  const projectsControl = createProjectsControl(controlPlaneClient as Client);
+  const project = await projectsControl.detail(projectId);
+
+  const domains = await domainsControl.list(projectId, { limit: 1 });
+  const httpProxies = await httpProxiesControl.list(projectId, { limit: 1 });
+  return data({
+    hasDomains: isDashboardItemCompleted(project, domains.length > 0, 'dashboard.domains.skipped'),
+    hasHttpProxies: isDashboardItemCompleted(
+      project,
+      httpProxies.length > 0,
+      'dashboard.proxy.skipped'
+    ),
+    hasDesktop: isDashboardItemCompleted(project, false, 'dashboard.desktop.skipped'),
+  });
+};
+
+export default function ProjectHomePage() {
+  const fetcher = useFetcher({ key: 'project-dashboard-update' });
+  const { project } = useRouteLoaderData('project-detail');
+  const { hasDomains, hasHttpProxies, hasDesktop } = useLoaderData<typeof loader>();
+
+  if (!project) {
+    return <NotFound />;
+  }
 
   return (
-    <div className="mx-auto my-4 w-full max-w-7xl md:my-6">
-      <div className="mx-6 flex flex-col gap-8">
-        {/* Project Information */}
+    <div className="mx-auto w-full max-w-7xl">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-1 md:w-full md:flex-row md:items-center">
+          <h1 className="truncate text-2xl font-medium">{project?.description}</h1>
+          <p className="text-icon-primary text-xs md:ml-auto">
+            Project created: <DateTime date={project.createdAt} variant="relative" />
+          </p>
+        </div>
+
+        <Button
+          size="xs"
+          theme="light"
+          className="text-badge-muted-foreground bg-badge-muted"
+          onClick={() => {
+            navigator.clipboard.writeText(project.name);
+            toast.success('Project copied to clipboard');
+          }}>
+          <pre className="text-xs">{project.name}</pre>
+          <CopyIcon className="size-3" />
+        </Button>
+      </div>
+
+      {/* Grid */}
+      <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         <motion.div
-          className="flex flex-col gap-5"
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}>
-          <motion.div
-            className="flex flex-col gap-1"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}>
-            <div className="flex items-center gap-4">
-              <p className="text-4xl leading-none font-semibold">{project.description}</p>
-              {status?.status === ControlPlaneStatus.Pending && (
-                <motion.div
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}>
-                  <BadgeStatus
-                    status={status}
-                    showTooltip={false}
-                    className="bg-secondary text-secondary-foreground border-input border font-medium"
-                  />
-                </motion.div>
-              )}
-            </div>
-            <motion.p
-              className="text-muted-foreground text-xl"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}>
-              {project.name}
-            </motion.p>
-          </motion.div>
-          {status?.status === ControlPlaneStatus.Pending && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}>
-              <SectionDescription>
-                {status.message}
-                <span className="ml-1 inline-flex after:animate-[ellipsis_1s_steps(4,end)_infinite] after:content-['.']"></span>
-              </SectionDescription>
-            </motion.div>
-          )}
+          transition={{ duration: 0.3, delay: 0, ease: 'easeOut' }}>
+          <ActionCard
+            completed={hasDomains}
+            image="/images/dashboard/domain-dashboard-image.png"
+            className="h-full"
+            title="Protect your app"
+            text={
+              <p>
+                Activate a powerful reverse proxy on Datum&apos;s edge to protect your origin and
+                block common attacks with a web app firewall.{' '}
+                <LinkButton
+                  type="primary"
+                  theme="link"
+                  size="link"
+                  to={getPathWithParams(paths.project.detail.domains.root, {
+                    projectId: project.name,
+                  })}>
+                  More info
+                </LinkButton>
+              </p>
+            }
+            primaryButton={
+              !hasDomains ? (
+                <LinkButton
+                  icon={<PlusIcon className="size-4" />}
+                  to={getPathWithParams(paths.project.detail.domains.root, {
+                    projectId: project.name,
+                  })}>
+                  Add a domain
+                </LinkButton>
+              ) : (
+                <LinkButton
+                  theme="outline"
+                  type="secondary"
+                  to={getPathWithParams(paths.project.detail.domains.root, {
+                    projectId: project.name,
+                  })}>
+                  Go to domains
+                </LinkButton>
+              )
+            }
+            onSkip={async () => {
+              await fetcher.submit(
+                {
+                  projectId: project.name,
+                  annotations: ['dashboard.domains.skipped:true'],
+                },
+                {
+                  method: 'PATCH',
+                }
+              );
+            }}
+            showSkip={!hasDomains}
+          />
         </motion.div>
 
-        {status?.status === ControlPlaneStatus.Success ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col gap-8">
-            <div className="flex flex-col items-center gap-12 md:flex-row md:justify-between">
-              <div className="flex w-1/2 flex-col gap-12 space-y-4">
-                {isNewProject && (
-                  <motion.div
-                    className="flex flex-col gap-3"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}>
-                    <SectionTitle>Welcome to your project</SectionTitle>
-                    <SectionDescription>
-                      Your project is now ready! Start configuring and managing resources now.
-                    </SectionDescription>
-                  </motion.div>
-                )}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.15, ease: 'easeOut' }}>
+          <ActionCard
+            completed={hasDesktop}
+            image="/images/dashboard/desktop-dashboard-image.png"
+            className="h-full"
+            title="Develop locally, share globally"
+            text={
+              <p>
+                Supercharge your development workflows and securely expose internal services with
+                zero-trust tunnels.
+              </p>
+            }
+            primaryButton={
+              <Tooltip message="Coming soon">
+                <Button icon={<DownloadIcon className="size-4" />} disabled>
+                  Install Datum Desktop
+                </Button>
+              </Tooltip>
+            }
+            onSkip={async () => {
+              await fetcher.submit(
+                {
+                  projectId: project.name,
+                  annotations: ['dashboard.desktop.skipped:true'],
+                },
+                {
+                  method: 'PATCH',
+                }
+              );
+            }}
+          />
+        </motion.div>
 
-                <motion.div
-                  className="flex flex-col gap-3"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}>
-                  <SectionTitle>Get started with Proxy configuration</SectionTitle>
-                  <SectionDescription>
-                    Set up and manage your first Proxy resource to route traffic to your services
-                    with{' '}
-                    <strong className="font-bold">Datum&apos;s powerful proxy capabilities</strong>.
-                  </SectionDescription>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3, ease: 'easeOut' }}
+          className="md:col-span-2 xl:col-span-1">
+          <ActionCard
+            completed={hasHttpProxies}
+            image="/images/dashboard/proxy-dashboard-image.png"
+            className="h-full"
+            title="Export metrics to Grafana"
+            text={
+              <p>
+                Gain real-time visibility into your Datum infrastructure and traffic by exporting
+                OTel compatible metrics to Grafana Cloud.{' '}
+                <LinkButton
+                  type="primary"
+                  theme="link"
+                  size="link"
+                  to={getPathWithParams(paths.project.detail.proxy.root, {
+                    projectId: project.name,
+                  })}>
+                  More info
+                </LinkButton>
+              </p>
+            }
+            primaryButton={
+              !hasHttpProxies ? (
+                <LinkButton
+                  to={getPathWithParams(paths.project.detail.proxy.new, {
+                    projectId: project.name,
+                  })}
+                  icon={<PlusIcon className="size-4" />}>
+                  Set up a Proxy
+                </LinkButton>
+              ) : (
+                <LinkButton
+                  theme="outline"
+                  type="secondary"
+                  to={getPathWithParams(paths.project.detail.proxy.root, {
+                    projectId: project.name,
+                  })}>
+                  Go to proxies
+                </LinkButton>
+              )
+            }
+            onSkip={async () => {
+              await fetcher.submit(
+                {
+                  annotations: ['dashboard.proxy.skipped:true'],
+                },
+                {
+                  method: 'PATCH',
+                }
+              );
+            }}
+            showSkip={!hasHttpProxies}
+          />
+        </motion.div>
 
-                  <div className="flex gap-3">
-                    <Button type="quaternary" theme="outline" size="small" className="h-7 w-fit">
-                      <Link
-                        to={getPathWithParams(paths.project.detail.proxy.root, {
-                          projectId: project.name,
-                        })}>
-                        Explore Proxy
-                      </Link>
-                    </Button>
-                    <Button type="quaternary" theme="outline" size="small" className="h-7 w-fit">
-                      <a
-                        href="https://www.datum.net/docs/runtime/proxy/"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-2">
-                        About Proxy
-                        <ArrowRight className="size-4" />
-                      </a>
-                    </Button>
-                  </div>
-                </motion.div>
-              </div>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.45, ease: 'easeOut' }}
+          className="col-span-1 md:col-span-2 xl:col-span-3">
+          <Card className="p-8">
+            <CardHeader className="px-0">
+              <CardTitle className="flex items-center justify-between gap-2">
+                <span className="text-lg font-medium">Latest Activity</span>
 
-              <motion.img
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.6 }}
-                src="/images/project-placeholder.png"
-                alt={project.name}
-                className="mx-auto h-auto max-w-[350px]"
-              />
-            </div>
-
-            <motion.div
-              className="flex flex-col gap-3"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}>
-              <SectionTitle>Explore</SectionTitle>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {explorerList.map((exp, index) => (
-                  <motion.div
-                    key={exp.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1 + index * 0.1 }}>
-                    <ExplorerCard {...exp} />
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <motion.div
-                className="flex flex-col gap-3"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}>
-                <SectionTitle>While you wait</SectionTitle>
-                <ArrowListItem>
-                  <SectionDescription>
-                    Check out the Datum{' '}
-                    <a
-                      href="https://datum.net/docs/"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-primary underline">
-                      Documentation
-                    </a>
-                  </SectionDescription>
-                </ArrowListItem>
-              </motion.div>
-
-              <motion.div
-                className="flex flex-col gap-3"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}>
-                <SectionTitle>Not Working?</SectionTitle>
-                <div className="flex flex-col gap-4">
-                  <ArrowListItem>
-                    <SectionDescription>
-                      Try refreshing the page after a few minutes.
-                    </SectionDescription>
-                  </ArrowListItem>
-                  <div className="flex items-start">
-                    <ArrowRight className="mt-1 mr-2 size-4" />
-                    <div className="flex flex-col gap-2">
-                      <SectionDescription>
-                        If the problem persists, please contact support.
-                      </SectionDescription>
-                      <Button type="quaternary" theme="outline" size="small" className="h-7 w-fit">
-                        <Link to="mailto:support@datum.net" className="flex items-center gap-2">
-                          <Mail className="size-4" />
-                          Contact Support
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
+                <LinkButton
+                  type="secondary"
+                  size="xs"
+                  theme="outline"
+                  to={getPathWithParams(paths.project.detail.activity, {
+                    projectId: project.name,
+                  })}>
+                  View all project activity
+                </LinkButton>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ActivityLogList params={{ project: project.id, limit: '5' }} />
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     </div>
   );

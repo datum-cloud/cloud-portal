@@ -4,6 +4,7 @@ import {
   createNetworkingDatumapisComV1AlphaNamespacedDomain,
   deleteNetworkingDatumapisComV1AlphaNamespacedDomain,
   listNetworkingDatumapisComV1AlphaNamespacedDomain,
+  type ListNetworkingDatumapisComV1AlphaNamespacedDomainData,
   patchNetworkingDatumapisComV1AlphaNamespacedDomain,
   readNetworkingDatumapisComV1AlphaNamespacedDomain,
   readNetworkingDatumapisComV1AlphaNamespacedDomainStatus,
@@ -31,7 +32,10 @@ export const createDomainsControl = (client: Client) => {
   };
 
   return {
-    list: async (projectId: string) => {
+    list: async (
+      projectId: string,
+      query?: ListNetworkingDatumapisComV1AlphaNamespacedDomainData['query']
+    ) => {
       try {
         const response = await listNetworkingDatumapisComV1AlphaNamespacedDomain({
           client,
@@ -39,6 +43,7 @@ export const createDomainsControl = (client: Client) => {
           path: {
             namespace: 'default',
           },
+          query,
         });
 
         const domains = response.data as ComDatumapisNetworkingV1AlphaDomainList;

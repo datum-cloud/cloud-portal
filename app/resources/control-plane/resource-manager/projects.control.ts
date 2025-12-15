@@ -31,6 +31,7 @@ export const createProjectsControl = (client: Client) => {
       status: project.status ?? {},
       labels: filterLabels(project?.metadata?.labels ?? {}, ['resourcemanager']),
       namespace: project?.metadata?.namespace ?? '',
+      annotations: project?.metadata?.annotations ?? {},
     };
 
     return metadata;
@@ -115,6 +116,19 @@ export const createProjectsControl = (client: Client) => {
         if ('labels' in payload && payload.labels && payload.labels.length > 0) {
           metadata.labels = convertLabelsToObject(payload.labels);
         }
+
+        if (
+          'annotations' in payload &&
+          payload.annotations &&
+          Object.keys(payload.annotations).length > 0
+        ) {
+          metadata.annotations = {
+            ...metadata.annotations,
+            ...convertLabelsToObject(payload.annotations),
+          };
+        }
+
+        console.log('METADATA', metadata);
         const response = await patchResourcemanagerMiloapisComV1Alpha1Project({
           client,
           path: { name: projectName },

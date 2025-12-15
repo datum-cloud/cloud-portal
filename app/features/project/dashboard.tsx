@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { Button, Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { ArrowRight, CheckIcon } from 'lucide-react';
-import { ReactNode } from 'react';
+import { ReactNode, useTransition } from 'react';
 import { useNavigate } from 'react-router';
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
@@ -62,6 +62,8 @@ const ActionCard = ({
   primaryButton,
   secondaryButton,
   completed,
+  onSkip,
+  showSkip = true,
   className,
 }: {
   image: string;
@@ -70,8 +72,20 @@ const ActionCard = ({
   primaryButton: ReactNode;
   secondaryButton?: ReactNode;
   completed?: boolean;
+  onSkip?: () => Promise<void> | void;
+  showSkip?: boolean;
   className?: string;
 }) => {
+  const [isPending, startTransition] = useTransition();
+
+  const handleSkip = () => {
+    if (onSkip) {
+      startTransition(async () => {
+        await onSkip();
+      });
+    }
+  };
+
   return (
     <Card
       className={cn(
@@ -100,6 +114,11 @@ const ActionCard = ({
         <div className="mt-auto flex flex-row items-center justify-center gap-3">
           {primaryButton}
           {secondaryButton}
+          {showSkip && !completed && onSkip && (
+            <Button type="quaternary" theme="outline" loading={isPending} onClick={handleSkip}>
+              Skip
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
