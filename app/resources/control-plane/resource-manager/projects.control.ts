@@ -128,7 +128,6 @@ export const createProjectsControl = (client: Client) => {
           };
         }
 
-        console.log('METADATA', metadata);
         const response = await patchResourcemanagerMiloapisComV1Alpha1Project({
           client,
           path: { name: projectName },
