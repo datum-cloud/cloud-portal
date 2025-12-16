@@ -88,10 +88,13 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const domainsControl = createDomainsControl(controlPlaneClient as Client);
   const httpProxiesControl = createHttpProxiesControl(controlPlaneClient as Client);
   const projectsControl = createProjectsControl(controlPlaneClient as Client);
-  const project = await projectsControl.detail(projectId);
 
-  const domains = await domainsControl.list(projectId, { limit: 1 });
-  const httpProxies = await httpProxiesControl.list(projectId, { limit: 1 });
+  const [project, domains, httpProxies] = await Promise.all([
+    projectsControl.detail(projectId),
+    domainsControl.list(projectId, { limit: 1 }),
+    httpProxiesControl.list(projectId, { limit: 1 }),
+  ]);
+
   return data({
     hasDomains: isDashboardItemCompleted(project, domains.length > 0, 'dashboard.domains.skipped'),
     hasHttpProxies: isDashboardItemCompleted(
