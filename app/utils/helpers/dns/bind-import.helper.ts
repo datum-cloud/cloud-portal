@@ -3,6 +3,7 @@
  * Transform functions for converting parsed BIND records to application formats
  */
 // Import ParsedDnsRecord type for local use
+import { isDuplicateRecord } from './record-comparison.helper';
 import type { ParsedDnsRecord } from '@/modules/bind-parser';
 import {
   IDnsZoneDiscoveryRecordSet,
@@ -16,6 +17,42 @@ export {
   type BindParseResult,
   type ParsedDnsRecord,
 } from '@/modules/bind-parser';
+
+/**
+ * Deduplicate parsed DNS records within a batch
+ * Uses isDuplicateRecord for consistent duplicate detection with trailing dot normalization
+ *
+ * @param records - Array of parsed DNS records (may contain duplicates)
+ * @returns Object with unique records and duplicate count
+ */
+export function deduplicateParsedRecords(records: ParsedDnsRecord[]): {
+  unique: ParsedDnsRecord[];
+  duplicateCount: number;
+} {
+  const unique: ParsedDnsRecord[] = [];
+  let duplicateCount = 0;
+
+  // Group records by type for efficient duplicate checking
+  const byType = new Map<string, any[]>();
+
+  for (const record of records) {
+    const rawData = buildRawDataFromParsed(record);
+    const existingOfType = byType.get(record.type) || [];
+
+    // Check if this record is a duplicate of any we've already seen
+    if (isDuplicateRecord(rawData, existingOfType, record.type)) {
+      duplicateCount++;
+      continue;
+    }
+
+    // Not a duplicate - add to unique list and track for future comparisons
+    unique.push(record);
+    existingOfType.push(rawData);
+    byType.set(record.type, existingOfType);
+  }
+
+  return { unique, duplicateCount };
+}
 
 /**
  * Build rawData in K8s format from parsed record data

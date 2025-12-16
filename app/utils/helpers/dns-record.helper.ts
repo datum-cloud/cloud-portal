@@ -30,6 +30,7 @@ export {
   isRecordEmpty,
 
   // Record comparison helpers
+  normalizeDomainName,
   normalizeRecordName,
   isDuplicateRecord,
   findRecordIndex,
@@ -40,6 +41,7 @@ export {
 
   // BIND import helpers
   parseBindZoneFile,
+  deduplicateParsedRecords,
   transformParsedToFlattened,
   transformParsedToRecordSets,
   type ParsedDnsRecord,

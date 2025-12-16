@@ -15,8 +15,23 @@ import { extractValue } from './flatten.helper';
 type RecordComparator = (newRecord: any, existingRecord: any) => boolean;
 
 // =============================================================================
-// Name Normalization
+// Domain Name Normalization (RFC 1035)
 // =============================================================================
+
+/**
+ * Normalize a domain name for comparison
+ * - Strips trailing dot (FQDN indicator)
+ * - Handles empty/null values
+ *
+ * Per RFC 1035: "example.com." and "example.com" are semantically identical
+ *
+ * @param value - Domain name (may have trailing dot)
+ * @returns Normalized domain name without trailing dot
+ */
+export function normalizeDomainName(value: string | undefined | null): string {
+  if (!value) return '';
+  return value.replace(/\.$/, '');
+}
 
 /**
  * Normalize record name for comparison
@@ -25,7 +40,7 @@ type RecordComparator = (newRecord: any, existingRecord: any) => boolean;
  */
 export function normalizeRecordName(name: string | undefined | null): string {
   if (!name || name === '@') return '@';
-  return name.replace(/\.$/, '');
+  return normalizeDomainName(name);
 }
 
 // =============================================================================
@@ -33,7 +48,9 @@ export function normalizeRecordName(name: string | undefined | null): string {
 // =============================================================================
 
 /**
- * Compare SOA records (excludes serial - it changes on every zone update)
+ * Compare SOA records
+ * - Excludes serial (it changes on every zone update)
+ * - Normalizes mname and rname domain names
  */
 function compareSoaRecords(newRecord: any, existingRecord: any): boolean {
   const newSoa = newRecord.soa;
@@ -42,8 +59,8 @@ function compareSoaRecords(newRecord: any, existingRecord: any): boolean {
   if (!newSoa || !existingSoa) return false;
 
   return (
-    newSoa.mname === existingSoa.mname &&
-    newSoa.rname === existingSoa.rname &&
+    normalizeDomainName(newSoa.mname) === normalizeDomainName(existingSoa.mname) &&
+    normalizeDomainName(newSoa.rname) === normalizeDomainName(existingSoa.rname) &&
     Number(newSoa.refresh) === Number(existingSoa.refresh) &&
     Number(newSoa.retry) === Number(existingSoa.retry) &&
     Number(newSoa.expire) === Number(existingSoa.expire) &&
@@ -52,7 +69,100 @@ function compareSoaRecords(newRecord: any, existingRecord: any): boolean {
 }
 
 /**
+ * Compare MX records (normalize exchange domain)
+ */
+function compareMxRecords(newRecord: any, existingRecord: any): boolean {
+  const newMx = newRecord.mx;
+  const existingMx = existingRecord.mx;
+
+  if (!newMx || !existingMx) return false;
+
+  return (
+    Number(newMx.preference) === Number(existingMx.preference) &&
+    normalizeDomainName(newMx.exchange) === normalizeDomainName(existingMx.exchange)
+  );
+}
+
+/**
+ * Compare CNAME records (normalize target domain)
+ */
+function compareCnameRecords(newRecord: any, existingRecord: any): boolean {
+  return (
+    normalizeDomainName(newRecord.cname?.content) ===
+    normalizeDomainName(existingRecord.cname?.content)
+  );
+}
+
+/**
+ * Compare NS records (normalize nameserver domain)
+ */
+function compareNsRecords(newRecord: any, existingRecord: any): boolean {
+  return (
+    normalizeDomainName(newRecord.ns?.content) === normalizeDomainName(existingRecord.ns?.content)
+  );
+}
+
+/**
+ * Compare PTR records (normalize target domain)
+ */
+function comparePtrRecords(newRecord: any, existingRecord: any): boolean {
+  return (
+    normalizeDomainName(newRecord.ptr?.content) === normalizeDomainName(existingRecord.ptr?.content)
+  );
+}
+
+/**
+ * Compare SRV records (normalize target domain)
+ */
+function compareSrvRecords(newRecord: any, existingRecord: any): boolean {
+  const newSrv = newRecord.srv;
+  const existingSrv = existingRecord.srv;
+
+  if (!newSrv || !existingSrv) return false;
+
+  return (
+    Number(newSrv.priority) === Number(existingSrv.priority) &&
+    Number(newSrv.weight) === Number(existingSrv.weight) &&
+    Number(newSrv.port) === Number(existingSrv.port) &&
+    normalizeDomainName(newSrv.target) === normalizeDomainName(existingSrv.target)
+  );
+}
+
+/**
+ * Compare HTTPS records (normalize target domain)
+ */
+function compareHttpsRecords(newRecord: any, existingRecord: any): boolean {
+  const newHttps = newRecord.https;
+  const existingHttps = existingRecord.https;
+
+  if (!newHttps || !existingHttps) return false;
+
+  return (
+    Number(newHttps.priority) === Number(existingHttps.priority) &&
+    normalizeDomainName(newHttps.target) === normalizeDomainName(existingHttps.target) &&
+    JSON.stringify(newHttps.params || {}) === JSON.stringify(existingHttps.params || {})
+  );
+}
+
+/**
+ * Compare SVCB records (normalize target domain)
+ */
+function compareSvcbRecords(newRecord: any, existingRecord: any): boolean {
+  const newSvcb = newRecord.svcb;
+  const existingSvcb = existingRecord.svcb;
+
+  if (!newSvcb || !existingSvcb) return false;
+
+  return (
+    Number(newSvcb.priority) === Number(existingSvcb.priority) &&
+    normalizeDomainName(newSvcb.target) === normalizeDomainName(existingSvcb.target) &&
+    JSON.stringify(newSvcb.params || {}) === JSON.stringify(existingSvcb.params || {})
+  );
+}
+
+/**
  * Default comparator: value + TTL comparison
+ * Used for types without domain name fields (A, AAAA, TXT, CAA, TLSA)
  */
 function compareByValueAndTTL(newRecord: any, existingRecord: any, recordType: string): boolean {
   const existingValue = extractValue(existingRecord, recordType);
@@ -66,10 +176,17 @@ function compareByValueAndTTL(newRecord: any, existingRecord: any, recordType: s
 
 /**
  * Registry of type-specific comparators
- * Add entries here for types that need special handling
+ * Types with domain name fields need special handling for trailing dot normalization
  */
 const RECORD_COMPARATORS: Record<string, RecordComparator> = {
   SOA: compareSoaRecords,
+  MX: compareMxRecords,
+  CNAME: compareCnameRecords,
+  NS: compareNsRecords,
+  PTR: comparePtrRecords,
+  SRV: compareSrvRecords,
+  HTTPS: compareHttpsRecords,
+  SVCB: compareSvcbRecords,
 };
 
 // =============================================================================
@@ -107,6 +224,12 @@ export function isDuplicateRecord(
 }
 
 /**
+ * Record types with domain name fields that need trailing dot normalization
+ * Used for value comparison in findRecordIndex
+ */
+const DOMAIN_NAME_VALUE_TYPES = new Set(['CNAME', 'NS', 'PTR']);
+
+/**
  * Find index of a matching record in existing records
  * Used for update/delete operations
  *
@@ -133,7 +256,15 @@ export function findRecordIndex(
     // Value comparison if provided
     if (criteria.value !== undefined) {
       const recordValue = extractValue(r, recordType);
-      if (recordValue !== criteria.value) return false;
+
+      // Apply domain normalization for types with simple domain name values
+      if (DOMAIN_NAME_VALUE_TYPES.has(recordType)) {
+        if (normalizeDomainName(recordValue) !== normalizeDomainName(criteria.value)) {
+          return false;
+        }
+      } else if (recordValue !== criteria.value) {
+        return false;
+      }
     }
 
     // TTL comparison if provided

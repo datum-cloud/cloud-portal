@@ -31,6 +31,7 @@ export { flattenDnsRecordSets, extractValue, isRecordEmpty } from './flatten.hel
 
 // Record comparison helpers
 export {
+  normalizeDomainName,
   normalizeRecordName,
   isDuplicateRecord,
   findRecordIndex,
@@ -42,6 +43,7 @@ export { transformFormToRecord, recordToFormDefaultValue } from './form-transfor
 // BIND import helpers
 export {
   parseBindZoneFile,
+  deduplicateParsedRecords,
   transformParsedToFlattened,
   transformParsedToRecordSets,
   type ParsedDnsRecord,
