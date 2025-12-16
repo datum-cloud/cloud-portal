@@ -1,4 +1,5 @@
 import { SUPPORTED_DNS_RECORD_TYPES } from './constants';
+import { ensureFqdn } from './record-type.helper';
 import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
 
 // =============================================================================
@@ -31,14 +32,6 @@ function escapeTxtValue(value: string): string {
   }
 
   return `"${escaped}"`;
-}
-
-/**
- * Ensure FQDN ends with a dot for BIND format
- */
-function ensureFqdn(value: string): string {
-  if (!value) return value;
-  return value.endsWith('.') ? value : `${value}.`;
 }
 
 /**

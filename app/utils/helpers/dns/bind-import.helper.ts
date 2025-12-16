@@ -4,6 +4,7 @@
  */
 // Import ParsedDnsRecord type for local use
 import { isDuplicateRecord } from './record-comparison.helper';
+import { ensureFqdn, hasFqdnFields, transformFqdnFields } from './record-type.helper';
 import type { ParsedDnsRecord } from '@/modules/bind-parser';
 import {
   IDnsZoneDiscoveryRecordSet,
@@ -148,6 +149,7 @@ export function transformParsedToFlattened(
 /**
  * Transform parsed BIND records to recordSets format for bulk import API
  * Groups records by recordType matching the API schema
+ * Applies FQDN normalization to domain name fields
  */
 export function transformParsedToRecordSets(
   records: ParsedDnsRecord[]
@@ -162,10 +164,16 @@ export function transformParsedToRecordSets(
       // Build the record entry with type-specific field
       // Ensure TTL is an integer
       const ttlValue = record.ttl !== null ? Number(record.ttl) : null;
+
+      // Normalize FQDN fields for domain name types
+      const normalizedData = hasFqdnFields(record.type)
+        ? transformFqdnFields(record.type, record.data as Record<string, unknown>, ensureFqdn)
+        : record.data;
+
       const entry: Record<string, unknown> = {
         name: record.name,
         ...(ttlValue !== null && !isNaN(ttlValue) && { ttl: ttlValue }),
-        [record.type.toLowerCase()]: record.data,
+        [record.type.toLowerCase()]: normalizedData,
       };
 
       acc[record.type].push(entry);

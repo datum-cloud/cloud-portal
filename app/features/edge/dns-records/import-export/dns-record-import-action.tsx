@@ -167,7 +167,7 @@ export const DnsRecordImportAction = ({
                 />
 
                 {unsupportedRecords && unsupportedRecords.totalRecords > 0 && (
-                  <Alert variant="destructive">
+                  <Alert variant="destructive" className="mt-4">
                     <AlertDescription>
                       It&apos;s not possible to import {unsupportedRecords.totalRecords} other
                       record

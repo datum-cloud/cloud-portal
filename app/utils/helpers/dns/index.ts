@@ -24,6 +24,12 @@ export {
   normalizeQuotedValue,
   normalizeTxtValue,
   normalizeCaaValue,
+  // FQDN normalization helpers
+  FQDN_FIELDS,
+  ensureFqdn,
+  getFqdnFields,
+  hasFqdnFields,
+  transformFqdnFields,
 } from './record-type.helper';
 
 // Flatten helpers

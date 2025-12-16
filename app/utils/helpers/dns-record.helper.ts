@@ -23,6 +23,12 @@ export {
   formatTTL,
   parseSvcbParams,
   formatSvcbParams,
+  // FQDN normalization helpers
+  FQDN_FIELDS,
+  ensureFqdn,
+  getFqdnFields,
+  hasFqdnFields,
+  transformFqdnFields,
 
   // Flatten helpers
   flattenDnsRecordSets,

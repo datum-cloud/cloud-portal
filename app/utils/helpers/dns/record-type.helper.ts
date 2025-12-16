@@ -155,3 +155,86 @@ export function normalizeCaaValue(value: string): string {
 
   return value;
 }
+
+// =============================================================================
+// FQDN Normalization Helpers (RFC 1035 Compliant)
+// =============================================================================
+
+/**
+ * DNS record types that require FQDN normalization (trailing dot)
+ * Maps record type to the field path(s) that contain domain names
+ *
+ * These fields need:
+ * - Trailing dot added when sending to backend (ensureFqdn)
+ * - Trailing dot stripped when editing in forms (normalizeDomainName)
+ * - Trailing dot stripped when comparing for duplicates (normalizeDomainName)
+ *
+ * Record types NOT requiring FQDN: A, AAAA, TXT, CAA, TLSA (IP addresses, text, cert data)
+ */
+export const FQDN_FIELDS: Record<string, string[]> = {
+  CNAME: ['content'],
+  NS: ['content'],
+  PTR: ['content'],
+  MX: ['exchange'],
+  SRV: ['target'],
+  SOA: ['mname', 'rname'],
+  HTTPS: ['target'],
+  SVCB: ['target'],
+  DNAME: ['content'], // Future-proofing
+};
+
+/**
+ * Ensure domain name ends with a trailing dot (FQDN format)
+ * Per RFC 1035, absolute domain names end with a dot
+ *
+ * Used when: submitting to backend, BIND import
+ *
+ * @param value - Domain name (may or may not have trailing dot)
+ * @returns Domain name with trailing dot (FQDN format)
+ */
+export function ensureFqdn(value: string | undefined | null): string {
+  if (!value) return '';
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  return trimmed.endsWith('.') ? trimmed : `${trimmed}.`;
+}
+
+/**
+ * Get the field names that require FQDN normalization for a record type
+ */
+export function getFqdnFields(recordType: string): string[] {
+  return FQDN_FIELDS[recordType] || [];
+}
+
+/**
+ * Check if a record type has domain name fields requiring FQDN handling
+ */
+export function hasFqdnFields(recordType: string): boolean {
+  return recordType in FQDN_FIELDS;
+}
+
+/**
+ * Apply a transformation function to FQDN fields in record data
+ * Returns a new object with transformed domain name fields
+ *
+ * @param recordType - DNS record type (e.g., 'MX', 'CNAME')
+ * @param data - Record data object
+ * @param transform - Function to apply (ensureFqdn or normalizeDomainName)
+ * @returns New object with transformed FQDN fields
+ */
+export function transformFqdnFields<T extends Record<string, unknown>>(
+  recordType: string,
+  data: T,
+  transform: (value: string) => string
+): T {
+  const fields = FQDN_FIELDS[recordType];
+  if (!fields || fields.length === 0) return data;
+
+  const result = { ...data };
+  for (const field of fields) {
+    if (field in result && typeof result[field] === 'string') {
+      (result as Record<string, unknown>)[field] = transform(result[field] as string);
+    }
+  }
+  return result;
+}

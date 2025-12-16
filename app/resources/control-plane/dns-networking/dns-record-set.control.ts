@@ -127,7 +127,7 @@ export const createDnsRecordSetsControl = (client: Client) => {
           apiVersion: 'dns.networking.miloapis.com/v1alpha1',
           metadata: {
             // name: `dns-record-set-${generateId(dnsZoneId, { randomText: generateRandomString(6) })}`,
-            name: `${dnsZoneId}-${payload.recordType}`,
+            name: `${dnsZoneId}-${payload.recordType}`.toLowerCase(),
           },
           spec: payload,
         },
