@@ -33,16 +33,17 @@ export const DataTableCardView = <TData,>({
       {table.getRowModel().rows.length > 0 ? (
         <>
           {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id} className="relative border-none hover:bg-transparent">
+            <TableRow
+              key={row.id}
+              className="relative border-none transition-all duration-200 hover:bg-transparent">
               <TableCell
                 colSpan={columns.length + (rowActions.length > 0 ? 1 : 0)}
                 className={cn('p-0 pb-4', !hideHeader && 'first:pt-3')}>
-                <div className="bg-card rounded-lg">
+                <div className="bg-card hover:bg-card/70 rounded-lg transition-all duration-200">
                   <div
                     onClick={() => onRowClick?.(row.original)}
                     className={cn(
-                      'bg-card group relative rounded-lg border p-6 shadow-none transition-all duration-200',
-                      'hover:border-primary hover:text-primary',
+                      'group relative rounded-lg border p-6 shadow-none transition-all duration-200',
                       onRowClick && 'cursor-pointer',
                       row.getIsSelected() && 'ring-primary ring-2 ring-offset-2',
                       typeof tableCardClassName === 'function'

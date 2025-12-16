@@ -85,7 +85,7 @@ export default function DnsZoneNameserversPage() {
                           value={nameserver ?? ''}
                           text={nameserver ?? ''}
                           badgeTheme="light"
-                          badgeType="quaternary"
+                          badgeType="muted"
                           className="border-none"
                         />
                       ))}

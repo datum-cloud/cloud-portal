@@ -17,6 +17,7 @@ import {
   Row,
 } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
+import { cn } from '@shadcn/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, Building, PlusIcon, TriangleAlert } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -94,7 +95,12 @@ export default function AccountOrganizations() {
           return (
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Building className="size-4" />
+                <Building
+                  className={cn(
+                    'text-icon-primary size-4',
+                    row.original.type === OrganizationType.Personal && 'text-primary'
+                  )}
+                />
                 <span>{row.original.displayName || row.original.name}</span>
               </div>
               <div className="flex items-center gap-6">
@@ -102,7 +108,7 @@ export default function AccountOrganizations() {
                   value={row.original.name ?? ''}
                   text={row.original.name ?? ''}
                   badgeTheme="solid"
-                  badgeType="quaternary"
+                  badgeType="muted"
                 />
                 <BadgeStatus status={row.original.type} />
               </div>
@@ -137,9 +143,7 @@ export default function AccountOrganizations() {
             columns={columns}
             data={orgsList}
             tableCardClassName={(row: IOrganization) => {
-              return row.type === OrganizationType.Personal
-                ? 'text-primary border-primary bg-primary/10 hover:border-secondary hover:text-secondary'
-                : '';
+              return row.type === OrganizationType.Personal ? 'text-primary border-primary ' : '';
             }}
             onRowClick={(row) => {
               navigate(getPathWithParams(paths.org.detail.root, { orgId: row.name }));

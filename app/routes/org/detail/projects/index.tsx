@@ -93,7 +93,7 @@ export default function OrgProjectsPage() {
                   value={row.original.name ?? ''}
                   text={row.original.name ?? ''}
                   badgeTheme="solid"
-                  badgeType="quaternary"
+                  badgeType="muted"
                 />
                 <span className="text-muted-foreground text-xs">
                   Added:{' '}
