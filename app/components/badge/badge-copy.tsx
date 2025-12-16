@@ -63,7 +63,7 @@ export const BadgeCopy = ({
       type={badgeType}
       theme={badgeTheme}
       className={cn(
-        'flex cursor-default items-center gap-1.5 px-2 py-0.5 text-xs font-normal',
+        'flex cursor-default items-center gap-1.5 px-1.5 py-0.5 text-xs font-normal',
         className
       )}
       onClick={(event) => {

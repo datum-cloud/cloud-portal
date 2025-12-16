@@ -220,7 +220,7 @@ export const OrganizationCard = ({
         boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
       }}>
       <MotionCardHeader
-        className="relative flex-shrink-0 pb-3"
+        className="relative shrink-0 pb-3"
         variants={contentVariants}
         animate="selection">
         {isPersonal && (
