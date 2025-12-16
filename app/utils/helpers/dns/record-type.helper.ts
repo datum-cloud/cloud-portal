@@ -60,13 +60,13 @@ export function parseSvcbParams(input?: string): Record<string, string> {
 
 /**
  * Format SVCB/HTTPS params object to string representation
- * Example: { alpn: "h3,h2", ipv4hint: "127.0.0.1" } -> 'alpn="h3,h2" ipv4hint="127.0.0.1"'
+ * Example: { alpn: "h3,h2", ipv4hint: "127.0.0.1" } -> 'alpn=h3,h2 ipv4hint=127.0.0.1'
  */
 export function formatSvcbParams(params?: Record<string, string>): string {
   if (!params || Object.keys(params).length === 0) return '';
 
   return Object.entries(params)
-    .map(([key, value]) => `${key}="${value}"`)
+    .map(([key, value]) => `${key}=${value}`)
     .join(' ');
 }
 
