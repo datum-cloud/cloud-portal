@@ -12,6 +12,8 @@ export interface IProjectControlResponse {
   labels?: ILabel;
   namespace?: string;
   deletionTimestamp?: string | Date;
+
+  annotations?: Record<string, string>;
 }
 
 export interface IProjectMetadata {

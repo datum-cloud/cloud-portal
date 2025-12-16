@@ -4,6 +4,7 @@ import {
   createNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
   deleteNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
   listNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
+  type ListNetworkingDatumapisComV1AlphaNamespacedHttpProxyData,
   patchNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
   readNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
 } from '@/modules/control-plane/networking';
@@ -52,7 +53,10 @@ export const createHttpProxiesControl = (client: Client) => {
   };
 
   return {
-    list: async (projectId: string) => {
+    list: async (
+      projectId: string,
+      query?: ListNetworkingDatumapisComV1AlphaNamespacedHttpProxyData['query']
+    ) => {
       try {
         const response = await listNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
           client,
@@ -60,6 +64,7 @@ export const createHttpProxiesControl = (client: Client) => {
           path: {
             namespace: 'default',
           },
+          query,
         });
 
         const httpProxies = response.data as ComDatumapisNetworkingV1AlphaHttpProxyList;

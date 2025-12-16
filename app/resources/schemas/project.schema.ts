@@ -28,6 +28,7 @@ export const updateProjectSchema = z.object({
     .max(100, { message: 'Description must be less than 100 characters long.' })
     .optional(),
   labels: z.array(z.string()).optional(),
+  annotations: z.array(z.string()).optional(),
 });
 
 export type ProjectSchema = z.infer<typeof projectSchema>;
