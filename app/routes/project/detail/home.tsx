@@ -217,9 +217,7 @@ export default function ProjectHomePage() {
             }
             primaryButton={
               <Tooltip message="Coming soon">
-                <Button icon={<DownloadIcon className="size-4" />} disabled>
-                  Install Datum Desktop
-                </Button>
+                <Button icon={<DownloadIcon className="size-4" />}>Install Datum Desktop</Button>
               </Tooltip>
             }
             onSkip={async () => {
