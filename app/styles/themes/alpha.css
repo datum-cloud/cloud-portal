@@ -78,6 +78,7 @@ Scope variables to the theme class so we can swap themes by class
   --border: var(--glacier-mist-900);
   --input: var(--app-dark-utility-5);
   --ring: var(--app-dark-utility-4);
+  --dialog-overlay: var(--app-dark-utility-4);
 
   /* Chart colors */
   --chart-1: hsl(12 76% 61%);
@@ -204,6 +205,7 @@ Scope variables to the theme class so we can swap themes by class
     --border: var(--app-dark-utility-1);
     --input: var(--app-dark-utility-2);
     --ring: var(--app-dark-utility-3);
+    --dialog-overlay: var(--midnight-fjord);
 
     /* Chart colors - dark mode */
     --chart-1: hsl(220 70% 50%);
@@ -304,6 +306,8 @@ TAILWIND CUSTOM UTILITIES FOR THEME
   --color-table-accent: var(--table-accent);
   --color-table-cell: var(--table-cell);
   --color-table-cell-hover: var(--table-cell-hover);
+
+  --color-dialog-overlay: var(--dialog-overlay);
 
   /* Icon Colors */
   --color-icon-primary: var(--icon-primary);
