@@ -1,6 +1,7 @@
 import { DateTime } from '@/components/date-time';
 import { ActivityLogList } from '@/features/activity-log/list';
 import { ActionCard } from '@/features/project/dashboard';
+import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import {
   createDomainsControl,
   createHttpProxiesControl,
@@ -11,7 +12,6 @@ import NotFound from '@/routes/not-found';
 import { paths } from '@/utils/config/paths.config';
 import { dataWithToast } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
-import { isDashboardItemCompleted } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { parseWithZod } from '@conform-to/zod/v4';
 import {
@@ -32,10 +32,30 @@ import {
   type AppLoadContext,
   data,
   type LoaderFunctionArgs,
-  useFetcher,
   useLoaderData,
   useRouteLoaderData,
 } from 'react-router';
+
+/**
+ * Check if a dashboard item is considered completed
+ * An item is considered completed if:
+ * - There are resources for that item (e.g., domains.length > 0)
+ * - OR the project annotation indicates it was skipped
+ *
+ * @param project - The project object with annotations
+ * @param hasResources - Whether resources exist for this dashboard item
+ * @param annotationKey - The annotation key to check (e.g., 'dashboard.domains.skipped')
+ * @returns true if the dashboard item is completed (has resources or is skipped)
+ *
+ * @example
+ * isDashboardItemCompleted(project, domains.length > 0, 'dashboard.domains.skipped')
+ * // Returns true if domains exist OR if the annotation is set to 'true'
+ */
+const isDashboardItemCompleted = (
+  project: { annotations?: Record<string, string> },
+  hasResources: boolean,
+  annotationKey: string
+): boolean => hasResources || project.annotations?.[annotationKey] === 'true';
 
 export const handle = {
   breadcrumb: () => <span>Home</span>,
@@ -107,7 +127,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 };
 
 export default function ProjectHomePage() {
-  const fetcher = useFetcher({ key: 'project-dashboard-update' });
+  const { submit } = useDatumFetcher({ key: 'project-dashboard-update' });
   const { project } = useRouteLoaderData('project-detail');
   const { hasDomains, hasHttpProxies, hasDesktop } = useLoaderData<typeof loader>();
 
@@ -186,7 +206,7 @@ export default function ProjectHomePage() {
               )
             }
             onSkip={async () => {
-              await fetcher.submit(
+              await submit(
                 {
                   projectId: project.name,
                   annotations: ['dashboard.domains.skipped:true'],
@@ -221,7 +241,7 @@ export default function ProjectHomePage() {
               </Tooltip>
             }
             onSkip={async () => {
-              await fetcher.submit(
+              await submit(
                 {
                   projectId: project.name,
                   annotations: ['dashboard.desktop.skipped:true'],
@@ -280,7 +300,7 @@ export default function ProjectHomePage() {
               )
             }
             onSkip={async () => {
-              await fetcher.submit(
+              await submit(
                 {
                   annotations: ['dashboard.proxy.skipped:true'],
                 },
