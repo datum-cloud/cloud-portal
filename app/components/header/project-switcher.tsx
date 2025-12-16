@@ -148,7 +148,7 @@ export const ProjectSwitcher = ({
               <CommandSeparator />
               <CommandItem asChild className="cursor-pointer">
                 <Link
-                  to={paths.account.organizations.root}
+                  to={getPathWithParams(paths.org.detail.projects.new, { orgId })}
                   className="flex items-center gap-2 px-3 py-2">
                   <FolderRoot className="size-3.5" />
                   <span className="text-xs">Create project</span>

@@ -24,6 +24,12 @@ export {
   normalizeQuotedValue,
   normalizeTxtValue,
   normalizeCaaValue,
+  // FQDN normalization helpers
+  FQDN_FIELDS,
+  ensureFqdn,
+  getFqdnFields,
+  hasFqdnFields,
+  transformFqdnFields,
 } from './record-type.helper';
 
 // Flatten helpers
@@ -31,6 +37,7 @@ export { flattenDnsRecordSets, extractValue, isRecordEmpty } from './flatten.hel
 
 // Record comparison helpers
 export {
+  normalizeDomainName,
   normalizeRecordName,
   isDuplicateRecord,
   findRecordIndex,
@@ -42,6 +49,7 @@ export { transformFormToRecord, recordToFormDefaultValue } from './form-transfor
 // BIND import helpers
 export {
   parseBindZoneFile,
+  deduplicateParsedRecords,
   transformParsedToFlattened,
   transformParsedToRecordSets,
   type ParsedDnsRecord,
