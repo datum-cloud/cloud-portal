@@ -22,6 +22,7 @@ const badgeVariants = cva(
         warning: '',
         danger: '',
         success: '',
+        muted: '',
       },
       theme: {
         solid: '',
@@ -189,10 +190,30 @@ const badgeVariants = cva(
         className:
           'border-[var(--color-badge-success)] text-[var(--color-badge-success)] bg-[var(--color-badge-success)]/20 dark:border-[var(--color-badge-success)] dark:text-[var(--color-badge-success)] dark:bg-[var(--color-badge-success)]/20',
       },
+
+      // Muted badge variants
+      {
+        type: 'muted',
+        theme: 'solid',
+        className:
+          'border-transparent text-[var(--color-badge-muted-foreground)] bg-[var(--color-badge-muted)] dark:border-[var(--color-badge-muted)]/20 dark:text-[var(--color-badge-muted)] dark:bg-[var(--color-badge-muted)]/20',
+      },
+      {
+        type: 'muted',
+        theme: 'outline',
+        className:
+          'border-[var(--color-badge-muted)] text-[var(--color-badge-muted)] dark:border-[var(--color-badge-muted)] dark:text-[var(--color-badge-muted)]',
+      },
+      {
+        type: 'muted',
+        theme: 'light',
+        className:
+          'border-[var(--color-badge-muted)] text-[var(--color-badge-muted)] bg-[var(--color-badge-muted)]/20 dark:border-[var(--color-badge-muted)] dark:text-[var(--color-badge-muted)] dark:bg-[var(--color-badge-muted)]/20',
+      },
     ],
     defaultVariants: {
-      type: 'primary',
-      theme: 'light',
+      type: 'muted',
+      theme: 'solid',
     },
   }
 );

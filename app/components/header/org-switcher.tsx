@@ -1,4 +1,4 @@
-import { PersonalBadge } from '@/components/personal-badge/personal-badge';
+import { BadgeStatus } from '@/components/badge/badge-status';
 import { SelectOrganization } from '@/components/select-organization/select-organization';
 import { useApp } from '@/providers/app.provider';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
@@ -21,7 +21,7 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: IOrganization
           {currentOrg?.displayName ?? currentOrg?.name}
         </span>
         {currentOrg?.type === OrganizationType.Personal && (
-          <PersonalBadge className="hidden sm:block" />
+          <BadgeStatus status={currentOrg.type} className="hidden sm:block" />
         )}
       </Link>
       <SelectOrganization

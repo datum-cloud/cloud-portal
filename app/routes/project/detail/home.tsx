@@ -1,3 +1,4 @@
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { ActivityLogList } from '@/features/activity-log/list';
 import { ActionCard } from '@/features/project/dashboard';
@@ -21,11 +22,10 @@ import {
   CardHeader,
   CardTitle,
   LinkButton,
-  toast,
   Tooltip,
 } from '@datum-ui/components';
 import type { Client } from '@hey-api/client-axios';
-import { CopyIcon, DownloadIcon, PlusIcon } from 'lucide-react';
+import { DownloadIcon, PlusIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import {
   type ActionFunctionArgs,
@@ -139,24 +139,21 @@ export default function ProjectHomePage() {
     <div className="mx-auto w-full max-w-7xl">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex flex-col gap-1 md:w-full md:flex-row md:items-center">
+        <div className="flex min-w-0 flex-1 flex-col gap-1 md:flex-row md:items-center">
           <h1 className="truncate text-2xl font-medium">{project?.description}</h1>
           <p className="text-icon-primary text-xs md:ml-auto">
             Project created: <DateTime date={project.createdAt} variant="relative" />
           </p>
         </div>
 
-        <Button
-          size="xs"
-          theme="light"
-          className="text-badge-muted-foreground bg-badge-muted"
-          onClick={() => {
-            navigator.clipboard.writeText(project.name);
-            toast.success('Project copied to clipboard');
-          }}>
-          <pre className="text-xs">{project.name}</pre>
-          <CopyIcon className="size-3" />
-        </Button>
+        <div className="shrink-0">
+          <BadgeCopy
+            value={project.name ?? ''}
+            text={project.name ?? ''}
+            badgeTheme="solid"
+            badgeType="muted"
+          />
+        </div>
       </div>
 
       {/* Grid */}
