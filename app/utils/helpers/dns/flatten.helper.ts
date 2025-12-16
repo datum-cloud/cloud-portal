@@ -1,5 +1,5 @@
 import { SupportedDnsRecordType } from './constants';
-import { getDnsRecordTypePriority } from './record-type.helper';
+import { formatSvcbParams, getDnsRecordTypePriority } from './record-type.helper';
 import { IExtendedControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import {
   IDnsRecordSetControlResponse,
@@ -214,23 +214,15 @@ export function extractValue(record: any, recordType: string | undefined): strin
       // record.https: { priority, target, params } (single object)
       // Format: "priority target [params]"
       if (!record.https) return '';
-      const httpsParams = record.https.params
-        ? ` ${Object.entries(record.https.params)
-            .map(([k, v]) => `${k}=${v}`)
-            .join(' ')}`
-        : '';
-      return `${record.https.priority} ${record.https.target}${httpsParams}`;
+      const httpsParams = formatSvcbParams(record.https.params);
+      return `${record.https.priority} ${record.https.target}${httpsParams ? ` ${httpsParams}` : ''}`;
 
     case 'SVCB':
       // record.svcb: { priority, target, params } (single object)
       // Format: "priority target [params]"
       if (!record.svcb) return '';
-      const svcbParams = record.svcb.params
-        ? ` ${Object.entries(record.svcb.params)
-            .map(([k, v]) => `${k}=${v}`)
-            .join(' ')}`
-        : '';
-      return `${record.svcb.priority} ${record.svcb.target}${svcbParams}`;
+      const svcbParams = formatSvcbParams(record.svcb.params);
+      return `${record.svcb.priority} ${record.svcb.target}${svcbParams ? ` ${svcbParams}` : ''}`;
 
     default:
       // Fallback to content if available

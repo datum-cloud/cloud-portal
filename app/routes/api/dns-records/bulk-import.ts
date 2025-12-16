@@ -101,11 +101,13 @@ function processRecordsWithDetails(
   }
 
   // Append strategy: merge with duplicate detection
+  // Check against merged array (includes existing + already processed incoming records)
   const merged = [...existingRecords];
 
   for (const newRecord of incomingRecords) {
     const value = extractValue(newRecord, recordType);
-    const isDuplicate = isDuplicateRecord(newRecord, existingRecords, recordType);
+    // Check against merged array to catch duplicates within the same import batch
+    const isDuplicate = isDuplicateRecord(newRecord, merged, recordType);
 
     if (isDuplicate && options.skipDuplicates) {
       recordDetails.push({
@@ -114,7 +116,7 @@ function processRecordsWithDetails(
         value,
         ttl: newRecord.ttl,
         action: 'skipped',
-        message: 'Record already exists',
+        message: 'Duplicate record skipped',
       });
       counts.skipped++;
     } else {

@@ -23,6 +23,12 @@ export {
   formatTTL,
   parseSvcbParams,
   formatSvcbParams,
+  // FQDN normalization helpers
+  FQDN_FIELDS,
+  ensureFqdn,
+  getFqdnFields,
+  hasFqdnFields,
+  transformFqdnFields,
 
   // Flatten helpers
   flattenDnsRecordSets,
@@ -30,6 +36,7 @@ export {
   isRecordEmpty,
 
   // Record comparison helpers
+  normalizeDomainName,
   normalizeRecordName,
   isDuplicateRecord,
   findRecordIndex,
@@ -40,6 +47,7 @@ export {
 
   // BIND import helpers
   parseBindZoneFile,
+  deduplicateParsedRecords,
   transformParsedToFlattened,
   transformParsedToRecordSets,
   type ParsedDnsRecord,

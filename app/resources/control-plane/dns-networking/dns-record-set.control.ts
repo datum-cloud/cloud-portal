@@ -13,7 +13,6 @@ import {
   IFlattenedDnsRecord,
 } from '@/resources/interfaces/dns.interface';
 import { flattenDnsRecordSets } from '@/utils/helpers/dns-record.helper';
-import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createDnsRecordSetsControl = (client: Client) => {
@@ -127,7 +126,8 @@ export const createDnsRecordSetsControl = (client: Client) => {
           kind: 'DNSRecordSet',
           apiVersion: 'dns.networking.miloapis.com/v1alpha1',
           metadata: {
-            name: `dns-record-set-${generateId(dnsZoneId, { randomText: generateRandomString(6) })}`,
+            // name: `dns-record-set-${generateId(dnsZoneId, { randomText: generateRandomString(6) })}`,
+            name: `${dnsZoneId}-${payload.recordType}`.toLowerCase(),
           },
           spec: payload,
         },

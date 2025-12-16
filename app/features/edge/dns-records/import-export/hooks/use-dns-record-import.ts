@@ -6,6 +6,7 @@ import {
 import { ROUTE_PATH as DNS_RECORDS_BULK_IMPORT_PATH } from '@/routes/api/dns-records/bulk-import';
 import { readFileAsText } from '@/utils/common';
 import {
+  deduplicateParsedRecords,
   ImportResult,
   parseBindZoneFile,
   SUPPORTED_DNS_RECORD_TYPES,
@@ -21,6 +22,10 @@ export type DialogView = 'preview' | 'result';
 export interface UnsupportedRecordsInfo {
   types: string[];
   totalRecords: number;
+}
+
+export interface DuplicateRecordsInfo {
+  count: number;
 }
 
 interface UseDnsRecordImportProps {
@@ -45,6 +50,7 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
   const [flattenedRecords, setFlattenedRecords] = useState<IFlattenedDnsRecord[]>([]);
   const [rawRecordSets, setRawRecordSets] = useState<IDnsZoneDiscoveryRecordSet[]>([]);
   const [unsupportedRecords, setUnsupportedRecords] = useState<UnsupportedRecordsInfo | null>(null);
+  const [duplicateRecords, setDuplicateRecords] = useState<DuplicateRecordsInfo | null>(null);
 
   // Import state
   const [isImporting, setIsImporting] = useState(false);
@@ -85,6 +91,7 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
     setFlattenedRecords([]);
     setRawRecordSets([]);
     setUnsupportedRecords(null);
+    setDuplicateRecords(null);
     setImportResult(null);
   };
 
@@ -147,9 +154,20 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
         return;
       }
 
-      // Transform records for API and display
-      const recordSets = transformParsedToRecordSets(supportedRecords);
-      const flattened = transformParsedToFlattened(supportedRecords, dnsZoneId);
+      // Deduplicate records within the batch (handles trailing dot normalization)
+      const { unique: deduplicatedRecords, duplicateCount } =
+        deduplicateParsedRecords(supportedRecords);
+
+      // Track duplicate records info
+      if (duplicateCount > 0) {
+        setDuplicateRecords({ count: duplicateCount });
+      } else {
+        setDuplicateRecords(null);
+      }
+
+      // Transform deduplicated records for API and display
+      const recordSets = transformParsedToRecordSets(deduplicatedRecords);
+      const flattened = transformParsedToFlattened(deduplicatedRecords, dnsZoneId);
 
       setRawRecordSets(recordSets);
       setFlattenedRecords(flattened);
@@ -209,6 +227,7 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
     // Preview
     flattenedRecords,
     unsupportedRecords,
+    duplicateRecords,
 
     // Import
     isImporting,
