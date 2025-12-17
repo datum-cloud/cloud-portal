@@ -5,7 +5,7 @@
 # syntax = docker/dockerfile:1
 
 # Use the latest Bun version
-FROM oven/bun:1.2.17 AS base
+FROM oven/bun:1.3.5 AS base
 
 # Install system dependencies and clean up in the same layer
 RUN apt-get update && \
