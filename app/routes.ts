@@ -190,7 +190,7 @@ export default [
               { id: 'secret-detail' },
               [
                 index('routes/project/detail/config/secrets/detail/index.tsx'),
-                route('edit', 'routes/project/detail/config/secrets/detail/edit.tsx'),
+                route('overview', 'routes/project/detail/config/secrets/detail/overview.tsx'),
               ]
             ),
           ]),
