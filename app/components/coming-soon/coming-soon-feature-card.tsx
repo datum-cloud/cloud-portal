@@ -8,7 +8,7 @@ export const ComingSoonFeatureCard = ({
   description: string;
 }) => {
   return (
-    <Card className="rounded-xl p-0 shadow-md">
+    <Card className="rounded-xl p-0 shadow-none">
       <CardContent className="flex items-center justify-between gap-2 p-5">
         <div className="flex max-w-[725px] flex-col gap-2">
           <span className="text-sm font-medium">{title}</span>
