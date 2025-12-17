@@ -30,7 +30,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
   const csrf = useAuthenticityToken();
 
   return (
-    <Card className="gap-0 rounded-xl py-0">
+    <Card className="gap-0 rounded-xl py-0 shadow-none">
       <CardHeader className="border-b px-4.5 py-4">
         <CardTitle className="text-sm font-medium">Organization Info</CardTitle>
       </CardHeader>

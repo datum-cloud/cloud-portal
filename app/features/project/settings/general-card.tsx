@@ -49,7 +49,7 @@ export const ProjectGeneralCard = ({ project }: { project: IProjectControlRespon
   }, [project]);
 
   return (
-    <Card className="py-4">
+    <Card className="py-4 shadow-none">
       <FormProvider context={form.context}>
         <CardHeader className="border-b px-5 pb-4">
           <CardTitle>Project Info</CardTitle>
