@@ -7,7 +7,7 @@ import {
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import { Button, toast } from '@datum-ui/components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@shadcn/ui/table';
 import { PencilIcon, PlusIcon, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -84,14 +84,11 @@ export const EditSecretKeys = ({
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex flex-col gap-1.5">
             <CardTitle>Key-value pairs</CardTitle>
-            <CardDescription>
-              Configure and edit the key-value pairs securely stored as secrets.
-            </CardDescription>
           </div>
           <Button
-            type="quaternary"
+            type="secondary"
             theme="outline"
-            size="small"
+            size="xs"
             onClick={() => variablesFormDialogRef.current?.show()}>
             <PlusIcon className="size-4" />
             Add

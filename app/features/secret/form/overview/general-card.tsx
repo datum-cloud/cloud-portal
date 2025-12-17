@@ -1,6 +1,6 @@
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
-import { TextCopy } from '@/components/text-copy/text-copy';
 import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
 import { useMemo } from 'react';
@@ -11,9 +11,16 @@ export const SecretGeneralCard = ({ secret }: { secret: ISecretControlResponse }
 
     return [
       {
-        label: 'Name',
+        label: 'Resource name',
         className: 'px-2',
-        content: <TextCopy className="text-sm" value={secret.name ?? ''} text={secret.name} />,
+        content: (
+          <BadgeCopy
+            value={secret.name ?? ''}
+            text={secret.name ?? ''}
+            badgeTheme="light"
+            badgeType="muted"
+          />
+        ),
       },
       {
         label: 'Namespace',
@@ -21,7 +28,18 @@ export const SecretGeneralCard = ({ secret }: { secret: ISecretControlResponse }
         content: <span>{secret.namespace}</span>,
       },
       {
-        label: 'Created At',
+        label: 'Last update',
+        className: 'px-2',
+        content: (
+          <DateTime
+            className="text-sm"
+            date={secret?.annotations?.updatedAt ?? ''}
+            variant="both"
+          />
+        ),
+      },
+      {
+        label: 'Created at',
         className: 'px-2',
         content: <DateTime className="text-sm" date={secret?.createdAt ?? ''} variant="both" />,
       },
@@ -29,11 +47,11 @@ export const SecretGeneralCard = ({ secret }: { secret: ISecretControlResponse }
   }, [secret]);
 
   return (
-    <Card className="w-full">
-      <CardHeader className="px-6">
-        <CardTitle className="text-base leading-none font-medium">General</CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg font-medium">General</CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pt-0 pb-2">
+      <CardContent>
         <List items={listItems} />
       </CardContent>
     </Card>
