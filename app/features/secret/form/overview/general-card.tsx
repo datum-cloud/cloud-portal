@@ -28,17 +28,6 @@ export const SecretGeneralCard = ({ secret }: { secret: ISecretControlResponse }
         content: <span>{secret.namespace}</span>,
       },
       {
-        label: 'Last update',
-        className: 'px-2',
-        content: (
-          <DateTime
-            className="text-sm"
-            date={secret?.annotations?.updatedAt ?? ''}
-            variant="both"
-          />
-        ),
-      },
-      {
         label: 'Created at',
         className: 'px-2',
         content: <DateTime className="text-sm" date={secret?.createdAt ?? ''} variant="both" />,
