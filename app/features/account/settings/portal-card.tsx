@@ -148,7 +148,7 @@ export const AccountPortalSettingsCard = () => {
   }, [userPreferences]);
 
   return (
-    <Card>
+    <Card className="shadow-none">
       <CardHeader>
         <CardTitle>Portal Preferences</CardTitle>
       </CardHeader>

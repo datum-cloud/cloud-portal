@@ -6,7 +6,7 @@ export const AccountIdentitySettingsCard = () => {
   const { user } = useApp();
 
   return (
-    <Card>
+    <Card className="shadow-none">
       <CardHeader>
         <CardTitle>Account Identity</CardTitle>
       </CardHeader>

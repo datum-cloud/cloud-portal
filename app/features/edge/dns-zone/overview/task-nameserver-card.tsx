@@ -20,7 +20,7 @@ export const TaskNameserverCard = ({
   }, [dnsZone]);
 
   return (
-    <Card className="relative gap-6 overflow-hidden rounded-xl px-3 py-8 shadow-md">
+    <Card className="relative gap-6 overflow-hidden rounded-xl px-3 py-8 shadow">
       <CardHeader>
         <CardTitle className="text-lg font-medium">Point Your Nameservers at Datum</CardTitle>
       </CardHeader>

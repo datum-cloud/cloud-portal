@@ -101,7 +101,7 @@ export const DescriptionFormCard = ({
   }, [fetcher.data, fetcher.state]);
 
   return (
-    <Card className="rounded-xl pt-5 pb-4">
+    <Card className="rounded-xl pt-5 pb-4 shadow-none">
       <CardHeader>
         <CardDescription className="text-xs">
           This description is for your own reference and won&apos;t be shared externally

@@ -15,7 +15,7 @@ export const GrafanaTutorialCard = ({
 }) => {
   const navigate = useNavigate();
   return (
-    <Alert variant="default" className="bg-card text-card-foreground">
+    <Alert variant="default" className="bg-card text-card-foreground rounded-xl shadow">
       <SignalHighIcon className="size-4" />
       <AlertTitle>Want to see some metrics in Grafana?</AlertTitle>
       <AlertDescription>

@@ -82,7 +82,7 @@ export const AccountProfileSettingsCard = () => {
   }, [fetcher.data, fetcher.state]);
 
   return (
-    <Card>
+    <Card className="shadow-none">
       <CardHeader>
         <CardTitle>Profile Information</CardTitle>
       </CardHeader>

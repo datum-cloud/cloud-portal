@@ -287,6 +287,9 @@ Scope variables to the theme class so we can swap themes by class
 TAILWIND CUSTOM UTILITIES FOR THEME
 ======================================== */
 @theme inline {
+  /* Custom base shadow */
+  --shadow: 0 2px 4px 2px rgba(12, 29, 49, 0.03);
+
   --color-tertiary: var(--tertiary);
   --color-tertiary-foreground: var(--tertiary-foreground);
 
