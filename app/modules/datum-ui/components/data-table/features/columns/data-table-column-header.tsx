@@ -3,7 +3,7 @@ import { Tooltip } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { TableHead, TableHeader, TableRow } from '@shadcn/ui/table';
 import { Table as TTable, flexRender } from '@tanstack/react-table';
-import { ChevronDown, ChevronsUpDown, ChevronUp, Info } from 'lucide-react';
+import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 
 export interface DataTableColumnHeaderProps<TData> {
   table: TTable<TData>;
@@ -36,19 +36,30 @@ export const DataTableColumnHeader = <TData,>({
             );
 
             // Render sort icons for sortable columns
-            const renderSortIcons = () =>
-              header.column.getIsSorted() ? (
-                {
-                  asc: <ChevronUp size={16} aria-hidden="true" />,
-                  desc: <ChevronDown size={16} aria-hidden="true" />,
-                }[header.column.getIsSorted() as string]
-              ) : (
-                <ChevronsUpDown
-                  className="text-foreground opacity-40 transition-opacity group-hover:opacity-100"
-                  size={16}
-                  aria-hidden="true"
-                />
+            const renderSortIcons = () => {
+              const sortDirection = header.column.getIsSorted();
+
+              return (
+                <div className="flex flex-col">
+                  <ChevronUp
+                    size={14}
+                    aria-hidden="true"
+                    className={cn(
+                      'text-foreground stroke -mb-0.5 stroke-2 opacity-25 transition-all',
+                      sortDirection === 'asc' && 'opacity-100'
+                    )}
+                  />
+                  <ChevronDown
+                    size={14}
+                    aria-hidden="true"
+                    className={cn(
+                      'text-foreground -mt-0.5 stroke-2 opacity-25 transition-all',
+                      sortDirection === 'desc' && 'opacity-100'
+                    )}
+                  />
+                </div>
               );
+            };
 
             // Render complete column content
             const renderContent = () => {

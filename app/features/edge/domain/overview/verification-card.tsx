@@ -32,7 +32,7 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
           )}
         </p>
         <div className="divide-border flex items-start justify-between">
-          <div className="border-border flex w-1/2 flex-col gap-5 border-r pr-7">
+          <div className="dark:border-quaternary flex w-1/2 flex-col gap-5 border-r pr-7">
             <p className="text-sm font-medium">Add a TXT DNS Record</p>
             <div className="flex flex-col gap-3.5">
               {dnsRecord?.name && (
@@ -44,6 +44,7 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
                     badgeTheme="solid"
                     className="font-mono text-nowrap"
                     textClassName="text-ellipsis max-w-[240px] overflow-hidden"
+                    containerClassName="w-full"
                   />
                 </div>
               )}
@@ -56,6 +57,7 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
                     badgeTheme="solid"
                     className="font-mono text-nowrap"
                     textClassName="text-ellipsis max-w-[240px] overflow-hidden"
+                    containerClassName="w-full"
                   />
                 </div>
               )}
@@ -73,6 +75,7 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
                     badgeTheme="solid"
                     className="font-mono text-nowrap"
                     textClassName="text-ellipsis max-w-[240px] overflow-hidden"
+                    containerClassName="w-full"
                   />
                 </div>
               )}
@@ -85,6 +88,7 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
                     badgeTheme="solid"
                     className="font-mono text-nowrap"
                     textClassName="text-ellipsis max-w-[240px] overflow-hidden"
+                    containerClassName="w-full"
                   />
                 </div>
               )}

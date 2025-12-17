@@ -52,9 +52,9 @@ export function SearchInput({
           value={value}
           onChange={onChange}
           disabled={disabled}
-          containerClassName={cn('h-9 dark:bg-input-background bg-white', inputClassName)}
-          className="dark:bg-input-background h-full bg-white"
-          leading={<Search size={14} />}
+          containerClassName={cn('h-9 bg-transparent', inputClassName)}
+          className="placeholder:text-secondary text-secondary h-full bg-transparent text-sm placeholder:text-sm dark:text-white dark:placeholder:text-white"
+          leading={<Search size={14} className="text-icon-quaternary dark:text-white" />}
           trailing={
             value && (
               <Button
@@ -62,7 +62,7 @@ export function SearchInput({
                 theme="borderless"
                 size="icon"
                 onClick={onClear}
-                className="hover:text-destructive size-4 p-0 hover:bg-transparent">
+                className="hover:text-destructive text-icon-quaternary size-4 p-0 hover:bg-transparent dark:text-white">
                 <X size={14} />
                 <span className="sr-only">Clear search</span>
               </Button>

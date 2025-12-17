@@ -9,6 +9,7 @@ export interface BadgeCopyProps {
   text?: string;
   className?: string;
   textClassName?: string;
+  containerClassName?: string;
   badgeType?: BadgeProps['type'];
   badgeTheme?: BadgeProps['theme'];
   showTooltip?: boolean;
@@ -19,6 +20,7 @@ export const BadgeCopy = ({
   text,
   className,
   textClassName,
+  containerClassName,
   badgeType = 'secondary',
   badgeTheme = 'light',
   showTooltip = true,
@@ -79,5 +81,5 @@ export const BadgeCopy = ({
     </Badge>
   );
 
-  return <div className="w-fit">{badgeContent}</div>;
+  return <div className={cn('w-fit', containerClassName)}>{badgeContent}</div>;
 };

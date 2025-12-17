@@ -8,7 +8,11 @@ export function ContentWrapper({
   contentClassName,
 }: ContentWrapperProps) {
   return (
-    <div className={cn('mx-auto flex h-full w-full flex-col gap-5 px-9 py-8', containerClassName)}>
+    <div
+      className={cn(
+        'mx-auto flex h-full w-full max-w-[1600px] flex-col gap-5 px-9 py-8',
+        containerClassName
+      )}>
       <Breadcrumb />
       <div className={cn('flex max-w-full flex-1 flex-col', contentClassName)}>{children}</div>
     </div>

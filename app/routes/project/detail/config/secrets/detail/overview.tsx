@@ -11,7 +11,7 @@ export default function EditSecret() {
   const { projectId } = useParams();
 
   return (
-    <div className="mx-auto w-full max-w-7xl">
+    <div className="mx-auto w-full">
       <Row gutter={[24, 32]}>
         <Col span={24}>
           <PageTitle title={secret?.name ?? 'Secret'} />

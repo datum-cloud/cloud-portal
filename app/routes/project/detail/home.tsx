@@ -136,7 +136,7 @@ export default function ProjectHomePage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl">
+    <div className="mx-auto w-full">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-1 md:flex-row md:items-center">

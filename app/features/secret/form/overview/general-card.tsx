@@ -36,7 +36,7 @@ export const SecretGeneralCard = ({ secret }: { secret: ISecretControlResponse }
     <Card className="w-full p-0 shadow-md">
       <CardContent className="p-9">
         <h3 className="mb-6 text-lg font-medium">General</h3>
-        <List items={listItems} className="border-table-accent border-t" />
+        <List items={listItems} className="border-table-accent dark:border-quaternary border-t" />
       </CardContent>
     </Card>
   );
