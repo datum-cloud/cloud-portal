@@ -196,7 +196,7 @@ const badgeVariants = cva(
         type: 'muted',
         theme: 'solid',
         className:
-          'border-transparent text-[var(--color-badge-muted-foreground)] bg-[var(--color-badge-muted)] dark:border-[var(--color-badge-muted)]/20 dark:text-[var(--color-badge-muted)] dark:bg-[var(--color-badge-muted)]/20',
+          'border-transparent text-[var(--color-badge-muted-foreground)]  bg-[var(--color-badge-muted)] dark:border-[var(--color-badge-muted)]/20 dark:text-[var(--color-badge-muted)] dark:bg-[var(--color-badge-muted)]/20',
       },
       {
         type: 'muted',

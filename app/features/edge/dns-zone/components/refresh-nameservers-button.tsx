@@ -94,7 +94,7 @@ export const RefreshNameserversButton = ({
 
   const refreshFetcher = useDatumFetcher({
     key: 'refresh-nameservers',
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success(successMessage.title, {
         description: successMessage.description,
       });

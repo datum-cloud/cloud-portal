@@ -3,11 +3,12 @@ import { DangerCard } from '@/components/danger-card/danger-card';
 import { PageTitle } from '@/components/page-title/page-title';
 import { ComingSoonCard } from '@/features/edge/dns-zone/overview/coming-soon-card';
 import { DescriptionFormCard } from '@/features/edge/dns-zone/overview/description-form-card';
+import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-ui/components';
-import { useFetcher, useParams, useRouteLoaderData } from 'react-router';
+import { useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Settings</span>,
@@ -16,7 +17,7 @@ export const handle = {
 export default function DnsZoneSettingsPage() {
   const { projectId } = useParams();
   const { dnsZone } = useRouteLoaderData('dns-zone-detail');
-  const fetcher = useFetcher({ key: 'delete-dns-zone' });
+  const fetcher = useDatumFetcher({ key: 'delete-dns-zone' });
 
   const { confirm, close: closeConfirmationDialog } = useConfirmationDialog();
   const deleteDnsZone = async () => {

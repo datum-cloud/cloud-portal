@@ -175,6 +175,7 @@ export default [
               [
                 index('routes/project/detail/config/domains/detail/index.tsx'),
                 route('overview', 'routes/project/detail/config/domains/detail/overview.tsx'),
+                route('settings', 'routes/project/detail/config/domains/detail/settings.tsx'),
               ]
             ),
           ]),

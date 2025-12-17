@@ -34,42 +34,27 @@ export const createDnsZonesControl = (client: Client) => {
   };
 
   return {
-    list: async (projectId: string, domainNames?: string[]) => {
+    list: async (projectId: string) => {
       try {
-        //TODO: Kubernetes field selectors only support =, ==, and != operators so for now we fetch all and filter client-side
         const response = await listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone({
           client,
           baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
           path: {
             namespace: 'default',
           },
-          query: {
-            fieldSelector:
-              // if there's only one domain name we can use the field selector to filter by domain name
-              domainNames?.length === 1 ? `spec.domainName=${domainNames[0]}` : undefined,
-          },
         });
 
         const dnsZones = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsZoneList;
 
-        let filteredZones = dnsZones.items;
-
-        // Filter by domain names (only when there are multiple domain names)
-        if (domainNames && domainNames.length > 1) {
-          const domainNameSet = new Set(domainNames);
-          filteredZones = filteredZones.filter(
-            (dnsZone: ComMiloapisNetworkingDnsV1Alpha1DnsZone) =>
-              dnsZone.spec?.domainName && domainNameSet.has(dnsZone.spec.domainName)
-          );
-        }
+        console.log('dnsZones', JSON.stringify(dnsZones, null, 2));
 
         return (
-          filteredZones
-            // // Filter out DNS zones that are being deleted
-            // ?.filter(
-            //   (dnsZone: ComMiloapisNetworkingDnsV1Alpha1DnsZone) =>
-            //     typeof dnsZone.metadata?.deletionTimestamp === 'undefined'
-            // )
+          dnsZones.items
+            // Filter out DNS zones that are being deleted
+            ?.filter(
+              (dnsZone: ComMiloapisNetworkingDnsV1Alpha1DnsZone) =>
+                typeof dnsZone.metadata?.deletionTimestamp === 'undefined'
+            )
             .map((dnsZone: ComMiloapisNetworkingDnsV1Alpha1DnsZone) => transformDnsZone(dnsZone))
         );
       } catch (e) {
@@ -110,7 +95,7 @@ export const createDnsZonesControl = (client: Client) => {
         throw e;
       }
     },
-    detail: async (projectId: string, id: string, domainName?: string) => {
+    detail: async (projectId: string, id: string) => {
       try {
         const response = await readDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone({
           client,
@@ -179,6 +164,35 @@ export const createDnsZonesControl = (client: Client) => {
         });
 
         return response.data;
+      } catch (e) {
+        throw e;
+      }
+    },
+    listByDomainRef: async (projectId: string, domainRef: string, limit: number = 1) => {
+      try {
+        const response = await listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone({
+          client,
+          baseURL: `${baseUrl}/projects/${projectId}/control-plane`,
+          path: {
+            namespace: 'default',
+          },
+          query: {
+            fieldSelector: `status.domainRef.name=${domainRef}`, // use domain ref to filter DNS zones since dns zones can create multiple DNS zones for the same domain
+            limit,
+          },
+        });
+
+        const dnsZones = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsZoneList;
+
+        return (
+          dnsZones.items
+            // Filter out DNS zones that are being deleted
+            ?.filter(
+              (dnsZone: ComMiloapisNetworkingDnsV1Alpha1DnsZone) =>
+                typeof dnsZone.metadata?.deletionTimestamp === 'undefined'
+            )
+            .map((dnsZone: ComMiloapisNetworkingDnsV1Alpha1DnsZone) => transformDnsZone(dnsZone))
+        );
       } catch (e) {
         throw e;
       }

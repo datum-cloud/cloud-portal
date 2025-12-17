@@ -98,7 +98,7 @@ export const Breadcrumb = (): React.ReactElement | null => {
   if (items?.length <= 1) return null;
 
   return (
-    <BreadcrumbUI className="mb-4">
+    <BreadcrumbUI>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink

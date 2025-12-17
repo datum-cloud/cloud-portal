@@ -20,7 +20,7 @@ import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, toast } from '@datum-ui/components';
+import { Badge, Button, toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
@@ -40,11 +40,11 @@ import { z } from 'zod';
 type FormattedDomain = {
   name: string;
   domainName: string;
-  registrar: string;
-  nameservers: NonNullable<IDomainControlResponse['status']>['nameservers'];
-  expiresAt: string;
+  registrar?: string;
+  nameservers?: NonNullable<IDomainControlResponse['status']>['nameservers'];
+  expiresAt?: string;
   status: IDomainControlResponse['status'];
-  statusType: 'success' | 'pending';
+  statusType: 'verified' | 'pending';
   dnsZone?: IDnsZoneControlResponse;
 };
 
@@ -63,25 +63,32 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   }
 
   const domains = await domainsControl.list(projectId);
-  const domainNames = domains
-    .map((domain) => domain.domainName)
-    .filter((domainName) => domainName !== undefined);
-  const dnsZones = await dnsZonesControl.list(projectId, domainNames);
 
-  const formattedDomains = domains.map((domain) => {
-    const controlledStatus = transformControlPlaneStatus(domain.status);
+  // Fetch all DNS zones in parallel for better performance
+  const formattedDomains = await Promise.all(
+    domains.map(async (domain) => {
+      const controlledStatus = transformControlPlaneStatus(domain.status);
 
-    return {
-      name: domain.name,
-      domainName: domain.domainName,
-      registrar: domain.status?.registration?.registrar?.name,
-      nameservers: domain.status?.nameservers,
-      expiresAt: domain.status?.registration?.expiresAt,
-      status: domain.status,
-      statusType: controlledStatus.status === ControlPlaneStatus.Success ? 'verified' : 'pending',
-      dnsZone: dnsZones.find((dnsZone) => dnsZone.domainName === domain.domainName),
-    };
-  });
+      // Fetch DNS zone for this domain (if domain has a name)
+      let dnsZone: IDnsZoneControlResponse | undefined;
+      if (domain?.name) {
+        const dnsZones = await dnsZonesControl.listByDomainRef(projectId, domain.name, 1);
+        dnsZone = dnsZones?.[0] ?? null;
+      }
+
+      return {
+        name: domain.name,
+        domainName: domain.domainName,
+        registrar: domain.status?.registration?.registrar?.name,
+        nameservers: domain.status?.nameservers,
+        expiresAt: domain.status?.registration?.expiresAt,
+        status: domain.status,
+        statusType: controlledStatus.status === ControlPlaneStatus.Success ? 'verified' : 'pending',
+        dnsZone,
+      } as FormattedDomain;
+    })
+  );
+
   return formattedDomains;
 };
 
@@ -204,27 +211,27 @@ export default function DomainsPage() {
     );
   };
 
-  const addDnsZone = async (domain: FormattedDomain) => {
-    navigate(
-      getPathWithParams(
-        paths.project.detail.dnsZones.new,
-        {
+  const handleManageDnsZone = async (domain: FormattedDomain) => {
+    if (domain.dnsZone) {
+      navigate(
+        getPathWithParams(paths.project.detail.dnsZones.detail.overview, {
           projectId,
-        },
-        new URLSearchParams({
-          domainName: domain.domainName,
+          dnsZoneId: domain.dnsZone.name ?? '',
         })
-      )
-    );
-  };
-
-  const editDnsZone = async (domain: FormattedDomain) => {
-    navigate(
-      getPathWithParams(paths.project.detail.dnsZones.detail.overview, {
-        projectId,
-        dnsZoneId: domain.dnsZone?.name ?? '',
-      })
-    );
+      );
+    } else {
+      navigate(
+        getPathWithParams(
+          paths.project.detail.dnsZones.new,
+          {
+            projectId,
+          },
+          new URLSearchParams({
+            domainName: domain.domainName,
+          })
+        )
+      );
+    }
   };
 
   const columns: ColumnDef<FormattedDomain>[] = useMemo(
@@ -245,7 +252,14 @@ export default function DomainsPage() {
         id: 'registrar',
         header: 'Registrar',
         accessorKey: 'registrar',
-        cell: ({ row }) => row.original?.registrar ?? '-',
+        cell: ({ row }) =>
+          row.original?.registrar ? (
+            <Badge type="quaternary" theme="outline" className="rounded-xl text-sm font-normal">
+              {row.original?.registrar}
+            </Badge>
+          ) : (
+            '-'
+          ),
         meta: {
           sortPath: 'registrar',
           sortType: 'text',
@@ -304,7 +318,7 @@ export default function DomainsPage() {
         key: 'dns',
         label: 'Manage DNS Zone',
         variant: 'default',
-        action: (row) => (row.dnsZone ? editDnsZone(row) : addDnsZone(row)),
+        action: (row) => handleManageDnsZone(row),
       },
       {
         key: 'delete',
