@@ -120,7 +120,7 @@
   --canyon-clay: oklch(0.709 0.051 18.4); /* #bf9595 */
   --canyon-clay-links: oklch(0.61 0.044 18.4); /* #a46969 */
   --glacier-mist-700: oklch(0.973 0.001 106.4); /* #fcfdf7 */
-  --glacier-mist-800: oklch(0.952 0.003 106.5); /* #f6f7ed */
+  --glacier-mist-800: rgba(236, 235, 231, 0.6); /* #ecebe799 */
   --glacier-mist-900: oklch(0.928 0.004 91.4); /* #eeefe6 */
   --midnight-fjord: oklch(0.228 0.045 253.7); /* #0c1d31 */
   --pine-forge: oklch(0.478 0.034 158.9); /* #446e3d */

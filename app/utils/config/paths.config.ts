@@ -60,7 +60,6 @@ export const paths = {
           detail: {
             root: '/project/[projectId]/secrets/[secretId]',
             overview: '/project/[projectId]/secrets/[secretId]/overview',
-            edit: '/project/[projectId]/secrets/[secretId]/edit',
           },
         },
       },
@@ -80,7 +79,7 @@ export const paths = {
         detail: {
           root: '/project/[projectId]/domains/[domainId]',
           overview: '/project/[projectId]/domains/[domainId]/overview',
-          edit: '/project/[projectId]/domains/[domainId]/edit',
+          settings: '/project/[projectId]/domains/[domainId]/settings',
         },
       },
       dnsZones: {

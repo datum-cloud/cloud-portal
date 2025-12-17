@@ -1,9 +1,24 @@
+import { BackButton } from '@/components/back-button';
+import { SubLayout } from '@/layouts';
 import { createDnsZonesControl, createDomainsControl } from '@/resources/control-plane';
+import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import type { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { NavItem } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
-import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction, Outlet } from 'react-router';
+import { useMemo } from 'react';
+import {
+  LoaderFunctionArgs,
+  AppLoadContext,
+  data,
+  MetaFunction,
+  Outlet,
+  useLoaderData,
+  useParams,
+} from 'react-router';
 
 export const handle = {
   breadcrumb: ({ domain }: { domain: IDomainControlResponse }) => <span>{domain?.domainName}</span>,
@@ -26,16 +41,60 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const dnsZonesControl = createDnsZonesControl(controlPlaneClient as Client);
 
   const domain = await domainsControl.detail(projectId, domainId);
-  const dnsZones = await dnsZonesControl.list(projectId, [domain?.domainName ?? '']);
-  const dnsZone = dnsZones.find((zone) => zone.domainName === domain?.domainName) ?? null;
 
   if (!domain) {
     throw new NotFoundError('Domain not found');
+  }
+
+  let dnsZone: IDnsZoneControlResponse | null = null;
+  if (domain?.name) {
+    const dnsZones = await dnsZonesControl.listByDomainRef(projectId, domain?.name ?? '', 1);
+    dnsZone = dnsZones?.[0] ?? null;
   }
 
   return data({ domain, dnsZone });
 };
 
 export default function DomainDetailLayout() {
-  return <Outlet />;
+  const { domain } = useLoaderData<typeof loader>();
+  const { projectId } = useParams();
+
+  const navItems: NavItem[] = useMemo(() => {
+    return [
+      {
+        title: 'Overview',
+        href: getPathWithParams(paths.project.detail.domains.detail.overview, {
+          projectId,
+          domainId: domain?.name ?? '',
+        }),
+        type: 'link',
+      },
+      {
+        title: 'Settings',
+        href: getPathWithParams(paths.project.detail.domains.detail.settings, {
+          projectId,
+          domainId: domain?.name ?? '',
+        }),
+        type: 'link',
+      },
+    ];
+  }, [projectId, domain]);
+
+  return (
+    <SubLayout
+      sidebarHeader={
+        <div className="flex flex-col gap-3.5">
+          <BackButton
+            to={getPathWithParams(paths.project.detail.domains.root, {
+              projectId,
+            })}>
+            Back to Domains
+          </BackButton>
+          <span className="text-primary text-sm font-semibold">Manage Domain</span>
+        </div>
+      }
+      navItems={navItems}>
+      <Outlet />
+    </SubLayout>
+  );
 }

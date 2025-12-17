@@ -1,8 +1,8 @@
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
-import { TextCopy } from '@/components/text-copy/text-copy';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
-import { Separator } from '@shadcn/ui/separator';
+import { Card, CardContent } from '@datum-ui/components';
+import { BookOpenIcon } from 'lucide-react';
 
 export const DomainVerificationCard = ({ domain }: { domain: IDomainControlResponse }) => {
   const dnsRecord = domain.status?.verification?.dnsRecord;
@@ -13,81 +13,84 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Manual Verification</CardTitle>
-        <CardDescription>
+    <Card className="w-full p-0 shadow-md">
+      <CardContent className="flex flex-col gap-5 px-9 py-8">
+        <div className="flex items-center gap-2.5">
+          <BookOpenIcon size={20} className="text-secondary stroke-2" />
+          <span className="text-base font-semibold">Manual Verification</span>
+        </div>
+        <p className="text-[14px] font-normal">
           To verify domain ownership, use one of the methods below. Once verified, you may remove
-          the record from your DNS system.{' '}
+          the record from your DNS system. Next verification{' '}
           {domain.status?.verification?.nextVerificationAttempt && (
-            <>
-              Next verification{' '}
-              <DateTime
-                variant="absolute"
-                date={domain.status.verification.nextVerificationAttempt}
-                className="text-foreground w-fit font-semibold"
-                showTooltip={false}
-              />
-            </>
+            <DateTime
+              variant="absolute"
+              date={domain.status.verification.nextVerificationAttempt}
+              className="text-foreground w-fit font-semibold"
+              showTooltip={false}
+            />
           )}
-          .
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {dnsRecord && (
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col text-sm">
-              <span className="font-semibold">DNS TXT Record</span>
-              <span className="text-muted-foreground">Add this record to your DNS provider:</span>
-            </div>
-
-            <div className="bg-muted flex flex-col gap-3 rounded-md border p-3 font-mono text-sm">
-              <div className="flex flex-col gap-1">
-                <span className="font-semibold">Type:</span>
-                <span>{dnsRecord.type}</span>
-              </div>
-              {dnsRecord.name && (
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold">Name:</span>
-                  <TextCopy value={dnsRecord.name} text={dnsRecord.name} />
+        </p>
+        <div className="divide-border flex items-start justify-between">
+          <div className="border-border flex w-1/2 flex-col gap-5 border-r pr-7">
+            <p className="text-sm font-medium">Add a TXT DNS Record</p>
+            <div className="flex flex-col gap-3.5">
+              {dnsRecord?.name && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-normal">Name</span>
+                  <BadgeCopy
+                    value={dnsRecord?.name ?? ''}
+                    badgeType="muted"
+                    badgeTheme="solid"
+                    className="font-mono text-nowrap"
+                    textClassName="text-ellipsis max-w-[240px] overflow-hidden"
+                  />
                 </div>
               )}
-              {dnsRecord.content && (
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold">Value:</span>
-                  <TextCopy value={dnsRecord.content} text={dnsRecord.content} />
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        <Separator />
-
-        {httpToken && (
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col text-sm">
-              <span className="font-semibold">HTTP Token</span>
-              <span className="text-muted-foreground">
-                Create a file at the specified URL with the following body:
-              </span>
-            </div>
-            <div className="bg-muted flex flex-col gap-3 rounded-md border p-3 font-mono text-sm">
-              {httpToken.url && (
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold">URL:</span>
-                  <TextCopy value={httpToken.url} text={httpToken.url} className="break-all" />
-                </div>
-              )}
-              {httpToken.body && (
-                <div className="flex flex-col gap-1">
-                  <span className="font-semibold">Body:</span>
-                  <TextCopy value={httpToken.body} text={httpToken.body} />
+              {dnsRecord?.content && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-normal">Value</span>
+                  <BadgeCopy
+                    value={dnsRecord?.content ?? ''}
+                    badgeType="muted"
+                    badgeTheme="solid"
+                    className="font-mono text-nowrap"
+                    textClassName="text-ellipsis max-w-[240px] overflow-hidden"
+                  />
                 </div>
               )}
             </div>
           </div>
-        )}
+          <div className="flex w-1/2 flex-col gap-5 pl-7">
+            <p className="text-sm font-medium">Create a HTTP Token File</p>
+            <div className="flex flex-col gap-3.5">
+              {httpToken?.url && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-normal">URL</span>
+                  <BadgeCopy
+                    value={httpToken?.url ?? ''}
+                    badgeType="muted"
+                    badgeTheme="solid"
+                    className="font-mono text-nowrap"
+                    textClassName="text-ellipsis max-w-[240px] overflow-hidden"
+                  />
+                </div>
+              )}
+              {httpToken?.body && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-normal">Body</span>
+                  <BadgeCopy
+                    value={httpToken?.body ?? ''}
+                    badgeType="muted"
+                    badgeTheme="solid"
+                    className="font-mono text-nowrap"
+                    textClassName="text-ellipsis max-w-[240px] overflow-hidden"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
