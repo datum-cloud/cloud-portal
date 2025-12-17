@@ -103,7 +103,7 @@ export const Breadcrumb = (): React.ReactElement | null => {
         <BreadcrumbItem>
           <BreadcrumbLink
             href="/"
-            className="text-primary hover:text-secondary cursor-pointer transition-all">
+            className="text-primary hover:text-secondary mr-2 cursor-pointer transition-all">
             <Home size={16} />
           </BreadcrumbLink>
         </BreadcrumbItem>
