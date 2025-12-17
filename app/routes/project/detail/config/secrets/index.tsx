@@ -167,7 +167,7 @@ export default function SecretsPage() {
       rowActions={rowActions}
       onRowClick={(row) => {
         navigate(
-          getPathWithParams(paths.project.detail.config.secrets.detail.edit, {
+          getPathWithParams(paths.project.detail.config.secrets.detail.overview, {
             projectId,
             secretId: row.name,
           })

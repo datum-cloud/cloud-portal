@@ -60,7 +60,6 @@ export const paths = {
           detail: {
             root: '/project/[projectId]/secrets/[secretId]',
             overview: '/project/[projectId]/secrets/[secretId]/overview',
-            edit: '/project/[projectId]/secrets/[secretId]/edit',
           },
         },
       },

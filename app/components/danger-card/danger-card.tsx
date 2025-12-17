@@ -15,7 +15,7 @@ export const DangerCard = ({
   onDelete: () => void;
 }) => {
   return (
-    <Card className="border-destructive rounded-xl p-0 shadow-md">
+    <Card className="border-destructive rounded-xl p-0 shadow-none">
       <CardContent className="flex items-center justify-between gap-2 px-8 py-5">
         <div className="flex items-center gap-8">
           <TriangleAlertIcon size={34} className="text-destructive stroke-1" />
