@@ -23,7 +23,7 @@ export interface ChipsOverflowProps {
 
 const sizeClassNames: Record<ChipsOverflowSize, string> = {
   sm: 'text-[10px] px-1.5 py-0.5',
-  md: 'text-xs px-2 py-0.5',
+  md: 'text-sm px-2 py-0.5',
   lg: 'text-sm px-3 py-1',
 };
 
@@ -59,7 +59,11 @@ export function ChipsOverflow({
         key={index}
         type={type}
         theme={theme}
-        className={cn(sizeClassNames[size], isClickable ? 'cursor-pointer' : 'cursor-default')}
+        className={cn(
+          'rounded-xl font-normal',
+          sizeClassNames[size],
+          isClickable ? 'cursor-pointer' : 'cursor-default'
+        )}
         onClick={(event) => {
           event.stopPropagation();
           event.preventDefault();
@@ -111,7 +115,10 @@ export function ChipsOverflow({
               setOpen((prev) => !prev);
             }
           }}>
-          <Badge type={type} theme={theme} className={sizeClassNames[size]}>
+          <Badge
+            type={type}
+            theme={theme}
+            className={cn('rounded-xl font-normal', sizeClassNames[size])}>
             {overflowLabel(hiddenCount)}
           </Badge>
         </button>
@@ -133,7 +140,7 @@ export function ChipsOverflow({
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1',
+        'inline-flex items-center gap-2.5',
         wrap ? 'flex-wrap' : 'flex-nowrap',
         className
       )}>

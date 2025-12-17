@@ -1,14 +1,14 @@
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { NameserverChips } from '@/components/nameserver-chips';
-import { TextCopy } from '@/components/text-copy/text-copy';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import type { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import type { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Card, CardHeader, CardTitle, CardContent, LinkButton } from '@datum-ui/components';
+import { Card, CardContent, LinkButton, Badge } from '@datum-ui/components';
 import { useMemo } from 'react';
 
 export const DomainGeneralCard = ({
@@ -26,48 +26,71 @@ export const DomainGeneralCard = ({
     return [
       {
         label: 'Resource Name',
-        className: 'px-2',
-        content: <TextCopy className="text-sm" value={domain.name ?? ''} text={domain.name} />,
+        content: <BadgeCopy value={domain.name ?? ''} badgeType="muted" badgeTheme="solid" />,
       },
       {
-        label: 'Namespace',
-        className: 'px-2',
-        content: <span>{domain.namespace}</span>,
+        label: 'Registrar',
+        content: domain.status?.registration?.registrar?.name ? (
+          <Badge type="quaternary" theme="outline" className="rounded-xl text-sm font-normal">
+            {domain.status?.registration?.registrar?.name}
+          </Badge>
+        ) : (
+          '-'
+        ),
       },
       {
         label: 'DNS Host',
-        className: 'px-2',
-        content: <NameserverChips data={domain?.status?.nameservers} maxVisible={2} wrap />,
+        content: <NameserverChips data={domain?.status?.nameservers} maxVisible={99} wrap />,
       },
       {
         label: 'Status',
-        className: 'px-2',
         content: <DomainStatus domainStatus={domain.status} />,
       },
       {
         label: 'Expiration Date',
-        className: 'px-2',
         content: <DomainExpiration expiresAt={domain?.status?.registration?.expiresAt} />,
       },
       {
         label: 'Created At',
-        className: 'px-2',
-        content: <DateTime className="text-sm" date={domain?.createdAt ?? ''} variant="both" />,
+        content: (
+          <DateTime
+            className="text-sm"
+            date={domain?.createdAt ?? ''}
+            variant="absolute"
+            format="yyyy-MM-dd, HH:mmaaa"
+          />
+        ),
       },
       {
-        hidden: !dnsZone,
         label: 'DNS Zone',
-        className: 'px-2',
-        content: (
+        content: dnsZone ? (
           <LinkButton
             type="primary"
             theme="link"
             size="link"
+            className="font-semibold"
             to={getPathWithParams(paths.project.detail.dnsZones.detail.overview, {
               projectId: projectId ?? '',
               dnsZoneId: dnsZone?.name,
             })}>
             {domain.domainName}
+          </LinkButton>
+        ) : (
+          <LinkButton
+            type="primary"
+            theme="link"
+            size="link"
+            className="font-semibold"
+            to={getPathWithParams(
+              paths.project.detail.dnsZones.new,
+              {
+                projectId,
+              },
+              new URLSearchParams({
+                domainName: domain.domainName ?? '',
+              })
+            )}>
+            Transfer to Datum
           </LinkButton>
         ),
       },
@@ -75,11 +98,8 @@ export const DomainGeneralCard = ({
   }, [domain, dnsZone]);
 
   return (
-    <Card className="w-full">
-      <CardHeader className="px-6">
-        <CardTitle className="text-base leading-none font-medium">General</CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 pt-0 pb-2">
+    <Card className="w-full p-0 shadow-md">
+      <CardContent className="px-9 py-6">
         <List items={listItems} />
       </CardContent>
     </Card>

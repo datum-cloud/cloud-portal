@@ -1,4 +1,5 @@
-import { Button, Card, CardContent, Col, Row } from '@datum-ui/components';
+import { ComingSoonFeatureCard } from '@/components/coming-soon/coming-soon-feature-card';
+import { Col, Row } from '@datum-ui/components';
 
 export const ComingSoonCard = () => {
   const FEATURES = [
@@ -22,27 +23,7 @@ export const ComingSoonCard = () => {
     <Row gutter={[0, 16]}>
       {FEATURES.map((feature, index) => (
         <Col span={24} key={`coming-soon-feature-${index}`}>
-          <Card className="rounded-xl py-5 shadow-none">
-            <CardContent className="flex items-center justify-between gap-2">
-              <div className="flex max-w-[725px] flex-col gap-2">
-                <span className="text-sm font-medium">{feature.title}</span>
-                <span className="text-secondary/80 text-xs leading-relaxed font-normal">
-                  {feature.description}
-                </span>
-              </div>
-              <div>
-                <Button
-                  htmlType="button"
-                  type="quaternary"
-                  theme="outline"
-                  size="xs"
-                  disabled
-                  className="text-xs font-normal">
-                  Coming Soon
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <ComingSoonFeatureCard title={feature.title} description={feature.description} />
         </Col>
       ))}
     </Row>
