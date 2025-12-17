@@ -16,7 +16,7 @@ export const AccountLoginProviderCard = () => {
   const providerMeta = provider ? PROVIDERS[provider] : undefined;
 
   return (
-    <Card>
+    <Card className="shadow-none">
       <CardHeader>
         <CardTitle>Authentication</CardTitle>
       </CardHeader>

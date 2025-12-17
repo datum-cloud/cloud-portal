@@ -22,7 +22,7 @@ export const ComingSoonCard = () => {
     <Row gutter={[0, 16]}>
       {FEATURES.map((feature, index) => (
         <Col span={24} key={`coming-soon-feature-${index}`}>
-          <Card className="rounded-xl py-5">
+          <Card className="rounded-xl py-5 shadow-none">
             <CardContent className="flex items-center justify-between gap-2">
               <div className="flex max-w-[725px] flex-col gap-2">
                 <span className="text-sm font-medium">{feature.title}</span>

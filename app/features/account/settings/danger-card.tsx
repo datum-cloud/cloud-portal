@@ -40,7 +40,7 @@ export const AccountDangerSettingsCard = () => {
   }, [fetcher.data, fetcher.state]);
 
   return (
-    <Card className="border-destructive/50 hover:border-destructive border pb-0 transition-colors">
+    <Card className="border-destructive/50 hover:border-destructive border pb-0 shadow-none transition-colors">
       <CardHeader>
         <CardTitle className="text-destructive">Danger zone</CardTitle>
       </CardHeader>

@@ -202,7 +202,7 @@ export default function DnsRecordsPage() {
         // Inline form configuration
         enableInlineContent={true}
         inlineContent={({ mode, data, onClose }) => (
-          <div className="border-secondary relative rounded-lg border px-7 py-5 shadow-sm">
+          <div className="border-secondary relative rounded-lg border px-7 py-5 shadow">
             <DnsRecordInlineForm
               mode={mode}
               initialData={data}

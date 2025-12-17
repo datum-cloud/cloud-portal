@@ -21,7 +21,7 @@ export const DnsRecordCard = ({
   );
 
   return (
-    <Card className="relative gap-6 overflow-hidden rounded-xl px-3 py-8 shadow-md">
+    <Card className="relative gap-6 overflow-hidden rounded-xl px-3 py-8 shadow">
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2">
           <span className="text-lg font-medium">{title}</span>

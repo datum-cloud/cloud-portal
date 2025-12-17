@@ -12,7 +12,7 @@ import * as React from 'react';
  */
 
 const DEFAULT_CARD_CLASSNAME =
-  'bg-card text-card-foreground flex flex-col gap-4 rounded-xl border py-6 shadow-xs';
+  'bg-card text-card-foreground flex flex-col gap-4 rounded-xl border py-6 shadow';
 
 const Card = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return <div data-slot="card" className={cn(DEFAULT_CARD_CLASSNAME, className)} {...props} />;
