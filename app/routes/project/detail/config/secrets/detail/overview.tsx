@@ -12,7 +12,7 @@ export default function EditSecret() {
 
   return (
     <div className="mx-auto w-full max-w-7xl">
-      <Row gutter={[0, 28]}>
+      <Row gutter={[24, 32]}>
         <Col span={24}>
           <PageTitle title={secret?.name ?? 'Secret'} />
         </Col>

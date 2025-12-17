@@ -8,6 +8,7 @@ export interface BadgeCopyProps {
   value: string;
   text?: string;
   className?: string;
+  textClassName?: string;
   badgeType?: BadgeProps['type'];
   badgeTheme?: BadgeProps['theme'];
   showTooltip?: boolean;
@@ -17,6 +18,7 @@ export const BadgeCopy = ({
   value,
   text,
   className,
+  textClassName,
   badgeType = 'secondary',
   badgeTheme = 'light',
   showTooltip = true,
@@ -39,23 +41,21 @@ export const BadgeCopy = ({
   const displayText = text ?? value;
 
   const copyButton = (
-    <button
-      type="button"
+    <span
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
         copyToClipboard();
       }}
       className={cn(
-        'flex items-center justify-center rounded-sm transition-colors',
+        'flex items-center justify-center transition-colors',
         'hover:bg-black/5 dark:hover:bg-white/5',
         'focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-hidden',
-        'disabled:pointer-events-none disabled:opacity-50',
-        '-mr-0.5 ml-0.5'
+        'cursor-pointer disabled:pointer-events-none disabled:opacity-50'
       )}
       aria-label={copied ? 'Copied!' : 'Copy to clipboard'}>
       <CopyIcon className="size-3" />
-    </button>
+    </span>
   );
 
   const badgeContent = (
@@ -63,14 +63,14 @@ export const BadgeCopy = ({
       type={badgeType}
       theme={badgeTheme}
       className={cn(
-        'flex cursor-default items-center gap-1.5 px-1.5 py-0.5 text-xs font-normal',
+        'flex cursor-default items-center gap-2.5 rounded-md px-1.5 py-[5px] text-sm font-normal',
         className
       )}
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
       }}>
-      <span>{displayText}</span>
+      <span className={textClassName}>{displayText}</span>
       {showTooltip ? (
         <Tooltip message={copied ? 'Copied!' : 'Copy'}>{copyButton}</Tooltip>
       ) : (

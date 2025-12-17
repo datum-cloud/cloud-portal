@@ -6,7 +6,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId, secretId } = params;
 
   return redirect(
-    getPathWithParams(paths.project.detail.config.secrets.detail.edit, {
+    getPathWithParams(paths.project.detail.config.secrets.detail.overview, {
       projectId,
       secretId,
     })

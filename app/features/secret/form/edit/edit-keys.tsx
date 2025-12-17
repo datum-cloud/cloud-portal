@@ -80,10 +80,10 @@ export const EditSecretKeys = ({
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+      <Card className="w-full gap-6 py-9 shadow-md">
+        <CardHeader className="flex flex-row items-center justify-between px-9">
           <div className="flex flex-col gap-1.5">
-            <CardTitle>Key-value pairs</CardTitle>
+            <CardTitle className="text-lg font-medium">Key-value pairs</CardTitle>
           </div>
           <Button
             type="secondary"
@@ -94,36 +94,40 @@ export const EditSecretKeys = ({
             Add
           </Button>
         </CardHeader>
-        <CardContent>
-          <div className="flex max-w-full flex-col overflow-hidden rounded-md border">
+        <CardContent className="px-9">
+          <div className="flex max-w-full flex-col overflow-hidden rounded-lg border">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Key</TableHead>
-                  <TableHead className="w-[100px]"></TableHead>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="bg-background text-foreground h-8 border-r px-4 py-3 font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5">
+                    Key
+                  </TableHead>
+                  <TableHead className="bg-background text-foreground h-8 w-[100px] border-r px-4 py-3 font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {defaultValue?.data?.map((variable) => (
-                  <TableRow key={variable}>
-                    <TableCell className="px-2 py-1">{variable}</TableCell>
-                    <TableCell className="w-[100px] px-2 py-1">
+                  <TableRow
+                    key={variable}
+                    className="bg-table-cell hover:bg-table-cell-hover relative transition-colors">
+                    <TableCell className="px-4 py-2.5">{variable}</TableCell>
+                    <TableCell className="w-[100px] px-4 py-2.5">
                       <div className="flex items-center justify-end gap-1">
                         <Button
                           type="quaternary"
                           theme="borderless"
                           size="icon"
                           onClick={() => editKeyValueDialogRef.current?.show(variable)}
-                          className="text-muted-foreground hover:bg-muted hover:text-primary size-8">
-                          <PencilIcon className="size-4" />
+                          className="size-6 border">
+                          <PencilIcon className="size-3.5" />
                         </Button>
                         <Button
                           type="quaternary"
                           theme="borderless"
                           size="icon"
                           onClick={() => deleteSecret(variable)}
-                          className="text-muted-foreground hover:bg-muted hover:text-destructive size-8">
-                          <Trash2 className="size-4" />
+                          className="size-6 border">
+                          <Trash2 className="size-3.5" />
                         </Button>
                       </div>
                     </TableCell>

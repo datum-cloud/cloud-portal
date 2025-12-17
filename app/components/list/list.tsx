@@ -33,13 +33,13 @@ export const List = ({ items, className, itemClassName, labelClassName }: ListPr
           <div
             key={index}
             className={cn(
-              'flex w-full items-center gap-2 px-4 py-2 [&:not(:last-child)]:border-b',
+              'border-table-accent flex w-full items-center gap-2 py-3.5 [&:not(:last-child)]:border-b',
               itemClassName,
               item.className
             )}>
             <div
               className={cn(
-                'flex min-w-[100px] justify-start text-left text-sm font-medium',
+                'flex min-w-[200px] justify-start text-left text-sm font-semibold',
                 labelClassName
               )}>
               {item.label}
