@@ -79,7 +79,7 @@ export default function ExportPolicyOverview() {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.2, duration: 0.4 }}
-        className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        className="mx-auto flex w-full flex-col gap-6">
         <PageTitle
           title={(exportPolicy as IExportPolicyControlResponse)?.name ?? 'Export Policy'}
           description={
@@ -126,7 +126,7 @@ export default function ExportPolicyOverview() {
         />
       </motion.div>
 
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+      <div className="mx-auto flex w-full flex-col gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
