@@ -1,5 +1,6 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
+import { NoteCard } from '@/components/note-card/note-card';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { createProjectsControl } from '@/resources/control-plane';
 import { ICachedProject } from '@/resources/interfaces/project.interface';
@@ -7,7 +8,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Alert, AlertDescription, AlertTitle, Button } from '@datum-ui/components';
+import { Alert, AlertDescription, AlertTitle, Button, Col, Row } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, FolderRoot, PlusIcon, TriangleAlert } from 'lucide-react';
@@ -116,67 +117,75 @@ export default function OrgProjectsPage() {
   };
 
   return (
-    <div className="mx-auto flex w-full flex-col gap-6">
-      <DataTable
-        hideHeader
-        mode="card"
-        hidePagination
-        columns={columns}
-        data={projects ?? []}
-        onRowClick={(row) => {
-          if (row.name) {
-            return navigate(getPathWithParams(paths.project.detail.root, { projectId: row.name }));
-          }
+    <Row gutter={[0, 24]}>
+      <Col span={24}>
+        <DataTable
+          hideHeader
+          mode="card"
+          hidePagination
+          columns={columns}
+          data={projects ?? []}
+          onRowClick={(row) => {
+            if (row.name) {
+              return navigate(
+                getPathWithParams(paths.project.detail.root, { projectId: row.name })
+              );
+            }
 
-          return undefined;
-        }}
-        tableTitle={{
-          title: 'Projects',
-          actions: (
-            <Link to={getPathWithParams(paths.org.detail.projects.new, { orgId })}>
-              <Button type="primary" theme="solid" size="small">
-                <PlusIcon className="size-4" />
-                Create project
-              </Button>
-            </Link>
-          ),
-        }}
-        emptyContent={{
-          title: "Looks like you don't have any projects added yet",
-          actions: [
-            {
-              type: 'link',
-              label: 'Add a project',
-              to: getPathWithParams(paths.org.detail.projects.new, { orgId }),
-              variant: 'default',
-              icon: <ArrowRightIcon className="size-4" />,
-              iconPosition: 'end',
+            return undefined;
+          }}
+          tableTitle={{
+            title: 'Projects',
+            actions: (
+              <Link to={getPathWithParams(paths.org.detail.projects.new, { orgId })}>
+                <Button type="primary" theme="solid" size="small">
+                  <PlusIcon className="size-4" />
+                  Create project
+                </Button>
+              </Link>
+            ),
+          }}
+          emptyContent={{
+            title: "Looks like you don't have any projects added yet",
+            actions: [
+              {
+                type: 'link',
+                label: 'Add a project',
+                to: getPathWithParams(paths.org.detail.projects.new, { orgId }),
+                variant: 'default',
+                icon: <ArrowRightIcon className="size-4" />,
+                iconPosition: 'end',
+              },
+            ],
+          }}
+          toolbar={{
+            layout: 'compact',
+            includeSearch: {
+              placeholder: 'Search projects',
+              filterKey: 'q',
             },
-          ],
-        }}
-        toolbar={{
-          layout: 'compact',
-          includeSearch: {
-            placeholder: 'Search projects',
-            filterKey: 'q',
-          },
-        }}
-        defaultSorting={[{ id: 'createdAt', desc: true }]}
-      />
-
+          }}
+          defaultSorting={[{ id: 'createdAt', desc: true }]}
+        />
+      </Col>
       {showAlert && (
-        <Alert variant="warning" closable onClose={handleAlertClose}>
-          <TriangleAlert className="size-4" />
-          <AlertTitle>Understanding Projects</AlertTitle>
-          <AlertDescription>
-            <ul className="mt-2 list-disc space-y-1 pl-5">
-              <li>Projects are dedicated instances on Datum Cloud.</li>
-              <li>You can use them to manage your core network services, workloads, and assets.</li>
-              <li>There is no limit to how many you create.</li>
-            </ul>
-          </AlertDescription>
-        </Alert>
+        <Col span={24}>
+          <NoteCard
+            closable
+            onClose={handleAlertClose}
+            title="Understanding Projects"
+            description={
+              <ul className="list-disc space-y-2 pl-5 text-sm font-normal">
+                <li>Projects are dedicated instances on Datum Cloud.</li>
+                <li>
+                  You can use them to manage your core network services, workloads, and assets.
+                </li>
+                <li>There is no limit to how many you create.</li>
+              </ul>
+            }
+          />
+        </Col>
       )}
-    </div>
+    </Row>
   );
 }

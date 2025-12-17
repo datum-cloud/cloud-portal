@@ -1,6 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { InputName } from '@/components/input-name/input-name';
+import { NoteCard } from '@/components/note-card/note-card';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { organizationSchema } from '@/resources/schemas/organization.schema';
 import { ROUTE_PATH as ORGANIZATIONS_PATH } from '@/routes/api/organizations';
@@ -190,11 +191,12 @@ export default function AccountOrganizations() {
       {showAlert && (
         <Row gutter={16}>
           <Col span={20} push={2}>
-            <Alert variant="warning" closable onClose={handleAlertClose}>
-              <TriangleAlert className="size-4" />
-              <AlertTitle>Understanding Organizations</AlertTitle>
-              <AlertDescription>
-                <ul className="mt-2 list-disc space-y-1 pl-5">
+            <NoteCard
+              closable
+              onClose={handleAlertClose}
+              title="Understanding Organizations"
+              description={
+                <ul className="list-disc space-y-2 pl-5 text-sm font-normal">
                   <li>
                     Organizations group your projects with separate team and billing settings.
                   </li>
@@ -207,8 +209,8 @@ export default function AccountOrganizations() {
                     features.
                   </li>
                 </ul>
-              </AlertDescription>
-            </Alert>
+              }
+            />
           </Col>
         </Row>
       )}
