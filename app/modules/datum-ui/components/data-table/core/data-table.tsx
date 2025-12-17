@@ -428,7 +428,7 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
           <div
             className={cn(
               'flex max-w-full flex-col overflow-hidden',
-              mode === 'table' ? 'rounded-md border' : '',
+              mode === 'table' ? 'rounded-lg border' : '',
               tableContainerClassName
             )}>
             <Table className={tableClassName}>
