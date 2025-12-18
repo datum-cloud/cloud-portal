@@ -1,4 +1,4 @@
-import { LokiActivityLogsService, type QueryParams } from '@/modules/loki';
+import { type QueryParams } from '@/modules/loki';
 import { getSession } from '@/utils/cookies';
 import { AuthenticationError } from '@/utils/errors';
 import { isTimeoutOrNetworkError } from '@/utils/errors/axios';
@@ -60,46 +60,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     // Parse and validate query parameters
-    const url = new URL(request.url);
-    const queryParams = parseActivityLogParams(url.searchParams);
+    // const url = new URL(request.url);
+    // const queryParams = parseActivityLogParams(url.searchParams);
 
-    // Wrap service call in try-catch to ensure all errors are caught
-    let activityLogsResponse;
-    try {
-      const service = new LokiActivityLogsService(session.accessToken);
-      activityLogsResponse = await service.getActivityLogs(queryParams);
-    } catch (serviceError) {
-      // Always handle service errors gracefully to prevent full-page errors
-      // Check for timeout and network errors first
-      if (isTimeoutOrNetworkError(serviceError)) {
-        return data({
-          success: true,
-          data: {
-            logs: [],
-            query: '',
-            timeRange: {
-              start: '',
-              end: '',
-            },
-          },
-          message: 'Activity logs are not available at the moment. Please try again later.',
-        });
-      }
-
-      // For any other service error, log it and return a graceful response
-      // This prevents errors from escaping and triggering the error boundary
-      console.error('Activity logs service error:', serviceError);
-      const errorMessage = (serviceError as any)?.message ?? 'Failed to load activity logs';
-
-      return data({
-        success: false,
-        error: errorMessage,
-      });
-    }
+    // const service = new LokiActivityLogsService(session.accessToken);
+    // const activityLogsResponse = await service.getActivityLogs(queryParams);
 
     return data({
       success: true,
-      data: activityLogsResponse,
+      data: {
+        logs: [],
+        query: '',
+        timeRange: {
+          start: '',
+          end: '',
+        },
+      },
     });
   } catch (error) {
     // Handle timeout and network errors gracefully
