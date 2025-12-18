@@ -181,11 +181,11 @@ export default function ExportPoliciesPage() {
         );
       }}
       emptyContent={{
-        title: "let's add a export policy to get you started",
+        title: "let's add an export policy to get you started",
         actions: [
           {
             type: 'link',
-            label: 'Add export policy',
+            label: 'Create an export policy',
             to: getPathWithParams(paths.project.detail.metrics.exportPolicies.new, { projectId }),
             variant: 'default',
             icon: <PlusIcon className="size-3" />,
@@ -202,7 +202,7 @@ export default function ExportPoliciesPage() {
             })}>
             <Button type="primary" theme="solid" size="small">
               <PlusIcon className="size-4" />
-              Add export policy
+              Create an export policy
             </Button>
           </Link>
         ),
