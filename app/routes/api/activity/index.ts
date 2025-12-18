@@ -1,4 +1,4 @@
-import { LokiActivityLogsService, type QueryParams } from '@/modules/loki';
+import { type QueryParams } from '@/modules/loki';
 import { getSession } from '@/utils/cookies';
 import { AuthenticationError } from '@/utils/errors';
 import { isTimeoutOrNetworkError } from '@/utils/errors/axios';
@@ -60,15 +60,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
 
     // Parse and validate query parameters
-    const url = new URL(request.url);
-    const queryParams = parseActivityLogParams(url.searchParams);
+    // const url = new URL(request.url);
+    // const queryParams = parseActivityLogParams(url.searchParams);
 
-    const service = new LokiActivityLogsService(session.accessToken);
-    const activityLogsResponse = await service.getActivityLogs(queryParams);
+    // const service = new LokiActivityLogsService(session.accessToken);
+    // const activityLogsResponse = await service.getActivityLogs(queryParams);
 
     return data({
       success: true,
-      data: activityLogsResponse,
+      data: {
+        logs: [],
+        query: '',
+        timeRange: {
+          start: '',
+          end: '',
+        },
+      },
     });
   } catch (error) {
     // Handle timeout and network errors gracefully
