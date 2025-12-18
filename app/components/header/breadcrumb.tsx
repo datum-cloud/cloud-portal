@@ -99,7 +99,7 @@ export const Breadcrumb = (): React.ReactElement | null => {
 
   return (
     <BreadcrumbUI>
-      <BreadcrumbList>
+      <BreadcrumbList className="gap-[5px] sm:gap-[5px]">
         <BreadcrumbItem>
           <BreadcrumbLink
             href="/"
