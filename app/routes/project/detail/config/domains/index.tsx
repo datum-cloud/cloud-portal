@@ -8,7 +8,7 @@ import { useRevalidation } from '@/hooks/useRevalidation';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
-import { createDnsZonesControl, createDomainsControl } from '@/resources/control-plane';
+import { createDomainsControl } from '@/resources/control-plane';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';

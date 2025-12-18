@@ -37,7 +37,14 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     //   text: 'text-blue-600 dark:text-blue-400',
     //   bg: 'bg-blue-500/20 dark:bg-blue-500/20',
     // },
-    icon: <SpinnerIcon size="xs" aria-hidden="true" />,
+    icon: (
+      <SpinnerIcon
+        size="xs"
+        aria-hidden="true"
+        indicatorClassName="text-primary"
+        trackClassName="text-white"
+      />
+    ),
     defaultLabel: 'Pending',
   },
   error: {
