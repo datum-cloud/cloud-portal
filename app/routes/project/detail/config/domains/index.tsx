@@ -56,7 +56,6 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params;
   const { controlPlaneClient } = context as AppLoadContext;
   const domainsControl = createDomainsControl(controlPlaneClient as Client);
-  const dnsZonesControl = createDnsZonesControl(controlPlaneClient as Client);
 
   if (!projectId) {
     throw new BadRequestError('Project ID is required');
@@ -69,13 +68,6 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     domains.map(async (domain) => {
       const controlledStatus = transformControlPlaneStatus(domain.status);
 
-      // Fetch DNS zone for this domain (if domain has a name)
-      let dnsZone: IDnsZoneControlResponse | undefined;
-      if (domain?.name) {
-        const dnsZones = await dnsZonesControl.listByDomainRef(projectId, domain.name, 1);
-        dnsZone = dnsZones?.[0] ?? null;
-      }
-
       return {
         name: domain.name,
         domainName: domain.domainName,
@@ -84,7 +76,6 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
         expiresAt: domain.status?.registration?.expiresAt,
         status: domain.status,
         statusType: controlledStatus.status === ControlPlaneStatus.Success ? 'verified' : 'pending',
-        dnsZone,
       } as FormattedDomain;
     })
   );
@@ -313,12 +304,6 @@ export default function DomainsPage() {
         label: 'Refresh',
         variant: 'default',
         action: (row) => handleRefreshDomain(row),
-      },
-      {
-        key: 'dns',
-        label: 'Manage DNS Zone',
-        variant: 'default',
-        action: (row) => handleManageDnsZone(row),
       },
       {
         key: 'delete',
