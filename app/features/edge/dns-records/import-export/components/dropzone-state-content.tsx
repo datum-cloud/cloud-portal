@@ -1,5 +1,6 @@
+import { SpinnerIcon } from '@datum-ui/components';
 import { DropzoneContent } from '@datum-ui/components/dropzone/dropzone';
-import { Loader2, TriangleAlert } from 'lucide-react';
+import { TriangleAlert } from 'lucide-react';
 
 // =============================================================================
 // Types
@@ -23,7 +24,7 @@ export const DropzoneStateContent = ({ state, errorMessage }: DropzoneStateConte
   if (state === 'loading') {
     return (
       <DropzoneContent
-        icon={<Loader2 className="text-primary mb-3 size-9! animate-spin stroke-1" size={36} />}
+        icon={<SpinnerIcon size="xl" aria-hidden="true" />}
         description={
           <p className="text-muted-foreground text-xs font-normal">Parsing zone file...</p>
         }

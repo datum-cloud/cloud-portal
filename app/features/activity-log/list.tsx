@@ -141,12 +141,12 @@ export const ActivityLogList = ({
       columns={columns}
       data={logs}
       emptyContent={{
-        title: emptyMessage || 'No activity found.',
+        title: emptyMessage || `you haven't done anything yet.`,
       }}
       tableTitle={title ? { title } : undefined}
       tableClassName="table-fixed"
       isLoading={isLoading || isFiltering}
-      loadingText={isFiltering ? 'Filtering activity...' : 'Loading activity...'}
+      loadingText={isFiltering ? 'Filtering' : 'Loading'}
       tableCardClassName="px-3 py-2"
       className={className}
       serverSideFiltering

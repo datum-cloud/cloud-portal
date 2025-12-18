@@ -8,19 +8,11 @@ import { ROUTE_PATH as ORGANIZATIONS_PATH } from '@/routes/api/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-  Button,
-  Col,
-  DataTable,
-  Row,
-} from '@datum-ui/components';
+import { Button, Col, DataTable, Row } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
 import { cn } from '@shadcn/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, Building, PlusIcon, TriangleAlert } from 'lucide-react';
+import { ArrowRightIcon, Building, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActionFunctionArgs,

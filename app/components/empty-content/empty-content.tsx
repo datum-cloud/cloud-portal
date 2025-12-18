@@ -1,5 +1,7 @@
+import { useApp } from '@/providers/app.provider';
 import { Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
+import { cva, type VariantProps } from 'class-variance-authority';
 import { Link } from 'react-router';
 
 export interface EmptyContentAction {
@@ -12,157 +14,126 @@ export interface EmptyContentAction {
   iconPosition?: 'start' | 'end';
 }
 
-export interface EmptyContentProps {
-  // Content
+// Container variants
+const containerVariants = cva(
+  'flex items-center justify-center relative overflow-hidden bg-white/50 dark:bg-transparent',
+  {
+    variants: {
+      variant: {
+        default: 'rounded-lg border border-border',
+        dashed: 'rounded-lg border border-dashed border-border',
+        minimal: '',
+      },
+      size: {
+        xs: 'h-32 p-3',
+        sm: 'h-48 p-4',
+        md: 'h-[226px] p-6',
+        lg: 'h-80 p-8',
+        xl: 'h-96 p-12',
+      },
+      orientation: {
+        vertical: 'flex-col',
+        horizontal: 'flex-row',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'md',
+      orientation: 'vertical',
+    },
+  }
+);
+
+// Title variants
+const titleVariants = cva('font-normal text-foreground text-center', {
+  variants: {
+    size: {
+      xs: 'text-xs',
+      sm: 'text-sm',
+      md: 'text-sm',
+      lg: 'text-base',
+      xl: 'text-lg',
+    },
+  },
+  defaultVariants: {
+    size: 'md',
+  },
+});
+
+// Subtitle variants
+const subtitleVariants = cva('text-muted-foreground text-center text-xs font-normal', {
+  variants: {
+    size: {
+      xs: 'text-xs',
+      sm: 'text-xs',
+      md: 'text-xs',
+      lg: 'text-sm',
+      xl: 'text-base',
+    },
+  },
+  defaultVariants: {
+    size: 'md',
+  },
+});
+
+// Actions container variants
+const actionsContainerVariants = cva('flex items-center', {
+  variants: {
+    size: {
+      xs: 'gap-1',
+      sm: 'gap-1',
+      md: 'gap-1.5',
+      lg: 'gap-2',
+      xl: 'gap-3',
+    },
+    spacing: {
+      compact: '',
+      normal: '',
+      relaxed: '',
+    },
+  },
+  defaultVariants: {
+    size: 'sm',
+    spacing: 'normal',
+  },
+});
+
+// Action button variants
+const actionButtonVariants = cva('flex items-center gap-1', {
+  variants: {
+    size: {
+      xs: 'text-xs',
+      sm: 'text-xs',
+      md: 'text-xs',
+      lg: 'text-sm',
+      xl: 'text-sm',
+    },
+  },
+  defaultVariants: {
+    size: 'md',
+  },
+});
+
+// Size to button size mapping
+const BUTTON_SIZE_MAP = {
+  xs: 'xs',
+  sm: 'xs',
+  md: 'xs',
+  lg: 'default',
+  xl: 'default',
+} as const;
+
+export interface EmptyContentProps extends VariantProps<typeof containerVariants> {
   title?: string;
   subtitle?: string;
-  icon?: React.ReactNode;
-  image?: string;
-
-  // Layout & Styling
-  variant?: 'default' | 'dashed' | 'minimal' | 'centered';
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
-
-  // Actions
   actions?: EmptyContentAction[];
-
-  // Layout options
-  orientation?: 'vertical' | 'horizontal';
   spacing?: 'compact' | 'normal' | 'relaxed';
 }
-
-// Base styles that are consistent across variants
-const BASE_STYLES = {
-  container: 'flex items-center justify-center relative overflow-hidden',
-  content: 'flex flex-col items-center text-center relative z-10',
-  titleContainer: 'flex flex-col items-center',
-  title: 'font-normal text-foreground',
-  subtitle: 'text-muted-foreground',
-  actionsContainer: 'flex items-center',
-  button: 'flex items-center gap-1 !text-xs',
-} as const;
-
-// Variant-specific styles
-const VARIANT_STYLES = {
-  default: {
-    container: 'rounded-lg border-2 border-border bg-white dark:bg-transparent',
-    content: '',
-  },
-  dashed: {
-    container: 'rounded-lg border-2 border-dashed border-border bg-white dark:bg-transparent',
-    content: '',
-  },
-  minimal: {
-    container: 'bg-white dark:bg-transparent',
-    content: '',
-  },
-  centered: {
-    container: 'bg-white dark:bg-transparent',
-    content: '',
-  },
-} as const;
-
-// Size configurations - comprehensive sizing system
-const SIZE_CONFIG = {
-  xs: {
-    container: 'h-32 p-3',
-    content: 'gap-1.5',
-    icon: 'size-6',
-    image: 'size-16',
-    title: 'text-sm',
-    subtitle: 'text-xs',
-    titleGap: 'mb-1',
-    actionsGap: 'gap-1',
-    actionsMargin: 'mt-2',
-    buttonSize: 'sm' as const,
-  },
-  sm: {
-    container: 'h-48 p-4',
-    content: 'gap-2',
-    icon: 'size-8',
-    image: 'size-24',
-    title: 'text-base',
-    subtitle: 'text-sm',
-    titleGap: 'mb-1.5',
-    actionsGap: 'gap-1.5',
-    actionsMargin: 'mt-3',
-    buttonSize: 'sm' as const,
-  },
-  md: {
-    container: 'h-64 p-6',
-    content: 'gap-3',
-    icon: 'size-10',
-    image: 'size-32',
-    title: 'text-lg',
-    subtitle: 'text-sm',
-    titleGap: 'mb-2',
-    actionsGap: 'gap-2',
-    actionsMargin: 'mt-4',
-    buttonSize: 'sm' as const,
-  },
-  lg: {
-    container: 'h-80 p-8',
-    content: 'gap-4',
-    icon: 'size-12',
-    image: 'size-40',
-    title: 'text-xl',
-    subtitle: 'text-base',
-    titleGap: 'mb-3',
-    actionsGap: 'gap-3',
-    actionsMargin: 'mt-6',
-    buttonSize: 'default' as const,
-  },
-  xl: {
-    container: 'h-96 p-12',
-    content: 'gap-6',
-    icon: 'size-16',
-    image: 'size-48',
-    title: 'text-2xl',
-    subtitle: 'text-lg',
-    titleGap: 'mb-4',
-    actionsGap: 'gap-4',
-    actionsMargin: 'mt-8',
-    buttonSize: 'default' as const,
-  },
-} as const;
-
-// Spacing configurations
-const SPACING_CONFIG = {
-  compact: {
-    content: 'gap-1',
-    titleGap: 'mb-0.5',
-    actionsMargin: 'mt-1.5',
-  },
-  normal: {
-    content: '', // Uses size-based defaults
-    titleGap: '', // Uses size-based defaults
-    actionsMargin: '', // Uses size-based defaults
-  },
-  relaxed: {
-    content: 'gap-6',
-    titleGap: 'mb-4',
-    actionsMargin: 'mt-8',
-  },
-} as const;
-
-// Orientation configurations
-const ORIENTATION_CONFIG = {
-  vertical: {
-    container: 'flex-col',
-    content: 'flex-col',
-  },
-  horizontal: {
-    container: 'flex-row',
-    content: 'flex-row items-center text-left',
-  },
-} as const;
 
 export const EmptyContent = ({
   title = 'No data found',
   subtitle,
-  icon,
-  image,
   variant = 'default',
   size = 'md',
   className,
@@ -170,35 +141,21 @@ export const EmptyContent = ({
   orientation = 'vertical',
   spacing = 'normal',
 }: EmptyContentProps) => {
-  const sizeStyles = SIZE_CONFIG[size];
-  const variantStyles = VARIANT_STYLES[variant];
-  const spacingStyles = SPACING_CONFIG[spacing];
-  const orientationStyles = ORIENTATION_CONFIG[orientation];
-
-  const renderIcon = () => {
-    if (image) {
-      return <img src={image} alt="" className={cn(sizeStyles.image, 'object-contain')} />;
-    }
-
-    if (icon) {
-      return <div className={cn(sizeStyles.icon, 'text-muted-foreground')}>{icon}</div>;
-    }
-
-    return null;
-  };
+  const { user } = useApp();
+  const buttonSize = BUTTON_SIZE_MAP[size ?? 'md'];
 
   const renderAction = (action: EmptyContentAction) => {
-    const { icon, iconPosition = 'start' } = action;
+    const { icon: actionIcon, iconPosition = 'start' } = action;
 
     const buttonContent = (
       <Button
-        size={sizeStyles.buttonSize === 'default' ? 'default' : 'small'}
-        type={action.variant === 'destructive' ? 'danger' : 'tertiary'}
+        size={buttonSize}
+        type={action.variant === 'destructive' ? 'danger' : 'secondary'}
         theme="solid"
-        className={cn(BASE_STYLES.button, sizeStyles.subtitle)}>
-        {icon && iconPosition === 'start' && icon}
+        className={actionButtonVariants({ size })}>
+        {actionIcon && iconPosition === 'start' && actionIcon}
         <span>{action.label}</span>
-        {icon && iconPosition === 'end' && icon}
+        {actionIcon && iconPosition === 'end' && actionIcon}
       </Button>
     );
 
@@ -217,69 +174,58 @@ export const EmptyContent = ({
     return (
       <Button
         key={action.label}
-        size={sizeStyles.buttonSize === 'default' ? 'default' : 'small'}
+        size={buttonSize}
         onClick={action.onClick}
-        type={action.variant === 'destructive' ? 'danger' : 'tertiary'}
+        type={action.variant === 'destructive' ? 'danger' : 'secondary'}
         theme="solid"
-        className={cn(BASE_STYLES.button, sizeStyles.subtitle)}>
-        {icon && iconPosition === 'start' && icon}
+        className={actionButtonVariants({ size })}>
+        {actionIcon && iconPosition === 'start' && actionIcon}
         <span>{action.label}</span>
-        {icon && iconPosition === 'end' && icon}
+        {actionIcon && iconPosition === 'end' && actionIcon}
       </Button>
     );
   };
 
   return (
-    <div
-      className={cn(
-        BASE_STYLES.container,
-        orientationStyles.container,
-        variantStyles.container,
-        sizeStyles.container,
-        className
-      )}>
+    <div className={cn(containerVariants({ variant, size, orientation }), className)}>
       {/* Decorative corner images */}
       <img
-        src={'/images/scene-2.png'}
+        src={'/images/scene-5.png'}
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 left-0 h-auto w-1/3 max-w-96 -scale-x-100 select-none"
+        className="pointer-events-none absolute bottom-0 left-0 h-auto w-1/3 max-w-[230px] select-none"
       />
       <img
-        src={'/images/scene-1.png'}
+        src={'/images/scene-6.png'}
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute right-0 bottom-0 h-auto w-1/3 max-w-48 -scale-x-100 select-none"
+        className="pointer-events-none absolute right-0 bottom-0 h-auto w-1/3 max-w-[200px] select-none"
       />
 
-      <div
-        className={cn(
-          BASE_STYLES.content,
-          orientationStyles.content,
-          variantStyles.content,
-          spacingStyles.content || sizeStyles.content
-        )}>
-        {/* Icon/Image */}
-        {renderIcon()}
+      <img
+        src={'/images/scene-7.png'}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute top-0 right-4 h-auto w-1/3 max-w-[280px] select-none"
+      />
 
-        {/* Title and Subtitle */}
-        <div
-          className={cn(BASE_STYLES.titleContainer, spacingStyles.titleGap || sizeStyles.titleGap)}>
-          {title && <h2 className={cn(BASE_STYLES.title, sizeStyles.title)}>{title}</h2>}
-          {subtitle && <p className={cn(BASE_STYLES.subtitle, sizeStyles.subtitle)}>{subtitle}</p>}
-        </div>
-
-        {/* Actions */}
+      <div className="dark:bg-background border-border relative flex max-w-[224px] flex-col items-center justify-center gap-3.5 rounded-lg border bg-white px-6 py-7">
+        <h3 className={titleVariants({ size })}>
+          {`Hey ${user?.givenName ?? 'there'}, ${title ? `${title}.` : ''}`}
+        </h3>
+        {subtitle && <span className={subtitleVariants({ size })}>{subtitle}</span>}
         {actions.length > 0 && (
-          <div
-            className={cn(
-              BASE_STYLES.actionsContainer,
-              sizeStyles.actionsGap,
-              spacingStyles.actionsMargin || sizeStyles.actionsMargin
-            )}>
+          <div className={actionsContainerVariants({ size, spacing })}>
             {actions.map(renderAction)}
           </div>
         )}
+
+        <img
+          src={'/images/milo-stamp.png'}
+          alt="Milo"
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-4 right-2 h-auto w-7 rotate-[7.332deg] select-none"
+        />
       </div>
     </div>
   );

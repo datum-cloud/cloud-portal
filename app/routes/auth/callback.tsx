@@ -12,8 +12,8 @@ import {
 } from '@/utils/cookies';
 import { AuthenticationError } from '@/utils/errors';
 import { combineHeaders } from '@/utils/helpers/path.helper';
+import { SpinnerIcon } from '@datum-ui/components';
 import { jwtDecode } from 'jwt-decode';
-import { Loader2 } from 'lucide-react';
 import { LoaderFunctionArgs, redirect } from 'react-router';
 
 /**
@@ -111,7 +111,7 @@ export default function AuthCallbackPage() {
       <LogoIcon width={32} className="mb-4" />
 
       <>
-        <Loader2 className="text-primary h-8 w-8 animate-spin" />
+        <SpinnerIcon size="lg" aria-hidden="true" />
         <h2 className="text-xl font-semibold">Authenticating...</h2>
         <p className="text-muted-foreground text-sm">Setting up your account...</p>
       </>

@@ -2,9 +2,8 @@ import {
   ControlPlaneStatus,
   IControlPlaneStatus,
 } from '@/resources/interfaces/control-plane.interface';
-import { Badge, type BadgeProps, Tooltip } from '@datum-ui/components';
+import { Badge, type BadgeProps, Tooltip, SpinnerIcon } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Loader2 } from 'lucide-react';
 import { ReactNode } from 'react';
 
 interface StatusConfig {
@@ -38,7 +37,7 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     //   text: 'text-blue-600 dark:text-blue-400',
     //   bg: 'bg-blue-500/20 dark:bg-blue-500/20',
     // },
-    icon: <Loader2 className="size-3 animate-spin" aria-hidden="true" />,
+    icon: <SpinnerIcon size="xs" aria-hidden="true" />,
     defaultLabel: 'Pending',
   },
   error: {

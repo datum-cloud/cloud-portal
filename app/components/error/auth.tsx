@@ -1,7 +1,6 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { paths } from '@/utils/config/paths.config';
-import { Card, CardContent } from '@datum-ui/components';
-import { Loader2Icon } from 'lucide-react';
+import { Card, CardContent, SpinnerIcon } from '@datum-ui/components';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -20,7 +19,7 @@ export const AuthError = () => {
           <p className="w-full text-center text-2xl font-bold">Your session has expired</p>
 
           <div className="text-muted-foreground flex items-center justify-center gap-2 text-center text-sm">
-            <Loader2Icon className="size-4 animate-spin" />
+            <SpinnerIcon size="xs" aria-hidden="true" />
             Logging out...
           </div>
         </div>

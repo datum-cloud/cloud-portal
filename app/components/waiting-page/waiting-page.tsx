@@ -1,7 +1,6 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
-import { Card, CardContent, CardFooter } from '@datum-ui/components';
+import { Card, CardContent, CardFooter, SpinnerIcon } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Loader2 } from 'lucide-react';
 
 export const WaitingPage = ({ title, className }: { title: string; className?: string }) => {
   return (
@@ -10,7 +9,7 @@ export const WaitingPage = ({ title, className }: { title: string; className?: s
         <div className="flex flex-col items-center justify-center gap-6">
           <LogoIcon width={64} className="mb-4" />
           <p className="w-full text-center text-2xl font-bold">{title}</p>
-          <Loader2 className="size-10 animate-spin" />
+          <SpinnerIcon size="xl" aria-hidden="true" />
         </div>
       </CardContent>
       <CardFooter className="flex items-center justify-center">

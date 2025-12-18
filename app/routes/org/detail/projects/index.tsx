@@ -8,10 +8,10 @@ import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Alert, AlertDescription, AlertTitle, Button, Col, Row } from '@datum-ui/components';
+import { Button, Col, Row } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, FolderRoot, PlusIcon, TriangleAlert } from 'lucide-react';
+import { FolderRoot, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   ActionFunctionArgs,
@@ -146,15 +146,15 @@ export default function OrgProjectsPage() {
             ),
           }}
           emptyContent={{
-            title: "Looks like you don't have any projects added yet",
+            title: "let's create your first project!",
             actions: [
               {
                 type: 'link',
-                label: 'Add a project',
+                label: 'Create project',
                 to: getPathWithParams(paths.org.detail.projects.new, { orgId }),
                 variant: 'default',
-                icon: <ArrowRightIcon className="size-4" />,
-                iconPosition: 'end',
+                icon: <PlusIcon className="size-3" />,
+                iconPosition: 'start',
               },
             ],
           }}
