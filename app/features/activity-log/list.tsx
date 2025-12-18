@@ -3,7 +3,6 @@ import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import type { ActivityLogEntry, QueryParams } from '@/modules/loki/types';
 import { ROUTE_PATH as ACTIVITY_ROUTE_PATH } from '@/routes/api/activity';
-import { toast } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useEffect, useState } from 'react';
 import { DateRange } from 'react-day-picker';
@@ -124,8 +123,6 @@ export const ActivityLogList = ({
         // Set empty message if provided (e.g., timeout message)
         setEmptyMessage(fetcher.data?.message);
       } else {
-        // Only show toast for actual errors, not timeout cases
-        toast.error(fetcher.data?.error ?? 'An error occurred');
         setEmptyMessage(undefined);
       }
 

@@ -144,6 +144,22 @@ export async function executeLokiQuery(
     return response;
   } catch (error: any) {
     console.error('Loki query failed:', error);
+
+    // Preserve the original error if it's a timeout/network error so it can be properly detected upstream
+    // Check for common timeout/network error indicators
+    if (
+      error?.code === 'ECONNABORTED' ||
+      error?.code === 'ETIMEDOUT' ||
+      error?.code === 'ERR_CANCELED' ||
+      (error?.request && !error?.response) ||
+      error?.message?.toLowerCase().includes('timeout') ||
+      error?.message?.toLowerCase().includes('network')
+    ) {
+      // Re-throw the original error to preserve its properties
+      throw error;
+    }
+
+    // For other errors, wrap in a new Error with a descriptive message
     throw new Error(
       `Failed to query Loki: ${error?.data ? error.data : error instanceof Error ? error.message : 'Unknown error'}`
     );
