@@ -3,7 +3,7 @@ import { IProjectControlResponse, ICachedProject } from '@/resources/interfaces/
 import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api/projects';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-ui/components';
+import { Button, SpinnerIcon } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,
@@ -15,7 +15,7 @@ import {
   CommandSeparator,
 } from '@shadcn/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
-import { CheckIcon, ChevronDown, FolderRoot, Loader2 } from 'lucide-react';
+import { CheckIcon, ChevronDown, FolderRoot } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useFetcher, useNavigate } from 'react-router';
 
@@ -114,9 +114,9 @@ export const ProjectSwitcher = ({
               {fetcher.state === 'loading' && projects.length === 0 ? (
                 <CommandItem disabled className="px-4 py-2.5">
                   <div className="flex items-center justify-center">
-                    <Loader2 className="size-3.5 animate-spin" />
+                    <SpinnerIcon size="xs" aria-hidden="true" />
                   </div>
-                  <span className="text-xs">Loading...</span>
+                  <span className="text-xs">Loading</span>
                 </CommandItem>
               ) : (
                 <CommandGroup className="max-h-[300px] overflow-y-auto px-0 py-0">

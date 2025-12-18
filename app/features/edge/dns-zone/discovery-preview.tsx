@@ -13,9 +13,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
+  SpinnerIcon,
   toast,
 } from '@datum-ui/components';
-import { Loader2, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { useFetcher, useNavigate } from 'react-router';
@@ -188,9 +189,9 @@ export const DnsZoneDiscoveryPreview = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}>
-            <CardContent className="flex min-h-[346px] flex-col items-center justify-center gap-4">
-              <Loader2 className="text-primary h-8 w-8 animate-spin" />
-              <p className="text-muted-foreground text-sm">Discovering DNS records...</p>
+            <CardContent className="flex min-h-[346px] flex-col items-center justify-center gap-4.5">
+              <SpinnerIcon size="xl" aria-hidden="true" />
+              <p className="text-sm font-semibold">Discovering DNS records...</p>
             </CardContent>
           </motion.div>
         ) : dnsRecords.length > 0 ? (

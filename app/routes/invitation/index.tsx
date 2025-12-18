@@ -7,7 +7,7 @@ import { redirectWithToast } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-ui/components';
+import { Button, SpinnerIcon } from '@datum-ui/components';
 import {
   Card,
   CardContent,
@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
-import { Check, Loader2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   AppLoadContext,
@@ -159,7 +159,7 @@ export default function InvitationPage() {
                 className="w-full">
                 {isLoading && action === 'Accepted' ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" />
+                    <SpinnerIcon size="sm" aria-hidden="true" />
                     Joining...
                   </>
                 ) : (
@@ -178,7 +178,7 @@ export default function InvitationPage() {
                 className="text-destructive hover:text-destructive/80 w-full">
                 {isLoading && action === 'Declined' ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <SpinnerIcon size="sm" aria-hidden="true" className="mr-2" />
                     Declining...
                   </>
                 ) : (

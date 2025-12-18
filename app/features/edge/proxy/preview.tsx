@@ -6,7 +6,7 @@ import { ROUTE_PATH as HTTP_PROXY_DETAIL_PATH } from '@/routes/api/proxy/$id';
 import { paths } from '@/utils/config/paths.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
+import { Alert, AlertDescription, AlertTitle, SpinnerIcon } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import {
   Card,
@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
-import { InfoIcon, Loader2 } from 'lucide-react';
+import { InfoIcon } from 'lucide-react';
 import { AnimatePresence, motion, Variants } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFetcher, useNavigate } from 'react-router';
@@ -102,8 +102,8 @@ export const HttpProxyPreview = ({ data, projectId }: HttpProxyPreviewProps) => 
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}>
             <CardContent className="flex min-h-[346px] flex-col items-center justify-center gap-4">
-              <Loader2 className="text-primary h-8 w-8 animate-spin" />
-              <p className="text-muted-foreground text-sm">Setting up your proxy...</p>
+              <SpinnerIcon size="xl" aria-hidden="true" />
+              <p className="text-sm font-semibold">Setting up your proxy...</p>
             </CardContent>
           </motion.div>
         ) : (

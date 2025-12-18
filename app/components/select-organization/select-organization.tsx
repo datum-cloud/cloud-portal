@@ -2,7 +2,7 @@ import { OrganizationItem } from './organization-item';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
 import { paths } from '@/utils/config/paths.config';
-import { Button } from '@datum-ui/components';
+import { Button, SpinnerIcon } from '@datum-ui/components';
 import { toast } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import {
@@ -15,7 +15,7 @@ import {
   CommandSeparator,
 } from '@shadcn/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
-import { BuildingIcon, CheckIcon, ChevronDown, Loader2 } from 'lucide-react';
+import { BuildingIcon, CheckIcon, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useFetcher } from 'react-router';
 
@@ -93,7 +93,7 @@ export const SelectOrganization = ({
             {fetcher.state === 'loading' && organizations.length === 0 ? (
               <CommandItem disabled className="px-4 py-2.5">
                 <div className="flex items-center justify-center">
-                  <Loader2 className="size-3.5 animate-spin" />
+                  <SpinnerIcon size="xs" aria-hidden="true" />
                 </div>
                 <span className="text-xs">Loading...</span>
               </CommandItem>

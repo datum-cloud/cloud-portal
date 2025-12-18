@@ -1,8 +1,8 @@
 import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { type PrometheusError } from '@/modules/prometheus';
-import { Alert, AlertDescription } from '@datum-ui/components';
+import { Alert, AlertDescription, SpinnerIcon } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
-import { AlertCircle, Loader2, Minus } from 'lucide-react';
+import { AlertCircle, Minus } from 'lucide-react';
 import React from 'react';
 
 export interface BaseMetricProps {
@@ -48,7 +48,7 @@ export function BaseMetric({
         <div
           className="flex w-full items-center justify-center text-gray-400"
           style={containerStyle}>
-          <Loader2 className="h-8 w-8 animate-spin" />
+          <SpinnerIcon size="lg" aria-hidden="true" />
         </div>
       );
     }

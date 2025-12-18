@@ -1,6 +1,6 @@
+import { SpinnerIcon } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { Loader2 } from 'lucide-react';
 import * as React from 'react';
 
 const buttonVariants = cva(
@@ -266,11 +266,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     // For icon-only buttons, replace icon with loading spinner when loading
     const showIcon = !loading && icon;
     const getLoadingIcon = () => {
-      const iconSize = size === 'small' ? 'h-3 w-3' : size === 'large' ? 'h-5 w-5' : 'h-4 w-4';
-      return loadingIcon || <Loader2 className={`${iconSize} animate-spin`} />;
+      return (
+        loadingIcon || (
+          <SpinnerIcon
+            size={size === 'small' ? 'xs' : size === 'large' ? 'sm' : 'md'}
+            aria-hidden="true"
+          />
+        )
+      );
     };
     const showLoadingIcon =
-      loading && (isIconOnly ? getLoadingIcon() : <Loader2 className="h-4 w-4 animate-spin" />);
+      loading && (isIconOnly ? getLoadingIcon() : <SpinnerIcon size="sm" aria-hidden="true" />);
 
     const getIconOnlyClass = () => {
       if (!isIconOnly || size === 'icon') return '';

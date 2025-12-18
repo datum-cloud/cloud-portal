@@ -14,10 +14,16 @@ import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, DataTable, DataTableRowActionsProps, toast } from '@datum-ui/components';
+import {
+  Button,
+  DataTable,
+  DataTableRowActionsProps,
+  SpinnerIcon,
+  toast,
+} from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { Loader2Icon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import {
   AppLoadContext,
@@ -173,7 +179,7 @@ export default function DnsZonesPage() {
 
           // Show spinner if nameservers data is not available yet
           if (!nameservers) {
-            return <Loader2Icon className="text-muted-foreground size-4 animate-spin" />;
+            return <SpinnerIcon size="sm" aria-hidden="true" className="text-muted-foreground" />;
           }
 
           return <NameserverChips data={nameservers} maxVisible={2} />;
