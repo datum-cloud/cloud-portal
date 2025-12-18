@@ -141,7 +141,7 @@ export const ActivityLogList = ({
       columns={columns}
       data={logs}
       emptyContent={{
-        title: emptyMessage || 'No activity found.',
+        title: emptyMessage || `you haven't done anything yet.`,
       }}
       tableTitle={title ? { title } : undefined}
       tableClassName="table-fixed"

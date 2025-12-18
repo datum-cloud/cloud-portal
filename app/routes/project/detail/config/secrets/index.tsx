@@ -13,7 +13,7 @@ import { Badge } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   LoaderFunctionArgs,
@@ -131,15 +131,15 @@ export default function SecretsPage() {
       columns={columns}
       data={data ?? []}
       emptyContent={{
-        title: "Looks like you don't have any secrets added yet",
+        title: "let's add a secret to get you started",
         actions: [
           {
             type: 'link',
-            label: 'Add a secret',
+            label: 'Add secret',
             to: getPathWithParams(paths.project.detail.config.secrets.new, { projectId }),
             variant: 'default',
-            icon: <ArrowRightIcon className="size-4" />,
-            iconPosition: 'end',
+            icon: <PlusIcon className="size-3" />,
+            iconPosition: 'start',
           },
         ],
       }}

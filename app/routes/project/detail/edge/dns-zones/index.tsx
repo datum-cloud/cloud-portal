@@ -17,7 +17,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, DataTable, DataTableRowActionsProps, toast } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, Loader2Icon, PlusIcon } from 'lucide-react';
+import { Loader2Icon, PlusIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import {
   AppLoadContext,
@@ -278,7 +278,7 @@ export default function DnsZonesPage() {
         );
       }}
       emptyContent={{
-        title: "Looks like you don't have any DNS added yet",
+        title: "let's add a DNS to get you started",
         actions: [
           {
             type: 'link',
@@ -287,8 +287,8 @@ export default function DnsZonesPage() {
               projectId,
             }),
             variant: 'default',
-            icon: <ArrowRightIcon className="size-4" />,
-            iconPosition: 'end',
+            icon: <PlusIcon className="size-3" />,
+            iconPosition: 'start',
           },
         ],
       }}

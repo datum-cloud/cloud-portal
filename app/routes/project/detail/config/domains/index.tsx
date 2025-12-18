@@ -24,7 +24,7 @@ import { Badge, Button, toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
   AppLoadContext,
@@ -345,15 +345,15 @@ export default function DomainsPage() {
           );
         }}
         emptyContent={{
-          title: "Looks like you don't have any domains added yet",
+          title: "let's add a domain to get you started",
           actions: [
             {
               type: 'button',
-              label: 'Add a domain',
+              label: 'Add domain',
               onClick: () => setOpenAddDialog(true),
               variant: 'default',
-              icon: <ArrowRightIcon className="size-4" />,
-              iconPosition: 'end',
+              icon: <PlusIcon className="size-3" />,
+              iconPosition: 'start',
             },
           ],
         }}

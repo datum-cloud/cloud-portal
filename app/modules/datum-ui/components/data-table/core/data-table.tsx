@@ -470,7 +470,7 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
           {!hidePagination && <DataTablePagination table={table} />}
         </div>
       ) : (
-        <EmptyContent variant="dashed" {...emptyContent} />
+        <EmptyContent {...emptyContent} />
       )}
     </div>
   );

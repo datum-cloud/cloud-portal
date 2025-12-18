@@ -14,7 +14,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   AppLoadContext,
@@ -181,15 +181,15 @@ export default function ExportPoliciesPage() {
         );
       }}
       emptyContent={{
-        title: "Looks like you don't have any export policies added yet",
+        title: "let's add a export policy to get you started",
         actions: [
           {
             type: 'link',
-            label: 'Add a export policy',
+            label: 'Add export policy',
             to: getPathWithParams(paths.project.detail.metrics.exportPolicies.new, { projectId }),
             variant: 'default',
-            icon: <ArrowRightIcon className="size-4" />,
-            iconPosition: 'end',
+            icon: <PlusIcon className="size-3" />,
+            iconPosition: 'start',
           },
         ],
       }}

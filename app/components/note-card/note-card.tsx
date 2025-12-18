@@ -1,4 +1,4 @@
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { CircleXIcon } from 'lucide-react';
 
 export const NoteCard = ({

@@ -177,11 +177,11 @@ export default function HttpProxyPage() {
         );
       }}
       emptyContent={{
-        title: "Looks like you don't have any Proxy added yet",
+        title: "let's add a Proxy to get you started",
         actions: [
           {
             type: 'link',
-            label: 'Add a Proxy',
+            label: 'Add proxy',
             to: getPathWithParams(paths.project.detail.proxy.new, {
               projectId,
             }),
