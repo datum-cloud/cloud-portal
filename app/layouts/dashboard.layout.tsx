@@ -80,7 +80,7 @@ export function DashboardLayout({
 
       {/* Sidebar + Content area below header */}
       <SidebarProvider
-        defaultOpen={sidebarCollapsible === 'offcanvas'}
+        defaultOpen={true}
         expandOnHover={sidebarCollapsible === 'icon'}
         expandBehavior={expandBehavior}
         showBackdrop={showBackdrop}

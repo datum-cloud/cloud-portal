@@ -46,10 +46,10 @@ export type NavItem = {
 // Centralized style constants for nav menu buttons
 const NAV_STYLES = {
   menuButton:
-    'text-foreground rounded-lg h-8 font-normal transition-all px-2 py-1 data-[active=true]:bg-sidebar-accent data-[active=true]:text-foreground data-[active=true]:font-medium hover:bg-sidebar-accent hover:text-foreground',
+    'text-sidebar-foreground rounded-lg h-8 font-normal transition-all px-2 py-1 data-[active=true]:bg-sidebar data-[active=true]:text-foreground data-[active=true]:text-sidebar-primary data-[active=true]:[&>svg]:text-primary hover:bg-sidebar hover:text-sidebar-primary hover:[&>svg]:text-sidebar-primary',
   disabled: 'pointer-events-none opacity-50',
-  icon: 'text-icon-primary',
-  iconSmall: 'text-icon-primary size-4',
+  icon: 'text-sidebar-foreground',
+  iconSmall: 'text-sidebar-foreground size-4',
 } as const;
 
 // Centralized icon renderer component
@@ -152,7 +152,46 @@ export const NavMain = forwardRef<
           return cleanCurrentPath === '/'; // Active if current path is also root
         }
 
-        // Check for exact match or if current path is a sub-path of nav item path
+        // Helper to recursively check if any descendant matches the pathname
+        const hasActiveDescendant = (navItem: NavItem): boolean => {
+          if (!navItem.children || navItem.children.length === 0) {
+            return false;
+          }
+
+          return navItem.children.some((child) => {
+            if (!child.href) {
+              // If child has no href but has children, check its descendants
+              return hasActiveDescendant(child);
+            }
+
+            const cleanChildPath = normalize(child.href);
+            const childMatches =
+              cleanCurrentPath === cleanChildPath ||
+              cleanCurrentPath.startsWith(`${cleanChildPath}/`);
+
+            // If this child matches, return true
+            if (childMatches) {
+              return true;
+            }
+
+            // Otherwise, check this child's descendants
+            return hasActiveDescendant(child);
+          });
+        };
+
+        // If item has children, check if any descendant is active
+        const hasChildren = (item.children || []).length > 0;
+        if (hasChildren) {
+          // If a descendant is active, parent should not be active
+          if (hasActiveDescendant(item)) {
+            return false;
+          }
+
+          // If no descendant is active, only exact match for parent
+          return cleanCurrentPath === cleanNavPath;
+        }
+
+        // For items without children, check for exact match or sub-path
         const isDirectMatch =
           cleanCurrentPath === cleanNavPath || cleanCurrentPath.startsWith(`${cleanNavPath}/`);
 
@@ -226,7 +265,7 @@ export const NavMain = forwardRef<
               <DropdownMenuTrigger asChild>
                 <NavSidebarMenuButton
                   item={item}
-                  isActive={isActive || hasActiveChild}
+                  isActive={isActive}
                   disableTooltip={disableTooltip}
                   className={itemClassName}
                 />
@@ -254,7 +293,7 @@ export const NavMain = forwardRef<
                                   'bg-primary/10 text-primary'
                               )}>
                               <span>{subItem.title}</span>
-                              <ChevronRight className="ml-auto size-4" />
+                              <ChevronRight className="text-sidebar-foreground ml-auto size-4" />
                             </DropdownMenuItem>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent side="right" align="start">
@@ -318,11 +357,11 @@ export const NavMain = forwardRef<
                 <CollapsibleTrigger asChild className="w-full">
                   <NavSidebarMenuButton
                     item={item}
-                    isActive={isActive || hasActiveChild}
+                    isActive={isActive}
                     disableTooltip={disableTooltip}
                     className={itemClassName}>
                     <span>{item.title}</span>
-                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    <ChevronRight className="text-sidebar-foreground ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </NavSidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -342,30 +381,42 @@ export const NavMain = forwardRef<
         );
       }
 
-      const renderCollapsible = (currentItem: NavItem, currentLevel: number) => (
-        <Collapsible
-          key={`collapsed-item-drop-down-item-${currentItem.title}-${currentLevel}`}
-          asChild
-          defaultOpen={isOpen}
-          className="group/collapsible">
-          <SidebarMenuItem key={`collapsible-sidebar-${currentItem.title}-${currentLevel}`}>
-            <CollapsibleTrigger asChild className="w-full">
-              <NavSidebarMenuButton
-                item={currentItem}
-                disableTooltip={disableTooltip}
-                className={itemClassName}>
-                <span>{currentItem.title}</span>
-                <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-              </NavSidebarMenuButton>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <SidebarMenuSub className={currentLevel >= 1 ? 'mr-0 pr-[.1rem]' : ''}>
-                {currentItem.children?.map((subItem) => renderNavItem(subItem, currentLevel + 1))}
-              </SidebarMenuSub>
-            </CollapsibleContent>
-          </SidebarMenuItem>
-        </Collapsible>
-      );
+      const renderCollapsible = (currentItem: NavItem, currentLevel: number) => {
+        const currentItemIsActive = activeNavItem(currentItem);
+        const currentItemPathnameExistInDropdowns =
+          currentItem.children?.filter((dropdownItem: NavItem) =>
+            pathname.includes(dropdownItem.href as string)
+          ) || [];
+        const currentItemIsOpen =
+          openItems[currentItem.href as string] ||
+          Boolean(currentItemPathnameExistInDropdowns.length);
+
+        return (
+          <Collapsible
+            key={`collapsed-item-drop-down-item-${currentItem.title}-${currentLevel}`}
+            asChild
+            defaultOpen={currentItemIsOpen}
+            className="group/collapsible">
+            <SidebarMenuItem key={`collapsible-sidebar-${currentItem.title}-${currentLevel}`}>
+              <CollapsibleTrigger asChild className="w-full">
+                <NavSidebarMenuButton
+                  item={currentItem}
+                  isActive={currentItemIsActive}
+                  disableTooltip={disableTooltip}
+                  className={itemClassName}>
+                  <span>{currentItem.title}</span>
+                  <ChevronRight className="text-sidebar-foreground ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                </NavSidebarMenuButton>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarMenuSub className={currentLevel >= 1 ? 'mr-0 pr-[.1rem]' : ''}>
+                  {currentItem.children?.map((subItem) => renderNavItem(subItem, currentLevel + 1))}
+                </SidebarMenuSub>
+              </CollapsibleContent>
+            </SidebarMenuItem>
+          </Collapsible>
+        );
+      };
 
       if (level <= 2 && hasChildren) {
         return <SidebarMenu key={itemKey}>{renderCollapsible(item, level)}</SidebarMenu>;
@@ -389,14 +440,14 @@ export const NavMain = forwardRef<
                   className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {item?.icon && <item.icon className="text-icon-primary size-4" />}
-                    <span className={cn(level >= 1 && 'text-xs')}>{item.title}</span>
+                    <span>{item.title}</span>
                   </div>
                   <ExternalLinkIcon className="ml-auto size-4" />
                 </a>
               ) : (
                 <Link to={item.href || ''} onClick={handleNavigation}>
-                  {item?.icon && <item.icon className="text-icon-primary" />}
-                  <span className={cn(level >= 1 && 'text-xs')}>{item.title}</span>
+                  {item?.icon && <item.icon />}
+                  <span>{item.title}</span>
                 </Link>
               )}
             </NavSidebarMenuButton>

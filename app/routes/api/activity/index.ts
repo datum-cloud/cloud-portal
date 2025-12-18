@@ -63,8 +63,39 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const url = new URL(request.url);
     const queryParams = parseActivityLogParams(url.searchParams);
 
-    const service = new LokiActivityLogsService(session.accessToken);
-    const activityLogsResponse = await service.getActivityLogs(queryParams);
+    // Wrap service call in try-catch to ensure all errors are caught
+    let activityLogsResponse;
+    try {
+      const service = new LokiActivityLogsService(session.accessToken);
+      activityLogsResponse = await service.getActivityLogs(queryParams);
+    } catch (serviceError) {
+      // Always handle service errors gracefully to prevent full-page errors
+      // Check for timeout and network errors first
+      if (isTimeoutOrNetworkError(serviceError)) {
+        return data({
+          success: true,
+          data: {
+            logs: [],
+            query: '',
+            timeRange: {
+              start: '',
+              end: '',
+            },
+          },
+          message: 'Activity logs are not available at the moment. Please try again later.',
+        });
+      }
+
+      // For any other service error, log it and return a graceful response
+      // This prevents errors from escaping and triggering the error boundary
+      console.error('Activity logs service error:', serviceError);
+      const errorMessage = (serviceError as any)?.message ?? 'Failed to load activity logs';
+
+      return data({
+        success: false,
+        error: errorMessage,
+      });
+    }
 
     return data({
       success: true,
