@@ -47,7 +47,7 @@ export const TaskNameserverCard = ({
               key={`nameserver-${index}`}
               value={nameserver ?? ''}
               text={nameserver ?? ''}
-              badgeTheme="light"
+              badgeTheme="solid"
               badgeType="muted"
             />
           ))}

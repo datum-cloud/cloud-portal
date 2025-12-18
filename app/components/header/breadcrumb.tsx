@@ -99,11 +99,11 @@ export const Breadcrumb = (): React.ReactElement | null => {
 
   return (
     <BreadcrumbUI>
-      <BreadcrumbList>
+      <BreadcrumbList className="gap-[5px] sm:gap-[5px]">
         <BreadcrumbItem>
           <BreadcrumbLink
             href="/"
-            className="text-primary hover:text-secondary cursor-pointer transition-all">
+            className="text-primary hover:text-secondary mr-2 cursor-pointer transition-all">
             <Home size={16} />
           </BreadcrumbLink>
         </BreadcrumbItem>

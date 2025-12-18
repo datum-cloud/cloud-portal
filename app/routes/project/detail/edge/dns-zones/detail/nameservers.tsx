@@ -84,9 +84,8 @@ export default function DnsZoneNameserversPage() {
                           key={`nameserver-${index}`}
                           value={nameserver ?? ''}
                           text={nameserver ?? ''}
-                          badgeTheme="light"
-                          badgeType="muted"
-                          className="border-none"
+                          badgeTheme="solid"
+                          badgeType="quaternary"
                         />
                       ))}
                     </div>

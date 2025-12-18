@@ -149,6 +149,7 @@ Scope variables to the theme class so we can swap themes by class
   --btn-secondary: rgba(56, 69, 85, 0.9);
   --btn-tertiary: var(--tertiary);
   --btn-quaternary: var(--quaternary);
+  --btn-quaternary-hover: var(--app-dark-utility-4);
 
   /* Icon Colors */
   --icon-primary: var(--app-dark-utility-3);
@@ -187,7 +188,7 @@ Scope variables to the theme class so we can swap themes by class
 
     /* Quaternary colors */
     --quaternary: var(--app-dark-utility-2);
-    --quaternary-foreground: var(--app-dark-utility-4);
+    --quaternary-foreground: var(--glacier-mist-700);
 
     /* Muted colors */
     --muted: var(--app-dark-utility-1);
@@ -273,6 +274,7 @@ Scope variables to the theme class so we can swap themes by class
     --btn-secondary: var(--btn-primary);
     --btn-tertiary: var(--btn-primary);
     --btn-quaternary: var(--quaternary);
+    --btn-quaternary-hover: var(--app-dark-utility-3);
 
     /* Icon Colors */
     --icon-primary: var(--app-dark-utility-4);
@@ -354,6 +356,7 @@ TAILWIND CUSTOM UTILITIES FOR THEME
   --color-btn-secondary: var(--btn-secondary);
   --color-btn-tertiary: var(--btn-tertiary);
   --color-btn-quaternary: var(--btn-quaternary);
+  --color-btn-quaternary-hover: var(--btn-quaternary-hover);
 }
 
 /* ========================================

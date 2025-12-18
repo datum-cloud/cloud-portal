@@ -132,7 +132,7 @@ const buttonVariants = cva(
         type: 'quaternary',
         theme: 'outline',
         className:
-          'border-quaternary text-quaternary-foreground hover:bg-quaternary hover:text-quaternary-foreground active:bg-quaternary/90 active:text-quaternary-foreground',
+          'border-quaternary text-quaternary-foreground hover:border-btn-quaternary-hover hover:text-quaternary-foreground active:bg-quaternary/90 active:text-quaternary-foreground',
       },
       {
         type: 'quaternary',
