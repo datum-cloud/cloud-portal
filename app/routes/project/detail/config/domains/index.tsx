@@ -2,14 +2,12 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { NameserverChips } from '@/components/nameserver-chips';
 import { BulkAddDomainsAction } from '@/features/edge/domain/bulk-add';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
-import { DomainStatus } from '@/features/edge/domain/status';
 import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { useRevalidation } from '@/hooks/useRevalidation';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
 import { createDomainsControl } from '@/resources/control-plane';
-import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { domainSchema } from '@/resources/schemas/domain.schema';
@@ -75,7 +73,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
         nameservers: domain.status?.nameservers,
         expiresAt: domain.status?.registration?.expiresAt,
         status: domain.status,
-        statusType: controlledStatus.status === ControlPlaneStatus.Success ? 'verified' : 'pending',
+        // statusType: controlledStatus.status === ControlPlaneStatus.Success ? 'verified' : 'pending',
       } as FormattedDomain;
     })
   );
@@ -90,13 +88,13 @@ export default function DomainsPage() {
   const csrf = useAuthenticityToken();
 
   // Check if any domain is pending verification
-  const hasPendingDomains = useMemo(() => {
-    return (data ?? []).some((domain) => domain.statusType === 'pending');
-  }, [data]);
+  // const hasPendingDomains = useMemo(() => {
+  //   return (data ?? []).some((domain) => domain.statusType === 'pending');
+  // }, [data]);
 
   // Revalidation with polling (when pending), focus refresh, and reconnect refresh
   const { revalidate } = useRevalidation({
-    interval: hasPendingDomains ? 10000 : false,
+    interval: false, // hasPendingDomains ? 10000 : false,
   });
 
   const { confirm } = useConfirmationDialog();
@@ -281,7 +279,7 @@ export default function DomainsPage() {
           sortType: 'date',
         },
       },
-      {
+      /* {
         id: 'statusType',
         header: 'Status',
         accessorKey: 'statusType',
@@ -292,7 +290,7 @@ export default function DomainsPage() {
           sortable: false,
           searchable: false,
         },
-      },
+      }, */
     ],
     [projectId]
   );
