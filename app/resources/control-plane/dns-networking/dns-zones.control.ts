@@ -177,7 +177,8 @@ export const createDnsZonesControl = (client: Client) => {
             namespace: 'default',
           },
           query: {
-            fieldSelector: `status.domainRef.name=${domainRef}`, // use domain ref to filter DNS zones since dns zones can create multiple DNS zones for the same domain
+            // fieldSelector: `status.domainRef.name=${domainRef}`, // use domain ref to filter DNS zones since dns zones can create multiple DNS zones for the same domain
+            fieldSelector: `spec.domainName=${domainRef}`, // use domain name to filter DNS zones since dns zones can create multiple DNS zones for the same domain
             limit,
           },
         });

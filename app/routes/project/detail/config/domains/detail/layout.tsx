@@ -47,8 +47,8 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   }
 
   let dnsZone: IDnsZoneControlResponse | null = null;
-  if (domain?.name) {
-    const dnsZones = await dnsZonesControl.listByDomainRef(projectId, domain?.name ?? '', 1);
+  if (domain?.domainName) {
+    const dnsZones = await dnsZonesControl.listByDomainRef(projectId, domain?.domainName ?? '', 1);
     dnsZone = dnsZones?.[0] ?? null;
   }
 
