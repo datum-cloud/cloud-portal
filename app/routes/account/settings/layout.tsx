@@ -21,7 +21,7 @@ export default function AccountSettingsLayout() {
     <DashboardLayout
       navItems={navItems}
       sidebarCollapsible="offcanvas"
-      contentClassName="max-w-4xl mx-auto w-full"
+      contentClassName="w-full"
       sidebarHeader={<BackButton />}>
       <Outlet />
     </DashboardLayout>

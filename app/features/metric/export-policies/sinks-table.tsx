@@ -42,7 +42,11 @@ export const WorkloadSinksTable = ({
         enableSorting: false,
         cell: ({ row }: any) => {
           const type = row.original?.target?.prometheusRemoteWrite ? 'Prometheus' : 'Unknown';
-          return <Badge theme="outline">{type}</Badge>;
+          return (
+            <Badge type="quaternary" theme="outline">
+              {type}
+            </Badge>
+          );
         },
       },
       {
