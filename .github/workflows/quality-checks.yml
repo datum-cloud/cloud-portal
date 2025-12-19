@@ -35,7 +35,7 @@ jobs:
 
       - name: Cache Dependencies
         id: cache-deps
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ${{ env.BUN_CACHE }}
@@ -58,7 +58,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Restore Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ${{ env.BUN_CACHE }}
@@ -86,7 +86,7 @@ jobs:
           bun-version: latest
 
       - name: Restore Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ${{ env.BUN_CACHE }}
@@ -111,7 +111,7 @@ jobs:
           bun-version: latest
 
       - name: Restore Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ${{ env.BUN_CACHE }}
@@ -122,7 +122,7 @@ jobs:
         run: bun run build
 
       - name: Cache Build
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: build
           key: build-${{ github.sha }}
@@ -143,7 +143,7 @@ jobs:
           bun-version: latest
 
       - name: Restore Dependencies Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ${{ env.BUN_CACHE }}
@@ -151,7 +151,7 @@ jobs:
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
 
       - name: Restore Build Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: build
           key: build-${{ github.sha }}
