@@ -4,6 +4,7 @@ import {
   ManageRoleModalForm,
   ManageRoleModalFormRef,
 } from '@/features/organization/team/manage-role';
+import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
@@ -33,13 +34,12 @@ import {
   UserPenIcon,
   UserPlusIcon,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import {
   AppLoadContext,
   Link,
   LoaderFunctionArgs,
   data,
-  useFetcher,
   useLoaderData,
   useParams,
 } from 'react-router';
@@ -142,7 +142,14 @@ export default function OrgTeamPage() {
 
   const { orgId } = useParams();
   const { user } = useApp();
-  const fetcher = useFetcher();
+  const fetcher = useDatumFetcher<{ success: boolean; message: string; error: string }>({
+    onSuccess: (data) => {
+      toast.success(data.message);
+    },
+    onError: (data) => {
+      toast.error(data.error);
+    },
+  });
   const { confirm } = useConfirmationDialog();
 
   const manageRoleModalForm = useRef<ManageRoleModalFormRef>(null);
@@ -444,11 +451,11 @@ export default function OrgTeamPage() {
         },
         action: (row: ITeamMember) => {
           const role = row.roles?.[0];
-          if (!role) return;
+
           manageRoleModalForm.current?.show({
             id: row.name ?? '',
-            roleName: role.name,
-            roleNamespace: role.namespace ?? 'datum-cloud',
+            roleName: role?.name ?? '',
+            roleNamespace: role?.namespace ?? 'datum-cloud',
           });
         },
       },
@@ -509,16 +516,6 @@ export default function OrgTeamPage() {
     ],
     [user?.email, hasRemoveMemberPermission, hasEditMemberPermission, isLastOwner]
   );
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data.success) {
-        toast.success(fetcher.data.message);
-      } else {
-        toast.error(fetcher.data.error);
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   return (
     <>

@@ -43,7 +43,7 @@ interface BreadcrumbItem {
  * Enhanced Breadcrumb component that gets route matches directly
  * and renders a breadcrumb navigation based on route data
  */
-export const Breadcrumb = (): React.ReactElement | null => {
+export const Breadcrumb = ({ className }: { className?: string }): React.ReactElement | null => {
   const location = useLocation();
   const matches = useMatches();
 
@@ -98,7 +98,7 @@ export const Breadcrumb = (): React.ReactElement | null => {
   if (items?.length <= 1) return null;
 
   return (
-    <BreadcrumbUI>
+    <BreadcrumbUI className={className}>
       <BreadcrumbList className="gap-[5px] sm:gap-[5px]">
         <BreadcrumbItem>
           <BreadcrumbLink

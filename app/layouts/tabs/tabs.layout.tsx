@@ -19,11 +19,7 @@ export default function TabsLayout({
   }, [pathname]);
 
   return (
-    <div
-      className={cn(
-        'flex h-full flex-1 flex-col gap-8 overflow-x-hidden overflow-y-auto',
-        className
-      )}>
+    <div className={cn('flex h-full flex-1 flex-col gap-8 overflow-hidden', className)}>
       {tabsTitle && (
         <div className={cn('w-full', containerClassName)}>
           <PageTitle
