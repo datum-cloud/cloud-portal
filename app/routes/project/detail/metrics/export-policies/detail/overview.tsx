@@ -1,4 +1,5 @@
 import { PageTitle } from '@/components/page-title/page-title';
+import { ExportPolicyActivityCard } from '@/features/metric/export-policies/activity-card';
 import { ExportPolicyDangerCard } from '@/features/metric/export-policies/danger-card';
 import { ExportPolicyGeneralCard } from '@/features/metric/export-policies/general-card';
 import { WorkloadSinksTable } from '@/features/metric/export-policies/sinks-table';
@@ -6,7 +7,7 @@ import { WorkloadSourcesTable } from '@/features/metric/export-policies/sources-
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Col, Row } from '@datum-ui/components';
-import { MetaFunction, useParams, useRouteLoaderData } from 'react-router';
+import { MetaFunction, useRouteLoaderData } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find((match) => match.id === 'export-policy-detail') as any;
@@ -17,7 +18,6 @@ export const meta: MetaFunction = mergeMeta(({ matches }) => {
 
 export default function ExportPolicyOverview() {
   const exportPolicy = useRouteLoaderData<IExportPolicyControlResponse>('export-policy-detail');
-  const { projectId } = useParams();
 
   return (
     <div className="mx-auto w-full">
@@ -25,9 +25,16 @@ export default function ExportPolicyOverview() {
         <Col span={24}>
           <PageTitle title={exportPolicy?.name ?? 'Export Policy'} />
         </Col>
-        <Col span={24}>
+      </Row>
+      <Row type="flex" gutter={[24, 32]}>
+        <Col span={12} className="mb-4">
           <ExportPolicyGeneralCard exportPolicy={exportPolicy ?? {}} />
         </Col>
+        <Col span={12} className="mb-4">
+          <ExportPolicyActivityCard />
+        </Col>
+      </Row>
+      <Row gutter={[24, 32]}>
         <Col span={24}>
           <WorkloadSourcesTable data={exportPolicy?.sources ?? []} />
         </Col>
