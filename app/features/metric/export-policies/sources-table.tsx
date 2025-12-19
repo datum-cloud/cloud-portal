@@ -1,5 +1,5 @@
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CodeEditor } from '@/components/code-editor/code-editor';
-import { TextCopy } from '@/components/text-copy/text-copy';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { Button } from '@datum-ui/components';
@@ -21,9 +21,11 @@ export const WorkloadSourcesTable = ({
         enableSorting: false,
         cell: ({ row }: any) => {
           return (
-            <TextCopy
+            <BadgeCopy
               value={row.original?.name ?? ''}
-              className="text-primary leading-none font-semibold"
+              text={row.original?.name ?? ''}
+              badgeType="muted"
+              badgeTheme="solid"
             />
           );
         },
@@ -62,11 +64,13 @@ export const WorkloadSourcesTable = ({
   );
 
   return (
-    <Card>
-      <CardHeader className="px-6">
-        <CardTitle className="text-base leading-none font-medium">Sources</CardTitle>
+    <Card className="px-3 py-8 shadow">
+      <CardHeader className="mb-2">
+        <CardTitle>
+          <span className="text-lg font-medium">Sources</span>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="px-6 pb-0">
+      <CardContent>
         <DataTable
           columns={columns}
           data={data ?? []}

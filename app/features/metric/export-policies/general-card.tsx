@@ -1,48 +1,56 @@
 import { ExportPolicyStatus } from './status';
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
-import { TextCopy } from '@/components/text-copy/text-copy';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { paths } from '@/utils/config/paths.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { getShortId } from '@/utils/helpers/text.helper';
-import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
+import { Card, CardContent, CardHeader, CardTitle, LinkButton } from '@datum-ui/components';
+import { PencilIcon } from 'lucide-react';
 import { useMemo } from 'react';
+import { useParams } from 'react-router';
 
 export const ExportPolicyGeneralCard = ({
   exportPolicy,
 }: {
   exportPolicy: IExportPolicyControlResponse;
 }) => {
+  const { projectId } = useParams();
+
   const listItems: ListItem[] = useMemo(() => {
     if (!exportPolicy) return [];
 
     return [
       {
         label: 'Name',
-        className: 'px-2',
         content: (
-          <TextCopy className="text-sm" value={exportPolicy.name ?? ''} text={exportPolicy.name} />
+          <BadgeCopy
+            value={exportPolicy.name ?? ''}
+            text={exportPolicy.name}
+            badgeType="muted"
+            badgeTheme="solid"
+          />
         ),
       },
       {
         label: 'UID',
-        className: 'px-2',
         content: (
-          <TextCopy
-            className="text-sm"
+          <BadgeCopy
             value={exportPolicy.uid ?? ''}
             text={getShortId(exportPolicy.uid ?? '')}
+            badgeType="muted"
+            badgeTheme="solid"
           />
         ),
       },
       {
         label: 'Namespace',
-        className: 'px-2',
         content: <span className="capitalize">{exportPolicy.namespace}</span>,
       },
       {
         label: 'Status',
-        className: 'px-2',
         content: (
           <ExportPolicyStatus
             currentStatus={transformControlPlaneStatus(exportPolicy?.status)}
@@ -52,7 +60,6 @@ export const ExportPolicyGeneralCard = ({
       },
       {
         label: 'Created At',
-        className: 'px-2',
         content: (
           <DateTime className="text-sm" date={exportPolicy?.createdAt ?? ''} variant="both" />
         ),
@@ -61,12 +68,23 @@ export const ExportPolicyGeneralCard = ({
   }, [exportPolicy]);
 
   return (
-    <Card className="w-full">
-      <CardHeader className="px-6">
-        <CardTitle className="text-base leading-none font-medium">General</CardTitle>
+    <Card className="px-3 py-8 shadow">
+      <CardHeader className="mb-2">
+        <CardTitle className="flex items-center justify-between gap-2">
+          <span className="text-lg font-medium">General</span>
+          <LinkButton
+            size="xs"
+            icon={<PencilIcon size={12} />}
+            to={getPathWithParams(paths.project.detail.metrics.exportPolicies.detail.edit, {
+              projectId: projectId ?? '',
+              exportPolicyId: exportPolicy?.name ?? '',
+            })}>
+            Edit
+          </LinkButton>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pt-0 pb-2">
-        <List items={listItems} />
+      <CardContent>
+        <List items={listItems} className="border-table-accent dark:border-quaternary border-t" />
       </CardContent>
     </Card>
   );

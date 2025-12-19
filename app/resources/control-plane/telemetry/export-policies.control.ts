@@ -143,7 +143,6 @@ export const createExportPoliciesControl = (client: Client) => {
         });
 
         const exportPolicy = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicy;
-
         return transformPolicy(exportPolicy);
       } catch (e) {
         throw e;
