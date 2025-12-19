@@ -81,13 +81,13 @@ export function DashboardLayout({
       {/* Sidebar + Content area below header */}
       <SidebarProvider
         defaultOpen={true}
-        expandOnHover={sidebarCollapsible === 'icon'}
+        expandOnHover={false}
         expandBehavior={expandBehavior}
         showBackdrop={showBackdrop}
         className="max-h-[calc(100vh-54px)] min-h-0 flex-1 overflow-hidden"
         style={
           {
-            '--sidebar-width': '15.875rem', // Custom desktop width
+            '--sidebar-width': '12.75rem', // Custom desktop width
             '--sidebar-width-icon': '3rem', // Custom desktop width
             '--sidebar-width-mobile': '18.75rem', // Custom desktop width
           } as React.CSSProperties

@@ -26,6 +26,7 @@ export default defineConfig((config) => {
       alias: aliases,
     },
     server: {
+      allowedHosts: ['flutier-involuntarily-tresa.ngrok-free.dev'],
       port: 3000,
     },
     ssr: {

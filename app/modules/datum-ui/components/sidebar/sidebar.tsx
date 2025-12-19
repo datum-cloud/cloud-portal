@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import { Skeleton } from '@shadcn/ui/skeleton';
 import { TooltipProvider } from '@shadcn/ui/tooltip';
 import { cva, VariantProps } from 'class-variance-authority';
-import { PanelLeftIcon } from 'lucide-react';
+import { PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react';
 import * as React from 'react';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
@@ -364,7 +364,7 @@ const Sidebar = ({
       <div
         ref={sidebarRef}
         className={cn(
-          'fixed inset-y-0 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] md:flex',
+          'fixed inset-y-0 hidden w-(--sidebar-width) transition-[left,right,width] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] md:flex',
           // Z-index: Higher for overlay mode to float above content
           expandBehavior === 'overlay' ? 'z-50' : 'z-10',
           side === 'left'
@@ -406,23 +406,36 @@ const Sidebar = ({
 };
 
 const SidebarTrigger = ({ className, onClick, ...props }: React.ComponentProps<typeof Button>) => {
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, open } = useSidebar();
 
   return (
-    <Button
-      data-sidebar="trigger"
-      data-slot="sidebar-trigger"
-      variant="ghost"
-      size="icon"
-      className={cn('h-7 w-7', className)}
-      onClick={(event) => {
-        onClick?.(event);
-        toggleSidebar();
-      }}
-      {...props}>
-      <PanelLeftIcon />
-      <span className="sr-only">Toggle Sidebar</span>
-    </Button>
+    <Tooltip
+      message={open ? 'Close Sidebar' : 'Open Sidebar'}
+      side="right"
+      align="center"
+      delayDuration={500}>
+      <Button
+        data-sidebar="trigger"
+        data-slot="sidebar-trigger"
+        variant="ghost"
+        size="icon"
+        className={cn(
+          'text-icon-primary hover:bg-sidebar hover:text-sidebar-primary h-8 w-8 rounded-lg transition-all',
+          className
+        )}
+        onClick={(event) => {
+          onClick?.(event);
+          toggleSidebar();
+        }}
+        {...props}>
+        {open ? (
+          <PanelLeftCloseIcon className="size-4" />
+        ) : (
+          <PanelLeftOpenIcon className="size-4" />
+        )}
+        <span className="sr-only">Toggle Sidebar</span>
+      </Button>
+    </Tooltip>
   );
 };
 
@@ -787,7 +800,7 @@ const SidebarMenuSub = ({ className, ...props }: React.ComponentProps<'ul'>) => 
       data-slot="sidebar-menu-sub"
       data-sidebar="menu-sub"
       className={cn(
-        'border-sidebar-border mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 px-2.5 py-0.5',
+        'border-sidebar-border mx-3.5 flex min-w-0 translate-x-px flex-col px-2.5 py-0.5',
         'group-data-[collapsible=icon]:hidden',
         className
       )}

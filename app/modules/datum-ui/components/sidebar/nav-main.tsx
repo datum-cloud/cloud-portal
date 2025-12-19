@@ -1,13 +1,4 @@
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@datum-ui/components';
-import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -21,7 +12,16 @@ import {
 import { cn } from '@shadcn/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronRight, ExternalLinkIcon, LucideIcon } from 'lucide-react';
-import { ComponentProps, Fragment, forwardRef, useCallback, useState } from 'react';
+import { motion } from 'motion/react';
+import {
+  ComponentProps,
+  Fragment,
+  forwardRef,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { Link, useLocation } from 'react-router';
 
 export type NavItem = {
@@ -118,11 +118,29 @@ export const NavMain = forwardRef<
     ref
   ) => {
     const { pathname } = useLocation();
-    const { state: sidebarState, isMobile, closeForNavigation } = useSidebar();
+    const { state: sidebarState, isMobile, closeForNavigation, setOpen } = useSidebar();
     const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
+    const isInitialMount = useRef(true);
+    const previousOpenItems = useRef<Record<string, boolean>>({});
+    const previousPathname = useRef(pathname);
 
     // Use overrideState if provided, otherwise use sidebar state
     const state = overrideState ?? sidebarState;
+    const previousState = useRef(state);
+
+    // Track previous open state to detect transitions
+    useEffect(() => {
+      previousOpenItems.current = openItems;
+      // Mark initial mount as complete after first render
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+      }
+    }, [openItems]);
+
+    // Track pathname changes
+    useEffect(() => {
+      previousPathname.current = pathname;
+    }, [pathname]);
 
     const activeNavItem = useCallback(
       (item: NavItem) => {
@@ -210,6 +228,52 @@ export const NavMain = forwardRef<
       [pathname]
     );
 
+    // Helper function to check if an item or any of its children are active
+    const hasActiveDescendant = useCallback(
+      (item: NavItem): boolean => {
+        if (activeNavItem(item)) {
+          return true;
+        }
+        if (item.children) {
+          return item.children.some((child) => hasActiveDescendant(child));
+        }
+        return false;
+      },
+      [activeNavItem]
+    );
+
+    // Helper function to find item by href in the items tree
+    const findItemByHref = useCallback((href: string, items: NavItem[]): NavItem | null => {
+      for (const item of items) {
+        if (item.href === href) {
+          return item;
+        }
+        if (item.children) {
+          const found = findItemByHref(href, item.children);
+          if (found) return found;
+        }
+      }
+      return null;
+    }, []);
+
+    // Close collapsibles when sidebar collapses (unless they have active children)
+    useEffect(() => {
+      if (previousState.current === 'expanded' && state === 'collapsed') {
+        setOpenItems((prev) => {
+          const newOpenItems: Record<string, boolean> = {};
+          // Keep only items that have active children open
+          Object.keys(prev).forEach((itemHref) => {
+            const item = findItemByHref(itemHref, items);
+            if (item && hasActiveDescendant(item)) {
+              newOpenItems[itemHref] = true;
+            }
+          });
+          return newOpenItems;
+        });
+      }
+      previousState.current = state;
+    }, [state, items, hasActiveDescendant, findItemByHref]);
+
     const toggleItem = (itemId: string) => {
       setOpenItems((prev) => ({ ...prev, [itemId]: !prev[itemId] }));
     };
@@ -254,92 +318,87 @@ export const NavMain = forwardRef<
         ) || [];
 
       const hasChildren = (item.children || []).length > 0;
-      const isOpen = openItems[item.href as string] || Boolean(pathnameExistInDropdowns.length);
+      const isOpen =
+        openItems[item.href as string] !== undefined
+          ? openItems[item.href as string]
+          : Boolean(pathnameExistInDropdowns.length);
       const hasActiveChild = pathnameExistInDropdowns.length > 0;
 
-      // Handle collapsed state with dropdowns (for levels 0-2)
+      // Handle collapsed state - expand sidebar when clicking items with children
       if (state === 'collapsed' && !isMobile && level <= 2 && hasChildren) {
         return (
           <SidebarMenu key={itemKey}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <NavSidebarMenuButton
-                  item={item}
-                  isActive={isActive}
-                  disableTooltip={disableTooltip}
-                  className={itemClassName}
-                />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="right" align="start">
-                <DropdownMenuLabel>{item.title}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
+            <div className="flex flex-col">
+              <NavSidebarMenuButton
+                item={item}
+                isActive={isActive}
+                disableTooltip={disableTooltip}
+                className={itemClassName}
+                onClick={() => {
+                  // Expand sidebar when clicking an item with children
+                  setOpen(true);
+                  // Also open the collapsible for this item
+                  if (item.href) {
+                    setOpenItems((prev) => ({ ...prev, [item.href as string]: true }));
+                  }
+                }}
+              />
+              {/* Show dots for each sub-item only if one is active */}
+              {hasActiveChild && (
+                <motion.div
+                  variants={{
+                    hidden: { opacity: 0 },
+                    visible: {
+                      opacity: 1,
+                      transition: {
+                        staggerChildren: 0.05,
+                        delayChildren: 0.1,
+                      },
+                    },
+                  }}
+                  initial="hidden"
+                  animate="visible"
+                  className="flex flex-col">
                   {item.children?.map((subItem) => {
-                    const hasSubChildren = (subItem.children || []).length > 0;
                     const isSubItemActive = activeNavItem(subItem);
-
-                    if (hasSubChildren) {
-                      const hasActiveSubChild = subItem.children?.some((thirdLevelItem) =>
-                        activeNavItem(thirdLevelItem)
-                      );
-
-                      return (
-                        <DropdownMenu key={`collapsed-item-${subItem.title}-${level}`}>
-                          <DropdownMenuTrigger asChild className="w-full">
-                            <DropdownMenuItem
-                              className={cn(
-                                'cursor-default',
-                                (isSubItemActive || hasActiveSubChild) &&
-                                  'bg-primary/10 text-primary'
-                              )}>
-                              <span>{subItem.title}</span>
-                              <ChevronRight className="text-sidebar-foreground ml-auto size-4" />
-                            </DropdownMenuItem>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent side="right" align="start">
-                            <DropdownMenuLabel>{subItem.title}</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuGroup>
-                              {subItem.children?.map((thirdLevelItem) => {
-                                const isThirdLevelActive = activeNavItem(thirdLevelItem);
-
-                                return (
-                                  <DropdownMenuItem
-                                    key={`collapsed-item-drop-down-${thirdLevelItem.title}-${level}`}
-                                    className={cn(
-                                      isThirdLevelActive && 'bg-primary/10 text-primary'
-                                    )}>
-                                    <Link
-                                      to={thirdLevelItem.href || ''}
-                                      className="flex w-full text-xs"
-                                      onClick={handleNavigation}>
-                                      <span>{thirdLevelItem.title}</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                );
-                              })}
-                            </DropdownMenuGroup>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      );
-                    }
-
                     return (
-                      <DropdownMenuItem
-                        key={`collapsed-item-drop-down-${subItem.title}-${level}`}
-                        className={cn(isSubItemActive && 'bg-primary/10 text-primary')}>
-                        <Link
-                          to={subItem.href || ''}
-                          className="flex w-full items-center"
-                          onClick={handleNavigation}>
-                          <span>{subItem.title}</span>
-                        </Link>
-                      </DropdownMenuItem>
+                      <motion.div
+                        key={`collapsed-dot-${subItem.href}-${level}`}
+                        variants={{
+                          hidden: { opacity: 0 },
+                          visible: {
+                            opacity: 1,
+                            transition: {
+                              duration: 0.2,
+                              ease: 'easeOut',
+                            },
+                          },
+                        }}>
+                        <SidebarMenuButton
+                          tooltip={subItem.title}
+                          isActive={isSubItemActive}
+                          className="p-0 group-data-[collapsible=icon]:size-7.5! group-data-[collapsible=icon]:p-0!"
+                          asChild>
+                          <Link
+                            className="flex items-center justify-center"
+                            to={subItem.href || ''}
+                            onClick={() => {
+                              handleNavigation();
+                            }}>
+                            <span
+                              className={cn(
+                                'size-1 rounded-full',
+                                isSubItemActive ? 'bg-primary' : 'bg-sidebar-primary-foreground'
+                              )}
+                            />
+                          </Link>
+                        </SidebarMenuButton>
+                      </motion.div>
                     );
                   })}
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </motion.div>
+              )}
+            </div>
           </SidebarMenu>
         );
       }
@@ -351,7 +410,13 @@ export const NavMain = forwardRef<
             <Collapsible
               key={`collapsed-item-drop-down-item-${item.title}-${level}`}
               asChild
-              defaultOpen={isOpen}
+              open={isOpen}
+              onOpenChange={(open) => {
+                if (item.href) {
+                  // Allow toggling even if it has an active child
+                  setOpenItems((prev) => ({ ...prev, [item.href as string]: open }));
+                }
+              }}
               className="group/collapsible">
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild className="w-full">
@@ -364,16 +429,55 @@ export const NavMain = forwardRef<
                     <ChevronRight className="text-sidebar-foreground ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </NavSidebarMenuButton>
                 </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <SidebarMenuSub
-                    className={cn(
-                      level >= 1 ? 'mr-0 pr-[.1rem]' : '',
-                      level === 2 ? 'pl-4' : '',
-                      level === 3 ? 'pl-6' : '',
-                      'mr-0 pr-0'
-                    )}>
-                    {item.children?.map((subItem) => renderNavItem(subItem, level + 1))}
-                  </SidebarMenuSub>
+                <CollapsibleContent className="overflow-hidden transition-all duration-200 ease-out">
+                  <motion.div
+                    key={`collapsible-${item.href}-${isOpen}`}
+                    variants={{
+                      hidden: { opacity: 0 },
+                      visible: {
+                        opacity: 1,
+                        transition: {
+                          staggerChildren: 0.05,
+                          delayChildren: 0.1,
+                        },
+                      },
+                    }}
+                    initial={
+                      isInitialMount.current ||
+                      (previousOpenItems.current[item.href as string] ===
+                        openItems[item.href as string] &&
+                        previousState.current === state &&
+                        previousPathname.current === pathname &&
+                        !hasActiveChild)
+                        ? 'visible'
+                        : 'hidden'
+                    }
+                    animate="visible">
+                    <SidebarMenuSub
+                      className={cn(
+                        level >= 1 ? 'mr-0 pr-[.1rem]' : '',
+                        level === 2 ? 'pl-4' : '',
+                        level === 3 ? 'pl-6' : '',
+                        'mr-0 pr-0'
+                      )}>
+                      {item.children?.map((subItem, index) => (
+                        <motion.div
+                          key={`${subItem.href}-${level}-${index}`}
+                          variants={{
+                            hidden: { opacity: 0 },
+                            visible: {
+                              opacity: 1,
+                              transition: {
+                                duration: 0.2,
+                                ease: 'easeOut',
+                              },
+                            },
+                          }}>
+                          {renderNavItem(subItem, level + 1)}
+                        </motion.div>
+                      ))}
+                    </SidebarMenuSub>
+                  </motion.div>
                 </CollapsibleContent>
               </SidebarMenuItem>
             </Collapsible>
@@ -408,7 +512,7 @@ export const NavMain = forwardRef<
                   <ChevronRight className="text-sidebar-foreground ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </NavSidebarMenuButton>
               </CollapsibleTrigger>
-              <CollapsibleContent>
+              <CollapsibleContent className="overflow-hidden transition-all duration-200 ease-out">
                 <SidebarMenuSub className={currentLevel >= 1 ? 'mr-0 pr-[.1rem]' : ''}>
                   {currentItem.children?.map((subItem) => renderNavItem(subItem, currentLevel + 1))}
                 </SidebarMenuSub>
@@ -460,7 +564,7 @@ export const NavMain = forwardRef<
       <ul
         ref={ref}
         data-sidebar="menu"
-        className={cn('flex h-full w-full min-w-0 flex-col gap-1 p-2', className)}
+        className={cn('flex h-full w-full min-w-0 flex-col p-2', className)}
         {...props}>
         {(items || []).map((item) => renderNavItem(item))}
       </ul>

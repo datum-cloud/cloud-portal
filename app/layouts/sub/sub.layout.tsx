@@ -4,7 +4,7 @@ import { NavMain, useSidebar } from '@datum-ui/components/sidebar';
 import { cn } from '@shadcn/lib/utils';
 import { useLayoutEffect } from 'react';
 
-const SUB_SIDEBAR_WIDTH = '14.375rem';
+const SUB_SIDEBAR_WIDTH = '12.75rem';
 
 export function SubLayout({
   children,

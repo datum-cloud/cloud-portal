@@ -96,7 +96,7 @@ export default function OrgLayout() {
   }, [org]);
 
   return (
-    <DashboardLayout navItems={navItems} sidebarCollapsible="offcanvas" currentOrg={org}>
+    <DashboardLayout navItems={navItems} sidebarCollapsible="icon" currentOrg={org}>
       <RbacProvider organizationId={org?.name}>
         <Outlet />
       </RbacProvider>
