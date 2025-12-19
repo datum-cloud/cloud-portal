@@ -14,6 +14,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     switch (request.method) {
       case 'DELETE': {
         const formData = Object.fromEntries(await request.formData());
+        console.log(formData);
         const { id, projectId, redirectUri } = formData;
 
         await exportPoliciesControl.delete(projectId as string, id as string);

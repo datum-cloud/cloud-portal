@@ -1,6 +1,6 @@
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { CodeEditor } from '@/components/code-editor/code-editor';
-import { TextCopy } from '@/components/text-copy/text-copy';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
@@ -29,9 +29,11 @@ export const WorkloadSinksTable = ({
         enableSorting: false,
         cell: ({ row }: any) => {
           return (
-            <TextCopy
+            <BadgeCopy
               value={row.original?.name ?? ''}
-              className="text-primary leading-none font-semibold"
+              text={row.original?.name ?? ''}
+              badgeType="muted"
+              badgeTheme="solid"
             />
           );
         },
@@ -55,7 +57,7 @@ export const WorkloadSinksTable = ({
         enableSorting: false,
         cell: ({ row }: any) => {
           return row.original?.sources?.map((source: string) => (
-            <Badge type="secondary" key={source}>
+            <Badge theme="outline" key={source}>
               <span>{source}</span>
             </Badge>
           ));
@@ -86,19 +88,14 @@ export const WorkloadSinksTable = ({
         accessorKey: 'config',
         enableSorting: false,
         meta: {
-          className: 'w-[100px]',
+          className: 'w-[100px] text-right',
         },
         cell: ({ row }: any) => {
           return (
             <Popover>
               <PopoverTrigger asChild>
-                <Button
-                  type="quaternary"
-                  theme="outline"
-                  size="small"
-                  className="flex h-8 items-center gap-1 focus:ring-0">
+                <Button type="quaternary" theme="outline" size="small" className="h-8 focus:ring-0">
                   <SettingsIcon className="size-4" />
-                  <span>Configuration</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="min-w-[500px]">
@@ -117,11 +114,13 @@ export const WorkloadSinksTable = ({
   }, [status]);
 
   return (
-    <Card>
-      <CardHeader className="px-6">
-        <CardTitle className="text-base leading-none font-medium">Sinks</CardTitle>
+    <Card className="px-3 py-8 shadow">
+      <CardHeader className="mb-2">
+        <CardTitle>
+          <span className="text-lg font-medium">Sinks</span>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="px-6 pb-0">
+      <CardContent>
         <DataTable
           columns={columns}
           data={data ?? []}
