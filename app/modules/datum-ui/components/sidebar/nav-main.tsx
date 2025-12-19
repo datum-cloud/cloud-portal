@@ -377,7 +377,7 @@ export const NavMain = forwardRef<
                         <SidebarMenuButton
                           tooltip={subItem.title}
                           isActive={isSubItemActive}
-                          className="p-0 group-data-[collapsible=icon]:size-7.5! group-data-[collapsible=icon]:p-0!"
+                          className="p-0 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-0!"
                           asChild>
                           <Link
                             className="flex items-center justify-center"
@@ -535,7 +535,7 @@ export const NavMain = forwardRef<
               isActive={isActive && !hasActiveChild}
               disableTooltip={disableTooltip}
               onClick={() => hasChildren && toggleItem(item.href as string)}
-              className={cn(level >= 1 && 'h-7 opacity-80', itemClassName)}>
+              className={cn(level >= 1 && 'h-8 opacity-80', itemClassName)}>
               {item.type === 'externalLink' ? (
                 <a
                   href={item.href || ''}
