@@ -11,17 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@shadcn/ui/table';
 import { PencilIcon, PlusIcon, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useFetcher, useParams } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
-export const EditSecretKeys = ({
-  projectId,
-  defaultValue,
-}: {
-  projectId: string;
-  defaultValue?: ISecretControlResponse;
-}) => {
+export const EditSecretKeys = ({ defaultValue }: { defaultValue?: ISecretControlResponse }) => {
   const { confirm } = useConfirmationDialog();
+  const { projectId } = useParams();
   const fetcher = useFetcher();
   const csrf = useAuthenticityToken();
 
@@ -46,7 +41,7 @@ export const EditSecretKeys = ({
       onSubmit: async () => {
         await fetcher.submit(
           {
-            projectId,
+            projectId: projectId ?? '',
             secretId: defaultValue?.name ?? '',
             data: {
               [variable]: null,
@@ -80,21 +75,22 @@ export const EditSecretKeys = ({
 
   return (
     <>
-      <Card className="w-full gap-6 py-9 shadow-md">
-        <CardHeader className="flex flex-row items-center justify-between px-9">
-          <div className="flex flex-col gap-1.5">
-            <CardTitle className="text-lg font-medium">Key-value pairs</CardTitle>
-          </div>
-          <Button
-            type="secondary"
-            theme="outline"
-            size="xs"
-            onClick={() => variablesFormDialogRef.current?.show()}>
-            <PlusIcon className="size-4" />
-            Add
-          </Button>
+      <Card className="px-3 py-8 shadow">
+        <CardHeader className="mb-2">
+          <CardTitle className="flex items-center justify-between gap-2">
+            <span className="text-lg font-medium">Key-value pairs</span>
+            <Button
+              icon={<PlusIcon size={12} />}
+              type="secondary"
+              theme="outline"
+              size="xs"
+              onClick={() => variablesFormDialogRef.current?.show()}>
+              Add
+            </Button>
+          </CardTitle>
         </CardHeader>
-        <CardContent className="px-9">
+
+        <CardContent>
           <div className="flex max-w-full flex-col overflow-hidden rounded-lg border">
             <Table>
               <TableHeader>
