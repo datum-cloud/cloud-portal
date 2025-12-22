@@ -68,7 +68,7 @@ export const ExportPolicyGeneralCard = ({
   }, [exportPolicy]);
 
   return (
-    <Card className="px-3 py-8 shadow">
+    <Card className="h-full px-3 py-8 shadow">
       <CardHeader className="mb-2">
         <CardTitle className="flex items-center justify-between gap-2">
           <span className="text-lg font-medium">General</span>
