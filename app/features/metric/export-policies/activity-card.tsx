@@ -87,12 +87,12 @@ const ActivityChart = () => {
   const { data, isLoading, error, isFetching } = usePrometheusChart({
     query: `
       label_replace(
-        rate(vector_component_errors_total{error_type="request_failed", resourcemanager_datumapis_com_project_name="${projectId}"}),
+        rate(vector_component_errors_total{error_type="request_failed", resourcemanager_datumapis_com_project_name="test-rdzjb8"}),
         "series_name", "Metrics error rate", "", ""
       )
       or
       label_replace(
-        rate(vector_component_sent_events_total{component_kind="sink", resourcemanager_datumapis_com_project_name="${projectId}"}),
+        rate(vector_component_sent_events_total{component_kind="sink", resourcemanager_datumapis_com_project_name="test-rdzjb8"}),
         "series_name", "Metrics per second", "", ""
       )
     `.trim(),
@@ -191,7 +191,7 @@ const ActivityChart = () => {
                   return (
                     <linearGradient key={gradientId} id={gradientId} x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor={color} />
-                      <stop offset="100%" stopColor="#FFF" />
+                      <stop offset="100%" stopColor="transparent" />
                     </linearGradient>
                   );
                 })}
