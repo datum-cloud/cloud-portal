@@ -95,7 +95,7 @@ Scope variables to the theme class so we can swap themes by class
   --sidebar-accent: var(--glacier-mist-800);
   --sidebar-accent-foreground: var(--midnight-fjord);
   --sidebar-border: var(--glacier-mist-900);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --sidebar-ring: var(--midnight-fjord);
 
   /* Status colors */
   --success-100: hsl(143, 85%, 96%);
@@ -218,12 +218,12 @@ Scope variables to the theme class so we can swap themes by class
     /* Sidebar colors - dark mode */
     --sidebar: var(--midnight-fjord);
     --sidebar-foreground: var(--app-dark-utility-4);
-    --sidebar-primary: hsl(224.3 76.3% 48%);
-    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-primary: var(--glacier-mist-700);
+    --sidebar-primary-foreground: var(--app-dark-utility-2);
     --sidebar-accent: var(--app-dark-utility-1);
     --sidebar-accent-foreground: var(--app-dark-utility-4);
     --sidebar-border: var(--app-dark-utility-2);
-    --sidebar-ring: hsl(217.2 91.2% 59.8%);
+    --sidebar-ring: var(--aurora-moss);
 
     /* Status colors - dark mode */
     --success-100: hsl(150, 100%, 6%);

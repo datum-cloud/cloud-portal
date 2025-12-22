@@ -46,10 +46,10 @@ export type NavItem = {
 // Centralized style constants for nav menu buttons
 const NAV_STYLES = {
   menuButton:
-    'text-sidebar-foreground rounded-lg h-8 font-normal transition-all px-2 py-1 data-[active=true]:bg-sidebar data-[active=true]:text-foreground data-[active=true]:text-sidebar-primary data-[active=true]:[&>svg]:text-primary hover:bg-sidebar hover:text-sidebar-primary hover:[&>svg]:text-sidebar-primary',
+    'text-sidebar-foreground rounded-lg h-8 font-normal transition-all px-2 py-1 data-[active=true]:bg-sidebar data-[active=true]:text-foreground data-[active=true]:text-sidebar-primary data-[active=true]:[&>svg]:text-primary hover:bg-sidebar hover:text-sidebar-primary hover:[&>svg]:text-sidebar-primary data-[active=true]:hover:[&>svg]:text-sidebar-primary duration-300',
   disabled: 'pointer-events-none opacity-50',
-  icon: 'text-sidebar-foreground',
-  iconSmall: 'text-sidebar-foreground size-4',
+  icon: 'text-sidebar-foreground duration-300 transition-all',
+  iconSmall: 'text-sidebar-foreground size-4 duration-300 transition-all',
 } as const;
 
 // Centralized icon renderer component
@@ -358,7 +358,7 @@ export const NavMain = forwardRef<
                   }}
                   initial="hidden"
                   animate="visible"
-                  className="flex flex-col">
+                  className="flex flex-col gap-0.5">
                   {item.children?.map((subItem) => {
                     const isSubItemActive = activeNavItem(subItem);
                     return (
@@ -377,7 +377,7 @@ export const NavMain = forwardRef<
                         <SidebarMenuButton
                           tooltip={subItem.title}
                           isActive={isSubItemActive}
-                          className="p-0 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-0!"
+                          className="h-6 p-0 group-data-[collapsible=icon]:h-6! group-data-[collapsible=icon]:p-0!"
                           asChild>
                           <Link
                             className="flex items-center justify-center"
@@ -429,55 +429,57 @@ export const NavMain = forwardRef<
                     <ChevronRight className="text-sidebar-foreground ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </NavSidebarMenuButton>
                 </CollapsibleTrigger>
-                <CollapsibleContent className="overflow-hidden transition-all duration-200 ease-out">
-                  <motion.div
-                    key={`collapsible-${item.href}-${isOpen}`}
-                    variants={{
-                      hidden: { opacity: 0 },
-                      visible: {
-                        opacity: 1,
-                        transition: {
-                          staggerChildren: 0.05,
-                          delayChildren: 0.1,
+                <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
+                  <div style={{ minHeight: 0, overflow: 'hidden' }}>
+                    <motion.div
+                      key={`collapsible-${item.href}-${isOpen}`}
+                      variants={{
+                        hidden: { opacity: 0 },
+                        visible: {
+                          opacity: 1,
+                          transition: {
+                            staggerChildren: 0.05,
+                            delayChildren: 0.1,
+                          },
                         },
-                      },
-                    }}
-                    initial={
-                      isInitialMount.current ||
-                      (previousOpenItems.current[item.href as string] ===
-                        openItems[item.href as string] &&
-                        previousState.current === state &&
-                        previousPathname.current === pathname &&
-                        !hasActiveChild)
-                        ? 'visible'
-                        : 'hidden'
-                    }
-                    animate="visible">
-                    <SidebarMenuSub
-                      className={cn(
-                        level >= 1 ? 'mr-0 pr-[.1rem]' : '',
-                        level === 2 ? 'pl-4' : '',
-                        level === 3 ? 'pl-6' : '',
-                        'mr-0 pr-0'
-                      )}>
-                      {item.children?.map((subItem, index) => (
-                        <motion.div
-                          key={`${subItem.href}-${level}-${index}`}
-                          variants={{
-                            hidden: { opacity: 0 },
-                            visible: {
-                              opacity: 1,
-                              transition: {
-                                duration: 0.2,
-                                ease: 'easeOut',
+                      }}
+                      initial={
+                        isInitialMount.current ||
+                        (previousOpenItems.current[item.href as string] ===
+                          openItems[item.href as string] &&
+                          previousState.current === state &&
+                          previousPathname.current === pathname &&
+                          !hasActiveChild)
+                          ? 'visible'
+                          : 'hidden'
+                      }
+                      animate={isOpen ? 'visible' : 'hidden'}>
+                      <SidebarMenuSub
+                        className={cn(
+                          level >= 1 ? 'mr-0 pr-[.1rem]' : '',
+                          level === 2 ? 'pl-4' : '',
+                          level === 3 ? 'pl-6' : '',
+                          'mr-0 gap-0.5 pr-0'
+                        )}>
+                        {item.children?.map((subItem, index) => (
+                          <motion.div
+                            key={`${subItem.href}-${level}-${index}`}
+                            variants={{
+                              hidden: { opacity: 0 },
+                              visible: {
+                                opacity: 1,
+                                transition: {
+                                  duration: 0.2,
+                                  ease: 'easeOut',
+                                },
                               },
-                            },
-                          }}>
-                          {renderNavItem(subItem, level + 1)}
-                        </motion.div>
-                      ))}
-                    </SidebarMenuSub>
-                  </motion.div>
+                            }}>
+                            {renderNavItem(subItem, level + 1)}
+                          </motion.div>
+                        ))}
+                      </SidebarMenuSub>
+                    </motion.div>
+                  </div>
                 </CollapsibleContent>
               </SidebarMenuItem>
             </Collapsible>
@@ -499,7 +501,12 @@ export const NavMain = forwardRef<
           <Collapsible
             key={`collapsed-item-drop-down-item-${currentItem.title}-${currentLevel}`}
             asChild
-            defaultOpen={currentItemIsOpen}
+            open={currentItemIsOpen}
+            onOpenChange={(open) => {
+              if (currentItem.href) {
+                setOpenItems((prev) => ({ ...prev, [currentItem.href as string]: open }));
+              }
+            }}
             className="group/collapsible">
             <SidebarMenuItem key={`collapsible-sidebar-${currentItem.title}-${currentLevel}`}>
               <CollapsibleTrigger asChild className="w-full">
@@ -512,10 +519,15 @@ export const NavMain = forwardRef<
                   <ChevronRight className="text-sidebar-foreground ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </NavSidebarMenuButton>
               </CollapsibleTrigger>
-              <CollapsibleContent className="overflow-hidden transition-all duration-200 ease-out">
-                <SidebarMenuSub className={currentLevel >= 1 ? 'mr-0 pr-[.1rem]' : ''}>
-                  {currentItem.children?.map((subItem) => renderNavItem(subItem, currentLevel + 1))}
-                </SidebarMenuSub>
+              <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
+                <div style={{ minHeight: 0, overflow: 'hidden' }}>
+                  <SidebarMenuSub
+                    className={cn(currentLevel >= 1 ? 'mr-0 pr-[.1rem]' : '', 'gap-0.5')}>
+                    {currentItem.children?.map((subItem) =>
+                      renderNavItem(subItem, currentLevel + 1)
+                    )}
+                  </SidebarMenuSub>
+                </div>
               </CollapsibleContent>
             </SidebarMenuItem>
           </Collapsible>
@@ -535,7 +547,7 @@ export const NavMain = forwardRef<
               isActive={isActive && !hasActiveChild}
               disableTooltip={disableTooltip}
               onClick={() => hasChildren && toggleItem(item.href as string)}
-              className={cn(level >= 1 && 'h-8 opacity-80', itemClassName)}>
+              className={cn(level >= 1 && 'h-6', itemClassName)}>
               {item.type === 'externalLink' ? (
                 <a
                   href={item.href || ''}
@@ -543,14 +555,18 @@ export const NavMain = forwardRef<
                   rel="noopener noreferrer"
                   className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {item?.icon && <item.icon className="text-icon-primary size-4" />}
+                    {item?.icon && (
+                      <item.icon className="text-icon-primary size-4 transition-all duration-300" />
+                    )}
                     <span>{item.title}</span>
                   </div>
                   <ExternalLinkIcon className="ml-auto size-4" />
                 </a>
               ) : (
                 <Link to={item.href || ''} onClick={handleNavigation}>
-                  {item?.icon && <item.icon />}
+                  {item?.icon && (
+                    <item.icon className="text-sidebar-foreground transition-all duration-300" />
+                  )}
                   <span>{item.title}</span>
                 </Link>
               )}
