@@ -66,6 +66,8 @@ export default function HttpProxyPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
+      confirmValue: httpProxy.name,
+      confirmInputLabel: `Type "${httpProxy.name}" to confirm.`,
       onSubmit: async () => {
         await fetcher.submit(
           {

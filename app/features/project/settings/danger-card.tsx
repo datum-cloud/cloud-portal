@@ -23,6 +23,8 @@ export const ProjectDangerCard = ({ project }: { project: IProjectControlRespons
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
+      confirmValue: project?.name,
+      confirmInputLabel: `Type "${project?.name}" to confirm.`,
       onSubmit: async () => {
         await fetcher.submit(
           {

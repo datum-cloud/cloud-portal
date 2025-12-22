@@ -63,6 +63,8 @@ export const PolicyBindingForm = ({
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
+      confirmValue: defaultValue?.name,
+      confirmInputLabel: `Type "${defaultValue?.name}" to confirm.`,
       onSubmit: async () => {
         await fetcher.submit(
           {

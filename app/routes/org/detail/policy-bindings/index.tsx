@@ -61,6 +61,8 @@ export default function OrgPolicyBindingsPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
+      confirmValue: policyBinding.name,
+      confirmInputLabel: `Type "${policyBinding.name}" to confirm.`,
       onSubmit: async () => {
         await fetcher.submit(
           {

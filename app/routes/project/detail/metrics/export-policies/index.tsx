@@ -69,6 +69,8 @@ export default function ExportPoliciesPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
+      confirmValue: exportPolicy.name,
+      confirmInputLabel: `Type "${exportPolicy.name}" to confirm.`,
       onSubmit: async () => {
         await fetcher.submit(
           {
