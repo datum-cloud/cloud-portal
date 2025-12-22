@@ -27,13 +27,21 @@ const ipv4Regex =
 const ipv6Regex =
   /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|::([fF]{4}(:0{1,4})?:)?((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))$/;
 
-// Domain regex - supports standard domains and trailing dot
-const domainRegex =
+// Hostname regex - strict RFC 1123 compliant (no underscores) for MX, NS, SOA records
+// These record types point to hostnames which should follow strict naming conventions
+const hostnameRegex =
   /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.?$/;
 
+// Domain regex - permissive, allows underscores in labels (including at the start)
+// Used for CNAME, PTR, SRV target where underscores are commonly used in practice
+// (e.g., _domainconnect.gd.domaincontrol.com for domain connect records)
+const domainRegex =
+  /^(?:[a-zA-Z0-9_](?:[a-zA-Z0-9_-]{0,61}[a-zA-Z0-9_])?\.)*[a-zA-Z0-9_](?:[a-zA-Z0-9_-]{0,61}[a-zA-Z0-9_])?\.?$/;
+
 // SVCB/HTTPS target regex: allows single dot (.) OR valid domain name (RFC 9460)
+// Allows underscores in labels (including at the start) for compatibility with service records and various DNS implementations
 const svcbTargetRegex =
-  /^(\.|(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.?)$/;
+  /^(\.|(?:[a-zA-Z0-9_](?:[a-zA-Z0-9_-]{0,61}[a-zA-Z0-9_])?\.)*[a-zA-Z0-9_](?:[a-zA-Z0-9_-]{0,61}[a-zA-Z0-9_])?\.?)$/;
 
 // Hex string for TLSA certificate data
 const hexRegex = /^[0-9A-Fa-f]+$/;
@@ -121,7 +129,7 @@ export const txtRecordDataSchema = z.object({
 export const mxRecordDataSchema = z.object({
   exchange: z
     .string({ error: 'Mail server is required.' })
-    .regex(domainRegex, { message: 'Invalid mail server domain.' }),
+    .regex(hostnameRegex, { message: 'Invalid mail server domain.' }),
   preference: z.coerce
     .number({ error: 'Priority is required.' })
     .int('Priority must be an integer.')
@@ -173,7 +181,7 @@ export const caaRecordDataSchema = z.object({
 export const nsRecordDataSchema = z.object({
   content: z
     .string({ error: 'Nameserver is required.' })
-    .regex(domainRegex, { message: 'Invalid nameserver domain.' }),
+    .regex(hostnameRegex, { message: 'Invalid nameserver domain.' }),
 });
 
 // SOA Record - Start of Authority
@@ -181,7 +189,7 @@ export const nsRecordDataSchema = z.object({
 export const soaRecordDataSchema = z.object({
   mname: z
     .string({ error: 'Primary nameserver is required.' })
-    .regex(domainRegex, { message: 'Invalid primary nameserver domain.' }),
+    .regex(hostnameRegex, { message: 'Invalid primary nameserver domain.' }),
   rname: z
     .string({ error: 'Responsible email is required.' })
     .regex(/^[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+\.[a-zA-Z]{2,}\.?$/, {
