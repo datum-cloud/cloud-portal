@@ -1,6 +1,6 @@
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { ArrowRight, CheckIcon } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { ReactNode, useTransition } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -100,11 +100,6 @@ const ActionCard = ({
             alt="Protect your app"
             className="absolute inset-0 h-full w-full object-cover"
           />
-          {completed && (
-            <div className="text-card-success bg-card-success-secondary absolute -top-7 -right-7 flex h-14 w-14 items-center justify-center rounded-full">
-              <CheckIcon className="absolute bottom-3 left-3 size-3" />
-            </div>
-          )}
         </div>
         <CardTitle className="text-center text-xl font-medium">{title}</CardTitle>
       </CardHeader>
