@@ -2,8 +2,10 @@ import { NavItem, NavMain } from './nav-main';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  SidebarTrigger,
   useSidebar,
 } from '@datum-ui/components';
 import { useEffect } from 'react';
@@ -36,9 +38,16 @@ export function AppSidebar({
         {title && <SidebarHeader className="px-4 pt-4 pb-0">{title}</SidebarHeader>}
 
         {navItems.length > 0 && (
-          <NavMain className="py-2" items={navItems} closeOnNavigation={closeOnNavigation} />
+          <NavMain className="h-fit py-2" items={navItems} closeOnNavigation={closeOnNavigation} />
+        )}
+
+        {props.collapsible !== 'none' && (
+          <SidebarFooter className="mt-auto p-2">
+            <SidebarTrigger />
+          </SidebarFooter>
         )}
       </SidebarContent>
+
       <SidebarRail />
     </Sidebar>
   );

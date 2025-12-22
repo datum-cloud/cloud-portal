@@ -195,8 +195,7 @@ export default function ProjectLayout() {
       currentProject={project}
       currentOrg={org}
       expandBehavior="push"
-      showBackdrop={false}
-      closeOnNavigation={true}>
+      showBackdrop={false}>
       <Outlet />
     </DashboardLayout>
   );

@@ -20,7 +20,7 @@ export default function AccountSettingsLayout() {
   return (
     <DashboardLayout
       navItems={navItems}
-      sidebarCollapsible="offcanvas"
+      sidebarCollapsible="none"
       contentClassName="w-full"
       sidebarHeader={<BackButton />}>
       <Outlet />

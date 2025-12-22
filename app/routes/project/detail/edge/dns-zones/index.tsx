@@ -252,7 +252,6 @@ export default function DnsZonesPage() {
         meta: {
           sortPath: 'status.recordCount',
           sortType: 'number',
-          tooltip: 'The number of DNS records hosted in Datum',
         },
       },
       {
