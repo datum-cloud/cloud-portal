@@ -40,6 +40,23 @@ const MetricsContent = () => {
     return query;
   }, []);
 
+  // Combined query builder for comparing two different metrics
+  // Uses label_replace to add a series_name label that will be used for display
+  const combinedVectorQuery: QueryBuilderFunction = useCallback(() => {
+    // Add series_name label to each metric - this will be prioritized by the formatter
+    return `
+      label_replace(
+        rate(vector_component_errors_total{error_type="request_failed", resourcemanager_datumapis_com_project_name="test-rdzjb8"}),
+        "series_name", "Sent metrics error rate", "", ""
+      )
+      or
+      label_replace(
+        rate(vector_component_sent_events_total{component_kind="sink", resourcemanager_datumapis_com_project_name="test-rdzjb8"}),
+        "series_name", "Metrics per second", "", ""
+      )
+    `.trim();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="mx-auto space-y-6">
@@ -101,6 +118,23 @@ const MetricsContent = () => {
               resolution: 'high',
               caching: 'enabled',
               includeMetadata: true,
+            }}
+          />
+
+          {/* MetricChart comparing two different queries */}
+          <MetricChart
+            query={combinedVectorQuery}
+            title="Vector Metrics Comparison (Errors vs Sent Events)"
+            chartType="line"
+            valueFormat="short-number"
+            showLegend={false}
+            showTooltip={true}
+            // timeRange={{
+            //   start: new Date(1766053158385), // from timestamp
+            //   end: new Date(1766139558385), // to timestamp
+            // }}
+            customApiParams={{
+              limit: 1000,
             }}
           />
 
