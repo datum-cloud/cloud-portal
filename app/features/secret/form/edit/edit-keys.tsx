@@ -38,6 +38,8 @@ export const EditSecretKeys = ({ defaultValue }: { defaultValue?: ISecretControl
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
+      confirmValue: variable,
+      confirmInputLabel: `Type "${variable}" to confirm.`,
       onSubmit: async () => {
         await fetcher.submit(
           {

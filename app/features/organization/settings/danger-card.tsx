@@ -28,6 +28,8 @@ export const OrganizationDangerCard = ({ organization }: { organization: IOrgani
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
+      confirmValue: organization?.name,
+      confirmInputLabel: `Type "${organization?.name}" to confirm.`,
       onSubmit: async () => {
         await fetcher.submit(
           {

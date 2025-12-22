@@ -57,6 +57,8 @@ export const DnsZoneForm = ({
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
+      confirmValue: defaultValue?.domainName,
+      confirmInputLabel: `Type "${defaultValue?.domainName}" to confirm.`,
       onSubmit: async () => {
         await fetcher.submit(
           {

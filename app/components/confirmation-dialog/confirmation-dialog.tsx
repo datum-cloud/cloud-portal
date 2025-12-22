@@ -42,7 +42,8 @@ export const ConfirmationDialog = ({
   const [isPending, setIsPending] = useState(false);
 
   const [confirmValidationValue, setConfirmValidationValue] = useState('');
-  const [dialogProps, setDialogProps] = useState<ConfirmationDialogProps>({
+
+  const defaultDialogProps: ConfirmationDialogProps = {
     title: '',
     description: '',
     submitText: 'Confirm',
@@ -61,13 +62,15 @@ export const ConfirmationDialog = ({
     confirmInputLabel: 'Type "DELETE" to confirm.',
     confirmInputPlaceholder: 'Type in here...',
     confirmValue: 'DELETE',
-  });
+  };
+
+  const [dialogProps, setDialogProps] = useState<ConfirmationDialogProps>(defaultDialogProps);
 
   const resolveRef = useRef<(value: boolean) => void>(null);
 
   useImperativeHandle(ref, () => ({
     show: (options) => {
-      setDialogProps({ ...dialogProps, ...options });
+      setDialogProps({ ...defaultDialogProps, ...options });
       setIsOpen(true);
       return new Promise<boolean>((resolve) => {
         resolveRef.current = resolve;
@@ -137,7 +140,7 @@ export const ConfirmationDialog = ({
               </Alert>
             )}
             {dialogProps.showConfirmInput && (
-              <div className="flex flex-col gap-3">
+              <div className="mb-1 flex flex-col gap-3">
                 <Label>{dialogProps.confirmInputLabel}</Label>
                 <Input
                   type="text"

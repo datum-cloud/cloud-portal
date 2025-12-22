@@ -163,6 +163,8 @@ export default function DnsZonesPage() {
         cancelText: 'Cancel',
         variant: 'destructive',
         showConfirmInput: true,
+        confirmValue: dnsZone.domainName,
+        confirmInputLabel: `Type "${dnsZone.domainName}" to confirm.`,
         onSubmit: async () => {
           await deleteFetcher.submit(
             {

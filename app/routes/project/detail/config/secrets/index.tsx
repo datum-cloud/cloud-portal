@@ -58,6 +58,8 @@ export default function SecretsPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
+      confirmValue: secret.name,
+      confirmInputLabel: `Type "${secret.name}" to confirm.`,
       onSubmit: async () => {
         await fetcher.submit(
           {

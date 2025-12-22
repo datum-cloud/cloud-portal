@@ -33,6 +33,8 @@ export default function DnsZoneSettingsPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
+      confirmValue: dnsZone?.domainName,
+      confirmInputLabel: `Type "${dnsZone?.domainName}" to confirm.`,
       onSubmit: async () => {
         closeConfirmationDialog();
         await fetcher.submit(
