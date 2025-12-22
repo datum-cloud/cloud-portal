@@ -16,7 +16,7 @@ export interface EmptyContentAction {
 
 // Container variants
 const containerVariants = cva(
-  'flex items-center justify-center relative overflow-hidden bg-white/50 dark:bg-transparent',
+  'flex items-center justify-center relative overflow-hidden bg-[#F4F3F2] dark:bg-transparent',
   {
     variants: {
       variant: {
@@ -27,7 +27,7 @@ const containerVariants = cva(
       size: {
         xs: 'h-32 p-3',
         sm: 'h-48 p-4',
-        md: 'h-[226px] p-6',
+        md: 'h-[226px] py-7 px-6',
         lg: 'h-80 p-8',
         xl: 'h-96 p-12',
       },
@@ -221,7 +221,7 @@ export const EmptyContent = ({
         )}
 
         <img
-          src={'/images/milo-stamp.png'}
+          src={'/images/milo-stamp.svg'}
           alt="Milo"
           aria-hidden="true"
           className="pointer-events-none absolute -top-4 right-2 h-auto w-7 rotate-[7.332deg] select-none"

@@ -170,16 +170,7 @@ export default function ProjectHomePage() {
             text={
               <p>
                 Activate a powerful reverse proxy on Datum&apos;s edge to protect your origin and
-                block common attacks with a web app firewall.{' '}
-                <LinkButton
-                  type="primary"
-                  theme="link"
-                  size="link"
-                  to={getPathWithParams(paths.project.detail.domains.root, {
-                    projectId: project.name,
-                  })}>
-                  More info
-                </LinkButton>
+                block common attacks with a web app firewall.
               </p>
             }
             primaryButton={
@@ -195,6 +186,7 @@ export default function ProjectHomePage() {
                 <LinkButton
                   theme="outline"
                   type="secondary"
+                  className="border-card-success-border hover:border-secondary"
                   to={getPathWithParams(paths.project.detail.domains.root, {
                     projectId: project.name,
                   })}>
@@ -234,7 +226,17 @@ export default function ProjectHomePage() {
             }
             primaryButton={
               <Tooltip message="Coming soon">
-                <Button icon={<DownloadIcon className="size-4" />}>Install Datum Desktop</Button>
+                {!hasDesktop ? (
+                  <Button icon={<DownloadIcon className="size-4" />}>Install Datum Desktop</Button>
+                ) : (
+                  <Button
+                    className="border-card-success-border hover:border-secondary"
+                    theme="outline"
+                    type="secondary"
+                    icon={<DownloadIcon className="size-4" />}>
+                    Install Datum Desktop
+                  </Button>
+                )}
               </Tooltip>
             }
             onSkip={async () => {
@@ -264,16 +266,7 @@ export default function ProjectHomePage() {
             text={
               <p>
                 Gain real-time visibility into your Datum infrastructure and traffic by exporting
-                OTel compatible metrics to Grafana Cloud.{' '}
-                <LinkButton
-                  type="primary"
-                  theme="link"
-                  size="link"
-                  to={getPathWithParams(paths.project.detail.proxy.root, {
-                    projectId: project.name,
-                  })}>
-                  More info
-                </LinkButton>
+                OTel compatible metrics to Grafana Cloud.
               </p>
             }
             primaryButton={
@@ -287,6 +280,7 @@ export default function ProjectHomePage() {
                 </LinkButton>
               ) : (
                 <LinkButton
+                  className="border-card-success-border hover:border-secondary"
                   theme="outline"
                   type="secondary"
                   to={getPathWithParams(paths.project.detail.proxy.root, {
