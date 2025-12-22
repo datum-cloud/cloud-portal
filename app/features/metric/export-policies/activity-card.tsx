@@ -87,12 +87,12 @@ const ActivityChart = () => {
   const { data, isLoading, error, isFetching } = usePrometheusChart({
     query: `
       label_replace(
-        rate(vector_component_errors_total{error_type="request_failed", resourcemanager_datumapis_com_project_name="test-rdzjb8"}),
+        rate(vector_component_errors_total{error_type="request_failed", resourcemanager_datumapis_com_project_name="${projectId}"}),
         "series_name", "Metrics error rate", "", ""
       )
       or
       label_replace(
-        rate(vector_component_sent_events_total{component_kind="sink", resourcemanager_datumapis_com_project_name="test-rdzjb8"}),
+        rate(vector_component_sent_events_total{component_kind="sink", resourcemanager_datumapis_com_project_name="${projectId}"}),
         "series_name", "Metrics per second", "", ""
       )
     `.trim(),
