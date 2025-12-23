@@ -1,4 +1,5 @@
 import { Button, Card, CardContent } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { TriangleAlertIcon } from 'lucide-react';
 
 export const DangerCard = ({
@@ -18,7 +19,7 @@ export const DangerCard = ({
     <Card className="border-destructive rounded-xl p-0 shadow-none">
       <CardContent className="flex items-center justify-between gap-2 px-8 py-5">
         <div className="flex items-center gap-8">
-          <TriangleAlertIcon size={34} className="text-destructive stroke-1" />
+          <Icon icon={TriangleAlertIcon} size={34} className="text-destructive stroke-1" />
           <div className="text-destructive flex max-w-xl flex-col gap-2">
             <span className="text-sm font-semibold">{title}</span>
             <span className="text-xs leading-relaxed font-normal">{description}</span>

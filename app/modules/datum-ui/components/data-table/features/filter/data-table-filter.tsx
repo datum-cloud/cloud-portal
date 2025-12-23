@@ -10,6 +10,7 @@ import { SelectFilter } from './components/select';
 import { TagFilter } from './components/tag';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronDown, Filter, RotateCcw } from 'lucide-react';
@@ -54,7 +55,7 @@ function FilterBar({
         {showHeader && (
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2 text-lg font-semibold">
-              <Filter className="h-4 w-4" />
+              <Icon icon={Filter} className="h-4 w-4" />
               Filters
               {/* {hasActiveFiltersValue && <Badge type="primary">{activeCount}</Badge>} */}
             </div>
@@ -65,7 +66,7 @@ function FilterBar({
                 size="small"
                 onClick={resetAllFilters}
                 className="hover:bg-destructive hover:text-destructive-foreground h-8 px-2 text-xs">
-                <RotateCcw className="mr-1 h-3 w-3" />
+                <Icon icon={RotateCcw} className="mr-1 h-3 w-3" />
                 Clear all
               </Button>
             )}
@@ -90,7 +91,7 @@ function FilterBar({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <Filter className="h-4 w-4" />
+              <Icon icon={Filter} className="h-4 w-4" />
               Filters
               {/* {hasActiveFiltersValue && <Badge type="primary">{activeCount}</Badge>} */}
             </CardTitle>
@@ -102,7 +103,7 @@ function FilterBar({
                   size="small"
                   onClick={resetAllFilters}
                   className="h-7 px-2 text-xs">
-                  <RotateCcw className="mr-1 h-3 w-3" />
+                  <Icon icon={RotateCcw} className="mr-1 h-3 w-3" />
                   Reset
                 </Button>
               )}
@@ -114,7 +115,8 @@ function FilterBar({
                       theme="borderless"
                       size="small"
                       className="h-7 w-7 p-0">
-                      <ChevronDown
+                      <Icon
+                        icon={ChevronDown}
                         className={cn('h-4 w-4 transition-transform', isExpanded && 'rotate-180')}
                       />
                       <span className="sr-only">Toggle filters</span>

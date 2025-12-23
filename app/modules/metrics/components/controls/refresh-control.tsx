@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { useQueryState } from 'nuqs';
@@ -109,7 +110,8 @@ export const RefreshControl = ({
           className="size-9 rounded-r-none border-r"
           onClick={handleManualRefresh}
           disabled={isManualRefreshing || isAutoRefreshing}>
-          <RefreshCw
+          <Icon
+            icon={RefreshCw}
             className={`size-4 ${isManualRefreshing || isAutoRefreshing ? 'animate-spin' : ''}`}
           />
         </Button>

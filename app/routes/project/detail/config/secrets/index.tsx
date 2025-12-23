@@ -11,6 +11,7 @@ import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
@@ -140,7 +141,7 @@ export default function SecretsPage() {
             label: 'Add secret',
             to: getPathWithParams(paths.project.detail.config.secrets.new, { projectId }),
             variant: 'default',
-            icon: <PlusIcon className="size-3" />,
+            icon: <Icon icon={PlusIcon} className="size-3" />,
             iconPosition: 'start',
           },
         ],
@@ -153,7 +154,7 @@ export default function SecretsPage() {
               projectId,
             })}>
             <Button type="primary" theme="solid" size="small">
-              <PlusIcon className="size-4" />
+              <Icon icon={PlusIcon} className="size-4" />
               Add secret
             </Button>
           </Link>

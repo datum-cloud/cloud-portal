@@ -1,6 +1,7 @@
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { formatTTL, type ImportDetail } from '@/utils/helpers/dns-record.helper';
 import { Badge, Tooltip } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { CheckCircle2, XCircle, AlertCircle, MinusCircle } from 'lucide-react';
@@ -146,7 +147,7 @@ export const ImportResultTable = ({ details }: ImportResultTableProps) => {
           return (
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-1.5">
-                <StatusIcon className={cn('size-4', statusConfig.className)} />
+                <Icon icon={StatusIcon} className={cn('size-4', statusConfig.className)} />
                 <span className={cn('text-xs font-medium', statusConfig.className)}>
                   {statusConfig.label}
                 </span>

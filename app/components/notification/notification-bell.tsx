@@ -2,6 +2,7 @@ import type { NotificationBellProps } from './types';
 import { Badge } from '@/modules/datum-ui/components/badge';
 import { Button } from '@/modules/datum-ui/components/button';
 import { Tooltip } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Bell } from 'lucide-react';
 
 /**
@@ -16,7 +17,7 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
         size="small"
         className="relative h-7 w-7 cursor-pointer rounded-lg p-0"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}>
-        <Bell className="text-icon-primary size-3.5" />
+        <Icon icon={Bell} className="text-icon-primary size-3.5" />
         {unreadCount > 0 && (
           <Badge
             type="tertiary"

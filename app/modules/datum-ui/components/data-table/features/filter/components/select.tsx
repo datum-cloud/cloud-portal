@@ -2,6 +2,7 @@ import { useStringFilter, useArrayFilter } from '../../../hooks/useFilterQuerySt
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Label } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,
@@ -143,7 +144,11 @@ export function SelectFilter({
                               e.stopPropagation();
                               handleRemove(val);
                             }}>
-                            <X className="hover:text-destructive cursor-pointer" size={12} />
+                            <Icon
+                              icon={X}
+                              className="hover:text-destructive cursor-pointer"
+                              size={12}
+                            />
                           </button>
                         </Badge>
                       ) : null;
@@ -182,10 +187,10 @@ export function SelectFilter({
                     e.stopPropagation();
                     handleClear();
                   }}>
-                  <X className="size-3 cursor-pointer" size={12} />
+                  <Icon icon={X} className="size-3 cursor-pointer" size={12} />
                 </div>
               )}
-              <ChevronDown className="size-4 shrink-0 opacity-50" />
+              <Icon icon={ChevronDown} className="size-4 shrink-0 opacity-50" />
             </div>
           </Button>
         </PopoverTrigger>
@@ -223,7 +228,8 @@ export function SelectFilter({
                       </div>
 
                       {isSelected && (
-                        <Check
+                        <Icon
+                          icon={Check}
                           className={cn('h-4 w-4', isSelected ? 'opacity-100' : 'opacity-0')}
                         />
                       )}

@@ -1,3 +1,4 @@
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Button } from '@shadcn/ui/button';
 import { UploadIcon } from 'lucide-react';
@@ -139,7 +140,7 @@ export const DropzoneContent = ({
 
   return (
     <div className={cn('flex flex-col items-center justify-center', className)}>
-      {icon ?? <UploadIcon size={36} className="text-primary" />}
+      {icon ?? <Icon icon={UploadIcon} size={36} className="text-primary" />}
       <div className="my-2 w-full truncate text-sm font-medium text-wrap">
         {renderedLabel ?? defaultContentLabel(src)}
       </div>
@@ -197,7 +198,7 @@ export const DropzoneEmptyState = ({
 
   return (
     <div className={cn('flex flex-col items-center justify-center', className)}>
-      {icon ?? <UploadIcon size={36} className="text-primary size-9 text-4xl" />}
+      {icon ?? <Icon icon={UploadIcon} size={36} className="text-primary size-9 text-4xl" />}
       {label && <p className="my-2 w-full truncate text-sm font-medium text-wrap">{label}</p>}
       {description && (
         <div className="text-muted-foreground w-full truncate text-xs text-wrap">{description}</div>

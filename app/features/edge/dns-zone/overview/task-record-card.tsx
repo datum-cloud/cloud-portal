@@ -2,6 +2,7 @@ import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent, CardHeader, CardTitle, LinkButton } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { CheckIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -38,7 +39,7 @@ export const TaskRecordCard = ({
         <ul className="space-y-3.5 text-sm">
           {dnsRecordItems.map((item, index) => (
             <li key={`dns-record-item-${index}`} className="flex items-start gap-2.5">
-              <CheckIcon className="text-tertiary mt-0.5 size-3.5 shrink-0" />
+              <Icon icon={CheckIcon} className="text-tertiary mt-0.5 size-3.5 shrink-0" />
               <span>{item}</span>
             </li>
           ))}

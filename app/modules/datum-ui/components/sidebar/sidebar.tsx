@@ -1,5 +1,6 @@
 import { Tooltip } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Slot } from '@radix-ui/react-slot';
 import { useIsMobile } from '@shadcn/hooks/use-mobile';
 import { cn } from '@shadcn/lib/utils';
@@ -73,6 +74,7 @@ const SidebarProvider = ({
   const [hasSubLayout, setHasSubLayout] = React.useState(false);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const hoverLockRef = React.useRef(false);
+  const previousHasSubLayoutRef = React.useRef(false);
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -181,6 +183,15 @@ const SidebarProvider = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleSidebar]);
+
+  // Auto-collapse sidebar when a sub layout is present
+  // Only collapse when transitioning from no sub layout to having a sub layout
+  React.useEffect(() => {
+    if (hasSubLayout && !previousHasSubLayoutRef.current && !isMobile && open) {
+      setOpen(false);
+    }
+    previousHasSubLayoutRef.current = hasSubLayout;
+  }, [hasSubLayout, isMobile, open, setOpen]);
 
   // Determine the effective open state, considering hover if enabled.
   const effectiveOpen = open || (expandOnHover && isHovered);
@@ -429,9 +440,9 @@ const SidebarTrigger = ({ className, onClick, ...props }: React.ComponentProps<t
         }}
         {...props}>
         {open ? (
-          <PanelLeftCloseIcon className="size-4" />
+          <Icon icon={PanelLeftCloseIcon} className="size-4" />
         ) : (
-          <PanelLeftOpenIcon className="size-4" />
+          <Icon icon={PanelLeftOpenIcon} className="size-4" />
         )}
         <span className="sr-only">Toggle Sidebar</span>
       </Button>

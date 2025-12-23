@@ -4,6 +4,7 @@ import { HttpProxyHostnameSchema, HttpProxySchema } from '@/resources/schemas/ht
 import { FormMetadata, getInputProps, useForm } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -52,7 +53,7 @@ export const HostnamesForm = ({
                     size="small"
                     className="text-destructive relative top-0.5 w-fit"
                     onClick={() => form.remove({ name: fields.hostnames.name, index })}>
-                    <TrashIcon className="size-4" />
+                    <Icon icon={TrashIcon} className="size-4" />
                   </Button>
                 )}
               </div>
@@ -72,7 +73,7 @@ export const HostnamesForm = ({
             defaultValue: '',
           })
         }>
-        <PlusIcon className="size-4" />
+        <Icon icon={PlusIcon} className="size-4" />
         Add
       </Button>
     </div>

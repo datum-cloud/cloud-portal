@@ -6,6 +6,7 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { Users } from 'lucide-react';
 
@@ -93,7 +94,7 @@ export const renderSubjectsCell = (subjects: PolicyBinding['subjects']) => {
             e.stopPropagation();
           }}
           className="flex size-8 items-center gap-1 focus:ring-0">
-          <Users className="size-3" />
+          <Icon icon={Users} className="size-3" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="min-w-[300px]">

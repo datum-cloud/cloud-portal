@@ -9,6 +9,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, Col, DataTable, Row } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
 import { cn } from '@shadcn/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
@@ -88,7 +89,8 @@ export default function AccountOrganizations() {
           return (
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Building
+                <Icon
+                  icon={Building}
                   className={cn(
                     'text-icon-primary size-4',
                     row.original.type === OrganizationType.Personal && 'text-primary'
@@ -150,7 +152,7 @@ export default function AccountOrganizations() {
                   type="primary"
                   theme="solid"
                   size="small"
-                  icon={<PlusIcon className="size-4" />}>
+                  icon={<Icon icon={PlusIcon} className="size-4" />}>
                   Create organization
                 </Button>
               ),
@@ -163,7 +165,7 @@ export default function AccountOrganizations() {
                   label: 'Add a organization',
                   onClick: () => setOpenDialog(true),
                   variant: 'default',
-                  icon: <ArrowRightIcon className="size-4" />,
+                  icon: <Icon icon={ArrowRightIcon} className="size-4" />,
                   iconPosition: 'end',
                 },
               ],

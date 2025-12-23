@@ -3,6 +3,7 @@ import { PersonalBadge } from '@/components/personal-badge/personal-badge';
 import { ProfileIdentity } from '@/components/profile-identity';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { getInitials } from '@/utils/helpers/text.helper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Card, CardContent } from '@shadcn/ui/card';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';
 
@@ -39,7 +40,7 @@ export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
           </div>
         </div>
 
-        <ChevronRight size={24} className="text-muted-foreground" />
+        <Icon icon={ChevronRight} size={24} className="text-muted-foreground" />
       </CardContent>
     </Card>
   );

@@ -24,6 +24,7 @@ app/modules/datum-ui/
 │   ├── calendar/                 # Custom: RTL support, custom variants
 │   ├── calendar-date-picker/    # Custom: Enhanced date picker
 │   ├── dropdown/                 # Extended: destructive MenuItem
+│   ├── icons/                    # Icon wrapper for Lucide icons
 │   ├── input-number/            # Custom: Number input with stepper
 │   ├── input-with-addons/       # Custom: Input with addons
 │   ├── sidebar/                 # Custom: Complete sidebar system
@@ -138,20 +139,48 @@ import { InputNumber } from '@/modules/datum-ui';
 />
 ```
 
+#### Icons
+
+All icons from [Lucide React](https://lucide.dev/) must be wrapped with the `Icon` component to ensure consistent styling and default props across the application.
+
+```typescript
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Home, PlusIcon, ChevronRight } from 'lucide-react';
+
+// Basic usage with default props
+<Icon icon={Home} className="text-icon-primary size-4" />
+
+// Override defaults when needed
+<Icon icon={PlusIcon} size={24} strokeWidth={2} className="text-primary" />
+
+// In buttons and other components
+<Button icon={<Icon icon={ChevronRight} className="size-4" />}>
+  Next
+</Button>
+```
+
+**Important:** Always use the `Icon` wrapper instead of importing icons directly from `lucide-react`. The wrapper automatically applies:
+- Default `strokeWidth={1}`
+- Default `absoluteStrokeWidth={true}`
+- Default `size={16}`
+
+These defaults can be overridden via props when needed.
+
 ## 📦 Components
 
-### Custom Components (11)
+### Custom Components (12)
 
 Components unique to Datum or heavily customized:
 
 1. **AvatarStack** - Stacked avatars with tooltips
 2. **Calendar** - Enhanced calendar with RTL, custom variants
 3. **CalendarDatePicker** - Date range picker
-4. **InputNumber** - Number input with stepper
-5. **InputWithAddons** - Input with prefix/suffix slots
-6. **Sidebar** - Complete sidebar system with state management
-7. **Stepper** - Step indicator/wizard
-8. **TagInput** - Tag/chip input
+4. **Icon** - Wrapper component for Lucide icons with consistent defaults
+5. **InputNumber** - Number input with stepper
+6. **InputWithAddons** - Input with prefix/suffix slots
+7. **Sidebar** - Complete sidebar system with state management
+8. **Stepper** - Step indicator/wizard
+9. **TagInput** - Tag/chip input
 
 ### Extended Components (5)
 

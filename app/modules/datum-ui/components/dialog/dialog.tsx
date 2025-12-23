@@ -1,3 +1,4 @@
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { cn } from '@shadcn/lib/utils';
 import {
@@ -102,7 +103,10 @@ function Header({ title, description, onClose, className }: DialogHeaderProps) {
 
       {onClose && (
         <DialogClose className="absolute top-4 right-4 cursor-pointer" onClick={onClose} asChild>
-          <CircleXIcon className="fill-secondary/20 text-secondary-foreground hover:fill-secondary hover:text-secondary-foreground size-6 cursor-pointer transition-all" />
+          <Icon
+            icon={CircleXIcon}
+            className="fill-secondary/20 text-secondary-foreground hover:fill-secondary hover:text-secondary-foreground size-6 cursor-pointer transition-all"
+          />
         </DialogClose>
       )}
     </div>

@@ -3,6 +3,7 @@ import type { ActivityLogEntry } from '@/modules/loki/types';
 import { isPrivateIP } from '@/utils/common';
 import { Badge } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { CheckCircle, Info, AlertTriangle, XCircle } from 'lucide-react';
 
@@ -20,14 +21,18 @@ export const ActivityLogItem = ({ log, index }: ActivityLogItemProps) => {
         {/* Icon based on category/status */}
         <div className="relative top-[4px]">
           {log.category === 'success' && (
-            <CheckCircle size={14} className="flex-shrink-0 text-green-600" />
+            <Icon icon={CheckCircle} size={14} className="flex-shrink-0 text-green-600" />
           )}
-          {log.category === 'error' && <XCircle size={14} className="flex-shrink-0 text-red-600" />}
+          {log.category === 'error' && (
+            <Icon icon={XCircle} size={14} className="flex-shrink-0 text-red-600" />
+          )}
           {log.category === 'warning' && (
-            <AlertTriangle size={14} className="flex-shrink-0 text-amber-600" />
+            <Icon icon={AlertTriangle} size={14} className="flex-shrink-0 text-amber-600" />
           )}
-          {log.category === 'info' && <Info size={14} className="flex-shrink-0 text-blue-600" />}
-          {!log.category && <Info size={14} className="flex-shrink-0 text-gray-600" />}
+          {log.category === 'info' && (
+            <Icon icon={Info} size={14} className="flex-shrink-0 text-blue-600" />
+          )}
+          {!log.category && <Icon icon={Info} size={14} className="flex-shrink-0 text-gray-600" />}
         </div>
 
         <div className="flex flex-col gap-1">

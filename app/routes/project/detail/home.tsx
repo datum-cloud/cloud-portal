@@ -24,6 +24,7 @@ import {
   LinkButton,
   Tooltip,
 } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import type { Client } from '@hey-api/client-axios';
 import { DownloadIcon, PlusIcon } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -176,7 +177,7 @@ export default function ProjectHomePage() {
             primaryButton={
               !hasDomains ? (
                 <LinkButton
-                  icon={<PlusIcon className="size-4" />}
+                  icon={<Icon icon={PlusIcon} className="size-4" />}
                   to={getPathWithParams(paths.project.detail.domains.root, {
                     projectId: project.name,
                   })}>
@@ -227,13 +228,15 @@ export default function ProjectHomePage() {
             primaryButton={
               <Tooltip message="Coming soon">
                 {!hasDesktop ? (
-                  <Button icon={<DownloadIcon className="size-4" />}>Install Datum Desktop</Button>
+                  <Button icon={<Icon icon={DownloadIcon} className="size-4" />}>
+                    Install Datum Desktop
+                  </Button>
                 ) : (
                   <Button
                     className="border-card-success-border hover:border-secondary"
                     theme="outline"
                     type="secondary"
-                    icon={<DownloadIcon className="size-4" />}>
+                    icon={<Icon icon={DownloadIcon} className="size-4" />}>
                     Install Datum Desktop
                   </Button>
                 )}
@@ -275,7 +278,7 @@ export default function ProjectHomePage() {
                   to={getPathWithParams(paths.project.detail.proxy.new, {
                     projectId: project.name,
                   })}
-                  icon={<PlusIcon className="size-4" />}>
+                  icon={<Icon icon={PlusIcon} className="size-4" />}>
                   Set up a Proxy
                 </LinkButton>
               ) : (

@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { RocketIcon } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { Form, useNavigate } from 'react-router';
@@ -100,7 +101,7 @@ export const CreateProjectForm = () => {
           </Button>
           <Button htmlType="submit" disabled={isPending} loading={isPending}>
             {isPending ? 'Creating' : 'Create'} Project
-            <RocketIcon className="size-4" />
+            <Icon icon={RocketIcon} className="size-4" />
           </Button>
         </CardFooter>
       </Form>

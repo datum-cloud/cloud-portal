@@ -4,6 +4,7 @@ import { IOrganization, OrganizationType } from '@/resources/interfaces/organiza
 import { getInitials } from '@/utils/helpers/text.helper';
 import { Badge } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -143,7 +144,7 @@ export const OrganizationCard = ({
           </div>
 
           <motion.div whileHover={{ x: 2 }} transition={{ duration: 0.2 }}>
-            <ChevronRight size={24} className="text-muted-foreground" />
+            <Icon icon={ChevronRight} size={24} className="text-muted-foreground" />
           </motion.div>
         </MotionCardContent>
       </MotionCard>

@@ -8,6 +8,7 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { find } from 'es-toolkit/compat';
 import { SettingsIcon } from 'lucide-react';
@@ -95,7 +96,7 @@ export const WorkloadSinksTable = ({
             <Popover>
               <PopoverTrigger asChild>
                 <Button type="quaternary" theme="outline" size="small" className="h-8 focus:ring-0">
-                  <SettingsIcon className="size-4" />
+                  <Icon icon={SettingsIcon} className="size-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="min-w-[500px]">
