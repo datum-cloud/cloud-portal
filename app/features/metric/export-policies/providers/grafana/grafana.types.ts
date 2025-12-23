@@ -1,5 +1,5 @@
-import type { NewExportPolicySchema } from '@/resources/schemas/export-policy.schema';
-import type { SecretNewSchema } from '@/resources/schemas/secret.schema';
+import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
 
 export interface GrafanaDialogProps {
   /** Project ID for the export policy */
@@ -15,6 +15,11 @@ export interface GrafanaFormProps {
   projectId: string;
   /** Callback when dialog should close */
   onClose: () => void;
+  /** Callback when form should close */
+  onSuccess?: (data: {
+    exportPolicy: IExportPolicyControlResponse;
+    secret: ISecretControlResponse;
+  }) => void;
 }
 
 export interface GrafanaFormData {
@@ -28,7 +33,7 @@ export interface GrafanaSubmitResponse {
   success: boolean;
   error?: string;
   data?: {
-    exportPolicy: NewExportPolicySchema;
-    secret: SecretNewSchema;
+    exportPolicy: IExportPolicyControlResponse;
+    secret: ISecretControlResponse;
   };
 }

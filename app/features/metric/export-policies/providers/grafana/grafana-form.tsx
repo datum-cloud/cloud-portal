@@ -8,14 +8,13 @@ import {
   ExportPolicyAuthenticationType,
   ExportPolicySinkType,
   ExportPolicySourceType,
+  IExportPolicyControlResponse,
 } from '@/resources/interfaces/export-policy.interface';
-import { SecretType } from '@/resources/interfaces/secret.interface';
+import { ISecretControlResponse, SecretType } from '@/resources/interfaces/secret.interface';
 import type { NewExportPolicySchema } from '@/resources/schemas/export-policy.schema';
 import type { SecretNewSchema } from '@/resources/schemas/secret.schema';
 import { ROUTE_PATH as TELEMETRY_GRAFANA_ACTION } from '@/routes/api/telemetry/grafana';
-import { paths } from '@/utils/config/paths.config';
 import { isValidPrometheusConfig, isValidYaml, yamlToJson } from '@/utils/helpers/format.helper';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { createNameSchema } from '@/utils/helpers/validation.helper';
 import { LinkButton, toast } from '@datum-ui/components';
 import { Dialog } from '@datum-ui/components/dialog';
@@ -79,13 +78,20 @@ const steps = [
 // Component
 // ============================================================================
 
-export function GrafanaForm({ projectId, onClose }: GrafanaFormProps) {
+export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps) {
   const csrf = useAuthenticityToken();
 
   const fetcher = useDatumFetcher<GrafanaSubmitResponse>({
     key: 'grafana-export-policy',
-    onSuccess: () => {
-      onClose();
+    onSuccess: (data) => {
+      if (onSuccess) {
+        onSuccess({
+          exportPolicy: data.data?.exportPolicy as IExportPolicyControlResponse,
+          secret: data.data?.secret as ISecretControlResponse,
+        });
+      } else {
+        onClose();
+      }
     },
     onError: (data) => {
       toast.error('Export policy', {
@@ -150,9 +156,6 @@ export function GrafanaForm({ projectId, onClose }: GrafanaFormProps) {
       exportPolicy: exportPolicyPayload,
       secret: secretPayload,
       csrf: csrf as string,
-      redirectUri: getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
-        projectId,
-      }),
     };
 
     fetcher.submit(payload, {
@@ -346,6 +349,7 @@ export function GrafanaForm({ projectId, onClose }: GrafanaFormProps) {
                 loading={fetcher.isPending}
                 disabled={fetcher.isPending}
                 loadingText="Submitting..."
+                onCancel={onClose}
               />
             </Dialog.Footer>
           </>
