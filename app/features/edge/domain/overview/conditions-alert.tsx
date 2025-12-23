@@ -1,6 +1,6 @@
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { TriangleAlertIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -40,7 +40,7 @@ export const ConditionsAlert = ({ status }: { status: IDomainControlResponse['st
 
   return (
     <Alert variant="destructive">
-      <IconWrapper icon={TriangleAlertIcon} className="text-destructive size-4 font-semibold" />
+      <Icon icon={TriangleAlertIcon} className="text-destructive size-4 font-semibold" />
       <AlertTitle className="font-semibold">Domain Validation Errors</AlertTitle>
       <AlertDescription>
         <div className="space-y-1">

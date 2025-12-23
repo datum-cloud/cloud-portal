@@ -3,7 +3,7 @@ import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/re
 import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -57,7 +57,7 @@ export const TaskNameserverCard = ({
         {domain?.name && (
           <div className="mt-6">
             <RefreshNameserversButton
-              icon={<IconWrapper icon={RefreshCcwIcon} size={12} />}
+              icon={<Icon icon={RefreshCcwIcon} size={12} />}
               size="small"
               lastRefreshAttempt={domain?.desiredRegistrationRefreshAttempt}
               domainName={domain?.name ?? ''}

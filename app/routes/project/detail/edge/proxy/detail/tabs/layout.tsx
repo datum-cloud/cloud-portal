@@ -8,7 +8,7 @@ import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/proxy';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { NavItem } from '@datum-ui/components/sidebar';
 import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { useMemo } from 'react';
@@ -96,7 +96,7 @@ export default function HttpProxyDetailLayout() {
             {(httpProxy as IHttpProxyControlResponse)?.name ?? 'Proxy'}
           </h1>
           <div className="flex items-center gap-1">
-            <IconWrapper icon={ClockIcon} className="text-muted-foreground h-4 w-4" />
+            <Icon icon={ClockIcon} className="text-muted-foreground h-4 w-4" />
             <DateTime
               className="text-muted-foreground text-sm"
               date={(httpProxy as IHttpProxyControlResponse)?.createdAt ?? ''}
@@ -112,7 +112,7 @@ export default function HttpProxyDetailLayout() {
                 projectId,
                 proxyId: httpProxy?.name ?? '',
               })}>
-              <IconWrapper icon={PencilIcon} className="size-4" />
+              <Icon icon={PencilIcon} className="size-4" />
               Edit
             </Link>
           </Button>
@@ -123,7 +123,7 @@ export default function HttpProxyDetailLayout() {
                 key: 'delete',
                 label: 'Delete',
                 variant: 'destructive',
-                icon: <IconWrapper icon={TrashIcon} className="size-4" />,
+                icon: <Icon icon={TrashIcon} className="size-4" />,
                 action: deleteHttpProxy,
               },
             ]}

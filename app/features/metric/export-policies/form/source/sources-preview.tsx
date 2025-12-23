@@ -3,7 +3,7 @@ import { ExportPolicySourceType } from '@/resources/interfaces/export-policy.int
 import { ExportPolicySourcesSchema } from '@/resources/schemas/export-policy.schema';
 import { Badge } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Separator } from '@shadcn/ui/separator';
 import { CodeIcon } from 'lucide-react';
 import { useMemo } from 'react';
@@ -25,7 +25,7 @@ export const SourcesPreview = ({ values }: { values: ExportPolicySourcesSchema }
                 <Badge
                   type="secondary"
                   className="hover:bg-secondary-hover flex cursor-help items-center gap-1">
-                  <IconWrapper icon={CodeIcon} className="h-3 w-3" />
+                  <Icon icon={CodeIcon} className="h-3 w-3" />
                   <span>MetricsQL Query</span>
                 </Badge>
               </Tooltip>

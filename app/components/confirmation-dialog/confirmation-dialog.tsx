@@ -2,7 +2,7 @@ import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Input, Label } from '@datum-ui/components';
 import { Dialog } from '@datum-ui/components/dialog';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { AlertCircle } from 'lucide-react';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
@@ -53,7 +53,7 @@ export const ConfirmationDialog = ({
 
     // Alert
     showAlert: false,
-    alertIcon: <IconWrapper icon={AlertCircle} />,
+    alertIcon: <Icon icon={AlertCircle} />,
     alertTitle: '',
     alertDescription: '',
     alertVariant: 'default',

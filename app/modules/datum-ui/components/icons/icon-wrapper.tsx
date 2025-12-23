@@ -4,15 +4,15 @@ type IconProps = LucideProps & {
   icon: LucideIcon;
 };
 
-export function IconWrapper({
-  icon: Icon,
+export function Icon({
+  icon: IconComponent,
   strokeWidth = 1,
   absoluteStrokeWidth = true,
   size = 16,
   ...props
 }: IconProps) {
   return (
-    <Icon
+    <IconComponent
       {...props}
       strokeWidth={strokeWidth}
       absoluteStrokeWidth={absoluteStrokeWidth}

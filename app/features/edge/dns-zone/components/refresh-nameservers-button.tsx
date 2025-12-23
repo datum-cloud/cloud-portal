@@ -1,7 +1,7 @@
 import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
 import { Button, ButtonProps, toast } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { TimerIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -125,7 +125,7 @@ export const RefreshNameserversButton = ({
     <div className={cn('flex items-center gap-2.5', containerClassName)}>
       {isOnCooldown && (
         <div className="flex items-center gap-1 font-normal">
-          <IconWrapper icon={TimerIcon} className="text-ring relative -top-px size-4" />
+          <Icon icon={TimerIcon} className="text-ring relative -top-px size-4" />
           <span className="text-ring text-sm leading-none">
             {formatTime(remainingSeconds)} until refresh available
           </span>

@@ -1,6 +1,6 @@
 import { paths } from '@/utils/config/paths.config';
 import { Button, ButtonProps } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
@@ -85,7 +85,7 @@ export const BackButton = ({
   };
 
   const icon = showIcon
-    ? customIcon || <IconWrapper icon={ArrowLeft} className="text-icon-primary size-4" />
+    ? customIcon || <Icon icon={ArrowLeft} className="text-icon-primary size-4" />
     : undefined;
 
   return (

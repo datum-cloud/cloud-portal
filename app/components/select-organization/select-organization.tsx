@@ -4,7 +4,7 @@ import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { Button, SpinnerIcon } from '@datum-ui/components';
 import { toast } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,
@@ -74,7 +74,7 @@ export const SelectOrganization = ({
           )}>
           {!hideContent &&
             (selectedContent ?? <OrganizationItem org={currentOrg} className="flex-1" />)}
-          <IconWrapper
+          <Icon
             icon={ChevronDown}
             className={cn('text-icon-secondary size-4 w-fit transition-all', open && 'rotate-180')}
           />
@@ -116,9 +116,7 @@ export const SelectOrganization = ({
                         }}
                         className="cursor-pointer justify-between px-3 py-2">
                         <OrganizationItem org={org} />
-                        {isSelected && (
-                          <IconWrapper icon={CheckIcon} className="text-primary size-4" />
-                        )}
+                        {isSelected && <Icon icon={CheckIcon} className="text-primary size-4" />}
                       </CommandItem>
                     );
                   })}
@@ -132,7 +130,7 @@ export const SelectOrganization = ({
                   <Link
                     to={paths.account.organizations.root}
                     className="flex items-center gap-2 px-3 py-2">
-                    <IconWrapper icon={BuildingIcon} className="size-3.5" />
+                    <Icon icon={BuildingIcon} className="size-3.5" />
                     <span className="text-xs">Organizations</span>
                   </Link>
                 </CommandItem>

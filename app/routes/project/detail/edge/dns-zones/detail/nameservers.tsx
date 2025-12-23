@@ -4,7 +4,7 @@ import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/re
 import { NameserverTable } from '@/features/edge/nameservers';
 import { getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
 import { Col, Row } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { InfoIcon, RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { useParams, useRouteLoaderData } from 'react-router';
@@ -43,7 +43,7 @@ export default function DnsZoneNameserversPage() {
                 domainName={domain?.name ?? ''}
                 projectId={projectId ?? ''}
                 label="Refresh nameservers"
-                icon={<IconWrapper icon={RefreshCcwIcon} size={12} />}
+                icon={<Icon icon={RefreshCcwIcon} size={12} />}
               />
             ),
           }}
@@ -54,7 +54,7 @@ export default function DnsZoneNameserversPage() {
       {!nameserverSetup.isFullySetup && domain?.name && (
         <Col span={24}>
           <NoteCard
-            icon={<IconWrapper icon={InfoIcon} className="size-5" />}
+            icon={<Icon icon={InfoIcon} className="size-5" />}
             title={
               nameserverSetup.isPartiallySetup
                 ? 'Nameserver Setup Incomplete'

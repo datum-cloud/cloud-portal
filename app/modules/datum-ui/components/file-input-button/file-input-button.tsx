@@ -1,5 +1,5 @@
 import { Button, type ButtonProps } from '@datum-ui/components/button';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { UploadIcon } from 'lucide-react';
 import { useRef, type ChangeEvent } from 'react';
 
@@ -126,7 +126,7 @@ export const FileInputButton = ({
       <Button
         onClick={handleClick}
         disabled={disabled}
-        icon={icon ?? <IconWrapper icon={UploadIcon} className="size-4" />}
+        icon={icon ?? <Icon icon={UploadIcon} className="size-4" />}
         {...buttonProps}>
         {children}
       </Button>

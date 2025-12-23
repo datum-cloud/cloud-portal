@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Check } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
@@ -165,7 +165,7 @@ export default function InvitationPage() {
                   </>
                 ) : (
                   <>
-                    <IconWrapper icon={Check} className="size-4" />
+                    <Icon icon={Check} className="size-4" />
                     Join Organization
                   </>
                 )}

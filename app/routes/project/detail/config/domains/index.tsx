@@ -19,7 +19,7 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge, Button, toast } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
@@ -336,7 +336,7 @@ export default function DomainsPage() {
               label: 'Add domain',
               onClick: () => setOpenAddDialog(true),
               variant: 'default',
-              icon: <IconWrapper icon={PlusIcon} className="size-3" />,
+              icon: <Icon icon={PlusIcon} className="size-3" />,
               iconPosition: 'start',
             },
           ],
@@ -351,7 +351,7 @@ export default function DomainsPage() {
                 theme="solid"
                 size="small"
                 onClick={() => setOpenAddDialog(true)}>
-                <IconWrapper icon={PlusIcon} className="size-4" />
+                <Icon icon={PlusIcon} className="size-4" />
                 Add domain
               </Button>
             </div>

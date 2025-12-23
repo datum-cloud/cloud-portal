@@ -9,7 +9,7 @@ import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Client } from '@hey-api/client-axios';
 import { PlusIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
@@ -130,7 +130,7 @@ export default function OrgPolicyBindingsPage() {
         actions: (
           <Link to={getPathWithParams(paths.org.detail.policyBindings.new, { orgId })}>
             <Button type="primary" theme="solid" size="small">
-              <IconWrapper icon={PlusIcon} className="size-4" />
+              <Icon icon={PlusIcon} className="size-4" />
               Add policy binding
             </Button>
           </Link>

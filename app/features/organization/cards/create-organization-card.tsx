@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardTitle } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Plus } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -52,7 +52,7 @@ export const CreateOrganizationCard = ({ onClick, className }: CreateOrganizatio
                 ease: 'linear',
                 repeatDelay: 3,
               }}>
-              <IconWrapper icon={Plus} className="size-6" />
+              <Icon icon={Plus} className="size-6" />
             </motion.div>
           </motion.div>
           <motion.div

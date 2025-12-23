@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { CircleXIcon } from 'lucide-react';
 
@@ -59,7 +59,7 @@ export const NoteCard = ({ title, description, icon, closable, onClose, size }: 
             {icon}
             {title}
             {closable && onClose && (
-              <IconWrapper
+              <Icon
                 icon={CircleXIcon}
                 className="fill-secondary/20 hover:fill-secondary stroke-card-warning absolute top-4 right-4 size-6 cursor-pointer text-transparent transition-all"
                 onClick={onClose}

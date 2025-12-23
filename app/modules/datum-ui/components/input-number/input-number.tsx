@@ -1,5 +1,5 @@
 import { Input } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Button } from '@shadcn/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { forwardRef, useCallback, useEffect, useState, useRef } from 'react';
@@ -127,7 +127,7 @@ export const InputNumber = forwardRef<HTMLInputElement, NumberInputProps>(
             variant="outline"
             onClick={handleIncrement}
             disabled={value === max}>
-            <IconWrapper icon={ChevronUp} size={15} />
+            <Icon icon={ChevronUp} size={15} />
           </Button>
           <Button
             type="button"
@@ -136,7 +136,7 @@ export const InputNumber = forwardRef<HTMLInputElement, NumberInputProps>(
             variant="outline"
             onClick={handleDecrement}
             disabled={value === min}>
-            <IconWrapper icon={ChevronDown} size={15} />
+            <Icon icon={ChevronDown} size={15} />
           </Button>
         </div>
       </div>

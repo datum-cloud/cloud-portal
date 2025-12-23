@@ -3,7 +3,7 @@ import { FieldLabel } from '@/components/field/field-label';
 import { SecretEnvSchema, SecretVariablesSchema } from '@/resources/schemas/secret.schema';
 import { FormMetadata, useForm } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
@@ -72,7 +72,7 @@ export const KeysForm = ({
                   size="small"
                   className={cn('text-destructive relative top-2 w-fit')}
                   onClick={() => form.remove({ name: fields.variables.name, index })}>
-                  <IconWrapper icon={TrashIcon} className="size-4" />
+                  <Icon icon={TrashIcon} className="size-4" />
                 </Button>
               )}
             </div>
@@ -94,7 +94,7 @@ export const KeysForm = ({
             },
           })
         }>
-        <IconWrapper icon={PlusIcon} className="size-4" />
+        <Icon icon={PlusIcon} className="size-4" />
         Add
       </Button>
     </div>

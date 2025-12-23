@@ -1,4 +1,4 @@
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import { cn } from '@shadcn/lib/utils';
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react';
@@ -89,7 +89,7 @@ const DropdownMenuCheckboxItem = ({
       {...props}>
       <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
         <DropdownMenuPrimitive.ItemIndicator>
-          <IconWrapper icon={CheckIcon} className="size-4" />
+          <Icon icon={CheckIcon} className="size-4" />
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
       {children}
@@ -117,7 +117,7 @@ const DropdownMenuRadioItem = ({
       {...props}>
       <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
         <DropdownMenuPrimitive.ItemIndicator>
-          <IconWrapper icon={CircleIcon} className="size-2 fill-current" />
+          <Icon icon={CircleIcon} className="size-2 fill-current" />
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
       {children}
@@ -183,7 +183,7 @@ const DropdownMenuSubTrigger = ({
       )}
       {...props}>
       {children}
-      <IconWrapper icon={ChevronRightIcon} className="ml-auto size-4" />
+      <Icon icon={ChevronRightIcon} className="ml-auto size-4" />
     </DropdownMenuPrimitive.SubTrigger>
   );
 };

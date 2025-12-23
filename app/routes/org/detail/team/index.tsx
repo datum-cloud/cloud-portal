@@ -24,7 +24,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Tooltip } from '@datum-ui/components';
 import { Badge } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import {
@@ -423,7 +423,7 @@ export default function OrgTeamPage() {
       {
         key: 'resend',
         label: 'Resend invitation',
-        icon: <IconWrapper icon={Redo2Icon} className="size-4" />,
+        icon: <Icon icon={Redo2Icon} className="size-4" />,
         hidden: (row: ITeamMember) =>
           row.type !== 'invitation' || row.invitationState !== 'Pending',
         action: (row: ITeamMember) => resendInvitation(row.id),
@@ -433,7 +433,7 @@ export default function OrgTeamPage() {
         key: 'cancel',
         label: 'Cancel invitation',
         variant: 'destructive' as const,
-        icon: <IconWrapper icon={TrashIcon} className="size-4" />,
+        icon: <Icon icon={TrashIcon} className="size-4" />,
         hidden: (row: ITeamMember) => row.type !== 'invitation',
         action: (row: ITeamMember) => cancelInvitation(row),
       },
@@ -442,7 +442,7 @@ export default function OrgTeamPage() {
         key: 'edit-role',
         label: 'Edit role',
         variant: 'default' as const,
-        icon: <IconWrapper icon={UserPenIcon} className="size-4" />,
+        icon: <Icon icon={UserPenIcon} className="size-4" />,
         hidden: (row: ITeamMember) => {
           // Hide if not a member
           if (row.type !== 'member') return true;
@@ -470,7 +470,7 @@ export default function OrgTeamPage() {
         key: 'remove',
         label: 'Remove member',
         variant: 'destructive' as const,
-        icon: <IconWrapper icon={TrashIcon} className="size-4" />,
+        icon: <Icon icon={TrashIcon} className="size-4" />,
         hidden: (row: ITeamMember) => {
           // Hide if not a member
           if (row.type !== 'member') return true;
@@ -545,7 +545,7 @@ export default function OrgTeamPage() {
                 orgId,
               })}>
               <Button>
-                <IconWrapper icon={UserPlusIcon} className="size-4" />
+                <Icon icon={UserPlusIcon} className="size-4" />
                 Invite Member
               </Button>
             </Link>
@@ -568,7 +568,7 @@ export default function OrgTeamPage() {
                 orgId,
               }),
               variant: 'default',
-              icon: <IconWrapper icon={ArrowRightIcon} className="size-4" />,
+              icon: <Icon icon={ArrowRightIcon} className="size-4" />,
               iconPosition: 'end',
             },
           ],

@@ -3,7 +3,7 @@ import { ROUTE_PATH as USER_DELETE_ACTION } from '@/routes/api/user';
 import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { CircleAlertIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFetcher } from 'react-router';
@@ -47,7 +47,7 @@ export const AccountDangerSettingsCard = () => {
       </CardHeader>
       <CardContent>
         <Alert variant="destructive">
-          <IconWrapper icon={CircleAlertIcon} className="size-5 shrink-0" />
+          <Icon icon={CircleAlertIcon} className="size-5 shrink-0" />
           <AlertTitle className="text-sm font-semibold">Warning: Destructive Action</AlertTitle>
           <AlertDescription>
             This action cannot be undone. Once deleted, your account and all associated data will be

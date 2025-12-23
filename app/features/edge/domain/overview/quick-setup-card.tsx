@@ -6,7 +6,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
 import { Card, CardContent } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { CheckIcon, CloudLightningIcon } from 'lucide-react';
 
 export const QuickSetupCard = ({
@@ -60,7 +60,7 @@ export const QuickSetupCard = ({
     <Card className="border-card-success-border bg-card-success w-full p-0 shadow-md">
       <CardContent className="flex flex-col gap-5 px-9 py-8">
         <div className="flex items-center gap-2.5">
-          <IconWrapper icon={CloudLightningIcon} size={20} className="text-tertiary stroke-2" />
+          <Icon icon={CloudLightningIcon} size={20} className="text-tertiary stroke-2" />
           <span className="text-base font-semibold">Automatic Verification</span>
         </div>
         <div className="flex flex-col gap-3.5">
@@ -71,7 +71,7 @@ export const QuickSetupCard = ({
           <ul className="space-y-[7px] text-[14px] font-normal">
             {setupItems.map((item, index) => (
               <li className="flex items-start gap-2.5" key={`quick-setup-item-${index}`}>
-                <IconWrapper icon={CheckIcon} className="text-success mt-0.5 size-3.5 shrink-0" />
+                <Icon icon={CheckIcon} className="text-success mt-0.5 size-3.5 shrink-0" />
                 <span>{item}</span>
               </li>
             ))}

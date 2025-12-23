@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Table as TTable } from '@tanstack/react-table';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
@@ -47,7 +47,7 @@ export const DataTablePagination = <TData,>({ table }: { table: TTable<TData> })
           }}
           disabled={!table.getCanPreviousPage()}>
           <span className="sr-only">Go to previous page</span>
-          <IconWrapper icon={ArrowLeft} className="size-4" />
+          <Icon icon={ArrowLeft} className="size-4" />
         </Button>
         <Button
           type="secondary"
@@ -58,7 +58,7 @@ export const DataTablePagination = <TData,>({ table }: { table: TTable<TData> })
           }}
           disabled={!table.getCanNextPage()}>
           <span className="sr-only">Go to next page</span>
-          <IconWrapper icon={ArrowRight} className="size-4" />
+          <Icon icon={ArrowRight} className="size-4" />
         </Button>
       </div>
     </div>

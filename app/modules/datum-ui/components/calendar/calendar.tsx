@@ -1,4 +1,4 @@
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Button, buttonVariants } from '@shadcn/ui/button';
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
@@ -108,20 +108,14 @@ function Calendar({
         },
         Chevron: ({ className, orientation, ...props }: any) => {
           if (orientation === 'left') {
-            return (
-              <IconWrapper icon={ChevronLeftIcon} className={cn('size-4', className)} {...props} />
-            );
+            return <Icon icon={ChevronLeftIcon} className={cn('size-4', className)} {...props} />;
           }
 
           if (orientation === 'right') {
-            return (
-              <IconWrapper icon={ChevronRightIcon} className={cn('size-4', className)} {...props} />
-            );
+            return <Icon icon={ChevronRightIcon} className={cn('size-4', className)} {...props} />;
           }
 
-          return (
-            <IconWrapper icon={ChevronDownIcon} className={cn('size-4', className)} {...props} />
-          );
+          return <Icon icon={ChevronDownIcon} className={cn('size-4', className)} {...props} />;
         },
         DayButton: CalendarDayButton,
         WeekNumber: ({ children, ...props }: any) => {

@@ -4,7 +4,7 @@ import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api/projects';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, SpinnerIcon } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,
@@ -77,7 +77,7 @@ export const ProjectSwitcher = ({
           projectId: currentProject.name,
         })}
         className="flex w-fit items-center justify-between gap-2.5 text-left">
-        <IconWrapper icon={FolderRoot} className="text-icon-primary h-3.5 w-fit" />
+        <Icon icon={FolderRoot} className="text-icon-primary h-3.5 w-fit" />
         <span className="max-w-[100px] truncate text-xs leading-3.5 sm:max-w-36 md:max-w-none">
           {currentProject?.description}
         </span>
@@ -92,7 +92,7 @@ export const ProjectSwitcher = ({
               'flex cursor-pointer gap-2 border-none p-0 hover:bg-transparent active:bg-transparent data-[state=open]:bg-transparent',
               triggerClassName
             )}>
-            <IconWrapper
+            <Icon
               icon={ChevronDown}
               className={cn(
                 'text-icon-secondary size-4 w-fit transition-all',
@@ -140,9 +140,7 @@ export const ProjectSwitcher = ({
                           }}
                           className="cursor-pointer justify-between px-3 py-2">
                           <ProjectItem project={project} />
-                          {isSelected && (
-                            <IconWrapper icon={CheckIcon} className="text-primary size-4" />
-                          )}
+                          {isSelected && <Icon icon={CheckIcon} className="text-primary size-4" />}
                         </CommandItem>
                       );
                     })}
@@ -154,7 +152,7 @@ export const ProjectSwitcher = ({
                 <Link
                   to={getPathWithParams(paths.org.detail.projects.new, { orgId })}
                   className="flex items-center gap-2 px-3 py-2">
-                  <IconWrapper icon={FolderRoot} className="size-3.5" />
+                  <Icon icon={FolderRoot} className="size-3.5" />
                   <span className="text-xs">Create project</span>
                 </Link>
               </CommandItem>

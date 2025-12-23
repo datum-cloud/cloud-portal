@@ -4,7 +4,7 @@ import { Label } from '../primitives/label';
 import type { FormFieldProps, FormFieldContextValue, FormFieldRenderProps } from '../types';
 import { useInputControl } from '@conform-to/react';
 import { Tooltip } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { CircleHelp } from 'lucide-react';
 import * as React from 'react';
@@ -51,7 +51,7 @@ const FieldLabel = ({
           open={isTooltipVisible}
           onOpenChange={setIsTooltipVisible}
           side="bottom">
-          <IconWrapper
+          <Icon
             icon={CircleHelp}
             className={cn(
               'text-ring absolute top-0.5 -right-3 size-3.5 cursor-pointer transition-opacity duration-400',

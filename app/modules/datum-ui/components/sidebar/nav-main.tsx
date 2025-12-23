@@ -9,7 +9,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronRight, ExternalLinkIcon, LucideIcon } from 'lucide-react';
@@ -61,7 +61,7 @@ const NAV_STYLES = {
 
 // Centralized icon renderer component
 const NavIcon = ({
-  icon: Icon,
+  icon: IconComponent,
   className,
   size = 'default',
 }: {
@@ -69,10 +69,10 @@ const NavIcon = ({
   className?: string;
   size?: 'default' | 'small';
 }) => {
-  if (!Icon) return null;
+  if (!IconComponent) return null;
   return (
-    <IconWrapper
-      icon={Icon}
+    <Icon
+      icon={IconComponent}
       className={cn(size === 'small' ? NAV_STYLES.iconSmall : NAV_STYLES.icon, className)}
     />
   );
@@ -448,7 +448,7 @@ export const NavMain = forwardRef<
                     disableTooltip={disableTooltip}
                     className={itemClassName}>
                     <span>{item.title}</span>
-                    <IconWrapper
+                    <Icon
                       icon={ChevronRight}
                       className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
                     />
@@ -541,7 +541,7 @@ export const NavMain = forwardRef<
                   disableTooltip={disableTooltip}
                   className={itemClassName}>
                   <span>{currentItem.title}</span>
-                  <IconWrapper
+                  <Icon
                     icon={ChevronRight}
                     className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
                   />
@@ -584,20 +584,18 @@ export const NavMain = forwardRef<
                   className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {item?.icon && (
-                      <IconWrapper
+                      <Icon
                         icon={item.icon}
                         className="text-icon-primary size-4 transition-all duration-300"
                       />
                     )}
                     <span>{item.title}</span>
                   </div>
-                  <IconWrapper icon={ExternalLinkIcon} className="ml-auto size-4" />
+                  <Icon icon={ExternalLinkIcon} className="ml-auto size-4" />
                 </a>
               ) : (
                 <Link to={item.href || ''} onClick={handleNavigation}>
-                  {item?.icon && (
-                    <IconWrapper icon={item.icon} className="transition-all duration-300" />
-                  )}
+                  {item?.icon && <Icon icon={item.icon} className="transition-all duration-300" />}
                   <span>{item.title}</span>
                 </Link>
               )}

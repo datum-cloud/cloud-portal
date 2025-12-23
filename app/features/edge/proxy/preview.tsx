@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { InfoIcon } from 'lucide-react';
 import { AnimatePresence, motion, Variants } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -136,7 +136,7 @@ export const HttpProxyPreview = ({ data, projectId }: HttpProxyPreviewProps) => 
 
               <motion.div variants={itemVariants}>
                 <Alert variant="secondary">
-                  <IconWrapper icon={InfoIcon} className="text-secondary-500 size-4" />
+                  <Icon icon={InfoIcon} className="text-secondary-500 size-4" />
                   <AlertTitle>How to use your proxy</AlertTitle>
                   <AlertDescription>
                     <p>

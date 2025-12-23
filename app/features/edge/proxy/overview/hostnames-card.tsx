@@ -4,7 +4,7 @@ import { Badge } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { CopyIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -101,7 +101,7 @@ export const HttpProxyHostnamesCard = ({
                     size="small"
                     className="h-7"
                     onClick={() => copyToClipboard(val.hostname)}>
-                    <IconWrapper icon={CopyIcon} className="size-4" />
+                    <Icon icon={CopyIcon} className="size-4" />
                     {copied && copiedText === val.hostname ? 'Copied' : 'Copy'}
                   </Button>
                 </div>

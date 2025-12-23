@@ -8,7 +8,7 @@ import { ISecretControlResponse } from '@/resources/interfaces/secret.interface'
 import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
 import { Button, toast } from '@datum-ui/components';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@shadcn/ui/table';
 import { PencilIcon, PlusIcon, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -83,7 +83,7 @@ export const EditSecretKeys = ({ defaultValue }: { defaultValue?: ISecretControl
           <CardTitle className="flex items-center justify-between gap-2">
             <span className="text-lg font-medium">Key-value pairs</span>
             <Button
-              icon={<IconWrapper icon={PlusIcon} size={12} />}
+              icon={<Icon icon={PlusIcon} size={12} />}
               type="secondary"
               theme="outline"
               size="xs"
@@ -118,7 +118,7 @@ export const EditSecretKeys = ({ defaultValue }: { defaultValue?: ISecretControl
                           size="icon"
                           onClick={() => editKeyValueDialogRef.current?.show(variable)}
                           className="size-6 border">
-                          <IconWrapper icon={PencilIcon} className="size-3.5" />
+                          <Icon icon={PencilIcon} className="size-3.5" />
                         </Button>
                         <Button
                           type="quaternary"
@@ -126,7 +126,7 @@ export const EditSecretKeys = ({ defaultValue }: { defaultValue?: ISecretControl
                           size="icon"
                           onClick={() => deleteSecret(variable)}
                           className="size-6 border">
-                          <IconWrapper icon={Trash2} className="size-3.5" />
+                          <Icon icon={Trash2} className="size-3.5" />
                         </Button>
                       </div>
                     </TableCell>

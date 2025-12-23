@@ -4,7 +4,7 @@ import { readFileAsText } from '@/utils/common';
 import { parseDomainsFromFile } from '@/utils/helpers/parse.helper';
 import { Button, toast } from '@datum-ui/components';
 import { FileInputButton } from '@datum-ui/components/file-input-button/file-input-button';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { ArrowRightIcon, ListChecksIcon } from 'lucide-react';
@@ -52,7 +52,7 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
           theme="outline"
           size="small"
           className="border-secondary/20 hover:border-secondary">
-          <IconWrapper icon={ListChecksIcon} className="size-4" />
+          <Icon icon={ListChecksIcon} className="size-4" />
           Bulk add domains
         </Button>
       </PopoverTrigger>
@@ -76,7 +76,7 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
             />
           </Form.Field>
           <Form.Submit
-            icon={<IconWrapper icon={ArrowRightIcon} className="size-4" />}
+            icon={<Icon icon={ArrowRightIcon} className="size-4" />}
             iconPosition="right"
             type="secondary"
             theme="solid"

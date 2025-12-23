@@ -1,6 +1,6 @@
 import { SpinnerIcon } from '@datum-ui/components';
 import { DropzoneContent } from '@datum-ui/components/dropzone/dropzone';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { TriangleAlert } from 'lucide-react';
 
 // =============================================================================
@@ -37,11 +37,7 @@ export const DropzoneStateContent = ({ state, errorMessage }: DropzoneStateConte
     return (
       <DropzoneContent
         icon={
-          <IconWrapper
-            icon={TriangleAlert}
-            className="text-destructive mb-3 size-9! stroke-1"
-            size={36}
-          />
+          <Icon icon={TriangleAlert} className="text-destructive mb-3 size-9! stroke-1" size={36} />
         }
         description={
           <p className="text-destructive text-xs font-normal">

@@ -1,6 +1,6 @@
 import { Tooltip } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Slot } from '@radix-ui/react-slot';
 import { useIsMobile } from '@shadcn/hooks/use-mobile';
 import { cn } from '@shadcn/lib/utils';
@@ -440,9 +440,9 @@ const SidebarTrigger = ({ className, onClick, ...props }: React.ComponentProps<t
         }}
         {...props}>
         {open ? (
-          <IconWrapper icon={PanelLeftCloseIcon} className="size-4" />
+          <Icon icon={PanelLeftCloseIcon} className="size-4" />
         ) : (
-          <IconWrapper icon={PanelLeftOpenIcon} className="size-4" />
+          <Icon icon={PanelLeftOpenIcon} className="size-4" />
         )}
         <span className="sr-only">Toggle Sidebar</span>
       </Button>

@@ -2,7 +2,7 @@ import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { type PrometheusError } from '@/modules/prometheus';
 import { Alert, AlertDescription, SpinnerIcon } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { AlertCircle, Minus } from 'lucide-react';
 import React from 'react';
 
@@ -38,7 +38,7 @@ export function BaseMetric({
 
   const DefaultEmptyState = (
     <div className="text-center">
-      <IconWrapper icon={Minus} className="mx-auto mb-2 h-8 w-8" />
+      <Icon icon={Minus} className="mx-auto mb-2 h-8 w-8" />
       <p>No data available</p>
     </div>
   );
@@ -58,7 +58,7 @@ export function BaseMetric({
       return (
         <div className="w-full p-4" style={containerStyle}>
           <Alert variant="destructive">
-            <IconWrapper icon={AlertCircle} className="h-4 w-4" />
+            <Icon icon={AlertCircle} className="h-4 w-4" />
             <AlertDescription className="text-sm">
               {(error as Error).message || 'Failed to load metric.'}
             </AlertDescription>

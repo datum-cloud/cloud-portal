@@ -4,7 +4,7 @@
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { Input, Label } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Search, X } from 'lucide-react';
 import { useQueryState } from 'nuqs';
@@ -61,7 +61,7 @@ export function MetricsFilterSearch({
       )}
 
       <div className="relative">
-        <IconWrapper
+        <Icon
           icon={Search}
           className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
         />
@@ -79,7 +79,7 @@ export function MetricsFilterSearch({
             type="button"
             onClick={handleClear}
             className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2">
-            <IconWrapper icon={X} className="h-4 w-4" />
+            <Icon icon={X} className="h-4 w-4" />
           </button>
         )}
       </div>

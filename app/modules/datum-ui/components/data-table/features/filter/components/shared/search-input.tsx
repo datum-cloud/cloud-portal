@@ -1,7 +1,7 @@
 import { Button } from '@datum-ui/components';
 import { InputWithAddons } from '@datum-ui/components';
 import { Label } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Search, X } from 'lucide-react';
 
@@ -56,7 +56,7 @@ export function SearchInput({
           containerClassName={cn('h-9 bg-transparent', inputClassName)}
           className="placeholder:text-secondary text-secondary h-full bg-transparent text-sm placeholder:text-sm dark:text-white dark:placeholder:text-white"
           leading={
-            <IconWrapper icon={Search} size={14} className="text-icon-quaternary dark:text-white" />
+            <Icon icon={Search} size={14} className="text-icon-quaternary dark:text-white" />
           }
           trailing={
             value && (
@@ -66,7 +66,7 @@ export function SearchInput({
                 size="icon"
                 onClick={onClear}
                 className="hover:text-destructive text-icon-quaternary size-4 p-0 hover:bg-transparent dark:text-white">
-                <IconWrapper icon={X} size={14} />
+                <Icon icon={X} size={14} />
                 <span className="sr-only">Clear search</span>
               </Button>
             )

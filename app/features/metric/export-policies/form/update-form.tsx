@@ -32,7 +32,7 @@ import {
   CardFooter,
   CardTitle,
 } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { has } from 'es-toolkit/compat';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import { Fragment, cloneElement, useMemo } from 'react';
@@ -44,20 +44,20 @@ const sections = [
     id: 'metadata',
     label: 'Metadata',
     description: 'Define essential information and labels for your export policy resource.',
-    icon: () => <IconWrapper icon={Layers} />,
+    icon: () => <Icon icon={Layers} />,
   },
   {
     id: 'sources',
     label: 'Sources',
     description:
       'Configure source settings for your Kubernetes export policy in source management.',
-    icon: () => <IconWrapper icon={FileIcon} />,
+    icon: () => <Icon icon={FileIcon} />,
   },
   {
     id: 'sinks',
     label: 'Sinks',
     description: 'Configure sink settings for your Kubernetes export policy in sink management.',
-    icon: () => <IconWrapper icon={Terminal} />,
+    icon: () => <Icon icon={Terminal} />,
   },
 ];
 

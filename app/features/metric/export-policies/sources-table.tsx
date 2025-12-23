@@ -4,7 +4,7 @@ import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
 import { Button } from '@datum-ui/components';
 import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
-import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { CodeIcon } from 'lucide-react';
 import { useMemo } from 'react';
@@ -44,7 +44,7 @@ export const WorkloadSourcesTable = ({
                   theme="outline"
                   size="small"
                   className="flex h-8 items-center gap-1 focus:ring-0">
-                  <IconWrapper icon={CodeIcon} className="size-4" />
+                  <Icon icon={CodeIcon} className="size-4" />
                   <span>Query</span>
                 </Button>
               </PopoverTrigger>
