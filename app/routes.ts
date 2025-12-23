@@ -138,7 +138,7 @@ export default [
           ]),
         ]),
 
-        // Workflows Group
+        // Metrics Group
         layout('routes/project/detail/metrics/layout.tsx', [
           // Export Policies
           route('export-policies', 'routes/project/detail/metrics/export-policies/layout.tsx', [
