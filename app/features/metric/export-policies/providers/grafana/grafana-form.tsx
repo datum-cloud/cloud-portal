@@ -169,7 +169,7 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
     <Form.Stepper
       steps={steps}
       onComplete={(data) => handleSubmit(data as GrafanaFormData)}
-      className="space-y-0"
+      className="flex min-h-0 flex-1 flex-col space-y-0"
       defaultValues={{
         secretName: 'grafana-prometheus-secret',
         exportPolicyName: 'grafana-export-policy',
@@ -182,7 +182,7 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
           : '';
 
         return (
-          <>
+          <div className="flex min-h-0 flex-1 flex-col">
             <Dialog.Header title="Export to Grafana Cloud" className="border-b" onClose={onClose} />
             <Dialog.Body className="p-0">
               {/* Step navigation */}
@@ -352,7 +352,7 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                 onCancel={onClose}
               />
             </Dialog.Footer>
-          </>
+          </div>
         );
       }}
     </Form.Stepper>
