@@ -10,6 +10,7 @@ export interface IMemberControlResponse {
     email?: string;
     familyName?: string;
     givenName?: string;
+    avatarUrl?: string;
   };
   organization: {
     id: string;
