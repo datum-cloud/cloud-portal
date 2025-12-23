@@ -75,6 +75,39 @@ One of the major challenges we have encountered over the years while building AP
 - **Stylish with [Tailwind](https://tailwindcss.com/)**: [Tailwind](https://tailwindcss.com/) CSS will ensure consistent and efficient styling across the app.
 - **Tested**: Thorough testing will ensure each component functions correctly and reliably.
 
+#### Icons
+
+We use **[Lucide React](https://lucide.dev/)** for all icons throughout the application. To ensure consistent styling and default props across all icons, **always use the `Icon` wrapper component** instead of importing icons directly from `lucide-react`.
+
+**✅ Correct Usage:**
+
+```tsx
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Home, PlusIcon, ChevronRight } from 'lucide-react';
+
+// Use the Icon wrapper with default props applied
+<Icon icon={Home} className="text-icon-primary size-4" />
+<Icon icon={PlusIcon} className="size-3" />
+```
+
+**❌ Incorrect Usage:**
+
+```tsx
+// Don't import icons directly from lucide-react
+import { Home } from 'lucide-react';
+
+<Home className="..." />; // Missing default props and consistency
+```
+
+**Benefits of using the Icon wrapper:**
+
+- **Consistent defaults**: All icons automatically get `strokeWidth={1}`, `absoluteStrokeWidth={true}`, and `size={16}` by default
+- **Centralized styling**: Easy to update icon behavior across the entire application
+- **Type safety**: Full TypeScript support with proper Lucide icon types
+- **Flexibility**: Override defaults when needed (e.g., `size={24}`, `strokeWidth={2}`)
+
+The `Icon` wrapper applies sensible defaults while still allowing full customization through props when needed.
+
 ### State Management
 
 - **Lightweight Global State (if applicable)**: We will leverage **Jotai**, a pragmatic and performant atom-based state management library.
