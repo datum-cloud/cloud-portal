@@ -53,7 +53,7 @@ export type NavItem = {
 // Centralized style constants for nav menu buttons
 const NAV_STYLES = {
   menuButton:
-    'text-sidebar-foreground rounded-lg h-8 font-normal text-xs transition-all px-2 py-1 data-[active=true]:bg-sidebar-accent data-[active=true]:text-foreground data-[active=true]:text-sidebar-primary data-[active=true]:[&>svg]:text-sidebar-primary hover:bg-sidebar hover:text-sidebar-primary hover:[&>svg]:text-sidebar-primary data-[active=true]:hover:[&>svg]:text-sidebar-primary duration-300 gap-2.5',
+    'text-sidebar-foreground rounded-lg h-8 font-normal text-xs transition-all px-2 py-1 data-[active=true]:bg-sidebar data-[active=true]:text-foreground data-[active=true]:text-sidebar-primary data-[active=true]:[&>svg]:text-primary hover:bg-sidebar hover:text-sidebar-primary hover:[&>svg]:text-sidebar-primary data-[active=true]:hover:[&>svg]:text-sidebar-primary duration-300 gap-2.5',
   disabled: 'pointer-events-none opacity-50',
   icon: 'duration-300 transition-all',
   iconSmall: 'size-4 duration-300 transition-all',
