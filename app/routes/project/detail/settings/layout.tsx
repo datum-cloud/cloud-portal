@@ -25,11 +25,11 @@ export default function OrgSettingsLayout() {
         label: 'Preferences',
         to: getPathWithParams(paths.project.detail.settings.preferences, { projectId }),
       },
-      // {
-      //   value: 'quotas',
-      //   label: 'Quotas',
-      //   to: getPathWithParams(paths.project.detail.settings.quotas, { projectId }),
-      // },
+      {
+        value: 'quotas',
+        label: 'Quotas',
+        to: getPathWithParams(paths.project.detail.settings.quotas, { projectId }),
+      },
       {
         value: 'activity',
         label: 'Activity',
