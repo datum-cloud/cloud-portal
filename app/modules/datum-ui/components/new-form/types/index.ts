@@ -458,8 +458,10 @@ export interface StepperControlsProps {
   loading?: boolean;
   /** Disable both buttons */
   disabled?: boolean;
-  /** Callback when previous button is clicked */
+  /** Callback when previous button is clicked (not on first step) */
   onPrev?: () => void;
+  /** Callback when cancel is clicked (first step only) */
+  onCancel?: () => void;
   /** Additional CSS classes */
   className?: string;
 }

@@ -18,6 +18,7 @@ import * as React from 'react';
  *   prevLabel={(isFirst) => isFirst ? 'Cancel' : 'Previous'}
  *   nextLabel={(isLast) => isLast ? 'Submit' : 'Next'}
  *   loadingText="Creating..."
+ *   onCancel={() => setOpen(false)}
  * />
  * ```
  *
@@ -38,6 +39,7 @@ export function StepperControls({
   loading,
   disabled,
   onPrev,
+  onCancel,
   className,
 }: StepperControlsProps) {
   const { prev, isFirst, isLast } = useFormStepperContext();
@@ -62,8 +64,12 @@ export function StepperControls({
   };
 
   const handlePrev = () => {
-    onPrev?.();
-    prev();
+    if (isFirst && onCancel) {
+      onCancel();
+    } else {
+      onPrev?.();
+      prev();
+    }
   };
 
   return (
@@ -76,7 +82,7 @@ export function StepperControls({
             theme="outline"
             size="small"
             onClick={handlePrev}
-            disabled={isFirst || isLoading || isDisabled}>
+            disabled={isLoading || isDisabled}>
             {getPrevLabel()}
           </Button>
         )}
