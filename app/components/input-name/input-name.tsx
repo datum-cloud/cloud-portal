@@ -19,6 +19,9 @@ interface InputNameProps {
   autoGenerate?: boolean;
   baseName?: string;
   className?: string;
+  labelClassName?: string;
+  showTooltip?: boolean;
+  disabledRandomSuffix?: boolean;
 }
 
 export const InputName = ({
@@ -31,6 +34,9 @@ export const InputName = ({
   autoGenerate = true,
   baseName,
   className,
+  labelClassName,
+  showTooltip = true,
+  disabledRandomSuffix = false,
 }: InputNameProps) => {
   const nameControl = useInputControl({
     key: field.id,
@@ -46,15 +52,21 @@ export const InputName = ({
   // Auto generate name when base name is provided and auto generate is enabled
   useEffect(() => {
     if (baseName && auto) {
-      nameControl.change(generateId(baseName, { randomText: randomSuffix }));
+      nameControl.change(
+        generateId(baseName, {
+          randomText: randomSuffix,
+          randomLength: disabledRandomSuffix ? 0 : 6,
+        })
+      );
     }
-  }, [baseName, auto]);
+  }, [baseName, auto, disabledRandomSuffix]);
 
   return (
     <div className={cn('flex flex-col space-y-2', className)}>
       <div className="flex items-center gap-4">
         <FieldLabel
           label={label}
+          className={labelClassName}
           isError={!!field.errors}
           isRequired={required}
           tooltipInfo={
@@ -64,18 +76,22 @@ export const InputName = ({
           }
         />
         {autoGenerate && (
-          <Tooltip message="Uses Kubernetes generateName to automatically create a unique resource name.">
+          <Tooltip
+            message="Uses Kubernetes generateName to automatically create a unique resource name."
+            open={showTooltip}>
             <div className="flex cursor-pointer items-center gap-0.5">
               <Checkbox
                 className="size-3.5"
-                id="auto"
+                id={field.id}
                 checked={auto}
                 onCheckedChange={(checked: boolean) => setAuto(checked)}
               />
-              <Label htmlFor="auto" className="text-muted-foreground ml-1 cursor-pointer text-xs">
+              <Label
+                htmlFor={field.id}
+                className="text-muted-foreground ml-1 cursor-pointer text-xs">
                 Auto-generate
               </Label>
-              <CircleHelp className="text-muted-foreground size-2.5" />
+              {showTooltip && <CircleHelp className="text-muted-foreground size-2.5" />}
             </div>
           </Tooltip>
         )}

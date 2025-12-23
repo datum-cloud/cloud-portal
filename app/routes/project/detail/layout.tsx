@@ -125,7 +125,7 @@ export default function ProjectLayout() {
         ],
       },
       {
-        title: 'Workflows',
+        title: 'Metrics',
         href: getPathWithParams(paths.project.detail.metrics.root, { projectId }),
         type: 'collapsible',
         icon: AreaChartIcon,

@@ -6,7 +6,7 @@ import {
   newExportPolicySchema,
 } from '@/resources/schemas/export-policy.schema';
 import { SecretNewSchema, secretNewSchema } from '@/resources/schemas/secret.schema';
-import { dataWithToast, validateCSRF } from '@/utils/cookies';
+import { redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, data } from 'react-router';
 
@@ -21,6 +21,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     csrf: string;
     exportPolicy: NewExportPolicySchema;
     secret: SecretNewSchema;
+    redirectUri?: string;
   } = await clonedRequest.json();
 
   if (!payload.projectId) {
@@ -78,22 +79,20 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         false
       )) as IExportPolicyControlResponse;
 
-      return data({ success: true, data: { exportPolicy, secret } });
+      if (payload.redirectUri) {
+        return redirectWithToast(payload.redirectUri, {
+          title: 'Export policy',
+          description: 'The export policy has been created successfully',
+          type: 'success',
+        });
+      }
+
+      return data({ success: true, data: { exportPolicy, secret } }, { status: 200 });
     }
 
-    return data({ success: false, error: 'Dry run failed' });
+    return data({ success: false, error: 'Dry run failed' }, { status: 400 });
   } catch (error: any) {
     const message = error instanceof Error ? error.message : (error as Response).statusText;
-    return dataWithToast(
-      {
-        success: false,
-        error: message,
-      },
-      {
-        title: 'Error',
-        description: message,
-        type: 'error',
-      }
-    );
+    return data({ success: false, error: message }, { status: 400 });
   }
 };

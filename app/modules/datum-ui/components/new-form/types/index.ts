@@ -382,11 +382,37 @@ export interface StepConfig {
   schema: z.ZodType;
 }
 
+/**
+ * Render props context passed to Form.Stepper children function
+ */
+export interface FormStepperRenderProps {
+  /** All step configurations */
+  steps: StepConfig[];
+  /** Current step config */
+  current: StepConfig;
+  /** Current step index (0-based) */
+  currentIndex: number;
+  /** Go to next step (triggers validation) */
+  next: () => void;
+  /** Go to previous step (no validation) */
+  prev: () => void;
+  /** Go to specific step by ID (only backwards without validation) */
+  goTo: (stepId: string) => void;
+  /** Whether current step is first */
+  isFirst: boolean;
+  /** Whether current step is last */
+  isLast: boolean;
+  /** Get data from a specific step by ID */
+  getStepData: (stepId: string) => Record<string, unknown> | undefined;
+  /** Get all data from all completed steps */
+  getAllStepData: () => Record<string, unknown>;
+}
+
 export interface FormStepperProps {
   /** Step configurations */
   steps: StepConfig[];
-  /** Form children */
-  children: React.ReactNode;
+  /** Form children - can be ReactNode or render function for accessing stepper context */
+  children: React.ReactNode | ((props: FormStepperRenderProps) => React.ReactNode);
 
   // Callbacks
   /** Called when all steps are completed */
@@ -424,8 +450,18 @@ export interface StepperControlsProps {
   prevLabel?: string | ((isFirst: boolean) => string);
   /** Next button label */
   nextLabel?: string | ((isLast: boolean) => string);
+  /** Loading text shown when submitting (only on last step) */
+  loadingText?: string;
   /** Whether to show previous button */
   showPrev?: boolean;
+  /** External loading state - overrides internal isSubmitting */
+  loading?: boolean;
+  /** Disable both buttons */
+  disabled?: boolean;
+  /** Callback when previous button is clicked (not on first step) */
+  onPrev?: () => void;
+  /** Callback when cancel is clicked (first step only) */
+  onCancel?: () => void;
   /** Additional CSS classes */
   className?: string;
 }
@@ -437,22 +473,20 @@ export interface StepperContextValue {
   current: StepConfig;
   /** Current step index */
   currentIndex: number;
-  /** Go to next step */
+  /** Go to next step (triggers validation) */
   next: () => void;
-  /** Go to previous step */
+  /** Go to previous step (no validation) */
   prev: () => void;
-  /** Go to specific step by ID */
+  /** Go to specific step by ID (only backwards without validation) */
   goTo: (stepId: string) => void;
   /** Whether current step is first */
   isFirst: boolean;
   /** Whether current step is last */
   isLast: boolean;
-  /** Get metadata for a step */
-  getMetadata: (stepId: string) => Record<string, unknown> | undefined;
-  /** Set metadata for a step */
-  setMetadata: (stepId: string, data: Record<string, unknown>) => void;
-  /** All collected metadata */
-  allMetadata: Record<string, Record<string, unknown>>;
+  /** Stepperize utils */
+  utils: {
+    getIndex: (id: string) => number;
+  };
 }
 
 // ============================================================================

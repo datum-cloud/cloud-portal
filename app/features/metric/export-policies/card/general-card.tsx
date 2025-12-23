@@ -1,4 +1,4 @@
-import { ExportPolicyStatus } from './status';
+import { ExportPolicyStatus } from '../status';
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
