@@ -123,7 +123,7 @@
     "@types/express": "^5.0.3",
     "@types/js-yaml": "^4.0.9",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^24.5.2",
+    "@types/node": "^25.0.0",
     "@types/nprogress": "^0.2.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
