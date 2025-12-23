@@ -13,6 +13,8 @@ export interface CodeEditorProps {
   className?: string;
   readOnly?: boolean;
   minHeight?: string;
+  /** Placeholder text shown when editor is empty */
+  placeholder?: string;
 }
 
 export interface CodeEditorTabsProps {

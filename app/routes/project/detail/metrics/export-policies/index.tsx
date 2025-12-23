@@ -49,6 +49,10 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   }
 };
 
+export const handle = {
+  breadcrumb: () => <span>Export Policies</span>,
+};
+
 export default function ExportPoliciesPage() {
   const { projectId } = useParams();
   const data = useLoaderData<typeof loader>();
