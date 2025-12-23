@@ -10,6 +10,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getDnsSetupStatus, getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, LinkButton, Row } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { PencilIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { useParams, useRouteLoaderData } from 'react-router';
@@ -49,7 +50,7 @@ export default function DnsZoneOverviewPage() {
                   projectId: projectId ?? '',
                   dnsZoneId: dnsZone?.name ?? '',
                 })}
-                icon={<PencilIcon size={12} />}
+                icon={<IconWrapper icon={PencilIcon} size={12} />}
                 iconPosition="right"
                 size="xs">
                 Edit DNS records

@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { CopyIcon, ExternalLinkIcon, LightbulbIcon, TriangleAlertIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 
@@ -56,7 +57,7 @@ export const PrometheusConfigCard = ({
                   size="small"
                   className="h-7 w-fit gap-1 px-2 text-xs"
                   onClick={() => window.open(connectionUrl, '_blank')}>
-                  <ExternalLinkIcon className="size-3!" />
+                  <IconWrapper icon={ExternalLinkIcon} className="size-3!" />
                   Open
                 </Button>
                 <Button
@@ -70,14 +71,14 @@ export const PrometheusConfigCard = ({
                       toastMessage: 'Connection URL copied to clipboard',
                     })
                   }>
-                  <CopyIcon className="size-3!" />
+                  <IconWrapper icon={CopyIcon} className="size-3!" />
                   {isCopied ? 'Copied' : 'Copy'}
                 </Button>
               </div>
             </div>
 
             <Alert variant="info" className="border-dashed">
-              <LightbulbIcon className="size-4" />
+              <IconWrapper icon={LightbulbIcon} className="size-4" />
               <AlertDescription className="text-info-500">
                 The link opens the connection flow for your instance. After you create or select an
                 API token, Grafana will show the Prometheus remote_write YAML you need below.
@@ -100,7 +101,7 @@ export const PrometheusConfigCard = ({
               </pre>
             </div>
             <Alert variant="warning" className="mt-1 border-dashed">
-              <TriangleAlertIcon className="size-4" />
+              <IconWrapper icon={TriangleAlertIcon} className="size-4" />
               <AlertDescription className="text-yellow-700">
                 Your actual configuration will contain your specific endpoint URL and an API token
                 for the password. Please store these credentials securely.

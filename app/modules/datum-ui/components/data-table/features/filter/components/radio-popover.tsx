@@ -3,6 +3,7 @@ import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Label } from '@datum-ui/components';
 import { RadioGroup, RadioGroupItem } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { ChevronDown, X } from 'lucide-react';
@@ -66,13 +67,13 @@ export function RadioPopoverFilter({
               {selectedOption ? (
                 <Badge type="secondary" className="h-5 px-1 text-xs" onClick={handleClear}>
                   {selectedOption.label}
-                  <X className="ml-1 h-3 w-3 cursor-pointer" />
+                  <IconWrapper icon={X} className="ml-1 h-3 w-3 cursor-pointer" />
                 </Badge>
               ) : (
                 <span className="text-muted-foreground">Select option...</span>
               )}
             </div>
-            <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+            <IconWrapper icon={ChevronDown} className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-3" align="start">

@@ -13,6 +13,7 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, PlusIcon } from 'lucide-react';
@@ -188,7 +189,7 @@ export default function HttpProxyPage() {
               projectId,
             }),
             variant: 'default',
-            icon: <ArrowRightIcon className="size-4" />,
+            icon: <IconWrapper icon={ArrowRightIcon} className="size-4" />,
             iconPosition: 'end',
           },
         ],
@@ -201,7 +202,7 @@ export default function HttpProxyPage() {
               projectId,
             })}>
             <Button type="primary" theme="solid" size="small">
-              <PlusIcon className="size-4" />
+              <IconWrapper icon={PlusIcon} className="size-4" />
               Add proxy
             </Button>
           </Link>

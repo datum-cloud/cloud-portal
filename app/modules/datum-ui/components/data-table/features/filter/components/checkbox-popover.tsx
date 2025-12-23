@@ -3,6 +3,7 @@ import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Checkbox } from '@datum-ui/components';
 import { Label } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { ChevronDown, X } from 'lucide-react';
@@ -86,7 +87,7 @@ export function CheckboxPopoverFilter({
                     className="h-5 px-1 text-xs"
                     onClick={(e) => handleRemoveSelection(option.value, e)}>
                     {option.label}
-                    <X className="ml-1 h-3 w-3 cursor-pointer" />
+                    <IconWrapper icon={X} className="ml-1 h-3 w-3 cursor-pointer" />
                   </Badge>
                 ))
               ) : (
@@ -95,7 +96,7 @@ export function CheckboxPopoverFilter({
                 </Badge>
               )}
             </div>
-            <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+            <IconWrapper icon={ChevronDown} className="h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-3" align="start">

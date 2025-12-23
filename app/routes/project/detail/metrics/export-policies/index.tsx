@@ -12,6 +12,7 @@ import { AppError, BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
@@ -190,7 +191,7 @@ export default function ExportPoliciesPage() {
             label: 'Create an export policy',
             to: getPathWithParams(paths.project.detail.metrics.exportPolicies.new, { projectId }),
             variant: 'default',
-            icon: <PlusIcon className="size-3" />,
+            icon: <IconWrapper icon={PlusIcon} className="size-3" />,
             iconPosition: 'start',
           },
         ],
@@ -203,7 +204,7 @@ export default function ExportPoliciesPage() {
               projectId,
             })}>
             <Button type="primary" theme="solid" size="small">
-              <PlusIcon className="size-4" />
+              <IconWrapper icon={PlusIcon} className="size-4" />
               Create an export policy
             </Button>
           </Link>

@@ -2,6 +2,7 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
 import { Card, CardContent } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { BookOpenIcon } from 'lucide-react';
 
 export const DomainVerificationCard = ({ domain }: { domain: IDomainControlResponse }) => {
@@ -16,7 +17,7 @@ export const DomainVerificationCard = ({ domain }: { domain: IDomainControlRespo
     <Card className="w-full p-0 shadow-md">
       <CardContent className="flex flex-col gap-5 px-9 py-8">
         <div className="flex items-center gap-2.5">
-          <BookOpenIcon size={20} className="text-secondary stroke-2" />
+          <IconWrapper icon={BookOpenIcon} size={20} className="text-secondary stroke-2" />
           <span className="text-base font-semibold">Manual Verification</span>
         </div>
         <p className="text-[14px] font-normal">

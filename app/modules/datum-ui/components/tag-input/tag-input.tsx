@@ -1,5 +1,6 @@
 import { Badge } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { X as RemoveIcon } from 'lucide-react';
 import React from 'react';
@@ -432,7 +433,7 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
                 onClick={() => RemoveValue(item)}
                 className="disabled:cursor-not-allowed">
                 <span className="sr-only">Remove {item} option</span>
-                <RemoveIcon className="hover:stroke-destructive h-4 w-4" />
+                <IconWrapper icon={RemoveIcon} className="hover:stroke-destructive h-4 w-4" />
               </button>
             </Badge>
           ))}

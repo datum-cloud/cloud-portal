@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { CheckCircle2, Shield, Settings, Activity } from 'lucide-react';
 import { AnimatePresence, motion, Variants } from 'motion/react';
 import { useNavigate } from 'react-router';
@@ -114,7 +115,7 @@ export const GrafanaCompletedCard = ({
               className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-100 to-emerald-100 shadow-lg"
               variants={iconVariants}>
               <motion.div variants={pulseVariants} initial="initial" animate="animate">
-                <CheckCircle2 className="h-12 w-12 text-green-600" />
+                <IconWrapper icon={CheckCircle2} className="h-12 w-12 text-green-600" />
               </motion.div>
             </motion.div>
           </CardHeader>

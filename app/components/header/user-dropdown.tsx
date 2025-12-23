@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@shadcn/ui/avatar';
 import { LogOut, UserCogIcon } from 'lucide-react';
@@ -59,7 +60,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
             className="cursor-pointer rounded-lg px-3 py-2 font-normal"
             onClick={() => navigate(paths.account.preferences)}>
             <div className="flex items-center gap-2">
-              <UserCogIcon size={14} />
+              <IconWrapper icon={UserCogIcon} size={14} />
               <span className="text-foreground text-xs">Account Settings</span>
             </div>
           </DropdownMenuItem>
@@ -71,7 +72,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
               submit(null, { method: 'POST', action: paths.auth.logOut });
             }}>
             <div className="flex items-center gap-2">
-              <LogOut size={14} />
+              <IconWrapper icon={LogOut} size={14} />
               <span className="text-destructive text-xs">Log Out</span>
             </div>
           </DropdownMenuItem>

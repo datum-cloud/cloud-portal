@@ -6,6 +6,7 @@ import { getImportResultStatus } from '@/utils/helpers/dns-record.helper';
 import { openSupportMessage } from '@/utils/open-support-message';
 import { Alert, AlertDescription, Button, Dialog } from '@datum-ui/components';
 import { Dropzone, DropzoneEmptyState } from '@datum-ui/components/dropzone/dropzone';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { DownloadIcon, FileTextIcon, Import, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -94,7 +95,7 @@ export const DnsRecordImportAction = ({
             theme="outline"
             size="small"
             className="border-secondary/20 hover:border-secondary">
-            <Import className="size-4" />
+            <IconWrapper icon={Import} className="size-4" />
             Import & Export
           </Button>
         </PopoverTrigger>
@@ -113,7 +114,13 @@ export const DnsRecordImportAction = ({
               disabled={dropzoneState === 'loading'}
               className="hover:border-primary w-full hover:bg-transparent">
               <DropzoneEmptyState
-                icon={<FileTextIcon className="text-primary mb-3 size-9! stroke-1" size={36} />}
+                icon={
+                  <IconWrapper
+                    icon={FileTextIcon}
+                    className="text-primary mb-3 size-9! stroke-1"
+                    size={36}
+                  />
+                }
                 description={
                   <p className="text-foreground text-xs font-normal">
                     <span className="underline">Select a file</span> or drag it here <br /> (BIND
@@ -137,7 +144,7 @@ export const DnsRecordImportAction = ({
               onClick={handleExport}
               disabled={isExporting}
               loading={isExporting}
-              icon={<DownloadIcon className="size-4" />}
+              icon={<IconWrapper icon={DownloadIcon} className="size-4" />}
               className="font-semibold">
               {isExporting ? 'Exporting...' : 'Download file'}
             </Button>
@@ -203,7 +210,7 @@ export const DnsRecordImportAction = ({
                   disabled={flattenedRecords.length === 0 || isImporting}
                   loading={isImporting}
                   onClick={handleImport}
-                  icon={<PlusIcon className="size-4" />}>
+                  icon={<IconWrapper icon={PlusIcon} className="size-4" />}>
                   {isImporting ? 'Importing...' : `Import ${flattenedRecords.length} record(s)`}
                 </Button>
               </Dialog.Footer>

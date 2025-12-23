@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { CircleXIcon } from 'lucide-react';
 
 export const NoteCard = ({
@@ -21,7 +22,8 @@ export const NoteCard = ({
           {icon}
           {title}
           {closable && onClose && (
-            <CircleXIcon
+            <IconWrapper
+              icon={CircleXIcon}
               className="fill-secondary/20 hover:fill-secondary stroke-card-warning absolute top-4 right-4 size-6 cursor-pointer text-transparent transition-all"
               onClick={onClose}
             />

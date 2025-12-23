@@ -9,6 +9,7 @@ import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, Col, Row } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { FolderRoot, PlusIcon } from 'lucide-react';
@@ -86,7 +87,7 @@ export default function OrgProjectsPage() {
           return (
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <FolderRoot className="size-4" />
+                <IconWrapper icon={FolderRoot} className="size-4" />
                 <span>{row.original.description}</span>
               </div>
               <div className="flex items-center gap-6">
@@ -139,7 +140,7 @@ export default function OrgProjectsPage() {
             actions: (
               <Link to={getPathWithParams(paths.org.detail.projects.new, { orgId })}>
                 <Button type="primary" theme="solid" size="small">
-                  <PlusIcon className="size-4" />
+                  <IconWrapper icon={PlusIcon} className="size-4" />
                   Create project
                 </Button>
               </Link>
@@ -153,7 +154,7 @@ export default function OrgProjectsPage() {
                 label: 'Create project',
                 to: getPathWithParams(paths.org.detail.projects.new, { orgId }),
                 variant: 'default',
-                icon: <PlusIcon className="size-3" />,
+                icon: <IconWrapper icon={PlusIcon} className="size-3" />,
                 iconPosition: 'start',
               },
             ],

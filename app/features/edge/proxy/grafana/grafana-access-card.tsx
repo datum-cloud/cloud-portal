@@ -5,6 +5,7 @@ import { getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { ExternalLink } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router';
@@ -31,7 +32,7 @@ export const GrafanaAccessCard = ({
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-2">
-              <ExternalLink className="size-4" />
+              <IconWrapper icon={ExternalLink} className="size-4" />
               Create Grafana Account
             </Link>
           </Button>

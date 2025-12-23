@@ -1,3 +1,4 @@
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import {
   BreadcrumbItem,
   BreadcrumbLink,
@@ -99,12 +100,12 @@ export const Breadcrumb = ({ className }: { className?: string }): React.ReactEl
 
   return (
     <BreadcrumbUI className={className}>
-      <BreadcrumbList className="gap-[5px] sm:gap-[5px]">
+      <BreadcrumbList className="gap-[5px] text-xs sm:gap-[5px]">
         <BreadcrumbItem>
           <BreadcrumbLink
             href="/"
             className="text-primary hover:text-secondary mr-2 cursor-pointer transition-all">
-            <Home size={16} />
+            <IconWrapper icon={Home} size={16} />
           </BreadcrumbLink>
         </BreadcrumbItem>
 

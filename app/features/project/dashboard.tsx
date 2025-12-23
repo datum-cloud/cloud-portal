@@ -1,4 +1,5 @@
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { ArrowRight } from 'lucide-react';
 import { ReactNode, useTransition } from 'react';
@@ -14,7 +15,7 @@ const SectionDescription = ({ children }: { children: React.ReactNode }) => (
 
 const ArrowListItem = ({ children }: { children: React.ReactNode }) => (
   <div className="flex items-center">
-    <ArrowRight className="mr-2 size-4" />
+    <IconWrapper icon={ArrowRight} className="mr-2 size-4" />
     {children}
   </div>
 );

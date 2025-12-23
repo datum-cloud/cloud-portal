@@ -1,5 +1,6 @@
 import { normalizeTooltip } from './data-table-column.types';
 import { Tooltip } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { TableHead, TableHeader, TableRow } from '@shadcn/ui/table';
 import { Table as TTable, flexRender } from '@tanstack/react-table';
@@ -30,7 +31,11 @@ export const DataTableColumnHeader = <TData,>({
               <span className="flex items-center gap-2">
                 {headerContent}
                 {hasTooltip && (
-                  <Info className="text-muted-foreground/70 size-3.5 shrink-0" aria-hidden="true" />
+                  <IconWrapper
+                    icon={Info}
+                    className="text-muted-foreground/70 size-3.5 shrink-0"
+                    aria-hidden="true"
+                  />
                 )}
               </span>
             );
@@ -41,7 +46,8 @@ export const DataTableColumnHeader = <TData,>({
 
               return (
                 <div className="flex flex-col">
-                  <ChevronUp
+                  <IconWrapper
+                    icon={ChevronUp}
                     size={14}
                     aria-hidden="true"
                     className={cn(
@@ -49,7 +55,8 @@ export const DataTableColumnHeader = <TData,>({
                       sortDirection === 'asc' && 'opacity-100'
                     )}
                   />
-                  <ChevronDown
+                  <IconWrapper
+                    icon={ChevronDown}
                     size={14}
                     aria-hidden="true"
                     className={cn(

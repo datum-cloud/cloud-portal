@@ -1,6 +1,7 @@
 import { useArrayFilter } from '../../../hooks/useFilterQueryState';
 import { Badge } from '@datum-ui/components';
 import { Label } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { X } from 'lucide-react';
 import { ReactNode, useCallback } from 'react';
@@ -73,7 +74,8 @@ export function TagFilter({
               {option.icon && option.icon}
               {option.label}
               {isSelected && !isDisabled && (
-                <X
+                <IconWrapper
+                  icon={X}
                   className="size-3 cursor-pointer"
                   onClick={(e) => {
                     e.stopPropagation();

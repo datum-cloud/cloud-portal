@@ -12,6 +12,7 @@ import { IDnsZoneControlResponse, IFlattenedDnsRecord } from '@/resources/interf
 import { DNS_RECORD_TYPES } from '@/resources/schemas/dns-record.schema';
 import { ROUTE_PATH as DNS_RECORDS_ACTIONS_PATH } from '@/routes/api/dns-records';
 import { Button, toast } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { ArrowRightIcon, PencilIcon, PlusIcon, Trash2Icon, XCircleIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRevalidator, useRouteLoaderData } from 'react-router';
@@ -128,7 +129,7 @@ export default function DnsRecordsPage() {
               label: 'Add a DNS record',
               onClick: () => dnsRecordModalFormRef.current?.show('create'),
               variant: 'default',
-              icon: <ArrowRightIcon className="size-4" />,
+              icon: <IconWrapper icon={ArrowRightIcon} className="size-4" />,
               iconPosition: 'end',
             },
           ],
@@ -154,7 +155,7 @@ export default function DnsRecordsPage() {
                     ? tableRef.current?.openCreate()
                     : dnsRecordModalFormRef.current?.show('create')
                 }>
-                <PlusIcon className="size-4" />
+                <IconWrapper icon={PlusIcon} className="size-4" />
                 Add record
               </Button>
             </div>
@@ -164,7 +165,7 @@ export default function DnsRecordsPage() {
           {
             key: 'edit',
             label: 'Edit',
-            icon: <PencilIcon className="size-3.5" />,
+            icon: <IconWrapper icon={PencilIcon} className="size-3.5" />,
             display: 'inline',
             triggerInlineEdit: true,
             showLabel: false,
@@ -173,7 +174,7 @@ export default function DnsRecordsPage() {
           {
             key: 'delete',
             label: 'Delete',
-            icon: <Trash2Icon className="size-3.5" />,
+            icon: <IconWrapper icon={Trash2Icon} className="size-3.5" />,
             display: 'inline',
             showLabel: false,
             action: (row) => handleDelete(row),
@@ -212,7 +213,8 @@ export default function DnsRecordsPage() {
               onSuccess={() => handleOnSuccess(mode)}
             />
 
-            <XCircleIcon
+            <IconWrapper
+              icon={XCircleIcon}
               size={20}
               className="fill-secondary/20 text-secondary-foreground hover:fill-secondary hover:text-secondary-foreground absolute top-2 right-2 cursor-pointer transition-all"
               onClick={onClose}

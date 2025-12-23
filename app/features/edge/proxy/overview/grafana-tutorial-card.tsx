@@ -3,6 +3,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { ExternalLinkIcon, SignalHighIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
@@ -16,7 +17,7 @@ export const GrafanaTutorialCard = ({
   const navigate = useNavigate();
   return (
     <Alert variant="default" className="bg-card text-card-foreground rounded-xl shadow">
-      <SignalHighIcon className="size-4" />
+      <IconWrapper icon={SignalHighIcon} className="size-4" />
       <AlertTitle>Want to see some metrics in Grafana?</AlertTitle>
       <AlertDescription>
         <p>
@@ -37,7 +38,7 @@ export const GrafanaTutorialCard = ({
             );
           }}
           className="mt-2 flex items-center gap-1">
-          <ExternalLinkIcon className="size-4" />
+          <IconWrapper icon={ExternalLinkIcon} className="size-4" />
           Follow the tutorial
         </Button>
       </AlertDescription>

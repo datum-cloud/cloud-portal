@@ -4,6 +4,7 @@ import { ThemeValue } from '@/resources/interfaces/user.interface';
 import { ROUTE_PATH as USER_PREFERENCES_UPDATE_ACTION } from '@/routes/api/user/preferences';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { Label } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Separator } from '@shadcn/ui/separator';
 import { Check } from 'lucide-react';
@@ -79,7 +80,7 @@ const ThemePreview = ({
 
         {selected && (
           <div className="bg-secondary text-secondary-foreground absolute top-2 right-2 rounded-full border p-1">
-            <Check className="size-3" />
+            <IconWrapper icon={Check} className="size-3" />
           </div>
         )}
       </div>

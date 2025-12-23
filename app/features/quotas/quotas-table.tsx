@@ -4,6 +4,7 @@ import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { openSupportMessage } from '@/utils/open-support-message';
 import { Button } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpIcon } from 'lucide-react';
 import { useMemo } from 'react';
@@ -95,7 +96,7 @@ export const QuotasTable = ({
                   size="small"
                   className="h-7 gap-1 px-2 text-xs"
                   onClick={() => handleRequestIncrease(row.original)}>
-                  <ArrowUpIcon className="h-4 w-4" />
+                  <IconWrapper icon={ArrowUpIcon} className="h-4 w-4" />
                   Request Limit
                 </Button>
               )}

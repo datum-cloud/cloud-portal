@@ -12,6 +12,7 @@ import {
   type MetricFormat,
   type PrometheusQueryOptions,
 } from '@/modules/prometheus';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import React, { useMemo } from 'react';
@@ -168,11 +169,11 @@ export function MetricCard({
     const { trend } = data.change;
     switch (trend) {
       case 'up':
-        return <TrendingUp className="h-4 w-4 text-green-500" />;
+        return <IconWrapper icon={TrendingUp} className="h-4 w-4 text-green-500" />;
       case 'down':
-        return <TrendingDown className="h-4 w-4 text-red-500" />;
+        return <IconWrapper icon={TrendingDown} className="h-4 w-4 text-red-500" />;
       default:
-        return <Minus className="h-4 w-4 text-gray-500" />;
+        return <IconWrapper icon={Minus} className="h-4 w-4 text-gray-500" />;
     }
   }, [showTrend, data?.change]);
 

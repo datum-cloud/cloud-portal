@@ -3,6 +3,7 @@ import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.inter
 import { ExportPolicySinksSchema } from '@/resources/schemas/export-policy.schema';
 import { Badge } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { Separator } from '@shadcn/ui/separator';
 import { LinkIcon } from 'lucide-react';
 import { useMemo } from 'react';
@@ -33,7 +34,7 @@ export const SinksPreview = ({ values }: { values: ExportPolicySinksSchema }) =>
                   <Badge
                     type="secondary"
                     className="hover:bg-secondary-hover flex cursor-help items-center gap-1">
-                    <LinkIcon className="h-3 w-3" />
+                    <IconWrapper icon={LinkIcon} className="h-3 w-3" />
                     <span>Sources ({sink.sources.length})</span>
                   </Badge>
                 </Tooltip>

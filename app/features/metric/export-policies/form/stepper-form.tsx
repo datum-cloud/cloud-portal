@@ -25,6 +25,7 @@ import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { defineStepper } from '@stepperize/react';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
@@ -37,7 +38,7 @@ const { useStepper } = defineStepper(
     id: 'metadata',
     label: 'Metadata',
     description: 'Define essential information and labels for your export policy resource.',
-    icon: () => <Layers />,
+    icon: () => <IconWrapper icon={Layers} />,
     schema: metadataSchema,
     preview: (values?: any) => <MetadataPreview values={values?.metadata as MetadataSchema} />,
   },
@@ -46,7 +47,7 @@ const { useStepper } = defineStepper(
     label: 'Sources',
     description:
       'Configure source settings for your Kubernetes export policy in source management.',
-    icon: () => <FileIcon />,
+    icon: () => <IconWrapper icon={FileIcon} />,
     schema: exportPolicySourcesSchema,
     preview: (values?: any) => (
       <SourcesPreview values={values?.sources as ExportPolicySourcesSchema} />
@@ -56,7 +57,7 @@ const { useStepper } = defineStepper(
     id: 'sinks',
     label: 'Sinks',
     description: 'Configure sink settings for your Kubernetes export policy in sink management.',
-    icon: () => <Terminal />,
+    icon: () => <IconWrapper icon={Terminal} />,
     schema: exportPolicySinksSchema,
     preview: (values?: any) => <SinksPreview values={values?.sinks as ExportPolicySinksSchema} />,
   }

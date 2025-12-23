@@ -1,5 +1,6 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { Badge, type BadgeProps, toast, Tooltip } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { CopyIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -56,7 +57,7 @@ export const BadgeCopy = ({
         'cursor-pointer disabled:pointer-events-none disabled:opacity-50'
       )}
       aria-label={copied ? 'Copied!' : 'Copy to clipboard'}>
-      <CopyIcon className="size-3" />
+      <IconWrapper icon={CopyIcon} className="size-3" />
     </span>
   );
 

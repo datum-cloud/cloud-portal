@@ -7,6 +7,7 @@ import {
 } from '@/resources/schemas/policy-binding.schema';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
@@ -67,7 +68,7 @@ export const SubjectsForm = ({
                   size="small"
                   className={cn('text-destructive relative top-2 w-fit')}
                   onClick={() => form.remove({ name: fields.subjects.name, index })}>
-                  <TrashIcon className="size-4" />
+                  <IconWrapper icon={TrashIcon} className="size-4" />
                 </Button>
               )}
             </div>
@@ -86,7 +87,7 @@ export const SubjectsForm = ({
             defaultValue: defaultSubjectValue,
           })
         }>
-        <PlusIcon className="size-4" />
+        <IconWrapper icon={PlusIcon} className="size-4" />
         Add
       </Button>
     </div>

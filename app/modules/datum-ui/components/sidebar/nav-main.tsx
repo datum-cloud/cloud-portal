@@ -9,6 +9,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronRight, ExternalLinkIcon, LucideIcon } from 'lucide-react';
@@ -46,7 +47,7 @@ export type NavItem = {
 // Centralized style constants for nav menu buttons
 const NAV_STYLES = {
   menuButton:
-    'text-sidebar-foreground rounded-lg h-8 font-normal transition-all px-2 py-1 data-[active=true]:bg-sidebar data-[active=true]:text-foreground data-[active=true]:text-sidebar-primary data-[active=true]:[&>svg]:text-primary hover:bg-sidebar hover:text-sidebar-primary hover:[&>svg]:text-sidebar-primary data-[active=true]:hover:[&>svg]:text-sidebar-primary duration-300',
+    'text-sidebar-foreground rounded-lg h-8 font-normal text-xs transition-all px-2 py-1 data-[active=true]:bg-sidebar data-[active=true]:text-foreground data-[active=true]:text-sidebar-primary data-[active=true]:[&>svg]:text-primary hover:bg-sidebar hover:text-sidebar-primary hover:[&>svg]:text-sidebar-primary data-[active=true]:hover:[&>svg]:text-sidebar-primary duration-300 gap-2.5',
   disabled: 'pointer-events-none opacity-50',
   icon: 'text-sidebar-foreground duration-300 transition-all',
   iconSmall: 'text-sidebar-foreground size-4 duration-300 transition-all',
@@ -64,7 +65,10 @@ const NavIcon = ({
 }) => {
   if (!Icon) return null;
   return (
-    <Icon className={cn(size === 'small' ? NAV_STYLES.iconSmall : NAV_STYLES.icon, className)} />
+    <IconWrapper
+      icon={Icon}
+      className={cn(size === 'small' ? NAV_STYLES.iconSmall : NAV_STYLES.icon, className)}
+    />
   );
 };
 
@@ -426,7 +430,10 @@ export const NavMain = forwardRef<
                     disableTooltip={disableTooltip}
                     className={itemClassName}>
                     <span>{item.title}</span>
-                    <ChevronRight className="text-sidebar-foreground ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    <IconWrapper
+                      icon={ChevronRight}
+                      className="text-sidebar-foreground ml-auto size-3.5! transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                    />
                   </NavSidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
@@ -516,7 +523,7 @@ export const NavMain = forwardRef<
                   disableTooltip={disableTooltip}
                   className={itemClassName}>
                   <span>{currentItem.title}</span>
-                  <ChevronRight className="text-sidebar-foreground ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  <ChevronRight className="text-sidebar-foreground ml-auto size-3.5! transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </NavSidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
@@ -556,16 +563,22 @@ export const NavMain = forwardRef<
                   className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {item?.icon && (
-                      <item.icon className="text-icon-primary size-4 transition-all duration-300" />
+                      <IconWrapper
+                        icon={item.icon}
+                        className="text-icon-primary size-4 transition-all duration-300"
+                      />
                     )}
                     <span>{item.title}</span>
                   </div>
-                  <ExternalLinkIcon className="ml-auto size-4" />
+                  <IconWrapper icon={ExternalLinkIcon} className="ml-auto size-4" />
                 </a>
               ) : (
                 <Link to={item.href || ''} onClick={handleNavigation}>
                   {item?.icon && (
-                    <item.icon className="text-sidebar-foreground transition-all duration-300" />
+                    <IconWrapper
+                      icon={item.icon}
+                      className="text-sidebar-foreground transition-all duration-300"
+                    />
                   )}
                   <span>{item.title}</span>
                 </Link>

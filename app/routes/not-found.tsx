@@ -2,6 +2,7 @@ import { LogoIcon } from '@/components/logo/logo-icon';
 import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { ArrowLeft, HomeIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, MetaFunction, useLocation, useNavigate } from 'react-router';
@@ -45,7 +46,7 @@ export default function NotFound() {
             <div className="flex items-center gap-2">
               <Link to={paths.home}>
                 <Button size="small">
-                  <HomeIcon className="size-4" />
+                  <IconWrapper icon={HomeIcon} className="size-4" />
                   Back to Home
                 </Button>
               </Link>
@@ -56,7 +57,7 @@ export default function NotFound() {
                 onClick={() => {
                   navigate(-1);
                 }}>
-                <ArrowLeft className="size-4" />
+                <IconWrapper icon={ArrowLeft} className="size-4" />
                 Go Back
               </Button>
             </div>

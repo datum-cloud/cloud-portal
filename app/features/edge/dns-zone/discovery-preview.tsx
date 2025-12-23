@@ -16,6 +16,7 @@ import {
   SpinnerIcon,
   toast,
 } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { PlusIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
@@ -242,7 +243,7 @@ export const DnsZoneDiscoveryPreview = ({
                 disabled={dnsRecords.length === 0}
                 onClick={handleBulkImport}
                 loading={importFetcher.state === 'submitting'}
-                icon={<PlusIcon className="size-4" />}>
+                icon={<IconWrapper icon={PlusIcon} className="size-4" />}>
                 {importFetcher.state === 'submitting'
                   ? 'Importing...'
                   : `Add ${dnsRecords.length} records`}

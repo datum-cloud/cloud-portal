@@ -8,6 +8,7 @@ import { IProjectControlResponse } from '@/resources/interfaces/project.interfac
 import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { BookOpen } from 'lucide-react';
 import { Link } from 'react-router';
 
@@ -57,7 +58,7 @@ export const Header = ({
                 theme="outline"
                 size="small"
                 className="h-7 w-7 rounded-lg p-0">
-                <BookOpen className="text-icon-primary size-3.5" />
+                <IconWrapper icon={BookOpen} className="text-icon-primary size-3.5" />
               </Button>
             </Link>
           </Tooltip>

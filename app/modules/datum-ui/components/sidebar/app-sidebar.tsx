@@ -4,7 +4,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
   SidebarTrigger,
   useSidebar,
 } from '@datum-ui/components';
@@ -47,8 +46,6 @@ export function AppSidebar({
           </SidebarFooter>
         )}
       </SidebarContent>
-
-      <SidebarRail />
     </Sidebar>
   );
 }

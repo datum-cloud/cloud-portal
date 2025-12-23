@@ -1,5 +1,6 @@
 import { useApp } from '@/providers/app.provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { MailIcon } from 'lucide-react';
 
 export const AccountIdentitySettingsCard = () => {
@@ -13,7 +14,7 @@ export const AccountIdentitySettingsCard = () => {
       <CardContent>
         <div className="flex items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <MailIcon className="size-5" />
+            <IconWrapper icon={MailIcon} className="size-5" />
             <div>
               <div className="text-sm leading-5 font-semibold">Email address</div>
               <div className="text-muted-foreground text-sm">{user?.email}</div>

@@ -11,6 +11,7 @@ import { useApp } from '@/providers/app.provider';
 import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone.helper';
 import { Button } from '@datum-ui/components';
 import { Calendar } from '@datum-ui/components';
+import { IconWrapper } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { Calendar as CalendarIcon, ChevronDownIcon } from 'lucide-react';
@@ -130,7 +131,7 @@ export const TimeRangeControl = ({
             'h-[36px] justify-start px-3 text-left font-normal hover:bg-transparent',
             !date && 'text-muted-foreground'
           )}>
-          <CalendarIcon className="mr-1 size-4" />
+          <IconWrapper icon={CalendarIcon} className="mr-1 size-4" />
           <div className="flex items-center gap-1">
             <DateTime
               date={timeRange.start}
@@ -146,7 +147,7 @@ export const TimeRangeControl = ({
               disableTimezone
             />
           </div>
-          <ChevronDownIcon className="size-4 opacity-50" />
+          <IconWrapper icon={ChevronDownIcon} className="size-4 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
