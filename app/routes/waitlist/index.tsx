@@ -48,7 +48,7 @@ export default function WaitlistPage() {
               when your account is ready to go).
             </p>
           </div>
-          <div className="bg-background mt-6 rounded-xl border p-6 text-center text-[14px] leading-6 font-normal shadow-[0_2px_4px_2px_rgba(12,29,49,0.03)]">
+          <div className="bg-background mt-6 rounded-xl border p-6 text-center text-[14px] leading-6 font-normal shadow">
             <strong>In the meantime</strong> join us on{' '}
             <Link
               to="https://discord.com/invite/AeA9XZu4Py"

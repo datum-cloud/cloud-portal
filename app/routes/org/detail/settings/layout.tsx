@@ -29,11 +29,11 @@ export default function OrgSettingsLayout() {
         to: getPathWithParams(paths.org.detail.policyBindings.root, { orgId }),
         hidden: org?.type === OrganizationType.Personal,
       }, */
-      // {
-      //   value: 'quotas',
-      //   label: 'Quotas',
-      //   to: getPathWithParams(paths.org.detail.settings.quotas, { orgId }),
-      // },
+      {
+        value: 'quotas',
+        label: 'Quotas',
+        to: getPathWithParams(paths.org.detail.settings.quotas, { orgId }),
+      },
       {
         value: 'activity',
         label: 'Activity',
