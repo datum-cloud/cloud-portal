@@ -223,6 +223,11 @@ export type ComMiloapisResourcemanagerV1Alpha1OrganizationMembership = {
        * GivenName is the given name of the user in the membership.
        */
       givenName?: string;
+
+      /**
+       * AvatarURL is the URL of the user's avatar.
+       */
+      avatarURL?: string;
     };
   };
 };

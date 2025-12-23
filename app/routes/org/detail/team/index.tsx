@@ -58,6 +58,7 @@ interface ITeamMember {
   invitationState?: 'Pending' | 'Accepted' | 'Declined';
   type: 'member' | 'invitation';
   name?: string;
+  avatarUrl?: string;
 }
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
@@ -128,6 +129,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
         : [],
       type: 'member' as const,
       name: member.name,
+      avatarUrl: member.user.avatarUrl,
     }))
   );
 
@@ -333,10 +335,13 @@ export default function OrgTeamPage() {
           const name = row.original.fullName ?? row.original.email;
           const subtitle = row.original.email;
 
+          console.log(row.original);
+
           return (
             <div className="flex w-full items-center justify-between gap-2">
               <div className="flex items-center gap-3">
                 <ProfileIdentity
+                  avatarSrc={row.original.avatarUrl}
                   className="min-w-48"
                   fallbackIcon={row.original.type === 'invitation' ? UserIcon : undefined}
                   name={name}
