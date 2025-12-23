@@ -450,7 +450,7 @@ export const NavMain = forwardRef<
                     <span>{item.title}</span>
                     <IconWrapper
                       icon={ChevronRight}
-                      className="text-sidebar-foreground ml-auto size-3.5! transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                      className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
                     />
                   </NavSidebarMenuButton>
                 </CollapsibleTrigger>
@@ -543,7 +543,7 @@ export const NavMain = forwardRef<
                   <span>{currentItem.title}</span>
                   <IconWrapper
                     icon={ChevronRight}
-                    className="text-sidebar-foreground ml-auto size-3.5! transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                    className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
                   />
                 </NavSidebarMenuButton>
               </CollapsibleTrigger>
@@ -596,10 +596,7 @@ export const NavMain = forwardRef<
               ) : (
                 <Link to={item.href || ''} onClick={handleNavigation}>
                   {item?.icon && (
-                    <IconWrapper
-                      icon={item.icon}
-                      className="text-sidebar-foreground transition-all duration-300"
-                    />
+                    <IconWrapper icon={item.icon} className="transition-all duration-300" />
                   )}
                   <span>{item.title}</span>
                 </Link>
