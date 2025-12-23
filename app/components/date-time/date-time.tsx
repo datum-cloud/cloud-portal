@@ -2,6 +2,9 @@ import {
   formatAbsoluteDate,
   formatCombinedDate,
   formatRelativeDate,
+  formatTimezoneDate,
+  formatUTCDate,
+  getTimestamp,
   getTimezoneAbbreviation,
   parseDate,
 } from './formatters';
@@ -74,9 +77,12 @@ export const DateTime = ({
     addSuffix,
   };
 
-  // Format the main content
+  // Format content based on variant
   let content: string;
   switch (variant) {
+    case 'detailed':
+      content = formatTimezoneDate(parsedDate, timeZone);
+      break;
     case 'relative':
       content = formatRelativeDate(parsedDate, formatterOptions);
       break;
@@ -142,6 +148,33 @@ function getTooltipContent(
   options: FormatterOptions,
   timeZone: string
 ): React.ReactNode {
+  // Detailed variant - show all time formats
+  if (variant === 'detailed') {
+    const utcTime = formatUTCDate(date);
+    const timezoneTime = formatTimezoneDate(date, timeZone);
+    const relativeTime = formatRelativeDate(date, options);
+    const timestamp = getTimestamp(date);
+
+    const rows = [
+      { label: 'UTC', value: utcTime },
+      { label: timeZone.replace('_', ' '), value: timezoneTime },
+      { label: 'Relative', value: relativeTime },
+      { label: 'Timestamp', value: timestamp },
+    ];
+
+    return (
+      <div className="space-y-2 text-xs">
+        {rows.map((row) => (
+          <div key={row.label} className="flex items-center justify-between gap-2">
+            <span className="font-medium">{row.label}</span>
+            <span className="mx-1 flex-1 border-b border-dotted border-current/50" />
+            <span className="text-right">{row.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   // Explicit timezone mode
   if (tooltip === 'timezone') {
     return (
