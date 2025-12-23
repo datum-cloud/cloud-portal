@@ -13,10 +13,5 @@ export {
   useOptionalFieldContext,
 } from './field-context';
 
-export {
-  StepperContext,
-  StepperProvider,
-  useStepperContext,
-  useOptionalStepperContext,
-  useStepperReset,
-} from './stepper-context';
+// Note: Stepper context is now internal to form-stepper.tsx
+// Use the useStepper hook from hooks/use-stepper.ts instead

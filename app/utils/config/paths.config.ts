@@ -70,7 +70,6 @@ export const paths = {
           root: '/project/[projectId]/proxy/[proxyId]',
           overview: '/project/[projectId]/proxy/[proxyId]/overview',
           edit: '/project/[projectId]/proxy/[proxyId]/edit',
-          grafana: '/project/[projectId]/proxy/[proxyId]/grafana',
           metrics: '/project/[projectId]/proxy/[proxyId]/metrics',
         },
       },

@@ -126,7 +126,6 @@ export default [
               { id: 'proxy-detail' },
               [
                 index('routes/project/detail/edge/proxy/detail/index.tsx'),
-                route('grafana', 'routes/project/detail/edge/proxy/detail/grafana.tsx'),
                 route('edit', 'routes/project/detail/edge/proxy/detail/edit.tsx'),
 
                 route('', 'routes/project/detail/edge/proxy/detail/tabs/layout.tsx', [

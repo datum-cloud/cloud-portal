@@ -152,7 +152,7 @@ export const HttpProxyPreview = ({ data, projectId }: HttpProxyPreviewProps) => 
                 </Alert>
               </motion.div>
               <motion.div variants={itemVariants}>
-                <GrafanaTutorialCard projectId={projectId ?? ''} proxy={proxy ?? {}} />
+                <GrafanaTutorialCard projectId={projectId ?? ''} />
               </motion.div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2 pt-6">

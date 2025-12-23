@@ -1,7 +1,7 @@
 import { PageTitle } from '@/components/page-title/page-title';
-import { ExportPolicyActivityCard } from '@/features/metric/export-policies/activity-card';
-import { ExportPolicyDangerCard } from '@/features/metric/export-policies/danger-card';
-import { ExportPolicyGeneralCard } from '@/features/metric/export-policies/general-card';
+import { ExportPolicyActivityCard } from '@/features/metric/export-policies/card/activity-card';
+import { ExportPolicyDangerCard } from '@/features/metric/export-policies/card/danger-card';
+import { ExportPolicyGeneralCard } from '@/features/metric/export-policies/card/general-card';
 import { WorkloadSinksTable } from '@/features/metric/export-policies/sinks-table';
 import { WorkloadSourcesTable } from '@/features/metric/export-policies/sources-table';
 import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
