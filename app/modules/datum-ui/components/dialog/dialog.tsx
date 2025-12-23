@@ -68,7 +68,7 @@ function Content({ children, className }: DialogContentProps) {
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          'dark:bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 flex max-h-[80vh] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] flex-col gap-0 rounded-lg border bg-white p-0 shadow-lg duration-200 sm:max-w-lg [&>button:last-child]:hidden',
+          'dark:bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 flex max-h-[80vh] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] flex-col gap-0 overflow-y-auto rounded-lg border bg-white p-0 shadow-lg duration-200 sm:max-w-lg [&>button:last-child]:hidden',
           className
         )}>
         {children}
@@ -90,7 +90,11 @@ interface DialogHeaderProps {
 
 function Header({ title, description, onClose, className }: DialogHeaderProps) {
   return (
-    <div className={cn('relative flex flex-col gap-2 p-5', className)}>
+    <div
+      className={cn(
+        'dark:bg-background sticky top-0 z-50 flex shrink-0 flex-col gap-2 bg-white p-5',
+        className
+      )}>
       <DialogTitle className="text-base font-semibold">{title}</DialogTitle>
       {description && (
         <DialogDescription className="text-sm font-normal">{description}</DialogDescription>
@@ -115,7 +119,7 @@ interface DialogBodyProps {
 }
 
 function Body({ children, className }: DialogBodyProps) {
-  return <div className={cn('flex-1 overflow-y-auto py-5', className)}>{children}</div>;
+  return <div className={cn('py-5', className)}>{children}</div>;
 }
 
 /* -----------------------------------------------------------------------------
@@ -128,7 +132,15 @@ interface DialogFooterProps {
 }
 
 function Footer({ children, className }: DialogFooterProps) {
-  return <ShadcnDialogFooter className={cn('gap-3 p-5', className)}>{children}</ShadcnDialogFooter>;
+  return (
+    <ShadcnDialogFooter
+      className={cn(
+        'dark:bg-background sticky bottom-0 z-50 shrink-0 gap-3 bg-white p-5',
+        className
+      )}>
+      {children}
+    </ShadcnDialogFooter>
+  );
 }
 
 /* -----------------------------------------------------------------------------
