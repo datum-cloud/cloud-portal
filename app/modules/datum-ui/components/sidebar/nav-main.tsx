@@ -36,6 +36,12 @@ export type NavItem = {
   open?: boolean;
   hidden?: boolean;
 
+  // Exclude specific sub-paths from activating this nav item
+  // Use this for sibling routes like `/export-policies` and `/export-policies/new`
+  // where `/export-policies` should NOT be active when on `/export-policies/new`
+  // but SHOULD be active for detail routes like `/export-policies/:id/overview`
+  excludePaths?: string[];
+
   // Tab Child Links - used to highlight parent nav item when on child tab routes
   // TODO: Replace with proper route hierarchy detection or nested route structure
   // Currently needed to mark parent nav items as active when user is on tab child routes
@@ -47,10 +53,10 @@ export type NavItem = {
 // Centralized style constants for nav menu buttons
 const NAV_STYLES = {
   menuButton:
-    'text-sidebar-foreground rounded-lg h-8 font-normal text-xs transition-all px-2 py-1 data-[active=true]:bg-sidebar data-[active=true]:text-foreground data-[active=true]:text-sidebar-primary data-[active=true]:[&>svg]:text-primary hover:bg-sidebar hover:text-sidebar-primary hover:[&>svg]:text-sidebar-primary data-[active=true]:hover:[&>svg]:text-sidebar-primary duration-300 gap-2.5',
+    'text-sidebar-foreground rounded-lg h-8 font-normal text-xs transition-all px-2 py-1 data-[active=true]:bg-sidebar-accent data-[active=true]:text-foreground data-[active=true]:text-sidebar-primary data-[active=true]:[&>svg]:text-sidebar-primary hover:bg-sidebar hover:text-sidebar-primary hover:[&>svg]:text-sidebar-primary data-[active=true]:hover:[&>svg]:text-sidebar-primary duration-300 gap-2.5',
   disabled: 'pointer-events-none opacity-50',
-  icon: 'text-sidebar-foreground duration-300 transition-all',
-  iconSmall: 'text-sidebar-foreground size-4 duration-300 transition-all',
+  icon: 'duration-300 transition-all',
+  iconSmall: 'size-4 duration-300 transition-all',
 } as const;
 
 // Centralized icon renderer component
@@ -214,8 +220,20 @@ export const NavMain = forwardRef<
         }
 
         // For items without children, check for exact match or sub-path
+        // Check if current path is in the excluded paths list
+        const isExcluded =
+          item.excludePaths?.some((excludePath) => {
+            const cleanExcludePath = normalize(excludePath);
+            return (
+              cleanCurrentPath === cleanExcludePath ||
+              cleanCurrentPath.startsWith(`${cleanExcludePath}/`)
+            );
+          }) ?? false;
+
+        // Match exact path, or sub-paths that are not excluded
         const isDirectMatch =
-          cleanCurrentPath === cleanNavPath || cleanCurrentPath.startsWith(`${cleanNavPath}/`);
+          cleanCurrentPath === cleanNavPath ||
+          (!isExcluded && cleanCurrentPath.startsWith(`${cleanNavPath}/`));
 
         // Check tabChildLinks for mixed layout scenarios (tabs + sidebar)
         const isTabChildMatch =
@@ -523,7 +541,10 @@ export const NavMain = forwardRef<
                   disableTooltip={disableTooltip}
                   className={itemClassName}>
                   <span>{currentItem.title}</span>
-                  <ChevronRight className="text-sidebar-foreground ml-auto size-3.5! transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  <IconWrapper
+                    icon={ChevronRight}
+                    className="text-sidebar-foreground ml-auto size-3.5! transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                  />
                 </NavSidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">

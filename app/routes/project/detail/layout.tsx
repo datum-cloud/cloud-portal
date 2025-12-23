@@ -127,18 +127,9 @@ export default function ProjectLayout() {
       {
         title: 'Metrics',
         href: getPathWithParams(paths.project.detail.metrics.root, { projectId }),
-        type: 'collapsible',
+        type: 'link',
         icon: AreaChartIcon,
         disabled: !isReady,
-        children: [
-          {
-            title: 'Export policies',
-            href: getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
-              projectId,
-            }),
-            type: 'link',
-          },
-        ],
       },
       {
         title: 'Assets',

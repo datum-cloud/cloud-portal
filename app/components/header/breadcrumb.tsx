@@ -60,25 +60,26 @@ export const Breadcrumb = ({ className }: { className?: string }): React.ReactEl
       // Determine the path to use for this breadcrumb item
       let path = match.pathname;
 
+      // Try to get data from current match, or fall back to parent match data
+      const matchIndex = matches.indexOf(match);
+      const fallbackData =
+        matchIndex > 0
+          ? [...matches]
+              .slice(0, matchIndex)
+              .reverse()
+              .find((parentMatch) => parentMatch.data)?.data
+          : undefined;
+      const routeData = match.data ?? fallbackData;
+
       // If handle.path is defined, use it (explicit override)
       if (match.handle?.path) {
-        // Try to get data from current match, or fall back to parent match data
-        const matchIndex = matches.indexOf(match);
-        const fallbackData =
-          matchIndex > 0
-            ? [...matches]
-                .slice(0, matchIndex)
-                .reverse()
-                .find((parentMatch) => parentMatch.data)?.data
-            : undefined;
-        const routeData = match.data ?? fallbackData;
         path = match.handle.path(routeData);
       }
 
       return {
         key: `breadcrumb-${match.pathname || match.id || index}`,
         path,
-        content: match.handle.breadcrumb(match.data),
+        content: match.handle.breadcrumb(routeData),
         isCurrentPath,
         isLast,
       };

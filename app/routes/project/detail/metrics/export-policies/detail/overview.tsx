@@ -9,6 +9,12 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Col, Row } from '@datum-ui/components';
 import { MetaFunction, useRouteLoaderData } from 'react-router';
 
+export const handle = {
+  breadcrumb: (data: IExportPolicyControlResponse) => {
+    return <span>{data?.name ?? 'Overview'}</span>;
+  },
+};
+
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
   const match = matches.find((match) => match.id === 'export-policy-detail') as any;
 
