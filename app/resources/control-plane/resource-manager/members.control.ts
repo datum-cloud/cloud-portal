@@ -49,7 +49,6 @@ export const createMembersControl = (client: Client) => {
 
         const members =
           response.data as ComMiloapisResourcemanagerV1Alpha1OrganizationMembershipList;
-
         return members.items?.map((item) => transform(item)) ?? [];
       } catch (error) {
         throw error;

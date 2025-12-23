@@ -71,7 +71,7 @@ export default [
         // Settings of an organization
         layout('routes/org/detail/settings/layout.tsx', [
           route('general', 'routes/org/detail/settings/general.tsx'),
-          // route('quotas', 'routes/org/detail/settings/quotas.tsx'),
+          route('quotas', 'routes/org/detail/settings/quotas.tsx'),
           route('activity', 'routes/org/detail/settings/activity.tsx'),
           // route('policy-bindings', 'routes/org/detail/settings/policy-bindings.tsx'),
         ]),
@@ -91,7 +91,7 @@ export default [
         // Settings of an organization
         layout('routes/project/detail/settings/layout.tsx', [
           route('preferences', 'routes/project/detail/settings/preferences.tsx'),
-          // route('quotas', 'routes/project/detail/settings/quotas.tsx'),
+          route('quotas', 'routes/project/detail/settings/quotas.tsx'),
           route('activity', 'routes/project/detail/settings/activity.tsx'),
         ]),
 
