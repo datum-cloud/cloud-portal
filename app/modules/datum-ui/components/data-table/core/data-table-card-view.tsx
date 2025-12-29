@@ -80,18 +80,7 @@ export const DataTableCardView = <TData,>({
           ))}
         </>
       ) : (
-        <TableRow>
-          <TableCell
-            colSpan={columns.length + (rowActions.length > 0 ? 1 : 0)}
-            className="p-0 text-center">
-            <EmptyContent
-              variant="minimal"
-              {...{
-                title: "Try adjusting your search or filters to find what you're looking for.",
-              }}
-            />
-          </TableCell>
-        </TableRow>
+        <EmptyContent title="Try adjusting your search or filters" />
       )}
     </TableBody>
   );
