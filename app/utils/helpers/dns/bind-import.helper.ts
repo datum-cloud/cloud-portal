@@ -10,7 +10,7 @@ import {
   IDnsZoneDiscoveryRecordSet,
   IFlattenedDnsRecord,
 } from '@/resources/interfaces/dns.interface';
-import { DNSRecordType } from '@/resources/schemas/dns-record.schema';
+import { DNSRecordType, TTL_OPTIONS } from '@/resources/schemas/dns-record.schema';
 
 // Re-export parser from bind-parser module
 export {
@@ -18,6 +18,77 @@ export {
   type BindParseResult,
   type ParsedDnsRecord,
 } from '@/modules/bind-parser';
+
+// ============================================================================
+// TTL Normalization
+// ============================================================================
+
+/**
+ * Valid TTL values derived from TTL_OPTIONS
+ * Excludes null (Auto) since we only care about numeric values
+ */
+const VALID_TTL_VALUES: number[] = TTL_OPTIONS.reduce<number[]>((acc, opt) => {
+  if (opt.value !== null) {
+    acc.push(opt.value);
+  }
+  return acc;
+}, []);
+
+const VALID_TTL_SET = new Set(VALID_TTL_VALUES);
+
+/**
+ * Minimum valid TTL from TTL_OPTIONS
+ */
+const MIN_VALID_TTL = Math.min(...VALID_TTL_VALUES);
+
+/**
+ * TTL Configuration for normalization
+ * - DEFAULT_TTL: Default TTL used when normalization is needed (5 minutes)
+ * - isValidTTL: Function to check if a TTL value is in our allowed list
+ */
+export const TTL_CONFIG = {
+  DEFAULT_TTL: 300,
+  MIN_TTL: MIN_VALID_TTL,
+  isValidTTL: (ttl: number): boolean => VALID_TTL_SET.has(ttl),
+} as const;
+
+/**
+ * Result of TTL normalization
+ */
+interface TTLNormalizationResult {
+  value: number | null;
+  adjusted: boolean;
+  originalValue?: number;
+}
+
+/**
+ * Normalize TTL value to ensure sensible DNS behavior
+ *
+ * Handles:
+ * - Invalid TTLs not in TTL_OPTIONS (e.g., Cloudflare's 1-second = "Auto")
+ * - TTLs below minimum threshold
+ * - Null/undefined TTLs (passed through as-is for backend defaults)
+ *
+ * @param ttl - Original TTL value (null means use backend default)
+ * @returns Normalized TTL with adjustment info
+ */
+export function normalizeTTL(ttl: number | null): TTLNormalizationResult {
+  if (ttl === null) {
+    return { value: null, adjusted: false };
+  }
+
+  // Check if TTL is in our valid options list
+  // If not valid, always use DEFAULT_TTL (300 seconds)
+  if (!TTL_CONFIG.isValidTTL(ttl)) {
+    return {
+      value: TTL_CONFIG.DEFAULT_TTL,
+      adjusted: true,
+      originalValue: ttl,
+    };
+  }
+
+  return { value: ttl, adjusted: false };
+}
 
 /**
  * Deduplicate parsed DNS records within a batch
@@ -131,25 +202,30 @@ function buildRawDataFromParsed(record: ParsedDnsRecord): Record<string, unknown
 
 /**
  * Transform parsed BIND records to IFlattenedDnsRecord[] for UI display
+ * Applies TTL normalization to ensure valid TTL values
  */
 export function transformParsedToFlattened(
   records: ParsedDnsRecord[],
   dnsZoneId: string
 ): IFlattenedDnsRecord[] {
-  return records.map((record) => ({
-    dnsZoneId,
-    type: record.type,
-    name: record.name,
-    value: record.value,
-    ttl: record.ttl ?? undefined,
-    rawData: buildRawDataFromParsed(record),
-  }));
+  return records.map((record) => {
+    const { value: normalizedTTL } = normalizeTTL(record.ttl);
+    return {
+      dnsZoneId,
+      type: record.type,
+      name: record.name,
+      value: record.value,
+      ttl: normalizedTTL ?? undefined,
+      rawData: buildRawDataFromParsed(record),
+    };
+  });
 }
 
 /**
  * Transform parsed BIND records to recordSets format for bulk import API
  * Groups records by recordType matching the API schema
  * Applies FQDN normalization to domain name fields
+ * Applies TTL normalization to ensure valid TTL values
  */
 export function transformParsedToRecordSets(
   records: ParsedDnsRecord[]
@@ -161,9 +237,9 @@ export function transformParsedToRecordSets(
         acc[record.type] = [];
       }
 
-      // Build the record entry with type-specific field
-      // Ensure TTL is an integer
+      // Normalize TTL to ensure valid value
       const ttlValue = record.ttl !== null ? Number(record.ttl) : null;
+      const { value: normalizedTTL } = normalizeTTL(ttlValue);
 
       // Normalize FQDN fields for domain name types
       const normalizedData = hasFqdnFields(record.type)
@@ -172,7 +248,7 @@ export function transformParsedToRecordSets(
 
       const entry: Record<string, unknown> = {
         name: record.name,
-        ...(ttlValue !== null && !isNaN(ttlValue) && { ttl: ttlValue }),
+        ...(normalizedTTL !== null && !isNaN(normalizedTTL) && { ttl: normalizedTTL }),
         [record.type.toLowerCase()]: normalizedData,
       };
 
