@@ -154,7 +154,7 @@ export const DnsRecordImportAction = ({
 
       {/* Import Dialog - Preview and Result Views */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <Dialog.Content className="max-w-4xl sm:max-w-4xl">
+        <Dialog.Content className="max-w-[80vw] sm:max-w-[80vw]">
           {dialogView === 'preview' ? (
             <>
               <Dialog.Header
