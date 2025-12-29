@@ -65,3 +65,25 @@ export function formatCombinedDate(
 
   return `${absolute}${separator}(${relative})`;
 }
+
+/**
+ * Formats a date in UTC timezone (for detailed popup)
+ */
+export function formatUTCDate(date: Date): string {
+  return formatInTimeZone(date, 'UTC', 'dd MMM yy HH:mm:ss', { locale: enUS });
+}
+
+/**
+ * Formats a date in a specific timezone (for detailed popup)
+ */
+export function formatTimezoneDate(date: Date, timezone: string): string {
+  return formatInTimeZone(date, timezone, 'dd MMM yy HH:mm:ss', { locale: enUS });
+}
+
+/**
+ * Gets the raw timestamp in microseconds (for detailed popup)
+ */
+export function getTimestamp(date: Date): string {
+  // Convert to microseconds (multiply milliseconds by 1000)
+  return (date.getTime() * 1000).toString();
+}

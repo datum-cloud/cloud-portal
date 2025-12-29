@@ -1,4 +1,4 @@
-export type DateTimeVariant = 'absolute' | 'relative' | 'both';
+export type DateTimeVariant = 'absolute' | 'relative' | 'both' | 'detailed';
 
 export type TooltipMode = boolean | 'auto' | 'timezone' | 'alternate';
 

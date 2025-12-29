@@ -16,7 +16,7 @@ export const DomainExpiration = ({ expiresAt, showBadge = true }: DomainExpirati
 
   return (
     <div className="flex items-center gap-2">
-      <DateTime date={expiresAt} format="yyyy-MM-dd" />
+      <DateTime date={expiresAt} variant="detailed" />
       {showBadge && isExpiringSoon && (
         <Badge
           type="danger"
