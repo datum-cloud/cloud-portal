@@ -33,7 +33,7 @@ import { useEffect, useState } from 'react';
  */
 export const DateTime = ({
   date,
-  variant = 'absolute',
+  variant = 'detailed',
   format,
   addSuffix,
   tooltip = 'auto',
