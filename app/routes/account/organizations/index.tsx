@@ -2,24 +2,24 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
+import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
 import { organizationSchema } from '@/resources/schemas/organization.schema';
 import { ROUTE_PATH as ORGANIZATIONS_PATH } from '@/routes/api/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, Col, DataTable, Row } from '@datum-ui/components';
+import { Button, Col, DataTable, Row, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
 import { cn } from '@shadcn/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, Building, PlusIcon } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
   data,
-  useFetcher,
   useLoaderData,
   useNavigate,
   useRevalidator,
@@ -54,12 +54,29 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function AccountOrganizations() {
   const { orgs, alertClosed } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
-  const fetcher = useFetcher({ key: 'alert-closed' });
-  const createFetcher = useFetcher({ key: 'create-organization' });
   const revalidator = useRevalidator();
   const csrf = useAuthenticityToken();
 
   const [openDialog, setOpenDialog] = useState<boolean>(false);
+
+  const alertFetcher = useDatumFetcher({
+    key: 'alert-closed',
+    onSuccess: () => {
+      revalidator.revalidate();
+    },
+  });
+  const createFetcher = useDatumFetcher({
+    key: 'create-organization',
+    onSuccess: () => {
+      setOpenDialog(false);
+      revalidator.revalidate();
+    },
+    onError: (error) => {
+      toast.error('Organization', {
+        description: error?.error || 'Failed to create organization',
+      });
+    },
+  });
 
   const orgsList = (orgs ?? []) as IOrganization[];
 
@@ -69,14 +86,8 @@ export default function AccountOrganizations() {
 
   const showAlert = !alertClosed && !hasStandardOrg;
 
-  useEffect(() => {
-    if (fetcher.data?.success) {
-      revalidator.revalidate();
-    }
-  }, [fetcher.data, revalidator]);
-
   const handleAlertClose = () => {
-    fetcher.submit({}, { method: 'POST' });
+    alertFetcher.submit({}, { method: 'POST' });
   };
 
   const columns: ColumnDef<IOrganization>[] = useMemo(
@@ -221,9 +232,6 @@ export default function AccountOrganizations() {
           name: '',
         }}
         onSubmit={handleSubmit}
-        onSuccess={() => {
-          revalidator.revalidate();
-        }}
         submitText="Confirm"
         submitTextLoading="Creating..."
         className="w-full sm:max-w-3xl">
@@ -240,6 +248,7 @@ export default function AccountOrganizations() {
             {({ field, fields }) => (
               <InputName
                 required
+                showTooltip={false}
                 description="This unique resource name will be used to identify your organization and cannot be changed."
                 field={field}
                 baseName={fields.description?.value as string}

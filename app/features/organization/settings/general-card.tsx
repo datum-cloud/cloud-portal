@@ -19,19 +19,21 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
   const fetcher = useDatumFetcher({
     key: 'update-organization',
     onSuccess: () => {
-      toast.success('Organization updated successfully', {
+      toast.success('Organization', {
         description: 'The Organization has been updated successfully',
       });
     },
     onError: (data) => {
-      toast.error(data.error || 'Failed to update organization');
+      toast.error('Organization', {
+        description: data.error || 'Failed to update organization',
+      });
     },
   });
   const csrf = useAuthenticityToken();
 
   return (
     <Card className="gap-0 rounded-xl py-0 shadow-none">
-      <CardHeader className="border-b px-4.5 py-4">
+      <CardHeader className="border-b px-5 py-4">
         <CardTitle className="text-sm font-medium">Organization Info</CardTitle>
       </CardHeader>
       <Form.Root
@@ -56,7 +58,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
         className="flex flex-col space-y-0">
         {({ form, isSubmitting }) => (
           <>
-            <CardContent className="px-4.5 py-4">
+            <CardContent className="px-5 py-4">
               <div className="flex max-w-sm flex-col gap-5">
                 {organization?.type === OrganizationType.Personal ? (
                   <div className="flex flex-col space-y-2">
@@ -72,13 +74,13 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
                   </Form.Field>
                 )}
                 <div className="flex flex-col space-y-2">
-                  <label className="text-sm font-medium">Resource ID</label>
+                  <label className="text-xs font-medium">Resource ID</label>
                   <TextCopyBox value={organization?.name ?? ''} />
                 </div>
               </div>
             </CardContent>
             {organization && organization?.type !== OrganizationType.Personal && (
-              <CardFooter className="flex justify-end gap-2 border-t px-4.5 py-4">
+              <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
                 <Button
                   htmlType="button"
                   type="quaternary"

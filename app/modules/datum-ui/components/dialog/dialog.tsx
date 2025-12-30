@@ -87,9 +87,16 @@ interface DialogHeaderProps {
   description?: React.ReactNode;
   onClose?: () => void;
   className?: string;
+  descriptionClassName?: string;
 }
 
-function Header({ title, description, onClose, className }: DialogHeaderProps) {
+function Header({
+  title,
+  description,
+  onClose,
+  className,
+  descriptionClassName,
+}: DialogHeaderProps) {
   return (
     <div
       className={cn(
@@ -98,7 +105,9 @@ function Header({ title, description, onClose, className }: DialogHeaderProps) {
       )}>
       <DialogTitle className="text-base font-semibold">{title}</DialogTitle>
       {description && (
-        <DialogDescription className="text-sm font-normal">{description}</DialogDescription>
+        <DialogDescription className={cn('text-sm font-normal', descriptionClassName)}>
+          {description}
+        </DialogDescription>
       )}
 
       {onClose && (

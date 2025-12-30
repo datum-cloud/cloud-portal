@@ -388,7 +388,6 @@ export default function DomainsPage() {
       />
 
       <Form.Dialog
-        closeOnSuccess={false}
         open={openAddDialog}
         onOpenChange={setOpenAddDialog}
         title="Add a Domain"

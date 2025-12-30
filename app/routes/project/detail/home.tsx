@@ -85,13 +85,13 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
 
         await projectsControl.update(projectId, parsed.value, false);
         return dataWithToast(null, {
-          title: 'Project updated successfully',
+          title: 'Project',
           description: 'You have successfully updated your project.',
           type: 'success',
         });
       } catch (error) {
         return dataWithToast(null, {
-          title: 'Failed to update project',
+          title: 'Project',
           description: error instanceof Error ? error.message : (error as Response).statusText,
           type: 'error',
         });

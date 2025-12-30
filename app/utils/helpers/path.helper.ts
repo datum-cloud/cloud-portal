@@ -42,33 +42,84 @@ export function combineHeaders(
 
 type Param = string | number | boolean | string[] | null | undefined;
 type QueryParams = Record<string, Param>;
+type SearchParamsInput = URLSearchParams | Record<string, string | string[] | undefined | null>;
 
 /**
- * Replaces path parameters with actual values
+ * Converts a Param value to string representation
+ */
+function paramToString(val: Param): string {
+  if (val === null || typeof val === 'undefined') {
+    return '';
+  }
+  return Array.isArray(val) ? val.join(',') : val.toString();
+}
+
+/**
+ * Converts SearchParamsInput to a query string
+ */
+function buildSearchParamsString(searchParams?: SearchParamsInput): string {
+  if (!searchParams) {
+    return '';
+  }
+
+  if (searchParams instanceof URLSearchParams) {
+    return `?${searchParams.toString()}`;
+  }
+
+  // Handle plain object
+  const urlSearchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (value !== undefined && value !== null) {
+      if (Array.isArray(value)) {
+        for (const v of value) {
+          urlSearchParams.append(key, v);
+        }
+      } else {
+        urlSearchParams.set(key, value);
+      }
+    }
+  }
+
+  const str = urlSearchParams.toString();
+  return str ? `?${str}` : '';
+}
+
+/**
+ * Replaces path parameters with actual values and appends search params
  * @param path - The path template with parameter placeholders
  * @param params - Object containing parameter values
- * @returns Path with parameters replaced
+ * @param searchParams - Optional URLSearchParams or plain object to append as query string
+ * @returns Path with parameters replaced and search params appended
+ *
+ * @example
+ * // With path params only
+ * getPathWithParams('/org/:orgId/projects', { orgId: '123' })
+ * // => '/org/123/projects'
+ *
+ * @example
+ * // With path params and search params object
+ * getPathWithParams('/org/:orgId/projects', { orgId: '123' }, { action: 'create' })
+ * // => '/org/123/projects?action=create'
+ *
+ * @example
+ * // With array search params
+ * getPathWithParams('/search', {}, { tags: ['a', 'b'] })
+ * // => '/search?tags=a&tags=b'
  */
 export function getPathWithParams(
   path: string,
   params: QueryParams = {},
-  searchParams?: URLSearchParams
+  searchParams?: SearchParamsInput
 ): string {
-  const searchParamsString = searchParams ? `?${searchParams.toString()}` : '';
-  const toString = (val: Param): string => {
-    if (val === null || typeof val === 'undefined') {
-      return '';
-    }
+  const searchParamsString = buildSearchParamsString(searchParams);
 
-    return Array.isArray(val) ? val.join(',') : val?.toString();
-  };
   return Object.entries(params).reduce((prev, [key, value]) => {
     return (
       prev
         // /my/[dynamic]/path
-        .replace(`[${key}]`, encodeURIComponent(toString(value)))
+        .replace(`[${key}]`, encodeURIComponent(paramToString(value)))
         // /my/:dynamic/path
-        .replace(`:${key}`, encodeURIComponent(toString(value)))
+        .replace(`:${key}`, encodeURIComponent(paramToString(value)))
     );
   }, path + searchParamsString);
 }
@@ -98,4 +149,4 @@ export function getLastPathSegment(pathname: string, isHumanReadable = true): st
     : (lastSegment ?? '');
 }
 
-export type { QueryParams, Param };
+export type { QueryParams, Param, SearchParamsInput };

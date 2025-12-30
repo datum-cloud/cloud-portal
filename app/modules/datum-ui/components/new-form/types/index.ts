@@ -584,10 +584,6 @@ export interface FormDialogProps<T extends z.ZodType> {
   /** Submit button type variant */
   submitType?: ButtonProps['type'];
 
-  // Behavior options
-  /** Close dialog on successful submission (default: true) */
-  closeOnSuccess?: boolean;
-
   // Styling
   /** Dialog content className */
   className?: string;

@@ -52,7 +52,6 @@ export default [
         // Projects of an organization
         route('projects', 'routes/org/detail/projects/layout.tsx', [
           index('routes/org/detail/projects/index.tsx'),
-          route('new', 'routes/org/detail/projects/new.tsx'),
         ]),
 
         // Team of an organization
@@ -216,6 +215,7 @@ export default [
 
       // Projects
       route('projects', 'routes/api/projects/index.ts'),
+      route('projects/:id', 'routes/api/projects/$id.ts'),
       route('projects/:id/status', 'routes/api/projects/status.ts'),
 
       // Team
