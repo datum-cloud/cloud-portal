@@ -67,3 +67,6 @@ export {
   type ImportSummary,
   type ImportResult,
 } from './import-result.helper';
+
+// Error formatting helpers
+export { formatDnsConflictError, formatDnsError } from './error-formatting.helper';

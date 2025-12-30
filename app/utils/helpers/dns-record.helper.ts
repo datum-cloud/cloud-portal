@@ -63,4 +63,8 @@ export {
   type ImportDetail,
   type ImportSummary,
   type ImportResult,
+
+  // Error formatting helpers
+  formatDnsConflictError,
+  formatDnsError,
 } from './dns';

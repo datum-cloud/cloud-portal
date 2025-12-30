@@ -23,6 +23,7 @@ import {
 } from '@/resources/schemas/dns-record.schema';
 import { ROUTE_PATH as DNS_RECORDS_ACTIONS_PATH } from '@/routes/api/dns-records';
 import { ROUTE_PATH as DNS_RECORDS_DETAIL_PATH } from '@/routes/api/dns-records/$id';
+import { formatDnsError } from '@/utils/helpers/dns-record.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   FormProvider,
@@ -139,17 +140,22 @@ export function DnsRecordForm({
           const result = await response.json();
 
           if (!response.ok) {
-            throw new Error(result.error || `Failed to ${mode} DNS record`);
+            const errorMessage = result.error || `Failed to ${mode} DNS record`;
+            throw new Error(formatDnsError(errorMessage));
           }
 
           if (result.success) {
             onSuccess?.();
             onClose();
           } else {
-            throw new Error(result?.error || `Failed to ${mode} DNS record`);
+            const errorMessage = result?.error || `Failed to ${mode} DNS record`;
+            throw new Error(formatDnsError(errorMessage));
           }
         } catch (error: any) {
-          toast.error(error.message || `Failed to ${mode} DNS record. Please try again.`);
+          // Error message is already formatted by formatDnsError if it was a DNS error
+          // Otherwise, use the original error message
+          const displayMessage = error.message || `Failed to ${mode} DNS record. Please try again.`;
+          toast.error(displayMessage);
         } finally {
           setIsSubmitting(false);
         }
