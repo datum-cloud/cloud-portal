@@ -63,10 +63,10 @@ export const InputName = ({
 
   return (
     <div className={cn('flex flex-col space-y-2', className)}>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-5">
         <FieldLabel
           label={label}
-          className={labelClassName}
+          className={cn('text-xs font-semibold', labelClassName)}
           isError={!!field.errors}
           isRequired={required}
           tooltipInfo={
@@ -78,7 +78,7 @@ export const InputName = ({
         {autoGenerate && (
           <Tooltip
             message="Uses Kubernetes generateName to automatically create a unique resource name."
-            open={showTooltip}>
+            hidden={!showTooltip}>
             <div className="flex cursor-pointer items-center gap-0.5">
               <Checkbox
                 className="size-3.5"
@@ -88,7 +88,7 @@ export const InputName = ({
               />
               <Label
                 htmlFor={field.id}
-                className="text-muted-foreground ml-1 cursor-pointer text-xs">
+                className="text-foreground ml-1 cursor-pointer text-xs font-normal">
                 Auto-generate
               </Label>
               {showTooltip && <CircleHelp className="text-muted-foreground size-2.5" />}

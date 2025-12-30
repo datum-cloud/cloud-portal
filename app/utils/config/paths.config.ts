@@ -33,7 +33,6 @@ export const paths = {
       },
       projects: {
         root: '/org/[orgId]/projects',
-        new: '/org/[orgId]/projects/new',
       },
       policyBindings: {
         root: '/org/[orgId]/policy-bindings',

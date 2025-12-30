@@ -1,11 +1,11 @@
-import { createOrganizationsControl } from '@/resources/control-plane';
-import { updateOrganizationSchema } from '@/resources/schemas/organization.schema';
+import { createProjectsControl } from '@/resources/control-plane';
+import { updateProjectSchema } from '@/resources/schemas/project.schema';
 import { redirectWithToast, setOrgSession, validateCSRF } from '@/utils/cookies';
 import { AppError, BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import { ActionFunctionArgs, AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
-export const ROUTE_PATH = '/api/organizations/:id' as const;
+export const ROUTE_PATH = '/api/projects/:id' as const;
 
 export const loader = async ({ context, params, request }: LoaderFunctionArgs) => {
   try {
@@ -13,17 +13,17 @@ export const loader = async ({ context, params, request }: LoaderFunctionArgs) =
     const { id } = params;
 
     if (!id) {
-      throw new BadRequestError('Organization ID is required');
+      throw new BadRequestError('Project ID is required');
     }
 
-    const orgAPI = createOrganizationsControl(iamResourceClient as Client);
-    const org = await orgAPI.detail(id);
+    const projectsControl = createProjectsControl(iamResourceClient as Client);
+    const project = await projectsControl.detail(id);
 
     const { headers } = await setOrgSession(request, id);
 
-    return data({ success: true, data: org }, { headers, status: 200 });
+    return data({ success: true, data: project }, { headers, status: 200 });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Organization not found';
+    const errorMessage = error instanceof Error ? error.message : 'Project not found';
     return data({ success: false, error: errorMessage }, { status: 404 });
   }
 };
@@ -34,30 +34,27 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
     const { id } = params;
 
     if (!id) {
-      throw new BadRequestError('Organization ID is required');
+      throw new BadRequestError('Project ID is required');
     }
 
-    const orgAPI = createOrganizationsControl(controlPlaneClient as Client);
+    const projectsControl = createProjectsControl(controlPlaneClient as Client);
     switch (request.method) {
       case 'DELETE': {
         const formData = Object.fromEntries(await request.formData());
 
-        const { redirectUri } = formData;
+        const { redirectUri, orgId } = formData;
 
-        await orgAPI.delete(id);
+        await projectsControl.delete(orgId as string, id as string);
 
         if (redirectUri) {
           return redirectWithToast(redirectUri as string, {
-            title: 'Organization',
-            description: 'The organization has been deleted successfully',
+            title: 'Project',
+            description: 'The project has been deleted successfully',
             type: 'success',
           });
         }
 
-        return data(
-          { success: true, message: 'Organization deleted successfully' },
-          { status: 200 }
-        );
+        return data({ success: true, message: 'Project deleted successfully' }, { status: 200 });
       }
       case 'PATCH': {
         const clonedRequest = request.clone();
@@ -74,22 +71,19 @@ export const action = async ({ request, context, params }: ActionFunctionArgs) =
         await validateCSRF(formData, request.headers);
 
         // Validate form data with Zod
-        const parsed = updateOrganizationSchema.safeParse(payload);
+        const parsed = updateProjectSchema.safeParse(payload);
 
         if (!parsed.success) {
           throw new BadRequestError('Invalid form data');
         }
 
-        const dryRunRes = await orgAPI.update(id, parsed.data, true);
+        const dryRunRes = await projectsControl.update(id, parsed.data, true);
 
         if (dryRunRes) {
-          await orgAPI.update(id, parsed.data, false);
+          await projectsControl.update(id, parsed.data, false);
         }
 
-        return data(
-          { success: true, message: 'Organization updated successfully' },
-          { status: 200 }
-        );
+        return data({ success: true, message: 'Project updated successfully' }, { status: 200 });
       }
       default:
         throw new HttpError('Method not allowed', 405);

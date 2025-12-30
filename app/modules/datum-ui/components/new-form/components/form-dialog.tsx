@@ -79,9 +79,6 @@ export function FormDialog<T extends z.ZodType>({
   showCancel = true,
   submitType = 'primary',
 
-  // Behavior
-  closeOnSuccess = true,
-
   // Styling
   className,
   formClassName,
@@ -117,9 +114,6 @@ export function FormDialog<T extends z.ZodType>({
       try {
         await onSubmit?.(data);
         onSuccess?.(data);
-        if (closeOnSuccess) {
-          handleOpenChange(false);
-        }
       } catch (error) {
         console.error('Form submission error:', error);
         throw error;
@@ -127,7 +121,7 @@ export function FormDialog<T extends z.ZodType>({
         setIsSubmitting(false);
       }
     },
-    [onSubmit, onSuccess, closeOnSuccess, handleOpenChange]
+    [onSubmit, onSuccess, handleOpenChange]
   );
 
   const handleCancel = React.useCallback(() => {
@@ -154,6 +148,7 @@ export function FormDialog<T extends z.ZodType>({
                 description={description}
                 onClose={handleCancel}
                 className="border-b"
+                descriptionClassName="text-foreground/80"
               />
 
               <Dialog.Body className="space-y-0">

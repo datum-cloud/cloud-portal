@@ -150,7 +150,11 @@ export const ProjectSwitcher = ({
               <CommandSeparator />
               <CommandItem asChild className="cursor-pointer">
                 <Link
-                  to={getPathWithParams(paths.org.detail.projects.new, { orgId })}
+                  to={getPathWithParams(
+                    paths.org.detail.projects.root,
+                    { orgId },
+                    { action: 'create' }
+                  )}
                   className="flex items-center gap-2 px-3 py-2">
                   <Icon icon={FolderRoot} className="size-3.5" />
                   <span className="text-xs">Create project</span>

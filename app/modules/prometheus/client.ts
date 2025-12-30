@@ -9,7 +9,18 @@ import type {
   PrometheusInstantResponse,
   PrometheusRangeResponse,
 } from './types';
+import { AxiosPrometheusCurl } from '@/modules/prometheus/axios-curl';
+import { isDevelopment } from '@/utils/config/env.config';
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
+
+function defaultLogCallback(curlResult: any, err: any) {
+  const { command } = curlResult;
+  if (err) {
+    console.error('Axios curl error', { error: err instanceof Error ? err.message : String(err) });
+  } else {
+    console.debug('Axios curl command', { command });
+  }
+}
 
 export const PROMETHEUS_CONFIG: PrometheusConfig = {
   baseURL: '',
@@ -40,6 +51,32 @@ export function createPrometheusClient(config?: Partial<PrometheusConfig>): Axio
   // Request interceptor for logging
   client.interceptors.request.use(
     (config) => {
+      if (isDevelopment()) {
+        try {
+          const curl = new AxiosPrometheusCurl(config);
+          (config as any).curlObject = curl;
+          (config as any).curlCommand = curl.generateCommand();
+          (config as any).clearCurl = () => {
+            delete (config as any).curlObject;
+            delete (config as any).curlCommand;
+            delete (config as any).clearCurl;
+          };
+        } catch (err) {
+          // Even if the axios middleware is stopped, no error should occur outside.
+          defaultLogCallback(null, err);
+        } finally {
+          if ((config as any).curlirize !== false) {
+            defaultLogCallback(
+              {
+                command: (config as any).curlCommand,
+                object: (config as any).curlObject,
+              },
+              null
+            );
+          }
+        }
+      }
+
       return config;
     },
     (error) => {

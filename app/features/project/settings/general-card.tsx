@@ -1,96 +1,101 @@
-import { Field } from '@/components/field/field';
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
-import { useIsPending } from '@/hooks/useIsPending';
+import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { updateProjectSchema } from '@/resources/schemas/project.schema';
-import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
-import { Button, CardHeader, CardTitle, Col, Row } from '@datum-ui/components';
+import { ROUTE_PATH as PROJECT_UPDATE_ACTION } from '@/routes/api/projects/$id';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Button, CardHeader, CardTitle, Col, Row, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter } from '@datum-ui/components';
-import { Input } from '@datum-ui/components';
-import { useEffect } from 'react';
-import { useFetcher } from 'react-router';
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
+import { Form } from '@datum-ui/components/new-form';
+import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 /**
  * Project General Settings Card Component
  * Displays and allows editing of general project settings
  */
 export const ProjectGeneralCard = ({ project }: { project: IProjectControlResponse }) => {
-  const formId = 'project-form';
-  const fetcher = useFetcher({ key: formId });
-  const isPending = useIsPending({ formId, fetcherKey: formId });
-
-  const [form, fields] = useForm({
-    id: formId,
-    constraint: getZodConstraint(updateProjectSchema.pick({ description: true })),
-    shouldValidate: 'onBlur',
-    shouldRevalidate: 'onInput',
-    onValidate({ formData }) {
-      return parseWithZod(formData, {
-        schema: updateProjectSchema.pick({ description: true }),
+  const fetcher = useDatumFetcher({
+    key: 'update-project',
+    onSuccess: () => {
+      toast.success('Project', {
+        description: 'The Project has been updated successfully',
+      });
+    },
+    onError: (data) => {
+      toast.error('Project', {
+        description: data.error || 'Failed to update project',
       });
     },
   });
-
-  const setValue = () => {
-    form.update({
-      value: {
-        description: project?.description ?? '',
-      },
-    });
-  };
-
-  // Update form when organization data changes
-  useEffect(() => {
-    if (project) {
-      setValue();
-    }
-  }, [project]);
-
+  const csrf = useAuthenticityToken();
   return (
-    <Card className="py-4 shadow-none">
-      <FormProvider context={form.context}>
-        <CardHeader className="border-b px-5 pb-4">
-          <CardTitle>Project Info</CardTitle>
-        </CardHeader>
-        <fetcher.Form
-          method="POST"
-          autoComplete="off"
-          {...getFormProps(form)}
-          className="flex flex-col gap-5">
-          <CardContent className="space-y-5 px-5">
-            <AuthenticityTokenInput />
+    <Card className="gap-0 rounded-xl py-0 shadow-none">
+      <CardHeader className="border-b px-5 py-4">
+        <CardTitle className="text-sm font-medium">Project Info</CardTitle>
+      </CardHeader>
+      <Form.Root
+        id="update-project-form"
+        schema={updateProjectSchema.pick({ description: true })}
+        defaultValues={{
+          description: project?.description ?? '',
+        }}
+        isSubmitting={fetcher.state !== 'idle'}
+        onSubmit={(data) => {
+          const payload = {
+            ...data,
+            csrf: csrf as string,
+          };
 
-            <Row gutter={16}>
-              <Col span={8}>
-                <Field isRequired label="Description" errors={fields.description?.errors}>
-                  <Input
-                    placeholder="e.g. My Project"
-                    {...getInputProps(fields.description, { type: 'text' })}
-                  />
-                </Field>
-              </Col>
-            </Row>
+          fetcher.submit(payload, {
+            method: 'PATCH',
+            action: getPathWithParams(PROJECT_UPDATE_ACTION, { id: project?.name }),
+            encType: 'application/json',
+          });
+        }}
+        className="flex flex-col space-y-0">
+        {({ form, isSubmitting }) => (
+          <>
+            <CardContent className="space-y-5 px-5 py-4">
+              <Row gutter={16}>
+                <Col span={8}>
+                  <Form.Field name="description" label="Project name" required>
+                    <Form.Input placeholder="e.g. My Project" />
+                  </Form.Field>
+                </Col>
+              </Row>
 
-            <Row gutter={16}>
-              <Col span={8}>
-                <Field label="Resource Name">
-                  <TextCopyBox value={project?.name ?? ''} />
-                </Field>
-              </Col>
-            </Row>
-          </CardContent>
-          <CardFooter className="flex justify-end gap-2 border-t px-5 pt-4">
-            {/* <Button type="button" variant="link" disabled={isPending} onClick={handleReset}>
-              Cancel
-            </Button> */}
-            <Button htmlType="submit" disabled={isPending || !form.valid} loading={isPending}>
-              {isPending ? 'Saving' : 'Save'}
-            </Button>
-          </CardFooter>
-        </fetcher.Form>
-      </FormProvider>
+              <Row gutter={16}>
+                <Col span={8}>
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-xs font-medium">Resource ID</label>
+                    <TextCopyBox value={project?.name ?? ''} />
+                  </div>
+                </Col>
+              </Row>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
+              <Button
+                htmlType="button"
+                type="quaternary"
+                theme="outline"
+                disabled={isSubmitting}
+                size="xs"
+                onClick={() => {
+                  form.update({
+                    value: {
+                      description: project?.description ?? '',
+                    },
+                  });
+                }}>
+                Cancel
+              </Button>
+              <Form.Submit size="xs" loadingText="Saving">
+                Save
+              </Form.Submit>
+            </CardFooter>
+          </>
+        )}
+      </Form.Root>
     </Card>
   );
 };

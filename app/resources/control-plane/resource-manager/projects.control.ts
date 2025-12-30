@@ -11,7 +11,7 @@ import {
 import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { UpdateProjectSchema, ProjectSchema } from '@/resources/schemas/project.schema';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { convertLabelsToObject, filterLabels } from '@/utils/helpers/object.helper';
+import { filterLabels } from '@/utils/helpers/object.helper';
 import { Client } from '@hey-api/client-axios';
 
 export const createProjectsControl = (client: Client) => {
@@ -89,7 +89,6 @@ export const createProjectsControl = (client: Client) => {
               annotations: {
                 'kubernetes.io/description': payload.description,
               },
-              labels: convertLabelsToObject(payload.labels ?? []),
             },
             spec: {
               ownerRef: {
@@ -111,20 +110,6 @@ export const createProjectsControl = (client: Client) => {
         if (payload.description) {
           metadata.annotations = {
             'kubernetes.io/description': payload.description,
-          };
-        }
-        if ('labels' in payload && payload.labels && payload.labels.length > 0) {
-          metadata.labels = convertLabelsToObject(payload.labels);
-        }
-
-        if (
-          'annotations' in payload &&
-          payload.annotations &&
-          Object.keys(payload.annotations).length > 0
-        ) {
-          metadata.annotations = {
-            ...metadata.annotations,
-            ...convertLabelsToObject(payload.annotations),
           };
         }
 

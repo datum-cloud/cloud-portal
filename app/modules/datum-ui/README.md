@@ -160,6 +160,7 @@ import { Home, PlusIcon, ChevronRight } from 'lucide-react';
 ```
 
 **Important:** Always use the `Icon` wrapper instead of importing icons directly from `lucide-react`. The wrapper automatically applies:
+
 - Default `strokeWidth={1}`
 - Default `absoluteStrokeWidth={true}`
 - Default `size={16}`

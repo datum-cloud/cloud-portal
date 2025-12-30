@@ -1,15 +1,21 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
+import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { IOrganization } from '@/resources/interfaces/organization.interface';
 import { ROUTE_PATH as ORG_ACTION_PATH } from '@/routes/api/organizations/$id';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { toast } from '@datum-ui/components';
-import { useEffect } from 'react';
-import { useFetcher } from 'react-router';
 
 export const OrganizationDangerCard = ({ organization }: { organization: IOrganization }) => {
-  const fetcher = useFetcher({ key: 'org-delete' });
+  const fetcher = useDatumFetcher({
+    key: 'org-delete',
+    onError: (data) => {
+      toast.error('Organization', {
+        description: data.error || 'Failed to delete organization',
+      });
+    },
+  });
   const { confirm } = useConfirmationDialog();
 
   const deleteOrganization = async () => {
@@ -43,18 +49,6 @@ export const OrganizationDangerCard = ({ organization }: { organization: IOrgani
       },
     });
   };
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const { success } = fetcher.data;
-
-      if (!success) {
-        toast.error('Failed to delete organization', {
-          description: fetcher.data?.error,
-        });
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   return (
     <DangerCard

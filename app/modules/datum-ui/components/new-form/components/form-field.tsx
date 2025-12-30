@@ -37,7 +37,7 @@ const FieldLabel = ({
       onMouseLeave={() => setIsHovering(false)}>
       <Label
         htmlFor={htmlFor}
-        className={cn('gap-0 text-sm font-medium', hasErrors && 'text-destructive', className)}>
+        className={cn('gap-0 text-xs font-semibold', hasErrors && 'text-destructive', className)}>
         {label}
         {required && (
           <span className="text-destructive align-super text-sm leading-0" aria-hidden="true">
@@ -219,7 +219,7 @@ export function FormField({
 
         {/* Description */}
         {description && (
-          <p id={descriptionId} className="text-muted-foreground text-xs text-wrap">
+          <p id={descriptionId} className="text-ring text-xs text-wrap">
             {description}
           </p>
         )}
@@ -229,7 +229,7 @@ export function FormField({
           <ul
             id={errorId}
             className={cn(
-              'text-destructive space-y-1 text-sm font-medium',
+              'text-destructive space-y-1 text-xs font-medium',
               errors.length > 1 && 'list-disc pl-4'
             )}
             role="alert"
