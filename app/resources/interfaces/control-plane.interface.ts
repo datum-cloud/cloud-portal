@@ -30,4 +30,16 @@ export interface IExtendedControlPlaneStatus extends IControlPlaneStatus {
     reason?: string;
     message?: string;
   }>;
+
+  recordSets?: Array<{
+    name: string;
+    conditions?: Array<{
+      type: string;
+      status: 'True' | 'False' | 'Unknown';
+      reason: string;
+      message: string;
+      lastTransitionTime: string;
+      observedGeneration?: number;
+    }>;
+  }>;
 }
