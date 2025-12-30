@@ -1,15 +1,10 @@
 import { createProjectsControl } from '@/resources/control-plane';
+import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { ProjectSchema, projectSchema } from '@/resources/schemas/project.schema';
 import { validateCSRF } from '@/utils/cookies';
 import { BadRequestError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
-import {
-  ActionFunctionArgs,
-  AppLoadContext,
-  LoaderFunctionArgs,
-  data,
-  redirect,
-} from 'react-router';
+import { ActionFunctionArgs, AppLoadContext, LoaderFunctionArgs, data } from 'react-router';
 
 export const ROUTE_PATH = '/api/projects' as const;
 
@@ -65,15 +60,15 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         const validateRes = await projectControl.create(payload, true);
 
         // If dry run succeeds, create for real
+        let project: IProjectControlResponse = {};
         if (validateRes) {
-          await projectControl.create(payload);
+          project = (await projectControl.create(payload)) as IProjectControlResponse;
         }
 
-        if (redirectUri) {
-          return redirect(redirectUri as string);
-        }
-
-        return data({ success: true, message: 'Project created successfully' }, { status: 201 });
+        return data(
+          { success: true, message: 'Project created successfully', data: project },
+          { status: 201 }
+        );
       }
       default: {
         throw new HttpError('Method not allowed', 405);

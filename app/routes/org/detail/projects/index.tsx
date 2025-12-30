@@ -5,7 +5,7 @@ import { NoteCard } from '@/components/note-card/note-card';
 import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { createProjectsControl } from '@/resources/control-plane';
-import { ICachedProject } from '@/resources/interfaces/project.interface';
+import { ICachedProject, IProjectControlResponse } from '@/resources/interfaces/project.interface';
 import { projectSchema } from '@/resources/schemas/project.schema';
 import { ROUTE_PATH as PROJECTS_PATH } from '@/routes/api/projects';
 import { paths } from '@/utils/config/paths.config';
@@ -100,11 +100,18 @@ export default function OrgProjectsPage() {
     },
   });
 
-  const createFetcher = useDatumFetcher({
+  const createFetcher = useDatumFetcher<{
+    success: boolean;
+    error?: string;
+    data?: IProjectControlResponse;
+  }>({
     key: 'create-project',
-    onSuccess: () => {
-      setOpenDialog(false);
-      revalidator.revalidate();
+    onSuccess: (data) => {
+      if (data.data) {
+        navigate(
+          getPathWithParams(paths.project.detail.root, { projectId: data.data?.name ?? '' })
+        );
+      }
     },
     onError: (error) => {
       toast.error('Project', {
