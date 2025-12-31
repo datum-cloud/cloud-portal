@@ -28,6 +28,21 @@ const viteDevServer = IS_PROD
 
 const app = express();
 
+/**
+ * Extract Sentry hostname from DSN for CSP
+ * DSN format: https://<key>@<host>/<project-id>
+ */
+function getSentryHostname(): string | null {
+  const dsn = process.env.SENTRY_DSN;
+  if (!dsn) return null;
+  try {
+    const url = new URL(dsn);
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
 const metricsMiddleware = promBundle({
   includeMethod: true,
   promClient: {
@@ -72,19 +87,34 @@ app.use(
       reportOnly: true,
       directives: {
         // @ts-expect-error Controls allowed endpoints for fetch, XHR, WebSockets, etc.
-        'connect-src': [IS_DEV ? 'ws:' : null, "'self'"].filter(Boolean),
+        'connect-src': [IS_DEV ? 'ws:' : null, "'self'", getSentryHostname()].filter(Boolean),
         // Defines which origins can serve fonts to your site.
         'font-src': ["'self'"],
         // Specifies origins allowed to be embedded as frames.
         'frame-src': ["'self'"],
         // Determines allowed sources for images.
-        'img-src': ["'self'", 'data:'],
+        'img-src': [
+          "'self'",
+          'data:',
+          'https://*.googleusercontent.com', // Google user avatars
+          'https://*.githubusercontent.com', // GitHub user avatars
+          'https://avatars.githubusercontent.com', // GitHub avatars (alternative domain)
+        ],
         // Sets restrictions on sources for <script> elements.
         'script-src': [
           "'strict-dynamic'",
           "'self'",
           // @ts-expect-error Dynamic nonce generation requires function callback
           (_, res) => `'nonce-${res.locals.cspNonce}'`,
+          // Sentry CDN for dynamic script loading
+          'https://js.sentry-cdn.com',
+          'https://browser.sentry-cdn.com',
+          // Allow unsafe-eval for Zod schema validation (required for client-side forms)
+          // Zod uses Function() constructor for schema transformations and type inference
+          // This is required when Zod schemas are bundled and run in the browser
+          // Security note: This is necessary for form validation UX; all data is still
+          // validated server-side before processing
+          "'unsafe-eval'",
         ],
         'script-src-attr': [
           // @ts-expect-error Dynamic nonce generation requires function callback
