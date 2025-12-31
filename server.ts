@@ -109,12 +109,6 @@ app.use(
           // Sentry CDN for dynamic script loading
           'https://js.sentry-cdn.com',
           'https://browser.sentry-cdn.com',
-          // Allow unsafe-eval for Zod schema validation (required for client-side forms)
-          // Zod uses Function() constructor for schema transformations and type inference
-          // This is required when Zod schemas are bundled and run in the browser
-          // Security note: This is necessary for form validation UX; all data is still
-          // validated server-side before processing
-          "'unsafe-eval'",
         ],
         'script-src-attr': [
           // @ts-expect-error Dynamic nonce generation requires function callback
