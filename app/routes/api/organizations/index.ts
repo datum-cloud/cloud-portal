@@ -1,7 +1,7 @@
 import { createOrganizationsControl } from '@/resources/control-plane';
 import { OrganizationSchema, organizationSchema } from '@/resources/schemas/organization.schema';
 import { validateCSRF } from '@/utils/cookies';
-import { HttpError } from '@/utils/errors';
+import { AppError, HttpError } from '@/utils/errors';
 import { Client } from '@hey-api/client-axios';
 import {
   ActionFunctionArgs,
@@ -24,13 +24,9 @@ export const loader = async ({ context }: LoaderFunctionArgs) => {
     // await cache.setItem('organizations', organizations);
     return data({ success: true, data: organizations });
   } catch (error) {
-    return data(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'An unexpected error occurred',
-      },
-      { status: 500 }
-    );
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+    const statusCode = error instanceof AppError ? error.statusCode : (error as any)?.status || 500;
+    return data({ success: false, error: errorMessage }, { status: statusCode });
   }
 };
 
