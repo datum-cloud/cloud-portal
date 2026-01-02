@@ -2,6 +2,7 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { NoteCard } from '@/components/note-card/note-card';
 import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/refresh-nameservers-button';
 import { NameserverTable } from '@/features/edge/nameservers';
+import { useDomain } from '@/resources/domains';
 import { getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
 import { Col, Row } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
@@ -14,9 +15,14 @@ export const handle = {
 };
 
 export default function DnsZoneNameserversPage() {
-  const { dnsZone, domain } = useRouteLoaderData('dns-zone-detail');
+  const { dnsZone } = useRouteLoaderData('dns-zone-detail');
 
   const { projectId } = useParams();
+
+  // Get live domain data from React Query (updates via watch)
+  const { data: domain } = useDomain(projectId ?? '', dnsZone?.status?.domainRef?.name ?? '', {
+    enabled: !!dnsZone?.status?.domainRef?.name,
+  });
 
   const dnsHost = useMemo(() => {
     return domain?.status?.nameservers?.[0]?.ips?.[0]?.registrantName;

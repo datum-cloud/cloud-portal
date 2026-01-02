@@ -1,4 +1,4 @@
-import { CreateDnsRecordSchema, DNSRecordType } from '@/resources/schemas/dns-record.schema';
+import { CreateDnsRecordSchema, DNSRecordType } from '@/resources/dns-records';
 
 export interface TestScenario {
   id: string;
@@ -280,7 +280,7 @@ export const DEFAULT_TEST_SCENARIOS: Record<DNSRecordType, TestScenario[]> = {
         recordType: 'CAA',
         name: '@',
         ttl: null,
-        caa: { flag: 5, tag: 'issue', value: 'ca.example.com' }, // Flag must be 0 or 128
+        caa: { flag: 5 as 0 | 128, tag: 'issue', value: 'ca.example.com' }, // Intentionally invalid: Flag must be 0 or 128
       },
       isDefault: true,
     },

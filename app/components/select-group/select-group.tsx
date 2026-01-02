@@ -1,9 +1,7 @@
 import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
-import { IGroupControlResponse } from '@/resources/interfaces/group.interface';
-import { ROUTE_PATH as GROUPS_LIST_PATH } from '@/routes/api/groups';
+import { useGroups } from '@/resources/groups';
 import { toast } from '@datum-ui/components';
-import { useEffect, useMemo, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useEffect, useMemo } from 'react';
 
 export const SelectGroup = ({
   orgId,
@@ -20,27 +18,13 @@ export const SelectGroup = ({
   name?: string;
   id?: string;
 }) => {
-  const fetcher = useFetcher({ key: 'group-list' });
-
-  const [groups, setGroups] = useState<IGroupControlResponse[]>([]);
+  const { data: groups = [], isLoading, error } = useGroups(orgId);
 
   useEffect(() => {
-    if (orgId) {
-      fetcher.load(`${GROUPS_LIST_PATH}?orgId=${orgId}`);
+    if (error) {
+      toast.error(error.message || 'Failed to load groups');
     }
-  }, [orgId]);
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const { success, error, data } = fetcher.data;
-      if (!success) {
-        toast.error(error);
-        return;
-      }
-
-      setGroups(data);
-    }
-  }, [fetcher.data, fetcher.state]);
+  }, [error]);
 
   const options = useMemo(() => {
     return groups.map((group) => {
@@ -65,7 +49,7 @@ export const SelectGroup = ({
       }}
       options={options}
       placeholder="Select a Group"
-      isLoading={fetcher.state === 'loading'}
+      isLoading={isLoading}
     />
   );
 };

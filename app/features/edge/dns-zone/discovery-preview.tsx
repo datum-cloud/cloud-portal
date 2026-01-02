@@ -1,7 +1,6 @@
 import { DnsRecordTable } from '@/features/edge/dns-records';
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
-import { ROUTE_PATH as DNS_RECORDS_BULK_IMPORT_PATH } from '@/routes/api/dns-records/bulk-import';
-import { ROUTE_PATH as DNS_ZONE_DISCOVERY_DETAIL_PATH } from '@/routes/api/dns-zone-discoveries/$id';
+import { IFlattenedDnsRecord, useBulkImportDnsRecords } from '@/resources/dns-records';
+import { useDnsZoneDiscovery } from '@/resources/dns-zone-discoveries';
 import { paths } from '@/utils/config/paths.config';
 import { flattenDnsRecordSets, type ImportResult } from '@/utils/helpers/dns-record.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -20,8 +19,7 @@ import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { PlusIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
-import { useFetcher, useNavigate } from 'react-router';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { useNavigate } from 'react-router';
 
 const MAX_POLL_ATTEMPTS = 5;
 
@@ -34,62 +32,113 @@ export const DnsZoneDiscoveryPreview = ({
   dnsZoneDiscoveryId: string;
   dnsZoneId: string;
 }) => {
-  const fetcher = useFetcher({
-    key: 'dns-zone-discovery-preview',
-  });
-  const importFetcher = useFetcher({ key: 'dns-records-bulk-import' });
-  const csrf = useAuthenticityToken();
   const navigate = useNavigate();
   const [dnsRecords, setDnsRecords] = useState<IFlattenedDnsRecord[]>([]);
   const [rawRecordSets, setRawRecordSets] = useState<any[]>([]); // Store raw discovery recordSets
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pollCountRef = useRef<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [showEmpty, setShowEmpty] = useState(false);
+  const [shouldPoll, setShouldPoll] = useState(true);
+
+  // Use React Query for polling DNS zone discovery
+  const { data: discoveryData, error: discoveryError } = useDnsZoneDiscovery(
+    projectId,
+    dnsZoneDiscoveryId,
+    {
+      enabled: !!projectId && !!dnsZoneDiscoveryId && shouldPoll,
+      refetchInterval: shouldPoll ? 2000 : false,
+    }
+  );
+
+  // Use React Query mutation for bulk import
+  const bulkImportMutation = useBulkImportDnsRecords(projectId, dnsZoneId, {
+    onSuccess: (result: ImportResult) => {
+      const { summary } = result;
+      const importedCount = summary.created + summary.updated;
+      const failedCount = summary.failed;
+
+      if (failedCount === 0 && importedCount > 0) {
+        toast.success('DNS records', {
+          description: `${importedCount} records imported successfully`,
+        });
+      } else if (importedCount > 0 && failedCount > 0) {
+        toast.warning('DNS records', {
+          description: `${importedCount} records imported, ${failedCount} failed`,
+        });
+      } else if (failedCount > 0) {
+        toast.error('DNS records', {
+          description: `${failedCount} records failed to import`,
+        });
+      } else {
+        toast.success('DNS records', {
+          description: 'Imported successfully.',
+        });
+      }
+
+      // Navigate to DNS zone detail after successful import
+      navigate(
+        getPathWithParams(paths.project.detail.dnsZones.detail.root, {
+          projectId,
+          dnsZoneId,
+        })
+      );
+    },
+    onError: (error: Error) => {
+      toast.error('DNS records', {
+        description: error.message || 'An unexpected error occurred',
+      });
+    },
+  });
 
   const cleanUp = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
     if (loadingTimeoutRef.current) {
       clearTimeout(loadingTimeoutRef.current);
       loadingTimeoutRef.current = null;
     }
   };
 
+  // Handle polling count and discovery data processing
   useEffect(() => {
-    // Start polling if we have required IDs
-    if (projectId && dnsZoneDiscoveryId) {
-      intervalRef.current = setInterval(() => {
-        pollCountRef.current += 1;
+    if (!shouldPoll) return;
 
-        // Stop polling after MAX_POLL_ATTEMPTS
-        if (pollCountRef.current > MAX_POLL_ATTEMPTS) {
-          cleanUp();
-          // Wait 2.5 seconds before hiding loading
-          loadingTimeoutRef.current = setTimeout(() => {
-            setIsLoading(false);
-            // Show empty state only if no records found after all attempts
-            if (dnsRecords.length === 0) {
-              setShowEmpty(true);
-            }
-          }, 2500);
-          return;
+    pollCountRef.current += 1;
+
+    // Stop polling after MAX_POLL_ATTEMPTS
+    if (pollCountRef.current > MAX_POLL_ATTEMPTS) {
+      setShouldPoll(false);
+      // Wait 2.5 seconds before hiding loading
+      loadingTimeoutRef.current = setTimeout(() => {
+        setIsLoading(false);
+        // Show empty state only if no records found after all attempts
+        if (dnsRecords.length === 0) {
+          setShowEmpty(true);
         }
+      }, 2500);
+      return;
+    }
 
-        // Fetch discovery data
-        fetcher.load(
-          getPathWithParams(DNS_ZONE_DISCOVERY_DETAIL_PATH, { id: dnsZoneDiscoveryId }) +
-            `?projectId=${projectId}`
-        );
-      }, 2000);
+    // Process discovery data when available
+    if (discoveryData?.recordSets && discoveryData.recordSets.length > 0) {
+      const flattened = flattenDnsRecordSets(discoveryData.recordSets, dnsZoneId);
+
+      // Update both states together to ensure they're in sync
+      setRawRecordSets(discoveryData.recordSets);
+      setDnsRecords(flattened);
+      setShouldPoll(false);
+      setIsLoading(false);
     }
 
     return cleanUp;
-  }, [projectId, dnsZoneDiscoveryId]);
+  }, [discoveryData, shouldPoll, dnsRecords.length, dnsZoneId]);
+
+  // Handle discovery errors
+  useEffect(() => {
+    if (discoveryError) {
+      toast.error(discoveryError.message || 'An unexpected error occurred');
+    }
+  }, [discoveryError]);
 
   const handleBulkImport = () => {
     if (rawRecordSets.length === 0) {
@@ -97,88 +146,11 @@ export const DnsZoneDiscoveryPreview = ({
       return;
     }
 
-    importFetcher.submit(
-      JSON.stringify({
-        projectId,
-        dnsZoneId,
-        discoveryRecordSets: rawRecordSets,
-        importOptions: { skipDuplicates: true, mergeStrategy: 'append' },
-        csrf,
-        redirectUri: getPathWithParams(paths.project.detail.dnsZones.detail.root, {
-          projectId,
-          dnsZoneId,
-        }),
-      }),
-      {
-        method: 'POST',
-        action: DNS_RECORDS_BULK_IMPORT_PATH,
-        encType: 'application/json',
-      }
-    );
+    bulkImportMutation.mutate({
+      discoveryRecordSets: rawRecordSets,
+      importOptions: { skipDuplicates: true, mergeStrategy: 'append' },
+    });
   };
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data?.success) {
-        const recordSets = fetcher.data?.data?.recordSets || [];
-
-        // Flatten discovery records for display using the helper function
-        if (recordSets.length > 0) {
-          const flattened = flattenDnsRecordSets(recordSets, dnsZoneId);
-
-          // Update both states together to ensure they're in sync
-          setRawRecordSets(recordSets);
-          setDnsRecords(flattened);
-          cleanUp();
-          // Wait 2.5 seconds before hiding loading
-          loadingTimeoutRef.current = setTimeout(() => {
-            setIsLoading(false);
-          }, 2500);
-        }
-      } else {
-        toast.error(fetcher.data?.error || 'An unexpected error occurred');
-      }
-    }
-  }, [fetcher.data, fetcher.state, dnsZoneId]);
-
-  useEffect(() => {
-    if (importFetcher.data && importFetcher.state === 'idle') {
-      const data = importFetcher.data as {
-        success: boolean;
-        error?: string;
-        data?: ImportResult;
-      };
-
-      // Show summary toast based on import result
-      if (data.data) {
-        const { summary } = data.data;
-        const importedCount = summary.created + summary.updated;
-        const failedCount = summary.failed;
-
-        if (failedCount === 0 && importedCount > 0) {
-          toast.success('DNS records', {
-            description: `${importedCount} records imported successfully`,
-          });
-        } else if (importedCount > 0 && failedCount > 0) {
-          toast.warning('DNS records', {
-            description: `${importedCount} records imported, ${failedCount} failed`,
-          });
-        } else if (failedCount > 0) {
-          toast.error('DNS records', {
-            description: `${failedCount} records failed to import`,
-          });
-        }
-      } else if (data.success) {
-        toast.success('DNS records', {
-          description: 'Imported successfully.',
-        });
-      } else {
-        toast.error('DNS records', {
-          description: data.error || 'An unexpected error occurred',
-        });
-      }
-    }
-  }, [importFetcher.data, importFetcher.state]);
 
   return (
     <Card className="rounded-xl py-5">
@@ -225,7 +197,7 @@ export const DnsZoneDiscoveryPreview = ({
                 htmlType="button"
                 type="quaternary"
                 theme="outline"
-                disabled={importFetcher.state === 'submitting'}
+                disabled={bulkImportMutation.isPending}
                 onClick={() =>
                   navigate(
                     getPathWithParams(paths.project.detail.dnsZones.detail.root, {
@@ -242,11 +214,9 @@ export const DnsZoneDiscoveryPreview = ({
                 theme="solid"
                 disabled={dnsRecords.length === 0}
                 onClick={handleBulkImport}
-                loading={importFetcher.state === 'submitting'}
+                loading={bulkImportMutation.isPending}
                 icon={<Icon icon={PlusIcon} className="size-4" />}>
-                {importFetcher.state === 'submitting'
-                  ? 'Importing...'
-                  : `Add ${dnsRecords.length} records`}
+                {bulkImportMutation.isPending ? 'Importing...' : `Add ${dnsRecords.length} records`}
               </Button>
             </CardFooter>
           </motion.div>

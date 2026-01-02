@@ -1,6 +1,6 @@
 import { List, ListItem } from '@/components/list/list';
-import { ExportPolicySourceType } from '@/resources/interfaces/export-policy.interface';
-import { ExportPolicySourcesSchema } from '@/resources/schemas/export-policy.schema';
+import { ExportPolicySourceTypeEnum } from '@/resources/export-policies';
+import { ExportPolicySourcesSchema } from '@/resources/export-policies';
 import { Badge } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
@@ -17,7 +17,7 @@ export const SourcesPreview = ({ values }: { values: ExportPolicySourcesSchema }
           <div className="flex items-center gap-2">
             <Badge theme="outline">{source.type}</Badge>
             <Separator orientation="vertical" className="h-4" />
-            {source.type === ExportPolicySourceType.METRICS && source.metricQuery && (
+            {source.type === ExportPolicySourceTypeEnum.METRICS && source.metricQuery && (
               <Tooltip
                 message={
                   <p className="font-mono text-xs whitespace-pre-wrap">{source.metricQuery}</p>

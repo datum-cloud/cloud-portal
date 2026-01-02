@@ -2,21 +2,29 @@ import { ComingSoonFeatureCard } from '@/components/coming-soon/coming-soon-feat
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
 import { PageTitle } from '@/components/page-title/page-title';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
+import { useDeleteDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-ui/components';
-import { useParams, useRouteLoaderData } from 'react-router';
+import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export default function DomainSettingsPage() {
   const { domain } = useRouteLoaderData('domain-detail');
 
   const { projectId } = useParams();
-
-  const fetcher = useDatumFetcher({ key: 'delete-domain' });
+  const navigate = useNavigate();
 
   const { confirm } = useConfirmationDialog();
+
+  const deleteDomainMutation = useDeleteDomain(projectId ?? '', {
+    onSuccess: () => {
+      navigate(
+        getPathWithParams(paths.project.detail.domains.root, {
+          projectId,
+        })
+      );
+    },
+  });
 
   const deleteDomain = async () => {
     await confirm({
@@ -32,19 +40,7 @@ export default function DomainSettingsPage() {
       variant: 'destructive',
       showConfirmInput: false,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: domain?.name ?? '',
-            projectId: projectId ?? '',
-            redirectUri: getPathWithParams(paths.project.detail.domains.root, {
-              projectId,
-            }),
-          },
-          {
-            method: 'DELETE',
-            action: DOMAINS_ACTIONS_PATH,
-          }
-        );
+        deleteDomainMutation.mutate(domain?.name ?? '');
       },
     });
   };
@@ -67,7 +63,7 @@ export default function DomainSettingsPage() {
           title="Warning: This Action is Irreversible"
           description={`This action cannot be undone. Once deleted, the ${domain?.domainName} domain and all associated data will be permanently removed from Datum. `}
           deleteText="Delete domain"
-          loading={fetcher.isPending}
+          loading={deleteDomainMutation.isPending}
           onDelete={deleteDomain}
         />
       </Col>

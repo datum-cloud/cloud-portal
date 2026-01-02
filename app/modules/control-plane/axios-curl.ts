@@ -30,8 +30,11 @@ export class AxiosCurlLibrary {
 
     for (const property in headers) {
       if ({}.hasOwnProperty.call(headers, property)) {
-        const header = `${property}:${headers[property]}`;
-        curlHeaders = `${curlHeaders} -H "${header}"`;
+        // Use single quotes to prevent shell glob expansion (e.g., */* in Accept header)
+        // Escape any single quotes in header values
+        const value = String(headers[property]).replace(/'/g, "'\\''");
+        const header = `${property}:${value}`;
+        curlHeaders = `${curlHeaders} -H '${header}'`;
       }
     }
 
@@ -50,11 +53,13 @@ export class AxiosCurlLibrary {
       this.request.data !== null &&
       this.request.method?.toUpperCase() !== 'GET'
     ) {
-      const data =
+      let data =
         typeof this.request.data === 'object' ||
         Object.prototype.toString.call(this.request.data) === '[object Array]'
           ? JSON.stringify(this.request.data)
           : this.request.data;
+      // Escape single quotes for shell compatibility
+      data = String(data).replace(/'/g, "'\\''");
       return `--data '${data}'`.trim();
     } else {
       return '';

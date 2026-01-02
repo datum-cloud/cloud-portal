@@ -1,4 +1,4 @@
-import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { IDomainControlResponse } from '@/resources/domains';
 import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { TriangleAlertIcon } from 'lucide-react';

@@ -70,8 +70,7 @@ export interface DateRangePreset {
 }
 
 interface CalendarDatePickerProps
-  extends React.HTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof multiSelectVariants> {
+  extends React.HTMLAttributes<HTMLButtonElement>, VariantProps<typeof multiSelectVariants> {
   id?: string;
   className?: string;
   triggerClassName?: string;

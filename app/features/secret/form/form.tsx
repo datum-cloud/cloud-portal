@@ -1,12 +1,7 @@
 import { KeysForm } from './keys/keys-form';
 import { SecretMetadataForm } from './metadata-form';
-import { useIsPending } from '@/hooks/useIsPending';
-import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
-import {
-  SecretBaseSchema,
-  SecretVariablesSchema,
-  secretNewSchema,
-} from '@/resources/schemas/secret.schema';
+import { ISecretControlResponse, type SecretNewSchema } from '@/resources/secrets';
+import { SecretBaseSchema, SecretVariablesSchema, secretNewSchema } from '@/resources/secrets';
 import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
@@ -19,12 +14,14 @@ import {
   CardTitle,
 } from '@datum-ui/components';
 import { useMemo } from 'react';
-import { Form } from 'react-router';
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 
-export const SecretForm = ({ defaultValue }: { defaultValue?: ISecretControlResponse }) => {
-  const isPending = useIsPending();
+interface SecretFormProps {
+  defaultValue?: ISecretControlResponse;
+  onSubmit: (data: SecretNewSchema) => void;
+  isPending?: boolean;
+}
 
+export const SecretForm = ({ defaultValue, onSubmit, isPending = false }: SecretFormProps) => {
   const [form, fields] = useForm({
     id: 'secret-form',
     constraint: getZodConstraint(secretNewSchema),
@@ -32,6 +29,12 @@ export const SecretForm = ({ defaultValue }: { defaultValue?: ISecretControlResp
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: secretNewSchema });
+    },
+    onSubmit(event, { submission }) {
+      event.preventDefault();
+      if (submission?.status === 'success') {
+        onSubmit(submission.value as SecretNewSchema);
+      }
     },
   });
 
@@ -50,13 +53,11 @@ export const SecretForm = ({ defaultValue }: { defaultValue?: ISecretControlResp
         </CardDescription>
       </CardHeader>
       <FormProvider context={form.context}>
-        <Form
+        <form
           {...getFormProps(form)}
           id={form.id}
-          method="POST"
           autoComplete="off"
           className="mt-6 flex flex-col gap-10">
-          <AuthenticityTokenInput />
           <CardContent className="space-y-10">
             <SecretMetadataForm
               fields={fields as unknown as ReturnType<typeof useForm<SecretBaseSchema>>[1]}
@@ -74,7 +75,7 @@ export const SecretForm = ({ defaultValue }: { defaultValue?: ISecretControlResp
               {isPending ? `${isEdit ? 'Saving' : 'Creating'}` : `${isEdit ? 'Save' : 'Create'}`}
             </Button>
           </CardFooter>
-        </Form>
+        </form>
       </FormProvider>
     </Card>
   );

@@ -1,12 +1,8 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
-import {
-  ControlPlaneStatus,
-  IControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface';
-import { ROUTE_PATH as EXPORT_POLICY_STATUS_ROUTE_PATH } from '@/routes/api/export-policies/status';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { ControlPlaneStatus, IControlPlaneStatus } from '@/resources/base';
+import { useExportPolicy, useExportPolicyWatch } from '@/resources/export-policies';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { useMemo } from 'react';
 
 export const ExportPolicyStatus = ({
   currentStatus,
@@ -23,22 +19,36 @@ export const ExportPolicyStatus = ({
   showTooltip?: boolean;
   className?: string;
 }) => {
-  const fetcher = useFetcher({ key: `export-policy-status-${projectId}` });
-  const intervalRef = useRef<NodeJS.Timeout>(null);
-  const [status, setStatus] = useState<IControlPlaneStatus>(
-    currentStatus ?? {
-      status: ControlPlaneStatus.Pending,
-      message: '',
-    }
-  );
+  // Determine if we need to poll/watch for updates
+  const shouldWatch =
+    !!projectId &&
+    !!id &&
+    currentStatus?.status !== ControlPlaneStatus.Success &&
+    currentStatus?.status !== ControlPlaneStatus.Error;
 
-  const loadStatus = (exportPolicyId: string) => {
-    if (projectId && exportPolicyId) {
-      fetcher.load(
-        `${getPathWithParams(EXPORT_POLICY_STATUS_ROUTE_PATH, { id: exportPolicyId })}?projectId=${projectId}`
-      );
+  // Use query for data, with refetch when status is pending
+  const { data: exportPolicy } = useExportPolicy(projectId ?? '', id ?? '', {
+    enabled: shouldWatch,
+    refetchInterval: shouldWatch ? 10000 : false,
+  });
+
+  // Subscribe to real-time updates when status is pending
+  useExportPolicyWatch(projectId ?? '', id ?? '', {
+    enabled: shouldWatch,
+  });
+
+  // Derive status from fetched data or fall back to current status
+  const status = useMemo(() => {
+    if (exportPolicy?.status) {
+      return transformControlPlaneStatus(exportPolicy.status);
     }
-  };
+    return (
+      currentStatus ?? {
+        status: ControlPlaneStatus.Pending,
+        message: '',
+      }
+    );
+  }, [exportPolicy?.status, currentStatus]);
 
   const sinkMessages = useMemo(() => {
     if (status?.sinks) {
@@ -52,57 +62,6 @@ export const ExportPolicyStatus = ({
     return [];
   }, [status]);
 
-  useEffect(() => {
-    if (currentStatus) {
-      setStatus(currentStatus);
-
-      if (
-        currentStatus?.status === ControlPlaneStatus.Success ||
-        currentStatus?.status === ControlPlaneStatus.Error
-      ) {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-        }
-      }
-    }
-  }, [currentStatus]);
-
-  useEffect(() => {
-    // Only set up polling if we have the required IDs
-    if (!projectId || !id) {
-      return;
-    }
-
-    // Initial load if:
-    // 1. No current status exists, or
-    // 2. Current status is pending
-    if (currentStatus?.status === ControlPlaneStatus.Pending) {
-      loadStatus(id);
-
-      // Set up polling interval
-      intervalRef.current = setInterval(() => loadStatus(id), 10000);
-    }
-
-    // Clean up interval on unmount
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [id, projectId]);
-
-  useEffect(() => {
-    if (fetcher.data) {
-      const { status } = fetcher.data as IControlPlaneStatus;
-      if (
-        (status === ControlPlaneStatus.Success || status === ControlPlaneStatus.Error) &&
-        intervalRef.current
-      ) {
-        clearInterval(intervalRef.current);
-      }
-    }
-  }, [fetcher.data]);
-
   const displayLabel =
     label ?? (status.status === ControlPlaneStatus.Success ? 'Ready' : undefined);
 
@@ -113,11 +72,11 @@ export const ExportPolicyStatus = ({
       showTooltip={showTooltip}
       className={className}
       tooltipText={
-        fetcher.data?.status === ControlPlaneStatus.Success ? (
+        status.status === ControlPlaneStatus.Success ? (
           'Active'
         ) : (
           <>
-            {fetcher.data?.message && fetcher.data?.message !== '' ? (
+            {status.message && status.message !== '' ? (
               <p>{status.message}</p>
             ) : (
               <p>Status not available</p>

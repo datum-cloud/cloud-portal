@@ -1,18 +1,12 @@
+// app/modules/control-plane/control-plane.factory.ts
 import { AxiosCurlLibrary } from './axios-curl';
-import { isDevelopment } from '@/utils/config/env.config';
+import { logger as rootLogger } from '@/modules/logger';
+import { LOGGER_CONFIG } from '@/modules/logger/logger.config';
+import { env } from '@/utils/env';
 import { AppError } from '@/utils/errors';
 import { mapAxiosErrorToAppError } from '@/utils/errors/axios';
 import { Client, ClientOptions, createClient, createConfig } from '@hey-api/client-axios';
 import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-
-function defaultLogCallback(curlResult: any, err: any) {
-  const { command } = curlResult;
-  if (err) {
-    console.error('Axios curl error', { error: err instanceof Error ? err.message : String(err) });
-  } else {
-    console.debug('Axios curl command', { command });
-  }
-}
 
 const onRequest = (
   config: InternalAxiosRequestConfig,
@@ -24,30 +18,16 @@ const onRequest = (
     config.headers['Authorization'] = `Bearer ${authToken}`;
   }
 
-  // Only log the curl command in development mode
-  if (isDevelopment()) {
+  // Record start time for duration calculation
+  (config as any).metadata = { startTime: Date.now() };
+
+  // Generate curl command if enabled
+  if (LOGGER_CONFIG.logCurl) {
     try {
       const curl = new AxiosCurlLibrary(config);
-      (config as any).curlObject = curl;
       (config as any).curlCommand = curl.generateCommand();
-      (config as any).clearCurl = () => {
-        delete (config as any).curlObject;
-        delete (config as any).curlCommand;
-        delete (config as any).clearCurl;
-      };
-    } catch (err) {
-      // Even if the axios middleware is stopped, no error should occur outside.
-      defaultLogCallback(null, err);
-    } finally {
-      if ((config as any).curlirize !== false) {
-        defaultLogCallback(
-          {
-            command: (config as any).curlCommand,
-            object: (config as any).curlObject,
-          },
-          null
-        );
-      }
+    } catch {
+      // Silently ignore curl generation errors
     }
   }
 
@@ -55,33 +35,47 @@ const onRequest = (
 };
 
 const onRequestError = (error: AxiosError): Promise<AxiosError> => {
-  // console.error(`[request error] [${JSON.stringify(error)}]`);
   return Promise.reject(error);
 };
 
 const onResponse = (response: AxiosResponse): AxiosResponse => {
-  if (isDevelopment()) {
-    const path = response.config?.url || 'unknown';
-    console.debug('API Request Success', {
-      url: path,
-      method: response.config?.method,
+  const config = response.config as any;
+
+  // Only log API calls if enabled (disabled on client in production)
+  if (LOGGER_CONFIG.logApiCalls) {
+    const method = config?.method?.toUpperCase() || 'GET';
+    const url = config?.url || 'unknown';
+    const duration = config?.metadata?.startTime
+      ? Date.now() - config.metadata.startTime
+      : undefined;
+
+    rootLogger.api({
+      method,
+      url,
       status: response.status,
+      duration,
+      curl: config?.curlCommand,
     });
   }
+
   return response;
 };
 
 const onResponseError = (error: AxiosError): Promise<AppError> => {
-  const path = error.config?.url || 'unknown';
-  const status = error.response?.status || 500;
+  const config = error.config as any;
 
-  if (isDevelopment()) {
-    console.debug('API Request Error', {
-      url: path,
-      method: error.config?.method,
+  // Only log API errors if enabled (disabled on client in production)
+  if (LOGGER_CONFIG.logApiCalls) {
+    const method = config?.method?.toUpperCase() || 'GET';
+    const url = config?.url || 'unknown';
+    const status = error.response?.status || 500;
+
+    rootLogger.apiError({
+      method,
+      url,
       status,
-      error: error.message,
-      curl: (error.config as any)?.curlCommand,
+      error: error as Error,
+      curl: config?.curlCommand,
     });
   }
 
@@ -93,7 +87,7 @@ const onResponseError = (error: AxiosError): Promise<AppError> => {
 export const createControlPlaneClient = (authToken: string, baseUrl?: string): Client => {
   const httpControlPlane = createClient(
     createConfig<ClientOptions>({
-      baseURL: baseUrl || process.env.API_URL,
+      baseURL: baseUrl || env.public.apiUrl,
       withCredentials: false,
       throwOnError: true,
     })
@@ -106,6 +100,14 @@ export const createControlPlaneClient = (authToken: string, baseUrl?: string): C
   httpControlPlane.instance.interceptors.response.use(onResponse, onResponseError);
 
   return httpControlPlane;
+};
+
+/**
+ * Creates a user-scoped control plane client.
+ */
+export const createUserScopedControlPlaneClient = (authToken: string, userId: string): Client => {
+  const baseUrl = `${env.public.apiUrl}/apis/iam.miloapis.com/v1alpha1/users/${userId}/control-plane`;
+  return createControlPlaneClient(authToken, baseUrl);
 };
 
 export type ControlPlaneClient = ReturnType<typeof createControlPlaneClient>;

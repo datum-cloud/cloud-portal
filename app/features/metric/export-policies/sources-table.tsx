@@ -1,7 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CodeEditor } from '@/components/code-editor/code-editor';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { Button } from '@datum-ui/components';
 import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';

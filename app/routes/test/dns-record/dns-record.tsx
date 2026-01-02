@@ -3,7 +3,7 @@ import {
   CreateDnsRecordSchema,
   DNS_RECORD_TYPES,
   DNSRecordType,
-} from '@/resources/schemas/dns-record.schema';
+} from '@/resources/dns-records';
 import {
   getAllTestScenarios,
   TestScenario,

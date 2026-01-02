@@ -1,9 +1,7 @@
 import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
-import { IRoleControlResponse } from '@/resources/interfaces/role.interface';
-import { ROUTE_PATH as ROLES_LIST_PATH } from '@/routes/api/roles';
+import { useRoles } from '@/resources/roles';
 import { toast } from '@datum-ui/components';
-import { useEffect, useMemo, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useEffect, useMemo } from 'react';
 
 export const SelectRole = ({
   defaultValue,
@@ -22,30 +20,13 @@ export const SelectRole = ({
   disabled?: boolean;
   modal?: boolean;
 }) => {
-  const fetcher = useFetcher({ key: 'select-role' });
-  const [isLoading, setIsLoading] = useState(true);
-
-  const [roles, setRoles] = useState<IRoleControlResponse[]>([]);
+  const { data: roles = [], isLoading, error } = useRoles();
 
   useEffect(() => {
-    setIsLoading(true);
-    fetcher.load(`${ROLES_LIST_PATH}`);
-  }, []);
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const { success, error, data } = fetcher.data;
-
-      setIsLoading(false);
-
-      if (!success) {
-        toast.error(error);
-        return;
-      }
-
-      setRoles(data);
+    if (error) {
+      toast.error(error.message || 'Failed to load roles');
     }
-  }, [fetcher.data, fetcher.state]);
+  }, [error]);
 
   const groups = useMemo(() => {
     // Create options from API-fetched roles

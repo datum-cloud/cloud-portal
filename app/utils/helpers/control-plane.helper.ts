@@ -1,7 +1,4 @@
-import {
-  ControlPlaneStatus,
-  IExtendedControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface';
+import { ControlPlaneStatus, IExtendedControlPlaneStatus } from '@/resources/base';
 
 /**
  * Enhanced status extraction options

@@ -1,6 +1,6 @@
 import { KeyField } from './key-field';
 import { FieldLabel } from '@/components/field/field-label';
-import { SecretEnvSchema, SecretVariablesSchema } from '@/resources/schemas/secret.schema';
+import { SecretEnvSchema, SecretVariablesSchema } from '@/resources/secrets';
 import { FormMetadata, useForm } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';

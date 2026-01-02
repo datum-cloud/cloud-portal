@@ -3,10 +3,7 @@ import { SelectProject } from '@/components/select-project/select-project';
 import { POLICY_RESOURCES } from '@/features/policy-binding/form/constants';
 import { SelectResource } from '@/features/policy-binding/form/select-resource';
 import { useApp } from '@/providers/app.provider';
-import {
-  NewPolicyBindingSchema,
-  PolicyBindingResourceSchema,
-} from '@/resources/schemas/policy-binding.schema';
+import { NewPolicyBindingSchema, PolicyBindingResourceSchema } from '@/resources/policy-bindings';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
 import { Input } from '@datum-ui/components';
 import { useEffect, useState } from 'react';

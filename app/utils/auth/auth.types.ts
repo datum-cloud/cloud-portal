@@ -49,5 +49,5 @@ export interface SessionValidationResult {
  */
 export interface ApiContext {
   controlPlaneClient: unknown;
-  iamResourceClient: unknown;
+  userScopedClient: unknown;
 }

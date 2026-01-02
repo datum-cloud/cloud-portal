@@ -5,7 +5,7 @@
  * It allows you to chain multiple middleware functions that can process requests before they reach
  * the final handler.
  */
-import { ActionFunction, LoaderFunction, LoaderFunctionArgs } from 'react-router';
+import { ActionFunction, AppLoadContext, LoaderFunction, LoaderFunctionArgs } from 'react-router';
 
 /**
  * Represents the next middleware function in the chain
@@ -13,11 +13,19 @@ import { ActionFunction, LoaderFunction, LoaderFunctionArgs } from 'react-router
 export type NextFunction = () => Promise<Response>;
 
 /**
+ * Middleware context passed to middleware functions
+ */
+export interface MiddlewareContext {
+  request: Request;
+  context: AppLoadContext;
+}
+
+/**
  * Middleware function type definition
- * @param request The incoming Request object
+ * @param ctx The middleware context containing request and app context
  * @param next Function to call the next middleware in chain
  */
-export type MiddlewareFunction = (request: Request, next: NextFunction) => Promise<Response>;
+export type MiddlewareFunction = (ctx: MiddlewareContext, next: NextFunction) => Promise<Response>;
 
 /**
  * Class that manages the middleware chain execution
@@ -36,10 +44,10 @@ class MiddlewareChain {
 
   /**
    * Executes the middleware chain
-   * @param request The incoming Request object
+   * @param ctx The middleware context
    * @param finalHandler The final handler to call after all middleware
    */
-  async execute(request: Request, finalHandler: NextFunction): Promise<Response> {
+  async execute(ctx: MiddlewareContext, finalHandler: NextFunction): Promise<Response> {
     let index = 0;
 
     const next = async (): Promise<Response> => {
@@ -48,7 +56,7 @@ class MiddlewareChain {
       }
 
       const middleware = this.middlewares[index++];
-      return middleware(request, next);
+      return middleware(ctx, next);
     };
 
     return next();
@@ -70,8 +78,8 @@ export function createMiddleware(...middlewares: MiddlewareFunction[]) {
   const chain = new MiddlewareChain();
   middlewares.forEach((middleware) => chain.use(middleware));
 
-  return (request: Request, finalHandler: NextFunction) => {
-    return chain.execute(request, finalHandler);
+  return (ctx: MiddlewareContext, finalHandler: NextFunction) => {
+    return chain.execute(ctx, finalHandler);
   };
 }
 
@@ -139,14 +147,15 @@ export function withMiddleware(
   handler: LoaderFunction | ActionFunction,
   ...middleware: MiddlewareFunction[]
 ) {
-  return async ({ request, ...rest }: LoaderFunctionArgs) => {
+  return async ({ request, context, ...rest }: LoaderFunctionArgs) => {
     const next = async () => {
-      const result = await handler({ request, ...rest });
+      const result = await handler({ request, context, ...rest });
       // Return result directly if it's not a Response
       return result;
     };
 
-    const response = await createMiddleware(...middleware)(request, next as NextFunction);
+    const ctx: MiddlewareContext = { request, context: context as AppLoadContext };
+    const response = await createMiddleware(...middleware)(ctx, next as NextFunction);
 
     if (response instanceof Response) {
       // If it's already a Response, return it directly

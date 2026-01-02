@@ -20,7 +20,7 @@ export default function NotFound() {
   const [isDebug, setIsDebug] = useState(false);
 
   useEffect(() => {
-    setIsDebug(window.ENV?.DEBUG || ['localhost', '127.0.0.1'].includes(window.location.hostname));
+    setIsDebug(window.ENV?.debug || ['localhost', '127.0.0.1'].includes(window.location.hostname));
   }, [location]);
 
   return (

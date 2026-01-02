@@ -1,7 +1,7 @@
 import { GrafanaForm } from './grafana-form';
 import type { GrafanaDialogProps } from './grafana.types';
 import { BadgeCopy } from '@/components/badge/badge-copy';
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { LinkButton } from '@datum-ui/components';

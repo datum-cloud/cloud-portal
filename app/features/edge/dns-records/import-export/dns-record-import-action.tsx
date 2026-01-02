@@ -1,7 +1,7 @@
 import { DropzoneStateContent, ImportResultTable } from './components';
 import { useDnsRecordExport, useDnsRecordImport } from './hooks';
 import { DnsRecordTable } from '@/features/edge/dns-records';
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
+import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { getImportResultStatus } from '@/utils/helpers/dns-record.helper';
 import { openSupportMessage } from '@/utils/open-support-message';
 import { Alert, AlertDescription, Button, Dialog } from '@datum-ui/components';

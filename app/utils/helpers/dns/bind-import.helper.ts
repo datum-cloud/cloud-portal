@@ -6,11 +6,9 @@
 import { isDuplicateRecord } from './record-comparison.helper';
 import { ensureFqdn, hasFqdnFields, transformFqdnFields } from './record-type.helper';
 import type { ParsedDnsRecord } from '@/modules/bind-parser';
-import {
-  IDnsZoneDiscoveryRecordSet,
-  IFlattenedDnsRecord,
-} from '@/resources/interfaces/dns.interface';
-import { DNSRecordType, TTL_OPTIONS } from '@/resources/schemas/dns-record.schema';
+import { IFlattenedDnsRecord } from '@/resources/dns-records';
+import { DNSRecordType, TTL_OPTIONS } from '@/resources/dns-records';
+import { IDnsZoneDiscoveryRecordSet } from '@/resources/dns-zone-discoveries';
 
 // Re-export parser from bind-parser module
 export {

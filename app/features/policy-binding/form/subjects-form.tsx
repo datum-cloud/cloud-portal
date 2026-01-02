@@ -1,10 +1,7 @@
 import { FieldLabel } from '@/components/field/field-label';
 import { SubjectField } from '@/features/policy-binding/form/subject-field';
-import { PolicyBindingSubjectKind } from '@/resources/interfaces/policy-binding.interface';
-import {
-  NewPolicyBindingSchema,
-  PolicyBindingSubjectSchema,
-} from '@/resources/schemas/policy-binding.schema';
+import { PolicyBindingSubjectKind } from '@/resources/policy-bindings';
+import { NewPolicyBindingSchema, PolicyBindingSubjectSchema } from '@/resources/policy-bindings';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';

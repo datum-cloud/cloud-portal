@@ -1,19 +1,20 @@
-import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
-import { IUser, IUserPreferences } from '@/resources/interfaces/user.interface';
+import { useTheme } from '@/modules/datum-themes';
+import { clearSentryUser, setSentryUser } from '@/modules/logger/sentry.client';
+import type { Organization } from '@/resources/organizations';
+import type { Project } from '@/resources/projects';
+import type { User, UserPreferences } from '@/resources/users';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
-import { clearSentryUser, setSentryUser } from '@/utils/logger';
 import { ReactNode, createContext, useContext, useEffect, useState, useMemo } from 'react';
 
 interface AppContextType {
-  user: IUser | undefined;
-  userPreferences: IUserPreferences | undefined;
-  organization: IOrganization | undefined;
-  project: IProjectControlResponse | undefined;
+  user: User | undefined;
+  userPreferences: UserPreferences | undefined;
+  organization: Organization | undefined;
+  project: Project | undefined;
   orgId: string | undefined;
-  setUser: (user: IUser) => void;
-  setOrganization: (organization: IOrganization) => void;
-  setProject: (project: IProjectControlResponse) => void;
+  setUser: (user: User) => void;
+  setOrganization: (organization: Organization) => void;
+  setProject: (project: Project) => void;
 }
 
 const AppContext = createContext<AppContextType>({
@@ -29,14 +30,15 @@ const AppContext = createContext<AppContextType>({
 
 interface AppProviderProps {
   children: ReactNode;
-  initialUser?: IUser;
-  initialOrganization?: IOrganization;
+  initialUser?: User;
+  initialOrganization?: Organization;
 }
 
 export function AppProvider({ children, initialUser, initialOrganization }: AppProviderProps) {
-  const [user, setUser] = useState<IUser>(initialUser!);
-  const [organization, setOrganization] = useState<IOrganization | undefined>(initialOrganization!);
-  const [project, setProject] = useState<IProjectControlResponse | undefined>();
+  const [user, setUser] = useState<User>(initialUser!);
+  const [organization, setOrganization] = useState<Organization | undefined>(initialOrganization!);
+  const [project, setProject] = useState<Project | undefined>();
+  const { setTheme } = useTheme();
 
   const currentOrgId = useMemo(() => organization?.name, [organization]);
 
@@ -56,6 +58,11 @@ export function AppProvider({ children, initialUser, initialOrganization }: AppP
       newsletter: user?.preferences?.newsletter ?? true,
     };
   }, [user]);
+
+  // Update theme when settings change
+  useEffect(() => {
+    setTheme(userPreferences.theme ?? 'system');
+  }, [userPreferences.theme, setTheme]);
 
   return (
     <AppContext.Provider

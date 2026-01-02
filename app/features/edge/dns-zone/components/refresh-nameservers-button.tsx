@@ -1,5 +1,4 @@
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
+import { useRefreshDomainRegistration } from '@/resources/domains';
 import { Button, ButtonProps, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
@@ -93,32 +92,22 @@ export const RefreshNameserversButton = ({
 
   const isOnCooldown = remainingSeconds > 0;
 
-  const refreshFetcher = useDatumFetcher({
-    key: 'refresh-nameservers',
+  const refreshMutation = useRefreshDomainRegistration(projectId, {
     onSuccess: () => {
       toast.success(successMessage.title, {
         description: successMessage.description,
       });
     },
-    onError: (data) => {
+    onError: (error) => {
       toast.error(errorMessage.title, {
-        description: data.error || errorMessage.description,
+        description: error.message || errorMessage.description,
       });
     },
   });
 
-  const handleRefresh = async () => {
+  const handleRefresh = () => {
     if (!domainName) return;
-    await refreshFetcher.submit(
-      {
-        id: domainName,
-        projectId: projectId,
-      },
-      {
-        method: 'PATCH',
-        action: DOMAINS_REFRESH_PATH,
-      }
-    );
+    refreshMutation.mutate(domainName);
   };
 
   return (
@@ -137,8 +126,8 @@ export const RefreshNameserversButton = ({
         size={size}
         icon={icon}
         onClick={handleRefresh}
-        disabled={disabled || refreshFetcher.isPending || isOnCooldown}
-        loading={refreshFetcher.isPending}
+        disabled={disabled || refreshMutation.isPending || isOnCooldown}
+        loading={refreshMutation.isPending}
         className={cn('font-semibold', buttonProps.className)}
         {...buttonProps}>
         {label}

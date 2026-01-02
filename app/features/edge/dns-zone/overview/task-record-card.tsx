@@ -1,4 +1,4 @@
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
+import type { DnsZone } from '@/resources/dns-zones';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent, CardHeader, CardTitle, LinkButton } from '@datum-ui/components';
@@ -6,13 +6,7 @@ import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { CheckIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
-export const TaskRecordCard = ({
-  projectId,
-  dnsZone,
-}: {
-  projectId: string;
-  dnsZone: IDnsZoneControlResponse;
-}) => {
+export const TaskRecordCard = ({ projectId, dnsZone }: { projectId: string; dnsZone: DnsZone }) => {
   const dnsRecordItems = useMemo(
     () => [
       <>

@@ -1,13 +1,9 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { useApp } from '@/providers/app.provider';
-import {
-  ControlPlaneStatus,
-  IControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface';
-import { ROUTE_PATH as PROJECT_STATUS_ROUTE_PATH } from '@/routes/api/projects/status';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { ControlPlaneStatus, IControlPlaneStatus } from '@/resources/base';
+import { useProject } from '@/resources/projects';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { useMemo } from 'react';
 
 export const ProjectStatus = ({
   currentStatus,
@@ -23,66 +19,33 @@ export const ProjectStatus = ({
   className?: string;
 }) => {
   const { orgId } = useApp();
-  const fetcher = useFetcher({ key: `project-status-${projectId}` });
-  const intervalRef = useRef<NodeJS.Timeout>(null);
-  const [status, setStatus] = useState<IControlPlaneStatus>();
 
-  const loadStatus = () => {
-    if (projectId && orgId) {
-      fetcher.load(getPathWithParams(PROJECT_STATUS_ROUTE_PATH, { id: projectId }));
+  // Determine if we need to poll/watch for updates
+  const shouldWatch =
+    !!projectId &&
+    !!orgId &&
+    (!currentStatus || currentStatus?.status === ControlPlaneStatus.Pending);
+
+  // Use query for data, with refetch when status is pending
+  const { data: project } = useProject(projectId ?? '', {
+    enabled: shouldWatch,
+    refetchInterval: shouldWatch ? 10000 : false,
+  });
+
+  // Derive status from fetched data or fall back to current status
+  const status = useMemo(() => {
+    if (project?.status) {
+      return transformControlPlaneStatus(project.status);
     }
-  };
-
-  useEffect(() => {
-    setStatus(currentStatus);
-
-    // Only set up polling if we have the required IDs
-    if (!projectId || !orgId) {
-      return;
-    }
-
-    // Initial load if:
-    // 1. No current status exists, or
-    // 2. Current status is pending
-    if (!currentStatus || currentStatus?.status === ControlPlaneStatus.Pending) {
-      loadStatus();
-
-      // Set up polling interval
-      intervalRef.current = setInterval(loadStatus, 10000);
-    }
-
-    // Clean up interval on unmount
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [projectId, orgId]);
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const { success, data } = fetcher.data;
-
-      if (!success) {
-        return;
-      }
-
-      setStatus(data);
-      if (
-        (data === ControlPlaneStatus.Success || data === ControlPlaneStatus.Error) &&
-        intervalRef.current
-      ) {
-        clearInterval(intervalRef.current);
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
+    return currentStatus;
+  }, [project?.status, currentStatus]);
 
   const tooltipText = useMemo(() => {
-    if (fetcher.data?.data === ControlPlaneStatus.Success) {
+    if (status?.status === ControlPlaneStatus.Success) {
       return 'Active';
     }
     return undefined;
-  }, [fetcher.data]);
+  }, [status]);
 
   return status ? (
     <BadgeStatus

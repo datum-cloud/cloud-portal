@@ -4,13 +4,13 @@ import {
   DataTableRowActionsProps,
   DataTableTitleProps,
 } from '@/modules/datum-ui/components/data-table';
-import { IPolicyBindingControlResponse } from '@/resources/interfaces/policy-binding.interface';
+import type { PolicyBinding } from '@/resources/policy-bindings';
 
 export type PolicyBindingTableProps = {
-  bindings: IPolicyBindingControlResponse[];
+  bindings: PolicyBinding[];
   tableTitle?: DataTableTitleProps;
-  rowActions?: DataTableRowActionsProps<IPolicyBindingControlResponse>[];
-  onRowClick?: (row: IPolicyBindingControlResponse) => void;
+  rowActions?: DataTableRowActionsProps<PolicyBinding>[];
+  onRowClick?: (row: PolicyBinding) => void;
 };
 
 export const PolicyBindingTable = ({

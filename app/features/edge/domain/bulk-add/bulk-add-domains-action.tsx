@@ -1,5 +1,5 @@
 import { useBulkDomainsImport } from './use-bulk-domains-import';
-import { bulkDomainsSchema } from '@/resources/schemas/domain.schema';
+import { bulkDomainsSchema } from '@/resources/domains';
 import { readFileAsText } from '@/utils/common';
 import { parseDomainsFromFile } from '@/utils/helpers/parse.helper';
 import { Button, toast } from '@datum-ui/components';

@@ -2,7 +2,7 @@
  * Learn more about CSRF protection:
  * @see https://github.com/sergiodxa/remix-utils?tab=readme-ov-file#csrf
  */
-import { isProduction } from '@/utils/config/env.config';
+import { env } from '@/utils/env/env.server';
 import { HttpError } from '@/utils/errors';
 import { createCookie } from 'react-router';
 import { CSRF, CSRFError } from 'remix-utils/csrf/server';
@@ -11,11 +11,11 @@ export const CSRF_COOKIE_KEY = '_csrf';
 
 const cookie = createCookie(CSRF_COOKIE_KEY, {
   path: '/',
-  domain: process.env?.APP_URL ? new URL(process.env.APP_URL).hostname : 'localhost',
+  domain: new URL(env.public.appUrl).hostname,
   sameSite: 'lax',
   httpOnly: true,
-  secrets: [process.env.SESSION_SECRET || 'NOT_A_STRONG_SECRET'],
-  secure: isProduction(),
+  secrets: [env.server.sessionSecret],
+  secure: env.isProd,
 });
 
 export const csrf = new CSRF({ cookie });

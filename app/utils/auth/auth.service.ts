@@ -14,7 +14,7 @@ import type {
   SessionValidationResult,
 } from './auth.types';
 import { zitadelIssuer, zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
-import { isProduction } from '@/utils/config/env.config';
+import { env } from '@/utils/env/env.server';
 import { categorizeRefreshError, RefreshError } from '@/utils/errors/auth';
 import { combineHeaders } from '@/utils/helpers/path.helper';
 import { jwtDecode } from 'jwt-decode';
@@ -25,12 +25,12 @@ import { createCookieSessionStorage, createCookie } from 'react-router';
  */
 const sessionCookie = createCookie(AUTH_COOKIE_KEYS.SESSION, {
   path: '/',
-  domain: process.env?.APP_URL ? new URL(process.env.APP_URL).hostname : 'localhost',
+  domain: new URL(env.public.appUrl).hostname,
   sameSite: 'lax',
   httpOnly: true,
   maxAge: AUTH_CONFIG.SESSION_COOKIE_MAX_AGE,
-  secrets: [process.env?.SESSION_SECRET ?? 'NOT_A_STRONG_SECRET'],
-  secure: isProduction(),
+  secrets: [env.server.sessionSecret],
+  secure: env.isProd,
 });
 
 /**
@@ -38,12 +38,12 @@ const sessionCookie = createCookie(AUTH_COOKIE_KEYS.SESSION, {
  */
 const refreshTokenCookie = createCookie(AUTH_COOKIE_KEYS.REFRESH_TOKEN, {
   path: '/',
-  domain: process.env?.APP_URL ? new URL(process.env.APP_URL).hostname : 'localhost',
+  domain: new URL(env.public.appUrl).hostname,
   sameSite: 'lax',
   httpOnly: true,
   maxAge: AUTH_CONFIG.REFRESH_COOKIE_MAX_AGE,
-  secrets: [process.env?.SESSION_SECRET ?? 'NOT_A_STRONG_SECRET'],
-  secure: isProduction(),
+  secrets: [env.server.sessionSecret],
+  secure: env.isProd,
 });
 
 /**
@@ -111,6 +111,16 @@ function cleanupStaleLocks(): void {
 
 // Run stale lock cleanup every 60 seconds
 setInterval(cleanupStaleLocks, 60 * 1000);
+
+/**
+ * Clear user's permission cache
+ * Called on logout to ensure fresh permissions on next login
+ * No-op since Redis caching was removed
+ */
+export async function clearUserPermissionCache(_userId: string): Promise<void> {
+  // No-op - Redis caching removed
+  return;
+}
 
 /**
  * Authentication Service
@@ -429,7 +439,12 @@ export class AuthService {
     const { session } = await this.getSession(cookieHeader);
     const { refreshToken } = await this.getRefreshToken(cookieHeader);
 
-    // 1. Revoke access token at Zitadel
+    // 1. Clear user's permission cache from Redis
+    if (session?.sub) {
+      await clearUserPermissionCache(session.sub);
+    }
+
+    // 2. Revoke access token at Zitadel
     if (session?.accessToken) {
       try {
         await zitadelStrategy.revokeToken(session.accessToken);
@@ -439,7 +454,7 @@ export class AuthService {
       }
     }
 
-    // 2. Revoke refresh token at Zitadel
+    // 3. Revoke refresh token at Zitadel
     if (refreshToken) {
       try {
         await zitadelStrategy.revokeToken(refreshToken);
@@ -449,7 +464,7 @@ export class AuthService {
       }
     }
 
-    // 3. Call OIDC end_session endpoint
+    // 4. Call OIDC end_session endpoint
     if (idToken) {
       try {
         const body = new URLSearchParams();
@@ -466,7 +481,7 @@ export class AuthService {
       }
     }
 
-    // 4. Destroy local cookies
+    // 5. Destroy local cookies
     const sessionHeaders = await this.destroySession(cookieHeader);
     const refreshHeaders = await this.destroyRefreshToken(cookieHeader);
 

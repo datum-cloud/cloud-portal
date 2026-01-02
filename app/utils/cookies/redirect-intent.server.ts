@@ -1,4 +1,4 @@
-import { isProduction } from '@/utils/config/env.config';
+import { env } from '@/utils/env/env.server';
 import { createCookie, createCookieSessionStorage } from 'react-router';
 
 /**
@@ -13,12 +13,12 @@ export const REDIRECT_INTENT_KEY = '_redirect_intent';
  */
 export const redirectIntentCookie = createCookie(REDIRECT_INTENT_KEY, {
   path: '/',
-  domain: process.env?.APP_URL ? new URL(process.env.APP_URL).hostname : 'localhost',
+  domain: new URL(env.public.appUrl).hostname,
   sameSite: 'lax',
   httpOnly: true,
   maxAge: 60 * 60, // 1 hour (enough for OAuth flow)
-  secrets: [process.env?.SESSION_SECRET ?? 'NOT_A_STRONG_SECRET'],
-  secure: isProduction(),
+  secrets: [env.server.sessionSecret],
+  secure: env.isProd,
 });
 
 /**

@@ -1,11 +1,10 @@
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { RbacProvider } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
-import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
-import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
+import { createOrganizationService, type Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { redirectWithToast } from '@/utils/cookies';
-import { HttpError } from '@/utils/errors';
+import { NotFoundError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { FolderRoot, SettingsIcon, UsersIcon } from 'lucide-react';
@@ -13,30 +12,25 @@ import { useEffect, useMemo } from 'react';
 import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
 
 export const handle = {
-  breadcrumb: (data: IOrganization) => <span>{data?.displayName}</span>,
+  breadcrumb: (data: Organization) => <span>{data?.displayName}</span>,
 };
 
-export const loader = async ({ params, request }: LoaderFunctionArgs) => {
+export const loader = async ({ params, context }: LoaderFunctionArgs) => {
+  const { orgId } = params;
+
+  if (!orgId) {
+    throw new NotFoundError('Organization', undefined, context.requestId);
+  }
+
   try {
-    const { orgId } = params;
+    const orgService = createOrganizationService({
+      requestId: context.requestId,
+      controlPlaneClient: context.controlPlaneClient,
+    });
 
-    const res = await fetch(
-      `${process.env.APP_URL}${getPathWithParams(ORG_DETAIL_PATH, { id: orgId })}`,
-      {
-        method: 'GET',
-        headers: {
-          Cookie: request.headers.get('Cookie') || '',
-        },
-      }
-    );
+    const org = await orgService.get(orgId);
 
-    const org = await res.json();
-
-    if (!org.success) {
-      throw new HttpError(org.error, org.status);
-    }
-
-    return data(org.data);
+    return data(org);
   } catch {
     return redirectWithToast(paths.account.organizations.root, {
       title: 'Error',
@@ -71,7 +65,7 @@ export default function OrgLayout() {
         title: 'Team',
         href: getPathWithParams(paths.org.detail.team.root, { orgId }),
         type: 'link',
-        hidden: org?.type === OrganizationType.Personal,
+        hidden: org?.type === 'Personal',
         icon: UsersIcon,
       },
       {

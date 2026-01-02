@@ -1,4 +1,4 @@
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
+import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { downloadFile } from '@/utils/common';
 import { transformRecordsToBindFormat } from '@/utils/helpers/dns-record.helper';
 import { toast } from '@datum-ui/components';

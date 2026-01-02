@@ -1,4 +1,6 @@
+import { env } from '../../app/utils/env/env.server';
 import { BaseProvider } from './base';
+import { trace } from '@opentelemetry/api';
 import * as Sentry from '@sentry/react-router';
 
 // ============================================================================
@@ -12,7 +14,7 @@ export class SentryProvider extends BaseProvider {
   // PRIVATE PROPERTIES
   // ============================================================================
 
-  private isEnabled = !!process.env.SENTRY_DSN;
+  private isEnabled = !!env.public.sentryDsn;
   private circuitBreakerOpen = false;
   private exportErrorCount = 0;
   private readonly MAX_ERRORS = 5;
@@ -110,26 +112,40 @@ export class SentryProvider extends BaseProvider {
 
   private logDisabledStatus(): void {
     console.log('📊 Sentry is disabled or DSN not configured');
-    console.log('📊 SENTRY_DSN:', process.env.SENTRY_DSN || 'not configured');
+    console.log('📊 SENTRY_DSN:', env.public.sentryDsn || 'not configured');
   }
 
   private logInitializationStatus(): void {
-    console.log('📊 SENTRY_ENV:', process.env.SENTRY_ENV || 'development');
-    console.log('📊 SENTRY_DSN:', process.env.SENTRY_DSN || 'not configured');
+    console.log('📊 SENTRY_ENV:', env.public.sentryEnv || 'development');
+    console.log('📊 SENTRY_DSN:', env.public.sentryDsn || 'not configured');
   }
 
   private createConfig() {
     if (!this.isEnabled) return null;
 
     return {
-      dsn: process.env.SENTRY_DSN,
-      environment: process.env.SENTRY_ENV || 'development',
+      dsn: env.public.sentryDsn,
+      environment: env.public.sentryEnv || 'development',
       sendDefaultPii: true,
       enableLogs: true,
       skipOpenTelemetrySetup: true,
       tracesSampleRate: this.getTracesSampleRate(),
       profilesSampleRate: 0, // Not supported in Bun
-      release: process.env.VERSION || 'dev',
+      release: env.public.version || 'dev',
+
+      // Server-side integrations
+      integrations: [
+        Sentry.httpIntegration(),
+        Sentry.nativeNodeFetchIntegration(),
+        Sentry.requestDataIntegration({
+          include: {
+            headers: true,
+            ip: true,
+            query_string: true,
+            url: true,
+          },
+        }),
+      ],
 
       // Circuit breaker implementation
       beforeSend: this.createBeforeSendHandler(),
@@ -138,7 +154,7 @@ export class SentryProvider extends BaseProvider {
   }
 
   private getTracesSampleRate(): number {
-    return process.env.NODE_ENV === 'production' ? 0.1 : 1.0;
+    return env.isProd ? 0.1 : 1.0;
   }
 
   private createBeforeSendHandler() {
@@ -149,6 +165,23 @@ export class SentryProvider extends BaseProvider {
       }
 
       try {
+        // Link Sentry error with OTEL trace
+        const otelSpan = trace.getActiveSpan();
+        if (otelSpan) {
+          const spanContext = otelSpan.spanContext();
+          event.contexts = event.contexts || {};
+          event.contexts.trace = {
+            trace_id: spanContext.traceId,
+            span_id: spanContext.spanId,
+          };
+        }
+
+        // Redact sensitive headers
+        if (event.request?.headers) {
+          delete event.request.headers['authorization'];
+          delete event.request.headers['cookie'];
+        }
+
         return event;
       } catch (error) {
         this.handleBeforeSendError(error);

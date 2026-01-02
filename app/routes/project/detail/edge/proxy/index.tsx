@@ -3,10 +3,15 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
-import { createHttpProxiesControl } from '@/resources/control-plane';
-import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
-import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/proxy';
+import { ControlPlaneStatus } from '@/resources/base';
+import {
+  createHttpProxyService,
+  type HttpProxy,
+  useDeleteHttpProxy,
+  useHttpProxies,
+  useHydrateHttpProxies,
+  useHttpProxiesWatch,
+} from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -14,16 +19,14 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, PlusIcon } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   AppLoadContext,
   Link,
   LoaderFunctionArgs,
   MetaFunction,
-  useFetcher,
   useLoaderData,
   useNavigate,
   useParams,
@@ -35,26 +38,51 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { projectId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
-  const httpProxiesControl = createHttpProxiesControl(controlPlaneClient as Client);
+  const { controlPlaneClient, requestId } = context as AppLoadContext;
+  const httpProxyService = createHttpProxyService({ controlPlaneClient, requestId });
 
   if (!projectId) {
     throw new BadRequestError('Project ID is required');
   }
 
-  const httpProxies = await httpProxiesControl.list(projectId);
+  const httpProxies = await httpProxyService.list(projectId);
   return httpProxies;
 };
 
 export default function HttpProxyPage() {
   const { projectId } = useParams();
-  const data = useLoaderData<typeof loader>();
-  const fetcher = useFetcher({ key: 'delete-proxy' });
+  const initialData = useLoaderData<typeof loader>();
   const navigate = useNavigate();
+
+  // Hydrate cache with SSR data (runs once on mount)
+  useHydrateHttpProxies(projectId ?? '', initialData ?? []);
+
+  // Subscribe to watch for real-time updates
+  useHttpProxiesWatch(projectId ?? '');
+
+  // Read from React Query cache (gets updates from watch!)
+  const { data: queryData } = useHttpProxies(projectId ?? '', {
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Use React Query data, fallback to SSR data
+  const data = queryData ?? initialData ?? [];
 
   const { confirm } = useConfirmationDialog();
 
-  const deleteHttpProxy = async (httpProxy: IHttpProxyControlResponse) => {
+  const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
+    onSuccess: () => {
+      toast.success('Proxy deleted successfully', {
+        description: 'The proxy has been deleted successfully',
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete proxy');
+    },
+  });
+
+  const deleteHttpProxy = async (httpProxy: HttpProxy) => {
     await confirm({
       title: 'Delete Proxy',
       description: (
@@ -70,21 +98,12 @@ export default function HttpProxyPage() {
       confirmValue: httpProxy.name,
       confirmInputLabel: `Type "${httpProxy.name}" to confirm.`,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: httpProxy?.name ?? '',
-            projectId: projectId ?? '',
-          },
-          {
-            method: 'DELETE',
-            action: HTTP_PROXIES_ACTIONS_PATH,
-          }
-        );
+        await deleteMutation.mutateAsync(httpProxy.name);
       },
     });
   };
 
-  const columns: ColumnDef<IHttpProxyControlResponse>[] = useMemo(
+  const columns: ColumnDef<HttpProxy>[] = useMemo(
     () => [
       {
         header: 'Resource Name',
@@ -131,7 +150,7 @@ export default function HttpProxyPage() {
     [projectId]
   );
 
-  const rowActions: DataTableRowActionsProps<IHttpProxyControlResponse>[] = useMemo(
+  const rowActions: DataTableRowActionsProps<HttpProxy>[] = useMemo(
     () => [
       {
         key: 'edit',
@@ -154,18 +173,6 @@ export default function HttpProxyPage() {
     ],
     [projectId]
   );
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data.success) {
-        toast.success('Proxy deleted successfully', {
-          description: 'The proxy has been deleted successfully',
-        });
-      } else {
-        toast.error(fetcher.data.error);
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   return (
     <DataTable

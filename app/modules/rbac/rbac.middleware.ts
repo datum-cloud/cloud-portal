@@ -1,15 +1,17 @@
 /**
  * RBAC Middleware
  * Server-side route protection based on permissions
- * Uses BFF API for permission checks (similar to org-type middleware)
+ * Uses Hono API for permission checks (similar to org-type middleware)
  */
-import type { NextFunction } from '../../utils/middlewares/middleware';
+import type { MiddlewareContext, NextFunction } from '../../utils/middlewares/middleware';
 import { extractOrgIdFromPath, resolveDynamicValue } from './permission-checker';
 import type { IRbacMiddlewareConfig, OnDeniedContext } from './types';
-import type { IPermissionCheckResponse } from '@/resources/interfaces/permission.interface';
-import { ROUTE_PATH as PERMISSION_CHECK_PATH } from '@/routes/api/permissions/check';
+import type { IPermissionCheckResponse } from '@/modules/rbac/types';
+import { env } from '@/utils/env';
 import { AuthorizationError } from '@/utils/errors';
 import { redirect } from 'react-router';
+
+const PERMISSION_CHECK_PATH = '/api/permissions/check' as const;
 
 /**
  * Default error page path for permission denied
@@ -64,7 +66,9 @@ const DEFAULT_ERROR_PATH = '/error/403';
  * ```
  */
 export function createRbacMiddleware(config: IRbacMiddlewareConfig) {
-  return async (request: Request, next: NextFunction): Promise<Response> => {
+  return async (ctx: MiddlewareContext, next: NextFunction): Promise<Response> => {
+    const { request } = ctx;
+
     try {
       // Extract organization ID from URL
       const orgId = extractOrgIdFromPath(request.url);
@@ -114,7 +118,7 @@ export function createRbacMiddleware(config: IRbacMiddlewareConfig) {
       const name = resolveDynamicValue(config.name, params);
 
       // Call BFF API for permission check (similar to org-type middleware)
-      const checkResponse = await fetch(`${process.env.APP_URL}${PERMISSION_CHECK_PATH}`, {
+      const checkResponse = await fetch(`${env.public.appUrl}${PERMISSION_CHECK_PATH}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

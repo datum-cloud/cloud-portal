@@ -1,8 +1,6 @@
 import { SelectBox, SelectBoxOption } from '../select-box/select-box';
-import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
-import { ROUTE_PATH as SECRETS_LIST_ROUTE_PATH } from '@/routes/api/secrets';
-import { useEffect, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useSecrets, type Secret } from '@/resources/secrets';
+import { useMemo } from 'react';
 
 export const SelectSecret = ({
   projectId,
@@ -21,38 +19,24 @@ export const SelectSecret = ({
   id?: string;
   filter?: Record<string, string>;
 }) => {
-  const fetcher = useFetcher({ key: 'select-secret' });
+  const { data: secrets = [], isLoading } = useSecrets(projectId ?? '', {
+    enabled: !!projectId,
+  });
 
-  const [options, setOptions] = useState<SelectBoxOption[]>([]);
-
-  const fetchOptions = async () => {
-    fetcher.load(`${SECRETS_LIST_ROUTE_PATH}?projectId=${projectId}`);
-  };
-
-  useEffect(() => {
-    if (projectId) {
-      fetchOptions();
-    }
-  }, [projectId]);
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const opt = (fetcher.data?.data ?? [])
-        .filter((secret: ISecretControlResponse) => {
-          if (!filter) return true;
-          return Object.entries(filter).every(
-            ([key, value]) => secret[key as keyof ISecretControlResponse] === value
-          );
-        })
-        .map((secret: ISecretControlResponse) => ({
-          value: secret.name,
-          label: secret.name,
-          ...secret,
-        }));
-
-      setOptions(opt);
-    }
-  }, [fetcher.data, fetcher.state]);
+  const options = useMemo(() => {
+    return secrets
+      .filter((secret: Secret) => {
+        if (!filter) return true;
+        return Object.entries(filter).every(
+          ([key, value]) => secret[key as keyof Secret] === value
+        );
+      })
+      .map((secret: Secret) => ({
+        value: secret.name,
+        label: secret.name,
+        ...secret,
+      }));
+  }, [secrets, filter]);
 
   return (
     <SelectBox
@@ -67,7 +51,7 @@ export const SelectSecret = ({
       name={name}
       id={id}
       placeholder="Select a Secret"
-      isLoading={fetcher.state === 'loading'}
+      isLoading={isLoading}
     />
   );
 };

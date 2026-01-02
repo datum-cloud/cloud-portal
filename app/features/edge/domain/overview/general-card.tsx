@@ -4,8 +4,8 @@ import { List, ListItem } from '@/components/list/list';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
-import type { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
-import type { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import type { DnsZone } from '@/resources/dns-zones';
+import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent, LinkButton, Badge } from '@datum-ui/components';
@@ -16,8 +16,8 @@ export const DomainGeneralCard = ({
   dnsZone,
   projectId,
 }: {
-  domain: IDomainControlResponse;
-  dnsZone?: IDnsZoneControlResponse;
+  domain: Domain;
+  dnsZone?: DnsZone;
   projectId?: string;
 }) => {
   const listItems: ListItem[] = useMemo(() => {

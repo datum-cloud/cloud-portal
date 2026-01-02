@@ -1,6 +1,6 @@
 import { OrganizationItem } from './organization-item';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { ROUTE_PATH as ORG_LIST_PATH } from '@/routes/api/organizations';
+import type { Organization } from '@/resources/organizations';
+import { useOrganizations } from '@/resources/organizations/organization.queries';
 import { paths } from '@/utils/config/paths.config';
 import { Button, SpinnerIcon } from '@datum-ui/components';
 import { toast } from '@datum-ui/components';
@@ -18,7 +18,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { BuildingIcon, CheckIcon, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useFetcher } from 'react-router';
+import { Link } from 'react-router';
 
 export const SelectOrganization = ({
   currentOrg,
@@ -29,8 +29,8 @@ export const SelectOrganization = ({
   hideNewOrganization = false,
   disabled = false,
 }: {
-  currentOrg: Partial<IOrganization>;
-  onSelect?: (org: IOrganization) => void;
+  currentOrg: Partial<Organization>;
+  onSelect?: (org: Organization) => void;
   selectedContent?: React.ReactNode;
   triggerClassName?: string;
   hideContent?: boolean;
@@ -38,27 +38,17 @@ export const SelectOrganization = ({
   disabled?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
-  const fetcher = useFetcher({ key: 'org-list' });
 
-  const [organizations, setOrganizations] = useState<IOrganization[]>([]);
-
-  useEffect(() => {
-    if (open) {
-      fetcher.load(ORG_LIST_PATH, { flushSync: true });
-    }
-  }, [open]);
+  const { data, isLoading, error } = useOrganizations(undefined, {
+    enabled: open,
+  });
+  const organizations = data?.items ?? [];
 
   useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const { success, error, data } = fetcher.data;
-      if (!success) {
-        toast.error(error);
-        return;
-      }
-
-      setOrganizations(data);
+    if (error) {
+      toast.error(error.message || 'Failed to load organizations');
     }
-  }, [fetcher.data, fetcher.state]);
+  }, [error]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -92,7 +82,7 @@ export const SelectOrganization = ({
           />
           <CommandList className="max-h-none">
             <CommandEmpty>No results found.</CommandEmpty>
-            {fetcher.state === 'loading' && organizations.length === 0 ? (
+            {isLoading && organizations.length === 0 ? (
               <CommandItem disabled className="px-4 py-2.5">
                 <div className="flex items-center justify-center">
                   <SpinnerIcon size="xs" aria-hidden="true" />
@@ -102,7 +92,7 @@ export const SelectOrganization = ({
             ) : (
               <CommandGroup className="max-h-[300px] overflow-y-auto px-0 py-0">
                 {organizations.length > 0 &&
-                  organizations.map((org: IOrganization) => {
+                  organizations.map((org: Organization) => {
                     const isSelected = org.name === currentOrg?.name;
                     return (
                       <CommandItem

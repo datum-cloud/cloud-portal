@@ -4,19 +4,22 @@ import {
   ManageRoleModalForm,
   ManageRoleModalFormRef,
 } from '@/features/organization/team/manage-role';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
-import { createInvitationsControl } from '@/resources/control-plane';
-import { createRolesControl } from '@/resources/control-plane/iam/roles.control';
-import { createMembersControl } from '@/resources/control-plane/resource-manager/members.control';
-import { IInvitationControlResponse } from '@/resources/interfaces/invitation.interface';
-import { IMemberControlResponse } from '@/resources/interfaces/member.interface';
-import { ROUTE_PATH as MEMBERS_REMOVE_ROUTE_PATH } from '@/routes/api/members';
-import { ROUTE_PATH as MEMBERS_LEAVE_ROUTE_PATH } from '@/routes/api/members/leave';
-import { ROUTE_PATH as TEAM_INVITATIONS_CANCEL_ROUTE_PATH } from '@/routes/api/team/invitations/cancel';
-import { ROUTE_PATH as TEAM_INVITATIONS_RESEND_ROUTE_PATH } from '@/routes/api/team/invitations/resend';
+import {
+  createInvitationService,
+  type Invitation,
+  useCancelInvitation,
+  useResendInvitation,
+} from '@/resources/invitations';
+import {
+  createMemberService,
+  type Member,
+  useRemoveMember,
+  useLeaveOrganization,
+} from '@/resources/members';
+import { createRoleService } from '@/resources/roles';
 import { buildNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
@@ -25,7 +28,6 @@ import { Tooltip } from '@datum-ui/components';
 import { Badge } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import {
   ArrowRightIcon,
@@ -42,6 +44,7 @@ import {
   LoaderFunctionArgs,
   data,
   useLoaderData,
+  useNavigate,
   useParams,
 } from 'react-router';
 
@@ -64,10 +67,10 @@ interface ITeamMember {
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const { orgId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
-  const invitationsControl = createInvitationsControl(controlPlaneClient as Client);
-  const membersControl = createMembersControl(controlPlaneClient as Client);
-  const rolesControl = createRolesControl(controlPlaneClient as Client);
+  const { controlPlaneClient, requestId } = context as AppLoadContext;
+  const invitationService = createInvitationService({ controlPlaneClient, requestId });
+  const memberService = createMemberService({ controlPlaneClient, requestId });
+  const roleService = createRoleService({ controlPlaneClient, requestId });
 
   if (!orgId) {
     throw new BadRequestError('Organization ID is required');
@@ -76,7 +79,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   // Helper function to resolve role details by querying the API
   const resolveRoleDetails = async (roleName: string, namespace: string = 'datum-cloud') => {
     try {
-      const role = await rolesControl.get(roleName, namespace);
+      const role = await roleService.get(roleName, namespace);
       return {
         name: roleName,
         namespace,
@@ -95,12 +98,12 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     }
   };
 
-  const invitations = await invitationsControl.list(orgId);
-  const filteredInvitations: IInvitationControlResponse[] = invitations.filter(
+  const invitations = await invitationService.list(orgId);
+  const filteredInvitations: Invitation[] = invitations.filter(
     (invitation) => invitation.state === 'Pending'
   );
 
-  const members: IMemberControlResponse[] = await membersControl.list(orgId);
+  const members: Member[] = await memberService.list(orgId);
 
   // Transform invitations to generic format
   const invitationTeamMembers: ITeamMember[] = await Promise.all(
@@ -145,17 +148,47 @@ export default function OrgTeamPage() {
 
   const { orgId } = useParams();
   const { user } = useApp();
-  const fetcher = useDatumFetcher<{ success: boolean; message: string; error: string }>({
-    onSuccess: (data) => {
-      toast.success(data.message);
-    },
-    onError: (data) => {
-      toast.error(data.error);
-    },
-  });
+  const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
 
   const manageRoleModalForm = useRef<ManageRoleModalFormRef>(null);
+
+  // Mutation hooks
+  const cancelInvitationMutation = useCancelInvitation(orgId ?? '', {
+    onSuccess: () => {
+      toast.success('Invitation cancelled successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to cancel invitation');
+    },
+  });
+
+  const resendInvitationMutation = useResendInvitation(orgId ?? '', {
+    onSuccess: () => {
+      toast.success('Invitation resent successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to resend invitation');
+    },
+  });
+
+  const removeMemberMutation = useRemoveMember(orgId ?? '', {
+    onSuccess: () => {
+      toast.success('Member removed successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to remove member');
+    },
+  });
+
+  const leaveOrganizationMutation = useLeaveOrganization({
+    onSuccess: () => {
+      navigate(paths.account.organizations.root);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to leave organization');
+    },
+  });
 
   const orderedTeamMembers = useMemo(() => {
     if (!user?.email) return teamMembers;
@@ -238,31 +271,13 @@ export default function OrgTeamPage() {
       variant: 'destructive',
       showConfirmInput: false,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: row?.id ?? '',
-            orgId: orgId ?? '',
-          },
-          {
-            action: TEAM_INVITATIONS_CANCEL_ROUTE_PATH,
-            method: 'DELETE',
-          }
-        );
+        cancelInvitationMutation.mutate(row?.id ?? '');
       },
     });
   };
 
   const resendInvitation = async (id: string) => {
-    await fetcher.submit(
-      {
-        id,
-        orgId: orgId ?? '',
-      },
-      {
-        action: TEAM_INVITATIONS_RESEND_ROUTE_PATH,
-        method: 'POST',
-      }
-    );
+    resendInvitationMutation.mutate(id);
   };
 
   const removeMember = async (row: ITeamMember) => {
@@ -282,16 +297,7 @@ export default function OrgTeamPage() {
       variant: 'destructive',
       showConfirmInput: false,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: row?.name ?? '',
-            orgId: orgId ?? '',
-          },
-          {
-            action: MEMBERS_REMOVE_ROUTE_PATH,
-            method: 'DELETE',
-          }
-        );
+        removeMemberMutation.mutate(row?.name ?? '');
       },
     });
   };
@@ -310,17 +316,10 @@ export default function OrgTeamPage() {
       variant: 'destructive',
       showConfirmInput: false,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: row?.name ?? '',
-            orgId: orgId ?? '',
-            redirectUri: paths.account.organizations.root,
-          },
-          {
-            action: MEMBERS_LEAVE_ROUTE_PATH,
-            method: 'DELETE',
-          }
-        );
+        leaveOrganizationMutation.mutate({
+          orgId: orgId ?? '',
+          memberName: row?.name ?? '',
+        });
       },
     });
   };
@@ -335,8 +334,6 @@ export default function OrgTeamPage() {
         cell: ({ row }) => {
           const name = row.original.fullName ?? row.original.email;
           const subtitle = row.original.email;
-
-          console.log(row.original);
 
           return (
             <div className="flex w-full items-center justify-between gap-2">

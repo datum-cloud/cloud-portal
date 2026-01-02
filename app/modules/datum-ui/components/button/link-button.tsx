@@ -5,8 +5,7 @@ import * as React from 'react';
 import { Link, type LinkProps } from 'react-router';
 
 export interface LinkButtonProps
-  extends Omit<LinkProps, 'type'>,
-    VariantProps<typeof buttonVariants> {
+  extends Omit<LinkProps, 'type'>, VariantProps<typeof buttonVariants> {
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
 }

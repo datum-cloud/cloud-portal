@@ -1,7 +1,7 @@
 import { DnsRecordForm } from '../dns-zone/form/dns-record-form';
 import type { DnsRecordModalFormProps, DnsRecordModalFormRef } from './types';
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
-import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
+import { IFlattenedDnsRecord } from '@/resources/dns-records';
+import { CreateDnsRecordSchema } from '@/resources/dns-records';
 import { recordToFormDefaultValue } from '@/utils/helpers/dns-record.helper';
 import { Dialog } from '@datum-ui/components/dialog';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';

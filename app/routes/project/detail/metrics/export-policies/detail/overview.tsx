@@ -4,7 +4,7 @@ import { ExportPolicyDangerCard } from '@/features/metric/export-policies/card/d
 import { ExportPolicyGeneralCard } from '@/features/metric/export-policies/card/general-card';
 import { WorkloadSinksTable } from '@/features/metric/export-policies/sinks-table';
 import { WorkloadSourcesTable } from '@/features/metric/export-policies/sources-table';
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Col, Row } from '@datum-ui/components';
 import { MetaFunction, useRouteLoaderData } from 'react-router';

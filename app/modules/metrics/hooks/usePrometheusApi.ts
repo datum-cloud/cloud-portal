@@ -16,10 +16,11 @@ import {
   type TimeRange,
   PrometheusError,
 } from '@/modules/prometheus';
-import { ROUTE_PATH as PROMETHEUS_ROUTE_PATH } from '@/routes/api/prometheus';
 import { useQuery, type QueryKey, type UseQueryResult } from '@tanstack/react-query';
 import { useQueryState } from 'nuqs';
 import React from 'react';
+
+const PROMETHEUS_ROUTE_PATH = '/api/prometheus' as const;
 
 const prometheusQueryKeys = {
   all: ['prometheus-api'] as const,

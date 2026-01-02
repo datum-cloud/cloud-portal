@@ -6,7 +6,7 @@ import { FieldLabel } from '@/components/field/field-label';
 import {
   ExportPolicySinkAuthenticationSchema,
   ExportPolicySinkPrometheusFieldSchema,
-} from '@/resources/schemas/export-policy.schema';
+} from '@/resources/export-policies';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { Input } from '@datum-ui/components';
 import { Separator } from '@shadcn/ui/separator';

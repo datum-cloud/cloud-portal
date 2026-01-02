@@ -24,8 +24,7 @@ const avatarStackVariants = cva('flex', {
 });
 
 export interface AvatarStackProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof avatarStackVariants> {
+  extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof avatarStackVariants> {
   avatars: { name: string; image: string }[];
   maxAvatarsAmount?: number;
   avatarClassName?: string;

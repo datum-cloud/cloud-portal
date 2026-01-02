@@ -1,5 +1,5 @@
 import { LabelForm } from './label-form';
-import { LabelFormSchema } from '@/resources/schemas/metadata.schema';
+import { LabelFormSchema } from '@/resources/base';
 import { Dialog } from '@datum-ui/components/dialog';
 import { useImperativeHandle, useRef, useState } from 'react';
 

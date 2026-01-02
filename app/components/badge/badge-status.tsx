@@ -1,7 +1,4 @@
-import {
-  ControlPlaneStatus,
-  IControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface';
+import { ControlPlaneStatus, IControlPlaneStatus } from '@/resources/base';
 import { Badge, type BadgeProps, Tooltip, SpinnerIcon } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { ReactNode } from 'react';

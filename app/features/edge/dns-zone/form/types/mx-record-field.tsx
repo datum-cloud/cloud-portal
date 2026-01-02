@@ -1,5 +1,5 @@
 import { Field } from '@/components/field/field';
-import { MXRecordSchema } from '@/resources/schemas/dns-record.schema';
+import { MXRecordSchema } from '@/resources/dns-records';
 import { getInputProps, useForm } from '@conform-to/react';
 import { Input } from '@shadcn/ui/input';
 

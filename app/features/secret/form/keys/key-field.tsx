@@ -1,6 +1,6 @@
 import { Field } from '@/components/field/field';
 import useAutosizeTextArea from '@/hooks/useAutosizeTextArea';
-import { SecretEnvSchema } from '@/resources/schemas/secret.schema';
+import { SecretEnvSchema } from '@/resources/secrets';
 import { getInputProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';
 import { Input, Textarea } from '@datum-ui/components';
 import { useEffect, useRef } from 'react';

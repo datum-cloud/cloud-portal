@@ -1,7 +1,10 @@
 import BlankLayout from '@/layouts/blank.layout';
 import { useApp } from '@/providers/app.provider';
-import { createInvitationsControl } from '@/resources/control-plane';
-import { ROUTE_PATH as INVITATION_UPDATE_STATE_ACTION } from '@/routes/api/team/invitations/update-state';
+import { createInvitationService } from '@/resources/invitations';
+import {
+  useAcceptInvitation,
+  useRejectInvitation,
+} from '@/resources/invitations/invitation.queries';
 import { paths } from '@/utils/config/paths.config';
 import { redirectWithToast } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
@@ -25,8 +28,8 @@ import {
   LoaderFunctionArgs,
   MetaFunction,
   data,
-  useFetcher,
   useLoaderData,
+  useNavigate,
 } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
@@ -35,7 +38,7 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   try {
-    const { controlPlaneClient } = context as AppLoadContext;
+    const { controlPlaneClient, requestId } = context as AppLoadContext;
 
     const { invitationId } = params;
 
@@ -49,8 +52,8 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 
     // Invitation Section
     // Get invitation
-    const invitationsControl = createInvitationsControl(controlPlaneClient);
-    const invitation = await invitationsControl.detail(orgId, invitationId);
+    const invitationService = createInvitationService({ controlPlaneClient, requestId });
+    const invitation = await invitationService.get(orgId, invitationId);
 
     // Throw error if invitation is expired
     if (invitation.expirationDate && new Date(invitation.expirationDate) < new Date()) {
@@ -75,9 +78,25 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 export default function InvitationPage() {
   const invitation = useLoaderData<typeof loader>();
   const { user: currentUser } = useApp();
-  const fetcher = useFetcher();
+  const navigate = useNavigate();
 
   const [action, setAction] = useState<'Accepted' | 'Declined'>();
+
+  const acceptMutation = useAcceptInvitation({
+    onSuccess: () => {
+      navigate(
+        getPathWithParams(paths.org.detail.root, {
+          orgId: invitation.organizationName,
+        })
+      );
+    },
+  });
+
+  const rejectMutation = useRejectInvitation({
+    onSuccess: () => {
+      navigate(paths.account.organizations.root);
+    },
+  });
 
   // Check if invitation email matches current user's email
   const isEmailMatch = useMemo(() => {
@@ -89,28 +108,21 @@ export default function InvitationPage() {
 
   const handleStateUpdate = async (state: 'Accepted' | 'Declined') => {
     setAction(state);
-    fetcher.submit(
-      {
+
+    if (state === 'Accepted') {
+      acceptMutation.mutate({
         orgId: invitation.organizationName,
-        invitationId: invitation.name,
-        state,
-        redirectUri:
-          state === 'Accepted'
-            ? getPathWithParams(paths.org.detail.root, {
-                orgId: invitation.organizationName,
-              })
-            : paths.account.organizations.root,
-      },
-      {
-        method: 'PATCH',
-        action: INVITATION_UPDATE_STATE_ACTION,
-      }
-    );
+        name: invitation.name,
+      });
+    } else {
+      rejectMutation.mutate({
+        orgId: invitation.organizationName,
+        name: invitation.name,
+      });
+    }
   };
 
-  const isLoading = useMemo(() => {
-    return fetcher.state === 'submitting' || fetcher.state === 'loading';
-  }, [fetcher.state]);
+  const isLoading = acceptMutation.isPending || rejectMutation.isPending;
 
   return (
     <BlankLayout>

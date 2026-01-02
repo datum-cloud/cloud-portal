@@ -1,6 +1,6 @@
 import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
-import { HttpProxyHostnameSchema, HttpProxySchema } from '@/resources/schemas/http-proxy.schema';
+import { HttpProxyHostnameSchema, HttpProxySchema } from '@/resources/http-proxies';
 import { FormMetadata, getInputProps, useForm } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';

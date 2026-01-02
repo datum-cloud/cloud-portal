@@ -1,9 +1,10 @@
 /* eslint-disable unused-imports/no-unused-vars */
 // Import required types
 import { ControlPlaneClient } from '@/modules/control-plane/control-plane.factory';
+import type { Logger } from '@/modules/logger';
+import type { IAccessTokenSession } from '@/utils/auth/auth.types';
 import { Client } from '@hey-api/client-axios';
 import 'react-router';
-import { Storage } from 'unstorage';
 
 // Enable absolute imports from the root directory
 declare module '@/*';
@@ -13,10 +14,15 @@ declare module '@/*';
  */
 declare module 'react-router' {
   interface AppLoadContext extends ControlPlaneClient {
-    // Add any additional context properties here
-    cache: Storage;
+    // New data-driven architecture properties
+    requestId: string;
+    cspNonce: string;
+    session: IAccessTokenSession | null;
+    logger?: Logger;
+
+    // Control plane clients
     controlPlaneClient: Client;
-    iamResourceClient: Client;
+    userScopedClient: Client; // User-scoped client for user-specific APIs (e.g., organization memberships)
   }
 }
 

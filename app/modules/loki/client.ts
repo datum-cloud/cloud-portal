@@ -2,10 +2,11 @@
  * Loki client management and query execution
  */
 import type { LokiConfig, LokiQueryResponse, LogQLQueryOptions } from './types';
+import { env } from '@/utils/env/env.server';
 import { GrafanaApi } from '@myunisoft/loki';
 
 export const LOKI_CONFIG: LokiConfig = {
-  remoteApiURL: process.env.TELEMETRY_URL || '',
+  remoteApiURL: env.server.telemetryUrl || '',
   defaultLimit: 100,
   maxLimit: 1000,
   defaultTimeRange: '48h',

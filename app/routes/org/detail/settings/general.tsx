@@ -1,6 +1,5 @@
 import { OrganizationDangerCard } from '@/features/organization';
 import { OrganizationGeneralCard } from '@/features/organization/settings/general-card';
-import { OrganizationType } from '@/resources/interfaces/organization.interface';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Col, Row } from '@datum-ui/components';
 import { MetaFunction, useRouteLoaderData } from 'react-router';
@@ -19,7 +18,7 @@ export default function OrgGeneralSettingsPage() {
           <OrganizationGeneralCard organization={organization ?? {}} />
         </Col>
 
-        {organization && organization?.type !== OrganizationType.Personal && (
+        {organization && organization?.type !== 'Personal' && (
           <Col span={24}>
             <h3 className="mb-4 text-base font-medium">Delete Organization</h3>
             <OrganizationDangerCard organization={organization ?? {}} />

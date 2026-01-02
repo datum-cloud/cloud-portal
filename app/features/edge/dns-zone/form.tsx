@@ -1,9 +1,8 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { Field } from '@/components/field/field';
 import { useIsPending } from '@/hooks/useIsPending';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
-import { formDnsZoneSchema } from '@/resources/schemas/dns-zone.schema';
-import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
+import type { CreateDnsZoneInput, DnsZone } from '@/resources/dns-zones';
+import { createDnsZoneSchema, useDeleteDnsZone } from '@/resources/dns-zones';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
@@ -25,23 +24,33 @@ import {
 } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
 import { useEffect, useMemo, useRef } from 'react';
-import { Form, useFetcher, useSearchParams } from 'react-router';
+import { Form, useNavigate, useSearchParams } from 'react-router';
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const DnsZoneForm = ({
   projectId,
   defaultValue,
+  onSubmit,
+  isSubmitting = false,
 }: {
   projectId: string;
-  defaultValue?: IDnsZoneControlResponse;
+  defaultValue?: DnsZone;
+  onSubmit?: (data: CreateDnsZoneInput) => void;
+  isSubmitting?: boolean;
 }) => {
   const isHydrated = useHydrated();
-  const isPending = useIsPending();
+  const isNavigationPending = useIsPending();
   const inputRef = useRef<HTMLInputElement>(null);
   const descriptionInputRef = useRef<HTMLInputElement>(null);
-  const fetcher = useFetcher({ key: 'delete-dns-zone' });
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  const deleteDnsZoneMutation = useDeleteDnsZone(projectId, {
+    onSuccess: () => {
+      navigate(getPathWithParams(paths.project.detail.dnsZones.root, { projectId }));
+    },
+  });
 
   const { confirm } = useConfirmationDialog();
   const deleteDnsZone = async () => {
@@ -60,19 +69,9 @@ export const DnsZoneForm = ({
       confirmValue: defaultValue?.domainName,
       confirmInputLabel: `Type "${defaultValue?.domainName}" to confirm.`,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: defaultValue?.name ?? '',
-            projectId: projectId ?? '',
-            redirectUri: getPathWithParams(paths.project.detail.dnsZones.root, {
-              projectId,
-            }),
-          },
-          {
-            method: 'DELETE',
-            action: DNS_ZONES_ACTIONS_PATH,
-          }
-        );
+        if (defaultValue?.name) {
+          await deleteDnsZoneMutation.mutateAsync(defaultValue.name);
+        }
       },
     });
   };
@@ -81,16 +80,27 @@ export const DnsZoneForm = ({
     return defaultValue?.uid !== undefined;
   }, [defaultValue]);
 
+  // Use mutation pending state for create mode, navigation pending for edit mode
+  const isPending = isEdit ? isNavigationPending : isSubmitting;
+
   const [form, fields] = useForm({
     defaultValue: {
       domainName: searchParams.get('domainName') ?? '',
     },
     id: 'dns-zone-form',
-    constraint: getZodConstraint(formDnsZoneSchema),
+    constraint: getZodConstraint(createDnsZoneSchema),
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: formDnsZoneSchema });
+      return parseWithZod(formData, { schema: createDnsZoneSchema });
+    },
+    onSubmit(event, { submission }) {
+      // If onSubmit callback is provided and form is valid, handle submission via mutation
+      if (onSubmit && submission?.status === 'success') {
+        event.preventDefault();
+        onSubmit(submission.value as CreateDnsZoneInput);
+      }
+      // Otherwise, let the form submit normally (edit mode uses action)
     },
   });
 

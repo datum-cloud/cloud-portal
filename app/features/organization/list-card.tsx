@@ -1,16 +1,16 @@
 import { DateTime } from '@/components/date-time';
 import { PersonalBadge } from '@/components/personal-badge/personal-badge';
 import { ProfileIdentity } from '@/components/profile-identity';
-import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
+import type { Organization } from '@/resources/organizations';
 import { getInitials } from '@/utils/helpers/text.helper';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Card, CardContent } from '@shadcn/ui/card';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';
 
-export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
+export const OrganizationListCard = ({ org }: { org: Organization }) => {
   const displayName = org?.displayName ?? org?.name ?? '';
   const initials = getInitials(displayName);
-  const fallbackIcon = org?.type === OrganizationType.Personal ? UserRound : Building2;
+  const fallbackIcon = org?.type === 'Personal' ? UserRound : Building2;
   return (
     <Card className="hover:bg-accent/50 cursor-pointer py-4 transition-all">
       <CardContent className="flex flex-row items-center justify-between gap-4 px-4">
@@ -29,7 +29,7 @@ export const OrganizationListCard = ({ org }: { org: IOrganization }) => {
               <h3 className="text-foreground text-lg leading-5 font-semibold">
                 {org?.displayName ?? org?.name ?? ''}
               </h3>
-              {org.type === OrganizationType.Personal && <PersonalBadge />}
+              {org.type === 'Personal' && <PersonalBadge />}
             </div>
             <p className="text-muted-foreground text-sm">{org?.name}</p>
             {org?.createdAt && (

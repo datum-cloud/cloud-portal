@@ -25,8 +25,7 @@ const spinnerVariants = cva('animate-spin', {
 });
 
 export interface SpinnerIconProps
-  extends React.SVGProps<SVGSVGElement>,
-    VariantProps<typeof spinnerVariants> {
+  extends React.SVGProps<SVGSVGElement>, VariantProps<typeof spinnerVariants> {
   /** Color of the track (background circle) */
   trackClassName?: string;
   /** Color of the spinning indicator */

@@ -1,5 +1,5 @@
 import { Field } from '@/components/field/field';
-import { TLSARecordSchema } from '@/resources/schemas/dns-record.schema';
+import { TLSARecordSchema } from '@/resources/dns-records';
 import { getInputProps, useForm } from '@conform-to/react';
 import { Input } from '@shadcn/ui/input';
 import { Textarea } from '@shadcn/ui/textarea';

@@ -2,10 +2,12 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { Field } from '@/components/field/field';
 import { InputName } from '@/components/input-name/input-name';
 import { HostnamesForm } from '@/features/edge/proxy/form/hostnames-form';
-import { useIsPending } from '@/hooks/useIsPending';
-import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
-import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/proxy';
+import {
+  IHttpProxyControlResponse,
+  httpProxySchema,
+  useDeleteHttpProxy,
+  type HttpProxySchema,
+} from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
@@ -16,7 +18,7 @@ import {
   useInputControl,
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import {
   Card,
   CardContent,
@@ -27,27 +29,41 @@ import {
 } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
 import { useEffect, useMemo, useRef } from 'react';
-import { Form, useFetcher } from 'react-router';
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
+import { useNavigate } from 'react-router';
 import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const HttpProxyForm = ({
   projectId,
   defaultValue,
+  onSubmit,
+  isPending = false,
 }: {
   projectId?: string;
   defaultValue?: IHttpProxyControlResponse;
+  onSubmit?: (data: HttpProxySchema) => void;
+  isPending?: boolean;
 }) => {
   const isHydrated = useHydrated();
-  const isPending = useIsPending();
   const { confirm } = useConfirmationDialog();
-  const fetcher = useFetcher({ key: 'delete-proxy' });
+  const navigate = useNavigate();
 
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isEdit = useMemo(() => {
     return defaultValue?.uid !== undefined;
   }, [defaultValue]);
+
+  const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
+    onSuccess: () => {
+      toast.success('Proxy deleted successfully', {
+        description: 'The proxy has been deleted successfully',
+      });
+      navigate(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete proxy');
+    },
+  });
 
   const deleteHttpProxy = async () => {
     await confirm({
@@ -65,19 +81,7 @@ export const HttpProxyForm = ({
       confirmValue: defaultValue?.name,
       confirmInputLabel: `Type "${defaultValue?.name}" to confirm.`,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: defaultValue?.name ?? '',
-            projectId: projectId ?? '',
-            redirectUri: getPathWithParams(paths.project.detail.proxy.root, {
-              projectId,
-            }),
-          },
-          {
-            action: HTTP_PROXIES_ACTIONS_PATH,
-            method: 'DELETE',
-          }
-        );
+        await deleteMutation.mutateAsync(defaultValue?.name ?? '');
       },
     });
   };
@@ -89,6 +93,12 @@ export const HttpProxyForm = ({
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: httpProxySchema });
+    },
+    onSubmit(event, { submission }) {
+      event.preventDefault();
+      if (submission?.status === 'success' && onSubmit) {
+        onSubmit(submission.value);
+      }
     },
   });
 
@@ -115,13 +125,11 @@ export const HttpProxyForm = ({
         </CardDescription>
       </CardHeader>
       <FormProvider context={form.context}>
-        <Form
+        <form
           {...getFormProps(form)}
           id={form.id}
-          method="POST"
           autoComplete="off"
           className="mt-6 flex flex-col gap-10">
-          <AuthenticityTokenInput />
           <CardContent className="space-y-10">
             <InputName
               description="This unique resource name will be used to identify your Proxy resource and cannot be changed."
@@ -147,7 +155,12 @@ export const HttpProxyForm = ({
           </CardContent>
           <CardFooter className="flex justify-between gap-2">
             {isEdit ? (
-              <Button type="danger" theme="solid" disabled={isPending} onClick={deleteHttpProxy}>
+              <Button
+                type="danger"
+                theme="solid"
+                disabled={isPending || deleteMutation.isPending}
+                loading={deleteMutation.isPending}
+                onClick={deleteHttpProxy}>
                 Delete
               </Button>
             ) : (
@@ -159,7 +172,7 @@ export const HttpProxyForm = ({
               </Button>
             </div>
           </CardFooter>
-        </Form>
+        </form>
       </FormProvider>
     </Card>
   );

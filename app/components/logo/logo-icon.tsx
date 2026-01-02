@@ -1,10 +1,18 @@
 import { logoStyles } from './logo.styles';
+import { ClientOnly, useTheme } from '@/modules/datum-themes';
 import { cn } from '@shadcn/lib/utils';
-import { useTheme, Theme } from 'remix-themes';
 
-export const LogoIcon = ({ width = 385, className }: { width?: number; className?: string }) => {
-  const [theme] = useTheme();
-  const { base, icon } = logoStyles({ theme: theme ?? Theme.LIGHT });
+interface LogoIconProps {
+  width?: number;
+  className?: string;
+}
+
+const LogoIconSVG = ({
+  width = 147,
+  className,
+  theme,
+}: LogoIconProps & { theme: 'light' | 'dark' }) => {
+  const { base, icon } = logoStyles({ theme: theme ?? 'light' });
 
   return (
     <svg
@@ -19,5 +27,16 @@ export const LogoIcon = ({ width = 385, className }: { width?: number; className
         fill="#F27A67"
       />
     </svg>
+  );
+};
+
+export const LogoIcon = ({ width = 147, className }: LogoIconProps) => {
+  const { resolvedTheme } = useTheme();
+  const theme = (resolvedTheme as 'light' | 'dark') ?? 'light';
+
+  return (
+    <ClientOnly fallback={<LogoIconSVG theme="light" width={width} className={className} />}>
+      <LogoIconSVG theme={theme} width={width} className={className} />
+    </ClientOnly>
   );
 };

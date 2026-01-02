@@ -1,11 +1,8 @@
 import { SupportedDnsRecordType } from './constants';
 import { formatSvcbParams, getDnsRecordTypePriority } from './record-type.helper';
-import { IExtendedControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
-import {
-  IDnsRecordSetControlResponse,
-  IDnsZoneDiscoveryRecordSet,
-  IFlattenedDnsRecord,
-} from '@/resources/interfaces/dns.interface';
+import { IExtendedControlPlaneStatus } from '@/resources/base';
+import { IDnsRecordSetControlResponse, IFlattenedDnsRecord } from '@/resources/dns-records';
+import { IDnsZoneDiscoveryRecordSet } from '@/resources/dns-zone-discoveries';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 
 // =============================================================================

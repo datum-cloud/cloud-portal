@@ -1,13 +1,19 @@
 import { logoStyles } from './logo.styles';
+import { ClientOnly, useTheme } from '@/modules/datum-themes';
 import { cn } from '@shadcn/lib/utils';
-import { useTheme, Theme } from 'remix-themes';
 
-export const LogoText = ({ className }: { className?: string }) => {
-  const [theme] = useTheme();
-  const { base, text } = logoStyles({ theme: theme ?? Theme.LIGHT });
-
+const LogoTextSVG = ({
+  theme,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { theme: 'light' | 'dark' }) => {
+  const { base, text } = logoStyles({ theme: theme ?? 'light' });
   return (
-    <svg className={cn(base(), className)} version="1.2" width="64" height="11" viewBox="0 0 64 11">
+    <svg
+      className={cn(base(), props.className)}
+      version="1.2"
+      width="64"
+      height="11"
+      viewBox="0 0 64 11">
       <path
         d="M53.2068 2.27499H53.1807L52.5814 9.90137H50.9395L51.5387 0.468752H54.0275L57.4697 7.76045L60.964 0.468752H63.4007L63.9999 9.90137H62.3584L61.7591 2.27499H61.7331L58.2127 9.90137H56.7401L53.2068 2.27499Z"
         className={text()}
@@ -29,5 +35,16 @@ export const LogoText = ({ className }: { className?: string }) => {
         className={text()}
       />
     </svg>
+  );
+};
+
+export const LogoText = (props: React.SVGProps<SVGSVGElement>) => {
+  const { resolvedTheme } = useTheme();
+  const theme = (resolvedTheme as 'light' | 'dark') ?? 'light';
+
+  return (
+    <ClientOnly fallback={<LogoTextSVG theme="light" {...props} />}>
+      <LogoTextSVG theme={theme} {...props} />
+    </ClientOnly>
   );
 };

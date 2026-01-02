@@ -1,13 +1,9 @@
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
-import { updateOrganizationSchema } from '@/resources/schemas/organization.schema';
-import { ROUTE_PATH as ORGANIZATION_UPDATE_ACTION } from '@/routes/api/organizations/$id';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { type Organization, useUpdateOrganization } from '@/resources/organizations';
+import { updateOrganizationSchema } from '@/resources/organizations';
 import { Button, CardHeader, CardTitle, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 const schema = updateOrganizationSchema.pick({ description: true });
 
@@ -15,21 +11,19 @@ const schema = updateOrganizationSchema.pick({ description: true });
  * Organization General Settings Card Component
  * Displays and allows editing of general organization settings
  */
-export const OrganizationGeneralCard = ({ organization }: { organization: IOrganization }) => {
-  const fetcher = useDatumFetcher({
-    key: 'update-organization',
+export const OrganizationGeneralCard = ({ organization }: { organization: Organization }) => {
+  const updateOrganization = useUpdateOrganization(organization?.name ?? '', {
     onSuccess: () => {
       toast.success('Organization', {
         description: 'The Organization has been updated successfully',
       });
     },
-    onError: (data) => {
+    onError: (error) => {
       toast.error('Organization', {
-        description: data.error || 'Failed to update organization',
+        description: error.message || 'Failed to update organization',
       });
     },
   });
-  const csrf = useAuthenticityToken();
 
   return (
     <Card className="gap-0 rounded-xl py-0 shadow-none">
@@ -42,17 +36,11 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
         defaultValues={{
           description: organization?.displayName ?? '',
         }}
-        isSubmitting={fetcher.state !== 'idle'}
+        isSubmitting={updateOrganization.isPending}
         onSubmit={(data) => {
-          const payload = {
-            ...data,
-            csrf: csrf as string,
-          };
-
-          fetcher.submit(payload, {
-            method: 'PATCH',
-            action: getPathWithParams(ORGANIZATION_UPDATE_ACTION, { id: organization?.name }),
-            encType: 'application/json',
+          updateOrganization.mutate({
+            displayName: data.description,
+            resourceVersion: organization.resourceVersion,
           });
         }}
         className="flex flex-col space-y-0">
@@ -60,7 +48,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
           <>
             <CardContent className="px-5 py-4">
               <div className="flex max-w-sm flex-col gap-5">
-                {organization?.type === OrganizationType.Personal ? (
+                {organization?.type === 'Personal' ? (
                   <div className="flex flex-col space-y-2">
                     <label className="text-sm font-medium">Organization Name</label>
                     <TextCopyBox value={organization?.displayName ?? ''} />
@@ -79,7 +67,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: IOrgan
                 </div>
               </div>
             </CardContent>
-            {organization && organization?.type !== OrganizationType.Personal && (
+            {organization && organization?.type !== 'Personal' && (
               <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
                 <Button
                   htmlType="button"

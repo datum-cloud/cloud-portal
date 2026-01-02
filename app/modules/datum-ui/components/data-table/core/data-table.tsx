@@ -221,6 +221,8 @@ function DataTableInternal<TData, TValue>(
     onPaginationChange: setPagination,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn,
+    // Prevent state updates during render when data changes
+    autoResetPageIndex: false,
     // Custom filter functions registry
     filterFns: {
       arrayOr: arrayOrFilter, // OR logic for multi-select filters

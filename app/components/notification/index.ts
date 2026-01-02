@@ -11,7 +11,7 @@ export { NotificationItemWrapper } from './notification-item-wrapper';
 export { InvitationNotificationItem } from './items';
 
 // Hooks
-export { useNotificationPolling } from '../../hooks/useNotificationPolling';
+export { useNotifications } from './use-notifications';
 
 // Types
 export type {

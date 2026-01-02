@@ -1,16 +1,14 @@
 import { Field } from '@/components/field/field';
 import useAutosizeTextArea from '@/hooks/useAutosizeTextArea';
-import { useIsPending } from '@/hooks/useIsPending';
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
+import { useUpdateSecret } from '@/resources/secrets';
 import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
 import { getFormProps, getTextareaProps, useForm, useInputControl } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button, toast } from '@datum-ui/components';
 import { Textarea } from '@datum-ui/components';
 import { Dialog } from '@datum-ui/components/dialog';
-import { useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Form, useFetcher } from 'react-router';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { useImperativeHandle, useRef, useState } from 'react';
+import { Form } from 'react-router';
 import { z } from 'zod';
 
 interface EditKeyValueDialogProps {
@@ -37,15 +35,27 @@ export const EditKeyValueDialog = ({
 }: EditKeyValueDialogProps & {
   ref: React.RefObject<EditKeyValueDialogRef>;
 }) => {
-  const fetcher = useFetcher({ key: 'edit-key-value' });
-  const isPending = useIsPending({ fetcherKey: 'edit-key-value' });
-  const csrf = useAuthenticityToken();
-
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const [isOpen, setIsOpen] = useState(false);
   const resolveRef = useRef<(value: boolean) => void>(null);
   const [keyId, setKeyId] = useState<string | undefined>();
+
+  const updateSecretMutation = useUpdateSecret(projectId ?? '', secretId ?? '', {
+    onSuccess: () => {
+      resolveRef.current?.(false);
+      setIsOpen(false);
+      toast.success(`Key "${keyId}" updated successfully`, {
+        description: 'You have successfully updated the key-value pair.',
+      });
+      onSuccess?.();
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message ?? 'An error occurred while updating the key-value pair',
+      });
+    },
+  });
 
   const [form, fields] = useForm({
     id: 'secret-variables-form',
@@ -61,23 +71,13 @@ export const EditKeyValueDialog = ({
       event.stopPropagation();
 
       if (submission?.status === 'success') {
-        fetcher.submit(
-          {
-            projectId: projectId ?? '',
-            secretId: secretId ?? '',
-            data: {
-              [keyId ?? '']: isBase64(submission?.value?.value)
-                ? submission?.value?.value
-                : toBase64(submission?.value?.value),
-            },
-            csrf,
+        updateSecretMutation.mutate({
+          data: {
+            [keyId ?? '']: isBase64(submission?.value?.value)
+              ? submission?.value?.value
+              : toBase64(submission?.value?.value),
           },
-          {
-            action: SECRET_ACTIONS_ROUTE_PATH,
-            encType: 'application/json',
-            method: 'PATCH',
-          }
-        );
+        });
       }
     },
   });
@@ -87,24 +87,6 @@ export const EditKeyValueDialog = ({
   useAutosizeTextArea(textAreaRef.current, fields.value.value ?? '', {
     maxHeight: '200px',
   });
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const { success } = fetcher.data;
-
-      if (success) {
-        handleOpenChange(false);
-        toast.success(`Key "${keyId}" updated successfully`, {
-          description: 'You have successfully updated the key-value pair.',
-        });
-        onSuccess?.();
-      } else {
-        toast.error('Error', {
-          description: fetcher.data.error ?? 'An error occurred while updating the key-value pair',
-        });
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   useImperativeHandle(ref, () => ({
     show: (id?: string) => {
@@ -158,14 +140,18 @@ export const EditKeyValueDialog = ({
             <Button
               type="quaternary"
               theme="borderless"
-              disabled={isPending}
+              disabled={updateSecretMutation.isPending}
               onClick={() => {
                 handleOpenChange(false);
               }}>
               Cancel
             </Button>
-            <Button htmlType="submit" form={form.id} disabled={isPending} loading={isPending}>
-              {isPending ? 'Saving' : 'Save'}
+            <Button
+              htmlType="submit"
+              form={form.id}
+              disabled={updateSecretMutation.isPending}
+              loading={updateSecretMutation.isPending}>
+              {updateSecretMutation.isPending ? 'Saving' : 'Save'}
             </Button>
           </Dialog.Footer>
         </Form>

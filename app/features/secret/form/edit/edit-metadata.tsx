@@ -1,12 +1,6 @@
 import { SecretMetadataForm } from '../metadata-form';
-import { useIsPending } from '@/hooks/useIsPending';
-import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
-import {
-  SecretBaseSchema,
-  SecretEditSchema,
-  secretEditSchema,
-} from '@/resources/schemas/secret.schema';
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
+import { ISecretControlResponse, useUpdateSecret } from '@/resources/secrets';
+import { SecretBaseSchema, SecretEditSchema, secretEditSchema } from '@/resources/secrets';
 import {
   convertLabelsToObject,
   convertObjectToLabels,
@@ -23,9 +17,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
-import { useEffect, useMemo } from 'react';
-import { useNavigate, Form, useFetcher } from 'react-router';
-import { AuthenticityTokenInput, useAuthenticityToken } from 'remix-utils/csrf/react';
+import { useMemo } from 'react';
+import { useNavigate, Form } from 'react-router';
 
 export const EditSecretMetadata = ({
   projectId,
@@ -34,10 +27,21 @@ export const EditSecretMetadata = ({
   projectId: string;
   defaultValue?: ISecretControlResponse;
 }) => {
-  const fetcher = useFetcher({ key: 'edit-secret-metadata' });
   const navigate = useNavigate();
-  const isPending = useIsPending({ fetcherKey: 'edit-secret-metadata' });
-  const csrf = useAuthenticityToken();
+
+  const updateSecretMutation = useUpdateSecret(projectId, defaultValue?.name ?? '', {
+    onSuccess: () => {
+      navigate(-1);
+      toast.success('Secret metadata updated successfully', {
+        description: 'You have successfully updated the secret metadata.',
+      });
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message ?? 'An error occurred while updating the secret metadata',
+      });
+    },
+  });
 
   const [form, fields] = useForm({
     id: 'edit-secret-form',
@@ -61,42 +65,14 @@ export const EditSecretMetadata = ({
       const newAnnotations = convertLabelsToObject(annotations);
       const newLabels = convertLabelsToObject(labels);
 
-      fetcher.submit(
-        {
-          projectId,
-          secretId: defaultValue?.name ?? '',
-          action: 'metadata',
-          annotations: convertObjectToLabels(
-            generateMergePatchPayloadMap(originalAnnotations, newAnnotations)
-          ),
-          labels: convertObjectToLabels(generateMergePatchPayloadMap(originalLabels, newLabels)),
-          csrf,
+      updateSecretMutation.mutate({
+        metadata: {
+          labels: generateMergePatchPayloadMap(originalLabels, newLabels),
+          annotations: generateMergePatchPayloadMap(originalAnnotations, newAnnotations),
         },
-        {
-          method: 'PATCH',
-          action: SECRET_ACTIONS_ROUTE_PATH,
-          encType: 'application/json',
-        }
-      );
+      });
     },
   });
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const { success } = fetcher.data;
-
-      if (success) {
-        navigate(-1);
-        toast.success('Secret metadata updated successfully', {
-          description: 'You have successfully updated the secret metadata.',
-        });
-      } else {
-        toast.error('Error', {
-          description: fetcher.data.error ?? 'An error occurred while updating the secret metadata',
-        });
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   const formattedValues = useMemo(() => {
     if (!defaultValue) return {};
@@ -121,7 +97,6 @@ export const EditSecretMetadata = ({
           method="POST"
           autoComplete="off"
           className="mt-6 flex flex-col gap-10">
-          <AuthenticityTokenInput />
           <CardContent className="space-y-10">
             <SecretMetadataForm
               fields={fields as unknown as ReturnType<typeof useForm<SecretBaseSchema>>[1]}
@@ -131,17 +106,11 @@ export const EditSecretMetadata = ({
           </CardContent>
 
           <CardFooter className="flex justify-end gap-2">
-            {/* <Button
-              type="button"
-              variant="link"
-              disabled={isPending}
-              onClick={() => {
-                navigate(-1)
-              }}>
-              Return to List
-            </Button> */}
-            <Button htmlType="submit" disabled={isPending} loading={isPending}>
-              {isPending ? 'Saving' : 'Save'}
+            <Button
+              htmlType="submit"
+              disabled={updateSecretMutation.isPending}
+              loading={updateSecretMutation.isPending}>
+              {updateSecretMutation.isPending ? 'Saving' : 'Save'}
             </Button>
           </CardFooter>
         </Form>

@@ -1,21 +1,12 @@
 import { DnsZoneDiscoveryPreview } from '@/features/edge/dns-zone/discovery-preview';
 import { DnsZoneForm } from '@/features/edge/dns-zone/form';
-import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
-import { createDnsZoneDiscoveriesControl } from '@/resources/control-plane/dns-networking/dns-zone-discoveries.control';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
-import { formDnsZoneSchema } from '@/resources/schemas/dns-zone.schema';
-import { dataWithToast, validateCSRF } from '@/utils/cookies';
+import { useCreateDnsZoneDiscovery } from '@/resources/dns-zone-discoveries';
+import type { DnsZoneDiscovery } from '@/resources/dns-zone-discoveries';
+import { useCreateDnsZone, type CreateDnsZoneInput, type DnsZone } from '@/resources/dns-zones';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { parseWithZod } from '@conform-to/zod/v4';
-import { Client } from '@hey-api/client-axios';
-import {
-  ActionFunctionArgs,
-  AppLoadContext,
-  MetaFunction,
-  data,
-  useActionData,
-  useParams,
-} from 'react-router';
+import { toast } from '@datum-ui/components';
+import { useState } from 'react';
+import { MetaFunction, useParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>New</span>,
@@ -24,67 +15,57 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('New DNS Zone');
 });
 
-export const action = async ({ request, params, context }: ActionFunctionArgs) => {
-  const { projectId } = params;
-
-  if (!projectId) {
-    throw new Error('Project ID is required');
-  }
-
-  const clonedRequest = request.clone();
-  const formData = await clonedRequest.formData();
-
-  try {
-    await validateCSRF(formData, clonedRequest.headers);
-
-    const parsed = parseWithZod(formData, { schema: formDnsZoneSchema });
-
-    if (parsed.status !== 'success') {
-      throw new Error('Invalid form data');
-    }
-
-    const { controlPlaneClient } = context as AppLoadContext;
-    const dnsZonesControl = createDnsZonesControl(controlPlaneClient as Client);
-
-    const dryRunRes = await dnsZonesControl.create(projectId, parsed.value, true);
-
-    let res: IDnsZoneControlResponse = {};
-    if (dryRunRes) {
-      res = await dnsZonesControl.create(projectId, parsed.value, false);
-    }
-
-    // Create DNS Zone Discovery
-    const dnsZoneDiscoveriesControl = createDnsZoneDiscoveriesControl(controlPlaneClient as Client);
-    const dnsDiscoveryRes = await dnsZoneDiscoveriesControl.create(
-      projectId,
-      res.name ?? '',
-      false
-    );
-
-    return data({ dnsZone: res, dnsDiscovery: dnsDiscoveryRes });
-  } catch (error) {
-    return dataWithToast(null, {
-      title: 'Error',
-      description: error instanceof Error ? error.message : (error as Response).statusText,
-      type: 'error',
-    });
-  }
-};
-
 export default function DnsZoneNewPage() {
-  const res = useActionData<typeof action>();
   const { projectId } = useParams();
+  const [createdData, setCreatedData] = useState<{
+    dnsZone: DnsZone;
+    dnsDiscovery: DnsZoneDiscovery;
+  } | null>(null);
+
+  const createDnsZoneDiscovery = useCreateDnsZoneDiscovery(projectId ?? '', {
+    onSuccess: (dnsDiscovery, dnsZoneId) => {
+      // Discovery was created successfully, but we need the dnsZone from the outer scope
+      // This is handled in the createDnsZone.onSuccess callback
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message || 'Failed to create DNS zone discovery',
+      });
+    },
+  });
+
+  const createDnsZone = useCreateDnsZone(projectId ?? '', {
+    onSuccess: (dnsZone) => {
+      // After creating DNS zone, create the discovery
+      createDnsZoneDiscovery.mutate(dnsZone.name, {
+        onSuccess: (dnsDiscovery) => {
+          setCreatedData({ dnsZone, dnsDiscovery });
+        },
+      });
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message || 'Failed to create DNS zone',
+      });
+    },
+  });
+
+  const handleSubmit = (data: CreateDnsZoneInput) => {
+    createDnsZone.mutate(data);
+  };
+
+  const isPending = createDnsZone.isPending || createDnsZoneDiscovery.isPending;
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      {res && res?.dnsZone && res?.dnsDiscovery ? (
+      {createdData?.dnsZone && createdData?.dnsDiscovery ? (
         <DnsZoneDiscoveryPreview
           projectId={projectId ?? ''}
-          dnsZoneId={res.dnsZone.name ?? ''}
-          dnsZoneDiscoveryId={res.dnsDiscovery.name ?? ''}
+          dnsZoneId={createdData.dnsZone.name ?? ''}
+          dnsZoneDiscoveryId={createdData.dnsDiscovery.name ?? ''}
         />
       ) : (
-        <DnsZoneForm projectId={projectId ?? ''} />
+        <DnsZoneForm projectId={projectId ?? ''} onSubmit={handleSubmit} isSubmitting={isPending} />
       )}
     </div>
   );

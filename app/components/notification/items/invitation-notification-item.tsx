@@ -1,21 +1,24 @@
 import { NotificationItemWrapper } from '../notification-item-wrapper';
 import type { ResourceNotificationItemProps } from '../types';
 import { DateTime } from '@/components/date-time';
-import { IInvitationControlResponse } from '@/resources/interfaces/invitation.interface';
-import { ROUTE_PATH as INVITATION_UPDATE_STATE_ACTION } from '@/routes/api/team/invitations/update-state';
+import { IInvitationControlResponse } from '@/resources/invitations';
+import {
+  useAcceptInvitation,
+  useRejectInvitation,
+} from '@/resources/invitations/invitation.queries';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { getInitials } from '@/utils/helpers/text.helper';
 import { Button, toast } from '@datum-ui/components';
 import { Avatar, AvatarFallback, AvatarImage } from '@shadcn/ui/avatar';
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useFetcher } from 'react-router';
+import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 /**
  * InvitationNotificationItem - Handles invitation-specific rendering and actions
  *
  * Features:
- * - Manages own useFetcher for Accept/Decline actions
+ * - Uses React Query mutations for Accept/Decline actions
  * - Shows invitation-specific metadata (org name, role)
  * - Independent loading states per button
  * - Toast notifications on success/error
@@ -28,33 +31,50 @@ export function InvitationNotificationItem({
   onRefresh,
 }: ResourceNotificationItemProps<IInvitationControlResponse>) {
   const navigate = useNavigate();
-  const fetcher = useFetcher({ key: 'invitation-notification-item' });
 
   const [action, setAction] = useState<'Accepted' | 'Declined'>();
 
   // Access the control-plane data directly
   const invitation = notification.data;
 
+  const acceptMutation = useAcceptInvitation({
+    onSuccess: () => {
+      onRefresh();
+      navigate(
+        getPathWithParams(paths.org.detail.root, {
+          orgId: invitation.organizationName,
+        })
+      );
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to accept invitation');
+    },
+  });
+
+  const rejectMutation = useRejectInvitation({
+    onSuccess: () => {
+      onRefresh();
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to decline invitation');
+    },
+  });
+
   const handleStateUpdate = async (e: React.MouseEvent, state: 'Accepted' | 'Declined') => {
     e.stopPropagation();
     setAction(state);
-    await fetcher.submit(
-      {
+
+    if (state === 'Accepted') {
+      acceptMutation.mutate({
         orgId: invitation.organizationName,
-        invitationId: invitation.name,
-        state,
-        redirectUri:
-          state === 'Accepted'
-            ? getPathWithParams(paths.org.detail.root, {
-                orgId: invitation.organizationName,
-              })
-            : undefined,
-      } as unknown as FormData,
-      {
-        method: 'PATCH',
-        action: INVITATION_UPDATE_STATE_ACTION,
-      }
-    );
+        name: invitation.name,
+      });
+    } else {
+      rejectMutation.mutate({
+        orgId: invitation.organizationName,
+        name: invitation.name,
+      });
+    }
 
     onMarkAsRead(notification.id);
   };
@@ -64,20 +84,7 @@ export function InvitationNotificationItem({
     navigate(getPathWithParams(paths.invitationAccept, { invitationId: invitation.name }));
   };
 
-  // Show toast on action completion
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data.success) {
-        onRefresh();
-      } else {
-        toast.error(fetcher.data.error || 'Failed to update invitation');
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
-
-  const isLoading = useMemo(() => {
-    return fetcher.state === 'submitting' || fetcher.state === 'loading';
-  }, [fetcher.state]);
+  const isLoading = acceptMutation.isPending || rejectMutation.isPending;
 
   // Generate title from invitation data
   const inviterName = invitation.inviterUser?.displayName || invitation.invitedBy || 'Someone';

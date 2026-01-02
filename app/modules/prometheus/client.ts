@@ -9,18 +9,9 @@ import type {
   PrometheusInstantResponse,
   PrometheusRangeResponse,
 } from './types';
-import { AxiosPrometheusCurl } from '@/modules/prometheus/axios-curl';
-import { isDevelopment } from '@/utils/config/env.config';
+import { logger } from '@/modules/logger';
+import { isDev } from '@/utils/env';
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
-
-function defaultLogCallback(curlResult: any, err: any) {
-  const { command } = curlResult;
-  if (err) {
-    console.error('Axios curl error', { error: err instanceof Error ? err.message : String(err) });
-  } else {
-    console.debug('Axios curl command', { command });
-  }
-}
 
 export const PROMETHEUS_CONFIG: PrometheusConfig = {
   baseURL: '',
@@ -51,36 +42,22 @@ export function createPrometheusClient(config?: Partial<PrometheusConfig>): Axio
   // Request interceptor for logging
   client.interceptors.request.use(
     (config) => {
-      if (isDevelopment()) {
-        try {
-          const curl = new AxiosPrometheusCurl(config);
-          (config as any).curlObject = curl;
-          (config as any).curlCommand = curl.generateCommand();
-          (config as any).clearCurl = () => {
-            delete (config as any).curlObject;
-            delete (config as any).curlCommand;
-            delete (config as any).clearCurl;
-          };
-        } catch (err) {
-          // Even if the axios middleware is stopped, no error should occur outside.
-          defaultLogCallback(null, err);
-        } finally {
-          if ((config as any).curlirize !== false) {
-            defaultLogCallback(
-              {
-                command: (config as any).curlCommand,
-                object: (config as any).curlObject,
-              },
-              null
-            );
-          }
-        }
+      if (isDev()) {
+        logger.debug('Prometheus request', {
+          method: config.method?.toUpperCase(),
+          url: config.url,
+          params: config.params,
+          baseURL: config.baseURL,
+        });
       }
 
       return config;
     },
     (error) => {
-      console.error('Prometheus Request Error:', error);
+      logger.error(
+        'Prometheus request failed',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return Promise.reject(error);
     }
   );
@@ -91,7 +68,15 @@ export function createPrometheusClient(config?: Partial<PrometheusConfig>): Axio
       return response;
     },
     (error) => {
-      console.error('Prometheus Response Error:', error);
+      logger.error(
+        'Prometheus response error',
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          errorType: error.response?.data?.errorType,
+        }
+      );
 
       if (error.response) {
         // Server responded with error status
@@ -197,7 +182,10 @@ export async function testConnection(client: AxiosInstance): Promise<boolean> {
 
     return response.data?.status === 'success';
   } catch (error) {
-    console.error('Prometheus connection test failed:', error);
+    logger.error(
+      'Prometheus connection test failed',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return false;
   }
 }
@@ -215,7 +203,10 @@ export async function getBuildInfo(client: AxiosInstance): Promise<Record<string
 
     return {};
   } catch (error) {
-    console.error('Failed to get Prometheus build info:', error);
+    logger.error(
+      'Failed to get Prometheus build info',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return {};
   }
 }
@@ -233,7 +224,10 @@ export async function getLabels(client: AxiosInstance, label: string): Promise<s
 
     return [];
   } catch (error) {
-    console.error('Failed to get Prometheus labels info:', error);
+    logger.error(
+      'Failed to get Prometheus labels info',
+      error instanceof Error ? error : new Error(String(error))
+    );
     return [];
   }
 }

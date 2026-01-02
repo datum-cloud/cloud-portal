@@ -2,11 +2,150 @@
  * RBAC Type Definitions
  * Core types for the Role-Based Access Control module
  */
+import { z } from 'zod';
 
 /**
  * Supported Kubernetes API verbs for permission checks
  */
 export type PermissionVerb = 'get' | 'list' | 'watch' | 'create' | 'update' | 'patch' | 'delete';
+
+// ============================================================================
+// Zod Schemas
+// ============================================================================
+
+/**
+ * Supported Kubernetes API verbs schema
+ */
+export const PermissionVerbSchema = z.enum([
+  'get',
+  'list',
+  'watch',
+  'create',
+  'update',
+  'patch',
+  'delete',
+]);
+
+/**
+ * Base permission check schema
+ */
+export const BasePermissionCheckSchema = z.object({
+  namespace: z.string().optional(),
+  verb: PermissionVerbSchema,
+  group: z.string().default(''),
+  resource: z.string().min(1, 'Resource is required'),
+  name: z.string().optional(),
+});
+
+/**
+ * Permission check schema with organization ID
+ */
+export const PermissionCheckSchema = BasePermissionCheckSchema.extend({
+  organizationId: z.string().min(1, 'Organization ID is required'),
+});
+
+/**
+ * Bulk permission check schema
+ */
+export const BulkPermissionCheckSchema = z.object({
+  organizationId: z.string().min(1, 'Organization ID is required'),
+  checks: z
+    .array(BasePermissionCheckSchema)
+    .min(1, 'At least one permission check is required')
+    .max(50, 'Maximum 50 permission checks allowed per request'),
+});
+
+/**
+ * Permission result schema
+ */
+export const PermissionResultSchema = z.object({
+  allowed: z.boolean(),
+  denied: z.boolean(),
+  reason: z.string().optional(),
+});
+
+/**
+ * Bulk permission result schema
+ */
+export const BulkPermissionResultSchema = z.object({
+  allowed: z.boolean(),
+  denied: z.boolean(),
+  reason: z.string().optional(),
+  request: BasePermissionCheckSchema,
+});
+
+/**
+ * API response schemas
+ */
+export const PermissionCheckResponseSchema = z.object({
+  success: z.boolean(),
+  data: PermissionResultSchema.optional(),
+  error: z.string().optional(),
+});
+
+export const BulkPermissionCheckResponseSchema = z.object({
+  success: z.boolean(),
+  data: z
+    .object({
+      results: z.array(BulkPermissionResultSchema),
+    })
+    .optional(),
+  error: z.string().optional(),
+});
+
+/**
+ * Schema-derived types
+ */
+export type BasePermissionCheck = z.infer<typeof BasePermissionCheckSchema>;
+export type PermissionCheckInput = z.infer<typeof PermissionCheckSchema>;
+export type BulkPermissionCheck = z.infer<typeof BulkPermissionCheckSchema>;
+export type PermissionResult = z.infer<typeof PermissionResultSchema>;
+export type BulkPermissionResult = z.infer<typeof BulkPermissionResultSchema>;
+export type PermissionCheckResponse = z.infer<typeof PermissionCheckResponseSchema>;
+export type BulkPermissionCheckResponse = z.infer<typeof BulkPermissionCheckResponseSchema>;
+
+// ============================================================================
+// TypeScript Interfaces
+// ============================================================================
+
+/**
+ * Base permission check interface
+ */
+export interface IBasePermissionCheck {
+  namespace?: string;
+  verb: PermissionVerb;
+  group: string;
+  resource: string;
+  name?: string;
+}
+
+/**
+ * Permission check response
+ */
+export interface IPermissionCheckResponse {
+  success: boolean;
+  data?: IPermissionResult;
+  error?: string;
+}
+
+/**
+ * Bulk permission check response
+ */
+export interface IBulkPermissionCheckResponse {
+  success: boolean;
+  data?: {
+    results: IBulkPermissionResult[];
+  };
+  error?: string;
+}
+
+/**
+ * Bulk permission check request
+ */
+export interface IBulkPermissionCheckRequest {
+  organizationId: string;
+  checks: IBasePermissionCheck[];
+}
 
 /**
  * Permission check request structure

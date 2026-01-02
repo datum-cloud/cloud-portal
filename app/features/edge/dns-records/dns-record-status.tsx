@@ -1,15 +1,15 @@
 import { BadgeProgrammingError } from '@/components/badge/badge-programming-error';
 import { BadgeStatus } from '@/components/badge/badge-status';
+import { useServiceContext } from '@/providers/service.provider';
+import { ControlPlaneStatus, IExtendedControlPlaneStatus } from '@/resources/base';
 import {
-  ControlPlaneStatus,
-  IExtendedControlPlaneStatus,
-} from '@/resources/interfaces/control-plane.interface';
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
-import { ROUTE_PATH as DNS_RECORD_STATUS_ROUTE_PATH } from '@/routes/api/dns-records/status';
+  createDnsRecordService,
+  dnsRecordKeys,
+  IFlattenedDnsRecord,
+} from '@/resources/dns-records';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { useEffect, useRef, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 
 interface DnsRecordStatusProps {
   record: IFlattenedDnsRecord;
@@ -155,11 +155,28 @@ function processDnsRecordStatus(
  * - Discovery records → No badge
  */
 export const DnsRecordStatus = ({ record, projectId, className }: DnsRecordStatusProps) => {
-  const fetcher = useFetcher({ key: `dns-record-status-${record.recordSetName}` });
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const ctx = useServiceContext();
+  const service = createDnsRecordService(ctx);
   const [extendedStatus, setExtendedStatus] = useState<IExtendedControlPlaneStatus>();
   const [hasRecordSetError, setHasRecordSetError] = useState(false);
   const [hasOtherRecordSetErrors, setHasOtherRecordSetErrors] = useState(false);
+  const [shouldPoll, setShouldPoll] = useState(true);
+
+  // Determine if we should poll based on current status
+  const needsPolling =
+    !!projectId &&
+    !!record.recordSetName &&
+    shouldPoll &&
+    (!record.status ||
+      (!record.status?.isProgrammed && record.status?.programmedReason !== 'InvalidDNSRecordSet'));
+
+  // Use React Query with refetchInterval for polling
+  const { data: statusData } = useQuery({
+    queryKey: [...dnsRecordKeys.detail(projectId, record.recordSetName ?? ''), 'status'],
+    queryFn: () => service.getStatus(projectId, record.recordSetName ?? ''),
+    enabled: needsPolling,
+    refetchInterval: needsPolling ? 10000 : false,
+  });
 
   // Initialize extended status from record fields (already extended)
   useEffect(() => {
@@ -172,68 +189,21 @@ export const DnsRecordStatus = ({ record, projectId, className }: DnsRecordStatu
     }
   }, [record.status]);
 
+  // Process status data from query
   useEffect(() => {
-    // Only set up polling for managed records that have recordSetId
-    if (!projectId || !record.recordSetName) {
-      return;
-    }
-
-    const loadStatus = () => {
-      if (record.recordSetName && projectId) {
-        fetcher.load(
-          `${getPathWithParams(DNS_RECORD_STATUS_ROUTE_PATH, { id: record.recordSetName })}?projectId=${projectId}`
-        );
-      }
-    };
-
-    // Initial load if:
-    // 1. No current status exists, or
-    // 2. Current status is pending
-    if (
-      !record.status ||
-      (!record.status?.isProgrammed && record.status?.programmedReason !== 'InvalidDNSRecordSet')
-    ) {
-      // Defer initial load to avoid state update before mount
-      const timeoutId = setTimeout(loadStatus, 0);
-
-      // Set up polling interval
-      intervalRef.current = setInterval(loadStatus, 10000);
-
-      // Clean up timeout on unmount
-      return () => {
-        clearTimeout(timeoutId);
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-        }
-      };
-    }
-
-    // Clean up interval on unmount
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [projectId, record]);
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const rawStatus = fetcher.data.data;
-      const processed = processDnsRecordStatus(rawStatus, record);
+    if (statusData) {
+      const processed = processDnsRecordStatus(statusData, record);
 
       setExtendedStatus(processed.extendedStatus);
       setHasRecordSetError(processed.hasRecordSetError);
       setHasOtherRecordSetErrors(processed.hasOtherRecordSetErrors);
 
       // Stop polling if needed
-      if (processed.shouldStopPolling && intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+      if (processed.shouldStopPolling) {
+        setShouldPoll(false);
       }
     }
-  }, [fetcher.data, fetcher.state, intervalRef, record]);
+  }, [statusData, record]);
 
   // If there are errors on other records in the recordSet, don't show any badge
   if (hasOtherRecordSetErrors) {

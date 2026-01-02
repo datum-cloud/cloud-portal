@@ -1,16 +1,22 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { ROUTE_PATH as USER_DELETE_ACTION } from '@/routes/api/user';
+import { useApp } from '@/providers/app.provider';
+import { useDeleteUser } from '@/resources/users';
 import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { CircleAlertIcon } from 'lucide-react';
-import { useEffect } from 'react';
-import { useFetcher } from 'react-router';
 
 export const AccountDangerSettingsCard = () => {
-  const fetcher = useFetcher({ key: 'user-delete' });
+  const { user } = useApp();
   const { confirm } = useConfirmationDialog();
+  const userId = user?.sub ?? 'me';
+
+  const deleteUserMutation = useDeleteUser({
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   const deleteAccount = async () => {
     await confirm({
@@ -21,24 +27,10 @@ export const AccountDangerSettingsCard = () => {
       variant: 'destructive',
       showConfirmInput: true,
       onSubmit: async () => {
-        await fetcher.submit(
-          {},
-          {
-            method: 'DELETE',
-            action: USER_DELETE_ACTION,
-          }
-        );
+        await deleteUserMutation.mutateAsync(userId);
       },
     });
   };
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (!fetcher.data?.success) {
-        toast.error(fetcher.data?.error);
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   return (
     <Card className="border-destructive/50 hover:border-destructive border pb-0 shadow-none transition-colors">

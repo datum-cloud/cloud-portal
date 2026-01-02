@@ -1,4 +1,4 @@
-import { CreateDnsRecordSchema, DNSRecordType } from '@/resources/schemas/dns-record.schema';
+import { CreateDnsRecordSchema, DNSRecordType } from '@/resources/dns-records';
 
 export interface PreviewField {
   label: string;

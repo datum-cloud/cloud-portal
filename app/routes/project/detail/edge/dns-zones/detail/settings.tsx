@@ -3,12 +3,11 @@ import { DangerCard } from '@/components/danger-card/danger-card';
 import { PageTitle } from '@/components/page-title/page-title';
 import { ComingSoonCard } from '@/features/edge/dns-zone/overview/coming-soon-card';
 import { DescriptionFormCard } from '@/features/edge/dns-zone/overview/description-form-card';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
+import { useDeleteDnsZone } from '@/resources/dns-zones';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-ui/components';
-import { useParams, useRouteLoaderData } from 'react-router';
+import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Settings</span>,
@@ -17,7 +16,17 @@ export const handle = {
 export default function DnsZoneSettingsPage() {
   const { projectId } = useParams();
   const { dnsZone } = useRouteLoaderData('dns-zone-detail');
-  const fetcher = useDatumFetcher({ key: 'delete-dns-zone' });
+  const navigate = useNavigate();
+
+  const deleteMutation = useDeleteDnsZone(projectId ?? '', {
+    onSuccess: () => {
+      navigate(
+        getPathWithParams(paths.project.detail.dnsZones.root, {
+          projectId,
+        })
+      );
+    },
+  });
 
   const { confirm, close: closeConfirmationDialog } = useConfirmationDialog();
   const deleteDnsZone = async () => {
@@ -37,19 +46,7 @@ export default function DnsZoneSettingsPage() {
       confirmInputLabel: `Type "${dnsZone?.domainName}" to confirm.`,
       onSubmit: async () => {
         closeConfirmationDialog();
-        await fetcher.submit(
-          {
-            id: dnsZone?.name ?? '',
-            projectId: projectId ?? '',
-            redirectUri: getPathWithParams(paths.project.detail.dnsZones.root, {
-              projectId,
-            }),
-          },
-          {
-            method: 'DELETE',
-            action: DNS_ZONES_ACTIONS_PATH,
-          }
-        );
+        await deleteMutation.mutateAsync(dnsZone?.name ?? '');
       },
     });
   };
@@ -75,7 +72,7 @@ export default function DnsZoneSettingsPage() {
             title="Warning: This Action is Irreversible"
             description={`This action cannot be undone. Once deleted, the ${dnsZone?.domainName} zone and all associated data will be permanently removed. `}
             deleteText="Delete zone"
-            loading={fetcher.state === 'submitting'}
+            loading={deleteMutation.isPending}
             onDelete={deleteDnsZone}
           />
         </Col>

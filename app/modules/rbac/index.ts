@@ -19,9 +19,29 @@ export type {
   IPermissionCacheKey,
   OnDeniedContext,
   OnDeniedHandler,
+  // Schema-derived types
+  BasePermissionCheck,
+  PermissionCheckInput,
+  BulkPermissionCheck,
+  PermissionResult,
+  BulkPermissionResult,
+  PermissionCheckResponse,
+  BulkPermissionCheckResponse,
 } from './types';
 
-export { PermissionDeniedError, PERMISSIONS } from './types';
+export {
+  PermissionDeniedError,
+  PERMISSIONS,
+  // Zod schemas
+  PermissionVerbSchema,
+  BasePermissionCheckSchema,
+  PermissionCheckSchema,
+  BulkPermissionCheckSchema,
+  PermissionResultSchema,
+  BulkPermissionResultSchema,
+  PermissionCheckResponseSchema,
+  BulkPermissionCheckResponseSchema,
+} from './types';
 
 // ============================================================================
 // Client-Side API (Browser Only)

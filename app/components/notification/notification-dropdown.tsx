@@ -2,7 +2,7 @@ import { NotificationBell } from './notification-bell';
 import { NotificationEmpty } from './notification-empty';
 import { NotificationList } from './notification-list';
 import type { NotificationDropdownProps, NotificationSourceType, NotificationTab } from './types';
-import { useNotificationPolling } from '@/hooks/useNotificationPolling';
+import { useNotifications } from './use-notifications';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,9 +21,9 @@ export function NotificationDropdown({
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<NotificationSourceType>(defaultTab);
 
-  // Use notification polling directly - no provider needed
+  // Use React Query-based notifications hook
   const { notifications, counts, markAsRead, refresh, refreshOnInteraction, error } =
-    useNotificationPolling({ interval: pollingInterval });
+    useNotifications({ interval: pollingInterval });
 
   // Filter notifications by active tab
   const filteredNotifications = notifications.filter((n) => n.source === activeTab);

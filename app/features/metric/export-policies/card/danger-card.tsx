@@ -1,11 +1,9 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
-import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/export-policies/';
+import { IExportPolicyControlResponse, useDeleteExportPolicy } from '@/resources/export-policies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 export const ExportPolicyDangerCard = ({
   exportPolicy,
@@ -13,8 +11,18 @@ export const ExportPolicyDangerCard = ({
   exportPolicy: IExportPolicyControlResponse;
 }) => {
   const { projectId } = useParams();
-  const fetcher = useDatumFetcher({ key: 'export-policy-delete' });
+  const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
+
+  const deleteExportPolicyMutation = useDeleteExportPolicy(projectId ?? '', {
+    onSuccess: () => {
+      navigate(
+        getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
+          projectId,
+        })
+      );
+    },
+  });
 
   const deleteExportPolicy = async () => {
     await confirm({
@@ -30,19 +38,7 @@ export const ExportPolicyDangerCard = ({
       variant: 'destructive',
       showConfirmInput: false,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: exportPolicy?.name ?? '',
-            projectId: projectId ?? '',
-            redirectUri: getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
-              projectId,
-            }),
-          },
-          {
-            action: EXPORT_POLICIES_ACTIONS_ROUTE_PATH,
-            method: 'DELETE',
-          }
-        );
+        await deleteExportPolicyMutation.mutateAsync(exportPolicy?.name ?? '');
       },
     });
   };
@@ -52,7 +48,7 @@ export const ExportPolicyDangerCard = ({
       title="Warning: This action is irreversible"
       description="Make sure you have made a backup if you want to keep your data."
       deleteText="Delete policy"
-      loading={fetcher.isPending}
+      loading={deleteExportPolicyMutation.isPending}
       onDelete={deleteExportPolicy}
     />
   );

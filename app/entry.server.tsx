@@ -1,5 +1,4 @@
 import { NonceProvider } from '@/hooks/useNonce';
-import { initEnvs } from '@/utils/config/env.config';
 import { createReadableStreamFromReadable } from '@react-router/node';
 import * as Sentry from '@sentry/react-router';
 import { isbot } from 'isbot';
@@ -7,11 +6,6 @@ import { PassThrough } from 'node:stream';
 import { renderToPipeableStream } from 'react-dom/server';
 import type { AppLoadContext, EntryContext } from 'react-router';
 import { ServerRouter } from 'react-router';
-
-/**
- * Environment Variables.
- */
-initEnvs();
 
 const ABORT_DELAY = 5_000;
 
@@ -34,7 +28,7 @@ async function handleRequest(
     let shellRendered = false;
     const { pipe, abort } = renderToPipeableStream(
       <NonceProvider value={nonce}>
-        <ServerRouter context={reactRouterContext} url={request.url} />
+        <ServerRouter nonce={nonce} context={reactRouterContext} url={request.url} />
       </NonceProvider>,
       {
         [callbackName]: () => {

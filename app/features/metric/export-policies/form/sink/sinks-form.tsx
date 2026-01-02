@@ -1,11 +1,11 @@
 import { SinkField } from './sink-field';
-import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.interface';
+import { ExportPolicySinkTypeEnum } from '@/resources/export-policies';
 import {
   ExportPolicySinkFieldSchema,
   ExportPolicySinksSchema,
   ExportPolicySourceFieldSchema,
   UpdateExportPolicySchema,
-} from '@/resources/schemas/export-policy.schema';
+} from '@/resources/export-policies';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
@@ -100,7 +100,7 @@ export const SinksForm = ({
             name: fields.sinks.name,
             defaultValue: {
               name: '',
-              type: ExportPolicySinkType.PROMETHEUS,
+              type: ExportPolicySinkTypeEnum.PROMETHEUS,
               sources: [],
             },
           })

@@ -1,17 +1,16 @@
 import { useApp } from '@/providers/app.provider';
-import { ROUTE_PATH as USER_PREFERENCES_UPDATE_ACTION } from '@/routes/api/user/preferences';
+import { useUpdateUserPreferences } from '@/resources/users';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { Label } from '@datum-ui/components';
 import { Switch } from '@datum-ui/components';
 import { useEffect, useState } from 'react';
-import { useFetcher } from 'react-router';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 export const AccountNewsletterSettingsCard = () => {
-  const { userPreferences } = useApp();
-  const fetcher = useFetcher();
-  const csrf = useAuthenticityToken();
+  const { user, userPreferences } = useApp();
+  const userId = user?.sub ?? 'me';
   const [emailNewsletter, setEmailNewsletter] = useState(false);
+
+  const updatePreferencesMutation = useUpdateUserPreferences(userId);
 
   useEffect(() => {
     if (userPreferences) {
@@ -21,17 +20,7 @@ export const AccountNewsletterSettingsCard = () => {
 
   const updatePreferences = (value: boolean) => {
     setEmailNewsletter(value);
-    fetcher.submit(
-      {
-        newsletter: value,
-        csrf,
-      },
-      {
-        method: 'PATCH',
-        encType: 'application/json',
-        action: USER_PREFERENCES_UPDATE_ACTION,
-      }
-    );
+    updatePreferencesMutation.mutate({ newsletter: value });
   };
 
   return (

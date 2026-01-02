@@ -1,5 +1,5 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
-import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
+import { IHttpProxyControlResponse } from '@/resources/http-proxies';
 import { Badge } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';

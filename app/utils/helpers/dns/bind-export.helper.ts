@@ -1,6 +1,6 @@
 import { SUPPORTED_DNS_RECORD_TYPES } from './constants';
 import { ensureFqdn } from './record-type.helper';
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
+import { IFlattenedDnsRecord } from '@/resources/dns-records';
 
 // =============================================================================
 // BIND Zone File Export - Custom Implementation (RFC 1035 compliant)

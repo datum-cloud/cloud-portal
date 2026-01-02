@@ -1,7 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
-import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
+import { ISecretControlResponse } from '@/resources/secrets';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { useMemo } from 'react';
 

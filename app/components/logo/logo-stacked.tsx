@@ -1,19 +1,13 @@
+import { ClientOnly, useTheme } from '@/modules/datum-themes';
 import * as React from 'react';
-import { useTheme, Theme } from 'remix-themes';
 
-export const LogoStacked = (props: React.SVGProps<SVGSVGElement>) => {
-  const [theme] = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  // Ensure component is mounted on client to prevent hydration mismatch
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
+const LogoStackedSVG = ({
+  theme,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { theme: 'light' | 'dark' }) => {
   // Default to light theme color during SSR and before hydration
-  const textFillColor = mounted && theme === Theme.DARK ? '#ffffff' : '#0C1D31';
-  const fillColor = mounted && theme === Theme.DARK ? '#E6F59E' : '#BF9595';
-
+  const textFillColor = theme === 'dark' ? '#ffffff' : '#0C1D31';
+  const fillColor = theme === 'dark' ? '#E6F59E' : '#BF9595';
   return (
     <svg
       width={82}
@@ -47,5 +41,16 @@ export const LogoStacked = (props: React.SVGProps<SVGSVGElement>) => {
         fill={textFillColor}
       />
     </svg>
+  );
+};
+
+export const LogoStacked = (props: React.SVGProps<SVGSVGElement>) => {
+  const { resolvedTheme } = useTheme();
+  const theme = (resolvedTheme as 'light' | 'dark') ?? 'light';
+
+  return (
+    <ClientOnly fallback={<LogoStackedSVG theme="light" {...props} />}>
+      <LogoStackedSVG theme={theme} {...props} />
+    </ClientOnly>
   );
 };

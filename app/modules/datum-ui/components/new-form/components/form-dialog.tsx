@@ -79,6 +79,9 @@ export function FormDialog<T extends z.ZodType>({
   showCancel = true,
   submitType = 'primary',
 
+  // Loading state
+  loading,
+
   // Styling
   className,
   formClassName,
@@ -87,7 +90,10 @@ export function FormDialog<T extends z.ZodType>({
   children,
 }: FormDialogProps<T>) {
   const [internalOpen, setInternalOpen] = React.useState(defaultOpen ?? false);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [internalIsSubmitting, setInternalIsSubmitting] = React.useState(false);
+
+  // Use external loading if provided, otherwise use internal state
+  const isSubmitting = loading ?? internalIsSubmitting;
 
   // Determine if controlled or uncontrolled
   const isControlled = open !== undefined;
@@ -110,7 +116,10 @@ export function FormDialog<T extends z.ZodType>({
 
   const handleSubmit = React.useCallback(
     async (data: z.infer<T>) => {
-      setIsSubmitting(true);
+      // Only manage internal state if not using external loading
+      if (loading === undefined) {
+        setInternalIsSubmitting(true);
+      }
       try {
         await onSubmit?.(data);
         onSuccess?.(data);
@@ -118,10 +127,12 @@ export function FormDialog<T extends z.ZodType>({
         console.error('Form submission error:', error);
         throw error;
       } finally {
-        setIsSubmitting(false);
+        if (loading === undefined) {
+          setInternalIsSubmitting(false);
+        }
       }
     },
-    [onSubmit, onSuccess, handleOpenChange]
+    [onSubmit, onSuccess, loading]
   );
 
   const handleCancel = React.useCallback(() => {

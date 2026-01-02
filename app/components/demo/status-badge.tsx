@@ -1,5 +1,5 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
-import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
+import { ControlPlaneStatus } from '@/resources/base';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 
 export const statusBadgeDemoSections = [
