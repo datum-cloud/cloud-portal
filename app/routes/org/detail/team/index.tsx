@@ -9,17 +9,18 @@ import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import {
   createInvitationService,
-  type Invitation,
   useCancelInvitation,
   useResendInvitation,
+  useHydrateInvitations,
+  useInvitations,
 } from '@/resources/invitations';
 import {
   createMemberService,
-  type Member,
   useRemoveMember,
   useLeaveOrganization,
+  useHydrateMembers,
+  useMembers,
 } from '@/resources/members';
-import { createRoleService } from '@/resources/roles';
 import { buildNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
@@ -70,85 +71,80 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const { controlPlaneClient, requestId } = context as AppLoadContext;
   const invitationService = createInvitationService({ controlPlaneClient, requestId });
   const memberService = createMemberService({ controlPlaneClient, requestId });
-  const roleService = createRoleService({ controlPlaneClient, requestId });
 
   if (!orgId) {
     throw new BadRequestError('Organization ID is required');
   }
 
-  // Helper function to resolve role details by querying the API
-  const resolveRoleDetails = async (roleName: string, namespace: string = 'datum-cloud') => {
-    try {
-      const role = await roleService.get(roleName, namespace);
-      return {
-        name: roleName,
-        namespace,
-        displayName: role.displayName ?? roleName,
-        description: role.description,
-      };
-    } catch (error) {
-      // Fallback if role not found
-      console.error(`Failed to resolve role details for ${roleName}:`, error);
-      return {
-        name: roleName,
-        namespace,
-        displayName: roleName,
-        description: undefined,
-      };
-    }
-  };
+  // Fetch raw data - transformation happens in component
+  const [invitations, members] = await Promise.all([
+    invitationService.list(orgId),
+    memberService.list(orgId),
+  ]);
 
-  const invitations = await invitationService.list(orgId);
-  const filteredInvitations: Invitation[] = invitations.filter(
-    (invitation) => invitation.state === 'Pending'
-  );
-
-  const members: Member[] = await memberService.list(orgId);
-
-  // Transform invitations to generic format
-  const invitationTeamMembers: ITeamMember[] = await Promise.all(
-    filteredInvitations.map(async (invitation) => ({
-      id: invitation.name,
-      fullName: invitation.email ?? '',
-      email: invitation.email ?? '',
-      roles: invitation.role ? [await resolveRoleDetails(invitation.role, 'datum-cloud')] : [],
-      invitationState: invitation.state,
-      type: 'invitation' as const,
-      name: invitation.name,
-    }))
-  );
-
-  // Transform members to generic format
-  const memberTeamMembers: ITeamMember[] = await Promise.all(
-    members.map(async (member) => ({
-      id: member.user.id,
-      fullName: `${member.user.givenName ?? ''} ${member.user.familyName ?? ''}`.trim(),
-      email: member.user.email ?? '',
-      roles: member.roles
-        ? await Promise.all(
-            member.roles.map((role) =>
-              resolveRoleDetails(role.name, role.namespace ?? 'datum-cloud')
-            )
-          )
-        : [],
-      type: 'member' as const,
-      name: member.name,
-      avatarUrl: member.user.avatarUrl,
-    }))
-  );
-
-  // Combine both arrays
-  const teamMembers: ITeamMember[] = [...memberTeamMembers, ...invitationTeamMembers];
-
-  return data(teamMembers);
+  return data({ members, invitations });
 };
 
 export default function OrgTeamPage() {
-  const teamMembers = useLoaderData<typeof loader>() as ITeamMember[];
-
+  const { members: initialMembers, invitations: initialInvitations } =
+    useLoaderData<typeof loader>();
   const { orgId } = useParams();
   const { user } = useApp();
   const navigate = useNavigate();
+
+  // Hydrate React Query cache with SSR data (runs once on mount)
+  useHydrateMembers(orgId ?? '', initialMembers);
+  useHydrateInvitations(orgId ?? '', initialInvitations);
+
+  // Read from React Query cache (gets updates from mutations)
+  const { data: liveMembers } = useMembers(orgId ?? '', {
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
+  });
+  const { data: liveInvitations } = useInvitations(orgId ?? '', {
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Use live data, fallback to SSR data
+  const members = liveMembers ?? initialMembers;
+  const invitations = liveInvitations ?? initialInvitations;
+
+  // Transform members to team members format
+  const memberTeamMembers: ITeamMember[] = useMemo(() => {
+    return members.map((member) => ({
+      id: member.user.id,
+      fullName: `${member.user.givenName ?? ''} ${member.user.familyName ?? ''}`.trim(),
+      email: member.user.email ?? '',
+      roles: member.roles?.map((role) => ({
+        name: role.name,
+        namespace: role.namespace ?? 'datum-cloud',
+      })),
+      type: 'member' as const,
+      name: member.name,
+      avatarUrl: member.user.avatarUrl,
+    }));
+  }, [members]);
+
+  // Transform invitations to team members format
+  const invitationTeamMembers: ITeamMember[] = useMemo(() => {
+    return invitations
+      .filter((invitation) => invitation.state === 'Pending')
+      .map((invitation) => ({
+        id: invitation.name,
+        fullName: invitation.email ?? '',
+        email: invitation.email ?? '',
+        roles: invitation.role ? [{ name: invitation.role, namespace: 'datum-cloud' }] : [],
+        invitationState: invitation.state,
+        type: 'invitation' as const,
+        name: invitation.name,
+      }));
+  }, [invitations]);
+
+  // Combine members and invitations
+  const teamMembers: ITeamMember[] = useMemo(() => {
+    return [...memberTeamMembers, ...invitationTeamMembers];
+  }, [memberTeamMembers, invitationTeamMembers]);
   const { confirm } = useConfirmationDialog();
 
   const manageRoleModalForm = useRef<ManageRoleModalFormRef>(null);

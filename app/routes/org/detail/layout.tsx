@@ -41,9 +41,12 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 };
 
 export default function OrgLayout() {
-  const org = useLoaderData<typeof loader>();
+  const initialOrg = useLoaderData<typeof loader>();
 
-  const { setOrganization } = useApp();
+  const { organization, setOrganization } = useApp();
+
+  // Use app state (updated by mutations), fallback to SSR data
+  const org = organization?.name === initialOrg?.name ? organization : initialOrg;
 
   const navItems: NavItem[] = useMemo(() => {
     const orgId = org?.name;
@@ -83,11 +86,12 @@ export default function OrgLayout() {
     ];
   }, [org]);
 
+  // Sync SSR org to app state on initial load or org change
   useEffect(() => {
-    if (org) {
-      setOrganization(org);
+    if (initialOrg) {
+      setOrganization(initialOrg);
     }
-  }, [org]);
+  }, [initialOrg, setOrganization]);
 
   return (
     <DashboardLayout navItems={navItems} sidebarCollapsible="icon" currentOrg={org}>

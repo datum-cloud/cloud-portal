@@ -36,7 +36,7 @@ export default defineConfig((config) => {
     },
     plugins: [
       tailwindcss(),
-      reactRouterHonoServer({ runtime: 'bun', serverEntryPoint: './app/server/entry.ts' }),
+      reactRouterHonoServer({ runtime: 'bun' }),
       process.env.CYPRESS ? react() : reactRouter(),
       tsconfigPaths(),
       sentryReactRouter(

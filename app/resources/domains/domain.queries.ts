@@ -188,15 +188,9 @@ export function useRefreshDomainRegistration(
     onSuccess: (data, name) => {
       // Update cache with actual response from server
       queryClient.setQueryData(domainKeys.detail(projectId, name), data);
-
-      // Also invalidate lists to keep them in sync
-      queryClient.invalidateQueries({
-        queryKey: domainKeys.lists(),
-      });
+      queryClient.invalidateQueries({ queryKey: domainKeys.lists() });
       // Also invalidate DNS zones since they depend on domain nameserver status
-      queryClient.invalidateQueries({
-        queryKey: dnsZoneKeys.lists(),
-      });
+      queryClient.invalidateQueries({ queryKey: dnsZoneKeys.lists() });
     },
     ...options,
   });

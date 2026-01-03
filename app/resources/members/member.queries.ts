@@ -8,6 +8,7 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 
 export function useMembers(
   orgId: string,
@@ -43,6 +44,22 @@ export function useMember(
   });
 }
 
+/**
+ * Hydrate React Query cache with SSR member data.
+ * Runs once on mount to seed the cache, then React Query takes over.
+ */
+export function useHydrateMembers(orgId: string, initialData: Member[]) {
+  const queryClient = useQueryClient();
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    if (!hydrated.current && orgId && initialData) {
+      queryClient.setQueryData(memberKeys.list(orgId), initialData);
+      hydrated.current = true;
+    }
+  }, [queryClient, orgId, initialData]);
+}
+
 export function useUpdateMemberRole(
   orgId: string,
   options?: UseMutationOptions<Member, Error, { name: string; roleRef: UpdateMemberRoleInput }>
@@ -54,8 +71,12 @@ export function useUpdateMemberRole(
   return useMutation({
     mutationFn: ({ name, roleRef }: { name: string; roleRef: UpdateMemberRoleInput }) =>
       service.updateRole(orgId, name, roleRef),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: memberKeys.list(orgId) });
+    onSettled: () => {
+      // Force refetch active queries (works even with staleTime)
+      queryClient.refetchQueries({
+        queryKey: memberKeys.list(orgId),
+        type: 'active',
+      });
     },
     ...options,
   });
@@ -68,8 +89,12 @@ export function useRemoveMember(orgId: string, options?: UseMutationOptions<void
 
   return useMutation({
     mutationFn: (name: string) => service.delete(orgId, name),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: memberKeys.list(orgId) });
+    onSettled: () => {
+      // Force refetch active queries (works even with staleTime)
+      queryClient.refetchQueries({
+        queryKey: memberKeys.list(orgId),
+        type: 'active',
+      });
     },
     ...options,
   });
@@ -85,8 +110,12 @@ export function useLeaveOrganization(
   return useMutation({
     mutationFn: ({ orgId, memberName }: { orgId: string; memberName: string }) =>
       service.delete(orgId, memberName),
-    onSuccess: (_data, { orgId }) => {
-      queryClient.invalidateQueries({ queryKey: memberKeys.list(orgId) });
+    onSettled: (_data, _error, { orgId }) => {
+      // Force refetch active queries (works even with staleTime)
+      queryClient.refetchQueries({
+        queryKey: memberKeys.list(orgId),
+        type: 'active',
+      });
     },
     ...options,
   });

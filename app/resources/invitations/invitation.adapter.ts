@@ -27,6 +27,7 @@ export function toInvitation(raw: ComMiloapisIamV1Alpha1UserInvitation): Invitat
     invitedBy: spec?.invitedBy?.name,
     organizationName: spec?.organizationRef?.name ?? '',
     role: spec?.roles?.[0]?.name,
+    roleNamespace: spec?.roles?.[0]?.namespace ?? 'milo-system',
     state: (spec?.state ?? 'Pending') as InvitationState,
     status: status ?? {},
     inviterUser: status?.inviterUser,

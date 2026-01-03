@@ -114,11 +114,14 @@ export function useUpdateOrganization(
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({
+      // Force refetch active queries (works even with staleTime)
+      queryClient.refetchQueries({
         queryKey: organizationKeys.detail(name),
+        type: 'active',
       });
-      queryClient.invalidateQueries({
+      queryClient.refetchQueries({
         queryKey: organizationKeys.lists(),
+        type: 'active',
       });
     },
     ...options,

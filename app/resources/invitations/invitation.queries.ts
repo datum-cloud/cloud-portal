@@ -8,6 +8,8 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
+import { differenceInMinutes } from 'date-fns';
+import { useEffect, useRef } from 'react';
 
 export function useInvitations(
   orgId: string,
@@ -55,6 +57,22 @@ export function useUserInvitations(
   });
 }
 
+/**
+ * Hydrate React Query cache with SSR invitation data.
+ * Runs once on mount to seed the cache, then React Query takes over.
+ */
+export function useHydrateInvitations(orgId: string, initialData: Invitation[]) {
+  const queryClient = useQueryClient();
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    if (!hydrated.current && orgId && initialData) {
+      queryClient.setQueryData(invitationKeys.list(orgId), initialData);
+      hydrated.current = true;
+    }
+  }, [queryClient, orgId, initialData]);
+}
+
 export function useCreateInvitation(
   orgId: string,
   options?: UseMutationOptions<Invitation, Error, CreateInvitationInput>
@@ -66,9 +84,16 @@ export function useCreateInvitation(
   return useMutation({
     mutationFn: (input: CreateInvitationInput) =>
       service.create(orgId, input) as Promise<Invitation>,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: invitationKeys.list(orgId) });
-      queryClient.invalidateQueries({ queryKey: invitationKeys.userLists() });
+    onSettled: () => {
+      // Force refetch active queries (works even with staleTime)
+      queryClient.refetchQueries({
+        queryKey: invitationKeys.list(orgId),
+        type: 'active',
+      });
+      queryClient.refetchQueries({
+        queryKey: invitationKeys.userLists(),
+        type: 'active',
+      });
     },
     ...options,
   });
@@ -88,11 +113,16 @@ export function useCancelInvitation(
       queryClient.removeQueries({
         queryKey: invitationKeys.detail(orgId, name),
       });
-      queryClient.invalidateQueries({
+    },
+    onSettled: () => {
+      // Force refetch active queries (works even with staleTime)
+      queryClient.refetchQueries({
         queryKey: invitationKeys.list(orgId),
+        type: 'active',
       });
-      queryClient.invalidateQueries({
+      queryClient.refetchQueries({
         queryKey: invitationKeys.userLists(),
+        type: 'active',
       });
     },
     ...options,
@@ -111,18 +141,44 @@ export function useResendInvitation(
     mutationFn: async (name: string) => {
       // Resend by getting the current invitation and creating a new one
       const invitation = await service.get(orgId, name);
+
+      if (invitation?.state !== 'Pending') {
+        throw new Error('Invitation is not pending');
+      }
+
+      // Check rate limiting - invitation must be older than 10 minutes to resend
+      if (invitation?.createdAt) {
+        const createdAt = new Date(invitation.createdAt);
+        const now = new Date();
+        const minutesSinceCreation = differenceInMinutes(now, createdAt);
+
+        if (minutesSinceCreation < 10) {
+          const remainingMinutes = 10 - minutesSinceCreation;
+          throw new Error(
+            `Please wait ${remainingMinutes} more minute${remainingMinutes !== 1 ? 's' : ''} before resending this invitation`
+          );
+        }
+      }
+
       await service.delete(orgId, name);
-      return service.create(orgId, {
+
+      const newInvitation = (await service.create(orgId, {
         email: invitation.email,
         role: invitation.role,
-      }) as Promise<Invitation>;
+        roleNamespace: invitation?.roleNamespace ?? 'milo-system',
+      })) as Promise<Invitation>;
+
+      return newInvitation;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onSettled: () => {
+      // Force refetch active queries (works even with staleTime)
+      queryClient.refetchQueries({
         queryKey: invitationKeys.list(orgId),
+        type: 'active',
       });
-      queryClient.invalidateQueries({
+      queryClient.refetchQueries({
         queryKey: invitationKeys.userLists(),
+        type: 'active',
       });
     },
     ...options,
@@ -148,11 +204,16 @@ export function useAcceptInvitation(
       queryClient.removeQueries({
         queryKey: invitationKeys.detail(orgId, name),
       });
-      queryClient.invalidateQueries({
+    },
+    onSettled: (_data, _error, { orgId }) => {
+      // Force refetch active queries (works even with staleTime)
+      queryClient.refetchQueries({
         queryKey: invitationKeys.list(orgId),
+        type: 'active',
       });
-      queryClient.invalidateQueries({
+      queryClient.refetchQueries({
         queryKey: invitationKeys.userLists(),
+        type: 'active',
       });
     },
     ...options,
@@ -178,11 +239,16 @@ export function useRejectInvitation(
       queryClient.removeQueries({
         queryKey: invitationKeys.detail(orgId, name),
       });
-      queryClient.invalidateQueries({
+    },
+    onSettled: (_data, _error, { orgId }) => {
+      // Force refetch active queries (works even with staleTime)
+      queryClient.refetchQueries({
         queryKey: invitationKeys.list(orgId),
+        type: 'active',
       });
-      queryClient.invalidateQueries({
+      queryClient.refetchQueries({
         queryKey: invitationKeys.userLists(),
+        type: 'active',
       });
     },
     ...options,

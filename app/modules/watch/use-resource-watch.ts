@@ -7,6 +7,9 @@ import { useCallback, useEffect, useRef } from 'react';
 // Debounce delay for list invalidation (ms)
 const INVALIDATE_DEBOUNCE_MS = 300;
 
+// Minimum interval between list refetches (ms) - prevents rapid fire refetches
+const MIN_REFETCH_INTERVAL_MS = 5000;
+
 // Initial sync period - skip ADDED events during this time (ms)
 // Watch sends ADDED events for all existing resources on startup
 // Since hydration already seeded the cache, we skip these initial ADDED events
@@ -49,28 +52,44 @@ export function useResourceWatch<T>({
   const queryClient = useQueryClient();
   const transformRef = useRef(transform);
   const onEventRef = useRef(onEvent);
+  const queryKeyRef = useRef(queryKey);
   const invalidateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const subscriptionStartTimeRef = useRef<number>(0);
+  const lastRefetchTimeRef = useRef<number>(0);
 
   // Keep refs updated without triggering effect
   transformRef.current = transform;
   onEventRef.current = onEvent;
+  queryKeyRef.current = queryKey;
 
   // Check if we're in the initial sync period (skip ADDED events)
   const isInInitialSyncPeriod = useCallback(() => {
     return Date.now() - subscriptionStartTimeRef.current < INITIAL_SYNC_PERIOD_MS;
   }, []);
 
-  // Debounced invalidation for list queries
+  // Debounced + throttled invalidation for list queries
+  // Debounce: batch rapid events together
+  // Throttle: prevent refetching more than once per MIN_REFETCH_INTERVAL_MS
+  // Uses refs to avoid recreating callback and prevent effect re-runs
   const debouncedInvalidate = useCallback(() => {
     if (invalidateTimeoutRef.current) {
       clearTimeout(invalidateTimeoutRef.current);
     }
     invalidateTimeoutRef.current = setTimeout(() => {
-      queryClient.invalidateQueries({ queryKey });
+      const now = Date.now();
+      const timeSinceLastRefetch = now - lastRefetchTimeRef.current;
+
+      // Skip if we refetched recently (throttle)
+      if (timeSinceLastRefetch < MIN_REFETCH_INTERVAL_MS) {
+        invalidateTimeoutRef.current = null;
+        return;
+      }
+
+      lastRefetchTimeRef.current = now;
+      queryClient.invalidateQueries({ queryKey: queryKeyRef.current });
       invalidateTimeoutRef.current = null;
     }, INVALIDATE_DEBOUNCE_MS);
-  }, [queryClient, queryKey]);
+  }, [queryClient]); // Only depends on queryClient, uses ref for queryKey
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -112,7 +131,7 @@ export function useResourceWatch<T>({
             }
             if (name) {
               // Single resource: update cache directly
-              queryClient.setQueryData(queryKey, transformedEvent.object);
+              queryClient.setQueryData(queryKeyRef.current, transformedEvent.object);
             } else {
               // List: debounced invalidate to batch multiple events
               debouncedInvalidate();
@@ -122,7 +141,7 @@ export function useResourceWatch<T>({
           case 'MODIFIED':
             if (name) {
               // Single resource: update cache directly
-              queryClient.setQueryData(queryKey, transformedEvent.object);
+              queryClient.setQueryData(queryKeyRef.current, transformedEvent.object);
             } else {
               // List: debounced invalidate to batch multiple events
               debouncedInvalidate();
@@ -132,7 +151,7 @@ export function useResourceWatch<T>({
           case 'DELETED':
             if (name) {
               // Single resource: remove from cache
-              queryClient.removeQueries({ queryKey });
+              queryClient.removeQueries({ queryKey: queryKeyRef.current });
             } else {
               // List: debounced invalidate to batch multiple events
               debouncedInvalidate();
@@ -151,13 +170,14 @@ export function useResourceWatch<T>({
     );
 
     return unsubscribe;
+    // Note: queryKey is accessed via queryKeyRef to avoid effect re-runs
+    // debouncedInvalidate is stable (only depends on queryClient)
   }, [
     enabled,
     resourceType,
     projectId,
     namespace,
     name,
-    JSON.stringify(queryKey),
     queryClient,
     debouncedInvalidate,
     isInInitialSyncPeriod,

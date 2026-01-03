@@ -35,6 +35,7 @@ export const invitationResourceSchema = z.object({
   invitedBy: z.string().optional(),
   organizationName: z.string(),
   role: z.string().optional(),
+  roleNamespace: z.string().optional(),
   state: z.enum(INVITATION_STATE_VALUES),
   status: z.any().optional(),
   inviterUser: inviterUserSchema.optional(),

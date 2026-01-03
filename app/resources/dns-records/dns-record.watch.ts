@@ -25,13 +25,14 @@ export function useDnsRecordsWatch(
   dnsZoneId: string,
   options?: { enabled?: boolean; limit?: number }
 ) {
+  const limit = options?.limit ?? 20;
+
   return useResourceWatch<DnsRecordSet>({
     resourceType: 'apis/dns.networking.miloapis.com/v1alpha1/dnsrecordsets',
     projectId,
     namespace: 'default',
     labelSelector: `dns.networking.miloapis.com/zone-name=${dnsZoneId}`,
-    // Match the query key used by useDnsRecords (with limit param)
-    queryKey: dnsRecordKeys.list(projectId, dnsZoneId, { limit: options?.limit ?? 20 }),
+    queryKey: dnsRecordKeys.list(projectId, dnsZoneId, { limit }),
     transform: (item) => toDnsRecordSet(item as ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet),
     enabled: options?.enabled ?? true,
   });

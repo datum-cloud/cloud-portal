@@ -1,4 +1,5 @@
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
+import { useApp } from '@/providers/app.provider';
 import { type Organization, useUpdateOrganization } from '@/resources/organizations';
 import { updateOrganizationSchema } from '@/resources/organizations';
 import { Button, CardHeader, CardTitle, toast } from '@datum-ui/components';
@@ -12,8 +13,12 @@ const schema = updateOrganizationSchema.pick({ description: true });
  * Displays and allows editing of general organization settings
  */
 export const OrganizationGeneralCard = ({ organization }: { organization: Organization }) => {
+  const { setOrganization } = useApp();
+
   const updateOrganization = useUpdateOrganization(organization?.name ?? '', {
-    onSuccess: () => {
+    onSuccess: (updatedOrg) => {
+      // Update the app-wide organization state so header reflects changes
+      setOrganization(updatedOrg);
       toast.success('Organization', {
         description: 'The Organization has been updated successfully',
       });
