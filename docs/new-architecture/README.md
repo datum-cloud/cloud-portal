@@ -10,7 +10,8 @@ Technical documentation for the Hono + React Query architecture refactor.
 ## Overview
 
 - [Architecture Overview](./architecture-overview.md) - Comprehensive report of the refactor
-- [Test Guide](./test-guide.md) - Quickstart, feature walkthrough, verification checklist
+- [Test Guide](./test-guide.md) - Development verification checklist
+- [Production Test Guide](./production-test-guide.md) - Staging smoke tests & regression suite
 
 ---
 
