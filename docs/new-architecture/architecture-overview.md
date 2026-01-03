@@ -8,7 +8,7 @@ This refactor transforms the cloud-portal from an Express-based BFF (Backend-for
 
 - 40+ BFF routes eliminated, replaced by direct service calls
 - Real-time updates replace 5-10s polling intervals
-- ~400KB reduction in bundle size (Express → Hono)
+- ~300KB reduction in bundle size (Express → Hono)
 - Unified domain-driven module structure
 
 ---
@@ -181,7 +181,6 @@ app/
 - `@react-router/express` (~50KB)
 - `express-rate-limit` (~15KB)
 - `express-prom-bundle` (~20KB)
-- `ioredis` (~150KB)
 - `unstorage` (~30KB)
 
 **Added:**
