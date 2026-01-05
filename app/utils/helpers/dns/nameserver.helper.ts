@@ -25,9 +25,17 @@ export function getNameserverSetupStatus(
   const zoneNs =
     dnsZone?.status?.domainRef?.status?.nameservers?.map((ns: IDnsNameserver) => ns.hostname) ?? [];
 
-  // Normalize to lowercase for case-insensitive comparison (DNS is case-insensitive per RFC 1035)
-  const zoneNsLower = zoneNs.map((ns) => ns?.toLowerCase());
-  const setupCount = datumNs.filter((ns: string) => zoneNsLower.includes(ns?.toLowerCase())).length;
+  // Normalize for comparison:
+  // - case-insensitive (DNS is case-insensitive per RFC 1035)
+  // - ignore a single trailing dot on FQDNs
+  const normalizeNs = (ns?: string) =>
+    (ns ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/\.$/, '');
+  const zoneNsNormalized = zoneNs.map(normalizeNs);
+  const datumNsNormalized = datumNs.map(normalizeNs);
+  const setupCount = datumNsNormalized.filter((ns: string) => zoneNsNormalized.includes(ns)).length;
   const totalCount = datumNs.length;
 
   return {
