@@ -154,7 +154,7 @@ export const BadgeStatus = ({
       type={badgeType}
       theme={badgeTheme}
       className={cn(
-        'text-2xs flex cursor-default items-center gap-1.5 px-1 py-0.5 font-medium tracking-wide uppercase',
+        'text-2xs flex cursor-default items-center gap-1.5 px-1 py-0.5 font-bold tracking-[0.03em] uppercase',
         customColorClasses,
         className
       )}>

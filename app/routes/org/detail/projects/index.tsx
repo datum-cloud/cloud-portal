@@ -142,8 +142,8 @@ export default function OrgProjectsPage() {
         cell: ({ row }) => {
           return (
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Icon icon={FolderRoot} className="size-4" />
+              <div className="flex items-center gap-5">
+                <Icon icon={FolderRoot} className="text-icon-primary size-4" />
                 <span>{row.original.displayName}</span>
               </div>
               <div className="flex items-center gap-6">

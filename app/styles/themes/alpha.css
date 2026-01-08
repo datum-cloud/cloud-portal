@@ -12,16 +12,16 @@ Scope variables to the theme class so we can swap themes by class
 ======================================== */
 .theme-alpha {
   /* ========================================
-   FONT FAMILY
+   FONT FAMILYS
    ======================================== */
   --font-sans:
     'Alliance No1', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
     'Segoe UI Symbol', 'Noto Color Emoji';
 
+  --font-mono: 'Menlo', 'Consolas', 'Monaco', 'DejaVu Sans Mono', monospace;
   /* ========================================
    BASE SHADCN VARIABLES
    ======================================== */
-
   /* Radius - using Figma medium radius as base */
   --radius: var(--radius-md);
 
@@ -295,6 +295,10 @@ Scope variables to the theme class so we can swap themes by class
 TAILWIND CUSTOM UTILITIES FOR THEME
 ======================================== */
 @theme inline {
+  /* Font Families */
+  --font-mono: var(--font-mono);
+  --font-sans: var(--font-sans);
+
   /* Custom base shadow */
   --shadow: 0 2px 4px 2px rgba(12, 29, 49, 0.03);
 

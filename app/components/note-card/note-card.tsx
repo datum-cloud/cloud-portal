@@ -21,7 +21,7 @@ const noteCardVariants = cva(
 const noteCardHeaderVariants = cva('', {
   variants: {
     size: {
-      default: 'px-8',
+      default: 'px-8 pb-1',
       sm: 'px-5.5',
     },
   },

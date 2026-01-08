@@ -101,7 +101,7 @@ export default function AccountOrganizations() {
         cell: ({ row }) => {
           return (
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-5">
                 <Icon
                   icon={Building}
                   className={cn(

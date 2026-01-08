@@ -254,8 +254,6 @@ function DataTableInternal<TData, TValue>(
 
   // Determine if we have actual data (not just filtered out)
   const hasData = data && data.length > 0;
-  const hasFilteredData = table.getFilteredRowModel().rows.length > 0;
-  const isEmptyFromFilter = hasData && !hasFilteredData;
 
   // Show toolbar if:
   // 1. Not loading AND has data (even if filtered to 0 results)
@@ -363,7 +361,7 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
     toolbar,
     isLoading,
     loadingText,
-    hasData,
+    hasData: _hasData,
     data,
     mode,
     hideHeader,
@@ -469,7 +467,7 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
           </div>
 
           {/* Pagination Section */}
-          {!hidePagination && <DataTablePagination table={table} />}
+          {!hidePagination && table.getPageCount() > 1 && <DataTablePagination table={table} />}
         </div>
       ) : (
         <EmptyContent {...emptyContent} />
