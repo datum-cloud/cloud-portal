@@ -43,7 +43,7 @@ export function HeadlessToast({ variant, title, description, onDismiss }: Headle
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss notification"
-          className="absolute -top-1 -right-2 transition-opacity hover:opacity-90">
+          className="absolute -top-1.5 -right-2.5 transition-opacity hover:opacity-90">
           <CloseIcon className="size-4.5" fill={variantIconClass[variant]} />
         </button>
       </div>
