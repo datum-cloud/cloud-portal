@@ -46,7 +46,7 @@ export const BackButton = ({
   children = 'Back',
   type = 'quaternary',
   theme = 'outline',
-  size = 'small',
+  size = 'xs',
   ...buttonProps
 }: BackButtonProps) => {
   const navigate = useNavigate();
@@ -85,7 +85,7 @@ export const BackButton = ({
   };
 
   const icon = showIcon
-    ? customIcon || <Icon icon={ArrowLeft} className="text-icon-primary size-4" />
+    ? customIcon || <Icon icon={ArrowLeft} className="text-icon-primary size-3" />
     : undefined;
 
   return (
@@ -96,7 +96,7 @@ export const BackButton = ({
       icon={icon}
       iconPosition="left"
       onClick={handleClick}
-      className="w-fit rounded-lg"
+      className="w-fit rounded-lg text-[12px] font-normal"
       {...buttonProps}>
       {children}
     </Button>

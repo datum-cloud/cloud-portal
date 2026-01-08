@@ -1,4 +1,4 @@
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import CloseIcon from '@datum-ui/components/icons/close-icon';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { cn } from '@shadcn/lib/utils';
 import {
@@ -11,7 +11,6 @@ import {
   DialogTrigger,
   DialogOverlay as ShadcnDialogOverlay,
 } from '@shadcn/ui/dialog';
-import { CircleXIcon } from 'lucide-react';
 import * as React from 'react';
 
 /* -----------------------------------------------------------------------------
@@ -69,7 +68,7 @@ function Content({ children, className }: DialogContentProps) {
       <DialogOverlay />
       <DialogPrimitive.Content
         className={cn(
-          'dark:bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 flex max-h-[80vh] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] flex-col gap-0 overflow-y-auto rounded-lg border bg-white p-0 shadow-lg duration-200 sm:max-w-lg [&>button:last-child]:hidden',
+          'dark:bg-muted dark:border-dialog-border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 flex max-h-[80vh] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] flex-col gap-0 overflow-y-auto rounded-lg bg-white p-0 shadow-xl duration-200 sm:max-w-lg dark:border [&>button:last-child]:hidden',
           className
         )}>
         {children}
@@ -100,7 +99,7 @@ function Header({
   return (
     <div
       className={cn(
-        'dark:bg-background sticky top-0 z-50 flex shrink-0 flex-col gap-2 bg-white p-5',
+        'dark:bg-muted dark:border-dialog-border sticky top-0 z-50 flex shrink-0 flex-col gap-2 bg-white p-5',
         className
       )}>
       <DialogTitle className="text-base font-semibold">{title}</DialogTitle>
@@ -111,11 +110,8 @@ function Header({
       )}
 
       {onClose && (
-        <DialogClose className="absolute top-4 right-4 cursor-pointer" onClick={onClose} asChild>
-          <Icon
-            icon={CircleXIcon}
-            className="fill-secondary/20 text-secondary-foreground hover:fill-secondary hover:text-secondary-foreground size-6 cursor-pointer transition-all"
-          />
+        <DialogClose className="absolute top-4 right-4 cursor-pointer" onClick={onClose}>
+          <CloseIcon />
         </DialogClose>
       )}
     </div>
@@ -148,7 +144,7 @@ function Footer({ children, className }: DialogFooterProps) {
   return (
     <ShadcnDialogFooter
       className={cn(
-        'dark:bg-background sticky bottom-0 z-50 shrink-0 gap-3 bg-white p-5',
+        'dark:bg-muted dark:border-dialog-border sticky bottom-0 z-50 shrink-0 gap-3 bg-white p-5',
         className
       )}>
       {children}

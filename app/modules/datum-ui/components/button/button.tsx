@@ -80,7 +80,7 @@ const buttonVariants = cva(
         type: 'secondary',
         theme: 'outline',
         className:
-          'border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground active:bg-secondary/90 active:text-secondary-foreground',
+          'border-secondary/90 hover:border-secondary text-secondary active:bg-secondary/90 active:text-secondary-foreground',
       },
       {
         type: 'secondary',

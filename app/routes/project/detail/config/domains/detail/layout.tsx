@@ -83,7 +83,7 @@ export default function DomainDetailLayout() {
   return (
     <SubLayout
       sidebarHeader={
-        <div className="flex flex-col gap-3.5">
+        <div className="flex flex-col gap-5.5">
           <BackButton
             to={getPathWithParams(paths.project.detail.domains.root, {
               projectId,

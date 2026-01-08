@@ -27,7 +27,7 @@ export interface DataTableViewProps<TData> {
 
 export const DataTableView = <TData,>({
   table,
-  columns,
+  columns: _columns,
   rowActions = [],
   hideRowActions,
   disableRowActions,
@@ -41,7 +41,7 @@ export const DataTableView = <TData,>({
   const { inlineContentState, isRowEditing, closeInlineContent } = useDataTable<TData>();
 
   // Calculate total column count for inline form
-  const columnCount = columns.length + (rowActions.length > 0 ? 1 : 0);
+  const columnCount = table.getVisibleLeafColumns().length + (rowActions.length > 0 ? 1 : 0);
 
   return (
     <TableBody>
@@ -116,7 +116,14 @@ export const DataTableView = <TData,>({
           })}
         </>
       ) : (
-        <EmptyContent title="Try adjusting your search or filters" />
+        <TableRow className="hover:bg-transparent">
+          <TableCell colSpan={columnCount} className="p-0 whitespace-normal">
+            <EmptyContent
+              title="Try adjusting your search or filters"
+              className="w-full rounded-none border-0"
+            />
+          </TableCell>
+        </TableRow>
       )}
     </TableBody>
   );

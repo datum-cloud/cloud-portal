@@ -14,10 +14,9 @@ import { csrf, getToastSession } from '@/utils/cookies';
 import { env } from '@/utils/env/env.server';
 import { metaObject } from '@/utils/helpers/meta.helper';
 import { combineHeaders } from '@/utils/helpers/path.helper';
-import { useToast } from '@datum-ui/components';
+import { Toaster, useToast } from '@datum-ui/components';
 import { configureProgress, startProgress, stopProgress } from '@datum-ui/components/nprogress';
 import * as Sentry from '@sentry/react-router';
-import { Toaster } from '@shadcn/ui/sonner';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import React, { useEffect, useMemo } from 'react';
@@ -112,12 +111,7 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
         {data?.ENV.fathomId && data?.ENV.nodeEnv === 'production' && (
           <FathomAnalytics privateKey={data?.ENV.fathomId} />
         )}
-        <Toaster
-          closeButton
-          position="top-right"
-          theme={resolvedTheme as 'light' | 'dark'}
-          richColors
-        />
+        <Toaster position="top-right" theme={resolvedTheme as 'light' | 'dark'} />
         <MarkerIoEmbed nonce={nonce} />
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />

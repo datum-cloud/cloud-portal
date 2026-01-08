@@ -170,16 +170,20 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
 
         return (
           <div className="flex min-h-0 flex-1 flex-col">
-            <Dialog.Header title="Export to Grafana Cloud" className="border-b" onClose={onClose} />
+            <Dialog.Header
+              title="Export to Grafana Cloud"
+              className="border-stepper-line border-b"
+              onClose={onClose}
+            />
             <Dialog.Body className="p-0">
               {/* Step navigation */}
-              <div className="border-b p-5">
+              <div className="border-stepper-line border-b p-5">
                 <Form.StepperNavigation variant="horizontal" className="mx-auto max-w-[265px]" />
               </div>
 
               {/* Step 1: Grafana Access */}
               <Form.Step id="grafana">
-                <div className="divide-y">
+                <div className="divide-stepper-line divide-y">
                   <div className="flex items-center justify-between gap-4 p-5">
                     <div className="flex flex-col gap-1.5">
                       <p className="text-sm font-medium">Create a Grafana Cloud account</p>
@@ -217,7 +221,7 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
 
               {/* Step 2: Prometheus Config */}
               <Form.Step id="prometheus">
-                <div className="divide-y">
+                <div className="divide-stepper-line divide-y">
                   <div className="flex flex-col gap-4 p-5">
                     <div className="flex flex-col gap-1.5">
                       <p className="text-sm font-medium">Open the generated connection URL</p>
@@ -329,7 +333,7 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                 </div>
               </Form.Step>
             </Dialog.Body>
-            <Dialog.Footer className="border-t">
+            <Dialog.Footer className="border-stepper-line border-t">
               <Form.StepperControls
                 prevLabel={(isFirst) => (isFirst ? 'Cancel' : 'Back')}
                 nextLabel={(isLast) => (isLast ? 'Submit' : 'Continue')}

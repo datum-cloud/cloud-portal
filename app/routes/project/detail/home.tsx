@@ -89,9 +89,6 @@ export default function ProjectHomePage() {
 
   const updateMutation = useUpdateProject(project?.name ?? '', {
     onSuccess: () => {
-      toast.success('Project', {
-        description: 'You have successfully updated your project.',
-      });
       revalidator.revalidate();
     },
     onError: (error) => {
@@ -147,25 +144,25 @@ export default function ProjectHomePage() {
               !hasDomains ? (
                 <LinkButton
                   icon={<Icon icon={PlusIcon} className="size-4" />}
-                  to={getPathWithParams(paths.project.detail.domains.root, {
+                  to={getPathWithParams(paths.project.detail.proxy.new, {
                     projectId: project.name,
                   })}>
-                  Add a domain
+                  Setup a Proxy
                 </LinkButton>
               ) : (
                 <LinkButton
                   theme="outline"
                   type="secondary"
                   className="border-card-success-border hover:border-secondary"
-                  to={getPathWithParams(paths.project.detail.domains.root, {
+                  to={getPathWithParams(paths.project.detail.proxy.root, {
                     projectId: project.name,
                   })}>
-                  Go to domains
+                  Go to Proxies
                 </LinkButton>
               )
             }
-            onSkip={() => {
-              updateMutation.mutate({
+            onSkip={async () => {
+              await updateMutation.mutateAsync({
                 resourceVersion: project.resourceVersion,
                 annotations: { 'dashboard.domains.skipped': 'true' },
               });
@@ -206,8 +203,8 @@ export default function ProjectHomePage() {
                 )}
               </Tooltip>
             }
-            onSkip={() => {
-              updateMutation.mutate({
+            onSkip={async () => {
+              await updateMutation.mutateAsync({
                 resourceVersion: project.resourceVersion,
                 annotations: { 'dashboard.desktop.skipped': 'true' },
               });
@@ -234,26 +231,26 @@ export default function ProjectHomePage() {
             primaryButton={
               !hasHttpProxies ? (
                 <LinkButton
-                  to={getPathWithParams(paths.project.detail.proxy.new, {
+                  to={getPathWithParams(paths.project.detail.metrics.exportPolicies.new, {
                     projectId: project.name,
                   })}
                   icon={<Icon icon={PlusIcon} className="size-4" />}>
-                  Set up a Proxy
+                  Set up a Policy
                 </LinkButton>
               ) : (
                 <LinkButton
                   className="border-card-success-border hover:border-secondary"
                   theme="outline"
                   type="secondary"
-                  to={getPathWithParams(paths.project.detail.proxy.root, {
+                  to={getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
                     projectId: project.name,
                   })}>
-                  Go to proxies
+                  Go to Policies
                 </LinkButton>
               )
             }
-            onSkip={() => {
-              updateMutation.mutate({
+            onSkip={async () => {
+              await updateMutation.mutateAsync({
                 resourceVersion: project.resourceVersion,
                 annotations: { 'dashboard.proxy.skipped': 'true' },
               });

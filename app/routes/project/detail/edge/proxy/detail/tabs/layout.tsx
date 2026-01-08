@@ -78,7 +78,7 @@ export default function HttpProxyDetailLayout() {
     <SubLayout
       navItems={navItems}
       sidebarHeader={
-        <div className="flex flex-col gap-3.5">
+        <div className="flex flex-col gap-5.5">
           <BackButton
             to={getPathWithParams(paths.project.detail.proxy.root, {
               projectId,

@@ -224,7 +224,7 @@ export const EmptyContent = ({
           src={'/images/milo-stamp.svg'}
           alt="Milo"
           aria-hidden="true"
-          className="pointer-events-none absolute -top-4 right-2 h-auto w-7 rotate-[7.332deg] select-none"
+          className="pointer-events-none absolute -top-4 right-2 h-auto w-7 select-none"
         />
       </div>
     </div>

@@ -142,7 +142,7 @@ export const ConfirmationDialog = ({
             )}
             {dialogProps.showConfirmInput && (
               <div className="mb-1 flex flex-col gap-3">
-                <Label>{dialogProps.confirmInputLabel}</Label>
+                <Label className="cursor-text select-text">{dialogProps.confirmInputLabel}</Label>
                 <Input
                   type="text"
                   placeholder={dialogProps.confirmInputPlaceholder}

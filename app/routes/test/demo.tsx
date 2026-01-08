@@ -4,6 +4,7 @@ import ButtonDemo, { buttonDemoSections } from '@/components/demo/button';
 import FormFieldsDemo, { formFieldsDemoSections } from '@/components/demo/form-fields';
 import GridDemo, { gridDemoSections } from '@/components/demo/grid';
 import BadgeStatusDemo, { statusBadgeDemoSections } from '@/components/demo/status-badge';
+import ToastDemo, { toastDemoSections } from '@/components/demo/toast';
 import TooltipDemo, { tooltipDemoSections } from '@/components/demo/tooltip';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
@@ -20,6 +21,7 @@ const demoComponents = [
   { name: 'Badge', sections: badgeDemoSections, Component: BadgeDemo },
   { name: 'BadgeStatus', sections: statusBadgeDemoSections, Component: BadgeStatusDemo },
   { name: 'FormFields', sections: formFieldsDemoSections, Component: FormFieldsDemo },
+  { name: 'Toast', sections: toastDemoSections, Component: ToastDemo },
   { name: 'Tooltip', sections: tooltipDemoSections, Component: TooltipDemo },
   { name: 'Grid', sections: gridDemoSections, Component: GridDemo },
 ];
