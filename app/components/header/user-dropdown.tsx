@@ -58,7 +58,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
         <DropdownMenuGroup>
           <DropdownMenuItem
             className="cursor-pointer rounded-lg px-3 py-2 font-normal"
-            onClick={() => navigate(paths.account.preferences)}>
+            onClick={() => navigate(paths.account.settings.general)}>
             <div className="flex items-center gap-2">
               <Icon icon={UserCogIcon} size={14} />
               <span className="text-foreground text-xs">Account Settings</span>
