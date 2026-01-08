@@ -37,10 +37,14 @@ const FieldLabel = ({
       onMouseLeave={() => setIsHovering(false)}>
       <Label
         htmlFor={htmlFor}
-        className={cn('gap-0 text-xs font-semibold', hasErrors && 'text-destructive', className)}>
+        className={cn(
+          'text-foreground/80 gap-0 text-xs font-semibold',
+          hasErrors && 'text-destructive',
+          className
+        )}>
         {label}
         {required && (
-          <span className="text-destructive align-super text-sm leading-0" aria-hidden="true">
+          <span className="text-destructive/80 align-super text-sm leading-0" aria-hidden="true">
             *
           </span>
         )}

@@ -1,18 +1,24 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { DangerCard } from '@/components/danger-card/danger-card';
 import { useApp } from '@/providers/app.provider';
 import { useDeleteUser } from '@/resources/users';
-import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
-import { Button, toast } from '@datum-ui/components';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { CircleAlertIcon } from 'lucide-react';
+import { paths } from '@/utils/config/paths.config';
+import { toast } from '@datum-ui/components';
+import { useNavigate } from 'react-router';
 
 export const AccountDangerSettingsCard = () => {
   const { user } = useApp();
   const { confirm } = useConfirmationDialog();
   const userId = user?.sub ?? 'me';
+  const navigate = useNavigate();
 
   const deleteUserMutation = useDeleteUser({
+    onSuccess: () => {
+      toast.success('Account', {
+        description: 'Your account has been deleted successfully',
+      });
+      navigate(paths.auth.logOut, { replace: true });
+    },
     onError: (error) => {
       toast.error(error.message);
     },
@@ -26,33 +32,21 @@ export const AccountDangerSettingsCard = () => {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
+      confirmValue: user?.email,
+      confirmInputLabel: `Type "${user?.email}" to confirm.`,
       onSubmit: async () => {
-        await deleteUserMutation.mutateAsync(userId);
+        deleteUserMutation.mutate(userId);
       },
     });
   };
 
   return (
-    <Card className="border-destructive/50 hover:border-destructive border pb-0 shadow-none transition-colors">
-      <CardHeader>
-        <CardTitle className="text-destructive">Danger zone</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Alert variant="destructive">
-          <Icon icon={CircleAlertIcon} className="size-5 shrink-0" />
-          <AlertTitle className="text-sm font-semibold">Warning: Destructive Action</AlertTitle>
-          <AlertDescription>
-            This action cannot be undone. Once deleted, your account and all associated data will be
-            permanently removed. You will lose access to all your organizations, projects and
-            resources, and this action cannot be reversed.
-          </AlertDescription>
-        </Alert>
-      </CardContent>
-      <CardFooter className="border-destructive/50 bg-destructive/10 flex justify-end border-t px-6 py-2">
-        <Button type="danger" theme="solid" onClick={() => deleteAccount()}>
-          Delete
-        </Button>
-      </CardFooter>
-    </Card>
+    <DangerCard
+      title="Request for account deletion"
+      description="Deleting your account is permanent and cannot be undone. Your data will be deleted within 30 days, except we may retain some metadata and logs for longer where required or permitted by law."
+      deleteText="Delete account"
+      loading={deleteUserMutation.isPending}
+      onDelete={deleteAccount}
+    />
   );
 };

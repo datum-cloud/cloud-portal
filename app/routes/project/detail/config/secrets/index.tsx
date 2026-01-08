@@ -20,13 +20,7 @@ import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import {
-  LoaderFunctionArgs,
-  useLoaderData,
-  useParams,
-  Link,
-  useNavigate,
-} from 'react-router';
+import { LoaderFunctionArgs, useLoaderData, useParams, Link, useNavigate } from 'react-router';
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;

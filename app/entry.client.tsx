@@ -1,6 +1,5 @@
 // Configure @hey-api clients before any React code runs
 import '@/modules/control-plane/setup.client';
-
 import { env } from '@/utils/env';
 import * as Sentry from '@sentry/react-router';
 import { StrictMode, startTransition } from 'react';

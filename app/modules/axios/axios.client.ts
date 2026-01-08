@@ -1,10 +1,6 @@
 import { toast } from '@datum-ui/components';
 import * as Sentry from '@sentry/react-router';
-import Axios, {
-  AxiosError,
-  AxiosResponse,
-  InternalAxiosRequestConfig,
-} from 'axios';
+import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 export const PROXY_URL = '/api/proxy';
 
