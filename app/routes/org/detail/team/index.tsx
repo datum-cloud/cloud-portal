@@ -4,19 +4,23 @@ import {
   ManageRoleModalForm,
   ManageRoleModalFormRef,
 } from '@/features/organization/team/manage-role';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
-import { createInvitationsControl } from '@/resources/control-plane';
-import { createRolesControl } from '@/resources/control-plane/iam/roles.control';
-import { createMembersControl } from '@/resources/control-plane/resource-manager/members.control';
-import { IInvitationControlResponse } from '@/resources/interfaces/invitation.interface';
-import { IMemberControlResponse } from '@/resources/interfaces/member.interface';
-import { ROUTE_PATH as MEMBERS_REMOVE_ROUTE_PATH } from '@/routes/api/members';
-import { ROUTE_PATH as MEMBERS_LEAVE_ROUTE_PATH } from '@/routes/api/members/leave';
-import { ROUTE_PATH as TEAM_INVITATIONS_CANCEL_ROUTE_PATH } from '@/routes/api/team/invitations/cancel';
-import { ROUTE_PATH as TEAM_INVITATIONS_RESEND_ROUTE_PATH } from '@/routes/api/team/invitations/resend';
+import {
+  createInvitationService,
+  useCancelInvitation,
+  useResendInvitation,
+  useHydrateInvitations,
+  useInvitations,
+} from '@/resources/invitations';
+import {
+  createMemberService,
+  useRemoveMember,
+  useLeaveOrganization,
+  useHydrateMembers,
+  useMembers,
+} from '@/resources/members';
 import { buildNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
@@ -25,7 +29,6 @@ import { Tooltip } from '@datum-ui/components';
 import { Badge } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import {
   ArrowRightIcon,
@@ -37,11 +40,11 @@ import {
 } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 import {
-  AppLoadContext,
   Link,
   LoaderFunctionArgs,
   data,
   useLoaderData,
+  useNavigate,
   useParams,
 } from 'react-router';
 
@@ -62,100 +65,126 @@ interface ITeamMember {
   avatarUrl?: string;
 }
 
-export const loader = async ({ params, context }: LoaderFunctionArgs) => {
+export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { orgId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
-  const invitationsControl = createInvitationsControl(controlPlaneClient as Client);
-  const membersControl = createMembersControl(controlPlaneClient as Client);
-  const rolesControl = createRolesControl(controlPlaneClient as Client);
 
   if (!orgId) {
     throw new BadRequestError('Organization ID is required');
   }
 
-  // Helper function to resolve role details by querying the API
-  const resolveRoleDetails = async (roleName: string, namespace: string = 'datum-cloud') => {
-    try {
-      const role = await rolesControl.get(roleName, namespace);
-      return {
-        name: roleName,
-        namespace,
-        displayName: role.displayName ?? roleName,
-        description: role.description,
-      };
-    } catch (error) {
-      // Fallback if role not found
-      console.error(`Failed to resolve role details for ${roleName}:`, error);
-      return {
-        name: roleName,
-        namespace,
-        displayName: roleName,
-        description: undefined,
-      };
-    }
-  };
+  // Services now use global axios client with AsyncLocalStorage
+  const invitationService = createInvitationService();
+  const memberService = createMemberService();
 
-  const invitations = await invitationsControl.list(orgId);
-  const filteredInvitations: IInvitationControlResponse[] = invitations.filter(
-    (invitation) => invitation.state === 'Pending'
-  );
+  // Fetch raw data - transformation happens in component
+  const [invitations, members] = await Promise.all([
+    invitationService.list(orgId),
+    memberService.list(orgId),
+  ]);
 
-  const members: IMemberControlResponse[] = await membersControl.list(orgId);
-
-  // Transform invitations to generic format
-  const invitationTeamMembers: ITeamMember[] = await Promise.all(
-    filteredInvitations.map(async (invitation) => ({
-      id: invitation.name,
-      fullName: invitation.email ?? '',
-      email: invitation.email ?? '',
-      roles: invitation.role ? [await resolveRoleDetails(invitation.role, 'datum-cloud')] : [],
-      invitationState: invitation.state,
-      type: 'invitation' as const,
-      name: invitation.name,
-    }))
-  );
-
-  // Transform members to generic format
-  const memberTeamMembers: ITeamMember[] = await Promise.all(
-    members.map(async (member) => ({
-      id: member.user.id,
-      fullName: `${member.user.givenName ?? ''} ${member.user.familyName ?? ''}`.trim(),
-      email: member.user.email ?? '',
-      roles: member.roles
-        ? await Promise.all(
-            member.roles.map((role) =>
-              resolveRoleDetails(role.name, role.namespace ?? 'datum-cloud')
-            )
-          )
-        : [],
-      type: 'member' as const,
-      name: member.name,
-      avatarUrl: member.user.avatarUrl,
-    }))
-  );
-
-  // Combine both arrays
-  const teamMembers: ITeamMember[] = [...memberTeamMembers, ...invitationTeamMembers];
-
-  return data(teamMembers);
+  return data({ members, invitations });
 };
 
 export default function OrgTeamPage() {
-  const teamMembers = useLoaderData<typeof loader>() as ITeamMember[];
-
+  const { members: initialMembers, invitations: initialInvitations } =
+    useLoaderData<typeof loader>();
   const { orgId } = useParams();
   const { user } = useApp();
-  const fetcher = useDatumFetcher<{ success: boolean; message: string; error: string }>({
-    onSuccess: (data) => {
-      toast.success(data.message);
-    },
-    onError: (data) => {
-      toast.error(data.error);
-    },
+  const navigate = useNavigate();
+
+  // Hydrate React Query cache with SSR data (runs once on mount)
+  useHydrateMembers(orgId ?? '', initialMembers);
+  useHydrateInvitations(orgId ?? '', initialInvitations);
+
+  // Read from React Query cache (gets updates from mutations)
+  const { data: liveMembers } = useMembers(orgId ?? '', {
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
   });
+  const { data: liveInvitations } = useInvitations(orgId ?? '', {
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Use live data, fallback to SSR data
+  const members = liveMembers ?? initialMembers;
+  const invitations = liveInvitations ?? initialInvitations;
+
+  // Transform members to team members format
+  const memberTeamMembers: ITeamMember[] = useMemo(() => {
+    return members.map((member) => ({
+      id: member.user.id,
+      fullName: `${member.user.givenName ?? ''} ${member.user.familyName ?? ''}`.trim(),
+      email: member.user.email ?? '',
+      roles: member.roles?.map((role) => ({
+        name: role.name,
+        namespace: role.namespace ?? 'datum-cloud',
+      })),
+      type: 'member' as const,
+      name: member.name,
+      avatarUrl: member.user.avatarUrl,
+    }));
+  }, [members]);
+
+  // Transform invitations to team members format
+  const invitationTeamMembers: ITeamMember[] = useMemo(() => {
+    return invitations
+      .filter((invitation) => invitation.state === 'Pending')
+      .map((invitation) => ({
+        id: invitation.name,
+        fullName: invitation.email ?? '',
+        email: invitation.email ?? '',
+        roles: invitation.role ? [{ name: invitation.role, namespace: 'datum-cloud' }] : [],
+        invitationState: invitation.state,
+        type: 'invitation' as const,
+        name: invitation.name,
+      }));
+  }, [invitations]);
+
+  // Combine members and invitations
+  const teamMembers: ITeamMember[] = useMemo(() => {
+    return [...memberTeamMembers, ...invitationTeamMembers];
+  }, [memberTeamMembers, invitationTeamMembers]);
   const { confirm } = useConfirmationDialog();
 
   const manageRoleModalForm = useRef<ManageRoleModalFormRef>(null);
+
+  // Mutation hooks
+  const cancelInvitationMutation = useCancelInvitation(orgId ?? '', {
+    onSuccess: () => {
+      toast.success('Invitation cancelled successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to cancel invitation');
+    },
+  });
+
+  const resendInvitationMutation = useResendInvitation(orgId ?? '', {
+    onSuccess: () => {
+      toast.success('Invitation resent successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to resend invitation');
+    },
+  });
+
+  const removeMemberMutation = useRemoveMember(orgId ?? '', {
+    onSuccess: () => {
+      toast.success('Member removed successfully');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to remove member');
+    },
+  });
+
+  const leaveOrganizationMutation = useLeaveOrganization({
+    onSuccess: () => {
+      navigate(paths.account.organizations.root);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to leave organization');
+    },
+  });
 
   const orderedTeamMembers = useMemo(() => {
     if (!user?.email) return teamMembers;
@@ -238,31 +267,13 @@ export default function OrgTeamPage() {
       variant: 'destructive',
       showConfirmInput: false,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: row?.id ?? '',
-            orgId: orgId ?? '',
-          },
-          {
-            action: TEAM_INVITATIONS_CANCEL_ROUTE_PATH,
-            method: 'DELETE',
-          }
-        );
+        cancelInvitationMutation.mutate(row?.id ?? '');
       },
     });
   };
 
   const resendInvitation = async (id: string) => {
-    await fetcher.submit(
-      {
-        id,
-        orgId: orgId ?? '',
-      },
-      {
-        action: TEAM_INVITATIONS_RESEND_ROUTE_PATH,
-        method: 'POST',
-      }
-    );
+    resendInvitationMutation.mutate(id);
   };
 
   const removeMember = async (row: ITeamMember) => {
@@ -282,16 +293,7 @@ export default function OrgTeamPage() {
       variant: 'destructive',
       showConfirmInput: false,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: row?.name ?? '',
-            orgId: orgId ?? '',
-          },
-          {
-            action: MEMBERS_REMOVE_ROUTE_PATH,
-            method: 'DELETE',
-          }
-        );
+        removeMemberMutation.mutate(row?.name ?? '');
       },
     });
   };
@@ -310,17 +312,10 @@ export default function OrgTeamPage() {
       variant: 'destructive',
       showConfirmInput: false,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: row?.name ?? '',
-            orgId: orgId ?? '',
-            redirectUri: paths.account.organizations.root,
-          },
-          {
-            action: MEMBERS_LEAVE_ROUTE_PATH,
-            method: 'DELETE',
-          }
-        );
+        leaveOrganizationMutation.mutate({
+          orgId: orgId ?? '',
+          memberName: row?.name ?? '',
+        });
       },
     });
   };
@@ -335,8 +330,6 @@ export default function OrgTeamPage() {
         cell: ({ row }) => {
           const name = row.original.fullName ?? row.original.email;
           const subtitle = row.original.email;
-
-          console.log(row.original);
 
           return (
             <div className="flex w-full items-center justify-between gap-2">

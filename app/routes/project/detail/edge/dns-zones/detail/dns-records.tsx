@@ -6,61 +6,64 @@ import {
   DnsRecordModalFormRef,
 } from '@/features/edge/dns-records/dns-record-modal-form';
 import { DnsRecordImportAction } from '@/features/edge/dns-records/import-export/dns-record-import-action';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { DataTableFilter, DataTableRef } from '@/modules/datum-ui/components/data-table';
-import { IDnsZoneControlResponse, IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
-import { DNS_RECORD_TYPES } from '@/resources/schemas/dns-record.schema';
-import { ROUTE_PATH as DNS_RECORDS_ACTIONS_PATH } from '@/routes/api/dns-records';
+import {
+  DNS_RECORD_TYPES,
+  IFlattenedDnsRecord,
+  useDeleteDnsRecord,
+  useDnsRecords,
+  useDnsRecordsWatch,
+  useHydrateDnsRecords,
+} from '@/resources/dns-records';
+import type { DnsZone } from '@/resources/dns-zones';
 import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ArrowRightIcon, PencilIcon, PlusIcon, Trash2Icon, XCircleIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { useParams, useRevalidator, useRouteLoaderData } from 'react-router';
+import { useRef } from 'react';
+import { useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>DNS Records</span>,
 };
 
 export default function DnsRecordsPage() {
-  const { dnsZone, dnsRecordSets } = useRouteLoaderData('dns-zone-detail') as {
-    dnsZone: IDnsZoneControlResponse;
+  const { dnsZone, dnsRecordSets: initialDnsRecordSets } = useRouteLoaderData(
+    'dns-zone-detail'
+  ) as {
+    dnsZone: DnsZone;
     dnsRecordSets: IFlattenedDnsRecord[];
   };
   const { projectId, dnsZoneId } = useParams();
-  const revalidator = useRevalidator();
+
+  // Hydrate cache with SSR data (runs once on mount)
+  useHydrateDnsRecords(projectId ?? '', dnsZoneId ?? '', initialDnsRecordSets);
+
+  // Subscribe to watch for real-time updates
+  useDnsRecordsWatch(projectId ?? '', dnsZoneId ?? '');
+
+  // Read from React Query cache (gets updates from watch!)
+  const { data: queryData } = useDnsRecords(projectId ?? '', dnsZoneId, undefined, {
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Use React Query data, fallback to SSR data
+  const dnsRecords = queryData ?? initialDnsRecordSets;
+
   const tableRef = useRef<DataTableRef<IFlattenedDnsRecord>>(null);
   const dnsRecordModalFormRef = useRef<DnsRecordModalFormRef>(null);
 
   const { confirm } = useConfirmationDialog();
-  const deleteFetcher = useDatumFetcher({
-    key: 'delete-dns-record',
+  const deleteMutation = useDeleteDnsRecord(projectId!, dnsZoneId!, {
     onSuccess: () => {
       toast.success('DNS record deleted successfully', {
         description: 'The DNS record has been deleted successfully',
       });
-
-      setDnsRecords((prev) =>
-        prev.filter(
-          (r) =>
-            r.value !== currentRecord?.value ||
-            r.name !== currentRecord?.name ||
-            r.ttl !== currentRecord?.ttl
-        )
-      );
     },
-    onError: (data) => {
-      toast.error(data.error || 'Failed to delete DNS record');
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete DNS record');
     },
   });
-
-  // Local state for DNS records that we can manipulate
-  const [dnsRecords, setDnsRecords] = useState<IFlattenedDnsRecord[]>(dnsRecordSets);
-  const [currentRecord, setCurrentRecord] = useState<IFlattenedDnsRecord | null>(null);
-
-  // Update local state when loader data changes (e.g., after revalidation)
-  useEffect(() => {
-    setDnsRecords(dnsRecordSets);
-  }, [dnsRecordSets]);
 
   const handleDelete = async (record: IFlattenedDnsRecord) => {
     await confirm({
@@ -75,20 +78,15 @@ export default function DnsRecordsPage() {
       cancelText: 'Cancel',
       variant: 'destructive',
       onSubmit: async () => {
-        setCurrentRecord(record);
-        await deleteFetcher.submit(
-          {
-            projectId: projectId!,
+        if (record.recordSetName) {
+          deleteMutation.mutate({
             recordSetName: record.recordSetName,
-            recordName: record.name ?? '',
-            recordType: record.type ?? '',
-            value: record.value ?? '',
-          } as unknown as FormData,
-          {
-            method: 'DELETE',
-            action: DNS_RECORDS_ACTIONS_PATH,
-          }
-        );
+            recordType: record.type,
+            name: record.name,
+            value: record.value,
+            ttl: record.ttl,
+          });
+        }
       },
     });
   };
@@ -103,8 +101,7 @@ export default function DnsRecordsPage() {
         description: 'The DNS record changes are being validated by the DNS server.',
       });
     }
-
-    revalidator.revalidate();
+    // Watch will automatically update the list with real-time changes
   };
 
   return (
@@ -143,7 +140,9 @@ export default function DnsRecordsPage() {
                 existingRecords={dnsRecords}
                 projectId={projectId!}
                 dnsZoneId={dnsZoneId!}
-                onSuccess={revalidator.revalidate}
+                onSuccess={() => {
+                  // Watch will automatically update the list with real-time changes
+                }}
               />
               <Button
                 htmlType="button"

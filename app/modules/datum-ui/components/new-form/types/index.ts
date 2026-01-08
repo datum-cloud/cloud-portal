@@ -584,6 +584,18 @@ export interface FormDialogProps<T extends z.ZodType> {
   /** Submit button type variant */
   submitType?: ButtonProps['type'];
 
+  // Loading state
+  /**
+   * External loading state - use when submission is handled by external mutation.
+   * When provided, this overrides the internal isSubmitting state.
+   * @example
+   * ```tsx
+   * const mutation = useCreateUser();
+   * <Form.Dialog loading={mutation.isPending} ... />
+   * ```
+   */
+  loading?: boolean;
+
   // Styling
   /** Dialog content className */
   className?: string;

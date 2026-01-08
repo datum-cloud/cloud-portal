@@ -1,27 +1,24 @@
 import BlankLayout from '@/layouts/blank.layout';
-import { createUserControl } from '@/resources/control-plane';
-import { RegistrationApproval } from '@/resources/interfaces/user.interface';
+import { createUserService, RegistrationApproval } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent } from '@datum-ui/components';
-import { Client } from '@hey-api/client-axios';
-import { Link, MetaFunction, LoaderFunctionArgs, redirect } from 'react-router';
-import { AppLoadContext, data } from 'react-router';
+import { Link, MetaFunction, LoaderFunctionArgs, redirect, data } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Waitlist');
 });
 
-export const loader = async ({ request, context }: LoaderFunctionArgs) => {
-  const { controlPlaneClient } = context as AppLoadContext;
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  // Services now use global axios client with AsyncLocalStorage
   const { session } = await getSession(request);
   if (!session || !session?.sub) {
     return redirect(paths.auth.logOut);
   }
   try {
-    const userControl = createUserControl(controlPlaneClient as Client);
-    const user = await userControl.detail(session?.sub);
+    const userService = createUserService();
+    const user = await userService.get(session?.sub);
     // If user is approved, redirect them to the main app
     if (user.registrationApproval === RegistrationApproval.Approved) {
       return redirect(paths.account.organizations.root);

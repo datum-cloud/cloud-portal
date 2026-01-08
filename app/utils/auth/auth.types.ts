@@ -43,11 +43,3 @@ export interface SessionValidationResult {
   /** Whether a refresh was performed */
   refreshed: boolean;
 }
-
-/**
- * API context for route loaders/actions
- */
-export interface ApiContext {
-  controlPlaneClient: unknown;
-  iamResourceClient: unknown;
-}

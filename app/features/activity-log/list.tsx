@@ -2,11 +2,42 @@ import { ActivityLogItem } from './list-item';
 import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import type { ActivityLogEntry, QueryParams } from '@/modules/loki/types';
-import { ROUTE_PATH as ACTIVITY_ROUTE_PATH } from '@/routes/api/activity';
+import { useQuery } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DateRange } from 'react-day-picker';
-import { useFetcher } from 'react-router';
+
+type ActivityQueryParams = Omit<QueryParams, 'start' | 'end'> & {
+  start: string | number;
+  end: string | number;
+};
+
+const activityLogKeys = {
+  all: ['activityLogs'] as const,
+  list: (params: ActivityQueryParams) => [...activityLogKeys.all, 'list', params] as const,
+};
+
+type ActivityLogsResponse = {
+  success: boolean;
+  message?: string;
+  error?: string;
+  data: { logs: ActivityLogEntry[] };
+};
+
+async function fetchActivityLogs(params: ActivityQueryParams): Promise<ActivityLogsResponse> {
+  const stringParams: Record<string, string> = {};
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      stringParams[key] = String(value);
+    }
+  });
+
+  const response = await fetch(`/api/activity?${new URLSearchParams(stringParams).toString()}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch activity logs');
+  }
+  return response.json();
+}
 
 export const ActivityLogList = ({
   params,
@@ -17,17 +48,7 @@ export const ActivityLogList = ({
   title?: string;
   className?: string;
 }) => {
-  const fetcher = useFetcher<{
-    success: boolean;
-    message?: string;
-    error?: string;
-    data: { logs: ActivityLogEntry[] };
-  }>({ key: 'activity-logs' });
-  const [logs, setLogs] = useState<ActivityLogEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isFiltering, setIsFiltering] = useState(false);
   const [filters, setFilters] = useState<{ q?: string; date?: DateRange }>({});
-  const [emptyMessage, setEmptyMessage] = useState<string | undefined>(undefined);
 
   // Calculate default date range (last 7 days) to match the default query
   const defaultDateRange = useMemo(() => {
@@ -80,23 +101,18 @@ export const ActivityLogList = ({
     defaultDateRange,
   ]);
 
-  // Fetch activity logs when query parameters change
-  useEffect(() => {
-    // Don't fetch if we don't have start/end dates (waiting for URL params or default)
-    if (!queryParams.start || !queryParams.end) {
-      return;
-    }
+  const {
+    data: response,
+    isLoading,
+    isFetching,
+  } = useQuery({
+    queryKey: activityLogKeys.list(queryParams),
+    queryFn: () => fetchActivityLogs(queryParams),
+    enabled: !!queryParams.start && !!queryParams.end,
+  });
 
-    // Convert QueryParams to string record for URLSearchParams
-    const stringParams: Record<string, string> = {};
-    Object.entries(queryParams).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        stringParams[key] = String(value);
-      }
-    });
-
-    fetcher.load(`${ACTIVITY_ROUTE_PATH}?${new URLSearchParams(stringParams).toString()}`);
-  }, [queryParams]);
+  const logs = response?.success ? (response?.data?.logs ?? []) : [];
+  const emptyMessage = response?.success ? response?.message : undefined;
 
   const columns: ColumnDef<ActivityLogEntry>[] = useMemo(
     () => [
@@ -116,21 +132,6 @@ export const ActivityLogList = ({
     []
   );
 
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data?.success) {
-        setLogs(fetcher.data?.data?.logs ?? []);
-        // Set empty message if provided (e.g., timeout message)
-        setEmptyMessage(fetcher.data?.message);
-      } else {
-        setEmptyMessage(undefined);
-      }
-
-      setIsLoading(false);
-      setIsFiltering(false); // End filtering when data is loaded
-    }
-  }, [fetcher.data, fetcher.state]);
-
   return (
     <DataTable
       hideHeader
@@ -142,13 +143,13 @@ export const ActivityLogList = ({
       }}
       tableTitle={title ? { title } : undefined}
       tableClassName="table-fixed"
-      isLoading={isLoading || isFiltering}
-      loadingText={isFiltering ? 'Filtering' : 'Loading'}
+      isLoading={isLoading || isFetching}
+      loadingText={isFetching && !isLoading ? 'Filtering' : 'Loading'}
       tableCardClassName="px-3 py-2"
       className={className}
       serverSideFiltering
       onFiltersChange={setFilters}
-      onFilteringStart={() => setIsFiltering(true)}
+      onFilteringStart={() => {}}
       filterComponent={
         <DataTableFilter>
           <DataTableFilter.Search filterKey="q" placeholder="Search activity..." />

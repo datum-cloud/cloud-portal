@@ -1,18 +1,22 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
 import { getNameserverSetupStatus } from '../nameserver.helper';
-import type { IDnsZoneControlResponse, IDnsNameserver } from '@/resources/interfaces/dns.interface';
+import type { DnsZone } from '@/resources/dns-zones';
+import type { IDnsNameserver } from '@/resources/domains';
+import assert from 'node:assert/strict';
+import test from 'node:test';
 
 const makeZone = (params: {
   datumNs: string[];
   zoneNs: Array<Pick<IDnsNameserver, 'hostname'>>;
-}): IDnsZoneControlResponse => {
+}): DnsZone => {
   return {
-    apiVersion: 'v1',
-    kind: 'DNSZone',
+    uid: 'example-zone-uid',
     name: 'example-zone',
+    displayName: 'Example Zone',
     namespace: 'default',
+    resourceVersion: '1',
+    createdAt: new Date(),
     domainName: 'example.com',
+    dnsZoneClassName: 'default',
     status: {
       nameservers: params.datumNs,
       domainRef: {
@@ -22,16 +26,13 @@ const makeZone = (params: {
         },
       },
     },
-  } as unknown as IDnsZoneControlResponse;
+  } as DnsZone;
 };
 
 test('getNameserverSetupStatus: fully setup when trailing dots and case differ', () => {
   const zone = makeZone({
     datumNs: ['ns1.datum.com.', 'ns2.datum.com'],
-    zoneNs: [
-      { hostname: 'NS1.DATUM.COM' },
-      { hostname: 'ns2.datum.com.' },
-    ],
+    zoneNs: [{ hostname: 'NS1.DATUM.COM' }, { hostname: 'ns2.datum.com.' }],
   });
 
   const result = getNameserverSetupStatus(zone);
@@ -87,5 +88,3 @@ test('getNameserverSetupStatus: trims whitespace and ignores single trailing dot
   assert.equal(result.isPartiallySetup, false);
   assert.equal(result.hasAnySetup, true);
 });
-
-

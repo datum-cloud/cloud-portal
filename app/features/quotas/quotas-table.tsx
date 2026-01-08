@@ -1,7 +1,7 @@
 import { DataTable } from '@/modules/datum-ui/components/data-table';
-import { IAllowanceBucketControlResponse } from '@/resources/interfaces/allowance-bucket.interface';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import type { AllowanceBucket } from '@/resources/allowance-buckets';
+import type { Organization } from '@/resources/organizations';
+import type { Project } from '@/resources/projects';
 import { openSupportMessage } from '@/utils/open-support-message';
 import { Button } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
@@ -14,9 +14,9 @@ export const QuotasTable = ({
   resourceType,
   resource,
 }: {
-  data: IAllowanceBucketControlResponse[];
+  data: AllowanceBucket[];
   resourceType: 'organization' | 'project';
-  resource: IOrganization | IProjectControlResponse;
+  resource: Organization | Project;
 }) => {
   const calculateUsage = (usage: { allocated: bigint; limit: bigint }) => {
     const used =
@@ -39,11 +39,11 @@ export const QuotasTable = ({
     return 'bg-red-500'; // Red for critical (90-100%)
   };
 
-  const handleRequestIncrease = (quota: IAllowanceBucketControlResponse) => {
+  const handleRequestIncrease = (quota: AllowanceBucket) => {
     const resourceInfo =
       resourceType === 'organization'
-        ? `- Organization: ${(resource as IOrganization)?.displayName} (${(resource as IOrganization)?.name})\n`
-        : `- Project: ${(resource as IProjectControlResponse)?.description} (${(resource as IProjectControlResponse)?.name})\n`;
+        ? `- Organization: ${(resource as Organization)?.displayName} (${(resource as Organization)?.name})\n`
+        : `- Project: ${(resource as Project)?.displayName} (${(resource as Project)?.name})\n`;
 
     openSupportMessage({
       subject: `Quota increase request: ${quota.resourceType}`,
@@ -57,7 +57,7 @@ export const QuotasTable = ({
         `Thank you!`,
     });
   };
-  const columns: ColumnDef<IAllowanceBucketControlResponse>[] = useMemo(() => {
+  const columns: ColumnDef<AllowanceBucket>[] = useMemo(() => {
     return [
       {
         header: 'Resource Type',

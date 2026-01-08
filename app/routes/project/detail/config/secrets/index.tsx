@@ -3,50 +3,77 @@ import { DateTime } from '@/components/date-time';
 import { SECRET_TYPES } from '@/features/secret/constants';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
-import { createSecretsControl } from '@/resources/control-plane';
-import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
+import {
+  createSecretService,
+  useDeleteSecret,
+  useHydrateSecrets,
+  useSecrets,
+  useSecretsWatch,
+  type Secret,
+} from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   LoaderFunctionArgs,
-  AppLoadContext,
   useLoaderData,
   useParams,
   Link,
-  useFetcher,
   useNavigate,
 } from 'react-router';
 
-export const loader = async ({ context, params }: LoaderFunctionArgs) => {
+export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
-  const secretControl = createSecretsControl(controlPlaneClient as Client);
 
   if (!projectId) {
     throw new BadRequestError('Project ID is required');
   }
 
-  const secrets = await secretControl.list(projectId);
+  // Services now use global axios client with AsyncLocalStorage
+  const secretService = createSecretService();
+  const secrets = await secretService.list(projectId);
   return secrets;
 };
 
 export default function SecretsPage() {
-  const data = useLoaderData<typeof loader>();
+  const initialData = useLoaderData<typeof loader>();
   const navigate = useNavigate();
-  const fetcher = useFetcher();
   const { confirm } = useConfirmationDialog();
   const { projectId } = useParams();
 
-  const deleteSecret = async (secret: ISecretControlResponse) => {
+  // Hydrate cache with SSR data (runs once on mount)
+  useHydrateSecrets(projectId ?? '', initialData ?? []);
+
+  // Subscribe to watch for real-time updates
+  useSecretsWatch(projectId ?? '');
+
+  // Read from React Query cache (gets updates from watch!)
+  const { data: queryData } = useSecrets(projectId ?? '', {
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Use React Query data, fallback to SSR data
+  const data = queryData ?? initialData ?? [];
+
+  const deleteSecretMutation = useDeleteSecret(projectId ?? '', {
+    onSuccess: () => {
+      toast.success('Secret deleted successfully', {
+        description: 'The secret has been deleted successfully',
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const deleteSecret = async (secret: Secret) => {
     await confirm({
       title: 'Delete Secret',
       description: (
@@ -62,21 +89,12 @@ export default function SecretsPage() {
       confirmValue: secret.name,
       confirmInputLabel: `Type "${secret.name}" to confirm.`,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            secretId: secret.name ?? '',
-            projectId: projectId ?? '',
-          },
-          {
-            action: SECRET_ACTIONS_ROUTE_PATH,
-            method: 'DELETE',
-          }
-        );
+        await deleteSecretMutation.mutateAsync(secret.name);
       },
     });
   };
 
-  const columns: ColumnDef<ISecretControlResponse>[] = useMemo(
+  const columns: ColumnDef<Secret>[] = useMemo(
     () => [
       {
         header: 'Resource Name',
@@ -105,7 +123,7 @@ export default function SecretsPage() {
     [projectId]
   );
 
-  const rowActions: DataTableRowActionsProps<ISecretControlResponse>[] = useMemo(
+  const rowActions: DataTableRowActionsProps<Secret>[] = useMemo(
     () => [
       {
         key: 'delete',
@@ -116,18 +134,6 @@ export default function SecretsPage() {
     ],
     [projectId]
   );
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data.success) {
-        toast.success('Secret deleted successfully', {
-          description: 'The secret has been deleted successfully',
-        });
-      } else {
-        toast.error(fetcher.data.error);
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   return (
     <DataTable

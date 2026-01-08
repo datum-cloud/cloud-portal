@@ -6,8 +6,8 @@ import {
   transformFqdnFields,
 } from './record-type.helper';
 import { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-plane/dns-networking';
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
-import { CreateDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
+import { IFlattenedDnsRecord } from '@/resources/dns-records';
+import { CreateDnsRecordSchema } from '@/resources/dns-records';
 
 // =============================================================================
 // Transformation Helpers: Form ↔ K8s RecordSet

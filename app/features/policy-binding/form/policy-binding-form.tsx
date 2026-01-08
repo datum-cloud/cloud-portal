@@ -3,17 +3,14 @@ import { Field } from '@/components/field/field';
 import { SelectRole } from '@/components/select-role/select-role';
 import { ResourceForm } from '@/features/policy-binding/form/resource-form';
 import { SubjectsForm } from '@/features/policy-binding/form/subjects-form';
-import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
+import type { CreatePolicyBindingInput, PolicyBinding } from '@/resources/policy-bindings';
 import {
-  IPolicyBindingControlResponse,
   PolicyBindingSubjectKind,
-} from '@/resources/interfaces/policy-binding.interface';
-import {
   NewPolicyBindingSchema,
   newPolicyBindingSchema,
-} from '@/resources/schemas/policy-binding.schema';
-import { ROUTE_PATH as POLICY_BINDINGS_ACTIONS_PATH } from '@/routes/api/policy-bindings';
+  useDeletePolicyBinding,
+} from '@/resources/policy-bindings';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
@@ -24,7 +21,7 @@ import {
   useInputControl,
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import {
   Card,
   CardContent,
@@ -34,21 +31,34 @@ import {
   CardTitle,
 } from '@datum-ui/components';
 import { useEffect, useMemo, useState } from 'react';
-import { Form, useFetcher, useNavigate } from 'react-router';
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
+import { Form, useNavigate } from 'react-router';
+
+interface PolicyBindingFormProps {
+  defaultValue?: PolicyBinding;
+  onSubmit?: (data: CreatePolicyBindingInput) => void;
+  isPending?: boolean;
+}
 
 export const PolicyBindingForm = ({
   defaultValue,
-}: {
-  defaultValue?: IPolicyBindingControlResponse;
-}) => {
+  onSubmit,
+  isPending = false,
+}: PolicyBindingFormProps) => {
   const { orgId } = useApp();
   const navigate = useNavigate();
-  const isPending = useIsPending();
-  const fetcher = useFetcher({ key: 'delete-policy-binding' });
   const { confirm } = useConfirmationDialog();
 
   const [formattedValues, setFormattedValues] = useState<NewPolicyBindingSchema>();
+
+  const deleteMutation = useDeletePolicyBinding(orgId ?? '', {
+    onSuccess: () => {
+      toast.success('Policy binding deleted successfully');
+      navigate(getPathWithParams(paths.org.detail.policyBindings.root, { orgId }));
+    },
+    onError: (error) => {
+      toast.error('Error', { description: error.message });
+    },
+  });
 
   const deletePolicyBinding = async () => {
     await confirm({
@@ -66,19 +76,7 @@ export const PolicyBindingForm = ({
       confirmValue: defaultValue?.name,
       confirmInputLabel: `Type "${defaultValue?.name}" to confirm.`,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: defaultValue?.name ?? '',
-            orgId: orgId ?? '',
-            redirectUri: getPathWithParams(paths.org.detail.policyBindings.root, {
-              orgId,
-            }),
-          },
-          {
-            action: POLICY_BINDINGS_ACTIONS_PATH,
-            method: 'DELETE',
-          }
-        );
+        deleteMutation.mutate(defaultValue?.name ?? '');
       },
     });
   };
@@ -90,6 +88,32 @@ export const PolicyBindingForm = ({
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
       return parseWithZod(formData, { schema: newPolicyBindingSchema });
+    },
+    onSubmit(event, { submission }) {
+      event.preventDefault();
+
+      if (submission?.status !== 'success' || !onSubmit) {
+        return;
+      }
+
+      const data = submission.value;
+      const input: CreatePolicyBindingInput = {
+        resource: {
+          ref: data.resource.ref,
+          name: data.resource.name,
+          namespace: data.resource.namespace,
+          uid: data.resource.uid,
+        },
+        role: data.role,
+        roleNamespace: data.roleNamespace,
+        subjects: data.subjects.map((s) => ({
+          kind: s.kind as 'User' | 'Group',
+          name: s.name,
+          uid: s.uid,
+        })),
+      };
+
+      onSubmit(input);
     },
   });
 
@@ -157,11 +181,8 @@ export const PolicyBindingForm = ({
         <Form
           {...getFormProps(form)}
           id={form.id}
-          method="POST"
           autoComplete="off"
           className="mt-6 flex flex-col gap-10">
-          <AuthenticityTokenInput />
-
           <CardContent className="space-y-10">
             <ResourceForm
               fields={fields as unknown as ReturnType<typeof useForm<NewPolicyBindingSchema>>[1]}

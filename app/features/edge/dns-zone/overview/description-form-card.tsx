@@ -1,8 +1,6 @@
 import { Field } from '@/components/field/field';
-import { useIsPending } from '@/hooks/useIsPending';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
-import { formDnsZoneSchema } from '@/resources/schemas/dns-zone.schema';
-import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
+import type { DnsZone } from '@/resources/dns-zones';
+import { createDnsZoneSchema, useUpdateDnsZone } from '@/resources/dns-zones';
 import {
   FormProvider,
   getFormProps,
@@ -22,8 +20,8 @@ import {
 } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
 import { useEffect, useRef } from 'react';
-import { Form, useFetcher } from 'react-router';
-import { AuthenticityTokenInput, useAuthenticityToken } from 'remix-utils/csrf/react';
+import { Form } from 'react-router';
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 import { useHydrated } from 'remix-utils/use-hydrated';
 
 export const DescriptionFormCard = ({
@@ -31,21 +29,33 @@ export const DescriptionFormCard = ({
   defaultValue,
 }: {
   projectId: string;
-  defaultValue: IDnsZoneControlResponse;
+  defaultValue: DnsZone;
 }) => {
-  const fetcher = useFetcher({ key: 'description-form' });
   const isHydrated = useHydrated();
-  const isPending = useIsPending({ fetcherKey: 'description-form' });
   const inputRef = useRef<HTMLInputElement>(null);
-  const csrf = useAuthenticityToken();
+
+  const updateDnsZoneMutation = useUpdateDnsZone(projectId, defaultValue?.name ?? '', {
+    onSuccess: () => {
+      toast.success('DNS Zone description updated successfully', {
+        description: 'You have successfully updated the DNS Zone description.',
+      });
+    },
+    onError: (error: Error) => {
+      toast.error('Error', {
+        description: error.message ?? 'An error occurred while updating the DNS Zone description',
+      });
+    },
+  });
+
+  const isPending = updateDnsZoneMutation.isPending;
 
   const [form, fields] = useForm({
     id: 'description-form',
-    constraint: getZodConstraint(formDnsZoneSchema),
+    constraint: getZodConstraint(createDnsZoneSchema),
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onInput',
     onValidate({ formData }) {
-      return parseWithZod(formData, { schema: formDnsZoneSchema });
+      return parseWithZod(formData, { schema: createDnsZoneSchema });
     },
     onSubmit(event, { submission }) {
       event.preventDefault();
@@ -53,20 +63,10 @@ export const DescriptionFormCard = ({
 
       if (submission?.status !== 'success') return;
 
-      fetcher.submit(
-        {
-          id: defaultValue?.name ?? '',
-          projectId,
-          domainName: defaultValue?.domainName ?? '',
-          description: submission.value.description ?? '',
-          csrf,
-        },
-        {
-          method: 'PATCH',
-          action: DNS_ZONES_ACTIONS_PATH,
-          encType: 'application/json',
-        }
-      );
+      updateDnsZoneMutation.mutate({
+        description: submission.value.description ?? '',
+        resourceVersion: defaultValue.resourceVersion,
+      });
     },
   });
 
@@ -83,22 +83,6 @@ export const DescriptionFormCard = ({
       descriptionControl.change(defaultValue.description ?? '');
     }
   }, [defaultValue]);
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const { success, error } = fetcher.data;
-
-      if (success) {
-        toast.success('DNS Zone description updated successfully', {
-          description: 'You have successfully updated the DNS Zone description.',
-        });
-      } else {
-        toast.error('Error', {
-          description: error ?? 'An error occurred while updating the DNS Zone description',
-        });
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   return (
     <Card className="rounded-xl pt-5 pb-4 shadow-none">

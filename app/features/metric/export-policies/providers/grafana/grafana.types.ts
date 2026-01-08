@@ -1,5 +1,5 @@
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
-import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
+import { IExportPolicyControlResponse } from '@/resources/export-policies';
+import { ISecretControlResponse } from '@/resources/secrets';
 
 export interface GrafanaDialogProps {
   /** Project ID for the export policy */

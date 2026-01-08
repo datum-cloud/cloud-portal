@@ -1,7 +1,7 @@
 import { ContentWrapper } from '@/components/content-wrapper';
 import { Header } from '@/components/header';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import type { Organization } from '@/resources/organizations';
+import type { Project } from '@/resources/projects';
 import { SidebarInset, SidebarProvider, useSidebar } from '@datum-ui/components';
 import { AppSidebar, NavItem } from '@datum-ui/components/sidebar';
 import { cn } from '@shadcn/lib/utils';
@@ -64,8 +64,8 @@ export function DashboardLayout({
   children: React.ReactNode;
   navItems: NavItem[];
   sidebarCollapsible?: 'offcanvas' | 'icon' | 'none';
-  currentOrg?: IOrganization;
-  currentProject?: IProjectControlResponse;
+  currentOrg?: Organization;
+  currentProject?: Project;
   contentClassName?: string;
   sidebarHeader?: string | React.ReactNode;
   containerClassName?: string;

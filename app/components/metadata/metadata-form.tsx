@@ -2,7 +2,7 @@ import { Field } from '@/components/field/field';
 import { InputName } from '@/components/input-name/input-name';
 import { SelectAnnotations } from '@/components/select-annotations/select-annotations';
 import { SelectLabels } from '@/components/select-labels/select-labels';
-import { MetadataSchema } from '@/resources/schemas/metadata.schema';
+import { MetadataSchema } from '@/resources/base';
 import { useForm, useInputControl } from '@conform-to/react';
 import { useEffect, useRef } from 'react';
 import { useHydrated } from 'remix-utils/use-hydrated';

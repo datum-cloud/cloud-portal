@@ -4,29 +4,32 @@ import {
   KeysFormDialog,
   VariablesFormDialogRef,
 } from '@/features/secret/form/keys/keys-form-dialog';
-import { ISecretControlResponse } from '@/resources/interfaces/secret.interface';
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
+import { type Secret, useUpdateSecret } from '@/resources/secrets';
 import { Button, toast } from '@datum-ui/components';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@shadcn/ui/table';
 import { PencilIcon, PlusIcon, Trash2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { useFetcher, useParams } from 'react-router';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { useRef } from 'react';
+import { useParams } from 'react-router';
 
-export const EditSecretKeys = ({ defaultValue }: { defaultValue?: ISecretControlResponse }) => {
+export const EditSecretKeys = ({ secret }: { secret?: Secret }) => {
   const { confirm } = useConfirmationDialog();
-  const { projectId } = useParams();
-  const fetcher = useFetcher();
-  const csrf = useAuthenticityToken();
+  const { projectId, secretId } = useParams();
 
   const variablesFormDialogRef = useRef<VariablesFormDialogRef>(null!);
   const editKeyValueDialogRef = useRef<EditKeyValueDialogRef>(null!);
-  const [currentAction, setCurrentAction] = useState<'delete' | 'edit'>();
+
+  // Use secretId from URL params to ensure query key matches useSecret in overview
+  const updateSecretMutation = useUpdateSecret(projectId ?? '', secretId ?? '', {
+    onSuccess: () => {
+      toast.success('Key deleted successfully', {
+        description: 'The key has been deleted successfully',
+      });
+    },
+  });
 
   const deleteSecret = async (variable: string) => {
-    setCurrentAction('delete');
     await confirm({
       title: 'Delete Key',
       description: (
@@ -42,39 +45,14 @@ export const EditSecretKeys = ({ defaultValue }: { defaultValue?: ISecretControl
       confirmValue: variable,
       confirmInputLabel: `Type "${variable}" to confirm.`,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            projectId: projectId ?? '',
-            secretId: defaultValue?.name ?? '',
-            data: {
-              [variable]: null,
-            },
-            csrf,
+        await updateSecretMutation.mutateAsync({
+          data: {
+            [variable]: null,
           },
-          {
-            action: SECRET_ACTIONS_ROUTE_PATH,
-            encType: 'application/json',
-            method: 'PATCH',
-          }
-        );
+        });
       },
     });
   };
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const { success } = fetcher.data;
-
-      if (success) {
-        setCurrentAction(undefined);
-        if (currentAction === 'delete') {
-          toast.success('Key deleted successfully', {
-            description: 'The key has been deleted successfully',
-          });
-        }
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   return (
     <>
@@ -105,7 +83,7 @@ export const EditSecretKeys = ({ defaultValue }: { defaultValue?: ISecretControl
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {defaultValue?.data?.map((variable) => (
+                {secret?.data?.map((variable) => (
                   <TableRow
                     key={variable}
                     className="bg-table-cell hover:bg-table-cell-hover relative transition-colors">
@@ -140,14 +118,10 @@ export const EditSecretKeys = ({ defaultValue }: { defaultValue?: ISecretControl
       <KeysFormDialog
         ref={variablesFormDialogRef}
         projectId={projectId}
-        secretId={defaultValue?.name}
+        secretId={secretId}
         onSuccess={() => toast.success('Key added successfully')}
       />
-      <EditKeyValueDialog
-        ref={editKeyValueDialogRef}
-        projectId={projectId}
-        secretId={defaultValue?.name}
-      />
+      <EditKeyValueDialog ref={editKeyValueDialogRef} projectId={projectId} secretId={secretId} />
     </>
   );
 };

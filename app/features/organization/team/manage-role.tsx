@@ -1,7 +1,6 @@
 import { Field } from '@/components/field/field';
 import { SelectRole } from '@/components/select-role/select-role';
-import { memberUpdateRoleSchema } from '@/resources/schemas/member.schema';
-import { ROUTE_PATH as MEMBER_UPDATE_ROLE_PATH } from '@/routes/api/members';
+import { memberUpdateRoleSchema, useUpdateMemberRole } from '@/resources/members';
 import {
   FormProvider,
   getFormProps,
@@ -12,9 +11,8 @@ import {
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button, toast } from '@datum-ui/components';
 import { Dialog } from '@datum-ui/components/dialog';
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { Form, useFetcher } from 'react-router';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { Form } from 'react-router';
 
 interface ManageRoleModalFormShowProps {
   id: string;
@@ -33,13 +31,20 @@ export interface ManageRoleModalFormProps {
 
 export const ManageRoleModalForm = forwardRef<ManageRoleModalFormRef, ManageRoleModalFormProps>(
   ({ orgId, onSuccess }, ref) => {
-    const csrf = useAuthenticityToken();
-    const fetcher = useFetcher();
-
     const [isOpen, setIsOpen] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [memberId, setMemberId] = useState<string | undefined>(undefined);
     const resolveRef = useRef<(value: boolean) => void>(null);
+
+    const updateMemberRole = useUpdateMemberRole(orgId, {
+      onSuccess: () => {
+        resolveRef.current?.(true);
+        onSuccess?.();
+        setIsOpen(false);
+      },
+      onError: (error) => {
+        toast.error(error.message);
+      },
+    });
 
     const [form, fields] = useForm({
       id: 'invitation-form',
@@ -57,20 +62,13 @@ export const ManageRoleModalForm = forwardRef<ManageRoleModalFormRef, ManageRole
         event.preventDefault();
         event.stopPropagation();
 
-        if (submission?.status === 'success') {
-          setIsSubmitting(true);
-
-          const payload = {
-            csrf,
-            orgId,
-            id: memberId ?? '',
-            ...submission.value,
-          };
-
-          fetcher.submit(payload, {
-            method: 'PATCH',
-            action: MEMBER_UPDATE_ROLE_PATH,
-            encType: 'application/json',
+        if (submission?.status === 'success' && memberId) {
+          updateMemberRole.mutate({
+            name: memberId,
+            roleRef: {
+              role: submission.value.role,
+              roleNamespace: submission.value.roleNamespace,
+            },
           });
         }
       },
@@ -99,32 +97,11 @@ export const ManageRoleModalForm = forwardRef<ManageRoleModalFormRef, ManageRole
       setIsOpen(open);
     };
 
-    const handleSuccess = () => {
-      resolveRef.current?.(true);
-      onSuccess?.();
-      setIsOpen(false);
-    };
-
     const handleClose = () => {
       setIsOpen(false);
     };
 
-    useEffect(() => {
-      if (fetcher.data && fetcher.state === 'idle') {
-        setIsSubmitting(false);
-        const { success } = fetcher.data;
-
-        if (success) {
-          handleSuccess();
-        } else {
-          toast.error(fetcher.data.error);
-        }
-      }
-    }, [fetcher.data, fetcher.state]);
-
-    const loading = useMemo(() => {
-      return isSubmitting || fetcher.state === 'submitting';
-    }, [isSubmitting, fetcher.state]);
+    const loading = updateMemberRole.isPending;
 
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>

@@ -1,19 +1,21 @@
-import { NextFunction } from './middleware';
-import { OrganizationType, IOrganization } from '@/resources/interfaces/organization.interface';
-import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
+import { MiddlewareContext, NextFunction } from './middleware';
+import { createOrganizationService, type Organization } from '@/resources/organizations';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+
+type OrganizationType = Organization['type'];
 
 /**
  * Organization type checking middleware that fetches org details and validates organization type
  *
  * @param allowedTypes - Array of organization types allowed to access the route
- * @param request - The incoming request object
+ * @param ctx - The middleware context containing request and app context
  * @param next - The next middleware function to call
  * @returns Response from either the next middleware or an error response
  */
 export function createOrgTypeMiddleware(allowedTypes: OrganizationType[]) {
-  return async (request: Request, next: NextFunction): Promise<Response> => {
+  return async (ctx: MiddlewareContext, next: NextFunction): Promise<Response> => {
+    const { request, context } = ctx;
+
     // Extract orgId from URL path
     const url = new URL(request.url);
     const pathSegments = url.pathname.split('/');
@@ -25,24 +27,13 @@ export function createOrgTypeMiddleware(allowedTypes: OrganizationType[]) {
       throw new BadRequestError('Organization ID not found in request');
     }
 
-    // Fetch organization details using the same pattern as org detail layout
-    const orgResponse = await fetch(
-      `${process.env.APP_URL}${getPathWithParams(ORG_DETAIL_PATH, { id: orgId })}`,
-      {
-        method: 'GET',
-        headers: {
-          Cookie: request.headers.get('Cookie') || '',
-        },
-      }
-    );
+    // Use the organization service to fetch org details
+    // Services now use global axios client with AsyncLocalStorage
+    const orgService = createOrganizationService();
 
-    const orgResult = await orgResponse.json();
-
-    if (!orgResult.success) {
+    const org = await orgService.get(orgId).catch(() => {
       throw new NotFoundError('Organization not found');
-    }
-
-    const org: IOrganization = orgResult.data;
+    });
 
     // Check if organization type is allowed
     if (org.type && !allowedTypes.includes(org.type)) {
@@ -50,8 +41,6 @@ export function createOrgTypeMiddleware(allowedTypes: OrganizationType[]) {
     }
 
     // Attach organization data to request for downstream use
-    // Note: In a real implementation, you might want to use a more sophisticated
-    // way to pass data between middleware (like request context)
     (request as any).organization = org;
 
     return next();
@@ -61,9 +50,9 @@ export function createOrgTypeMiddleware(allowedTypes: OrganizationType[]) {
 /**
  * Predefined middleware for Standard organizations only
  */
-export const standardOrgMiddleware = createOrgTypeMiddleware([OrganizationType.Standard]);
+export const standardOrgMiddleware = createOrgTypeMiddleware(['Standard']);
 
 /**
  * Predefined middleware for Personal organizations only
  */
-export const personalOrgMiddleware = createOrgTypeMiddleware([OrganizationType.Personal]);
+export const personalOrgMiddleware = createOrgTypeMiddleware(['Personal']);

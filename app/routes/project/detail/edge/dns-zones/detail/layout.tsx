@@ -1,22 +1,16 @@
 import { BackButton } from '@/components/back-button';
 import { SubLayout } from '@/layouts';
-import { createDomainsControl } from '@/resources/control-plane';
-import {
-  createDnsRecordSetsControl,
-  createDnsZonesControl,
-} from '@/resources/control-plane/dns-networking';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
-import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { createDnsRecordService } from '@/resources/dns-records';
+import { createDnsZoneService, type DnsZone, useHydrateDnsZone } from '@/resources/dns-zones';
+import { createDomainService, type Domain, useHydrateDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { redirectWithToast } from '@/utils/cookies';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components';
-import { Client } from '@hey-api/client-axios';
 import { useMemo } from 'react';
 import {
-  AppLoadContext,
   LoaderFunctionArgs,
   MetaFunction,
   Outlet,
@@ -26,30 +20,28 @@ import {
 } from 'react-router';
 
 export const handle = {
-  breadcrumb: (data: { dnsZone: IDnsZoneControlResponse }) => (
-    <span>{data?.dnsZone?.domainName}</span>
-  ),
+  breadcrumb: (data: { dnsZone: DnsZone }) => <span>{data?.dnsZone?.domainName}</span>,
 };
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
-  const { dnsZone } = loaderData as { dnsZone: IDnsZoneControlResponse };
+  const { dnsZone } = loaderData as { dnsZone: DnsZone };
   return metaObject(dnsZone?.domainName || 'DNS');
 });
 
-export const loader = async ({ context, params }: LoaderFunctionArgs) => {
+export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId, dnsZoneId } = params;
 
   if (!projectId || !dnsZoneId) {
     throw new BadRequestError('Project ID and DNS ID are required');
   }
 
-  const { controlPlaneClient } = context as AppLoadContext;
-  const dnsZonesControl = createDnsZonesControl(controlPlaneClient as Client);
+  // Services now use global axios client with AsyncLocalStorage
+  const dnsZoneService = createDnsZoneService();
 
-  const dnsZone = await dnsZonesControl.detail(projectId, dnsZoneId);
+  const dnsZone = await dnsZoneService.get(projectId, dnsZoneId);
 
   if (!dnsZone) {
-    throw new NotFoundError('DNS not found');
+    throw new NotFoundError('DNS', dnsZoneId);
   }
 
   // If the DNS zone is being deleted, redirect to the DNS zones page
@@ -66,22 +58,29 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     );
   }
 
-  let domain: IDomainControlResponse | null = null;
+  let domain: Domain | null = null;
   if (dnsZone.status?.domainRef?.name) {
-    // Get Domain Detail
-    const domainsControl = createDomainsControl(controlPlaneClient as Client);
-    domain = await domainsControl.detail(projectId, dnsZone.status?.domainRef?.name ?? '');
+    const domainService = createDomainService();
+    domain = await domainService.get(projectId, dnsZone.status?.domainRef?.name ?? '');
   }
 
-  const dnsRecordSetsControl = createDnsRecordSetsControl(controlPlaneClient as Client);
-  const dnsRecordSets = await dnsRecordSetsControl.list(projectId, dnsZoneId);
+  // Use new DNS Records service
+  const dnsRecordService = createDnsRecordService();
+  const dnsRecordSets = await dnsRecordService.list(projectId, dnsZoneId);
 
   return data({ dnsZone, domain, dnsRecordSets });
 };
 
 export default function DnsZoneDetailLayout() {
-  const { dnsZone } = useLoaderData<typeof loader>();
-  const { projectId } = useParams();
+  const { dnsZone, domain } = useLoaderData<typeof loader>();
+  const { projectId, dnsZoneId } = useParams();
+
+  // Hydrate cache with SSR data (watches are in individual pages to reduce connections)
+  useHydrateDnsZone(projectId ?? '', dnsZoneId ?? '', dnsZone);
+
+  // Hydrate domain cache if domain exists
+  const domainName = domain?.name ?? '';
+  useHydrateDomain(projectId ?? '', domainName, domain);
 
   const navItems: NavItem[] = useMemo(() => {
     return [

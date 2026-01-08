@@ -1,6 +1,5 @@
-import { NextFunction } from './middleware';
-import { IUser, RegistrationApproval } from '@/resources/interfaces/user.interface';
-import { ROUTE_PATH as USER_API } from '@/routes/api/user/index';
+import { MiddlewareContext, NextFunction } from './middleware';
+import { createUserService, RegistrationApproval } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { redirect } from 'react-router';
@@ -9,14 +8,15 @@ import { redirect } from 'react-router';
  * Registration approval middleware that checks if a user's registration is approved
  * and redirects to waitlist if not approved
  *
- * @param request - The incoming request object
+ * @param ctx - The middleware context containing request and app context
  * @param next - The next middleware function to call if approved
  * @returns Response from either the next middleware or a redirect to waitlist
  */
 export async function registrationApprovalMiddleware(
-  request: Request,
+  ctx: MiddlewareContext,
   next: NextFunction
 ): Promise<Response> {
+  const { request, context } = ctx;
   const url = new URL(request.url);
 
   // Allowed paths that don't require registration approval
@@ -36,28 +36,17 @@ export async function registrationApprovalMiddleware(
       return next();
     }
 
-    // Fetch user details using internal API
-    const userResponse = await fetch(`${process.env.APP_URL}${USER_API}`, {
-      method: 'GET',
-      headers: {
-        Cookie: request.headers.get('Cookie') || '',
-      },
-    });
+    // Use user service directly instead of internal API call
+    // Services now use global axios client with AsyncLocalStorage
+    const userService = createUserService();
 
-    if (!userResponse.ok) {
+    const user = await userService.get(session.sub);
+
+    if (!user) {
       // If user fetch fails, proceed to next middleware
       // The private layout will handle the error
       return next();
     }
-
-    const userResult = await userResponse.json();
-
-    if (!userResult.success) {
-      // If user fetch is not successful, proceed to next middleware
-      return next();
-    }
-
-    const user: IUser = userResult.data as IUser;
 
     // Check if user's registration is approved
     if (user.registrationApproval !== RegistrationApproval.Approved) {

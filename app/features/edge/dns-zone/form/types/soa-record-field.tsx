@@ -1,5 +1,5 @@
 import { Field } from '@/components/field/field';
-import { SOARecordSchema } from '@/resources/schemas/dns-record.schema';
+import { SOARecordSchema } from '@/resources/dns-records';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { Input } from '@shadcn/ui/input';
 import { useEffect } from 'react';

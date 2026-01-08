@@ -1,5 +1,5 @@
 import { ChipsOverflow } from '@/components/chips-overflow';
-import { IDnsNameserver } from '@/resources/interfaces/dns.interface';
+import { IDnsNameserver } from '@/resources/domains';
 
 /**
  * Helper function to extract unique registrant names (DNS host providers)

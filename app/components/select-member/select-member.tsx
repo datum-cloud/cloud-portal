@@ -1,9 +1,7 @@
 import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
-import { IMemberControlResponse } from '@/resources/interfaces/member.interface';
-import { ROUTE_PATH as MEMBERS_LIST_PATH } from '@/routes/api/members';
+import { useMembers } from '@/resources/members/member.queries';
 import { toast } from '@datum-ui/components';
-import { useEffect, useMemo, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useEffect, useMemo } from 'react';
 
 export const SelectMember = ({
   orgId,
@@ -22,27 +20,13 @@ export const SelectMember = ({
   id?: string;
   exceptItems?: string[];
 }) => {
-  const fetcher = useFetcher({ key: 'member-list' });
-
-  const [members, setMembers] = useState<IMemberControlResponse[]>([]);
+  const { data: members = [], isLoading, error } = useMembers(orgId);
 
   useEffect(() => {
-    if (orgId) {
-      fetcher.load(`${MEMBERS_LIST_PATH}?orgId=${orgId}`);
+    if (error) {
+      toast.error(error.message || 'Failed to load members');
     }
-  }, [orgId]);
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const { success, error, data } = fetcher.data;
-      if (!success) {
-        toast.error(error);
-        return;
-      }
-
-      setMembers(data);
-    }
-  }, [fetcher.data, fetcher.state]);
+  }, [error]);
 
   const options = useMemo(() => {
     return members.map((member) => {
@@ -70,7 +54,7 @@ export const SelectMember = ({
       }}
       options={options}
       placeholder="Select a User"
-      isLoading={fetcher.state === 'loading'}
+      isLoading={isLoading}
     />
   );
 };

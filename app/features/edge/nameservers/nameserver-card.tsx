@@ -1,5 +1,5 @@
 import { NameserverTable } from './nameserver-table';
-import { IDnsNameserver, IDnsRegistration } from '@/resources/interfaces/dns.interface';
+import { IDnsNameserver, IDnsRegistration } from '@/resources/domains';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { useMemo } from 'react';
 

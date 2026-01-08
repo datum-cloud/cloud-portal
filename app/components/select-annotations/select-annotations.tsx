@@ -1,6 +1,6 @@
 import { AnnotationFormDialog, AnnotationFormDialogRef } from './annotations-form-dialog';
 import { MultiSelect, MultiSelectOption } from '@/components/multi-select/multi-select';
-import { LabelFormSchema } from '@/resources/schemas/metadata.schema';
+import { LabelFormSchema } from '@/resources/base';
 import { splitOption } from '@/utils/helpers/object.helper';
 import { toast } from '@datum-ui/components';
 import { PlusIcon } from 'lucide-react';

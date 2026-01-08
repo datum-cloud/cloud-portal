@@ -1,30 +1,28 @@
-import { createExportPoliciesControl } from '@/resources/control-plane';
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { createExportPolicyService, type ExportPolicy } from '@/resources/export-policies';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Client } from '@hey-api/client-axios';
-import { LoaderFunctionArgs, AppLoadContext, data, MetaFunction, Outlet } from 'react-router';
+import { LoaderFunctionArgs, data, MetaFunction, Outlet } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Your Export Policies</span>,
 };
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
-  const exportPolicy = loaderData as IExportPolicyControlResponse;
+  const exportPolicy = loaderData as ExportPolicy;
   return metaObject(exportPolicy?.name || 'ExportPolicy');
 });
 
-export const loader = async ({ context, params }: LoaderFunctionArgs) => {
+export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId, exportPolicyId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
 
   if (!projectId || !exportPolicyId) {
     throw new BadRequestError('Project ID and export policy ID are required');
   }
 
-  const exportPoliciesControl = createExportPoliciesControl(controlPlaneClient as Client);
+  // Services now use global axios client with AsyncLocalStorage
+  const exportPolicyService = createExportPolicyService();
 
-  const exportPolicy = await exportPoliciesControl.detail(projectId, exportPolicyId);
+  const exportPolicy = await exportPolicyService.get(projectId, exportPolicyId);
 
   if (!exportPolicy) {
     throw new NotFoundError('ExportPolicy not found');

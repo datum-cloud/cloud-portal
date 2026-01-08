@@ -2,19 +2,12 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { ActivityLogList } from '@/features/activity-log/list';
 import { ActionCard } from '@/features/project/dashboard';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import {
-  createDomainsControl,
-  createHttpProxiesControl,
-  createProjectsControl,
-} from '@/resources/control-plane';
-import { updateProjectSchema } from '@/resources/schemas/project.schema';
+import { createDomainService } from '@/resources/domains';
+import { createHttpProxyService } from '@/resources/http-proxies';
+import { createProjectService, useUpdateProject } from '@/resources/projects';
 import NotFound from '@/routes/not-found';
 import { paths } from '@/utils/config/paths.config';
-import { dataWithToast } from '@/utils/cookies';
-import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { parseWithZod } from '@conform-to/zod/v4';
 import {
   Button,
   Card,
@@ -22,18 +15,17 @@ import {
   CardHeader,
   CardTitle,
   LinkButton,
+  toast,
   Tooltip,
 } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import type { Client } from '@hey-api/client-axios';
 import { DownloadIcon, PlusIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import {
-  type ActionFunctionArgs,
-  type AppLoadContext,
   data,
   type LoaderFunctionArgs,
   useLoaderData,
+  useRevalidator,
   useRouteLoaderData,
 } from 'react-router';
 
@@ -63,57 +55,20 @@ export const handle = {
   hideBreadcrumb: true,
 };
 
-export const action = async ({ request, context, params }: ActionFunctionArgs) => {
+export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
   if (!projectId) {
-    throw new BadRequestError('Project ID is required');
+    return data({ hasDomains: false, hasHttpProxies: false, hasDesktop: false });
   }
-  const { controlPlaneClient } = context as AppLoadContext;
-  const projectsControl = createProjectsControl(controlPlaneClient as Client);
-
-  switch (request.method) {
-    case 'PATCH': {
-      try {
-        const clonedRequest = request.clone();
-        const formData = await clonedRequest.formData();
-        const parsed = parseWithZod(formData, {
-          schema: updateProjectSchema,
-        });
-        if (parsed.status !== 'success') {
-          throw new Error('Invalid form data');
-        }
-
-        await projectsControl.update(projectId, parsed.value, false);
-        return dataWithToast(null, {
-          title: 'Project',
-          description: 'You have successfully updated your project.',
-          type: 'success',
-        });
-      } catch (error) {
-        return dataWithToast(null, {
-          title: 'Project',
-          description: error instanceof Error ? error.message : (error as Response).statusText,
-          type: 'error',
-        });
-      }
-    }
-  }
-};
-
-export const loader = async ({ context, params }: LoaderFunctionArgs) => {
-  const { projectId } = params;
-  if (!projectId) {
-    throw new BadRequestError('Project ID is required');
-  }
-  const { controlPlaneClient } = context as AppLoadContext;
-  const domainsControl = createDomainsControl(controlPlaneClient as Client);
-  const httpProxiesControl = createHttpProxiesControl(controlPlaneClient as Client);
-  const projectsControl = createProjectsControl(controlPlaneClient as Client);
+  // Services now use global axios client with AsyncLocalStorage
+  const domainService = createDomainService();
+  const httpProxyService = createHttpProxyService();
+  const projectService = createProjectService();
 
   const [project, domains, httpProxies] = await Promise.all([
-    projectsControl.detail(projectId),
-    domainsControl.list(projectId, { limit: 1 }),
-    httpProxiesControl.list(projectId, { limit: 1 }),
+    projectService.get(projectId),
+    domainService.list(projectId, { limit: 1 }),
+    httpProxyService.list(projectId, { limit: 1 }),
   ]);
 
   return data({
@@ -128,9 +83,23 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 };
 
 export default function ProjectHomePage() {
-  const { submit } = useDatumFetcher({ key: 'project-dashboard-update' });
   const { project } = useRouteLoaderData('project-detail');
   const { hasDomains, hasHttpProxies, hasDesktop } = useLoaderData<typeof loader>();
+  const revalidator = useRevalidator();
+
+  const updateMutation = useUpdateProject(project?.name ?? '', {
+    onSuccess: () => {
+      toast.success('Project', {
+        description: 'You have successfully updated your project.',
+      });
+      revalidator.revalidate();
+    },
+    onError: (error) => {
+      toast.error('Project', {
+        description: error.message || 'Failed to update project',
+      });
+    },
+  });
 
   if (!project) {
     return <NotFound />;
@@ -195,16 +164,11 @@ export default function ProjectHomePage() {
                 </LinkButton>
               )
             }
-            onSkip={async () => {
-              await submit(
-                {
-                  projectId: project.name,
-                  annotations: ['dashboard.domains.skipped:true'],
-                },
-                {
-                  method: 'PATCH',
-                }
-              );
+            onSkip={() => {
+              updateMutation.mutate({
+                resourceVersion: project.resourceVersion,
+                annotations: { 'dashboard.domains.skipped': 'true' },
+              });
             }}
             showSkip={!hasDomains}
           />
@@ -242,16 +206,11 @@ export default function ProjectHomePage() {
                 )}
               </Tooltip>
             }
-            onSkip={async () => {
-              await submit(
-                {
-                  projectId: project.name,
-                  annotations: ['dashboard.desktop.skipped:true'],
-                },
-                {
-                  method: 'PATCH',
-                }
-              );
+            onSkip={() => {
+              updateMutation.mutate({
+                resourceVersion: project.resourceVersion,
+                annotations: { 'dashboard.desktop.skipped': 'true' },
+              });
             }}
           />
         </motion.div>
@@ -293,15 +252,11 @@ export default function ProjectHomePage() {
                 </LinkButton>
               )
             }
-            onSkip={async () => {
-              await submit(
-                {
-                  annotations: ['dashboard.proxy.skipped:true'],
-                },
-                {
-                  method: 'PATCH',
-                }
-              );
+            onSkip={() => {
+              updateMutation.mutate({
+                resourceVersion: project.resourceVersion,
+                annotations: { 'dashboard.proxy.skipped': 'true' },
+              });
             }}
             showSkip={!hasHttpProxies}
           />

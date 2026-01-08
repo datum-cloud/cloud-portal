@@ -3,23 +3,34 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { MoreActions } from '@/components/more-actions/more-actions';
 import { SubLayout } from '@/layouts';
-import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { ROUTE_PATH as HTTP_PROXIES_ACTIONS_PATH } from '@/routes/api/proxy';
+import { type HttpProxy, useDeleteHttpProxy } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { NavItem } from '@datum-ui/components/sidebar';
 import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { Outlet, Link, useParams, useFetcher, useRouteLoaderData } from 'react-router';
+import { Outlet, Link, useParams, useRouteLoaderData, useNavigate } from 'react-router';
 
 export default function HttpProxyDetailLayout() {
-  const httpProxy = useRouteLoaderData('proxy-detail');
+  const httpProxy = useRouteLoaderData('proxy-detail') as HttpProxy | undefined;
   const { projectId } = useParams();
+  const navigate = useNavigate();
 
-  const fetcher = useFetcher({ key: 'delete-proxy' });
   const { confirm } = useConfirmationDialog();
+
+  const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
+    onSuccess: () => {
+      toast.success('Proxy deleted successfully', {
+        description: 'The proxy has been deleted successfully',
+      });
+      navigate(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete proxy');
+    },
+  });
 
   const navItems: NavItem[] = useMemo(() => {
     return [
@@ -55,22 +66,10 @@ export default function HttpProxyDetailLayout() {
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmValue: httpProxy.name,
+      confirmValue: httpProxy?.name,
       confirmInputLabel: `Type "${httpProxy?.name}" to confirm.`,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: httpProxy?.name ?? '',
-            projectId: projectId ?? '',
-            redirectUri: getPathWithParams(paths.project.detail.proxy.root, {
-              projectId,
-            }),
-          },
-          {
-            action: HTTP_PROXIES_ACTIONS_PATH,
-            method: 'DELETE',
-          }
-        );
+        await deleteMutation.mutateAsync(httpProxy?.name ?? '');
       },
     });
   };
@@ -92,14 +91,12 @@ export default function HttpProxyDetailLayout() {
       {/* Header Section */}
       <div className="mb-6 flex items-start justify-between">
         <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold">
-            {(httpProxy as IHttpProxyControlResponse)?.name ?? 'Proxy'}
-          </h1>
+          <h1 className="text-2xl font-semibold">{httpProxy?.name ?? 'Proxy'}</h1>
           <div className="flex items-center gap-1">
             <Icon icon={ClockIcon} className="text-muted-foreground h-4 w-4" />
             <DateTime
               className="text-muted-foreground text-sm"
-              date={(httpProxy as IHttpProxyControlResponse)?.createdAt ?? ''}
+              date={httpProxy?.createdAt ?? ''}
               variant="both"
             />
           </div>

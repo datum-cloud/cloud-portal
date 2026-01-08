@@ -1,6 +1,6 @@
 import { DateTime } from '@/components/date-time';
 import { ProfileIdentity } from '@/components/profile-identity';
-import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
+import type { Organization } from '@/resources/organizations';
 import { getInitials } from '@/utils/helpers/text.helper';
 import { Badge } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
@@ -10,9 +10,9 @@ import { Building2, ChevronRight, UserRound } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export interface OrganizationCardProps {
-  organization: IOrganization;
+  organization: Organization;
   variant?: 'selection' | 'compact' | 'row';
-  onClick?: (organization: IOrganization) => void;
+  onClick?: (organization: Organization) => void;
   className?: string;
   showCreatedDate?: boolean;
 }
@@ -76,7 +76,7 @@ export const OrganizationCard = ({
   className,
   showCreatedDate = true,
 }: OrganizationCardProps) => {
-  const isPersonal = organization.type === OrganizationType.Personal;
+  const isPersonal = organization.type === 'Personal';
   const displayName = organization.displayName || organization.name || '';
   const initials = !isPersonal ? getInitials(displayName) : undefined;
 

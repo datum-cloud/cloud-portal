@@ -3,7 +3,7 @@
  */
 import { EmptyContentProps } from '@/components/empty-content/empty-content';
 import { DataTableProps } from '@/modules/datum-ui/components/data-table';
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
+import { IFlattenedDnsRecord } from '@/resources/dns-records';
 
 // =============================================================================
 // Table Component Types
@@ -34,7 +34,8 @@ export interface DnsRecordTableCompactProps extends DnsRecordTableBaseProps {
  * Inherits ALL DataTable props for complete functionality (for standalone pages)
  */
 export interface DnsRecordTableFullProps
-  extends DnsRecordTableBaseProps,
+  extends
+    DnsRecordTableBaseProps,
     Omit<
       DataTableProps<IFlattenedDnsRecord, any>,
       'data' | 'columns' | 'className' | 'emptyContent' | 'mode'

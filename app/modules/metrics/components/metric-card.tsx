@@ -17,8 +17,10 @@ import { cn } from '@shadcn/lib/utils';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import React, { useMemo } from 'react';
 
-export interface MetricCardProps
-  extends Omit<PrometheusQueryOptions, 'query' | 'timeRange' | 'step'> {
+export interface MetricCardProps extends Omit<
+  PrometheusQueryOptions,
+  'query' | 'timeRange' | 'step'
+> {
   /**
    * Prometheus query - can be a string or query builder function
    */

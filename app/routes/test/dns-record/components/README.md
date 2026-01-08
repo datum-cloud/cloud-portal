@@ -268,7 +268,7 @@ The test page reuses the actual `DnsRecordForm` component:
 Validation uses the same Zod schemas as production:
 
 ```typescript
-import { createDnsRecordSchema } from '@/resources/schemas/dns-record.schema';
+import { createDnsRecordSchema } from '@/resources/dns-records';
 import { parseWithZod } from '@conform-to/zod/v4';
 
 const result = parseWithZod(formData, { schema: createDnsRecordSchema });
@@ -334,7 +334,7 @@ Potential improvements:
 
 ## Related Files
 
-- [dns-record.schema.ts](../../../resources/schemas/dns-record.schema.ts) - Validation schemas
+- [dns-records module](../../../resources/dns-records/) - Validation schemas
 - [dns-record-form.tsx](../dns-record-form.tsx) - Form component
 - [Type-specific field components](../types/) - Individual record type fields
 

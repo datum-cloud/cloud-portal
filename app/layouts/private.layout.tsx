@@ -1,11 +1,12 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { useTheme } from '@/modules/datum-themes';
 import { HelpScoutBeacon } from '@/modules/helpscout';
+import { WatchProvider } from '@/modules/watch';
 import { AppProvider } from '@/providers/app.provider';
-import { createUserControl } from '@/resources/control-plane';
-import { IUser } from '@/resources/interfaces/user.interface';
-import { getSharedEnvs } from '@/utils/config/env.config';
+import { createUserService, ThemeValue, type User } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
+import { env } from '@/utils/env/env.server';
 import {
   authMiddleware,
   registrationApprovalMiddleware,
@@ -14,37 +15,22 @@ import {
 import { TooltipProvider } from '@shadcn/ui/tooltip';
 import { createHmac } from 'crypto';
 import { useEffect, useState } from 'react';
-import {
-  AppLoadContext,
-  LoaderFunctionArgs,
-  Outlet,
-  data,
-  redirect,
-  useLoaderData,
-} from 'react-router';
-import { Theme, useTheme } from 'remix-themes';
+import { LoaderFunctionArgs, Outlet, data, redirect, useLoaderData } from 'react-router';
 
 export const loader = withMiddleware(
-  async ({ request, context }: LoaderFunctionArgs) => {
+  async ({ request }: LoaderFunctionArgs) => {
     try {
-      const { controlPlaneClient } = context as AppLoadContext;
+      // Services now use global axios client with AsyncLocalStorage
       const { session } = await getSession(request);
-      const sharedEnv = getSharedEnvs();
-
-      const userControl = createUserControl(controlPlaneClient);
-      const user = await userControl.detail(session?.sub ?? '');
+      const userService = createUserService();
+      const user = await userService.get(session?.sub ?? '');
 
       /**
        * Generate Help Scout signature for secure mode
        */
       let helpscoutSignature = null;
-      if (
-        sharedEnv.isProd &&
-        sharedEnv.HELPSCOUT_SECRET_KEY &&
-        sharedEnv.HELPSCOUT_BEACON_ID &&
-        user?.email
-      ) {
-        helpscoutSignature = createHmac('sha256', sharedEnv.HELPSCOUT_SECRET_KEY)
+      if (env.isProd && env.public.helpscoutBeaconId && user?.email) {
+        helpscoutSignature = createHmac('sha256', env.server.helpscoutSecretKey ?? '')
           .update(user?.email)
           .digest('hex');
       }
@@ -62,7 +48,7 @@ export const loader = withMiddleware(
 );
 
 export default function PrivateLayout() {
-  const data: { user: IUser; helpscoutSignature: string | null; ENV: any } =
+  const data: { user: User; helpscoutSignature: string | null; ENV: any } =
     useLoaderData<typeof loader>();
 
   const [helpscoutEnv, setHelpscoutEnv] = useState<{
@@ -75,43 +61,44 @@ export default function PrivateLayout() {
     userSignature: '',
   });
 
-  const [_, setTheme] = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
   useEffect(() => {
     if (data?.user) {
       const userTheme = data?.user?.preferences?.theme;
-      const nextTheme =
-        userTheme === 'light' ? Theme.LIGHT : userTheme === 'dark' ? Theme.DARK : null;
+      const nextTheme = userTheme === 'light' ? 'light' : userTheme === 'dark' ? 'dark' : 'system';
 
       // Set app theme
-      setTheme(nextTheme);
+      setTheme(nextTheme as ThemeValue);
     }
 
     setHelpscoutEnv({
-      HELPSCOUT_BEACON_ID: window.ENV.HELPSCOUT_BEACON_ID,
-      isProd: window.ENV.isProd,
+      HELPSCOUT_BEACON_ID: window.ENV?.helpscoutBeaconId ?? '',
+      isProd: window.ENV?.nodeEnv === 'production',
       userSignature: data?.helpscoutSignature ?? '',
     });
   }, [data]);
 
   return (
-    <AppProvider initialUser={data?.user}>
-      <TooltipProvider>
-        <ConfirmationDialogProvider>
-          <Outlet />
-        </ConfirmationDialogProvider>
-      </TooltipProvider>
+    <WatchProvider>
+      <AppProvider initialUser={data?.user}>
+        <TooltipProvider>
+          <ConfirmationDialogProvider>
+            <Outlet />
+          </ConfirmationDialogProvider>
+        </TooltipProvider>
 
-      {helpscoutEnv.HELPSCOUT_BEACON_ID && helpscoutEnv.isProd && (
-        <HelpScoutBeacon
-          beaconId={helpscoutEnv.HELPSCOUT_BEACON_ID}
-          user={{
-            name: `${data?.user?.givenName} ${data?.user?.familyName}`,
-            email: data?.user?.email,
-            signature: helpscoutEnv.userSignature ?? '',
-          }}
-        />
-      )}
-    </AppProvider>
+        {helpscoutEnv.HELPSCOUT_BEACON_ID && helpscoutEnv.isProd && (
+          <HelpScoutBeacon
+            beaconId={helpscoutEnv.HELPSCOUT_BEACON_ID}
+            user={{
+              name: `${data?.user?.givenName} ${data?.user?.familyName}`,
+              email: data?.user?.email,
+              signature: helpscoutEnv.userSignature ?? '',
+            }}
+          />
+        )}
+      </AppProvider>
+    </WatchProvider>
   );
 }

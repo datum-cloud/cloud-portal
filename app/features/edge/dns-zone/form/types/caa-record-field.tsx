@@ -1,5 +1,5 @@
 import { Field } from '@/components/field/field';
-import { CAARecordSchema } from '@/resources/schemas/dns-record.schema';
+import { CAARecordSchema } from '@/resources/dns-records';
 import { getInputProps, useForm } from '@conform-to/react';
 import { Input } from '@shadcn/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';

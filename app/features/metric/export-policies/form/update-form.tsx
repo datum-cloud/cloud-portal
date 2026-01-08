@@ -2,28 +2,29 @@ import { SinksForm } from './sink/sinks-form';
 import { SourcesForm } from './source/sources-form';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { MetadataForm } from '@/components/metadata/metadata-form';
-import { useIsPending } from '@/hooks/useIsPending';
+import { MetadataSchema } from '@/resources/base';
 import {
   ExportPolicyAuthenticationType,
-  ExportPolicySinkType,
-  ExportPolicySourceType,
+  ExportPolicySinkTypeEnum,
+  ExportPolicySourceTypeEnum,
   IExportPolicyControlResponse,
-} from '@/resources/interfaces/export-policy.interface';
+  useUpdateExportPolicy,
+  useDeleteExportPolicy,
+  type UpdateExportPolicyInput,
+} from '@/resources/export-policies';
 import {
   ExportPolicySinkFieldSchema,
   ExportPolicySourceFieldSchema,
   NewExportPolicySchema,
   UpdateExportPolicySchema,
   updateExportPolicySchema,
-} from '@/resources/schemas/export-policy.schema';
-import { MetadataSchema } from '@/resources/schemas/metadata.schema';
-import { ROUTE_PATH as EXPORT_POLICIES_ACTIONS_ROUTE_PATH } from '@/routes/api/export-policies';
+} from '@/resources/export-policies';
 import { paths } from '@/utils/config/paths.config';
 import { convertObjectToLabels } from '@/utils/helpers/object.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useForm, FormProvider, getFormProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
-import { Button } from '@datum-ui/components';
+import { Button, toast } from '@datum-ui/components';
 import {
   Card,
   CardContent,
@@ -36,8 +37,7 @@ import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { has } from 'es-toolkit/compat';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import { Fragment, cloneElement, useMemo } from 'react';
-import { useSubmit, useNavigate, Form, useFetcher } from 'react-router';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { useNavigate, Form } from 'react-router';
 
 const sections = [
   {
@@ -68,12 +68,46 @@ export const ExportPolicyUpdateForm = ({
   projectId?: string;
   defaultValue?: IExportPolicyControlResponse;
 }) => {
-  const csrf = useAuthenticityToken();
-  const submit = useSubmit();
-  const fetcher = useFetcher();
   const navigate = useNavigate();
-  const isPending = useIsPending();
   const { confirm } = useConfirmationDialog();
+
+  const updateMutation = useUpdateExportPolicy(projectId ?? '', defaultValue?.name ?? '', {
+    onSuccess: () => {
+      toast.success('Export policy updated successfully', {
+        description: 'You have successfully updated an export policy.',
+      });
+      navigate(
+        getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
+          projectId,
+        })
+      );
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message || 'Failed to update export policy',
+      });
+    },
+  });
+
+  const deleteMutation = useDeleteExportPolicy(projectId ?? '', {
+    onSuccess: () => {
+      toast.success('Export policy deleted successfully', {
+        description: 'You have successfully deleted an export policy.',
+      });
+      navigate(
+        getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
+          projectId,
+        })
+      );
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message || 'Failed to delete export policy',
+      });
+    },
+  });
+
+  const isPending = updateMutation.isPending || deleteMutation.isPending;
 
   const [form, fields] = useForm({
     id: 'export-policy-form',
@@ -89,30 +123,18 @@ export const ExportPolicyUpdateForm = ({
 
       const data: any = submission?.status === 'success' ? submission.value : {};
 
-      // Get the form element
-      const formElement = event.currentTarget as HTMLFormElement;
-
-      const payload: NewExportPolicySchema = {
+      const updateInput: UpdateExportPolicyInput = {
         metadata: {
           name: data?.name,
           labels: data?.labels,
           annotations: data?.annotations,
         },
-        sources: data?.sources,
-        sinks: data?.sinks,
+        sources: data?.sources ?? [],
+        sinks: data?.sinks ?? [],
+        resourceVersion: data?.resourceVersion,
       };
 
-      // Submit the form using the Remix submit function
-      // This will trigger the action defined in the route
-      submit(
-        { ...payload, csrf: csrf as string, resourceVersion: data?.resourceVersion },
-        {
-          method: 'POST',
-          action: formElement.getAttribute('action') || undefined,
-          encType: 'application/json',
-          replace: true,
-        }
-      );
+      updateMutation.mutate(updateInput);
     },
   });
 
@@ -128,8 +150,8 @@ export const ExportPolicyUpdateForm = ({
         (source) => ({
           name: source.name ?? '',
           type: has(source, 'metrics')
-            ? ExportPolicySourceType.METRICS
-            : ExportPolicySourceType.METRICS, // the else value will be used default value
+            ? ExportPolicySourceTypeEnum.METRICS
+            : ExportPolicySourceTypeEnum.METRICS, // the else value will be used default value
           metricQuery: source.metrics?.metricsql ?? '{}',
         })
       );
@@ -169,8 +191,8 @@ export const ExportPolicyUpdateForm = ({
         return {
           name: sink.name ?? '',
           type: has(sink, 'prometheusRemoteWrite')
-            ? ExportPolicySinkType.PROMETHEUS
-            : ExportPolicySinkType.PROMETHEUS,
+            ? ExportPolicySinkTypeEnum.PROMETHEUS
+            : ExportPolicySinkTypeEnum.PROMETHEUS,
           sources: sink.sources ?? [],
           prometheusRemoteWrite,
         };
@@ -198,19 +220,7 @@ export const ExportPolicyUpdateForm = ({
       confirmInputPlaceholder: 'Type the export policy name to confirm deletion',
       confirmValue: defaultValue?.name ?? 'delete',
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: defaultValue?.name ?? '',
-            projectId: projectId ?? '',
-            redirectUri: getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
-              projectId,
-            }),
-          },
-          {
-            action: EXPORT_POLICIES_ACTIONS_ROUTE_PATH,
-            method: 'DELETE',
-          }
-        );
+        deleteMutation.mutate(defaultValue?.name ?? '');
       },
     });
   };

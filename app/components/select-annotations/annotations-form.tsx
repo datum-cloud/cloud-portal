@@ -1,5 +1,5 @@
 import { Field } from '@/components/field/field';
-import { annotationFormSchema, AnnotationFormSchema } from '@/resources/schemas/metadata.schema';
+import { annotationFormSchema, AnnotationFormSchema } from '@/resources/base';
 import { getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';

@@ -2,49 +2,53 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
-import { createProjectsControl } from '@/resources/control-plane';
-import { ICachedProject, IProjectControlResponse } from '@/resources/interfaces/project.interface';
-import { projectSchema } from '@/resources/schemas/project.schema';
-import { ROUTE_PATH as PROJECTS_PATH } from '@/routes/api/projects';
+import {
+  createProjectService,
+  projectFormSchema,
+  useCreateProject,
+  useHydrateProjects,
+  useProjects,
+  type Project,
+} from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
-import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, Col, Row, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
-import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { FolderRoot, PlusIcon } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActionFunctionArgs,
-  AppLoadContext,
   data,
   LoaderFunctionArgs,
+  useFetcher,
   useLoaderData,
   useNavigate,
   useParams,
   useRevalidator,
   useSearchParams,
 } from 'react-router';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
 import z from 'zod';
 
-export const loader = async ({ params, request, context }: LoaderFunctionArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   try {
     const { orgId } = params;
-    const { controlPlaneClient } = context as AppLoadContext;
-    const projectsControl = createProjectsControl(controlPlaneClient as Client);
+    // Services now use global axios client with AsyncLocalStorage
+    const projectService = createProjectService();
 
     if (!orgId) {
-      throw new BadRequestError('Organization ID is required');
+      const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
+        request,
+        'projects_understanding'
+      );
+      return data({ projects: [], alertClosed }, { headers: alertHeaders });
     }
 
     // Fetch fresh data from API
-    const projects = await projectsControl.list(orgId);
+    const projectList = await projectService.list(orgId);
 
     // Get alert state from server-side cookie
     const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
@@ -52,7 +56,7 @@ export const loader = async ({ params, request, context }: LoaderFunctionArgs) =
       'projects_understanding'
     );
 
-    return data({ projects, alertClosed }, { headers: alertHeaders });
+    return data({ projects: projectList.items, alertClosed }, { headers: alertHeaders });
   } catch {
     const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
       request,
@@ -69,11 +73,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function OrgProjectsPage() {
   const { orgId } = useParams();
-  const { projects, alertClosed } = useLoaderData<typeof loader>();
+  const { projects: initialProjects, alertClosed } = useLoaderData<typeof loader>();
+
+  // Hydrate cache with SSR data (runs once on mount)
+  useHydrateProjects(orgId ?? '', initialProjects ?? []);
+
+  // Read from React Query cache
+  const { data: queryData } = useProjects(orgId ?? '', undefined, {
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Use React Query data, fallback to SSR data
+  const projects = queryData?.items ?? initialProjects ?? [];
 
   const navigate = useNavigate();
   const revalidator = useRevalidator();
-  const csrf = useAuthenticityToken();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDialog, setOpenDialog] = useState(false);
@@ -93,36 +108,32 @@ export default function OrgProjectsPage() {
     }
   }, [searchParams, setSearchParams]);
 
-  const alertFetcher = useDatumFetcher({
-    key: 'alert-closed',
-    onSuccess: () => {
-      revalidator.revalidate();
-    },
-  });
+  // Alert close fetcher - native useFetcher with effect-based callback
+  const alertFetcher = useFetcher<{ success: boolean }>({ key: 'alert-closed' });
+  const alertSubmittedRef = useRef(false);
 
-  const createFetcher = useDatumFetcher<{
-    success: boolean;
-    error?: string;
-    data?: IProjectControlResponse;
-  }>({
-    key: 'create-project',
-    onSuccess: (data) => {
-      if (data.data) {
-        navigate(
-          getPathWithParams(paths.project.detail.root, { projectId: data.data?.name ?? '' })
-        );
-      }
+  useEffect(() => {
+    if (alertSubmittedRef.current && alertFetcher.data?.success && alertFetcher.state === 'idle') {
+      alertSubmittedRef.current = false;
+      revalidator.revalidate();
+    }
+  }, [alertFetcher.data, alertFetcher.state, revalidator]);
+
+  const createMutation = useCreateProject({
+    onSuccess: (newProject) => {
+      setOpenDialog(false);
+      navigate(getPathWithParams(paths.project.detail.root, { projectId: newProject.name }));
     },
     onError: (error) => {
       toast.error('Project', {
-        description: error?.error || 'Failed to create project',
+        description: error?.message || 'Failed to create project',
       });
     },
   });
 
   const showAlert = !alertClosed;
 
-  const columns: ColumnDef<ICachedProject>[] = useMemo(
+  const columns: ColumnDef<Project>[] = useMemo(
     () => [
       {
         header: 'Project',
@@ -133,7 +144,7 @@ export default function OrgProjectsPage() {
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Icon icon={FolderRoot} className="size-4" />
-                <span>{row.original.description}</span>
+                <span>{row.original.displayName}</span>
               </div>
               <div className="flex items-center gap-6">
                 <BadgeCopy
@@ -159,18 +170,16 @@ export default function OrgProjectsPage() {
 
   const handleAlertClose = () => {
     // Save the close state via server-side cookie
+    alertSubmittedRef.current = true;
     alertFetcher.submit({}, { method: 'POST' });
   };
 
-  const handleSubmit = async (data: z.infer<typeof projectSchema>) => {
-    return createFetcher.submit(
-      {
-        ...data,
-        orgEntityId: orgId as string,
-        csrf: csrf as string,
-      },
-      { method: 'POST', action: PROJECTS_PATH, encType: 'application/json' }
-    );
+  const handleSubmit = async (formData: z.infer<typeof projectFormSchema>) => {
+    await createMutation.mutateAsync({
+      name: formData.name,
+      description: formData.description,
+      organizationId: orgId as string,
+    });
   };
 
   return (
@@ -252,7 +261,7 @@ export default function OrgProjectsPage() {
         onOpenChange={setOpenDialog}
         title="Create a Project"
         description="Add a project to manage your core network services, workloads, and assets."
-        schema={projectSchema}
+        schema={projectFormSchema}
         defaultValues={{
           name: '',
           description: '',

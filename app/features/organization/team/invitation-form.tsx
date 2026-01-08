@@ -1,5 +1,5 @@
 import { SelectRole } from '@/components/select-role/select-role';
-import { invitationFormSchema } from '@/resources/schemas/invitation.schema';
+import { invitationFormSchema, type InvitationFormSchema } from '@/resources/invitations';
 import { getSelectProps, useInputControl } from '@conform-to/react';
 import { TagsInput } from '@datum-ui/components';
 import {
@@ -41,7 +41,12 @@ const RoleFieldContent = ({ control, meta, fields }: FormFieldRenderProps) => {
   );
 };
 
-export const InvitationForm = () => {
+interface InvitationFormProps {
+  onSubmit: (data: InvitationFormSchema) => void;
+  isSubmitting?: boolean;
+}
+
+export const InvitationForm = ({ onSubmit, isSubmitting }: InvitationFormProps) => {
   const navigate = useNavigate();
 
   // State to track real-time validation errors from TagsInput
@@ -56,6 +61,8 @@ export const InvitationForm = () => {
       <Form.Root
         id="invitation-form"
         schema={invitationFormSchema}
+        onSubmit={onSubmit}
+        isSubmitting={isSubmitting}
         defaultValues={{
           role: '',
           roleNamespace: '',

@@ -167,15 +167,24 @@ jobs:
         run: |
           cat > .env << EOF
           CYPRESS_BASE_URL=${CYPRESS_BASE_URL}
-          NODE_ENV=${NODE_ENV}
+          NODE_ENV=test
+          CYPRESS=true
           AUTH_OIDC_ISSUER=${AUTH_OIDC_ISSUER}
           AUTH_OIDC_CLIENT_ID=${AUTH_OIDC_CLIENT_ID}
           EOF
+
       - name: Run Unit Tests
         id: unit
+        env:
+          NODE_ENV: test
+          CYPRESS: 'true'
         run: bun run test:unit:prod
+
       - name: Run E2E Tests
         id: e2e
+        env:
+          NODE_ENV: test
+          CYPRESS: 'true'
         run: bun run test:e2e:prod
 
       - name: Upload Artifacts

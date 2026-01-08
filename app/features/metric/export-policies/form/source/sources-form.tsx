@@ -1,10 +1,10 @@
 import { SourceField } from './source-field';
-import { ExportPolicySourceType } from '@/resources/interfaces/export-policy.interface';
+import { ExportPolicySourceTypeEnum } from '@/resources/export-policies';
 import {
   ExportPolicySourceFieldSchema,
   ExportPolicySourcesSchema,
   UpdateExportPolicySchema,
-} from '@/resources/schemas/export-policy.schema';
+} from '@/resources/export-policies';
 import { useForm, useFormMetadata } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
@@ -79,7 +79,7 @@ export const SourcesForm = ({
             name: fields.sources.name,
             defaultValue: {
               name: '',
-              type: ExportPolicySourceType.METRICS,
+              type: ExportPolicySourceTypeEnum.METRICS,
               metricQuery: '{}',
             },
           })

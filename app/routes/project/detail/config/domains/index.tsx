@@ -2,162 +2,149 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { NameserverChips } from '@/components/nameserver-chips';
 import { BulkAddDomainsAction } from '@/features/edge/domain/bulk-add';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import { useRevalidation } from '@/hooks/useRevalidation';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
-import { createDomainsControl } from '@/resources/control-plane';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
-import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
-import { domainSchema } from '@/resources/schemas/domain.schema';
-import { ROUTE_PATH as DOMAINS_ACTIONS_PATH } from '@/routes/api/domains';
-import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
+import type { DnsZone } from '@/resources/dns-zones';
+import {
+  createDomainService,
+  type Domain,
+  domainSchema,
+  useCreateDomain,
+  useDeleteDomain,
+  useDomains,
+  useDomainsWatch,
+  useHydrateDomains,
+  useRefreshDomainRegistration,
+} from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge, Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
-import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {
-  AppLoadContext,
+  data,
   LoaderFunctionArgs,
   MetaFunction,
   useLoaderData,
   useNavigate,
   useParams,
 } from 'react-router';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
 import { z } from 'zod';
 
 type FormattedDomain = {
   name: string;
   domainName: string;
   registrar?: string;
-  nameservers?: NonNullable<IDomainControlResponse['status']>['nameservers'];
+  nameservers?: NonNullable<Domain['status']>['nameservers'];
   expiresAt?: string;
-  status: IDomainControlResponse['status'];
+  status: Domain['status'];
   statusType: 'verified' | 'pending';
-  dnsZone?: IDnsZoneControlResponse;
+  dnsZone?: DnsZone;
 };
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Domains');
 });
 
-export const loader = async ({ context, params }: LoaderFunctionArgs) => {
+export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
-  const domainsControl = createDomainsControl(controlPlaneClient as Client);
 
   if (!projectId) {
     throw new BadRequestError('Project ID is required');
   }
 
-  const domains = await domainsControl.list(projectId);
+  // Services now use global axios client with AsyncLocalStorage
+  const domainService = createDomainService();
+  const domains = await domainService.list(projectId);
 
-  // Fetch all DNS zones in parallel for better performance
-  const formattedDomains = await Promise.all(
-    domains.map(async (domain) => {
-      const controlledStatus = transformControlPlaneStatus(domain.status);
-
-      return {
-        name: domain.name,
-        domainName: domain.domainName,
-        registrar: domain.status?.registration?.registrar?.name,
-        nameservers: domain.status?.nameservers,
-        expiresAt: domain.status?.registration?.expiresAt,
-        status: domain.status,
-        // statusType: controlledStatus.status === ControlPlaneStatus.Success ? 'verified' : 'pending',
-      } as FormattedDomain;
-    })
-  );
-
-  return formattedDomains;
+  return data({ domains });
 };
 
 export default function DomainsPage() {
   const { projectId } = useParams();
-  const data = useLoaderData<typeof loader>();
+  const { domains: initialDomains } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
-  const csrf = useAuthenticityToken();
 
-  // Check if any domain is pending verification
-  // const hasPendingDomains = useMemo(() => {
-  //   return (data ?? []).some((domain) => domain.statusType === 'pending');
-  // }, [data]);
+  // Hydrate cache with SSR data (runs once on mount)
+  useHydrateDomains(projectId ?? '', initialDomains);
 
-  // Revalidation with polling (when pending), focus refresh, and reconnect refresh
-  const { revalidate } = useRevalidation({
-    interval: false, // hasPendingDomains ? 10000 : false,
+  // Subscribe to watch for real-time updates
+  useDomainsWatch(projectId ?? '');
+
+  // Read from React Query cache (gets updates from watch!)
+  const { data } = useDomains(projectId ?? '', {
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
   });
+
+  // Use React Query data, fallback to SSR data
+  const domains = data ?? initialDomains;
+
+  // Format domains for display
+  const formattedDomains = useMemo<FormattedDomain[]>(() => {
+    return domains.map((domain) => ({
+      name: domain.name,
+      domainName: domain.domainName,
+      registrar: domain.status?.registration?.registrar?.name,
+      nameservers: domain.status?.nameservers,
+      expiresAt: domain.status?.registration?.expiresAt,
+      status: domain.status,
+      statusType: domain.status?.verified ? 'verified' : 'pending',
+    }));
+  }, [domains]);
 
   const { confirm } = useConfirmationDialog();
 
-  const deleteFetcher = useDatumFetcher({
-    key: 'delete-domain',
-    onSuccess: () => {
-      toast.success('Domain', {
-        description: 'The domain has been deleted successfully',
-      });
-      revalidate();
-    },
-    onError: (data) => {
-      toast.error('Domain', {
-        description: data.error || 'Failed to delete domain',
-      });
-    },
-  });
-  const refreshFetcher = useDatumFetcher({
-    key: 'refresh-domain',
-    onSuccess: () => {
-      toast.success('Domain', {
-        description: 'The domain has been refreshed successfully',
-      });
-    },
-    onError: (data) => {
-      toast.error('Domain', {
-        description: data.error || 'Failed to refresh domain',
-      });
-    },
-  });
-  const createFetcher = useDatumFetcher({
-    key: 'create-domain',
+  const [openAddDialog, setOpenAddDialog] = useState(false);
+
+  const createDomainMutation = useCreateDomain(projectId ?? '', {
     onSuccess: () => {
       toast.success('Domain', {
         description: 'The domain has been added to your project',
       });
       setOpenAddDialog(false);
-      revalidate();
     },
-    onError: (data) => {
+    onError: (error) => {
       toast.error('Domain', {
-        description: data.error || 'Failed to add domain',
+        description: error.message || 'Failed to add domain',
       });
     },
   });
 
-  const [openAddDialog, setOpenAddDialog] = useState(false);
+  const deleteDomainMutation = useDeleteDomain(projectId ?? '', {
+    onSuccess: () => {
+      toast.success('Domain', {
+        description: 'The domain has been deleted successfully',
+      });
+    },
+    onError: (error) => {
+      toast.error('Domain', {
+        description: error.message || 'Failed to delete domain',
+      });
+    },
+  });
+
+  const refreshDomainMutation = useRefreshDomainRegistration(projectId ?? '', {
+    onSuccess: () => {
+      toast.success('Domain', {
+        description: 'The domain has been refreshed successfully',
+      });
+    },
+    onError: (error) => {
+      toast.error('Domain', {
+        description: error.message || 'Failed to refresh domain',
+      });
+    },
+  });
 
   const handleAddDomain = async (formData: z.infer<typeof domainSchema>) => {
-    return createFetcher.submit(
-      {
-        domain: formData.domain,
-        projectId: projectId ?? '',
-        csrf,
-      },
-      {
-        method: 'POST',
-        action: DOMAINS_ACTIONS_PATH,
-        encType: 'application/json',
-      }
-    );
+    await createDomainMutation.mutateAsync({ domainName: formData.domain });
   };
 
   const handleDeleteDomain = async (domain: FormattedDomain) => {
@@ -174,31 +161,13 @@ export default function DomainsPage() {
       variant: 'destructive',
       showConfirmInput: false,
       onSubmit: async () => {
-        await deleteFetcher.submit(
-          {
-            id: domain?.name ?? '',
-            projectId: projectId ?? '',
-          },
-          {
-            method: 'DELETE',
-            action: DOMAINS_ACTIONS_PATH,
-          }
-        );
+        deleteDomainMutation.mutate(domain?.name ?? '');
       },
     });
   };
 
   const handleRefreshDomain = async (domain: FormattedDomain) => {
-    await refreshFetcher.submit(
-      {
-        id: domain?.name ?? '',
-        projectId: projectId ?? '',
-      },
-      {
-        method: 'PATCH',
-        action: DOMAINS_REFRESH_PATH,
-      }
-    );
+    refreshDomainMutation.mutate(domain?.name ?? '');
   };
 
   const handleManageDnsZone = async (domain: FormattedDomain) => {
@@ -319,7 +288,7 @@ export default function DomainsPage() {
       <DataTable
         pageSize={50}
         columns={columns}
-        data={(data ?? []) as FormattedDomain[]}
+        data={formattedDomains}
         onRowClick={(row) => {
           navigate(
             getPathWithParams(paths.project.detail.domains.detail.overview, {

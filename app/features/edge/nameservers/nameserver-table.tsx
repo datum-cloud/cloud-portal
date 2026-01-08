@@ -2,7 +2,7 @@ import { EmptyContentProps } from '@/components/empty-content/empty-content';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { DataTable, DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { DataTableTitleProps } from '@/modules/datum-ui/components/data-table';
-import { IDnsNameserver, IDnsRegistration } from '@/resources/interfaces/dns.interface';
+import { IDnsNameserver, IDnsRegistration } from '@/resources/domains';
 import { Badge } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';

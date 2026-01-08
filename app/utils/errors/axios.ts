@@ -1,15 +1,13 @@
+import { TokenError, AuthenticationError, AuthorizationError } from './auth';
+import { AppError } from './base';
 import {
-  AppError,
-  AuthenticationError,
-  AuthorizationError,
-  BadRequestError,
-  ConflictError,
   HttpError,
+  BadRequestError,
   NotFoundError,
-  RateLimitError,
-  TokenError,
   ValidationError,
-} from '@/utils/errors';
+  ConflictError,
+  RateLimitError,
+} from './http';
 import { isAxiosError, type AxiosError } from 'axios';
 
 /**

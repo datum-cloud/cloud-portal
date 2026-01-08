@@ -1,15 +1,17 @@
+// Configure @hey-api clients before any React code runs
+import '@/modules/control-plane/setup.client';
+
+import { env } from '@/utils/env';
 import * as Sentry from '@sentry/react-router';
 import { StrictMode, startTransition } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
 
-const env = (window as any).ENV;
-
 Sentry.init({
-  dsn: env?.SENTRY_DSN,
+  dsn: env.public.sentryDsn ?? '',
 
   // Environment configuration
-  environment: env?.SENTRY_ENV || 'development',
+  environment: env.public.sentryEnv ?? 'development',
 
   // Adds request headers and IP for users, for more info visit:
   // https://docs.sentry.io/platforms/javascript/guides/react-router/configuration/options/#sendDefaultPii
@@ -30,7 +32,7 @@ Sentry.init({
   // Enable logs to be sent to Sentry
   enableLogs: true,
 
-  tracesSampleRate: env?.NODE_ENV === 'production' ? 0.1 : 1.0, // Capture transactions
+  tracesSampleRate: env.isProd ? 0.1 : 1.0, // Capture transactions
 
   // Set `tracePropagationTargets` to declare which URL(s) should have trace propagation enabled
   tracePropagationTargets: [/^\//, new RegExp(window.location.origin)],
@@ -41,7 +43,7 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
 
   // Release name
-  release: env?.VERSION || 'dev',
+  release: env.public.version || 'dev',
 });
 
 async function main() {

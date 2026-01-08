@@ -1,7 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/refresh-nameservers-button';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
-import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import type { DnsZone } from '@/resources/dns-zones';
+import type { Domain } from '@/resources/domains';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { RefreshCcwIcon } from 'lucide-react';
@@ -12,9 +12,9 @@ export const TaskNameserverCard = ({
   projectId,
   domain,
 }: {
-  dnsZone: IDnsZoneControlResponse;
+  dnsZone: DnsZone;
   projectId: string;
-  domain: IDomainControlResponse;
+  domain: Domain;
 }) => {
   const dnsHost = useMemo(() => {
     return dnsZone?.status?.domainRef?.status?.nameservers?.[0].ips?.[0]?.registrantName;
@@ -43,15 +43,17 @@ export const TaskNameserverCard = ({
         </p>
 
         <div className="mt-6 flex items-center gap-4">
-          {dnsZone?.status?.nameservers?.map((nameserver, index) => (
-            <BadgeCopy
-              key={`nameserver-${index}`}
-              value={nameserver ?? ''}
-              text={nameserver ?? ''}
-              badgeTheme="solid"
-              badgeType="muted"
-            />
-          ))}
+          {(dnsZone?.status?.nameservers as string[] | undefined)?.map(
+            (nameserver: string, index: number) => (
+              <BadgeCopy
+                key={`nameserver-${index}`}
+                value={nameserver ?? ''}
+                text={nameserver ?? ''}
+                badgeTheme="solid"
+                badgeType="muted"
+              />
+            )
+          )}
         </div>
 
         {domain?.name && (

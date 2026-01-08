@@ -1,16 +1,13 @@
 import { Field } from '@/components/field/field';
-import { useIsPending } from '@/hooks/useIsPending';
 import { useApp } from '@/providers/app.provider';
-import { userSchema } from '@/resources/schemas/user.schema';
-import { ROUTE_PATH as USER_UPDATE_ACTION } from '@/routes/api/user';
+import { useUpdateUser, userSchema } from '@/resources/users';
 import { FormProvider, getFormProps, getInputProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';
 import { useEffect } from 'react';
-import { Form, useFetcher } from 'react-router';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { Form } from 'react-router';
 
 /**
  * Account Profile Settings Card Component
@@ -18,10 +15,21 @@ import { useAuthenticityToken } from 'remix-utils/csrf/react';
  */
 export const AccountProfileSettingsCard = () => {
   const { user, setUser } = useApp();
-  const csrf = useAuthenticityToken();
   const formId = 'account-form';
-  const fetcher = useFetcher({ key: formId });
-  const isPending = useIsPending({ formId, fetcherKey: formId });
+  const updateMutation = useUpdateUser(user?.sub ?? 'me', {
+    onSuccess: (updatedUser) => {
+      setUser(updatedUser);
+      toast.success('Profile updated successfully', {
+        description: 'You have successfully updated your profile.',
+      });
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message ?? 'An error occurred while updating your profile',
+      });
+    },
+  });
+  const isPending = updateMutation.isPending;
 
   const [form, fields] = useForm({
     id: formId,
@@ -37,17 +45,10 @@ export const AccountProfileSettingsCard = () => {
 
       if (submission?.status === 'success') {
         const value = submission.value;
-        const payload = {
+        updateMutation.mutate({
           firstName: value.firstName,
           lastName: value.lastName,
           email: value.email,
-          csrf: csrf as string,
-        };
-
-        fetcher.submit(payload, {
-          method: 'PATCH',
-          action: USER_UPDATE_ACTION,
-          encType: 'application/json',
         });
       }
     },
@@ -65,21 +66,6 @@ export const AccountProfileSettingsCard = () => {
       });
     }
   }, [user]);
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data?.success) {
-        toast.success('Profile updated successfully', {
-          description: 'You have successfully updated your profile.',
-        });
-      } else {
-        toast.error('Error', {
-          description: fetcher.data.error ?? 'An error occurred while updating your profile',
-        });
-        setUser(fetcher?.data?.data);
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   return (
     <Card className="shadow-none">
