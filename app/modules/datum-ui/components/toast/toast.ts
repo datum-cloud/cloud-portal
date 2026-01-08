@@ -1,3 +1,5 @@
+import { HeadlessToast, type HeadlessToastVariant } from './headless-toast';
+import { createElement } from 'react';
 import { toast as sonnerToast, type ExternalToast } from 'sonner';
 
 const defaultOptions = {
@@ -8,20 +10,42 @@ const defaultOptions = {
   warning: { duration: 5000 },
 };
 
+function show(variant: HeadlessToastVariant, title: string, options?: ExternalToast) {
+  const merged = { ...defaultOptions[variant], ...options };
+  const {
+    description,
+    action: _action,
+    cancel: _cancel,
+    ...sonnerOptions
+  } = merged as ExternalToast;
+  const resolvedDescription = typeof description === 'function' ? description() : description;
+
+  return sonnerToast.custom(
+    (t) =>
+      createElement(HeadlessToast, {
+        variant,
+        title,
+        description: resolvedDescription,
+        onDismiss: () => sonnerToast.dismiss(t),
+      }),
+    sonnerOptions
+  );
+}
+
 export const toast = {
   message: (title: string, options?: ExternalToast) => {
-    return sonnerToast.message(title, { ...defaultOptions.message, ...options });
+    return show('message', title, options);
   },
   success: (title: string, options?: ExternalToast) => {
-    return sonnerToast.success(title, { ...defaultOptions.success, ...options });
+    return show('success', title, options);
   },
   error: (title: string, options?: ExternalToast) => {
-    return sonnerToast.error(title, { ...defaultOptions.error, ...options });
+    return show('error', title, options);
   },
   info: (title: string, options?: ExternalToast) => {
-    return sonnerToast.info(title, { ...defaultOptions.info, ...options });
+    return show('info', title, options);
   },
   warning: (title: string, options?: ExternalToast) => {
-    return sonnerToast.warning(title, { ...defaultOptions.warning, ...options });
+    return show('warning', title, options);
   },
 };

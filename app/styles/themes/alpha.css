@@ -161,6 +161,14 @@ Scope variables to the theme class so we can swap themes by class
   --stepper-line: var(--glacier-mist-800);
   --stepper-label: var(--app-dark-utility-4);
 
+  /* Toast */
+  --toast-error-background: var(--alert-red-light);
+  --toast-error-foreground: var(--glacier-mist-700);
+  --toast-error-icon: var(--glacier-mist-700);
+  --toast-success-background: var(--pine-forge);
+  --toast-success-foreground: var(--glacier-mist-700);
+  --toast-success-icon: var(--glacier-mist-700);
+
   /* ========================================
    DARK MODE OVERRIDES
    ======================================== */
@@ -210,6 +218,16 @@ Scope variables to the theme class so we can swap themes by class
     --input: var(--app-dark-utility-2);
     --ring: var(--app-dark-utility-3);
     --dialog-overlay: var(--midnight-fjord);
+
+    --dialog-border: var(--app-dark-utility-2);
+
+    /* Toast */
+    --toast-error-background: var(--alert-red-dark);
+    --toast-error-foreground: var(--midnight-fjord);
+    --toast-error-icon: var(--midnight-fjord);
+    --toast-success-background: var(--primary);
+    --toast-success-foreground: var(--midnight-fjord);
+    --toast-success-icon: var(--midnight-fjord);
 
     /* Chart colors - dark mode */
     --chart-1: hsl(220 70% 50%);
@@ -286,7 +304,7 @@ Scope variables to the theme class so we can swap themes by class
     --icon-quaternary: var(--app-dark-utility-2);
     --icon-quinary: var(--app-dark-utility-1);
 
-    --stepper-line: var(--app-dark-utility-1);
+    --stepper-line: var(--app-dark-utility-2);
     --stepper-label: var(--app-dark-utility-3);
   }
 }
@@ -323,6 +341,7 @@ TAILWIND CUSTOM UTILITIES FOR THEME
   --color-table-cell-hover: var(--table-cell-hover);
 
   --color-dialog-overlay: var(--dialog-overlay);
+  --color-dialog-border: var(--dialog-border);
 
   /* Icon Colors */
   --color-icon-primary: var(--icon-primary);
@@ -330,6 +349,14 @@ TAILWIND CUSTOM UTILITIES FOR THEME
   --color-icon-tertiary: var(--icon-tertiary);
   --color-icon-quaternary: var(--icon-quaternary);
   --color-icon-quinary: var(--icon-quinary);
+
+  /* Toast */
+  --color-toast-error-background: var(--toast-error-background);
+  --color-toast-error-foreground: var(--toast-error-foreground);
+  --color-toast-error-icon: var(--toast-error-icon);
+  --color-toast-success-background: var(--toast-success-background);
+  --color-toast-success-foreground: var(--toast-success-foreground);
+  --color-toast-success-icon: var(--toast-success-icon);
 
   /* Font Sizes */
   --text-sm: 14px;
