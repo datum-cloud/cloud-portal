@@ -1,10 +1,11 @@
 import type { IAuthSession } from '@/utils/auth';
 import { paths } from '@/utils/config/paths.config';
+import { env } from '@/utils/env/env.server';
 import { AuthenticationError } from '@/utils/errors';
 import 'dotenv/config';
 import { OAuth2Strategy as OAuth2 } from 'remix-auth-oauth2';
 
-export const zitadelIssuer = process.env.AUTH_OIDC_ISSUER ?? 'http://localhost:3000';
+export const zitadelIssuer = env.server.authOidcIssuer ?? 'http://localhost:3000';
 
 /**
  * https://github.com/sergiodxa/remix-auth-oauth2?tab=readme-ov-file#discovering-the-provider
@@ -15,9 +16,9 @@ export const zitadelIssuer = process.env.AUTH_OIDC_ISSUER ?? 'http://localhost:3
 export const zitadelStrategy = await OAuth2.discover<IAuthSession>(
   zitadelIssuer,
   {
-    clientId: process.env.AUTH_OIDC_CLIENT_ID ?? '',
+    clientId: env.server.authOidcClientId ?? '',
     clientSecret: '',
-    redirectURI: `${process.env.APP_URL ?? 'http://localhost:3000'}${paths.auth.callback}`,
+    redirectURI: `${env.public.appUrl ?? 'http://localhost:3000'}${paths.auth.callback}`,
     scopes: ['openid', 'profile', 'email', 'phone', 'address', 'offline_access'],
     // codeChallengeMethod: CodeChallengeMethod.S256,
   },

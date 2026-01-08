@@ -1,7 +1,7 @@
 import { CodeEditor } from '@/components/code-editor/code-editor';
 import { Field } from '@/components/field/field';
 import { POLICY_SOURCE_TYPES } from '@/features/metric/constants';
-import { ExportPolicySourceFieldSchema } from '@/resources/schemas/export-policy.schema';
+import { ExportPolicySourceFieldSchema } from '@/resources/export-policies';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
 import {
   Input,

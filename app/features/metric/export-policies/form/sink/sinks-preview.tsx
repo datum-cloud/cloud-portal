@@ -1,6 +1,6 @@
 import { List, ListItem } from '@/components/list/list';
-import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.interface';
-import { ExportPolicySinksSchema } from '@/resources/schemas/export-policy.schema';
+import { ExportPolicySinkTypeEnum } from '@/resources/export-policies';
+import { ExportPolicySinksSchema } from '@/resources/export-policies';
 import { Badge } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
@@ -42,7 +42,7 @@ export const SinksPreview = ({ values }: { values: ExportPolicySinksSchema }) =>
             </div>
 
             {/* Bottom row with sink type specific configuration */}
-            {sink.type === ExportPolicySinkType.PROMETHEUS && sink.prometheusRemoteWrite && (
+            {sink.type === ExportPolicySinkTypeEnum.PROMETHEUS && sink.prometheusRemoteWrite && (
               <div className="text-muted-foreground flex flex-col items-start gap-2 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Prometheus Configuration:</span>

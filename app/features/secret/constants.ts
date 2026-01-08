@@ -1,4 +1,4 @@
-import { SecretType } from '@/resources/interfaces/secret.interface';
+import { SecretType } from '@/resources/secrets';
 
 export const SECRET_TYPES = {
   [SecretType.OPAQUE]: {

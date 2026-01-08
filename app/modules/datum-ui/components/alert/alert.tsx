@@ -62,8 +62,7 @@ const alertVariants = cva(
 );
 
 export interface AlertProps
-  extends React.ComponentProps<'div'>,
-    VariantProps<typeof alertVariants> {
+  extends React.ComponentProps<'div'>, VariantProps<typeof alertVariants> {
   /**
    * Whether the alert can be closed. When true, a close button is displayed.
    * @default false

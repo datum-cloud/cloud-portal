@@ -1,63 +1,55 @@
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { useApp } from '@/providers/app.provider';
-import { createProjectsControl } from '@/resources/control-plane';
-import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
-import { ROUTE_PATH as ORG_DETAIL_PATH } from '@/routes/api/organizations/$id';
+import { ControlPlaneStatus } from '@/resources/base';
+import { createOrganizationService, type Organization } from '@/resources/organizations';
+import {
+  createProjectService,
+  useHydrateProject,
+  useProject,
+  type Project,
+} from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { getOrgSession, redirectWithToast, setOrgSession } from '@/utils/cookies';
-import { BadRequestError, ValidationError } from '@/utils/errors';
+import { ValidationError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
-import { Client } from '@hey-api/client-axios';
 import { AreaChartIcon, FolderDot, HomeIcon, NetworkIcon, SettingsIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { AppLoadContext, LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
+import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
 
 export interface ProjectLayoutLoaderData {
-  project: IProjectControlResponse;
-  org: IOrganization;
+  project: Project;
+  org: Organization;
 }
 
-export const loader = async ({ params, context, request }: LoaderFunctionArgs) => {
-  const { controlPlaneClient } = context as AppLoadContext;
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const { projectId } = params;
 
-  const projectsControl = createProjectsControl(controlPlaneClient as Client);
+  // Services now use global axios client with AsyncLocalStorage
+  const projectService = createProjectService();
+  const orgService = createOrganizationService();
+
   try {
     if (!projectId) {
       throw new ValidationError('Project ID is required');
     }
 
-    const project: IProjectControlResponse = await projectsControl.detail(projectId);
+    const project = await projectService.get(projectId);
 
     if (!project.name) {
-      throw new BadRequestError('Project not found');
+      throw new ValidationError('Project not found');
     }
 
     const orgId = project.organizationId;
-
-    // get org detail
-    const res = await fetch(
-      `${process.env.APP_URL}${getPathWithParams(ORG_DETAIL_PATH, { id: orgId })}`,
-      {
-        method: 'GET',
-        headers: {
-          Cookie: request.headers.get('Cookie') || '',
-        },
-      }
-    );
-
-    if (!res.ok) {
-      throw new BadRequestError('Failed to load organization');
+    if (!orgId) {
+      throw new ValidationError('Organization ID not found for project');
     }
+    const org = await orgService.get(orgId);
 
-    const orgData = await res.json();
-    const orgSession = await setOrgSession(request, orgData.data.name);
+    const orgSession = await setOrgSession(request, org.name);
 
-    return data({ project, org: orgData.data }, { headers: orgSession.headers });
+    return data({ project, org }, { headers: orgSession.headers });
   } catch (error: any) {
     const orgSession = await getOrgSession(request);
 
@@ -75,7 +67,19 @@ export const loader = async ({ params, context, request }: LoaderFunctionArgs) =
 };
 
 export default function ProjectLayout() {
-  const { project, org } = useLoaderData<ProjectLayoutLoaderData>();
+  const { project: initialProject, org } = useLoaderData<ProjectLayoutLoaderData>();
+
+  // Hydrate cache with SSR data (runs once on mount)
+  useHydrateProject(initialProject.name, initialProject);
+
+  // Read from React Query cache
+  const { data: queryData } = useProject(initialProject.name, {
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Use React Query data, fallback to SSR data
+  const project = queryData ?? initialProject;
 
   const { setOrganization, setProject } = useApp();
 

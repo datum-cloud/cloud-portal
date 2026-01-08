@@ -1,7 +1,7 @@
 import { PolicyBinding } from './policy-binding.types';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
-import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
+import { ControlPlaneStatus } from '@/resources/base';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';

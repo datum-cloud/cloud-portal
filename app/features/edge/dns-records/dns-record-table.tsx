@@ -2,7 +2,7 @@ import { DnsRecordStatus } from './dns-record-status';
 import type { DnsRecordTableProps } from './types';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRef } from '@/modules/datum-ui/components/data-table';
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
+import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { formatTTL } from '@/utils/helpers/dns-record.helper';
 import { Badge, Tooltip } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';

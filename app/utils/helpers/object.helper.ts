@@ -1,4 +1,4 @@
-import { ILabel } from '@/resources/interfaces/label.interface';
+import { ILabel } from '@/resources/base';
 
 /**
  * Splits a string option into key-value pair based on a separator

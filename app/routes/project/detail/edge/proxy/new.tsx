@@ -1,20 +1,10 @@
 import { HttpProxyForm } from '@/features/edge/proxy/form';
 import { HttpProxyPreview } from '@/features/edge/proxy/preview';
-import { createHttpProxiesControl } from '@/resources/control-plane';
-import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
-import { dataWithToast, validateCSRF } from '@/utils/cookies';
+import { useCreateHttpProxy, type HttpProxy } from '@/resources/http-proxies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { parseWithZod } from '@conform-to/zod/v4';
-import { Client } from '@hey-api/client-axios';
-import {
-  ActionFunctionArgs,
-  AppLoadContext,
-  MetaFunction,
-  data,
-  useActionData,
-  useParams,
-} from 'react-router';
+import { toast } from '@datum-ui/components';
+import { useState } from 'react';
+import { MetaFunction, useParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>New</span>,
@@ -24,55 +14,31 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('New Proxy');
 });
 
-export const action = async ({ request, params, context }: ActionFunctionArgs) => {
-  const { projectId } = params;
-
-  if (!projectId) {
-    throw new Error('Project ID is required');
-  }
-
-  const clonedRequest = request.clone();
-  const formData = await clonedRequest.formData();
-
-  try {
-    await validateCSRF(formData, clonedRequest.headers);
-
-    const parsed = parseWithZod(formData, { schema: httpProxySchema });
-
-    if (parsed.status !== 'success') {
-      throw new Error('Invalid form data');
-    }
-
-    const { controlPlaneClient } = context as AppLoadContext;
-    const httpProxiesControl = createHttpProxiesControl(controlPlaneClient as Client);
-
-    const dryRunRes = await httpProxiesControl.create(projectId, parsed.value, true);
-
-    let res: IHttpProxyControlResponse = {};
-    if (dryRunRes) {
-      res = await httpProxiesControl.create(projectId, parsed.value, false);
-    }
-
-    return data(res);
-  } catch (error) {
-    return dataWithToast(null, {
-      title: 'Error',
-      description: error instanceof Error ? error.message : (error as Response).statusText,
-      type: 'error',
-    });
-  }
-};
-
 export default function HttpProxyNewPage() {
   const { projectId } = useParams();
-  const res = useActionData<typeof action>();
+  const [createdProxy, setCreatedProxy] = useState<HttpProxy | null>(null);
+
+  const createProxy = useCreateHttpProxy(projectId ?? '', {
+    onSuccess: (proxy) => {
+      setCreatedProxy(proxy);
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message || 'Failed to create proxy',
+      });
+    },
+  });
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">
-      {res && res?.uid ? (
-        <HttpProxyPreview data={res} projectId={projectId} />
+      {createdProxy?.uid ? (
+        <HttpProxyPreview data={createdProxy} projectId={projectId} />
       ) : (
-        <HttpProxyForm projectId={projectId} />
+        <HttpProxyForm
+          projectId={projectId}
+          onSubmit={(data) => createProxy.mutate(data)}
+          isPending={createProxy.isPending}
+        />
       )}
     </div>
   );

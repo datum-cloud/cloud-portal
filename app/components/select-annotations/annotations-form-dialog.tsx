@@ -1,5 +1,5 @@
 import { AnnotationForm } from './annotations-form';
-import { AnnotationFormSchema } from '@/resources/schemas/metadata.schema';
+import { AnnotationFormSchema } from '@/resources/base';
 import { Dialog } from '@datum-ui/components/dialog';
 import { useImperativeHandle, useRef, useState } from 'react';
 

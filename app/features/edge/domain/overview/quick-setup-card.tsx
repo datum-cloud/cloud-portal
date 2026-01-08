@@ -1,13 +1,27 @@
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import { CreateDNSSetupResponse } from '@/modules/cloudvalid';
-import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
-import { ROUTE_PATH as CLOUD_VALIDATION_DNS_PATH } from '@/routes/api/cloudvalid/dns';
+import { IDomainControlResponse } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
 import { Card, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { useMutation } from '@tanstack/react-query';
 import { CheckIcon, CloudLightningIcon } from 'lucide-react';
+
+const CLOUD_VALIDATION_DNS_PATH = '/api/cloudvalid/dns' as const;
+
+type DnsSetupInput = {
+  domain: string;
+  dnsName: string;
+  dnsContent: string;
+  redirectUri: string;
+};
+
+type DnsSetupResponse = {
+  success: boolean;
+  error?: string;
+  data?: CreateDNSSetupResponse;
+};
 
 export const QuickSetupCard = ({
   projectId,
@@ -16,19 +30,34 @@ export const QuickSetupCard = ({
   projectId: string;
   domain: IDomainControlResponse;
 }) => {
-  const fetcher = useDatumFetcher<{
-    success: boolean;
-    error?: string;
-    data?: CreateDNSSetupResponse;
-  }>({
-    key: 'dns-quick-setup',
+  const dnsSetupMutation = useMutation<DnsSetupResponse, Error, DnsSetupInput>({
+    mutationFn: async (input) => {
+      const formData = new FormData();
+      formData.append('domain', input.domain);
+      formData.append('dnsName', input.dnsName);
+      formData.append('dnsContent', input.dnsContent);
+      formData.append('redirectUri', input.redirectUri);
+
+      const response = await fetch(CLOUD_VALIDATION_DNS_PATH, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to submit DNS setup');
+      }
+
+      return data;
+    },
     onSuccess: (data) => {
       if (data.data?.public_url) {
         window.open(data.data.public_url, '_blank');
       }
     },
-    onError: (data) => {
-      toast.error('Failed to submit DNS setup', { description: data.error });
+    onError: (error) => {
+      toast.error('Failed to submit DNS setup', { description: error.message });
     },
   });
 
@@ -42,18 +71,12 @@ export const QuickSetupCard = ({
   ];
 
   const handleQuickSetup = () => {
-    fetcher.submit(
-      {
-        domain: domain.domainName ?? '',
-        dnsName: dnsRecord?.name ?? '',
-        dnsContent: dnsRecord?.content ?? '',
-        redirectUri: `${window.location.origin}${getPathWithParams(paths.project.detail.domains.detail.overview, { projectId, domainId: domain.name })}?cloudvalid=success`,
-      },
-      {
-        method: 'POST',
-        action: CLOUD_VALIDATION_DNS_PATH,
-      }
-    );
+    dnsSetupMutation.mutate({
+      domain: domain.domainName ?? '',
+      dnsName: dnsRecord?.name ?? '',
+      dnsContent: dnsRecord?.content ?? '',
+      redirectUri: `${window.location.origin}${getPathWithParams(paths.project.detail.domains.detail.overview, { projectId, domainId: domain.name })}?cloudvalid=success`,
+    });
   };
 
   return (
@@ -82,8 +105,8 @@ export const QuickSetupCard = ({
           type="tertiary"
           size="small"
           onClick={handleQuickSetup}
-          disabled={fetcher.isPending}
-          loading={fetcher.isPending}>
+          disabled={dnsSetupMutation.isPending}
+          loading={dnsSetupMutation.isPending}>
           Verify your domain
         </Button>
       </CardContent>

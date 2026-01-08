@@ -1,6 +1,6 @@
 import { useApp } from '@/providers/app.provider';
-import { IProjectControlResponse, ICachedProject } from '@/resources/interfaces/project.interface';
-import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api/projects';
+import type { Project } from '@/resources/projects';
+import { useProjects } from '@/resources/projects/project.queries';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, SpinnerIcon } from '@datum-ui/components';
@@ -17,13 +17,13 @@ import {
 } from '@shadcn/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { CheckIcon, ChevronDown, FolderRoot } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useFetcher, useNavigate } from 'react-router';
+import { useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 
-const ProjectItem = ({ project }: { project: IProjectControlResponse }) => {
+const ProjectItem = ({ project }: { project: Project }) => {
   return (
     <div className="flex w-full items-center gap-3">
-      <span className="truncate text-xs font-medium">{project?.description}</span>
+      <span className="truncate text-xs font-medium">{project?.displayName}</span>
     </div>
   );
 };
@@ -32,43 +32,24 @@ export const ProjectSwitcher = ({
   currentProject,
   triggerClassName,
 }: {
-  currentProject: IProjectControlResponse;
+  currentProject: Project;
   triggerClassName?: string;
 }) => {
   const { orgId } = useApp();
   const navigate = useNavigate();
-  const fetcher = useFetcher({ key: 'project-list' });
   const [open, setOpen] = useState(false);
-  const [loaded, setLoaded] = useState(false);
 
-  const onSelect = (project: IProjectControlResponse) => {
+  const { data, isLoading } = useProjects(orgId ?? '', undefined, {
+    enabled: open && !!orgId,
+  });
+
+  const onSelect = (project: Project) => {
     navigate(getPathWithParams(paths.project.detail.home, { projectId: project.name }));
   };
 
-  useEffect(() => {
-    if (open && !loaded) {
-      fetcher.load(`${PROJECT_LIST_PATH}?orgId=${orgId}`);
-      setLoaded(true);
-    }
-  }, [open, loaded, orgId]);
-
-  useEffect(() => {
-    return () => {
-      setLoaded(false);
-    };
-  }, []);
-
-  const projects: ICachedProject[] = useMemo(() => {
-    if (fetcher.state === 'idle' && fetcher.data) {
-      if (fetcher.data.success) {
-        // Filter out projects that are being deleted
-        return (fetcher.data.data as ICachedProject[]).filter(
-          (project) => project._meta?.status !== 'deleting'
-        );
-      }
-    }
-    return [];
-  }, [fetcher.data, fetcher.state]);
+  const projects: Project[] = useMemo(() => {
+    return data?.items ?? [];
+  }, [data]);
 
   return (
     <div className="flex items-center gap-2.5 pl-2.5">
@@ -79,7 +60,7 @@ export const ProjectSwitcher = ({
         className="flex w-fit items-center justify-between gap-2.5 text-left">
         <Icon icon={FolderRoot} className="text-icon-primary h-3.5 w-fit" />
         <span className="max-w-[100px] truncate text-xs leading-3.5 sm:max-w-36 md:max-w-none">
-          {currentProject?.description}
+          {currentProject?.displayName}
         </span>
       </Link>
       <Popover open={open} onOpenChange={setOpen}>
@@ -113,7 +94,7 @@ export const ProjectSwitcher = ({
             />
             <CommandList className="max-h-none">
               <CommandEmpty>No results found.</CommandEmpty>
-              {fetcher.state === 'loading' && projects.length === 0 ? (
+              {isLoading && projects.length === 0 ? (
                 <CommandItem disabled className="px-4 py-2.5">
                   <div className="flex items-center justify-center">
                     <SpinnerIcon size="xs" aria-hidden="true" />
@@ -123,14 +104,14 @@ export const ProjectSwitcher = ({
               ) : (
                 <CommandGroup className="max-h-[300px] overflow-y-auto px-0 py-0">
                   {(projects ?? [])
-                    .sort((a: ICachedProject, b: ICachedProject) =>
-                      (a?.description ?? '').localeCompare(b?.description ?? '')
+                    .sort((a: Project, b: Project) =>
+                      (a?.displayName ?? '').localeCompare(b?.displayName ?? '')
                     )
-                    .map((project: ICachedProject) => {
+                    .map((project: Project) => {
                       const isSelected = project.uid === currentProject.uid;
                       return (
                         <CommandItem
-                          value={`${project.name}-${project.description}`}
+                          value={`${project.name}-${project.displayName}`}
                           key={project.uid}
                           onSelect={() => {
                             setOpen(false);

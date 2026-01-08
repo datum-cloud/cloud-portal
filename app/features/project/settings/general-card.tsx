@@ -1,33 +1,32 @@
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
-import { updateProjectSchema } from '@/resources/schemas/project.schema';
-import { ROUTE_PATH as PROJECT_UPDATE_ACTION } from '@/routes/api/projects/$id';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+import type { Project } from '@/resources/projects';
+import { updateProjectSchema, useUpdateProject } from '@/resources/projects';
 import { Button, CardHeader, CardTitle, Col, Row, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { useRevalidator } from 'react-router';
 
 /**
  * Project General Settings Card Component
  * Displays and allows editing of general project settings
  */
-export const ProjectGeneralCard = ({ project }: { project: IProjectControlResponse }) => {
-  const fetcher = useDatumFetcher({
-    key: 'update-project',
+export const ProjectGeneralCard = ({ project }: { project: Project }) => {
+  const revalidator = useRevalidator();
+
+  const updateMutation = useUpdateProject(project?.name ?? '', {
     onSuccess: () => {
       toast.success('Project', {
         description: 'The Project has been updated successfully',
       });
+      revalidator.revalidate();
     },
-    onError: (data) => {
+    onError: (error) => {
       toast.error('Project', {
-        description: data.error || 'Failed to update project',
+        description: error.message || 'Failed to update project',
       });
     },
   });
-  const csrf = useAuthenticityToken();
+
   return (
     <Card className="gap-0 rounded-xl py-0 shadow-none">
       <CardHeader className="border-b px-5 py-4">
@@ -39,17 +38,11 @@ export const ProjectGeneralCard = ({ project }: { project: IProjectControlRespon
         defaultValues={{
           description: project?.description ?? '',
         }}
-        isSubmitting={fetcher.state !== 'idle'}
+        isSubmitting={updateMutation.isPending}
         onSubmit={(data) => {
-          const payload = {
-            ...data,
-            csrf: csrf as string,
-          };
-
-          fetcher.submit(payload, {
-            method: 'PATCH',
-            action: getPathWithParams(PROJECT_UPDATE_ACTION, { id: project?.name }),
-            encType: 'application/json',
+          updateMutation.mutate({
+            description: data.description,
+            resourceVersion: project.resourceVersion,
           });
         }}
         className="flex flex-col space-y-0">

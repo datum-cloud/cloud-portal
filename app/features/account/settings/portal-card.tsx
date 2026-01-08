@@ -1,7 +1,7 @@
 import { SelectTimezone } from '@/components/select-timezone/select-timezone';
+import { useTheme } from '@/modules/datum-themes';
 import { useApp } from '@/providers/app.provider';
-import { ThemeValue } from '@/resources/interfaces/user.interface';
-import { ROUTE_PATH as USER_PREFERENCES_UPDATE_ACTION } from '@/routes/api/user/preferences';
+import { ThemeValue, useUpdateUserPreferences } from '@/resources/users';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { Label } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
@@ -9,9 +9,6 @@ import { cn } from '@shadcn/lib/utils';
 import { Separator } from '@shadcn/ui/separator';
 import { Check } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useFetcher } from 'react-router';
-import { Theme, useTheme } from 'remix-themes';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 const THEME_OPTIONS: readonly { readonly value: ThemeValue; readonly label: string }[] = [
   { value: 'dark', label: 'Dark' },
@@ -98,48 +95,30 @@ const ThemePreview = ({
 
 /** Portal preferences: timezone and theme mode */
 export const AccountPortalSettingsCard = () => {
-  const { userPreferences, setUser } = useApp();
-  const [theme, setTheme] = useTheme();
-  const fetcher = useFetcher({ key: 'portal-preferences' });
-  const csrf = useAuthenticityToken();
+  const { user, userPreferences, setUser } = useApp();
+  const { resolvedTheme, setTheme } = useTheme();
+  const userId = user?.sub ?? 'me';
 
-  const [currentTheme, setCurrentTheme] = useState<ThemeValue>(theme as ThemeValue);
+  const updatePreferencesMutation = useUpdateUserPreferences(userId, {
+    onSuccess: (data) => {
+      setUser(data);
+    },
+  });
+
+  const [currentTheme, setCurrentTheme] = useState<ThemeValue>(resolvedTheme as ThemeValue);
   const [timezone, setTimezone] = useState<string>();
-
-  const updatePreferences = (payload: { theme?: ThemeValue; timezone?: string }) => {
-    fetcher.submit(
-      {
-        ...payload,
-        csrf,
-      },
-      {
-        method: 'PATCH',
-        encType: 'application/json',
-        action: USER_PREFERENCES_UPDATE_ACTION,
-      }
-    );
-  };
-
   const updateTheme = (theme: ThemeValue) => {
-    setTheme(theme === 'system' ? null : (theme as Theme));
+    setTheme(theme);
     setCurrentTheme(theme);
 
-    updatePreferences({ theme });
+    updatePreferencesMutation.mutate({ theme });
   };
 
   const updateTimezone = (timezone: string) => {
     setTimezone(timezone);
 
-    updatePreferences({ timezone });
+    updatePreferencesMutation.mutate({ timezone });
   };
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data?.success) {
-        setUser(fetcher?.data?.data);
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   useEffect(() => {
     if (userPreferences) {

@@ -1,9 +1,7 @@
 import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
-import { ROUTE_PATH as PROJECT_LIST_PATH } from '@/routes/api/projects';
+import { useProjects } from '@/resources/projects/project.queries';
 import { toast } from '@datum-ui/components';
-import { useEffect, useMemo, useState } from 'react';
-import { useFetcher } from 'react-router';
+import { useEffect, useMemo } from 'react';
 
 export const SelectProject = ({
   orgId,
@@ -22,32 +20,19 @@ export const SelectProject = ({
   id?: string;
   disabled?: boolean;
 }) => {
-  const fetcher = useFetcher({ key: 'project-list' });
-
-  const [projects, setProjects] = useState<IProjectControlResponse[]>([]);
-
-  useEffect(() => {
-    if (orgId) {
-      fetcher.load(`${PROJECT_LIST_PATH}?orgId=${orgId}`);
-    }
-  }, [orgId]);
+  const { data, isLoading, error } = useProjects(orgId);
+  const projects = data?.items ?? [];
 
   useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const { success, error, data } = fetcher.data;
-      if (!success) {
-        toast.error(error);
-        return;
-      }
-
-      setProjects(data);
+    if (error) {
+      toast.error(error.message || 'Failed to load projects');
     }
-  }, [fetcher.data, fetcher.state]);
+  }, [error]);
 
   const options = useMemo(() => {
     return projects.map((project) => ({
-      value: project.name ?? '',
-      label: project.description ?? project.name ?? '',
+      value: project.name,
+      label: project.displayName,
       ...project,
     }));
   }, [projects]);
@@ -65,7 +50,7 @@ export const SelectProject = ({
       }}
       options={options}
       placeholder="Select a Project"
-      isLoading={fetcher.state === 'loading'}
+      isLoading={isLoading}
       disabled={disabled}
     />
   );

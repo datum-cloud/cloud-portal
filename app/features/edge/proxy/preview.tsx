@@ -1,8 +1,7 @@
 import { GrafanaTutorialCard } from '@/features/edge/proxy/overview/grafana-tutorial-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames-card';
-import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
-import { IHttpProxyControlResponse } from '@/resources/interfaces/http-proxy.interface';
-import { ROUTE_PATH as HTTP_PROXY_DETAIL_PATH } from '@/routes/api/proxy/$id';
+import { ControlPlaneStatus } from '@/resources/base';
+import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -19,8 +18,8 @@ import {
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { InfoIcon } from 'lucide-react';
 import { AnimatePresence, motion, Variants } from 'motion/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useFetcher, useNavigate } from 'react-router';
+import { useMemo } from 'react';
+import { useNavigate } from 'react-router';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -45,15 +44,30 @@ const itemVariants: Variants = {
 };
 
 interface HttpProxyPreviewProps {
-  data?: IHttpProxyControlResponse;
+  data?: HttpProxy;
   projectId?: string;
 }
 
 export const HttpProxyPreview = ({ data, projectId }: HttpProxyPreviewProps) => {
-  const fetcher = useFetcher<IHttpProxyControlResponse>();
   const navigate = useNavigate();
-  const [proxy, setProxy] = useState<IHttpProxyControlResponse | undefined>(data);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Check if the initial data is in pending state
+  const isInitiallyPending =
+    !data || transformControlPlaneStatus(data.status).status === ControlPlaneStatus.Pending;
+
+  // Use query hook to get data from cache (will be updated by watch)
+  const { data: queriedProxy } = useHttpProxy(projectId ?? '', data?.name ?? '', {
+    enabled: !!data?.name && !!projectId,
+    initialData: data,
+  });
+
+  // Subscribe to watch for real-time updates (updates the query cache)
+  useHttpProxyWatch(projectId ?? '', data?.name ?? '', {
+    enabled: isInitiallyPending && !!data?.name && !!projectId,
+  });
+
+  // Use queried data which will be updated by the watch
+  const proxy = queriedProxy ?? data;
 
   const proxyStatus = useMemo(() => {
     if (!proxy) {
@@ -64,33 +78,6 @@ export const HttpProxyPreview = ({ data, projectId }: HttpProxyPreviewProps) => 
     }
     return transformControlPlaneStatus(proxy.status);
   }, [proxy]);
-
-  const cleanUp = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  };
-
-  useEffect(() => {
-    if (proxyStatus.status === ControlPlaneStatus.Pending && proxy?.name) {
-      intervalRef.current = setInterval(() => {
-        fetcher.load(
-          `${getPathWithParams(HTTP_PROXY_DETAIL_PATH, { id: proxy.name })}?projectId=${projectId}`
-        );
-      }, 2000);
-    } else {
-      cleanUp();
-    }
-
-    return cleanUp;
-  }, [proxyStatus.status, proxy?.name, projectId, fetcher]);
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      setProxy(fetcher.data);
-    }
-  }, [fetcher.data, fetcher.state]);
 
   return (
     <Card>

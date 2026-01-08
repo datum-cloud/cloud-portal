@@ -4,6 +4,7 @@ import { sentryReactRouter } from '@sentry/react-router';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { reactRouterHonoServer } from 'react-router-hono-server/dev';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -35,6 +36,7 @@ export default defineConfig((config) => {
     },
     plugins: [
       tailwindcss(),
+      reactRouterHonoServer({ runtime: 'bun' }),
       process.env.CYPRESS ? react() : reactRouter(),
       tsconfigPaths(),
       sentryReactRouter(

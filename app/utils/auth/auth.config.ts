@@ -1,3 +1,5 @@
+import { env } from '@/utils/env';
+
 /**
  * Centralized authentication configuration
  *
@@ -26,7 +28,7 @@ export const AUTH_CONFIG = {
   /**
    * Enable debug logging for auth operations
    */
-  DEBUG: process.env.NODE_ENV === 'development',
+  DEBUG: env.isDev,
 } as const;
 
 /**

@@ -1,6 +1,7 @@
 import { HttpProxyGeneralCard } from '@/features/edge/proxy/overview/general-card';
 import { GrafanaTutorialCard } from '@/features/edge/proxy/overview/grafana-tutorial-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames-card';
+import { type HttpProxy } from '@/resources/http-proxies';
 import { motion } from 'motion/react';
 import { useParams, useRouteLoaderData } from 'react-router';
 
@@ -9,7 +10,7 @@ export const handle = {
 };
 
 export default function HttpProxyOverviewPage() {
-  const httpProxy = useRouteLoaderData('proxy-detail');
+  const httpProxy = useRouteLoaderData('proxy-detail') as HttpProxy;
 
   const { projectId } = useParams();
 

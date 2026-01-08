@@ -1,9 +1,13 @@
 import { defineConfig } from 'cypress';
 import 'dotenv/config';
 
+// Set environment variables for test mode before any app code loads
+process.env.CYPRESS = 'true';
+process.env.NODE_ENV = 'test';
+
 export default defineConfig({
   env: {
-    CYPRESS: true,
+    CYPRESS: 'true',
     APP_URL: 'http://localhost:3000',
     AUTH_OIDC_ISSUER: process.env.AUTH_OIDC_ISSUER || 'http://localhost:3000',
     AUTH_OIDC_CLIENT_ID: process.env.AUTH_OIDC_CLIENT_ID,
@@ -14,7 +18,6 @@ export default defineConfig({
       // implement node event listeners here
       on('task', {
         log(message) {
-          // eslint-disable-next-line no-console
           console.log(message);
 
           return null;

@@ -6,11 +6,12 @@ import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { MetadataForm } from '@/components/metadata/metadata-form';
 import { MetadataPreview } from '@/components/metadata/metadata-preview';
 import { useIsPending } from '@/hooks/useIsPending';
+import { MetadataSchema, metadataSchema } from '@/resources/base';
 import {
-  ExportPolicySinkType,
-  ExportPolicySourceType,
+  ExportPolicySinkTypeEnum,
+  ExportPolicySourceTypeEnum,
   IExportPolicyControlResponse,
-} from '@/resources/interfaces/export-policy.interface';
+} from '@/resources/export-policies';
 import {
   exportPolicySourcesSchema,
   exportPolicySinksSchema,
@@ -19,8 +20,7 @@ import {
   ExportPolicySinksSchema,
   ExportPolicySourceFieldSchema,
   UpdateExportPolicySchema,
-} from '@/resources/schemas/export-policy.schema';
-import { MetadataSchema, metadataSchema } from '@/resources/schemas/metadata.schema';
+} from '@/resources/export-policies';
 import { FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
@@ -79,14 +79,14 @@ export const ExportPolicyStepperForm = ({
     sources: [
       {
         name: undefined,
-        type: ExportPolicySourceType.METRICS,
+        type: ExportPolicySourceTypeEnum.METRICS,
         metricQuery: '{}',
       },
     ],
     sinks: [
       {
         name: undefined,
-        type: ExportPolicySinkType.PROMETHEUS,
+        type: ExportPolicySinkTypeEnum.PROMETHEUS,
         authentication: {
           authType: undefined,
           secretName: undefined,

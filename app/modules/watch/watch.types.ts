@@ -1,0 +1,64 @@
+// app/modules/watch/watch.types.ts
+
+export type WatchEventType = 'ADDED' | 'MODIFIED' | 'DELETED' | 'BOOKMARK' | 'ERROR';
+
+export interface WatchEvent<T = unknown> {
+  type: WatchEventType;
+  object: T;
+}
+
+export interface WatchOptions {
+  resourceType: string;
+  /**
+   * Project ID for project-scoped resources.
+   * Used to construct: /apis/resourcemanager.../projects/{projectId}/control-plane/...
+   */
+  projectId?: string;
+  /**
+   * K8s namespace (usually 'default' for project resources)
+   */
+  namespace?: string;
+  name?: string;
+  resourceVersion?: string;
+  timeoutSeconds?: number;
+  labelSelector?: string;
+  fieldSelector?: string;
+}
+
+export interface WatchConnection {
+  key: string;
+  controller: AbortController;
+  subscribers: Set<WatchSubscriber>;
+  resourceVersion: string;
+  reconnectAttempts: number;
+}
+
+export type WatchSubscriber<T = unknown> = (event: WatchEvent<T>) => void;
+
+export interface UseResourceWatchOptions<T> extends WatchOptions {
+  queryKey: readonly unknown[];
+  enabled?: boolean;
+  transform?: (item: unknown) => T;
+  onEvent?: (event: WatchEvent<T>) => void;
+  /**
+   * Minimum interval between list refetches (ms).
+   * Prevents rapid-fire refetches from continuous watch events.
+   * Use lower values for user-initiated CRUD (e.g., 500ms for DNS records).
+   * Use higher values for continuous status updates (e.g., 5000ms for domains).
+   * @default 1000
+   */
+  throttleMs?: number;
+  /**
+   * Debounce delay for batching multiple watch events (ms).
+   * Events within this window are batched into a single invalidation.
+   * @default 300
+   */
+  debounceMs?: number;
+  /**
+   * Skip ADDED events during initial sync period after watch connects.
+   * When true, ADDED events in the first 2s are ignored (cache already hydrated).
+   * Set to false for resources where user might create immediately after page load.
+   * @default true
+   */
+  skipInitialSync?: boolean;
+}

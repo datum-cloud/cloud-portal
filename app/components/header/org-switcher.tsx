@@ -1,14 +1,14 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { SelectOrganization } from '@/components/select-organization/select-organization';
 import { useApp } from '@/providers/app.provider';
-import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
+import type { Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Building } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 
-export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: IOrganization }) => {
+export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: Organization }) => {
   const { setOrganization } = useApp();
   const navigate = useNavigate();
 
@@ -21,7 +21,7 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: IOrganization
         <span className="max-w-[120px] truncate text-xs leading-3.5 sm:max-w-36 md:max-w-none">
           {currentOrg?.displayName ?? currentOrg?.name}
         </span>
-        {currentOrg?.type === OrganizationType.Personal && (
+        {currentOrg?.type === 'Personal' && (
           <BadgeStatus status={currentOrg.type} className="hidden sm:block" />
         )}
       </Link>
@@ -29,7 +29,7 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: IOrganization
         triggerClassName="h-4 w-4 p-0 mr-2.5"
         currentOrg={currentOrg!}
         hideContent
-        onSelect={(org: IOrganization) => {
+        onSelect={(org: Organization) => {
           setOrganization(org);
           navigate(getPathWithParams(paths.org.detail.projects.root, { orgId: org.name }));
         }}

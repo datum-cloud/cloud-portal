@@ -2,7 +2,7 @@
  * Server-Side Toasts.
  * Implementation based on github.com/epicweb-dev/epic-stack
  */
-import { isProduction } from '@/utils/config/env.config';
+import { env } from '@/utils/env/env.server';
 import { combineHeaders } from '@/utils/helpers/path.helper';
 import { createCookieSessionStorage, data as dataFn, redirect } from 'react-router';
 import { z } from 'zod';
@@ -12,12 +12,12 @@ export const TOAST_SESSION_FLASH_KEY = '_toast_flash';
 export const toastSessionStorage = createCookieSessionStorage({
   cookie: {
     name: TOAST_SESSION_FLASH_KEY,
-    domain: process.env?.APP_URL ? new URL(process.env.APP_URL).hostname : 'localhost',
+    domain: new URL(env.public.appUrl).hostname,
     path: '/',
     sameSite: 'lax',
     httpOnly: true,
-    secrets: [process.env?.SESSION_SECRET ?? 'NOT_A_STRONG_SECRET'],
-    secure: isProduction(),
+    secrets: [env.server.sessionSecret],
+    secure: env.isProd,
   },
 });
 

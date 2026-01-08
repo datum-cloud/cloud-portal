@@ -1,3 +1,4 @@
+import { env } from '../../app/utils/env/env.server';
 import { BaseProvider } from './base';
 import { Client, credentials } from '@grpc/grpc-js';
 import { diag, DiagConsoleLogger, DiagLogLevel, trace, SpanStatusCode } from '@opentelemetry/api';
@@ -17,8 +18,7 @@ export class OtelProvider extends BaseProvider {
   // PRIVATE PROPERTIES
   // ============================================================================
 
-  private isEnabled =
-    process.env.OTEL_ENABLED === 'true' && !!process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
+  private isEnabled = env.public.otelEnabled;
   private circuitBreakerOpen = false;
   private exportErrorCount = 0;
   private readonly MAX_ERRORS = 5;
@@ -140,8 +140,8 @@ export class OtelProvider extends BaseProvider {
 
   private logDisabledStatus(): void {
     console.log('📊 OpenTelemetry is disabled or endpoint not configured');
-    console.log('📊 OTEL_ENABLED:', process.env.OTEL_ENABLED);
-    console.log('📊 OTEL_EXPORTER_OTLP_ENDPOINT:', process.env.OTEL_EXPORTER_OTLP_ENDPOINT);
+    console.log('📊 OTEL_ENABLED:', env.public.otelEnabled);
+    console.log('📊 OTEL_EXPORTER_OTLP_ENDPOINT:', env.server.otelExporterEndpoint);
   }
 
   private async initializeSdk(): Promise<boolean> {
@@ -173,20 +173,19 @@ export class OtelProvider extends BaseProvider {
   }
 
   private setupLogging(): void {
-    if (process.env.NODE_ENV === 'development') {
-      const logLevel =
-        process.env.OTEL_LOG_LEVEL === 'debug' ? DiagLogLevel.DEBUG : DiagLogLevel.INFO;
+    if (env.isDev) {
+      const logLevel = env.public.otelLogLevel === 'debug' ? DiagLogLevel.DEBUG : DiagLogLevel.INFO;
       diag.setLogger(new DiagConsoleLogger(), logLevel);
     }
   }
 
   private async testConnectivity(): Promise<void> {
-    if (!process.env.OTEL_EXPORTER_OTLP_ENDPOINT) return;
+    if (!env.server.otelExporterEndpoint) return;
 
     console.log('🔍 Testing OTLP endpoint connectivity...');
-    console.log('📊 Endpoint to test:', process.env.OTEL_EXPORTER_OTLP_ENDPOINT);
+    console.log('📊 Endpoint to test:', env.server.otelExporterEndpoint);
 
-    const isConnected = await this.testOtlpConnectivity(process.env.OTEL_EXPORTER_OTLP_ENDPOINT);
+    const isConnected = await this.testOtlpConnectivity(env.server.otelExporterEndpoint);
 
     if (!isConnected) {
       console.warn(
@@ -210,8 +209,8 @@ export class OtelProvider extends BaseProvider {
 
   private logInitializationSuccess(): void {
     console.log('✅ OpenTelemetry initialized successfully');
-    console.log('📊 OTEL_EXPORTER_OTLP_ENDPOINT:', process.env.OTEL_EXPORTER_OTLP_ENDPOINT);
-    console.log('📊 OTEL_EXPORTER_TIMEOUT:', process.env.OTEL_EXPORTER_TIMEOUT || '10000');
+    console.log('📊 OTEL_EXPORTER_OTLP_ENDPOINT:', env.server.otelExporterEndpoint);
+    console.log('📊 OTEL_EXPORTER_TIMEOUT:', env.server.otelExporterTimeout || '10000');
   }
 
   private shutdownSdk(): void {
@@ -258,7 +257,15 @@ export class OtelProvider extends BaseProvider {
     if (!exporter) return null;
 
     return new NodeSDK({
-      instrumentations: [getNodeAutoInstrumentations()],
+      instrumentations: [
+        getNodeAutoInstrumentations({
+          // Disable instrumentations not supported by Bun runtime
+          // - runtime-node uses perf_hooks.monitorEventLoopDelay (not implemented in Bun)
+          // - fs uses Node.js fs internals not available in Bun
+          '@opentelemetry/instrumentation-runtime-node': { enabled: false },
+          '@opentelemetry/instrumentation-fs': { enabled: false },
+        }),
+      ],
       spanProcessors: [
         new BatchSpanProcessor(exporter, {
           maxQueueSize: 1000,
@@ -272,9 +279,9 @@ export class OtelProvider extends BaseProvider {
 
   private createRobustExporter() {
     const exporter = new OTLPTraceExporter({
-      url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT!,
+      url: env.server.otelExporterEndpoint!,
       credentials: credentials.createInsecure(),
-      timeoutMillis: parseInt(process.env.OTEL_EXPORTER_TIMEOUT || '10000'),
+      timeoutMillis: parseInt(env.server.otelExporterTimeout || '10000'),
       headers: {},
     });
 

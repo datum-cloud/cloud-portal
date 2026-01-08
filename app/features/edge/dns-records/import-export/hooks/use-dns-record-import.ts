@@ -1,9 +1,5 @@
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import {
-  IDnsZoneDiscoveryRecordSet,
-  IFlattenedDnsRecord,
-} from '@/resources/interfaces/dns.interface';
-import { ROUTE_PATH as DNS_RECORDS_BULK_IMPORT_PATH } from '@/routes/api/dns-records/bulk-import';
+import { IFlattenedDnsRecord, useBulkImportDnsRecords } from '@/resources/dns-records';
+import { IDnsZoneDiscoveryRecordSet } from '@/resources/dns-zone-discoveries';
 import { readFileAsText } from '@/utils/common';
 import {
   deduplicateParsedRecords,
@@ -14,7 +10,6 @@ import {
   transformParsedToRecordSets,
 } from '@/utils/helpers/dns-record.helper';
 import { useState } from 'react';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 export type DropzoneState = 'idle' | 'loading' | 'error' | 'success';
 export type DialogView = 'preview' | 'result';
@@ -35,8 +30,6 @@ interface UseDnsRecordImportProps {
 }
 
 export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRecordImportProps) {
-  const csrf = useAuthenticityToken();
-
   // Dropzone state
   const [files, setFiles] = useState<File[] | undefined>();
   const [dropzoneState, setDropzoneState] = useState<DropzoneState>('idle');
@@ -53,29 +46,37 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
   const [duplicateRecords, setDuplicateRecords] = useState<DuplicateRecordsInfo | null>(null);
 
   // Import state
-  const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
 
-  const importFetcher = useDatumFetcher<{
-    success: boolean;
-    error?: string;
-    data?: ImportResult;
-  }>({
-    key: 'dns-records-bulk-import',
+  const importMutation = useBulkImportDnsRecords(projectId, dnsZoneId, {
     onSuccess: (data) => {
-      setIsImporting(false);
-      if (data.data) {
-        setImportResult(data.data);
-        setDialogView('result');
-      }
+      setImportResult(data);
+      setDialogView('result');
       onSuccess?.();
     },
-    onError: (data) => {
-      setIsImporting(false);
-      if (data.data) {
-        setImportResult(data.data);
-        setDialogView('result');
-      }
+    onError: (error) => {
+      // On error, we still show the result view if we have partial results
+      // The mutation will throw if completely failed
+      setImportResult({
+        summary: {
+          totalRecordSets: 0,
+          totalRecords: 0,
+          created: 0,
+          updated: 0,
+          skipped: 0,
+          failed: 1,
+        },
+        details: [
+          {
+            recordType: 'Unknown',
+            name: 'Import',
+            value: '',
+            action: 'failed',
+            message: error.message || 'Unknown error',
+          },
+        ],
+      });
+      setDialogView('result');
     },
   });
 
@@ -192,21 +193,10 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
   const handleImport = () => {
     if (rawRecordSets.length === 0) return;
 
-    setIsImporting(true);
-    importFetcher.submit(
-      JSON.stringify({
-        projectId,
-        dnsZoneId,
-        discoveryRecordSets: rawRecordSets,
-        importOptions: { skipDuplicates: true, mergeStrategy: 'append' },
-        csrf,
-      }),
-      {
-        method: 'POST',
-        action: DNS_RECORDS_BULK_IMPORT_PATH,
-        encType: 'application/json',
-      }
-    );
+    importMutation.mutate({
+      discoveryRecordSets: rawRecordSets,
+      importOptions: { skipDuplicates: true, mergeStrategy: 'append' },
+    });
   };
 
   return {
@@ -230,7 +220,7 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
     duplicateRecords,
 
     // Import
-    isImporting,
+    isImporting: importMutation.isPending,
     handleImport,
     importResult,
   };

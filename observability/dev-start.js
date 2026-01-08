@@ -13,8 +13,8 @@
 async function startDevServer() {
   console.log('🌐 Starting React Router development server...');
 
-  // Use tsx watch for TypeScript server development
-  const devProcess = Bun.spawn(['tsx', 'watch', './server.ts'], {
+  // Use bunx --bun vite for development (matches staff-portal)
+  const devProcess = Bun.spawn(['bunx', '--bun', 'vite'], {
     stdio: ['inherit', 'inherit', 'inherit'],
     env: { ...process.env },
   });

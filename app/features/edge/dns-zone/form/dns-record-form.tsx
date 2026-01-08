@@ -20,11 +20,10 @@ import {
   DNS_RECORD_TYPES,
   DNSRecordType,
   TTL_OPTIONS,
-} from '@/resources/schemas/dns-record.schema';
-import { ROUTE_PATH as DNS_RECORDS_ACTIONS_PATH } from '@/routes/api/dns-records';
-import { ROUTE_PATH as DNS_RECORDS_DETAIL_PATH } from '@/routes/api/dns-records/$id';
+  useCreateDnsRecord,
+  useUpdateDnsRecord,
+} from '@/resources/dns-records';
 import { formatDnsError } from '@/utils/helpers/dns-record.helper';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   FormProvider,
   getFormProps,
@@ -37,9 +36,8 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button, toast } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { Input } from '@shadcn/ui/input';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Form } from 'react-router';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
 interface DnsRecordFormProps {
   style?: 'inline' | 'modal';
@@ -74,8 +72,8 @@ export function DnsRecordForm({
   isPending = false,
   testMode = false,
 }: DnsRecordFormProps) {
-  const csrf = useAuthenticityToken();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createMutation = useCreateDnsRecord(projectId, dnsZoneId);
+  const updateMutation = useUpdateDnsRecord(projectId, dnsZoneId, recordSetName ?? '');
 
   // Initialize form with default values based on record type
   const getInitialValues = (): Partial<CreateDnsRecordSchema> => {
@@ -111,53 +109,21 @@ export function DnsRecordForm({
       event.stopPropagation();
 
       if (submission?.status === 'success') {
-        setIsSubmitting(true);
-
         try {
-          const apiUrl =
-            mode === 'create'
-              ? DNS_RECORDS_ACTIONS_PATH
-              : getPathWithParams(DNS_RECORDS_DETAIL_PATH, { id: recordSetName });
-
-          const payload = {
-            csrf,
-            projectId,
-            dnsZoneId,
-            ...(mode === 'edit' && { recordName }),
-            ...(mode === 'edit' && oldValue && { oldValue }), // Include oldValue for edit mode
-            ...(mode === 'edit' && oldTTL !== undefined && { oldTTL }), // Include oldTTL for edit mode
-            ...submission.value,
-          };
-
-          const response = await fetch(apiUrl, {
-            method: mode === 'create' ? 'POST' : 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-          });
-
-          const result = await response.json();
-
-          if (!response.ok) {
-            const errorMessage = result.error || `Failed to ${mode} DNS record`;
-            throw new Error(formatDnsError(errorMessage));
-          }
-
-          if (result.success) {
-            onSuccess?.();
-            onClose();
+          if (mode === 'create') {
+            await createMutation.mutateAsync(submission.value);
           } else {
-            const errorMessage = result?.error || `Failed to ${mode} DNS record`;
-            throw new Error(formatDnsError(errorMessage));
+            await updateMutation.mutateAsync({
+              ...submission.value,
+              recordName,
+              oldValue,
+              oldTTL,
+            });
           }
+          onSuccess?.();
+          onClose();
         } catch (error: any) {
-          // Error message is already formatted by formatDnsError if it was a DNS error
-          // Otherwise, use the original error message
-          const displayMessage = error.message || `Failed to ${mode} DNS record. Please try again.`;
-          toast.error(displayMessage);
-        } finally {
-          setIsSubmitting(false);
+          toast.error(formatDnsError(error.message) || `Failed to ${mode} DNS record`);
         }
       }
     },
@@ -190,7 +156,7 @@ export function DnsRecordForm({
     return typeFieldMap[currentRecordType];
   }, [currentRecordType, fields, defaultValue]);
 
-  const loading = isPending || isSubmitting;
+  const loading = isPending || createMutation.isPending || updateMutation.isPending;
 
   return (
     <FormProvider context={form.context}>

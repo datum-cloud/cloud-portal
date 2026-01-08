@@ -1,9 +1,9 @@
 import { CodeEditorProps } from './code-editor.types';
+import { useTheme } from '@/modules/datum-themes';
 import Editor, { Monaco } from '@monaco-editor/react';
 import { cn } from '@shadcn/lib/utils';
 import { editor } from 'monaco-editor';
 import { useRef } from 'react';
-import { useTheme, Theme } from 'remix-themes';
 
 // Custom theme names
 const CUSTOM_THEME_LIGHT = 'datum-light';
@@ -48,7 +48,7 @@ export const CodeEditor = ({
   minHeight = '200px',
   placeholder,
 }: CodeEditorProps) => {
-  const [theme] = useTheme();
+  const { resolvedTheme } = useTheme();
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   // Determine if placeholder should be shown
@@ -60,7 +60,7 @@ export const CodeEditor = ({
 
     // Define and apply custom themes
     defineCustomThemes(monaco);
-    monaco.editor.setTheme(theme === Theme.DARK ? CUSTOM_THEME_DARK : CUSTOM_THEME_LIGHT);
+    monaco.editor.setTheme(resolvedTheme === 'dark' ? CUSTOM_THEME_DARK : CUSTOM_THEME_LIGHT);
 
     // Set up customizations
     editorInstance.updateOptions({
@@ -119,7 +119,7 @@ export const CodeEditor = ({
         <Editor
           value={value}
           language={language}
-          theme={theme === Theme.DARK ? CUSTOM_THEME_DARK : CUSTOM_THEME_LIGHT}
+          theme={resolvedTheme === 'dark' ? CUSTOM_THEME_DARK : CUSTOM_THEME_LIGHT}
           options={{
             readOnly,
             automaticLayout: true,

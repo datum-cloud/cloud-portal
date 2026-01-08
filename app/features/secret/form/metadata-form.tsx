@@ -1,7 +1,7 @@
 import { Field } from '@/components/field/field';
 import { InputName } from '@/components/input-name/input-name';
 import { SECRET_TYPES } from '@/features/secret/constants';
-import { SecretBaseSchema } from '@/resources/schemas/secret.schema';
+import { SecretBaseSchema } from '@/resources/secrets';
 import { getSelectProps, useForm, useInputControl } from '@conform-to/react';
 import {
   Select,

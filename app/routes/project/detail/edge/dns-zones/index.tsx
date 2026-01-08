@@ -2,13 +2,16 @@ import { BadgeProgrammingError } from '@/components/badge/badge-programming-erro
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { NameserverChips } from '@/components/nameserver-chips';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import { useRevalidation } from '@/hooks/useRevalidation';
-import { createDnsZonesControl } from '@/resources/control-plane/dns-networking';
-import { IExtendedControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
-import { ROUTE_PATH as DNS_ZONES_ACTIONS_PATH } from '@/routes/api/dns-zones';
-import { ROUTE_PATH as DOMAINS_REFRESH_PATH } from '@/routes/api/domains/refresh';
+import { IExtendedControlPlaneStatus } from '@/resources/base';
+import {
+  createDnsZoneService,
+  useDeleteDnsZone,
+  useDnsZones,
+  useDnsZonesWatch,
+  useHydrateDnsZones,
+  type DnsZone,
+} from '@/resources/dns-zones';
+import { useRefreshDomainRegistration } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -22,12 +25,10 @@ import {
   toast,
 } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Client } from '@hey-api/client-axios';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import {
-  AppLoadContext,
   Link,
   LoaderFunctionArgs,
   MetaFunction,
@@ -41,23 +42,21 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('DNS');
 });
 
-export const loader = async ({ context, params }: LoaderFunctionArgs) => {
+export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
-  const dnsZonesControl = createDnsZonesControl(controlPlaneClient as Client);
 
   if (!projectId) {
     throw new BadRequestError('Project ID is required');
   }
 
-  // Fetch fresh data from API
-  const zones = await dnsZonesControl.list(projectId);
+  // Services now use global axios client with AsyncLocalStorage
+  const dnsZoneService = createDnsZoneService();
+  const zoneList = await dnsZoneService.list(projectId);
 
-  return data({ zones });
+  return data({ zones: zoneList.items });
 };
 
-// Extended zone type with pre-computed status
-interface IDnsZoneWithComputed extends IDnsZoneControlResponse {
+interface DnsZoneWithComputed extends DnsZone {
   _computed: {
     status: IExtendedControlPlaneStatus;
     hasError: boolean;
@@ -67,13 +66,31 @@ interface IDnsZoneWithComputed extends IDnsZoneControlResponse {
 }
 
 export default function DnsZonesPage() {
-  const { zones } = useLoaderData<typeof loader>();
+  const { zones: initialZones } = useLoaderData<typeof loader>();
   const { projectId } = useParams();
+
+  // Hydrate cache with SSR data (runs once on mount)
+  useHydrateDnsZones(projectId ?? '', initialZones);
+
+  // Subscribe to watch for real-time updates
+  useDnsZonesWatch(projectId ?? '');
+
+  // Read from React Query cache (gets updates from watch!)
+  const { data } = useDnsZones(projectId ?? '', undefined, {
+    // Don't refetch on mount - hydration already seeded the cache
+    refetchOnMount: false,
+    // Consider data fresh for 5 minutes (watch keeps it updated)
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Use React Query data, fallback to SSR data
+  const zones = data?.items ?? initialZones;
+
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
 
   // Pre-compute status for all zones (called once per zones change)
-  const zonesWithStatus = useMemo<IDnsZoneWithComputed[]>(() => {
+  const zonesWithStatus = useMemo<DnsZoneWithComputed[]>(() => {
     return zones.map((zone) => {
       const status = transformControlPlaneStatus(zone.status, {
         includeConditionDetails: true,
@@ -93,65 +110,42 @@ export default function DnsZonesPage() {
     });
   }, [zones]);
 
-  // Check if any zone is still loading
-  const hasLoadingZones = useMemo(
-    () => zonesWithStatus.some((zone) => zone._computed.isLoading),
-    [zonesWithStatus]
-  );
-
-  // Revalidate every 3 seconds when zones are loading
-  const { revalidate } = useRevalidation({
-    interval: hasLoadingZones ? 3000 : false,
-  });
-
-  const deleteFetcher = useDatumFetcher({
-    key: 'delete-dns-zone',
+  const deleteMutation = useDeleteDnsZone(projectId ?? '', {
     onSuccess: () => {
       toast.success('DNS', {
         description: 'The DNS has been deleted successfully',
       });
-      revalidate();
     },
-    onError: (data) => {
+    onError: (error) => {
       toast.error('DNS', {
-        description: data.error || 'Failed to delete DNS',
+        description: error.message || 'Failed to delete DNS',
       });
     },
   });
 
-  const refreshFetcher = useDatumFetcher({
-    key: 'refresh-dns',
+  const refreshMutation = useRefreshDomainRegistration(projectId ?? '', {
     onSuccess: () => {
       toast.success('DNS', {
         description: 'The DNS has been refreshed successfully',
       });
     },
-    onError: (data) => {
+    onError: (error) => {
       toast.error('DNS', {
-        description: data.error || 'Failed to refresh DNS',
+        description: error.message || 'Failed to refresh DNS',
       });
     },
   });
 
   const refreshDomain = useCallback(
-    async (dnsZone: IDnsZoneWithComputed) => {
+    (dnsZone: DnsZoneWithComputed) => {
       if (!dnsZone?.status?.domainRef?.name) return;
-      await refreshFetcher.submit(
-        {
-          id: dnsZone?.status?.domainRef?.name ?? '',
-          projectId: projectId ?? '',
-        },
-        {
-          method: 'PATCH',
-          action: DOMAINS_REFRESH_PATH,
-        }
-      );
+      refreshMutation.mutate(dnsZone.status.domainRef.name);
     },
-    [projectId, refreshFetcher]
+    [refreshMutation]
   );
 
   const deleteDnsZone = useCallback(
-    async (dnsZone: IDnsZoneWithComputed) => {
+    async (dnsZone: DnsZoneWithComputed) => {
       await confirm({
         title: 'Delete DNS Zone',
         description: (
@@ -167,24 +161,15 @@ export default function DnsZonesPage() {
         confirmValue: dnsZone.domainName,
         confirmInputLabel: `Type "${dnsZone.domainName}" to confirm.`,
         onSubmit: async () => {
-          await deleteFetcher.submit(
-            {
-              id: dnsZone?.name ?? '',
-              projectId: projectId ?? '',
-            },
-            {
-              method: 'DELETE',
-              action: DNS_ZONES_ACTIONS_PATH,
-            }
-          );
+          await deleteMutation.mutateAsync(dnsZone.name ?? '');
         },
       });
     },
-    [projectId, deleteFetcher, confirm]
+    [deleteMutation, confirm]
   );
 
   const handleRowClick = useCallback(
-    (row: IDnsZoneWithComputed) => {
+    (row: DnsZoneWithComputed) => {
       navigate(
         getPathWithParams(paths.project.detail.dnsZones.detail.root, {
           projectId,
@@ -195,7 +180,7 @@ export default function DnsZonesPage() {
     [projectId, navigate]
   );
 
-  const columns: ColumnDef<IDnsZoneWithComputed>[] = useMemo(
+  const columns: ColumnDef<DnsZoneWithComputed>[] = useMemo(
     () => [
       {
         id: 'domainName',
@@ -287,7 +272,7 @@ export default function DnsZonesPage() {
     []
   );
 
-  const rowActions: DataTableRowActionsProps<IDnsZoneWithComputed>[] = useMemo(
+  const rowActions: DataTableRowActionsProps<DnsZoneWithComputed>[] = useMemo(
     () => [
       {
         key: 'edit',

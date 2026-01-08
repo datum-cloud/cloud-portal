@@ -1,15 +1,12 @@
 import { KeysForm } from './keys-form';
-import { useIsPending } from '@/hooks/useIsPending';
-import { SecretVariablesSchema, secretVariablesSchema } from '@/resources/schemas/secret.schema';
-import { ROUTE_PATH as SECRET_ACTIONS_ROUTE_PATH } from '@/routes/api/secrets';
+import { SecretVariablesSchema, secretVariablesSchema, useUpdateSecret } from '@/resources/secrets';
 import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
 import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button } from '@datum-ui/components';
 import { Dialog } from '@datum-ui/components/dialog';
-import { useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Form, useFetcher } from 'react-router';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
+import { useImperativeHandle, useRef, useState } from 'react';
+import { Form } from 'react-router';
 
 interface VariablesFormDialogProps {
   projectId?: string;
@@ -31,14 +28,18 @@ export const KeysFormDialog = ({
 }: VariablesFormDialogProps & {
   ref: React.RefObject<VariablesFormDialogRef>;
 }) => {
-  const fetcher = useFetcher({ key: 'add-secret-variables' });
-  const isPending = useIsPending({ fetcherKey: 'add-secret-variables' });
-  const csrf = useAuthenticityToken();
-
   const [isOpen, setIsOpen] = useState(false);
   const resolveRef = useRef<(value: boolean) => void>(null);
   const [defaultValue, setDefaultValue] = useState<SecretVariablesSchema | undefined>({
     variables: [{ key: '', value: '' }],
+  });
+
+  const updateSecretMutation = useUpdateSecret(projectId ?? '', secretId ?? '', {
+    onSuccess: () => {
+      resolveRef.current?.(false);
+      setIsOpen(false);
+      onSuccess?.();
+    },
   });
 
   const [form, fields] = useForm({
@@ -55,39 +56,17 @@ export const KeysFormDialog = ({
       event.stopPropagation();
 
       if (submission?.status === 'success') {
-        fetcher.submit(
-          {
-            projectId: projectId ?? '',
-            secretId: secretId ?? '',
-            data: (submission?.value?.variables ?? []).reduce(
-              (acc, vars) => {
-                acc[vars.key] = isBase64(vars.value) ? vars.value : toBase64(vars.value);
-                return acc;
-              },
-              {} as Record<string, string>
-            ),
-            csrf,
+        const data = (submission?.value?.variables ?? []).reduce(
+          (acc, vars) => {
+            acc[vars.key] = isBase64(vars.value) ? vars.value : toBase64(vars.value);
+            return acc;
           },
-          {
-            action: SECRET_ACTIONS_ROUTE_PATH,
-            encType: 'application/json',
-            method: 'PATCH',
-          }
+          {} as Record<string, string>
         );
+        updateSecretMutation.mutate({ data });
       }
     },
   });
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const { success } = fetcher.data;
-
-      if (success) {
-        handleOpenChange(false);
-        onSuccess?.();
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   useImperativeHandle(ref, () => ({
     show: (value?: SecretVariablesSchema) => {
@@ -139,14 +118,18 @@ export const KeysFormDialog = ({
           <Button
             type="quaternary"
             theme="borderless"
-            disabled={isPending}
+            disabled={updateSecretMutation.isPending}
             onClick={() => {
               handleOpenChange(false);
             }}>
             Cancel
           </Button>
-          <Button htmlType="submit" form={form.id} disabled={isPending} loading={isPending}>
-            {isPending ? 'Creating' : 'Create'}
+          <Button
+            htmlType="submit"
+            form={form.id}
+            disabled={updateSecretMutation.isPending}
+            loading={updateSecretMutation.isPending}>
+            {updateSecretMutation.isPending ? 'Creating' : 'Create'}
           </Button>
         </Dialog.Footer>
       </Dialog.Content>

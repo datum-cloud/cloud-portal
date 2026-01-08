@@ -1,6 +1,6 @@
 import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
-import { ExportPolicySinkPrometheusFieldSchema } from '@/resources/schemas/export-policy.schema';
+import { ExportPolicySinkPrometheusFieldSchema } from '@/resources/export-policies';
 import { getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { InputWithAddons } from '@datum-ui/components';
 import { Input } from '@datum-ui/components';

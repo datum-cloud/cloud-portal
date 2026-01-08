@@ -1,18 +1,15 @@
 import { BackButton } from '@/components/back-button';
 import { SubLayout } from '@/layouts';
-import { createDnsZonesControl, createDomainsControl } from '@/resources/control-plane';
-import { IDnsZoneControlResponse } from '@/resources/interfaces/dns.interface';
-import type { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { createDnsZoneService, type DnsZone } from '@/resources/dns-zones';
+import { createDomainService, type Domain, useHydrateDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components';
-import { Client } from '@hey-api/client-axios';
 import { useMemo } from 'react';
 import {
   LoaderFunctionArgs,
-  AppLoadContext,
   data,
   MetaFunction,
   Outlet,
@@ -21,35 +18,35 @@ import {
 } from 'react-router';
 
 export const handle = {
-  breadcrumb: ({ domain }: { domain: IDomainControlResponse }) => <span>{domain?.domainName}</span>,
+  breadcrumb: ({ domain }: { domain: Domain }) => <span>{domain?.domainName}</span>,
 };
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
-  const domain = loaderData as IDomainControlResponse;
+  const { domain } = loaderData as { domain: Domain };
   return metaObject(domain?.name || 'Domain');
 });
 
-export const loader = async ({ context, params }: LoaderFunctionArgs) => {
+export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId, domainId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
 
   if (!projectId || !domainId) {
     throw new BadRequestError('Project ID and domain ID are required');
   }
 
-  const domainsControl = createDomainsControl(controlPlaneClient as Client);
-  const dnsZonesControl = createDnsZonesControl(controlPlaneClient as Client);
-
-  const domain = await domainsControl.detail(projectId, domainId);
+  // Services now use global axios client with AsyncLocalStorage
+  const domainService = createDomainService();
+  const domain = await domainService.get(projectId, domainId);
 
   if (!domain) {
-    throw new NotFoundError('Domain not found');
+    throw new NotFoundError('Domain', domainId);
   }
 
-  let dnsZone: IDnsZoneControlResponse | null = null;
+  const dnsZoneService = createDnsZoneService();
+
+  let dnsZone: DnsZone | null = null;
   if (domain?.name) {
-    const dnsZones = await dnsZonesControl.listByDomainRef(projectId, domain?.name ?? '', 1);
-    dnsZone = dnsZones?.[0] ?? null;
+    const dnsZoneList = await dnsZoneService.listByDomainRef(projectId, domain.name, 1);
+    dnsZone = dnsZoneList.items[0] ?? null;
   }
 
   return data({ domain, dnsZone });
@@ -57,7 +54,10 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 
 export default function DomainDetailLayout() {
   const { domain } = useLoaderData<typeof loader>();
-  const { projectId } = useParams();
+  const { projectId, domainId } = useParams();
+
+  // Hydrate cache with SSR data
+  useHydrateDomain(projectId ?? '', domainId ?? '', domain);
 
   const navItems: NavItem[] = useMemo(() => {
     return [

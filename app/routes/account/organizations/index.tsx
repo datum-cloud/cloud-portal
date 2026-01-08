@@ -2,10 +2,12 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
-import { IOrganization, OrganizationType } from '@/resources/interfaces/organization.interface';
-import { organizationSchema } from '@/resources/schemas/organization.schema';
-import { ROUTE_PATH as ORGANIZATIONS_PATH } from '@/routes/api/organizations';
+import {
+  createOrganizationService,
+  organizationFormSchema,
+  useCreateOrganization,
+  type Organization,
+} from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -15,35 +17,29 @@ import { Form } from '@datum-ui/components/new-form';
 import { cn } from '@shadcn/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, Building, PlusIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
   data,
+  useFetcher,
   useLoaderData,
   useNavigate,
   useRevalidator,
 } from 'react-router';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
 import z from 'zod';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const req = await fetch(`${process.env.APP_URL}${ORGANIZATIONS_PATH}`, {
-    method: 'GET',
-    headers: {
-      Cookie: request.headers.get('Cookie') || '',
-    },
-  });
-
-  const res = await req.json();
-  const orgs = res.success ? res.data : [];
+  // Services now use global axios client with AsyncLocalStorage
+  const orgService = createOrganizationService();
+  const orgList = await orgService.list();
 
   const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
     request,
     'organizations_understanding'
   );
 
-  return data({ orgs, alertClosed }, { headers: alertHeaders });
+  return data({ orgs: orgList.items, alertClosed }, { headers: alertHeaders });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -55,42 +51,48 @@ export default function AccountOrganizations() {
   const { orgs, alertClosed } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const revalidator = useRevalidator();
-  const csrf = useAuthenticityToken();
 
   const [openDialog, setOpenDialog] = useState<boolean>(false);
 
-  const alertFetcher = useDatumFetcher({
-    key: 'alert-closed',
-    onSuccess: () => {
+  // Alert close fetcher - native useFetcher with effect-based callback
+  const alertFetcher = useFetcher<{ success: boolean }>({ key: 'alert-closed' });
+  const alertSubmittedRef = useRef(false);
+
+  useEffect(() => {
+    if (alertSubmittedRef.current && alertFetcher.data?.success && alertFetcher.state === 'idle') {
+      alertSubmittedRef.current = false;
       revalidator.revalidate();
-    },
-  });
-  const createFetcher = useDatumFetcher({
-    key: 'create-organization',
-    onSuccess: () => {
-      setOpenDialog(false);
-      revalidator.revalidate();
+    }
+  }, [alertFetcher.data, alertFetcher.state, revalidator]);
+
+  const createMutation = useCreateOrganization({
+    onSuccess: (newOrg) => {
+      setTimeout(() => {
+        setOpenDialog(false);
+        navigate(getPathWithParams(paths.org.detail.root, { orgId: newOrg.name }));
+      }, 500);
     },
     onError: (error) => {
       toast.error('Organization', {
-        description: error?.error || 'Failed to create organization',
+        description: error?.message || 'Failed to create organization',
       });
     },
   });
 
-  const orgsList = (orgs ?? []) as IOrganization[];
+  const orgsList = (orgs ?? []) as Organization[];
 
   const hasStandardOrg = useMemo(() => {
-    return orgsList.some((org) => org.type === OrganizationType.Standard);
+    return orgsList.some((org) => org.type === 'Standard');
   }, [orgsList]);
 
   const showAlert = !alertClosed && !hasStandardOrg;
 
   const handleAlertClose = () => {
+    alertSubmittedRef.current = true;
     alertFetcher.submit({}, { method: 'POST' });
   };
 
-  const columns: ColumnDef<IOrganization>[] = useMemo(
+  const columns: ColumnDef<Organization>[] = useMemo(
     () => [
       {
         header: 'Organization',
@@ -104,7 +106,7 @@ export default function AccountOrganizations() {
                   icon={Building}
                   className={cn(
                     'text-icon-primary size-4',
-                    row.original.type === OrganizationType.Personal && 'text-primary'
+                    row.original.type === 'Personal' && 'text-primary'
                   )}
                 />
                 <span>{row.original.displayName || row.original.name}</span>
@@ -126,15 +128,13 @@ export default function AccountOrganizations() {
     []
   );
 
-  const handleSubmit = async (data: z.infer<typeof organizationSchema>) => {
-    return createFetcher.submit(
-      {
-        ...data,
-        redirectUri: getPathWithParams(paths.org.detail.root, { orgId: data.name }),
-        csrf: csrf as string,
-      },
-      { method: 'POST', action: ORGANIZATIONS_PATH, encType: 'application/json' }
-    );
+  const handleSubmit = async (formData: z.infer<typeof organizationFormSchema>) => {
+    await createMutation.mutateAsync({
+      name: formData.name,
+      displayName: formData.description, // description field is used as display name in the form
+      description: formData.description,
+      type: 'Standard',
+    });
   };
 
   return (
@@ -148,8 +148,8 @@ export default function AccountOrganizations() {
             hidePagination
             columns={columns}
             data={orgsList}
-            tableCardClassName={(row: IOrganization) => {
-              return row.type === OrganizationType.Personal ? 'text-primary border-primary ' : '';
+            tableCardClassName={(row: Organization) => {
+              return row.type === 'Personal' ? 'text-primary border-primary ' : '';
             }}
             onRowClick={(row) => {
               navigate(getPathWithParams(paths.org.detail.root, { orgId: row.name }));
@@ -226,7 +226,7 @@ export default function AccountOrganizations() {
         onOpenChange={setOpenDialog}
         title="Create an Organization"
         description="Add a Standard organization to enable team collaboration and manage production workloads."
-        schema={organizationSchema}
+        schema={organizationFormSchema}
         defaultValues={{
           description: '',
           name: '',

@@ -1,24 +1,23 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { PolicyBindingTable } from '@/features/policy-binding';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
-import { createPolicyBindingsControl } from '@/resources/control-plane';
-import { IPolicyBindingControlResponse } from '@/resources/interfaces/policy-binding.interface';
-import { ROUTE_PATH as POLICY_BINDINGS_ACTIONS_PATH } from '@/routes/api/policy-bindings';
+import {
+  createPolicyBindingService,
+  useDeletePolicyBinding,
+  type PolicyBinding,
+} from '@/resources/policy-bindings';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Client } from '@hey-api/client-axios';
 import { PlusIcon } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
-  AppLoadContext,
   Link,
   LoaderFunctionArgs,
   MetaFunction,
-  useFetcher,
   useLoaderData,
   useNavigate,
   useParams,
@@ -28,28 +27,38 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Policy Bindings');
 });
 
-export const loader = async ({ context, params }: LoaderFunctionArgs) => {
+export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { orgId } = params;
-  const { controlPlaneClient } = context as AppLoadContext;
-  const policyBindingsControl = createPolicyBindingsControl(controlPlaneClient as Client);
 
   if (!orgId) {
     throw new BadRequestError('Organization ID is required');
   }
 
-  const bindings = await policyBindingsControl.list(orgId);
+  // Services now use global axios client with AsyncLocalStorage
+  const policyBindingService = createPolicyBindingService();
+  const bindings = await policyBindingService.list(orgId);
   return bindings;
 };
 
 export default function OrgPolicyBindingsPage() {
   const { orgId } = useParams();
-  const bindings = useLoaderData<typeof loader>() as IPolicyBindingControlResponse[];
-  const fetcher = useFetcher({ key: 'delete-policy-binding' });
+  const bindings = useLoaderData<typeof loader>() as PolicyBinding[];
   const navigate = useNavigate();
 
   const { confirm } = useConfirmationDialog();
 
-  const deletePolicyBinding = async (policyBinding: IPolicyBindingControlResponse) => {
+  const deleteMutation = useDeletePolicyBinding(orgId ?? '', {
+    onSuccess: () => {
+      toast.success('Policy binding deleted successfully', {
+        description: 'The policy binding has been deleted successfully',
+      });
+    },
+    onError: (error) => {
+      toast.error('Error', { description: error.message });
+    },
+  });
+
+  const deletePolicyBinding = async (policyBinding: PolicyBinding) => {
     await confirm({
       title: 'Delete Policy Binding',
       description: (
@@ -65,21 +74,12 @@ export default function OrgPolicyBindingsPage() {
       confirmValue: policyBinding.name,
       confirmInputLabel: `Type "${policyBinding.name}" to confirm.`,
       onSubmit: async () => {
-        await fetcher.submit(
-          {
-            id: policyBinding?.name ?? '',
-            orgId: orgId ?? '',
-          },
-          {
-            method: 'DELETE',
-            action: POLICY_BINDINGS_ACTIONS_PATH,
-          }
-        );
+        deleteMutation.mutate(policyBinding.name);
       },
     });
   };
 
-  const rowActions: DataTableRowActionsProps<IPolicyBindingControlResponse>[] = useMemo(
+  const rowActions: DataTableRowActionsProps<PolicyBinding>[] = useMemo(
     () => [
       {
         key: 'edit',
@@ -102,18 +102,6 @@ export default function OrgPolicyBindingsPage() {
     ],
     [orgId]
   );
-
-  useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      if (fetcher.data.success) {
-        toast.success('Policy binding deleted successfully', {
-          description: 'The policy binding has been deleted successfully',
-        });
-      } else {
-        toast.error(fetcher.data.error);
-      }
-    }
-  }, [fetcher.data, fetcher.state]);
 
   return (
     <PolicyBindingTable

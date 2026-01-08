@@ -1,19 +1,16 @@
-import type { GrafanaFormProps, GrafanaSubmitResponse } from './grafana.types';
+import type { GrafanaFormProps } from './grafana.types';
 import { CodeEditor } from '@/components/code-editor/code-editor';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
-import { useDatumFetcher } from '@/hooks/useDatumFetcher';
 import {
   ExportPolicyAuthenticationType,
-  ExportPolicySinkType,
-  ExportPolicySourceType,
-  IExportPolicyControlResponse,
-} from '@/resources/interfaces/export-policy.interface';
-import { ISecretControlResponse, SecretType } from '@/resources/interfaces/secret.interface';
-import type { NewExportPolicySchema } from '@/resources/schemas/export-policy.schema';
-import type { SecretNewSchema } from '@/resources/schemas/secret.schema';
-import { ROUTE_PATH as TELEMETRY_GRAFANA_ACTION } from '@/routes/api/telemetry/grafana';
+  ExportPolicySinkTypeEnum,
+  ExportPolicySourceTypeEnum,
+  useCreateExportPolicy,
+  type CreateExportPolicyInput,
+} from '@/resources/export-policies';
+import { SecretType, useCreateSecret, type CreateSecretInput } from '@/resources/secrets';
 import { isValidPrometheusConfig, isValidYaml, yamlToJson } from '@/utils/helpers/format.helper';
 import { createNameSchema } from '@/utils/helpers/validation.helper';
 import { LinkButton, toast } from '@datum-ui/components';
@@ -21,7 +18,6 @@ import { Dialog } from '@datum-ui/components/dialog';
 import { Form } from '@datum-ui/components/new-form';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
-import { useAuthenticityToken } from 'remix-utils/csrf/react';
 import { z } from 'zod';
 
 // ============================================================================
@@ -79,35 +75,19 @@ const steps = [
 // ============================================================================
 
 export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps) {
-  const csrf = useAuthenticityToken();
+  const createSecretMutation = useCreateSecret(projectId);
+  const createExportPolicyMutation = useCreateExportPolicy(projectId);
 
-  const fetcher = useDatumFetcher<GrafanaSubmitResponse>({
-    key: 'grafana-export-policy',
-    onSuccess: (data) => {
-      if (onSuccess) {
-        onSuccess({
-          exportPolicy: data.data?.exportPolicy as IExportPolicyControlResponse,
-          secret: data.data?.secret as ISecretControlResponse,
-        });
-      } else {
-        onClose();
-      }
-    },
-    onError: (data) => {
-      toast.error('Export policy', {
-        description: data.error || 'Failed to create export policy',
-      });
-    },
-  });
+  const isPending = createSecretMutation.isPending || createExportPolicyMutation.isPending;
 
-  const handleSubmit = (data: GrafanaFormData) => {
+  const handleSubmit = async (data: GrafanaFormData) => {
     const prometheusJson = JSON.parse(yamlToJson(data.prometheusConfig));
 
     const firstRemoteWrite = prometheusJson.remote_write[0];
     const username = firstRemoteWrite.basic_auth?.username?.toString() ?? '';
     const password = firstRemoteWrite.basic_auth?.password ?? '';
 
-    const secretPayload: SecretNewSchema = {
+    const secretPayload: CreateSecretInput = {
       name: data.secretName,
       type: SecretType.BASIC_AUTH,
       variables: [
@@ -116,21 +96,21 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
       ],
     };
 
-    const exportPolicyPayload: NewExportPolicySchema = {
+    const exportPolicyPayload: CreateExportPolicyInput = {
       metadata: {
         name: data.exportPolicyName,
       },
       sources: [
         {
           name: 'datum-metrics',
-          type: ExportPolicySourceType.METRICS,
+          type: ExportPolicySourceTypeEnum.METRICS,
           metricQuery: '{}',
         },
       ],
       sinks: [
         {
           name: 'grafana-cloud-metrics',
-          type: ExportPolicySinkType.PROMETHEUS,
+          type: ExportPolicySinkTypeEnum.PROMETHEUS,
           sources: ['datum-metrics'],
           prometheusRemoteWrite: {
             endpoint: firstRemoteWrite.url,
@@ -151,18 +131,25 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
       ],
     };
 
-    const payload = {
-      projectId,
-      exportPolicy: exportPolicyPayload,
-      secret: secretPayload,
-      csrf: csrf as string,
-    };
+    try {
+      const secret = await createSecretMutation.mutateAsync(secretPayload);
+      const exportPolicy = await createExportPolicyMutation.mutateAsync(exportPolicyPayload);
 
-    fetcher.submit(payload, {
-      method: 'POST',
-      action: TELEMETRY_GRAFANA_ACTION,
-      encType: 'application/json',
-    });
+      if (onSuccess) {
+        onSuccess({
+          exportPolicy: exportPolicy as unknown as Parameters<
+            NonNullable<typeof onSuccess>
+          >[0]['exportPolicy'],
+          secret: secret as unknown as Parameters<NonNullable<typeof onSuccess>>[0]['secret'],
+        });
+      } else {
+        onClose();
+      }
+    } catch (error) {
+      toast.error('Export policy', {
+        description: error instanceof Error ? error.message : 'Failed to create export policy',
+      });
+    }
   };
 
   return (
@@ -346,8 +333,8 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
               <Form.StepperControls
                 prevLabel={(isFirst) => (isFirst ? 'Cancel' : 'Back')}
                 nextLabel={(isLast) => (isLast ? 'Submit' : 'Continue')}
-                loading={fetcher.isPending}
-                disabled={fetcher.isPending}
+                loading={isPending}
+                disabled={isPending}
                 loadingText="Submitting..."
                 onCancel={onClose}
               />

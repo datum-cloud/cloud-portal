@@ -3,15 +3,15 @@ import { GenericError } from '@/components/error/generic';
 import { ClientHintCheck } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
 import { useNonce } from '@/hooks/useNonce';
+import { ThemeProvider, ThemeScript, useTheme } from '@/modules/datum-themes';
 import { FathomAnalytics } from '@/modules/fathom/fathom';
 import MarkerIoEmbed from '@/modules/markerio';
 import { queryClient } from '@/modules/tanstack/query';
-import { ROUTE_PATH as CACHE_ROUTE_PATH } from '@/routes/api/action/set-cache';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
 import RootCSS from '@/styles/root.css?url';
-import { getSharedEnvs } from '@/utils/config/env.config';
-import { csrf, getToastSession, themeSessionResolver } from '@/utils/cookies';
+import { csrf, getToastSession } from '@/utils/cookies';
+import { env } from '@/utils/env/env.server';
 import { metaObject } from '@/utils/helpers/meta.helper';
 import { combineHeaders } from '@/utils/helpers/path.helper';
 import { useToast } from '@datum-ui/components';
@@ -30,15 +30,12 @@ import {
   ScrollRestoration,
   data,
   isRouteErrorResponse,
-  useBeforeUnload,
   useFetchers,
   useLoaderData,
   useNavigation,
   useRouteError,
-  useRouteLoaderData,
 } from 'react-router';
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router';
-import { ThemeProvider, useTheme, PreventFlashOnWrongTheme, Theme } from 'remix-themes';
 import { AuthenticityTokenProvider } from 'remix-utils/csrf/react';
 
 export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
@@ -67,24 +64,12 @@ export const links: LinksFunction = () => {
 export async function loader({ request }: LoaderFunctionArgs) {
   const { toast, headers: toastHeaders } = await getToastSession(request);
   const [csrfToken, csrfCookieHeader] = await csrf.commitToken(request);
-  const sharedEnv = getSharedEnvs();
-  const { getTheme } = await themeSessionResolver(request);
 
   return data(
     {
       toast,
       csrfToken,
-      ENV: {
-        FATHOM_ID: sharedEnv.FATHOM_ID,
-        HELPSCOUT_BEACON_ID: sharedEnv.HELPSCOUT_BEACON_ID,
-        DEBUG: sharedEnv.isDebug,
-        DEV: sharedEnv.isDev,
-        PROD: sharedEnv.isProd,
-        SENTRY_ENV: sharedEnv.SENTRY_ENV,
-        SENTRY_DSN: sharedEnv.SENTRY_DSN,
-        VERSION: sharedEnv.VERSION,
-      },
-      theme: getTheme(),
+      ENV: env.public,
     } as const,
     {
       headers: combineHeaders(
@@ -96,13 +81,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const data = useRouteLoaderData<typeof loader>('root');
-
   return (
-    <ThemeProvider
-      specifiedTheme={data?.theme ?? Theme.LIGHT}
-      themeAction="/api/set-theme"
-      disableTransitionOnThemeChange={false}>
+    <ThemeProvider defaultTheme="light" attribute="class">
       {children}
     </ThemeProvider>
   );
@@ -110,10 +90,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 function Document({ children, nonce }: { children: React.ReactNode; nonce: string }) {
   const data = useLoaderData<typeof loader>();
-  const [theme] = useTheme();
+
+  const { resolvedTheme } = useTheme();
 
   return (
-    <html lang="en" className={`theme-alpha ${theme} overflow-x-hidden`} data-theme={theme ?? ''}>
+    <html lang="en" className="theme-alpha overflow-x-hidden" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -122,16 +103,21 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
 
         <ClientHintCheck nonce={nonce} />
         <Meta />
-        <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} nonce={nonce} />
+        <ThemeScript nonce={nonce} defaultTheme="light" attribute="class" />
         <Links />
       </head>
       <body className="h-auto w-full">
         {children}
 
-        {data?.ENV.FATHOM_ID && data?.ENV.PROD && (
-          <FathomAnalytics privateKey={data?.ENV.FATHOM_ID} />
+        {data?.ENV.fathomId && data?.ENV.nodeEnv === 'production' && (
+          <FathomAnalytics privateKey={data?.ENV.fathomId} />
         )}
-        <Toaster closeButton position="top-right" theme={theme ?? Theme.LIGHT} richColors />
+        <Toaster
+          closeButton
+          position="top-right"
+          theme={resolvedTheme as 'light' | 'dark'}
+          richColors
+        />
         <MarkerIoEmbed nonce={nonce} />
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
@@ -189,17 +175,6 @@ export default function AppWithProviders() {
     }
   }, [state]);
 
-  /**
-   * Clears the application cache by making a POST request to the cache route
-   * when the user is about to leave/reload the page.
-   * This ensures that any cached data is properly cleared to maintain data consistency
-   * and prevent stale cache issues on subsequent visits.
-   */
-  useBeforeUnload(() => {
-    // Clear Cache with hit API
-    fetch(CACHE_ROUTE_PATH, { method: 'POST' });
-  });
-
   return (
     <Document nonce={nonce}>
       <AuthenticityTokenProvider token={csrfToken}>
@@ -215,15 +190,14 @@ export default function AppWithProviders() {
 
 function ErrorLayout({ children }: { children: React.ReactNode }) {
   const nonce = useNonce();
-  const [theme] = useTheme();
 
   return (
-    <html lang="en" className={`${theme} overflow-x-hidden`} data-theme={theme ?? ''}>
+    <html lang="en" className="theme-alpha overflow-x-hidden" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
-        <PreventFlashOnWrongTheme ssrTheme={Boolean(theme)} nonce={nonce} />
+        <ThemeScript nonce={nonce} defaultTheme="light" attribute="class" />
         <Links />
       </head>
       <body className="h-auto w-full">

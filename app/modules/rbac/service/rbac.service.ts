@@ -1,14 +1,13 @@
 /**
  * Server-side RBAC Service
- * Uses control-plane API directly for server-side permission checks
+ * Uses access-review service for server-side permission checks
  */
 import type { IPermissionResult, IBulkPermissionResult } from '../types';
-import { createSelfSubjectAccessReviewControl } from '@/resources/control-plane/authorization/self-subject-access-review.control';
-import type { Client } from '@hey-api/client-axios';
+import { createAccessReviewService, type SupportedVerb } from '@/resources/access-review';
 
 interface PermissionCheckInput {
   resource: string;
-  verb: 'get' | 'list' | 'watch' | 'create' | 'update' | 'patch' | 'delete';
+  verb: SupportedVerb;
   group?: string;
   namespace?: string;
   name?: string;
@@ -21,8 +20,7 @@ interface PermissionCheckInput {
  * ```typescript
  * // In a loader or action
  * export const loader = async ({ context }: LoaderFunctionArgs) => {
- *   const { controlPlaneClient } = context;
- *   const rbacService = new RbacService(controlPlaneClient);
+ *   const rbacService = new RbacService();
  *
  *   const canCreate = await rbacService.checkPermission('org-123', {
  *     resource: 'workloads',
@@ -35,12 +33,6 @@ interface PermissionCheckInput {
  * ```
  */
 export class RbacService {
-  private client: Client;
-
-  constructor(client: Client) {
-    this.client = client;
-  }
-
   /**
    * Check single permission (server-side)
    *
@@ -52,24 +44,21 @@ export class RbacService {
     organizationId: string,
     check: PermissionCheckInput
   ): Promise<IPermissionResult> {
-    const accessReviewControl = createSelfSubjectAccessReviewControl(this.client);
+    // Services now use global axios client with AsyncLocalStorage
+    const accessReviewService = createAccessReviewService();
 
     try {
-      const result = await accessReviewControl.create(
-        organizationId,
-        {
-          namespace: check.namespace || '',
-          verb: check.verb,
-          group: check.group || '',
-          resource: check.resource,
-          name: check.name,
-        },
-        false // dryRun=false returns transformed result
-      );
+      const result = await accessReviewService.create(organizationId, {
+        namespace: check.namespace || '',
+        verb: check.verb,
+        group: check.group || '',
+        resource: check.resource,
+        name: check.name,
+      });
 
       return {
-        allowed: (result as { allowed: boolean }).allowed,
-        denied: (result as { denied: boolean }).denied,
+        allowed: 'allowed' in result ? result.allowed : false,
+        denied: 'denied' in result ? result.denied : true,
         reason: undefined,
       };
     } catch (error) {
@@ -93,26 +82,22 @@ export class RbacService {
     organizationId: string,
     checks: PermissionCheckInput[]
   ): Promise<IBulkPermissionResult[]> {
-    const accessReviewControl = createSelfSubjectAccessReviewControl(this.client);
+    const accessReviewService = createAccessReviewService();
 
     // Execute all checks in parallel
     const results = await Promise.allSettled(
       checks.map(async (check) => {
-        const result = await accessReviewControl.create(
-          organizationId,
-          {
-            namespace: check.namespace || '',
-            verb: check.verb,
-            group: check.group || '',
-            resource: check.resource,
-            name: check.name,
-          },
-          false
-        );
+        const result = await accessReviewService.create(organizationId, {
+          namespace: check.namespace || '',
+          verb: check.verb,
+          group: check.group || '',
+          resource: check.resource,
+          name: check.name,
+        });
 
         return {
-          allowed: (result as { allowed: boolean }).allowed,
-          denied: (result as { denied: boolean }).denied,
+          allowed: 'allowed' in result ? result.allowed : false,
+          denied: 'denied' in result ? result.denied : true,
           reason: undefined,
           request: {
             ...check,

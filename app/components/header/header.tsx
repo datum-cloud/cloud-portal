@@ -3,8 +3,8 @@ import { ProjectSwitcher } from './project-switcher';
 import { UserDropdown } from './user-dropdown';
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { NotificationDropdown } from '@/components/notification';
-import { IOrganization } from '@/resources/interfaces/organization.interface';
-import { IProjectControlResponse } from '@/resources/interfaces/project.interface';
+import type { Organization } from '@/resources/organizations';
+import type { Project } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
@@ -16,8 +16,8 @@ export const Header = ({
   currentProject,
   currentOrg,
 }: {
-  currentProject?: IProjectControlResponse;
-  currentOrg?: IOrganization;
+  currentProject?: Project;
+  currentOrg?: Organization;
 }) => {
   return (
     <header className="bg-background sticky top-0 z-50 flex h-[54px] w-full max-w-screen shrink-0 items-center justify-between gap-4 border-b px-4 py-3.5">

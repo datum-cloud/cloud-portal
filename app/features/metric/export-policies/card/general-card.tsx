@@ -2,7 +2,7 @@ import { ExportPolicyStatus } from '../status';
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
-import { IExportPolicyControlResponse } from '@/resources/interfaces/export-policy.interface';
+import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { paths } from '@/utils/config/paths.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';

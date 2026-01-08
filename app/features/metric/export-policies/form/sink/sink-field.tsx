@@ -2,11 +2,11 @@ import { PrometheusField } from './prometheus/prometheus-field';
 import { Field } from '@/components/field/field';
 import { MultiSelect } from '@/components/multi-select/multi-select';
 import { POLICY_SINK_TYPES } from '@/features/metric/constants';
-import { ExportPolicySinkType } from '@/resources/interfaces/export-policy.interface';
+import { ExportPolicySinkTypeEnum } from '@/resources/export-policies';
 import {
   ExportPolicySinkFieldSchema,
   ExportPolicySinkPrometheusFieldSchema,
-} from '@/resources/schemas/export-policy.schema';
+} from '@/resources/export-policies';
 import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
 import {
   Input,
@@ -135,7 +135,7 @@ export const SinkField = ({
         </Field>
       </div>
 
-      {typeControl.value === ExportPolicySinkType.PROMETHEUS && (
+      {typeControl.value === ExportPolicySinkTypeEnum.PROMETHEUS && (
         <PrometheusField
           projectId={projectId}
           fields={

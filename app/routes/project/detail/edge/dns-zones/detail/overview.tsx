@@ -4,8 +4,9 @@ import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/re
 import { TaskNameserverCard } from '@/features/edge/dns-zone/overview/task-nameserver-card';
 import { TaskRecordCard } from '@/features/edge/dns-zone/overview/task-record-card';
 import { NameserverCard } from '@/features/edge/nameservers';
-import { IDnsZoneControlResponse, IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
-import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import type { FlattenedDnsRecord } from '@/resources/dns-records';
+import type { DnsZone } from '@/resources/dns-zones';
+import { useDomain, useDomainWatch } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getDnsSetupStatus, getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -16,14 +17,24 @@ import { useMemo } from 'react';
 import { useParams, useRouteLoaderData } from 'react-router';
 
 export default function DnsZoneOverviewPage() {
-  const { dnsZone, domain, dnsRecordSets } =
+  const { dnsZone, dnsRecordSets } =
     useRouteLoaderData<{
-      dnsZone: IDnsZoneControlResponse;
-      domain: IDomainControlResponse;
-      dnsRecordSets: IFlattenedDnsRecord[];
+      dnsZone: DnsZone;
+      dnsRecordSets: FlattenedDnsRecord[];
     }>('dns-zone-detail') ?? {};
 
   const { projectId } = useParams();
+
+  const domainName = dnsZone?.status?.domainRef?.name ?? '';
+  const hasDomain = !!domainName;
+
+  // Get live domain data from React Query
+  const { data: domain } = useDomain(projectId ?? '', domainName, {
+    enabled: hasDomain,
+  });
+
+  // Subscribe to real-time domain updates (for nameserver status)
+  useDomainWatch(projectId ?? '', domainName, { enabled: hasDomain });
 
   const nameserverSetup = useMemo(() => getNameserverSetupStatus(dnsZone), [dnsZone]);
 

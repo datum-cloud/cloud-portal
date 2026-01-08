@@ -1,72 +1,50 @@
 import { HttpProxyForm } from '@/features/edge/proxy/form';
-import { createHttpProxiesControl } from '@/resources/control-plane';
-import { httpProxySchema } from '@/resources/schemas/http-proxy.schema';
+import { useUpdateHttpProxy, type HttpProxy } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
-import { dataWithToast, redirectWithToast, validateCSRF } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { parseWithZod } from '@conform-to/zod/v4';
-import { Client } from '@hey-api/client-axios';
-import { AppLoadContext, useRouteLoaderData, useParams, ActionFunctionArgs } from 'react-router';
+import { toast } from '@datum-ui/components';
+import { useRouteLoaderData, useParams, useNavigate } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Edit</span>,
 };
 
-export const action = async ({ params, context, request }: ActionFunctionArgs) => {
-  const { projectId, proxyId } = params;
-
-  if (!projectId || !proxyId) {
-    throw new Error('Project ID and proxy ID are required');
-  }
-
-  const clonedRequest = request.clone();
-  const formData = await clonedRequest.formData();
-
-  try {
-    await validateCSRF(formData, clonedRequest.headers);
-
-    const parsed = parseWithZod(formData, { schema: httpProxySchema });
-
-    if (parsed.status !== 'success') {
-      throw new Error('Invalid form data');
-    }
-
-    const { controlPlaneClient } = context as AppLoadContext;
-    const httpProxiesControl = createHttpProxiesControl(controlPlaneClient as Client);
-
-    const dryRunRes = await httpProxiesControl.update(projectId, proxyId, parsed.value, true);
-
-    if (dryRunRes) {
-      await httpProxiesControl.update(projectId, proxyId, parsed.value, false);
-    }
-
-    return redirectWithToast(
-      getPathWithParams(paths.project.detail.proxy.root, {
-        projectId,
-      }),
-      {
-        title: 'Proxy updated successfully',
-        description: 'You have successfully updated an Proxy.',
-        type: 'success',
-      }
-    );
-  } catch (error) {
-    return dataWithToast(null, {
-      title: 'Error',
-      description: error instanceof Error ? error.message : (error as Response).statusText,
-      type: 'error',
-    });
-  }
-};
-
 export default function HttpProxyEditPage() {
-  const httpProxy = useRouteLoaderData('proxy-detail');
+  const httpProxy = useRouteLoaderData('proxy-detail') as HttpProxy | undefined;
+  const navigate = useNavigate();
+  const { projectId, proxyId } = useParams();
 
-  const { projectId } = useParams();
+  const updateProxy = useUpdateHttpProxy(projectId ?? '', proxyId ?? '', {
+    onSuccess: () => {
+      toast.success('Proxy', {
+        description: 'You have successfully updated the Proxy.',
+      });
+      navigate(
+        getPathWithParams(paths.project.detail.proxy.root, {
+          projectId,
+        })
+      );
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message || 'Failed to update proxy',
+      });
+    },
+  });
 
   return (
     <div className="mx-auto w-full max-w-2xl py-8">
-      <HttpProxyForm projectId={projectId} defaultValue={httpProxy} />
+      <HttpProxyForm
+        projectId={projectId}
+        defaultValue={httpProxy}
+        onSubmit={(data) =>
+          updateProxy.mutate({
+            endpoint: data.endpoint,
+            hostnames: data.hostnames,
+          })
+        }
+        isPending={updateProxy.isPending}
+      />
     </div>
   );
 }

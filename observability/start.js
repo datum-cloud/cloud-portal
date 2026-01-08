@@ -10,10 +10,29 @@
 console.log('🚀 Starting application in production environment...');
 
 /**
+ * Start the Bun server with the given module
+ */
+function startServer(module) {
+  // Check if we have a Bun server with fetch method
+  if (typeof module.default.fetch === 'function') {
+    console.log(`🌐 Starting Bun server on port ${module.default.port}`);
+    Bun.serve({
+      port: module.default.port,
+      fetch: module.default.fetch,
+      development: module.default.development,
+    });
+    console.log(`✅ Server started successfully on port ${module.default.port}`);
+  } else {
+    console.log(`⚠️ Server object does not have fetch method, assuming it's already running`);
+    console.log(`✅ Server started successfully on port ${module.default.port}`);
+  }
+}
+
+/**
  * Load and start the server
  */
 function loadAndStartServer() {
-  return import('../server.ts').catch((error) => {
+  return import('../build/server/index.js').then(startServer).catch((error) => {
     console.error('❌ Error loading server:', error);
     process.exit(1);
   });

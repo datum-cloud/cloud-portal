@@ -1,6 +1,6 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
-import { ControlPlaneStatus } from '@/resources/interfaces/control-plane.interface';
-import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { ControlPlaneStatus } from '@/resources/base';
+import { IDomainControlResponse } from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { cn } from '@shadcn/lib/utils';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@shadcn/ui/hover-card';

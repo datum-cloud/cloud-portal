@@ -1,7 +1,7 @@
 import { DnsRecordForm } from '../../../../features/edge/dns-zone/form/dns-record-form';
 import { TestScenario } from './default-test-scenarios';
 import { getPreviewFields } from './preview-fields.helper';
-import { CreateDnsRecordSchema, DNSRecordType } from '@/resources/schemas/dns-record.schema';
+import { CreateDnsRecordSchema, DNSRecordType } from '@/resources/dns-records';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';

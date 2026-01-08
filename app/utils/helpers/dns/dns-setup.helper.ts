@@ -1,4 +1,4 @@
-import { IFlattenedDnsRecord } from '@/resources/interfaces/dns.interface';
+import { IFlattenedDnsRecord } from '@/resources/dns-records';
 
 // =============================================================================
 // DNS Record Setup Validation Helpers

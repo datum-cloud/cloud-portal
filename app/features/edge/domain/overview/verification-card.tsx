@@ -1,6 +1,6 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
-import { IDomainControlResponse } from '@/resources/interfaces/domain.interface';
+import { IDomainControlResponse } from '@/resources/domains';
 import { Card, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { BookOpenIcon } from 'lucide-react';
