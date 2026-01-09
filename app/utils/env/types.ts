@@ -6,6 +6,7 @@ export interface PublicEnv {
   debug: boolean;
   appUrl: string;
   apiUrl: string;
+  authOidcIssuer: string;
   sentryDsn?: string;
   sentryEnv?: string;
   fathomId?: string;
@@ -21,7 +22,6 @@ export interface PublicEnv {
 
 export interface ServerEnv {
   sessionSecret: string;
-  authOidcIssuer: string;
   authOidcClientId: string;
   telemetryUrl?: string;
   prometheusUrl?: string;

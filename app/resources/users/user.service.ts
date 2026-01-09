@@ -31,8 +31,6 @@ export function createUserService() {
           responseType: 'json',
         });
 
-        console.log('response.data', response.data);
-
         const user = toUser(response.data as ComMiloapisIamV1Alpha1User);
 
         logger.service(SERVICE_NAME, 'get', {

@@ -41,7 +41,7 @@ export default function AccountSettingsLayout() {
       navItems={[]}
       sidebarCollapsible="none"
       contentClassName="w-full"
-      sidebarHeader={<BackButton>Back to Dashboard</BackButton>}>
+      sidebarHeader={<BackButton to={paths.home}>Back to Dashboard</BackButton>}>
       <TabsLayout tabsTitle={{ title: 'Account Settings' }} navItems={navItems}>
         <Outlet />
       </TabsLayout>

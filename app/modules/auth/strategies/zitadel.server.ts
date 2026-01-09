@@ -5,7 +5,7 @@ import { AuthenticationError } from '@/utils/errors';
 import 'dotenv/config';
 import { OAuth2Strategy as OAuth2 } from 'remix-auth-oauth2';
 
-export const zitadelIssuer = env.server.authOidcIssuer ?? 'http://localhost:3000';
+export const zitadelIssuer = env.public.authOidcIssuer ?? 'http://localhost:3000';
 
 /**
  * https://github.com/sergiodxa/remix-auth-oauth2?tab=readme-ov-file#discovering-the-provider

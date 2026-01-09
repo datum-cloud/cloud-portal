@@ -2,6 +2,7 @@ import { IdentityItem } from '../identity-item';
 import GitHubIcon from '@/components/icon/github';
 import GoogleIcon from '@/components/icon/google';
 import { useApp } from '@/providers/app.provider';
+import { env } from '@/utils/env';
 import {
   Card,
   CardContent,
@@ -78,7 +79,7 @@ export const AccountIdentitySettingsCard = () => {
                 </Tooltip>
               )}
               <LinkButton
-                to="https://auth.datum.net/ui/v2/login/idp/link"
+                to={`${env.public.authOidcIssuer}/ui/v2/login/idp/link`}
                 target="_blank"
                 rel="noopener noreferrer"
                 type="quaternary"

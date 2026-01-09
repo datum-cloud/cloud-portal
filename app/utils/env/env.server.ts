@@ -23,6 +23,7 @@ const publicSchema = z.object({
   DEBUG: z.string().optional(),
   APP_URL: isTestEnv ? z.string().default('http://localhost:3000') : z.string().url(),
   API_URL: isTestEnv ? z.string().default('http://localhost:8080') : z.string().url(),
+  AUTH_OIDC_ISSUER: z.url(),
   SENTRY_DSN: z.string().optional(),
   SENTRY_ENV: z.string().optional(),
   FATHOM_ID: z.string().optional(),
@@ -40,7 +41,6 @@ const serverSchema = z.object({
   SESSION_SECRET: isTestEnv
     ? z.string().default('test-session-secret-at-least-32-chars-long')
     : z.string().min(32),
-  AUTH_OIDC_ISSUER: z.string().url(),
   AUTH_OIDC_CLIENT_ID: z.string(),
   TELEMETRY_URL: z.string().optional(),
   PROMETHEUS_URL: z.string().optional(),
@@ -85,6 +85,7 @@ export const env: Env = {
     debug: data.DEBUG === 'true' || data.DEBUG === '1',
     appUrl: data.APP_URL,
     apiUrl: data.API_URL,
+    authOidcIssuer: data.AUTH_OIDC_ISSUER,
     sentryDsn: data.SENTRY_DSN,
     sentryEnv: data.SENTRY_ENV,
     fathomId: data.FATHOM_ID,
@@ -99,7 +100,6 @@ export const env: Env = {
   },
   server: {
     sessionSecret: data.SESSION_SECRET,
-    authOidcIssuer: data.AUTH_OIDC_ISSUER,
     authOidcClientId: data.AUTH_OIDC_CLIENT_ID,
     telemetryUrl: data.TELEMETRY_URL,
     prometheusUrl: data.PROMETHEUS_URL,

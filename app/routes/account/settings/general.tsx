@@ -12,20 +12,18 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export default function AccountGeneralSettingsPage() {
   return (
-    <Row gutter={[0, 36]}>
-      <Col span={24}>
-        <Row gutter={[0, 16]}>
-          <Col span={24}>
-            <PageTitle title="Your Profile" titleClassName="text-base" />
-          </Col>
-          <Col span={24}>
-            <AccountProfileSettingsCard />
-          </Col>
-          <Col span={24}>
-            <AccountIdentitySettingsCard />
-          </Col>
-        </Row>
-      </Col>
+    <div className="flex w-full flex-col gap-9">
+      <Row gutter={[0, 16]}>
+        <Col span={24}>
+          <PageTitle title="Your Profile" titleClassName="text-base" />
+        </Col>
+        <Col span={24}>
+          <AccountProfileSettingsCard />
+        </Col>
+        <Col span={24}>
+          <AccountIdentitySettingsCard />
+        </Col>
+      </Row>
 
       <Row gutter={[0, 16]}>
         <Col span={24}>
@@ -35,6 +33,6 @@ export default function AccountGeneralSettingsPage() {
           <AccountDangerSettingsCard />
         </Col>
       </Row>
-    </Row>
+    </div>
   );
 }
