@@ -60,13 +60,13 @@ app/resources/dns-zones/
 
 ### Before vs After
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Update latency | 5-10 seconds | Instant |
-| Requests per minute | 6-12 (polling) | 0 (push) |
-| Connection type | HTTP polling | EventSource (SSE) |
-| Code complexity | 363 lines (useRevalidation) | ~100 lines (watch hook) |
-| Server load | High (repeated requests) | Low (single connection) |
+| Aspect              | Before                      | After                   |
+| ------------------- | --------------------------- | ----------------------- |
+| Update latency      | 5-10 seconds                | Instant                 |
+| Requests per minute | 6-12 (polling)              | 0 (push)                |
+| Connection type     | HTTP polling                | EventSource (SSE)       |
+| Code complexity     | 363 lines (useRevalidation) | ~100 lines (watch hook) |
+| Server load         | High (repeated requests)    | Low (single connection) |
 
 ## Rationale
 
@@ -116,12 +116,12 @@ K8s Watch API was chosen because:
 
 ### Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Connection drops | Automatic reconnection with exponential backoff |
-| Stale data on reconnect | resourceVersion tracking ensures no missed events |
-| Browser SSE limits | Connection pooling (one per resource type) |
-| React Strict Mode issues | 100ms cleanup delay for re-mounts |
+| Risk                     | Mitigation                                        |
+| ------------------------ | ------------------------------------------------- |
+| Connection drops         | Automatic reconnection with exponential backoff   |
+| Stale data on reconnect  | resourceVersion tracking ensures no missed events |
+| Browser SSE limits       | Connection pooling (one per resource type)        |
+| React Strict Mode issues | 100ms cleanup delay for re-mounts                 |
 
 ## References
 

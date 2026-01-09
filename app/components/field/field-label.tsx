@@ -31,7 +31,7 @@ export const FieldLabel = ({
       className="relative flex w-fit items-center space-x-2"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}>
-      <Label className={cn('gap-0', isError && 'text-destructive', className)}>
+      <Label className={cn('text-foreground/80 gap-0', isError && 'text-destructive', className)}>
         {label}
         {isRequired && <span className="text-destructive align-super text-sm leading-0">*</span>}
       </Label>

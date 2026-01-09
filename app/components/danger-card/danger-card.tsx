@@ -22,7 +22,7 @@ export const DangerCard = ({
           <Icon icon={TriangleAlertIcon} size={34} className="text-destructive stroke-1" />
           <div className="text-destructive flex max-w-xl flex-col gap-2">
             <span className="text-sm font-semibold">{title}</span>
-            <span className="text-xs leading-relaxed font-normal">{description}</span>
+            <span className="text-1xs leading-relaxed font-normal">{description}</span>
           </div>
         </div>
         <div className="flex justify-end">

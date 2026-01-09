@@ -1,4 +1,4 @@
-import CloseIcon from '@datum-ui/components/icons/close-icon';
+import { CloseIcon } from '@datum-ui/components/icons/close-icon';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { cn } from '@shadcn/lib/utils';
 import {

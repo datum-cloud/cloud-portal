@@ -15,6 +15,7 @@ The application had separate observability systems:
 4. **Logger** - Application logs
 
 These systems operated independently:
+
 - Sentry errors had no trace IDs
 - OTEL traces couldn't link to Sentry issues
 - Debugging required checking multiple dashboards
@@ -52,13 +53,13 @@ const spanId = span?.spanContext().spanId;
 
 ### Before vs After
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Error → Trace link | None | One click (trace_id) |
-| Request context | Basic | Full (headers, body, IP) |
-| Sensitive data | Exposed | Redacted automatically |
-| Log → Sentry link | None | Breadcrumbs in timeline |
-| Debugging workflow | 3+ dashboards | Unified view |
+| Aspect             | Before        | After                    |
+| ------------------ | ------------- | ------------------------ |
+| Error → Trace link | None          | One click (trace_id)     |
+| Request context    | Basic         | Full (headers, body, IP) |
+| Sensitive data     | Exposed       | Redacted automatically   |
+| Log → Sentry link  | None          | Breadcrumbs in timeline  |
+| Debugging workflow | 3+ dashboards | Unified view             |
 
 ## Rationale
 
@@ -108,11 +109,11 @@ Sentry + OTEL integration was chosen because:
 
 ### Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| OTEL context missing | Fallback to Sentry propagation context |
-| Performance overhead | Minimal (context extraction is fast) |
-| Header redaction gaps | Explicit allow-list for safe headers |
+| Risk                  | Mitigation                             |
+| --------------------- | -------------------------------------- |
+| OTEL context missing  | Fallback to Sentry propagation context |
+| Performance overhead  | Minimal (context extraction is fast)   |
+| Header redaction gaps | Explicit allow-list for safe headers   |
 
 ## References
 

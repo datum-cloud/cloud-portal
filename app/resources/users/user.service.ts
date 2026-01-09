@@ -4,7 +4,7 @@ import {
   toUpdateUserPreferencesPayload,
   type ComMiloapisIamV1Alpha1User,
 } from './user.adapter';
-import type { User, UpdateUserInput, UpdateUserPreferencesInput } from './user.schema';
+import type { User, UpdateUserPreferencesInput, UserSchema } from './user.schema';
 import { client } from '@/modules/control-plane/shared/client.gen';
 import { logger } from '@/modules/logger';
 import { mapApiError } from '@/utils/errors/error-mapper';
@@ -48,7 +48,7 @@ export function createUserService() {
     /**
      * Update user profile
      */
-    async update(userId: string, input: UpdateUserInput): Promise<User> {
+    async update(userId: string, input: UserSchema): Promise<User> {
       const startTime = Date.now();
 
       try {

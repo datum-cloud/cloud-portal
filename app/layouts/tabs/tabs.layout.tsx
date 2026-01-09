@@ -19,7 +19,7 @@ export default function TabsLayout({
   }, [pathname]);
 
   return (
-    <div className={cn('flex h-full flex-1 flex-col gap-8 overflow-hidden', className)}>
+    <div className={cn('flex h-full flex-1 flex-col gap-8', className)}>
       {tabsTitle && (
         <div className={cn('w-full', containerClassName)}>
           <PageTitle
@@ -47,7 +47,7 @@ export default function TabsLayout({
                       'flex h-full w-fit items-center gap-2 rounded-none border-b-2 border-transparent px-0',
                       'bg-background focus-visible:ring-0 focus-visible:outline-hidden',
                       'data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none',
-                      'hover:text-foreground mx-3.5 !flex-none text-sm font-medium transition-all first:ml-0 last:mr-0'
+                      'text-foreground mx-3.5 !flex-none text-sm font-medium transition-all first:ml-0 last:mr-0'
                     )}>
                     {nav.icon && <nav.icon className="size-4" />}
                     {nav.label}

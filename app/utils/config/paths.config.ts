@@ -15,13 +15,15 @@ export const paths = {
     organizations: {
       root: '/account/organizations',
     },
-    projects: '/account/projects',
-    apiKeys: {
-      root: '/account/api-keys',
-      new: '/account/api-keys/new',
+    // Account Settings
+    settings: {
+      general: '/account/general',
+      security: '/account/security',
+      activeSessions: '/account/active-sessions',
+      accessTokens: '/account/access-tokens',
+      notifications: '/account/notifications',
+      activity: '/account/activity',
     },
-    preferences: '/account/preferences',
-    activity: '/account/activity',
   },
   org: {
     root: '/org',

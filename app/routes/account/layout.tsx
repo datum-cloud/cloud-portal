@@ -4,7 +4,7 @@ import { Outlet } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>My Account</span>,
-  path: () => getPathWithParams(paths.account.preferences),
+  path: () => getPathWithParams(paths.account.settings.general),
 };
 
 export default function AccountLayout() {

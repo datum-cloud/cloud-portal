@@ -1,4 +1,4 @@
-import type { User, UpdateUserInput, UpdateUserPreferencesInput } from './user.schema';
+import type { User, UpdateUserPreferencesInput, UserSchema } from './user.schema';
 import { createUserService, userKeys } from './user.service';
 import {
   useQuery,
@@ -32,12 +32,12 @@ export function useCurrentUser(options?: Omit<UseQueryOptions<User>, 'queryKey' 
 
 export function useUpdateUser(
   userId: string,
-  options?: UseMutationOptions<User, Error, UpdateUserInput>
+  options?: UseMutationOptions<User, Error, UserSchema>
 ) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: UpdateUserInput) => createUserService().update(userId, input),
+    mutationFn: (input: UserSchema) => createUserService().update(userId, input),
     ...options,
     onSuccess: (...args) => {
       const [data] = args;

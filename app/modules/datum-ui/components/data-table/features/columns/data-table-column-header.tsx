@@ -48,7 +48,7 @@ export const DataTableColumnHeader = <TData,>({
                 <div className="flex flex-col">
                   <Icon
                     icon={ChevronUp}
-                    size={14}
+                    size={10}
                     aria-hidden="true"
                     className={cn(
                       'text-foreground stroke -mb-0.5 stroke-2 opacity-25 transition-all',
@@ -57,7 +57,7 @@ export const DataTableColumnHeader = <TData,>({
                   />
                   <Icon
                     icon={ChevronDown}
-                    size={14}
+                    size={10}
                     aria-hidden="true"
                     className={cn(
                       'text-foreground -mt-0.5 stroke-2 opacity-25 transition-all',
@@ -95,7 +95,7 @@ export const DataTableColumnHeader = <TData,>({
               <TableHead
                 key={header.id}
                 className={cn(
-                  'bg-background text-foreground h-8 border-r px-4 py-3 font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5',
+                  'bg-background text-foreground h-[42px] border-r px-4 py-3 text-xs font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5',
                   !hasRowActions && 'last:border-r-0',
                   isSortable && 'group hover:bg-table-accent',
                   header.column.columnDef.meta?.className

@@ -165,7 +165,7 @@ After testing, clean up created resources:
 | HTTP Proxies          | /6   |      |       |
 | **Total**             | /57  |      |       |
 
-**Tested by:** ******\_\_\_\_******
-**Date:** ******\_\_\_\_******
+**Tested by:** **\*\***\_\_\_\_**\*\***
+**Date:** **\*\***\_\_\_\_**\*\***
 **Environment:** Staging
-**Build/Version:** ******\_\_\_\_******
+**Build/Version:** **\*\***\_\_\_\_**\*\***

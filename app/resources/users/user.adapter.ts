@@ -4,6 +4,7 @@ import type {
   ThemeValue,
   RegistrationApprovalValue,
   LastLoginProviderValue,
+  UserSchema,
 } from './user.schema';
 import { toBoolean } from '@/utils/helpers/text.helper';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
@@ -70,12 +71,12 @@ export function toUser(raw: ComMiloapisIamV1Alpha1User): User {
 }
 
 /**
- * Transform UpdateUserInput to API patch payload
+ * Transform UserSchema to API patch payload
  */
-export function toUpdateUserPayload(input: { firstName: string; lastName: string }): {
+export function toUpdateUserPayload(input: UserSchema): {
   apiVersion: string;
   kind: string;
-  spec: { familyName: string; givenName: string };
+  spec: { familyName: string; givenName: string; email: string };
 } {
   return {
     apiVersion: 'iam.miloapis.com/v1alpha1',
@@ -83,6 +84,7 @@ export function toUpdateUserPayload(input: { firstName: string; lastName: string
     spec: {
       familyName: input.lastName,
       givenName: input.firstName,
+      email: input.email,
     },
   };
 }

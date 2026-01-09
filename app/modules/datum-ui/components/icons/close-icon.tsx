@@ -1,6 +1,6 @@
 import { cn } from '@shadcn/lib/utils';
 
-const CloseIcon = ({
+export const CloseIcon = ({
   className,
   fill = 'fill-foreground',
 }: {
@@ -23,5 +23,3 @@ const CloseIcon = ({
     </svg>
   );
 };
-
-export default CloseIcon;

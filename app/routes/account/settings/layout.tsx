@@ -1,29 +1,50 @@
 import { BackButton } from '@/components/back-button';
-import { DashboardLayout } from '@/layouts/dashboard.layout';
+import { DashboardLayout, TabsLayout, TabsNavProps } from '@/layouts';
 import { paths } from '@/utils/config/paths.config';
-import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { Outlet } from 'react-router';
 
 export default function AccountSettingsLayout() {
-  const navItems: NavItem[] = [
+  const navItems: TabsNavProps[] = [
     {
-      href: paths.account.preferences,
-      title: 'Preferences',
-      type: 'link',
+      value: 'general',
+      label: 'General',
+      to: paths.account.settings.general,
     },
+    // {
+    //   value: 'security',
+    //   label: 'Security',
+    //   to: paths.account.settings.security,
+    // },
+    // {
+    //   value: 'active-sessions',
+    //   label: 'Active Sessions',
+    //   to: paths.account.settings.activeSessions,
+    // },
+    // {
+    //   value: 'access-tokens',
+    //   label: 'Access Tokens',
+    //   to: paths.account.settings.accessTokens,
+    // },
+    // {
+    //   value: 'notifications',
+    //   label: 'Notifications',
+    //   to: paths.account.settings.notifications,
+    // },
     {
-      href: paths.account.activity,
-      title: 'Activity',
-      type: 'link',
+      value: 'activity',
+      label: 'Activity',
+      to: paths.account.settings.activity,
     },
   ];
   return (
     <DashboardLayout
-      navItems={navItems}
+      navItems={[]}
       sidebarCollapsible="none"
       contentClassName="w-full"
-      sidebarHeader={<BackButton />}>
-      <Outlet />
+      sidebarHeader={<BackButton to={paths.home}>Back to Dashboard</BackButton>}>
+      <TabsLayout tabsTitle={{ title: 'Account Settings' }} navItems={navItems}>
+        <Outlet />
+      </TabsLayout>
     </DashboardLayout>
   );
 }
