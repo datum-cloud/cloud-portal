@@ -95,7 +95,7 @@ export const DataTableView = <TData,>({
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className={cn('px-4 py-2.5', cell.column.columnDef.meta?.className)}>
+                    className={cn('px-4 py-3 text-xs', cell.column.columnDef.meta?.className)}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

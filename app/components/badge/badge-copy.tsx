@@ -14,6 +14,7 @@ export interface BadgeCopyProps {
   badgeType?: BadgeProps['type'];
   badgeTheme?: BadgeProps['theme'];
   showTooltip?: boolean;
+  copyButtonClassName?: string;
 }
 
 export const BadgeCopy = ({
@@ -25,6 +26,7 @@ export const BadgeCopy = ({
   badgeType = 'secondary',
   badgeTheme = 'light',
   showTooltip = true,
+  copyButtonClassName,
 }: BadgeCopyProps) => {
   const [_, copy] = useCopyToClipboard();
   const [copied, setCopied] = useState(false);
@@ -54,7 +56,8 @@ export const BadgeCopy = ({
         'flex items-center justify-center transition-colors',
         'hover:bg-black/5 dark:hover:bg-white/5',
         'focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-hidden',
-        'cursor-pointer disabled:pointer-events-none disabled:opacity-50'
+        'cursor-pointer disabled:pointer-events-none disabled:opacity-50',
+        copyButtonClassName
       )}
       aria-label={copied ? 'Copied!' : 'Copy to clipboard'}>
       <Icon icon={CopyIcon} className="size-3" />

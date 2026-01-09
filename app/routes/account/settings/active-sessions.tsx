@@ -1,7 +1,13 @@
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Badge, DataTable, Icon } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { Trash2Icon } from 'lucide-react';
 import { useMemo } from 'react';
+import { MetaFunction } from 'react-router';
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return metaObject('Active Sessions');
+});
 
 const DUMMIES = [
   {
