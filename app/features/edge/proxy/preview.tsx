@@ -5,7 +5,7 @@ import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/htt
 import { paths } from '@/utils/config/paths.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Alert, AlertDescription, AlertTitle, SpinnerIcon } from '@datum-ui/components';
+import { Alert, AlertDescription, AlertTitle, SpinnerIcon, Icon } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import {
   Card,
@@ -15,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { InfoIcon } from 'lucide-react';
 import { AnimatePresence, motion, Variants } from 'motion/react';
 import { useMemo } from 'react';

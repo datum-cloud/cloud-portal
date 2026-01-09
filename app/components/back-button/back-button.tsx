@@ -96,7 +96,7 @@ export const BackButton = ({
       icon={icon}
       iconPosition="left"
       onClick={handleClick}
-      className="w-fit rounded-lg text-[12px] font-normal"
+      className="text-1xs w-fit rounded-lg font-normal"
       {...buttonProps}>
       {children}
     </Button>

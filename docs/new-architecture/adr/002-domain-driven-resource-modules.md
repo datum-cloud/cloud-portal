@@ -17,6 +17,7 @@ The codebase had a scattered organization for managing resources:
 This separation made it difficult to understand how a single resource (e.g., Organization) was handled across the stack. Developers had to navigate 4+ directories to understand or modify a resource.
 
 Additionally:
+
 - Type definitions and validation schemas were duplicated
 - Business logic was scattered between BFF routes and control-plane files
 - No consistent pattern for data fetching (useFetcher, manual fetch, etc.)
@@ -41,22 +42,22 @@ app/resources/{resource-name}/
 
 **17 domain modules created:**
 
-| Category | Resources |
-|----------|-----------|
-| Core | organizations, projects, users, members, groups, roles, invitations, policy-bindings |
-| Edge | dns-zones, dns-records, dns-zone-discoveries, domains, secrets, http-proxies |
-| Other | export-policies, access-review, allowance-buckets |
+| Category | Resources                                                                            |
+| -------- | ------------------------------------------------------------------------------------ |
+| Core     | organizations, projects, users, members, groups, roles, invitations, policy-bindings |
+| Edge     | dns-zones, dns-records, dns-zone-discoveries, domains, secrets, http-proxies         |
+| Other    | export-policies, access-review, allowance-buckets                                    |
 
 ### Before vs After
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Files per resource | 4+ (scattered) | 5-6 (co-located) |
-| Type definitions | Interface files | Zod inferred types |
-| Validation | Separate schemas | Same as types (Zod) |
-| API calls | BFF routes | Service layer |
-| Data fetching | useFetcher | React Query hooks |
-| Understanding a resource | 4 directories | 1 folder |
+| Aspect                   | Before           | After               |
+| ------------------------ | ---------------- | ------------------- |
+| Files per resource       | 4+ (scattered)   | 5-6 (co-located)    |
+| Type definitions         | Interface files  | Zod inferred types  |
+| Validation               | Separate schemas | Same as types (Zod) |
+| API calls                | BFF routes       | Service layer       |
+| Data fetching            | useFetcher       | React Query hooks   |
+| Understanding a resource | 4 directories    | 1 folder            |
 
 ## Rationale
 
@@ -106,11 +107,11 @@ The domain-driven approach was chosen because:
 
 ### Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Team unfamiliarity with pattern | Clear examples, consistent naming |
-| Migration bugs | Gradual migration, one resource at a time |
-| Zod learning curve | Similar to other validation libraries |
+| Risk                            | Mitigation                                |
+| ------------------------------- | ----------------------------------------- |
+| Team unfamiliarity with pattern | Clear examples, consistent naming         |
+| Migration bugs                  | Gradual migration, one resource at a time |
+| Zod learning curve              | Similar to other validation libraries     |
 
 ## References
 

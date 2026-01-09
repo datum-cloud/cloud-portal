@@ -15,6 +15,7 @@ Logging in the application was inconsistent:
 4. **Manual debugging** - Developers had to reconstruct API calls manually
 
 When debugging issues, developers would:
+
 - Search through unstructured console output
 - Manually construct curl commands to reproduce API calls
 - Lose context when requests spanned multiple services
@@ -51,13 +52,13 @@ app/modules/logger/
 
 ### Before vs After
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Log format | Unstructured console.log | Structured with levels |
-| Request correlation | None | requestId, traceId, spanId |
-| API debugging | Manual curl construction | Auto-generated CURL |
-| Production logs | Plain text | JSON (Loki-friendly) |
-| Error tracking | Manual Sentry calls | Automatic breadcrumbs |
+| Aspect              | Before                   | After                      |
+| ------------------- | ------------------------ | -------------------------- |
+| Log format          | Unstructured console.log | Structured with levels     |
+| Request correlation | None                     | requestId, traceId, spanId |
+| API debugging       | Manual curl construction | Auto-generated CURL        |
+| Production logs     | Plain text               | JSON (Loki-friendly)       |
+| Error tracking      | Manual Sentry calls      | Automatic breadcrumbs      |
 
 ## Rationale
 
@@ -107,11 +108,11 @@ A centralized logger was chosen because:
 
 ### Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Team uses console.log | ESLint rule, code review |
-| Performance overhead | Lazy evaluation, skip in production |
-| CURL leaks secrets | Redaction in production mode |
+| Risk                  | Mitigation                          |
+| --------------------- | ----------------------------------- |
+| Team uses console.log | ESLint rule, code review            |
+| Performance overhead  | Lazy evaluation, skip in production |
+| CURL leaks secrets    | Redaction in production mode        |
 
 ## References
 

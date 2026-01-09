@@ -362,6 +362,7 @@ TAILWIND CUSTOM UTILITIES FOR THEME
   /* Font Sizes */
   --text-sm: 14px;
   --text-xs: 13px;
+  --text-1xs: 12px;
   --text-2xs: 9px;
 
   /* Badge */

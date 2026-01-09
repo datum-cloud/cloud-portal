@@ -53,7 +53,6 @@ export const UserDropdown = ({ className }: { className?: string }) => {
 
   useEffect(() => {
     if (userPreferences) {
-      console.log('userPreferences', userPreferences);
       setCurrentTheme(userPreferences.theme);
     }
   }, [userPreferences]);

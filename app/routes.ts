@@ -37,6 +37,7 @@ export default [
       // Account Preferences
       layout('routes/account/settings/layout.tsx', [
         route('general', 'routes/account/settings/general.tsx'),
+        route('security', 'routes/account/settings/security.tsx'),
         route('activity', 'routes/account/settings/activity.tsx'),
       ]),
     ]),

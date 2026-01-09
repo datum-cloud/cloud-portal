@@ -1,4 +1,4 @@
-import CloseIcon from '@datum-ui/components/icons/close-icon';
+import { CloseIcon } from '@datum-ui/components/icons/close-icon';
 import { cn } from '@shadcn/lib/utils';
 import * as React from 'react';
 

@@ -48,14 +48,14 @@ app/server/
 
 ### Before vs After
 
-| Aspect | Before (Express) | After (Hono) |
-|--------|------------------|--------------|
-| Framework size | ~200KB | ~14KB |
-| Bun support | Via adapter | Native |
-| Route files | 40+ in `routes/api/` | 10 in `server/routes/` |
-| Middleware | Express-style | Hono middleware (composable) |
-| Type safety | Manual | Built-in with TypeScript |
-| Error handling | Try-catch per route | Global error handler |
+| Aspect         | Before (Express)     | After (Hono)                 |
+| -------------- | -------------------- | ---------------------------- |
+| Framework size | ~200KB               | ~14KB                        |
+| Bun support    | Via adapter          | Native                       |
+| Route files    | 40+ in `routes/api/` | 10 in `server/routes/`       |
+| Middleware     | Express-style        | Hono middleware (composable) |
+| Type safety    | Manual               | Built-in with TypeScript     |
+| Error handling | Try-catch per route  | Global error handler         |
 
 ## Rationale
 
@@ -105,11 +105,11 @@ Hono was chosen because:
 
 ### Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Team unfamiliarity with Hono | Documentation, code examples, similar to Express patterns |
-| Missing middleware packages | Hono has equivalents for most common middleware |
-| React Router integration issues | `react-router-hono-server` is actively maintained |
+| Risk                            | Mitigation                                                |
+| ------------------------------- | --------------------------------------------------------- |
+| Team unfamiliarity with Hono    | Documentation, code examples, similar to Express patterns |
+| Missing middleware packages     | Hono has equivalents for most common middleware           |
+| React Router integration issues | `react-router-hono-server` is actively maintained         |
 
 ## References
 

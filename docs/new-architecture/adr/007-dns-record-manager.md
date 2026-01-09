@@ -43,19 +43,19 @@ app/resources/dns-records/
 
 ```typescript
 class DnsRecordManager {
-  addRecord(record: DnsRecordInput): Promise<DnsRecord>
-  updateRecord(id: string, updates: Partial<DnsRecordInput>): Promise<DnsRecord>
-  removeRecord(id: string): Promise<void>
-  bulkImport(records: DnsRecordInput[]): Promise<BulkImportResult>
+  addRecord(record: DnsRecordInput): Promise<DnsRecord>;
+  updateRecord(id: string, updates: Partial<DnsRecordInput>): Promise<DnsRecord>;
+  removeRecord(id: string): Promise<void>;
+  bulkImport(records: DnsRecordInput[]): Promise<BulkImportResult>;
 }
 ```
 
 **Typed errors:**
 
 ```typescript
-class DuplicateRecordError extends Error { }
-class RecordNotFoundError extends Error { }
-class RecordSetNotFoundError extends Error { }
+class DuplicateRecordError extends Error {}
+class RecordNotFoundError extends Error {}
+class RecordSetNotFoundError extends Error {}
 ```
 
 **Simplified hooks:**
@@ -72,13 +72,13 @@ const useCreateDnsRecord = () => {
 
 ### Before vs After
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| RecordSet logic | In every hook | Centralized in manager |
-| Hook complexity | 50-100 lines | 10-15 lines |
-| Error types | Generic Error | DuplicateRecordError, etc. |
-| Code duplication | High (4 hooks) | None (single manager) |
-| Testability | Hard (mixed concerns) | Easy (isolated manager) |
+| Aspect           | Before                | After                      |
+| ---------------- | --------------------- | -------------------------- |
+| RecordSet logic  | In every hook         | Centralized in manager     |
+| Hook complexity  | 50-100 lines          | 10-15 lines                |
+| Error types      | Generic Error         | DuplicateRecordError, etc. |
+| Code duplication | High (4 hooks)        | None (single manager)      |
+| Testability      | Hard (mixed concerns) | Easy (isolated manager)    |
 
 ## Rationale
 
@@ -128,11 +128,11 @@ The manager pattern was chosen because:
 
 ### Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Manager too complex | Well-documented, private helpers |
+| Risk                           | Mitigation                        |
+| ------------------------------ | --------------------------------- |
+| Manager too complex            | Well-documented, private helpers  |
 | Different from other resources | Justified by RecordSet complexity |
-| Performance | Manager is stateless, no overhead |
+| Performance                    | Manager is stateless, no overhead |
 
 ## References
 

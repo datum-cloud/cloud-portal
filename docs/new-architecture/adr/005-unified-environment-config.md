@@ -15,6 +15,7 @@ Environment variable access was scattered throughout the codebase:
 4. **No fail-fast** - Missing vars discovered at runtime
 
 Common issues:
+
 - Typos in env var names caused runtime crashes
 - Server secrets accidentally bundled in client code
 - No clear distinction between public and private vars
@@ -39,14 +40,14 @@ app/utils/env/
 
 ```typescript
 // Public vars (safe for client)
-env.public.appUrl      // e.g., "https://cloud.example.com"
-env.public.apiUrl      // e.g., "https://api.example.com"
-env.public.sentryDsn   // Public Sentry DSN
+env.public.appUrl; // e.g., "https://cloud.example.com"
+env.public.apiUrl; // e.g., "https://api.example.com"
+env.public.sentryDsn; // Public Sentry DSN
 
 // Server-only vars (never bundled in client)
-env.server.sessionSecret
-env.server.zitadelClientId
-env.server.zitadelClientSecret
+env.server.sessionSecret;
+env.server.zitadelClientId;
+env.server.zitadelClientSecret;
 ```
 
 **Zod validation:**
@@ -66,13 +67,13 @@ const serverEnvSchema = z.object({
 
 ### Before vs After
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| Access pattern | `process.env.X` | `env.public.X` / `env.server.X` |
-| Validation | None (runtime errors) | Zod (fail-fast on startup) |
-| Type safety | None | Full TypeScript inference |
-| Client safety | Manual (error-prone) | Namespace enforced |
-| Config files | 3 scattered files | 1 unified module |
+| Aspect         | Before                | After                           |
+| -------------- | --------------------- | ------------------------------- |
+| Access pattern | `process.env.X`       | `env.public.X` / `env.server.X` |
+| Validation     | None (runtime errors) | Zod (fail-fast on startup)      |
+| Type safety    | None                  | Full TypeScript inference       |
+| Client safety  | Manual (error-prone)  | Namespace enforced              |
+| Config files   | 3 scattered files     | 1 unified module                |
 
 ## Rationale
 
@@ -122,10 +123,10 @@ Unified env config was chosen because:
 
 ### Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Team uses process.env | ESLint rule, code review |
-| Missing env on deploy | CI validation, startup check |
+| Risk                   | Mitigation                      |
+| ---------------------- | ------------------------------- |
+| Team uses process.env  | ESLint rule, code review        |
+| Missing env on deploy  | CI validation, startup check    |
 | Breaking existing code | Gradual migration, clear errors |
 
 ## References
