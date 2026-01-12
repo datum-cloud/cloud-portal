@@ -12,6 +12,22 @@ export type RegistrationApprovalValue = (typeof REGISTRATION_APPROVAL_VALUES)[nu
 export const LAST_LOGIN_PROVIDER_VALUES = ['google', 'github'] as const;
 export type LastLoginProviderValue = (typeof LAST_LOGIN_PROVIDER_VALUES)[number];
 
+// Provider ID to Provider Name mapping
+export const PROVIDER_ID_MAP = {
+  '329235473308321047': 'Github',
+  '325848900437020698': 'Google',
+} as const;
+
+export type ProviderID = keyof typeof PROVIDER_ID_MAP;
+export type ProviderName = (typeof PROVIDER_ID_MAP)[ProviderID];
+
+/**
+ * Get provider name from provider ID
+ */
+export function getProviderName(providerID: string): ProviderName | undefined {
+  return PROVIDER_ID_MAP[providerID as ProviderID];
+}
+
 // User preferences schema
 export const userPreferencesResourceSchema = z.object({
   theme: z.enum(THEME_VALUES),
@@ -69,41 +85,27 @@ export const userPreferencesSchema = z.object({
   onboardedAt: z.string().optional(),
 });
 
+export const userIdentitySchema = z.object({
+  name: z.string(),
+  createdAt: z.string(),
+  username: z.string(),
+  userUID: z.string(),
+  providerID: z.string(),
+  providerName: z.string(),
+});
+
+// Type-safe provider name from provider ID
+export type UserIdentityWithProvider = Omit<UserIdentity, 'providerName'> & {
+  providerName: ProviderName;
+};
+
 export type UserSchema = z.infer<typeof userSchema>;
 export type UserPreferencesSchema = z.infer<typeof userPreferencesSchema>;
+export type UserIdentity = z.infer<typeof userIdentitySchema>;
 
 // Legacy enums
 export enum RegistrationApproval {
   Approved = 'Approved',
   Rejected = 'Rejected',
   Pending = 'Pending',
-}
-
-export enum LastLoginProvider {
-  Google = 'google',
-  Github = 'github',
-}
-
-// Legacy interfaces
-export interface IUserPreferences {
-  theme: ThemeValue;
-  timezone: string;
-  newsletter: boolean;
-}
-
-export interface IUser {
-  sub?: string;
-  email?: string;
-  familyName?: string;
-  givenName?: string;
-  createdAt?: Date;
-  uid?: string;
-  resourceVersion?: string;
-  fullName?: string;
-  preferences?: IUserPreferences;
-  onboardedAt?: string;
-  registrationApproval?: RegistrationApproval;
-  state?: string;
-  lastLoginProvider?: LastLoginProvider;
-  avatarUrl?: string;
 }

@@ -5,7 +5,13 @@ import type {
   RegistrationApprovalValue,
   LastLoginProviderValue,
   UserSchema,
+  UserIdentity,
 } from './user.schema';
+import { getProviderName } from './user.schema';
+import {
+  ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentity,
+  ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList,
+} from '@/modules/control-plane/identity/types.gen';
 import { toBoolean } from '@/utils/helpers/text.helper';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 
@@ -120,4 +126,34 @@ export function toUpdateUserPreferencesPayload(input: {
     kind: 'User',
     ...(metadata ? { metadata } : {}),
   };
+}
+
+/**
+ * Transform UserIdentity to domain UserIdentity type
+ */
+export function toUserIdentity(
+  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentity
+): UserIdentity {
+  const { metadata, status } = raw;
+
+  // Get provider name from provider ID if available, otherwise use providerName from API
+  const providerName: string =
+    status?.providerName === status?.providerID
+      ? (getProviderName(status?.providerID ?? '') ?? '')
+      : (status?.providerName ?? '');
+
+  return {
+    name: metadata?.name ?? '',
+    createdAt: metadata?.creationTimestamp ?? '',
+    userUID: status?.userUID ?? '',
+    providerID: status?.providerID ?? '',
+    providerName,
+    username: status?.username ?? '',
+  };
+}
+
+export function toUserIdentityList(
+  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList
+): UserIdentity[] {
+  return raw.items.map(toUserIdentity);
 }
