@@ -1,5 +1,5 @@
 import { cn } from '@shadcn/lib/utils';
-import { CardTitle, CardDescription, CardContent, CardFooter } from '@shadcn/ui/card';
+import { CardTitle, CardDescription, CardContent } from '@shadcn/ui/card';
 import * as React from 'react';
 
 /**
@@ -12,7 +12,7 @@ import * as React from 'react';
  */
 
 const DEFAULT_CARD_CLASSNAME =
-  'bg-card text-card-foreground flex flex-col gap-4 rounded-xl border py-6 shadow';
+  'bg-card text-card-foreground flex flex-col gap-4 rounded-xl border border-card-border py-6 shadow';
 
 const Card = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return <div data-slot="card" className={cn(DEFAULT_CARD_CLASSNAME, className)} {...props} />;
@@ -20,8 +20,16 @@ const Card = ({ className, ...props }: React.ComponentProps<'div'>) => {
 
 const CardHeader = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
-    <div data-slot="card-header" className={cn('flex flex-col gap-3 px-6', className)} {...props} />
+    <div
+      data-slot="card-header"
+      className={cn('border-card-border flex flex-col gap-3 px-6', className)}
+      {...props}
+    />
   );
+};
+
+const CardFooter = ({ className, ...props }: React.ComponentProps<'div'>) => {
+  return <div data-slot="card-footer" className={cn('border-card-border', className)} {...props} />;
 };
 
 export { CardTitle, CardDescription, CardContent, CardFooter };
