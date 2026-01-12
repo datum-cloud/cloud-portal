@@ -5,7 +5,15 @@ import {
   type ComMiloapisIamV1Alpha1User,
   toUserIdentityList,
 } from './user.adapter';
-import type { User, UpdateUserPreferencesInput, UserSchema, UserIdentity } from './user.schema';
+import {
+  type User,
+  type UpdateUserPreferencesInput,
+  type UserSchema,
+  type UserIdentity,
+  type ProviderName,
+  PROVIDER_ID_MAP,
+  ProviderID,
+} from './user.schema';
 import {
   ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList,
   listIdentityMiloapisComV1Alpha1UserIdentity,
@@ -23,6 +31,13 @@ export const userKeys = {
 };
 
 const SERVICE_NAME = 'UserService';
+
+/**
+ * Get provider name from provider ID
+ */
+export function getProviderName(providerID: string): ProviderName | undefined {
+  return PROVIDER_ID_MAP[providerID as ProviderID];
+}
 
 export function createUserService() {
   return {

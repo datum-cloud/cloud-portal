@@ -21,13 +21,6 @@ export const PROVIDER_ID_MAP = {
 export type ProviderID = keyof typeof PROVIDER_ID_MAP;
 export type ProviderName = (typeof PROVIDER_ID_MAP)[ProviderID];
 
-/**
- * Get provider name from provider ID
- */
-export function getProviderName(providerID: string): ProviderName | undefined {
-  return PROVIDER_ID_MAP[providerID as ProviderID];
-}
-
 // User preferences schema
 export const userPreferencesResourceSchema = z.object({
   theme: z.enum(THEME_VALUES),
@@ -93,11 +86,6 @@ export const userIdentitySchema = z.object({
   providerID: z.string(),
   providerName: z.string(),
 });
-
-// Type-safe provider name from provider ID
-export type UserIdentityWithProvider = Omit<UserIdentity, 'providerName'> & {
-  providerName: ProviderName;
-};
 
 export type UserSchema = z.infer<typeof userSchema>;
 export type UserPreferencesSchema = z.infer<typeof userPreferencesSchema>;
