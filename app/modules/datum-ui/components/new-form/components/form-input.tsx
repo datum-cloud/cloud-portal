@@ -34,7 +34,7 @@ export const FormInput = React.forwardRef<HTMLInputElement, FormInputProps>(
         disabled={isDisabled}
         aria-invalid={hasErrors || undefined}
         aria-describedby={hasErrors ? `${fieldMeta.id}-error` : undefined}
-        className={cn(className)}
+        className={cn('!text-xs', className)}
       />
     );
   }

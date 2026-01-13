@@ -51,6 +51,9 @@ export default function OrgLayout() {
     const settingsPreferences = getPathWithParams(paths.org.detail.settings.general, { orgId });
     const settingsActivity = getPathWithParams(paths.org.detail.settings.activity, { orgId });
     const settingsQuotas = getPathWithParams(paths.org.detail.settings.quotas, { orgId });
+    const settingsNotifications = getPathWithParams(paths.org.detail.settings.notifications, {
+      orgId,
+    });
     // const settingsPolicyBindings = getPathWithParams(paths.org.detail.policyBindings.root, {
     //   orgId,
     // });
@@ -76,6 +79,7 @@ export default function OrgLayout() {
         icon: SettingsIcon,
         tabChildLinks: [
           settingsPreferences,
+          settingsNotifications,
           settingsActivity,
           settingsQuotas,
           // settingsPolicyBindings,

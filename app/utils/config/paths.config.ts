@@ -43,6 +43,7 @@ export const paths = {
       },
       settings: {
         general: '/org/[orgId]/general',
+        notifications: '/org/[orgId]/notifications',
         quotas: '/org/[orgId]/quotas',
         activity: '/org/[orgId]/activity',
       },
@@ -108,7 +109,8 @@ export const paths = {
       activity: '/project/[projectId]/activity',
       quotas: '/project/[projectId]/quotas',
       settings: {
-        preferences: '/project/[projectId]/preferences',
+        general: '/project/[projectId]/general',
+        notifications: '/project/[projectId]/notifications',
         quotas: '/project/[projectId]/quotas',
         activity: '/project/[projectId]/activity',
       },

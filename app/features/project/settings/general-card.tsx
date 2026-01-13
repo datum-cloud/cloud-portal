@@ -1,24 +1,23 @@
-import { TextCopyBox } from '@/components/text-copy/text-copy-box';
+import { useApp } from '@/providers/app.provider';
 import type { Project } from '@/resources/projects';
 import { updateProjectSchema, useUpdateProject } from '@/resources/projects';
-import { Button, CardHeader, CardTitle, Col, Row, toast } from '@datum-ui/components';
+import { Button, CardHeader, CardTitle, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
-import { useRevalidator } from 'react-router';
 
 /**
  * Project General Settings Card Component
  * Displays and allows editing of general project settings
  */
 export const ProjectGeneralCard = ({ project }: { project: Project }) => {
-  const revalidator = useRevalidator();
+  const { setProject } = useApp();
 
   const updateMutation = useUpdateProject(project?.name ?? '', {
-    onSuccess: () => {
+    onSuccess: (updatedProject) => {
+      setProject(updatedProject);
       toast.success('Project', {
         description: 'The Project has been updated successfully',
       });
-      revalidator.revalidate();
     },
     onError: (error) => {
       toast.error('Project', {
@@ -34,37 +33,30 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
       </CardHeader>
       <Form.Root
         id="update-project-form"
-        schema={updateProjectSchema.pick({ description: true })}
+        schema={updateProjectSchema.pick({ description: true, name: true })}
         defaultValues={{
           description: project?.description ?? '',
+          name: project?.name ?? '',
         }}
         isSubmitting={updateMutation.isPending}
         onSubmit={(data) => {
           updateMutation.mutate({
             description: data.description,
-            resourceVersion: project.resourceVersion,
           });
         }}
         className="flex flex-col space-y-0">
         {({ form, isSubmitting }) => (
           <>
-            <CardContent className="space-y-5 px-5 py-4">
-              <Row gutter={16}>
-                <Col span={8}>
-                  <Form.Field name="description" label="Project name" required>
-                    <Form.Input placeholder="e.g. My Project" />
-                  </Form.Field>
-                </Col>
-              </Row>
+            <CardContent className="px-5 py-4">
+              <div className="flex max-w-sm flex-col gap-5">
+                <Form.Field name="description" label="Project name" required>
+                  <Form.Input placeholder="e.g. My Project" />
+                </Form.Field>
 
-              <Row gutter={16}>
-                <Col span={8}>
-                  <div className="flex flex-col space-y-2">
-                    <label className="text-xs font-medium">Resource ID</label>
-                    <TextCopyBox value={project?.name ?? ''} />
-                  </div>
-                </Col>
-              </Row>
+                <Form.Field name="name" label="Resource ID">
+                  <Form.CopyBox />
+                </Form.Field>
+              </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
               <Button
@@ -77,6 +69,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
                   form.update({
                     value: {
                       description: project?.description ?? '',
+                      name: project?.name ?? '',
                     },
                   });
                 }}>
