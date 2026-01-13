@@ -88,7 +88,7 @@ export default function ProjectLayout() {
     const isReady = currentStatus.status === ControlPlaneStatus.Success;
     const projectId = project.name;
 
-    const settingsPreferences = getPathWithParams(paths.project.detail.settings.preferences, {
+    const settingsGeneral = getPathWithParams(paths.project.detail.settings.general, {
       projectId,
     });
     const settingsActivity = getPathWithParams(paths.project.detail.settings.activity, {
@@ -162,11 +162,11 @@ export default function ProjectLayout() {
       },
       {
         title: 'Project Settings',
-        href: getPathWithParams(paths.project.detail.settings.preferences, { projectId }),
+        href: getPathWithParams(paths.project.detail.settings.general, { projectId }),
         type: 'link',
         disabled: !isReady,
         icon: SettingsIcon,
-        tabChildLinks: [settingsPreferences, settingsActivity, settingsQuotas],
+        tabChildLinks: [settingsGeneral, settingsActivity, settingsQuotas],
       },
     ];
   }, [project]);

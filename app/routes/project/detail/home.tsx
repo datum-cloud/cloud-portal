@@ -163,7 +163,6 @@ export default function ProjectHomePage() {
             }
             onSkip={async () => {
               await updateMutation.mutateAsync({
-                resourceVersion: project.resourceVersion,
                 annotations: { 'dashboard.domains.skipped': 'true' },
               });
             }}
@@ -205,7 +204,6 @@ export default function ProjectHomePage() {
             }
             onSkip={async () => {
               await updateMutation.mutateAsync({
-                resourceVersion: project.resourceVersion,
                 annotations: { 'dashboard.desktop.skipped': 'true' },
               });
             }}
@@ -251,7 +249,6 @@ export default function ProjectHomePage() {
             }
             onSkip={async () => {
               await updateMutation.mutateAsync({
-                resourceVersion: project.resourceVersion,
                 annotations: { 'dashboard.proxy.skipped': 'true' },
               });
             }}

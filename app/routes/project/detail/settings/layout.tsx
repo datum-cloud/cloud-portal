@@ -5,15 +5,6 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
 import { Outlet, useRouteLoaderData } from 'react-router';
 
-// export const handle = {
-//   breadcrumb: () => <span>Project Settings</span>,
-//   path: (data: ProjectLayoutLoaderData) => {
-//     return getPathWithParams(paths.project.detail.settings.preferences, {
-//       projectId: data?.project?.name,
-//     });
-//   },
-// };
-
 export default function OrgSettingsLayout() {
   const { project } = useRouteLoaderData('project-detail');
 
@@ -21,9 +12,14 @@ export default function OrgSettingsLayout() {
     const projectId = project?.name;
     return [
       {
-        value: 'preferences',
-        label: 'Preferences',
-        to: getPathWithParams(paths.project.detail.settings.preferences, { projectId }),
+        value: 'general',
+        label: 'General',
+        to: getPathWithParams(paths.project.detail.settings.general, { projectId }),
+      },
+      {
+        value: 'notifications',
+        label: 'Notifications',
+        to: getPathWithParams(paths.project.detail.settings.notifications, { projectId }),
       },
       {
         value: 'quotas',

@@ -4,15 +4,11 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Col, Row } from '@datum-ui/components';
 import { MetaFunction, useRouteLoaderData } from 'react-router';
 
-// export const handle = {
-//   breadcrumb: () => <span>Preferences</span>,
-// };
-
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Project Preferences');
+  return metaObject('General');
 });
 
-export default function ProjectSettingsPage() {
+export default function ProjectGeneralSettingsPage() {
   const { project } = useRouteLoaderData('project-detail');
 
   return (
@@ -22,9 +18,6 @@ export default function ProjectSettingsPage() {
           <ProjectGeneralCard project={project} />
         </Col>
 
-        {/* Labels */}
-        {/* <ProjectLabelCard labels={project?.labels ?? {}} /> */}
-        {/* Danger Zone */}
         <Col span={24}>
           <h3 className="mb-4 text-base font-medium">Delete Project</h3>
           <ProjectDangerCard project={project} />

@@ -33,7 +33,6 @@ export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
 export const updateProjectSchema = z.object({
   description: z.string().max(500).optional(),
-  resourceVersion: z.string(),
   annotations: z.record(z.string(), z.string()).optional(),
 });
 

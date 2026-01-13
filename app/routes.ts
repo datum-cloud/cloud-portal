@@ -34,7 +34,7 @@ export default [
         index('routes/account/organizations/index.tsx'),
       ]),
 
-      // Account Preferences
+      // Account General
       layout('routes/account/settings/layout.tsx', [
         route('general', 'routes/account/settings/general.tsx'),
         route('security', 'routes/account/settings/security.tsx'),
@@ -93,7 +93,8 @@ export default [
 
         // Settings of an organization
         layout('routes/project/detail/settings/layout.tsx', [
-          route('preferences', 'routes/project/detail/settings/preferences.tsx'),
+          route('general', 'routes/project/detail/settings/general.tsx'),
+          route('notifications', 'routes/project/detail/settings/notifications.tsx'),
           route('quotas', 'routes/project/detail/settings/quotas.tsx'),
           route('activity', 'routes/project/detail/settings/activity.tsx'),
         ]),
