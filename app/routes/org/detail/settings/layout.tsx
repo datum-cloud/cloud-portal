@@ -29,6 +29,11 @@ export default function OrgSettingsLayout() {
         to: getPathWithParams(paths.org.detail.policyBindings.root, { orgId }),
         hidden: org?.type === 'Personal',
       }, */
+      /* {
+        value: 'notifications',
+        label: 'Notifications',
+        to: getPathWithParams(paths.org.detail.settings.notifications, { orgId }),
+      }, */
       {
         value: 'quotas',
         label: 'Quotas',

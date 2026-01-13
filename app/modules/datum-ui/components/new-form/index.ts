@@ -74,6 +74,7 @@ import {
   FormSwitch,
   FormRadioGroup,
   FormRadioItem,
+  FormCopyBox,
   FormWhen,
   FormFieldArray,
   FormCustom,
@@ -144,6 +145,7 @@ export const Form = {
   Switch: FormSwitch,
   RadioGroup: FormRadioGroup,
   RadioItem: FormRadioItem,
+  CopyBox: FormCopyBox,
 
   // Advanced
   When: FormWhen,
@@ -187,6 +189,7 @@ export {
   FormSwitch,
   FormRadioGroup,
   FormRadioItem,
+  FormCopyBox,
 
   // Advanced
   FormWhen,
@@ -226,6 +229,7 @@ export type {
   FormSwitchProps,
   FormRadioGroupProps,
   FormRadioItemProps,
+  FormCopyBoxProps,
   FormSubmitProps,
   FormButtonProps,
   FormErrorProps,

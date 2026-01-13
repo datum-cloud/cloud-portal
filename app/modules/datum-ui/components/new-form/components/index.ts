@@ -13,6 +13,7 @@ export { FormSelect, FormSelectItem } from './form-select';
 export { FormCheckbox } from './form-checkbox';
 export { FormSwitch } from './form-switch';
 export { FormRadioGroup, FormRadioItem } from './form-radio-group';
+export { FormCopyBox } from './form-copy-box';
 
 // Advanced components
 export { FormWhen } from './form-when';

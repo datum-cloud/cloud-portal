@@ -16,11 +16,11 @@ export default function OrgSettingsLayout() {
         label: 'General',
         to: getPathWithParams(paths.project.detail.settings.general, { projectId }),
       },
-      {
+      /* {
         value: 'notifications',
         label: 'Notifications',
         to: getPathWithParams(paths.project.detail.settings.notifications, { projectId }),
-      },
+      }, */
       {
         value: 'quotas',
         label: 'Quotas',

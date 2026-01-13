@@ -74,6 +74,7 @@ export default [
         // Settings of an organization
         layout('routes/org/detail/settings/layout.tsx', [
           route('general', 'routes/org/detail/settings/general.tsx'),
+          route('notifications', 'routes/org/detail/settings/notifications.tsx'),
           route('quotas', 'routes/org/detail/settings/quotas.tsx'),
           route('activity', 'routes/org/detail/settings/activity.tsx'),
           // route('policy-bindings', 'routes/org/detail/settings/policy-bindings.tsx'),

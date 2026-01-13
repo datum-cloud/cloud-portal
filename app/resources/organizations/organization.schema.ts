@@ -39,6 +39,7 @@ export const createOrganizationSchema = z.object({
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 
 export const updateOrganizationSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
   displayName: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
   resourceVersion: z.string(),

@@ -94,6 +94,9 @@ export default function ProjectLayout() {
     const settingsActivity = getPathWithParams(paths.project.detail.settings.activity, {
       projectId,
     });
+    const settingsNotifications = getPathWithParams(paths.project.detail.settings.notifications, {
+      projectId,
+    });
     const settingsQuotas = getPathWithParams(paths.project.detail.settings.quotas, { projectId });
 
     return [
@@ -166,7 +169,7 @@ export default function ProjectLayout() {
         type: 'link',
         disabled: !isReady,
         icon: SettingsIcon,
-        tabChildLinks: [settingsGeneral, settingsActivity, settingsQuotas],
+        tabChildLinks: [settingsGeneral, settingsActivity, settingsQuotas, settingsNotifications],
       },
     ];
   }, [project]);

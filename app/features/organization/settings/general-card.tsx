@@ -1,4 +1,3 @@
-import { TextCopyBox } from '@/components/text-copy/text-copy-box';
 import { useApp } from '@/providers/app.provider';
 import { type Organization, useUpdateOrganization } from '@/resources/organizations';
 import { updateOrganizationSchema } from '@/resources/organizations';
@@ -6,7 +5,7 @@ import { Button, CardHeader, CardTitle, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
 
-const schema = updateOrganizationSchema.pick({ description: true });
+const schema = updateOrganizationSchema.pick({ description: true, name: true });
 
 /**
  * Organization General Settings Card Component
@@ -40,6 +39,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
         schema={schema}
         defaultValues={{
           description: organization?.displayName ?? '',
+          name: organization?.name ?? '',
         }}
         isSubmitting={updateOrganization.isPending}
         onSubmit={(data) => {
@@ -54,22 +54,20 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
             <CardContent className="px-5 py-4">
               <div className="flex max-w-sm flex-col gap-5">
                 {organization?.type === 'Personal' ? (
-                  <div className="flex flex-col space-y-2">
-                    <label className="text-sm font-medium">Organization Name</label>
-                    <TextCopyBox value={organization?.displayName ?? ''} />
-                    <p className="text-muted-foreground text-xs">
-                      Personal organization names cannot be changed
-                    </p>
-                  </div>
+                  <Form.Field
+                    name="description"
+                    label="Organization Name"
+                    description="Personal organization names cannot be changed">
+                    <Form.CopyBox />
+                  </Form.Field>
                 ) : (
                   <Form.Field name="description" label="Organization Name" required>
                     <Form.Input placeholder="e.g. My Organization" />
                   </Form.Field>
                 )}
-                <div className="flex flex-col space-y-2">
-                  <label className="text-xs font-medium">Resource ID</label>
-                  <TextCopyBox value={organization?.name ?? ''} />
-                </div>
+                <Form.Field name="name" label="Resource ID">
+                  <Form.CopyBox />
+                </Form.Field>
               </div>
             </CardContent>
             {organization && organization?.type !== 'Personal' && (
@@ -84,6 +82,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
                     form.update({
                       value: {
                         description: organization?.displayName ?? '',
+                        name: organization?.name ?? '',
                       },
                     });
                   }}>

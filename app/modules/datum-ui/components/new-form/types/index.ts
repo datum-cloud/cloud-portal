@@ -268,6 +268,19 @@ export interface FormRadioItemProps {
   disabled?: boolean;
 }
 
+export interface FormCopyBoxProps {
+  /** Display variant: 'default' shows Copy button, 'icon-only' shows icon */
+  variant?: 'default' | 'icon-only';
+  /** Custom className for the wrapper */
+  className?: string;
+  /** Custom className for the content area */
+  contentClassName?: string;
+  /** Custom className for the button */
+  buttonClassName?: string;
+  /** Placeholder text when value is empty */
+  placeholder?: string;
+}
+
 // ============================================================================
 // Submit & Error Types
 // ============================================================================

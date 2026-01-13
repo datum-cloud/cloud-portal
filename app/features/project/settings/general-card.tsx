@@ -1,4 +1,3 @@
-import { TextCopyBox } from '@/components/text-copy/text-copy-box';
 import { useApp } from '@/providers/app.provider';
 import type { Project } from '@/resources/projects';
 import { updateProjectSchema, useUpdateProject } from '@/resources/projects';
@@ -34,9 +33,10 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
       </CardHeader>
       <Form.Root
         id="update-project-form"
-        schema={updateProjectSchema.pick({ description: true })}
+        schema={updateProjectSchema.pick({ description: true, name: true })}
         defaultValues={{
           description: project?.description ?? '',
+          name: project?.name ?? '',
         }}
         isSubmitting={updateMutation.isPending}
         onSubmit={(data) => {
@@ -53,10 +53,9 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
                   <Form.Input placeholder="e.g. My Project" />
                 </Form.Field>
 
-                <div className="flex flex-col space-y-2">
-                  <label className="text-xs font-medium">Resource ID</label>
-                  <TextCopyBox value={project?.name ?? ''} />
-                </div>
+                <Form.Field name="name" label="Resource ID">
+                  <Form.CopyBox />
+                </Form.Field>
               </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
@@ -70,6 +69,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
                   form.update({
                     value: {
                       description: project?.description ?? '',
+                      name: project?.name ?? '',
                     },
                   });
                 }}>

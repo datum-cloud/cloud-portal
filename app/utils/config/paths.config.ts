@@ -43,6 +43,7 @@ export const paths = {
       },
       settings: {
         general: '/org/[orgId]/general',
+        notifications: '/org/[orgId]/notifications',
         quotas: '/org/[orgId]/quotas',
         activity: '/org/[orgId]/activity',
       },
