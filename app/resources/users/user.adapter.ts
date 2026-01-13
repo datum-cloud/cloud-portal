@@ -6,9 +6,7 @@ import type {
   LastLoginProviderValue,
   UserSchema,
   UserIdentity,
-  ProviderName,
 } from './user.schema';
-import { getProviderName } from './user.service';
 import {
   ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentity,
   ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList,
@@ -137,18 +135,12 @@ export function toUserIdentity(
 ): UserIdentity {
   const { metadata, status } = raw;
 
-  // Get provider name from provider ID if available, otherwise use providerName from API
-  const providerName: ProviderName | string =
-    status?.providerName === status?.providerID
-      ? (getProviderName(status?.providerID ?? '') ?? '')
-      : (status?.providerName ?? '');
-
   return {
     name: metadata?.name ?? '',
     createdAt: metadata?.creationTimestamp ?? '',
     userUID: status?.userUID ?? '',
     providerID: status?.providerID ?? '',
-    providerName,
+    providerName: status?.providerName ?? '',
     username: status?.username ?? '',
   };
 }

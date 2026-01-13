@@ -12,15 +12,6 @@ export type RegistrationApprovalValue = (typeof REGISTRATION_APPROVAL_VALUES)[nu
 export const LAST_LOGIN_PROVIDER_VALUES = ['google', 'github'] as const;
 export type LastLoginProviderValue = (typeof LAST_LOGIN_PROVIDER_VALUES)[number];
 
-// Provider ID to Provider Name mapping
-export const PROVIDER_ID_MAP = {
-  '329235473308321047': 'Github',
-  '325848900437020698': 'Google',
-} as const;
-
-export type ProviderID = keyof typeof PROVIDER_ID_MAP;
-export type ProviderName = (typeof PROVIDER_ID_MAP)[ProviderID];
-
 // User preferences schema
 export const userPreferencesResourceSchema = z.object({
   theme: z.enum(THEME_VALUES),

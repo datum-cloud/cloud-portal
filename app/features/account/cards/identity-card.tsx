@@ -38,7 +38,7 @@ export const AccountIdentitySettingsCard = () => {
           <div className="divide-stepper-line flex flex-col divide-y">
             {identities?.map((identity) => {
               const provider = identity.providerName.toLowerCase();
-              const providerMeta = provider ? PROVIDERS[provider] : undefined;
+              const providerMeta = PROVIDERS?.[provider];
               return (
                 <IdentityItem
                   key={identity.name}
