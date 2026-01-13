@@ -1,4 +1,4 @@
-import type { User, UpdateUserPreferencesInput, UserSchema } from './user.schema';
+import type { User, UpdateUserPreferencesInput, UserSchema, UserIdentity } from './user.schema';
 import { createUserService, userKeys } from './user.service';
 import {
   useQuery,
@@ -83,5 +83,17 @@ export function useDeleteUser(options?: UseMutationOptions<User, Error, string>)
 
       options?.onSuccess?.(...args);
     },
+  });
+}
+
+export function useUserIdentities(
+  userId: string,
+  options?: Omit<UseQueryOptions<UserIdentity[]>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: userKeys.identities(userId),
+    queryFn: () => createUserService().getUserIdentity(userId),
+    enabled: !!userId,
+    ...options,
   });
 }

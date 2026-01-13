@@ -27,8 +27,8 @@ function getScopedBaseUrl(scopePath: string): string {
  * Get user-scoped base URL for endpoints that require user context.
  * Uses /users/me/ which gets replaced by axios interceptor with actual userId.
  */
-export function getUserScopedBase(): string {
-  return getScopedBaseUrl('/apis/iam.miloapis.com/v1alpha1/users/me/control-plane');
+export function getUserScopedBase(userId: string = 'me'): string {
+  return getScopedBaseUrl(`/apis/iam.miloapis.com/v1alpha1/users/${userId}/control-plane`);
 }
 
 /**

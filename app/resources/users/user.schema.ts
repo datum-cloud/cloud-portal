@@ -69,41 +69,22 @@ export const userPreferencesSchema = z.object({
   onboardedAt: z.string().optional(),
 });
 
+export const userIdentitySchema = z.object({
+  name: z.string(),
+  createdAt: z.string(),
+  username: z.string(),
+  userUID: z.string(),
+  providerID: z.string(),
+  providerName: z.string(),
+});
+
 export type UserSchema = z.infer<typeof userSchema>;
 export type UserPreferencesSchema = z.infer<typeof userPreferencesSchema>;
+export type UserIdentity = z.infer<typeof userIdentitySchema>;
 
 // Legacy enums
 export enum RegistrationApproval {
   Approved = 'Approved',
   Rejected = 'Rejected',
   Pending = 'Pending',
-}
-
-export enum LastLoginProvider {
-  Google = 'google',
-  Github = 'github',
-}
-
-// Legacy interfaces
-export interface IUserPreferences {
-  theme: ThemeValue;
-  timezone: string;
-  newsletter: boolean;
-}
-
-export interface IUser {
-  sub?: string;
-  email?: string;
-  familyName?: string;
-  givenName?: string;
-  createdAt?: Date;
-  uid?: string;
-  resourceVersion?: string;
-  fullName?: string;
-  preferences?: IUserPreferences;
-  onboardedAt?: string;
-  registrationApproval?: RegistrationApproval;
-  state?: string;
-  lastLoginProvider?: LastLoginProvider;
-  avatarUrl?: string;
 }
