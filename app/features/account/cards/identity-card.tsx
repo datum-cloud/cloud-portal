@@ -18,6 +18,7 @@ import { CircleAlertIcon, ExternalLinkIcon, MailIcon } from 'lucide-react';
 import { ComponentType, SVGProps } from 'react';
 
 const PROVIDERS: Record<string, { label: string; Icon: ComponentType<SVGProps<SVGSVGElement>> }> = {
+  email: { label: 'Email', Icon: MailIcon },
   google: { label: 'Google', Icon: GoogleIcon },
   github: { label: 'GitHub', Icon: GitHubIcon },
 };
@@ -37,7 +38,7 @@ export const AccountIdentitySettingsCard = () => {
         ) : (
           <div className="divide-stepper-line flex flex-col divide-y">
             {identities?.map((identity) => {
-              const provider = identity.providerName.toLowerCase();
+              const provider = identity.providerName?.toLowerCase() ?? 'email';
               const providerMeta = PROVIDERS?.[provider];
               return (
                 <IdentityItem

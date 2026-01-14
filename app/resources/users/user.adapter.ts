@@ -6,8 +6,11 @@ import type {
   LastLoginProviderValue,
   UserSchema,
   UserIdentity,
+  UserActiveSession,
 } from './user.schema';
 import {
+  ComMiloapisGoMiloPkgApisIdentityV1Alpha1Session,
+  ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList,
   ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentity,
   ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList,
 } from '@/modules/control-plane/identity/types.gen';
@@ -149,4 +152,25 @@ export function toUserIdentityList(
   raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList
 ): UserIdentity[] {
   return raw.items.map(toUserIdentity);
+}
+
+export function toUserActiveSession(
+  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1Session
+): UserActiveSession {
+  const { metadata, status } = raw;
+  return {
+    name: metadata?.name ?? '',
+    createdAt: metadata?.creationTimestamp ?? '',
+    expiresAt: status?.expiresAt ?? '',
+    fingerprintID: status?.fingerprintID ?? '',
+    ip: status?.ip ?? '',
+    provider: status?.provider ?? '',
+    userUID: status?.userUID ?? '',
+  };
+}
+
+export function toUserActiveSessionList(
+  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList
+): UserActiveSession[] {
+  return raw.items.filter((item) => !item.metadata?.deletionTimestamp).map(toUserActiveSession);
 }

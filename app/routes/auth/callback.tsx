@@ -44,6 +44,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     const { idToken, refreshToken, ...rest } = credentials;
+
     const cookieHeader = request.headers.get('Cookie');
 
     debugLog('Received tokens', {

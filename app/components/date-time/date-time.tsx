@@ -47,8 +47,9 @@ export const DateTime = ({
   const { userPreferences } = useApp();
   const [mounted, setMounted] = useState(false);
 
-  // Hydration protection for relative dates (client-side only)
-  const needsHydrationProtection = variant === 'relative' || variant === 'both';
+  // Hydration protection for all date variants (client-side only)
+  // All variants can have mismatches due to timezone differences between server/client
+  const needsHydrationProtection = true;
 
   useEffect(() => {
     if (needsHydrationProtection && !disableHydrationProtection) {
