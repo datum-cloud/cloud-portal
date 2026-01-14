@@ -19,6 +19,7 @@ export interface DataTableProps<TData, TValue> {
   defaultColumnFilters?: ColumnFiltersState;
   defaultSorting?: SortingState;
   pageSize?: number; // Custom page size (default: 20)
+  enableShowAll?: boolean; // Enable "All" option in page size selector (default: false)
 
   // Filter system (compound components)
   /**
@@ -194,6 +195,9 @@ export interface DataTableToolbarConfig {
 
   /** Show filter count badge on dropdown button */
   showFilterCount?: boolean;
+
+  /** Show row count before filters (e.g., "Showing 5 records") */
+  showRowCount?: boolean;
 
   /** Enable responsive behavior (auto-collapse on mobile) */
   responsive?: boolean;

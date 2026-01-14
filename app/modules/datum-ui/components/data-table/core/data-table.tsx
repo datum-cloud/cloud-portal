@@ -92,6 +92,7 @@ function DataTableInternal<TData, TValue>(
     defaultColumnFilters = [],
     defaultSorting = [],
     pageSize = 50,
+    enableShowAll = false,
     filterComponent,
     filters,
     defaultFilters,
@@ -314,6 +315,7 @@ function DataTableInternal<TData, TValue>(
         enableInlineContent={enableInlineContent}
         inlineContent={inlineContent}
         inlineContentClassName={inlineContentClassName}
+        enableShowAll={enableShowAll}
       />
     </DataTableProvider>
   );
@@ -349,6 +351,7 @@ interface DataTableContentProps<TData, TValue> {
   enableInlineContent: boolean;
   inlineContent?: any;
   inlineContentClassName?: string;
+  enableShowAll?: boolean;
 }
 
 const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
@@ -381,6 +384,7 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
     enableInlineContent,
     inlineContent,
     inlineContentClassName,
+    enableShowAll = false,
   }: DataTableContentProps<TData, TValue>,
   ref: Ref<DataTableRef<TData>>
 ) {
@@ -467,7 +471,10 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
           </div>
 
           {/* Pagination Section */}
-          {!hidePagination && table.getPageCount() > 1 && <DataTablePagination table={table} />}
+          {/* Show pagination if: more than 1 page, OR enableShowAll is true (to allow changing page size) */}
+          {!hidePagination && (table.getPageCount() > 1 || enableShowAll) && (
+            <DataTablePagination table={table} enableShowAll={enableShowAll} />
+          )}
         </div>
       ) : (
         <EmptyContent {...emptyContent} />
