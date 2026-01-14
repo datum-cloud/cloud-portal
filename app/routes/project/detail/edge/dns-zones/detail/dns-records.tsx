@@ -116,6 +116,7 @@ export default function DnsRecordsPage() {
       <DnsRecordTable
         ref={tableRef}
         mode="full"
+        enableShowAll={true}
         data={dnsRecords}
         projectId={projectId!}
         emptyContent={{
@@ -186,6 +187,7 @@ export default function DnsRecordsPage() {
             placeholder: 'Search DNS records',
           },
           filtersDisplay: 'dropdown',
+          showRowCount: true,
         }}
         filters={
           <>

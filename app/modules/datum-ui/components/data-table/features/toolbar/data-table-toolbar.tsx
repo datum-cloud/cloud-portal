@@ -5,6 +5,7 @@ import {
 } from '../../core/data-table.types';
 import { DataTableFilter } from '../filter/data-table-filter';
 import { DataTableToolbarFilterDropdown } from './data-table-toolbar-filter-dropdown';
+import { DataTableToolbarRowCount } from './data-table-toolbar-row-count';
 import { DataTableToolbarSearch } from './data-table-toolbar-search';
 import { PageTitle } from '@/components/page-title/page-title';
 import { cn } from '@shadcn/lib/utils';
@@ -148,6 +149,7 @@ export const DataTableToolbar = ({
       maxInlineFilters: config?.maxInlineFilters || 3,
       primaryFilters: config?.primaryFilters,
       showFilterCount: config?.showFilterCount ?? true,
+      showRowCount: config?.showRowCount ?? false, // Default to false, must be explicitly enabled
       responsive: config?.responsive ?? true,
     }),
     [config]
@@ -253,8 +255,11 @@ export const DataTableToolbar = ({
           )}
         </div>
 
-        {/* Right Section: Dropdown Filters + Actions */}
+        {/* Right Section: Row Count + Dropdown Filters + Actions */}
         <div className={cn('flex items-center justify-end gap-3', rightSectionClassName)}>
+          {/* Row count appears before dropdown filters */}
+          {toolbarConfig.showRowCount && <DataTableToolbarRowCount />}
+
           {dropdownFilters && dropdownFilters.length > 0 && (
             <DataTableToolbarFilterDropdown
               showFilterCount={toolbarConfig.showFilterCount}
