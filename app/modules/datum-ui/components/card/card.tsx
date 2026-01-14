@@ -29,7 +29,9 @@ const CardHeader = ({ className, ...props }: React.ComponentProps<'div'>) => {
 };
 
 const CardFooter = ({ className, ...props }: React.ComponentProps<'div'>) => {
-  return <div data-slot="card-footer" className={cn('border-card-border', className)} {...props} />;
+  return (
+    <div data-slot="card-footer" className={cn('border-card-border px-6', className)} {...props} />
+  );
 };
 
 export { CardTitle, CardDescription, CardContent, CardFooter };

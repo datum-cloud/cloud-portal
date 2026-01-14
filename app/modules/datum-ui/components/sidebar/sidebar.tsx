@@ -376,7 +376,7 @@ const Sidebar = ({
       <div
         ref={sidebarRef}
         className={cn(
-          'fixed inset-y-0 hidden w-(--sidebar-width) transition-[left,right,width] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] md:flex',
+          'border-sidebar-border fixed inset-y-0 hidden w-(--sidebar-width) transition-[left,right,width] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] md:flex',
           // Z-index: Higher for overlay mode to float above content
           expandBehavior === 'overlay' ? 'z-50' : 'z-10',
           side === 'left'
