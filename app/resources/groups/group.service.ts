@@ -17,7 +17,7 @@ import {
 import { logger } from '@/modules/logger';
 import { ControlPlaneStatus } from '@/resources/base';
 import type { ServiceOptions } from '@/resources/base/types';
-import { buildNamespace } from '@/utils/common';
+import { buildOrganizationNamespace } from '@/utils/common';
 import { parseOrThrow } from '@/utils/errors/error-formatter';
 import { mapApiError } from '@/utils/errors/error-mapper';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -61,7 +61,7 @@ export function createGroupService() {
       const response = await listIamMiloapisComV1Alpha1NamespacedGroup({
         baseURL: getOrgScopedBase(organizationId),
         path: {
-          namespace: buildNamespace('organization', organizationId),
+          namespace: buildOrganizationNamespace(organizationId),
         },
       });
 
@@ -101,7 +101,7 @@ export function createGroupService() {
       const response = await readIamMiloapisComV1Alpha1NamespacedGroup({
         baseURL: getOrgScopedBase(organizationId),
         path: {
-          namespace: buildNamespace('organization', organizationId),
+          namespace: buildOrganizationNamespace(organizationId),
           name,
         },
       });
@@ -130,7 +130,7 @@ export function createGroupService() {
           message: 'Invalid group data',
         });
 
-        const namespace = buildNamespace('organization', organizationId);
+        const namespace = buildOrganizationNamespace(organizationId);
         const payload: ComMiloapisIamV1Alpha1Group = {
           apiVersion: 'iam.miloapis.com/v1alpha1',
           kind: 'Group',
@@ -179,7 +179,7 @@ export function createGroupService() {
       const startTime = Date.now();
 
       try {
-        const namespace = buildNamespace('organization', organizationId);
+        const namespace = buildOrganizationNamespace(organizationId);
         const payload: Partial<ComMiloapisIamV1Alpha1Group> = {
           metadata: {
             resourceVersion: input.resourceVersion,
@@ -221,7 +221,7 @@ export function createGroupService() {
       const startTime = Date.now();
 
       try {
-        const namespace = buildNamespace('organization', organizationId);
+        const namespace = buildOrganizationNamespace(organizationId);
 
         await deleteIamMiloapisComV1Alpha1NamespacedGroup({
           baseURL: getOrgScopedBase(organizationId),

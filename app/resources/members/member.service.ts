@@ -9,7 +9,7 @@ import {
 } from '@/modules/control-plane/resource-manager';
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
-import { buildNamespace } from '@/utils/common';
+import { buildOrganizationNamespace } from '@/utils/common';
 import { mapApiError } from '@/utils/errors/error-mapper';
 import { getOrgScopedBase } from '@/utils/scoped-urls';
 
@@ -52,7 +52,7 @@ export function createMemberService() {
         {
           baseURL: getOrgScopedBase(organizationId),
           path: {
-            namespace: buildNamespace('organization', organizationId),
+            namespace: buildOrganizationNamespace(organizationId),
           },
         }
       );
@@ -71,7 +71,7 @@ export function createMemberService() {
         await deleteResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership({
           baseURL: getOrgScopedBase(organizationId),
           path: {
-            namespace: buildNamespace('organization', organizationId),
+            namespace: buildOrganizationNamespace(organizationId),
             name: memberId,
           },
         });
@@ -104,7 +104,7 @@ export function createMemberService() {
           await patchResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership({
             baseURL: getOrgScopedBase(organizationId),
             path: {
-              namespace: buildNamespace('organization', organizationId),
+              namespace: buildOrganizationNamespace(organizationId),
               name: memberId,
             },
             query: {
