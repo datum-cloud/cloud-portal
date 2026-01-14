@@ -52,14 +52,7 @@ export const DomainGeneralCard = ({
       },
       {
         label: 'Created At',
-        content: (
-          <DateTime
-            className="text-sm"
-            date={domain?.createdAt ?? ''}
-            variant="absolute"
-            format="yyyy-MM-dd, HH:mmaaa"
-          />
-        ),
+        content: <DateTime className="text-sm" date={domain?.createdAt ?? ''} />,
       },
       {
         label: 'DNS Zone',

@@ -20,7 +20,7 @@ export const Header = ({
   currentOrg?: Organization;
 }) => {
   return (
-    <header className="bg-background sticky top-0 z-50 flex h-[54px] w-full max-w-screen shrink-0 items-center justify-between gap-4 border-b px-4 py-3.5">
+    <header className="bg-background border-sidebar-border sticky top-0 z-50 flex h-[54px] w-full max-w-screen shrink-0 items-center justify-between gap-4 border-b px-4 py-3.5">
       {/* Left Section */}
       <div className="flex flex-1 items-center">
         <Link to={paths.account.root} className="mr-6 flex items-center justify-center">
