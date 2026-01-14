@@ -8,7 +8,7 @@
  * - Google Cloud DNS export format
  * - AWS Route53 export format
  *
- * Record types: A, AAAA, CNAME, MX, TXT, NS, PTR, SRV, CAA, SOA, TLSA, HTTPS, SVCB
+ * Record types: A, AAAA, ALIAS, CNAME, MX, TXT, NS, PTR, SRV, CAA, SOA, TLSA, HTTPS, SVCB
  *
  * Note: This module is self-contained with no external dependencies
  * to allow plug-and-play usage in different contexts.
@@ -22,6 +22,7 @@ import type { BindParseResult, DNSRecordType, ParsedDnsRecord } from './types';
 const SUPPORTED_TYPES = new Set<string>([
   'A',
   'AAAA',
+  'ALIAS',
   'CNAME',
   'MX',
   'TXT',
@@ -56,6 +57,7 @@ function buildRecordValue(type: string, data: Record<string, unknown>): string {
   switch (type) {
     case 'A':
     case 'AAAA':
+    case 'ALIAS':
     case 'CNAME':
     case 'NS':
     case 'PTR':

@@ -24,6 +24,7 @@ export {
   // Type-specific record data schemas
   aRecordDataSchema,
   aaaaRecordDataSchema,
+  aliasRecordDataSchema,
   cnameRecordDataSchema,
   txtRecordDataSchema,
   mxRecordDataSchema,
@@ -39,6 +40,7 @@ export {
   // Combined record schemas (base + type-specific)
   aRecordSchema,
   aaaaRecordSchema,
+  aliasRecordSchema,
   cnameRecordSchema,
   txtRecordSchema,
   mxRecordSchema,
@@ -59,6 +61,7 @@ export {
   // Type exports for record schemas
   type ARecordSchema,
   type AAAARecordSchema,
+  type ALIASRecordSchema,
   type CNAMERecordSchema,
   type TXTRecordSchema,
   type MXRecordSchema,

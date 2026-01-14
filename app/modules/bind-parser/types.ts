@@ -10,6 +10,7 @@
 export type DNSRecordType =
   | 'A'
   | 'AAAA'
+  | 'ALIAS'
   | 'CNAME'
   | 'MX'
   | 'TXT'

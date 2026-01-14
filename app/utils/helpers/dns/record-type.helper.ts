@@ -173,6 +173,7 @@ export function normalizeCaaValue(value: string): string {
  */
 export const FQDN_FIELDS: Record<string, string[]> = {
   CNAME: ['content'],
+  ALIAS: ['content'],
   NS: ['content'],
   PTR: ['content'],
   MX: ['exchange'],

@@ -37,9 +37,9 @@ export function formatDnsConflictError(errorMessage: string): string {
   const typeMatch = actualErrorMessage.match(/\bIN\s+([A-Z]+):?\s*Conflicts/i);
   const recordType = typeMatch ? typeMatch[1] : 'record';
 
-  // Special handling for CNAME conflicts (most common case)
-  if (recordType === 'CNAME') {
-    return 'CNAME records cannot coexist with other record types at the same name. Please remove the existing records before adding this CNAME, or use a different name.';
+  // Special handling for CNAME/ALIAS conflicts (most common cases)
+  if (recordType === 'CNAME' || recordType === 'ALIAS') {
+    return `${recordType} records cannot coexist with other record types at the same name. Please remove the existing records before adding this ${recordType}, or use a different name.`;
   }
 
   // Generic conflict message for other record types

@@ -1,7 +1,7 @@
 import { ARecordField } from './types/a-record-field';
 import { AAAARecordField } from './types/aaaa-record-field';
 import { CAARecordField } from './types/caa-record-field';
-import { CNAMERecordField } from './types/cname-record-field';
+import { ALIASRecordField, CNAMERecordField } from './types/cname-record-field';
 import { HTTPSRecordField } from './types/https-record-field';
 import { MXRecordField } from './types/mx-record-field';
 import { NSRecordField } from './types/ns-record-field';
@@ -141,6 +141,7 @@ export function DnsRecordForm({
       A: <ARecordField fields={fields as any} defaultValue={defaultValue as any} />,
       AAAA: <AAAARecordField fields={fields as any} defaultValue={defaultValue as any} />,
       CNAME: <CNAMERecordField fields={fields as any} defaultValue={defaultValue as any} />,
+      ALIAS: <ALIASRecordField fields={fields as any} defaultValue={defaultValue as any} />,
       TXT: <TXTRecordField fields={fields as any} defaultValue={defaultValue as any} />,
       MX: <MXRecordField fields={fields as any} defaultValue={defaultValue as any} />,
       SRV: <SRVRecordField fields={fields as any} defaultValue={defaultValue as any} />,

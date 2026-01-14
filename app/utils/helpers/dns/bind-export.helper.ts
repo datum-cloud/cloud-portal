@@ -143,6 +143,7 @@ function formatRecord(record: IFlattenedDnsRecord): string | null {
       return formatRecordLine(name, ttl, type, value);
 
     case 'CNAME':
+    case 'ALIAS':
     case 'NS':
     case 'PTR':
       // Records with domain name targets

@@ -94,6 +94,16 @@ function compareCnameRecords(newRecord: any, existingRecord: any): boolean {
 }
 
 /**
+ * Compare ALIAS records (normalize target domain)
+ */
+function compareAliasRecords(newRecord: any, existingRecord: any): boolean {
+  return (
+    normalizeDomainName(newRecord.alias?.content) ===
+    normalizeDomainName(existingRecord.alias?.content)
+  );
+}
+
+/**
  * Compare NS records (normalize nameserver domain)
  */
 function compareNsRecords(newRecord: any, existingRecord: any): boolean {
@@ -182,6 +192,7 @@ const RECORD_COMPARATORS: Record<string, RecordComparator> = {
   SOA: compareSoaRecords,
   MX: compareMxRecords,
   CNAME: compareCnameRecords,
+  ALIAS: compareAliasRecords,
   NS: compareNsRecords,
   PTR: comparePtrRecords,
   SRV: compareSrvRecords,
@@ -227,7 +238,7 @@ export function isDuplicateRecord(
  * Record types with domain name fields that need trailing dot normalization
  * Used for value comparison in findRecordIndex
  */
-const DOMAIN_NAME_VALUE_TYPES = new Set(['CNAME', 'NS', 'PTR']);
+const DOMAIN_NAME_VALUE_TYPES = new Set(['CNAME', 'ALIAS', 'NS', 'PTR']);
 
 /**
  * Find index of a matching record in existing records

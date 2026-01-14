@@ -12,6 +12,7 @@ export const SUPPORTED_DNS_RECORD_TYPES = [
   'A',
   'AAAA',
   'CNAME',
+  'ALIAS',
   'MX',
   'TXT',
   'SRV',

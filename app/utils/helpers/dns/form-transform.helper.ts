@@ -54,6 +54,14 @@ export function transformFormToRecord(
       }
       break;
 
+    case 'ALIAS':
+      // Form: { alias: { content: string } }
+      // K8s:  { alias: { content: string } } - with FQDN trailing dot
+      if (typeData.alias) {
+        record.alias = transformFqdnFields('ALIAS', typeData.alias, ensureFqdn);
+      }
+      break;
+
     case 'TXT':
       // Form: { txt: { content: string } }
       // K8s:  { txt: { content: string } }
@@ -186,6 +194,11 @@ export function recordToFormDefaultValue(
       return {
         ...base,
         cname: { content: normalizeDomainName(record.value) },
+      } as any;
+    case 'ALIAS':
+      return {
+        ...base,
+        alias: { content: normalizeDomainName(record.value) },
       } as any;
     case 'NS':
       return {

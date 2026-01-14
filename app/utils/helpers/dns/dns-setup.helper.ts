@@ -41,7 +41,10 @@ function isRootName(name?: string): boolean {
 function getWwwRecords(records: IFlattenedDnsRecord[]): IFlattenedDnsRecord[] {
   return records.filter(
     (record) =>
-      (record.type === 'A' || record.type === 'AAAA' || record.type === 'CNAME') &&
+      (record.type === 'A' ||
+        record.type === 'AAAA' ||
+        record.type === 'CNAME' ||
+        record.type === 'ALIAS') &&
       record.name?.toLowerCase() === 'www'
   );
 }
@@ -53,7 +56,10 @@ function getWwwRecords(records: IFlattenedDnsRecord[]): IFlattenedDnsRecord[] {
 function getRootRecords(records: IFlattenedDnsRecord[]): IFlattenedDnsRecord[] {
   return records.filter(
     (record) =>
-      (record.type === 'A' || record.type === 'AAAA' || record.type === 'CNAME') &&
+      (record.type === 'A' ||
+        record.type === 'AAAA' ||
+        record.type === 'CNAME' ||
+        record.type === 'ALIAS') &&
       isRootName(record.name)
   );
 }
@@ -92,13 +98,13 @@ export function getDnsSetupStatus(
     {
       id: 'www-record',
       label: 'www subdomain',
-      description: `Add an A, AAAA, or CNAME record for www so that www.${domain} will resolve.`,
+      description: `Add an A, AAAA, CNAME, or ALIAS record for www so that www.${domain} will resolve.`,
       isComplete: wwwRecords.length > 0,
     },
     {
       id: 'root-record',
       label: 'Root domain',
-      description: `Add an A, AAAA, or CNAME record for your root so that ${domain} will resolve.`,
+      description: `Add an A, AAAA, CNAME, or ALIAS record for your root so that ${domain} will resolve.`,
       isComplete: rootRecords.length > 0,
     },
     {
