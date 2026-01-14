@@ -71,17 +71,27 @@ export const userPreferencesSchema = z.object({
 
 export const userIdentitySchema = z.object({
   name: z.string(),
-  createdAt: z.string(),
-  username: z.string(),
-  userUID: z.string(),
-  providerID: z.string(),
-  providerName: z.string(),
+  createdAt: z.string().optional(),
+  username: z.string().optional(),
+  userUID: z.string().optional(),
+  providerID: z.string().optional(),
+  providerName: z.string().optional(),
+});
+
+export const userActiveSessionSchema = z.object({
+  name: z.string(),
+  createdAt: z.string().optional(),
+  expiresAt: z.string().optional(),
+  fingerprintID: z.string().optional(),
+  ip: z.string().optional(),
+  provider: z.string().optional(),
+  userUID: z.string().optional(),
 });
 
 export type UserSchema = z.infer<typeof userSchema>;
 export type UserPreferencesSchema = z.infer<typeof userPreferencesSchema>;
 export type UserIdentity = z.infer<typeof userIdentitySchema>;
-
+export type UserActiveSession = z.infer<typeof userActiveSessionSchema>;
 // Legacy enums
 export enum RegistrationApproval {
   Approved = 'Approved',

@@ -15,11 +15,11 @@ export default function AccountSettingsLayout() {
     //   label: 'Security',
     //   to: paths.account.settings.security,
     // },
-    // {
-    //   value: 'active-sessions',
-    //   label: 'Active Sessions',
-    //   to: paths.account.settings.activeSessions,
-    // },
+    {
+      value: 'active-sessions',
+      label: 'Active Sessions',
+      to: paths.account.settings.activeSessions,
+    },
     // {
     //   value: 'access-tokens',
     //   label: 'Access Tokens',

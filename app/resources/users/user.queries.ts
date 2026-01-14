@@ -1,4 +1,10 @@
-import type { User, UpdateUserPreferencesInput, UserSchema, UserIdentity } from './user.schema';
+import type {
+  User,
+  UpdateUserPreferencesInput,
+  UserSchema,
+  UserIdentity,
+  UserActiveSession,
+} from './user.schema';
 import { createUserService, userKeys } from './user.service';
 import {
   useQuery,
@@ -7,6 +13,7 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 
 export function useUser(
   userId: string,
@@ -96,4 +103,49 @@ export function useUserIdentities(
     enabled: !!userId,
     ...options,
   });
+}
+
+export function useUserActiveSessions(
+  userId: string,
+  options?: Omit<UseQueryOptions<UserActiveSession[]>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: userKeys.activeSessions(userId),
+    queryFn: () => createUserService().getUserActiveSessions(userId),
+    enabled: !!userId,
+    ...options,
+  });
+}
+
+export function useRevokeUserActiveSession(
+  userId: string,
+  options?: UseMutationOptions<void, Error, string>
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (sessionId: string) =>
+      createUserService().revokeUserActiveSession(userId, sessionId),
+    onSettled: () => {
+      // Force refetch active queries (works even with staleTime)
+      queryClient.refetchQueries({
+        queryKey: userKeys.activeSessions(userId),
+        type: 'active',
+      });
+    },
+    ...options,
+  });
+}
+
+export function useHydrateUserActiveSessions(userId: string, initialData: UserActiveSession[]) {
+  const queryClient = useQueryClient();
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    if (!hydrated.current && initialData) {
+      // Use the same query key format as useDnsRecords and useDnsRecordsWatch
+      queryClient.setQueryData(userKeys.activeSessions(userId), initialData);
+      hydrated.current = true;
+    }
+  }, [queryClient, userId, initialData]);
 }
