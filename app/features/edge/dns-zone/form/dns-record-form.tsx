@@ -1,7 +1,8 @@
 import { ARecordField } from './types/a-record-field';
 import { AAAARecordField } from './types/aaaa-record-field';
+import { ALIASRecordField } from './types/alias-record-field';
 import { CAARecordField } from './types/caa-record-field';
-import { ALIASRecordField, CNAMERecordField } from './types/cname-record-field';
+import { CNAMERecordField } from './types/cname-record-field';
 import { HTTPSRecordField } from './types/https-record-field';
 import { MXRecordField } from './types/mx-record-field';
 import { NSRecordField } from './types/ns-record-field';
