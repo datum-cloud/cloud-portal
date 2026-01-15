@@ -21,7 +21,7 @@ import {
   useHydrateMembers,
   useMembers,
 } from '@/resources/members';
-import { buildNamespace } from '@/utils/common';
+import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -201,7 +201,7 @@ export default function OrgTeamPage() {
     'organizationmemberships',
     'delete',
     {
-      namespace: buildNamespace('organization', orgId ?? ''),
+      namespace: buildOrganizationNamespace(orgId ?? ''),
       group: 'resourcemanager.miloapis.com',
     }
   );
@@ -210,7 +210,7 @@ export default function OrgTeamPage() {
     'userinvitations',
     'create',
     {
-      namespace: buildNamespace('organization', orgId ?? ''),
+      namespace: buildOrganizationNamespace(orgId ?? ''),
       group: 'iam.miloapis.com',
     }
   );
@@ -219,7 +219,7 @@ export default function OrgTeamPage() {
     'organizationmemberships',
     'patch',
     {
-      namespace: buildNamespace('organization', orgId ?? ''),
+      namespace: buildOrganizationNamespace(orgId ?? ''),
       group: 'resourcemanager.miloapis.com',
     }
   );

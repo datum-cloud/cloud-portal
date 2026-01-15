@@ -20,7 +20,7 @@ import {
 } from '@/modules/control-plane/iam';
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
-import { buildNamespace } from '@/utils/common';
+import { buildOrganizationNamespace } from '@/utils/common';
 import { mapApiError } from '@/utils/errors/error-mapper';
 import { getOrgScopedBase } from '@/utils/scoped-urls';
 
@@ -62,7 +62,7 @@ export function createPolicyBindingService() {
       const response = await listIamMiloapisComV1Alpha1NamespacedPolicyBinding({
         baseURL: getOrgScopedBase(organizationId),
         path: {
-          namespace: buildNamespace('organization', organizationId),
+          namespace: buildOrganizationNamespace(organizationId),
         },
       });
 
@@ -99,7 +99,7 @@ export function createPolicyBindingService() {
       const response = await readIamMiloapisComV1Alpha1NamespacedPolicyBinding({
         baseURL: getOrgScopedBase(organizationId),
         path: {
-          namespace: buildNamespace('organization', organizationId),
+          namespace: buildOrganizationNamespace(organizationId),
           name: id,
         },
       });
@@ -124,7 +124,7 @@ export function createPolicyBindingService() {
         const response = await createIamMiloapisComV1Alpha1NamespacedPolicyBinding({
           baseURL: getOrgScopedBase(organizationId),
           path: {
-            namespace: buildNamespace('organization', organizationId),
+            namespace: buildOrganizationNamespace(organizationId),
           },
           query: {
             dryRun: options?.dryRun ? 'All' : undefined,
@@ -170,7 +170,7 @@ export function createPolicyBindingService() {
         const response = await patchIamMiloapisComV1Alpha1NamespacedPolicyBinding({
           baseURL: getOrgScopedBase(organizationId),
           path: {
-            namespace: buildNamespace('organization', organizationId),
+            namespace: buildOrganizationNamespace(organizationId),
             name: id,
           },
           headers: {
@@ -213,7 +213,7 @@ export function createPolicyBindingService() {
         await deleteIamMiloapisComV1Alpha1NamespacedPolicyBinding({
           baseURL: getOrgScopedBase(organizationId),
           path: {
-            namespace: buildNamespace('organization', organizationId),
+            namespace: buildOrganizationNamespace(organizationId),
             name: id,
           },
         });

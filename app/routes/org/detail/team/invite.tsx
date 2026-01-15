@@ -5,7 +5,7 @@ import {
   type CreateInvitationInput,
   type InvitationFormSchema,
 } from '@/resources/invitations';
-import { buildNamespace } from '@/utils/common';
+import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -30,7 +30,7 @@ export const loader = withMiddleware(
     resource: 'userinvitations',
     verb: 'create',
     group: 'iam.miloapis.com',
-    namespace: (params) => buildNamespace('organization', params.orgId),
+    namespace: (params) => buildOrganizationNamespace(params.orgId),
   })
 );
 
