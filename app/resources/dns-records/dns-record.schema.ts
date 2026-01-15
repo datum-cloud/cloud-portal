@@ -92,6 +92,14 @@ export const baseRecordFieldSchema = z.object({
     .optional(),
 });
 
+// CNAME-specific base schema - disallows zone apex (@)
+// CNAME records cannot exist at zone apex per RFC 1034/1035
+const cnameBaseRecordFieldSchema = baseRecordFieldSchema.extend({
+  name: baseRecordFieldSchema.shape.name.refine((val) => val !== '@', {
+    message: 'CNAME records cannot be created at the zone apex (@). Use ALIAS instead.',
+  }),
+});
+
 // Type-specific record data schemas
 
 // A Record - IPv4 addresses
@@ -319,7 +327,7 @@ export const aaaaRecordSchema = baseRecordFieldSchema.extend({
   aaaa: aaaaRecordDataSchema,
 });
 
-export const cnameRecordSchema = baseRecordFieldSchema.extend({
+export const cnameRecordSchema = cnameBaseRecordFieldSchema.extend({
   cname: cnameRecordDataSchema,
 });
 
@@ -590,6 +598,12 @@ export const flattenedDnsRecordSchema = z.object({
 
 export type FlattenedDnsRecord = z.infer<typeof flattenedDnsRecordSchema>;
 
+/** Metadata for UI-only information (not sent to API) */
+export interface IFlattenedDnsRecordMeta {
+  /** Original type before transformation (e.g., CNAME → ALIAS) */
+  transformedFrom?: SupportedDnsRecordType;
+}
+
 // Interface version for backward compatibility
 export interface IFlattenedDnsRecord {
   recordSetId?: string;
@@ -602,6 +616,8 @@ export interface IFlattenedDnsRecord {
   ttl?: number;
   status?: IExtendedControlPlaneStatus;
   rawData: any;
+  /** UI-only metadata, not persisted */
+  _meta?: IFlattenedDnsRecordMeta;
 }
 
 // Legacy DNS Record Set control response

@@ -48,10 +48,12 @@ export {
   // BIND import helpers
   parseBindZoneFile,
   deduplicateParsedRecords,
+  transformApexCnameToAlias,
   transformParsedToFlattened,
   transformParsedToRecordSets,
   type ParsedDnsRecord,
   type BindParseResult,
+  type ApexCnameTransformResult,
 
   // BIND export helpers
   generateBindZoneFile,
@@ -67,4 +69,12 @@ export {
   // Error formatting helpers
   formatDnsConflictError,
   formatDnsError,
+
+  // Record type configuration
+  DNS_RECORD_TYPE_CONFIG,
+  getRecordTypeConfig,
+  getRecordFieldConfig,
+  getDnsRecordTypeSelectOptions,
+  type DnsRecordTypeConfig,
+  type DnsRecordFieldConfig,
 } from './dns';

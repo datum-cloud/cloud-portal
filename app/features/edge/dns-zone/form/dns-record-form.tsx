@@ -18,13 +18,12 @@ import { SelectBox } from '@/components/select-box/select-box';
 import {
   CreateDnsRecordSchema,
   createDnsRecordSchema,
-  DNS_RECORD_TYPES,
   DNSRecordType,
   TTL_OPTIONS,
   useCreateDnsRecord,
   useUpdateDnsRecord,
 } from '@/resources/dns-records';
-import { formatDnsError } from '@/utils/helpers/dns-record.helper';
+import { formatDnsError, getDnsRecordTypeSelectOptions } from '@/utils/helpers/dns-record.helper';
 import {
   FormProvider,
   getFormProps,
@@ -124,7 +123,9 @@ export function DnsRecordForm({
           onSuccess?.();
           onClose();
         } catch (error: any) {
-          toast.error(formatDnsError(error.message) || `Failed to ${mode} DNS record`);
+          toast.error('DNS Record', {
+            description: formatDnsError(error.message) || `Failed to ${mode} DNS record`,
+          });
         }
       }
     },
@@ -186,11 +187,9 @@ export function DnsRecordForm({
               onChange={(value) => {
                 recordTypeControl.change(value.value);
               }}
-              options={Object.values(DNS_RECORD_TYPES).map((kind) => ({
-                value: kind,
-                label: kind,
-              }))}
+              options={getDnsRecordTypeSelectOptions()}
               disabled={testMode}
+              itemPreview={(option) => <span>{option.label}</span>}
             />
           </Field>
 

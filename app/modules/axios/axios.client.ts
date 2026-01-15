@@ -1,4 +1,3 @@
-import { toast } from '@datum-ui/components';
 import * as Sentry from '@sentry/react-router';
 import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
@@ -96,8 +95,8 @@ const onResponseError = (error: AxiosError): Promise<AxiosError> => {
   });
 
   // Show toast with error message
-  const title = errorInfo.requestId ? `Request ID: ${errorInfo.requestId}` : 'Error';
-  toast.error(title, { description: errorInfo.message });
+  // const title = errorInfo.requestId ? `Request ID: ${errorInfo.requestId}` : 'Error';
+  // toast.error(title, { description: errorInfo.message });
 
   return Promise.reject(error);
 };

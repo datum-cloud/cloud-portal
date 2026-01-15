@@ -4,8 +4,9 @@ import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRef } from '@/modules/datum-ui/components/data-table';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { formatTTL } from '@/utils/helpers/dns-record.helper';
-import { Badge, Tooltip } from '@datum-ui/components';
+import { Badge, Icon, Tooltip } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
+import { InfoIcon } from 'lucide-react';
 import { forwardRef, useMemo } from 'react';
 
 /**
@@ -38,11 +39,23 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
           size: 120,
           filterFn: 'arrayOr', // Use OR logic for multi-select filter
           cell: ({ row }) => {
+            const { type, _meta } = row.original;
+            const wasTransformed = _meta?.transformedFrom;
+
             return (
               <div className="flex items-center gap-2">
                 <Badge type="quaternary" theme="outline">
-                  {row.original.type}
+                  {type}
                 </Badge>
+
+                {wasTransformed && (
+                  <Tooltip
+                    side="right"
+                    message={`Converted from ${wasTransformed}. CNAME records cannot exist at zone apex (@), so it was automatically converted to ALIAS.`}
+                    contentClassName="max-w-64">
+                    <Icon icon={InfoIcon} className="text-warning-500 size-4 cursor-help" />
+                  </Tooltip>
+                )}
 
                 {showStatus && (
                   <DnsRecordStatus

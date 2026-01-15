@@ -200,17 +200,93 @@ function buildRawDataFromParsed(record: ParsedDnsRecord): Record<string, unknown
   }
 }
 
+// ============================================================================
+// Apex CNAME to ALIAS Transformation
+// ============================================================================
+
+/**
+ * Result of apex CNAME to ALIAS transformation
+ */
+export interface ApexCnameTransformResult {
+  /** Transformed records array */
+  records: ParsedDnsRecord[];
+  /** Number of records transformed */
+  transformedCount: number;
+  /** Indices of transformed records (for marking in flattened output) */
+  transformedIndices: Set<number>;
+}
+
+/**
+ * Transform apex (@) CNAME records to ALIAS records
+ *
+ * CNAME records cannot exist at zone apex per RFC 1034/1035, but ALIAS
+ * provides equivalent functionality. This transformation allows importing
+ * zone files that incorrectly have apex CNAMEs.
+ *
+ * Performance: Returns original array if no transformations needed (no allocation)
+ *
+ * @param records - Parsed DNS records
+ * @returns Transformed records with transformation metadata
+ */
+export function transformApexCnameToAlias(records: ParsedDnsRecord[]): ApexCnameTransformResult {
+  // Single pass to find apex CNAME indices
+  const apexCnameIndices: number[] = [];
+  for (let i = 0; i < records.length; i++) {
+    if (records[i].type === 'CNAME' && records[i].name === '@') {
+      apexCnameIndices.push(i);
+    }
+  }
+
+  // No transformations needed - return original array
+  if (apexCnameIndices.length === 0) {
+    return {
+      records,
+      transformedCount: 0,
+      transformedIndices: new Set(),
+    };
+  }
+
+  // Create new array and transform only the apex CNAMEs
+  const transformed = [...records];
+  const transformedIndices = new Set<number>();
+
+  for (const index of apexCnameIndices) {
+    const original = records[index];
+    transformed[index] = {
+      ...original,
+      type: 'ALIAS',
+      // Data structure is identical for CNAME and ALIAS (both use { content: string })
+    };
+    transformedIndices.add(index);
+  }
+
+  return {
+    records: transformed,
+    transformedCount: apexCnameIndices.length,
+    transformedIndices,
+  };
+}
+
+// ============================================================================
+// Transform to Flattened Records
+// ============================================================================
+
 /**
  * Transform parsed BIND records to IFlattenedDnsRecord[] for UI display
  * Applies TTL normalization to ensure valid TTL values
+ *
+ * @param records - Parsed DNS records
+ * @param dnsZoneId - DNS zone ID
+ * @param transformedIndices - Optional set of indices that were transformed (for _meta)
  */
 export function transformParsedToFlattened(
   records: ParsedDnsRecord[],
-  dnsZoneId: string
+  dnsZoneId: string,
+  transformedIndices?: Set<number>
 ): IFlattenedDnsRecord[] {
-  return records.map((record) => {
+  return records.map((record, index) => {
     const { value: normalizedTTL } = normalizeTTL(record.ttl);
-    return {
+    const flattened: IFlattenedDnsRecord = {
       dnsZoneId,
       type: record.type,
       name: record.name,
@@ -218,6 +294,13 @@ export function transformParsedToFlattened(
       ttl: normalizedTTL ?? undefined,
       rawData: buildRawDataFromParsed(record),
     };
+
+    // Add transformation metadata if this record was transformed
+    if (transformedIndices?.has(index)) {
+      flattened._meta = { transformedFrom: 'CNAME' };
+    }
+
+    return flattened;
   });
 }
 
