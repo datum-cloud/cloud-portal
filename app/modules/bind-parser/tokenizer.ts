@@ -8,6 +8,7 @@ import type { RawRecordLine } from './types';
 const KNOWN_RECORD_TYPES = new Set([
   'A',
   'AAAA',
+  'ALIAS',
   'CNAME',
   'MX',
   'TXT',

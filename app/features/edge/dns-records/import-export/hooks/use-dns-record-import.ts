@@ -6,6 +6,7 @@ import {
   ImportResult,
   parseBindZoneFile,
   SUPPORTED_DNS_RECORD_TYPES,
+  transformApexCnameToAlias,
   transformParsedToFlattened,
   transformParsedToRecordSets,
 } from '@/utils/helpers/dns-record.helper';
@@ -166,9 +167,17 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
         setDuplicateRecords(null);
       }
 
-      // Transform deduplicated records for API and display
-      const recordSets = transformParsedToRecordSets(deduplicatedRecords);
-      const flattened = transformParsedToFlattened(deduplicatedRecords, dnsZoneId);
+      // Transform apex CNAME records to ALIAS (CNAME not allowed at zone apex)
+      const { records: transformedRecords, transformedIndices } =
+        transformApexCnameToAlias(deduplicatedRecords);
+
+      // Transform records for API and display
+      const recordSets = transformParsedToRecordSets(transformedRecords);
+      const flattened = transformParsedToFlattened(
+        transformedRecords,
+        dnsZoneId,
+        transformedIndices
+      );
 
       setRawRecordSets(recordSets);
       setFlattenedRecords(flattened);

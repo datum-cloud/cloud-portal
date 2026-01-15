@@ -50,10 +50,12 @@ export { transformFormToRecord, recordToFormDefaultValue } from './form-transfor
 export {
   parseBindZoneFile,
   deduplicateParsedRecords,
+  transformApexCnameToAlias,
   transformParsedToFlattened,
   transformParsedToRecordSets,
   type ParsedDnsRecord,
   type BindParseResult,
+  type ApexCnameTransformResult,
 } from './bind-import.helper';
 
 // BIND export helpers
@@ -70,3 +72,13 @@ export {
 
 // Error formatting helpers
 export { formatDnsConflictError, formatDnsError } from './error-formatting.helper';
+
+// Record type configuration
+export {
+  DNS_RECORD_TYPE_CONFIG,
+  getRecordTypeConfig,
+  getRecordFieldConfig,
+  getDnsRecordTypeSelectOptions,
+  type DnsRecordTypeConfig,
+  type DnsRecordFieldConfig,
+} from './record-type-config';

@@ -52,6 +52,7 @@ More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/nam
           enum: [
             'A',
             'AAAA',
+            'ALIAS',
             'CNAME',
             'TXT',
             'MX',
@@ -941,6 +942,7 @@ This field may not be empty.`,
                 enum: [
                   'A',
                   'AAAA',
+                  'ALIAS',
                   'CNAME',
                   'TXT',
                   'MX',

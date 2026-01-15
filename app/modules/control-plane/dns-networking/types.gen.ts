@@ -43,6 +43,7 @@ export type ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet = {
     recordType:
       | 'A'
       | 'AAAA'
+      | 'ALIAS'
       | 'CNAME'
       | 'TXT'
       | 'MX'
@@ -506,6 +507,7 @@ export type ComMiloapisNetworkingDnsV1Alpha1DnsZoneDiscovery = {
       recordType:
         | 'A'
         | 'AAAA'
+        | 'ALIAS'
         | 'CNAME'
         | 'TXT'
         | 'MX'

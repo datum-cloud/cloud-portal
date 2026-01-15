@@ -322,7 +322,7 @@ class WatchManager {
     const params = new URLSearchParams({
       watch: 'true',
       resourceVersion: connection.resourceVersion,
-      timeoutSeconds: String(options.timeoutSeconds || 5), // k8s watch timeout is 10 seconds
+      timeoutSeconds: String(options.timeoutSeconds || 30), // k8s watch timeout
     });
 
     if (options.labelSelector) {
@@ -432,7 +432,7 @@ class WatchManager {
 
       // Connection closed
       const connectionDuration = Date.now() - startTime;
-      const MIN_HEALTHY_DURATION = 5000;
+      const MIN_HEALTHY_DURATION = 3000;
       const NORMAL_RECONNECT_DELAY = 1000;
       const SINGLE_RESOURCE_RECONNECT_DELAY = 30000;
 
