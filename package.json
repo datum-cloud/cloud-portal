@@ -13,7 +13,7 @@
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "typecheck": "react-router typegen && tsc",
     "clean": "rm -rf node_modules && rm -rf .react-router && rm -rf build",
-    "openapi-ts": "openapi-ts",
+    "openapi": "bun scripts/openapi.ts",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "test:e2e": "start-server-and-test dev http://localhost:3000/_healthz 'cypress run'",
@@ -113,6 +113,7 @@
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "^0.90.0",
+    "@inquirer/prompts": "^8.2.0",
     "@react-router/dev": "^7.12.0",
     "@react-router/remix-routes-option-adapter": "^7.12.0",
     "@testing-library/cypress": "^10.1.0",

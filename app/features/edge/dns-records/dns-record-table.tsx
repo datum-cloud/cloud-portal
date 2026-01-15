@@ -53,7 +53,11 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
                     side="right"
                     message={`Converted from ${wasTransformed}. CNAME records cannot exist at zone apex (@), so it was automatically converted to ALIAS.`}
                     contentClassName="max-w-64">
-                    <Icon icon={InfoIcon} className="text-warning-500 size-4 cursor-help" />
+                    <Icon
+                      icon={InfoIcon}
+                      className="text-muted-foreground/70 size-3.5 shrink-0 cursor-help"
+                      aria-hidden="true"
+                    />
                   </Tooltip>
                 )}
 

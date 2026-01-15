@@ -12,3 +12,9 @@ node_modules
 cypress/screenshots
 cypress/videos
 cypress/results
+
+# Local plans (not for git)
+docs/plans/
+
+# OpenAPI generation temp files
+temp-openapi-spec.json

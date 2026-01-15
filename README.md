@@ -4,57 +4,55 @@
     src="docs/assets/logo.png"
     style="border: 1px solid #e5e7eb; border-radius: 0.5rem;"
   />
-  
+
   <h1 align="center">Datum Cloud Portal</h1>
-  
+
   <p align="center">
-    Where magic happens
+    Modern cloud infrastructure management portal
   </p>
 </p>
 
-<p align="center">
-    <a href="#">
-        <img alt="React" src="https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB" />
-    </a>
-    <a href="#">
-        <img alt="Tailwind" src="https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white" />
-    </a>
-<a href="https://app.fossa.com/projects/git%2Bgithub.com%2Fdatum-cloud%2Fcloud-portal?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdatum-cloud%2Fcloud-portal.svg?type=shield"/></a>
-    <a href="#">
-        <img alt="Typescript" src="https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white" />
-    </a>
-    <a href="#">
-        <img alt="Code Quality" src="https://github.com/datum-cloud/cloud-portal/actions/workflows/code-quality.yml/badge.svg" />
-    </a>
-    <a href="#">
-        <img alt="Build" src="https://github.com/datum-cloud/cloud-portal/actions/workflows/publish.yaml/badge.svg" />
-    </a>
-    <a href="#">
-        <img alt="Type check" src="https://github.com/datum-cloud/cloud-portal/actions/workflows/typecheck.yml/badge.svg" />
-    </a>
-</p>
+---
 
-# Project Overview
+## About
 
-This project is a Remix-based web application designed for scalability, maintainability, and performance. It follows best practices in project structure, state management, API communication, and UI development to ensure an efficient developer experience and a high-quality user interface.
+The Datum Cloud Portal is a web application for managing cloud infrastructure resources. It provides a unified interface for managing organizations, projects, DNS zones, networking, compute resources, and more.
 
-Key Features
+### Key Features
 
-- Modular Structure: Feature-based organization with clear separation of concerns.
-- Modern UI Components: Built with React, TypeScript, shadcn/ui, and Tailwind CSS for a consistent and efficient design.
-- State Management: Uses Jotai for lightweight state or Zustand/TanStack Query for scalable state handling.
-- Optimized API Communication: Centralized API service layer with efficient data fetching using TanStack Query.
-- Performance Enhancements: Server components, lazy loading, memoization, and Remix-specific optimizations.
-- [WIP] Robust Testing: Includes unit, integration, and end-to-end (E2E) tests using Jest, React Testing Library, and Cypress/Playwright.
-- Accessibility (A11y): Follows WCAG guidelines, ensuring keyboard navigation and screen reader support.
-- Code Quality: Enforces linting, formatting, and Git hooks with Prettier, ESLint, and Husky.
-- CI/CD & Deployment: Uses GitHub Actions, environment configuration, feature flags, and monitoring tools like Sentry.
+- **Organization & Project Management** - Create and manage organizations, invite members, and organize resources into projects
+- **DNS Management** - Configure DNS zones, records, and domain routing
+- **Networking** - Set up HTTP proxies, load balancers, and network policies
+- **Real-Time Updates** - Live resource status via Kubernetes Watch API
+- **Role-Based Access** - Fine-grained permissions and access control
 
-# Getting Started
+### Built With
 
-- [Development guide](docs/development.md)
-- [Design guide](docs/design.md)
-- [Deployment guide](docs//deployment.md)
+- **React Router v7** - Full-stack React framework with SSR
+- **Hono** - Lightweight, high-performance server
+- **TanStack Query** - Server state management and caching
+- **shadcn/ui + Tailwind CSS** - Modern component library
+- **OpenAPI** - Type-safe API clients generated from specs
+
+---
+
+## Quick Start
+
+```bash
+# Install dependencies
+bun install
+
+# Start development server
+bun run dev
+```
+
+---
+
+## Documentation
+
+See the **[Developer Documentation](docs/README.md)** for setup guides, architecture details, and development workflows.
+
+---
 
 ## License
 
