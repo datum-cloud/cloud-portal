@@ -17,9 +17,9 @@ import {
 } from '@/modules/control-plane/iam';
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
+import { getOrgScopedBase, getUserScopedBase } from '@/resources/base/utils';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { mapApiError } from '@/utils/errors/error-mapper';
-import { getOrgScopedBase, getUserScopedBase } from '@/utils/scoped-urls';
 
 export const invitationKeys = {
   all: ['invitations'] as const,

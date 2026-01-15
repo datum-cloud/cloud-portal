@@ -118,6 +118,60 @@ export interface DataTableProps<TData, TValue> {
    * Callback when inline content closes (optional, for side effects)
    */
   onInlineContentClose?: () => void;
+
+  // ========================================
+  // Server-Side Pagination Configuration
+  // ========================================
+
+  /**
+   * Whether pagination is controlled by server (cursor-based)
+   * When enabled, the table delegates pagination control to the parent component
+   * @default false
+   */
+  serverSidePagination?: boolean;
+
+  /**
+   * Whether there's a next page available (server-side only)
+   * Used to enable/disable the "Next" button
+   */
+  hasNextPage?: boolean;
+
+  /**
+   * Whether there's a previous page available (server-side only)
+   * Used to enable/disable the "Previous" button
+   */
+  hasPrevPage?: boolean;
+
+  /**
+   * Callback when page changes (server-side only)
+   * Called with the new page index when user navigates
+   */
+  onPageChange?: (pageIndex: number) => void;
+
+  /**
+   * Callback when page size changes (server-side only)
+   * Called with the new page size when user selects a different size
+   */
+  onPageSizeChange?: (pageSize: number) => void;
+
+  /**
+   * Controlled page index (server-side only)
+   * The current page index, controlled by the parent component
+   */
+  controlledPageIndex?: number;
+
+  /**
+   * Controlled page size (server-side only)
+   * The current page size, controlled by the parent component
+   */
+  controlledPageSize?: number;
+
+  /**
+   * Disable "Show All" option in page size selector
+   * Required for server-side pagination since total count is unknown
+   * @default false
+   */
+  disableShowAll?: boolean;
 }
 
 export interface DataTableRowActionsProps<TData> {

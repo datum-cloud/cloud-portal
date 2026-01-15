@@ -1,6 +1,6 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
-import { ActivityLogList } from '@/features/activity-log/list';
+import { ActivityLogTable } from '@/features/activity-log';
 import { ActionCard } from '@/features/project/dashboard';
 import { createDomainService } from '@/resources/domains';
 import { createHttpProxyService } from '@/resources/http-proxies';
@@ -278,7 +278,12 @@ export default function ProjectHomePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <ActivityLogList params={{ project: project.id, limit: '5' }} />
+              <ActivityLogTable
+                scope={{ type: 'project', projectId: project.name }}
+                defaultPageSize={5}
+                hidePagination
+                hideFilters
+              />
             </CardContent>
           </Card>
         </motion.div>

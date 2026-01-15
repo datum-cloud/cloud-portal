@@ -126,6 +126,15 @@ function DataTableInternal<TData, TValue>(
     inlineContentClassName,
     onInlineContentOpen,
     onInlineContentClose,
+    // Server-side pagination props
+    serverSidePagination = false,
+    hasNextPage,
+    hasPrevPage,
+    onPageChange,
+    onPageSizeChange,
+    controlledPageIndex,
+    controlledPageSize,
+    disableShowAll = false,
   }: DataTableProps<TData, TValue>,
   ref: Ref<DataTableRef<TData>>
 ) {
@@ -316,6 +325,14 @@ function DataTableInternal<TData, TValue>(
         inlineContent={inlineContent}
         inlineContentClassName={inlineContentClassName}
         enableShowAll={enableShowAll}
+        serverSidePagination={serverSidePagination}
+        hasNextPage={hasNextPage}
+        hasPrevPage={hasPrevPage}
+        onPageChange={onPageChange}
+        onPageSizeChange={onPageSizeChange}
+        controlledPageIndex={controlledPageIndex}
+        controlledPageSize={controlledPageSize}
+        disableShowAll={disableShowAll}
       />
     </DataTableProvider>
   );
@@ -352,6 +369,14 @@ interface DataTableContentProps<TData, TValue> {
   inlineContent?: any;
   inlineContentClassName?: string;
   enableShowAll?: boolean;
+  serverSidePagination?: boolean;
+  hasNextPage?: boolean;
+  hasPrevPage?: boolean;
+  onPageChange?: (pageIndex: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
+  controlledPageIndex?: number;
+  controlledPageSize?: number;
+  disableShowAll?: boolean;
 }
 
 const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
@@ -385,6 +410,14 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
     inlineContent,
     inlineContentClassName,
     enableShowAll = false,
+    serverSidePagination = false,
+    hasNextPage,
+    hasPrevPage,
+    onPageChange,
+    onPageSizeChange,
+    controlledPageIndex,
+    controlledPageSize,
+    disableShowAll = false,
   }: DataTableContentProps<TData, TValue>,
   ref: Ref<DataTableRef<TData>>
 ) {
@@ -471,10 +504,21 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
           </div>
 
           {/* Pagination Section */}
-          {/* Show pagination if: more than 1 page, OR enableShowAll is true (to allow changing page size) */}
-          {!hidePagination && (table.getPageCount() > 1 || enableShowAll) && (
-            <DataTablePagination table={table} enableShowAll={enableShowAll} />
-          )}
+          {/* Show pagination if: more than 1 page, OR enableShowAll is true (to allow changing page size), OR server-side pagination */}
+          {!hidePagination &&
+            (table.getPageCount() > 1 || enableShowAll || serverSidePagination) && (
+              <DataTablePagination
+                table={table}
+                enableShowAll={enableShowAll && !disableShowAll}
+                serverSide={serverSidePagination}
+                hasNextPage={hasNextPage}
+                hasPrevPage={hasPrevPage}
+                onPageChange={onPageChange}
+                onPageSizeChange={onPageSizeChange}
+                currentPage={controlledPageIndex}
+                currentPageSize={controlledPageSize}
+              />
+            )}
         </div>
       ) : (
         <EmptyContent {...emptyContent} />

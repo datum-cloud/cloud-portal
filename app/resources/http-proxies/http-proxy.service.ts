@@ -17,8 +17,8 @@ import {
 } from '@/modules/control-plane/networking';
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
+import { getProjectScopedBase } from '@/resources/base/utils';
 import { mapApiError } from '@/utils/errors/error-mapper';
-import { getProjectScopedBase } from '@/utils/scoped-urls';
 
 export const httpProxyKeys = {
   all: ['http-proxies'] as const,

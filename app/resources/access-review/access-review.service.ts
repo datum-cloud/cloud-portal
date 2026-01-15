@@ -6,8 +6,8 @@ import {
 } from '@/modules/control-plane/authorization';
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
+import { getOrgScopedBase } from '@/resources/base/utils';
 import { mapApiError } from '@/utils/errors/error-mapper';
-import { getOrgScopedBase } from '@/utils/scoped-urls';
 
 const SERVICE_NAME = 'AccessReviewService';
 

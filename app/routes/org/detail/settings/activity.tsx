@@ -1,4 +1,4 @@
-import { ActivityLogList } from '@/features/activity-log/list';
+import { ActivityLogTable } from '@/features/activity-log';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { MetaFunction, useParams } from 'react-router';
 
@@ -8,5 +8,6 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export default function OrgActivityPage() {
   const { orgId } = useParams();
-  return <ActivityLogList params={{ organization: orgId }} />;
+  if (!orgId) return null;
+  return <ActivityLogTable scope={{ type: 'organization', organizationId: orgId }} />;
 }

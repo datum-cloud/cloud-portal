@@ -64,8 +64,8 @@ export function CheckboxPopoverFilter({
   };
 
   return (
-    <div className={cn('space-y-2', className)}>
-      <Label className="text-sm font-medium">{displayLabel}</Label>
+    <div className={cn('space-y-4', className)}>
+      <Label className="text-xs font-medium">{displayLabel}</Label>
       {description && <p className="text-muted-foreground text-sm">{description}</p>}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>

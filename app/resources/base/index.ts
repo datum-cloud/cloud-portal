@@ -28,3 +28,5 @@ export {
   type LabelFormSchema,
   type ILabel,
 } from './metadata.schema';
+
+export { getUserScopedBase, getOrgScopedBase, getProjectScopedBase } from './utils';

@@ -4,7 +4,7 @@ import {
 } from '@/modules/datum-ui/components/data-table/hooks/useFilterQueryState';
 import { useApp } from '@/providers/app.provider';
 import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone.helper';
-import { CalendarDatePicker } from '@datum-ui/components';
+import { CalendarDatePicker, type DateRangePreset } from '@datum-ui/components';
 import { Label } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { useCallback, useMemo } from 'react';
@@ -21,6 +21,7 @@ export interface DatePickerFilterProps {
   yearsRange?: number; // Range of years to show in selector
   placeholder?: string;
   excludePresets?: string[];
+  customPresets?: DateRangePreset[]; // Custom presets to replace default ones
   defaultValue?: Date | { from?: Date; to?: Date } | null; // Default value for the filter
   // Date range constraints
   minDate?: Date;
@@ -44,6 +45,7 @@ export function DatePickerFilter({
   yearsRange = 10,
   placeholder,
   excludePresets,
+  customPresets,
   defaultValue,
   minDate,
   maxDate,
@@ -165,10 +167,10 @@ export function DatePickerFilter({
   );
 
   return (
-    <div className={cn('min-w-60 space-y-2', className)}>
+    <div className={cn('min-w-60 space-y-4', className)}>
       {label && (
         <div className="space-y-1">
-          <Label className="text-sm font-medium">{label}</Label>
+          <Label className="text-xs font-medium">{label}</Label>
           {description && <p className="text-muted-foreground text-xs">{description}</p>}
         </div>
       )}
@@ -186,6 +188,7 @@ export function DatePickerFilter({
         triggerClassName="h-9"
         placeholder={placeholder}
         excludePresets={excludePresets}
+        customPresets={customPresets}
         minDate={minDate}
         maxDate={maxDate}
         disableFuture={disableFuture}

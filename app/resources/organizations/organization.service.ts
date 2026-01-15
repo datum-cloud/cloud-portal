@@ -21,9 +21,9 @@ import {
 import { logger } from '@/modules/logger';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import type { ServiceOptions } from '@/resources/base/types';
+import { getUserScopedBase } from '@/resources/base/utils';
 import { parseOrThrow } from '@/utils/errors/error-formatter';
 import { mapApiError } from '@/utils/errors/error-mapper';
-import { getUserScopedBase } from '@/utils/scoped-urls';
 
 // Query Keys (for React Query)
 export const organizationKeys = {

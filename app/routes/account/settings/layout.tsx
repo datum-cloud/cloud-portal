@@ -30,11 +30,11 @@ export default function AccountSettingsLayout() {
     //   label: 'Notifications',
     //   to: paths.account.settings.notifications,
     // },
-    {
-      value: 'activity',
-      label: 'Activity',
-      to: paths.account.settings.activity,
-    },
+    // {
+    //   value: 'activity',
+    //   label: 'Activity',
+    //   to: paths.account.settings.activity,
+    // },
   ];
   return (
     <DashboardLayout
