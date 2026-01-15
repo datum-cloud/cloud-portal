@@ -55,6 +55,9 @@ export function DnsRecordTestCard({
         case 'CNAME':
           parsedData.cname = { content: data['cname.content'] || '' };
           break;
+        case 'ALIAS':
+          parsedData.alias = { content: data['alias.content'] || '' };
+          break;
         case 'TXT':
           parsedData.txt = { content: data['txt.content'] || '' };
           break;

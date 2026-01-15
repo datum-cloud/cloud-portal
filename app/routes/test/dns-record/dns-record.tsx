@@ -18,7 +18,7 @@ import { useState } from 'react';
  *
  * This page provides a testing environment for all DNS record types.
  * Features:
- * - Test all 13 DNS record types with default scenarios
+ * - Test all DNS record types with default scenarios
  * - Import custom scenarios for testing
  * - Real-time validation using Zod schemas
  * - No API calls - pure client-side validation
@@ -182,7 +182,7 @@ export default function DnsRecordTestPage() {
           <div>
             <h1 className="text-2xl font-bold">DNS Record Type Validation Testing</h1>
             <p className="text-muted-foreground mt-1 text-sm">
-              Test validation for all 13 DNS record types with customizable scenarios
+              Test validation for all DNS record types with customizable scenarios
             </p>
           </div>
           <Badge variant="outline" className="h-fit">

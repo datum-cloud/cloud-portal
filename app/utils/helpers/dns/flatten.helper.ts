@@ -165,6 +165,10 @@ export function extractValue(record: any, recordType: string | undefined): strin
       // record.cname.content: string (single value)
       return record.cname?.content || '';
 
+    case 'ALIAS':
+      // record.alias.content: string (single value)
+      return record.alias?.content || '';
+
     case 'TXT':
       // record.txt.content: string (single value)
       return record.txt?.content || '';
@@ -253,6 +257,8 @@ export function isRecordEmpty(record: any, recordType: string): boolean {
       return !record.aaaa?.content;
     case 'CNAME':
       return !record.cname?.content;
+    case 'ALIAS':
+      return !record.alias?.content;
     case 'TXT':
       return !record.txt?.content;
     case 'NS':

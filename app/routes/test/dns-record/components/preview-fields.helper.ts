@@ -46,6 +46,11 @@ export function getPreviewFields(
         typeSpecific = [{ label: 'Target', value: truncate(data.cname?.content, 25) }];
       }
       break;
+    case 'ALIAS':
+      if ('alias' in data) {
+        typeSpecific = [{ label: 'Target', value: truncate((data as any).alias?.content, 25) }];
+      }
+      break;
     case 'TXT':
       if ('txt' in data) {
         typeSpecific = [{ label: 'Text', value: truncate(data.txt?.content, 30) }];

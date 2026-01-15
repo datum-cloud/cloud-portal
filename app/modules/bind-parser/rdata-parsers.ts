@@ -242,6 +242,8 @@ export function parseRdata(type: string, rdata: string): Record<string, unknown>
       return parseARecord(rdata);
     case 'AAAA':
       return parseAaaaRecord(rdata);
+    case 'ALIAS':
+      return parseCnameRecord(rdata);
     case 'CNAME':
       return parseCnameRecord(rdata);
     case 'NS':

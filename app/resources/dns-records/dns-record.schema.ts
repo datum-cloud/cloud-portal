@@ -7,6 +7,7 @@ import { z } from 'zod';
 export const DNS_RECORD_TYPES = [
   'A',
   'AAAA',
+  'ALIAS',
   'CAA',
   'CNAME',
   'HTTPS',
@@ -115,6 +116,17 @@ export const cnameRecordDataSchema = z.object({
     .regex(domainRegex, { message: 'Invalid domain name format.' })
     .refine((val) => val !== '@', {
       message: 'CNAME cannot point to @ (use A/AAAA record instead).',
+    }),
+});
+
+// ALIAS Record - Like CNAME but intended for ALIAS/ANAME-style providers
+// Target is a hostname (FQDN or relative) with an optional trailing dot.
+export const aliasRecordDataSchema = z.object({
+  content: z
+    .string({ error: 'Target domain is required.' })
+    .regex(domainRegex, { message: 'Invalid domain name format.' })
+    .refine((val) => val !== '@', {
+      message: 'ALIAS cannot point to @ (use A/AAAA record instead).',
     }),
 });
 
@@ -311,6 +323,10 @@ export const cnameRecordSchema = baseRecordFieldSchema.extend({
   cname: cnameRecordDataSchema,
 });
 
+export const aliasRecordSchema = baseRecordFieldSchema.extend({
+  alias: aliasRecordDataSchema,
+});
+
 export const txtRecordSchema = baseRecordFieldSchema.extend({
   txt: txtRecordDataSchema,
 });
@@ -365,6 +381,7 @@ export const dnsRecordSetSchema = z.object({
     z.union([
       aRecordSchema,
       aaaaRecordSchema,
+      aliasRecordSchema,
       cnameRecordSchema,
       txtRecordSchema,
       mxRecordSchema,
@@ -392,6 +409,14 @@ export const createDnsRecordSchema = z.discriminatedUnion('recordType', [
   }),
   aaaaRecordSchema.extend({
     recordType: z.literal('AAAA'),
+    dnsZoneRef: z
+      .object({
+        name: z.string().optional(),
+      })
+      .optional(),
+  }),
+  aliasRecordSchema.extend({
+    recordType: z.literal('ALIAS'),
     dnsZoneRef: z
       .object({
         name: z.string().optional(),
@@ -497,6 +522,7 @@ export const updateDnsRecordSchema = z
 // Type exports for form validation schemas
 export type ARecordSchema = z.infer<typeof aRecordSchema>;
 export type AAAARecordSchema = z.infer<typeof aaaaRecordSchema>;
+export type ALIASRecordSchema = z.infer<typeof aliasRecordSchema>;
 export type CNAMERecordSchema = z.infer<typeof cnameRecordSchema>;
 export type TXTRecordSchema = z.infer<typeof txtRecordSchema>;
 export type MXRecordSchema = z.infer<typeof mxRecordSchema>;
@@ -532,6 +558,7 @@ export type DnsRecordSetList = z.infer<typeof dnsRecordSetListSchema>;
 export const SUPPORTED_DNS_RECORD_TYPES = [
   'A',
   'AAAA',
+  'ALIAS',
   'CAA',
   'CNAME',
   'HTTPS',

@@ -130,6 +130,45 @@ export const DEFAULT_TEST_SCENARIOS: Record<DNSRecordType, TestScenario[]> = {
     },
   ],
 
+  ALIAS: [
+    {
+      id: 'alias-default-valid',
+      name: 'Default Valid',
+      recordType: 'ALIAS',
+      data: {
+        recordType: 'ALIAS',
+        name: '@',
+        ttl: null,
+        alias: { content: 'example.com' },
+      } as CreateDnsRecordSchema,
+      isDefault: true,
+    },
+    {
+      id: 'alias-subdomain',
+      name: 'Subdomain Target',
+      recordType: 'ALIAS',
+      data: {
+        recordType: 'ALIAS',
+        name: 'www',
+        ttl: 3600,
+        alias: { content: 'cdn.example.com' },
+      } as CreateDnsRecordSchema,
+      isDefault: true,
+    },
+    {
+      id: 'alias-invalid-root',
+      name: 'Invalid Root (@)',
+      recordType: 'ALIAS',
+      data: {
+        recordType: 'ALIAS',
+        name: 'test',
+        ttl: null,
+        alias: { content: '@' },
+      } as CreateDnsRecordSchema,
+      isDefault: true,
+    },
+  ],
+
   TXT: [
     {
       id: 'txt-default-valid',

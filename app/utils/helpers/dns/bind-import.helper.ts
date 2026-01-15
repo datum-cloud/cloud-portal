@@ -137,6 +137,8 @@ function buildRawDataFromParsed(record: ParsedDnsRecord): Record<string, unknown
       return { ...base, aaaa: { content: record.data.content } };
     case 'CNAME':
       return { ...base, cname: { content: record.data.content } };
+    case 'ALIAS':
+      return { ...base, alias: { content: record.data.content } };
     case 'TXT':
       return { ...base, txt: { content: record.data.content } };
     case 'NS':
