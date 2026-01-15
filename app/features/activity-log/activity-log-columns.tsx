@@ -45,7 +45,7 @@ export function getActivityLogColumns(user?: User): ColumnDef<ActivityLog>[] {
     },
     {
       id: 'details',
-      header: 'Details',
+      header: 'Target',
       accessorKey: 'details',
       cell: ({ row }) => {
         const { details, resourceName } = row.original;
