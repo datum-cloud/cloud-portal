@@ -29,42 +29,36 @@ app/resources/{resource-name}/
 
 ## Step 1: Generate OpenAPI Types
 
-### Fetch the OpenAPI Spec
+Use the interactive OpenAPI generator to create type-safe clients:
 
 ```bash
-# Determine the API endpoint for your resource
-# User-scoped: /apis/{group}/v1alpha1/users/{userId}/control-plane/openapi/v3/apis/{group}/v1alpha1
-# Org-scoped: /apis/{group}/v1alpha1/users/{userId}/organizations/{orgId}/control-plane/openapi/v3/apis/{group}/v1alpha1
-# Project-scoped: Similar pattern with projectId
-
-# Example: Fetch widgets spec
-curl -H "Authorization: Bearer $TOKEN" \
-  "$API_URL/apis/widgets.datum.net/v1alpha1/users/$USER_ID/control-plane/openapi/v3/apis/widgets.datum.net/v1alpha1" \
-  > specs/widgets.json
+bun run openapi
 ```
 
-### Add to Generation Config
+This will:
 
-```typescript
-// openapi-ts.config.ts
-export default [
-  // ... existing configs
-  {
-    input: './specs/widgets.json',
-    output: {
-      path: './app/api/generated/widgets',
-      format: 'prettier',
-    },
-    plugins: ['@hey-api/typescript', '@hey-api/sdk'],
-  },
-];
-```
+1. Prompt for API URL (or use `API_URL` env var)
+2. Prompt for Bearer Token (or use `API_TOKEN` env var)
+3. Show all available API resources
+4. Let you select your resource's API group
+5. Generate the TypeScript clients to `app/modules/control-plane/{folder}/`
 
-### Generate Types
+### Environment Variables (Optional)
 
 ```bash
-bun run generate:api
+# Skip prompts by setting env vars
+export API_URL=https://api.datum.net
+export API_TOKEN=your-bearer-token
+
+bun run openapi
 ```
+
+### Getting a Bearer Token
+
+Get your token from:
+
+1. Browser DevTools (Network tab → Authorization header)
+2. Or by logging in and checking the session
 
 ---
 
@@ -456,8 +450,7 @@ app/resources/widgets/
 
 ## Checklist
 
-- [ ] OpenAPI spec fetched and added to generation
-- [ ] Types generated with `bun run generate:api`
+- [ ] Types generated with `bun run openapi`
 - [ ] Schema created with Zod validation
 - [ ] Adapter transforms API response to domain model
 - [ ] Service implements CRUD operations

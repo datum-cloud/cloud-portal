@@ -6,8 +6,8 @@
  *
  * Usage: bun run openapi
  */
-import { createClient } from '@hey-api/openapi-ts';
-import { input, password, checkbox, confirm } from '@inquirer/prompts';
+import { createClient, defaultPlugins } from '@hey-api/openapi-ts';
+import { input, checkbox, confirm } from '@inquirer/prompts';
 import { existsSync } from 'node:fs';
 import { readFile, writeFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -170,12 +170,12 @@ async function generateModule(
       input: TEMP_SPEC_FILE,
       output: outputDir,
       plugins: [
+        ...defaultPlugins,
         '@hey-api/schemas',
         {
-          name: '@hey-api/typescript',
           enums: 'javascript',
+          name: '@hey-api/typescript',
         },
-        '@hey-api/sdk',
       ],
     });
 
@@ -229,11 +229,14 @@ async function main(): Promise<void> {
     // 1. Get credentials
     const apiUrl = await input({
       message: 'Enter API URL:',
-      default: process.env.CONTROL_PLANE_API_URL || 'https://api.datum.net',
+      default: process.env.API_URL || 'https://api.datum.net',
     });
 
-    const token = await password({
+    const token = await input({
       message: 'Enter Bearer Token:',
+      default: process.env.API_TOKEN,
+      transformer: (value) =>
+        value.length > 20 ? `${value.slice(0, 20)}...${value.slice(-4)}` : value,
     });
 
     if (!token) {

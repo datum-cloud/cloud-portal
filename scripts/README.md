@@ -109,6 +109,7 @@ You need a valid Bearer token to access the API. You can get one by:
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `CONTROL_PLANE_API_URL` | Default API URL (optional, prompted if not set) |
+| Variable    | Description                                              |
+| ----------- | -------------------------------------------------------- |
+| `API_URL`   | Default API URL (optional, prompted if not set)          |
+| `API_TOKEN` | Default API Bearer Token (optional, prompted if not set) |

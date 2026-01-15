@@ -40,115 +40,58 @@ app/modules/control-plane/
 
 ---
 
-## Fetching OpenAPI Specs
+## Quick Start: Interactive Generator
 
-### Authentication
+The easiest way to generate OpenAPI clients is using the interactive generator:
+
+```bash
+bun run openapi
+```
+
+This will:
+1. Prompt for API URL (defaults to `https://api.datum.net` or `API_URL` env var)
+2. Prompt for Bearer Token (can be set via `API_TOKEN` env var)
+3. Fetch and display all available API resources
+4. Let you select which resources to generate
+5. Generate the TypeScript clients automatically
+
+### Environment Variables
+
+You can set these environment variables to skip the prompts:
+
+```bash
+# Set API URL
+export API_URL=https://api.datum.net
+
+# Set Bearer Token
+export API_TOKEN=your-bearer-token-here
+
+# Then run the generator
+bun run openapi
+```
+
+### Getting a Bearer Token
 
 You need a valid bearer token from your OIDC provider. Get it from:
 1. The browser DevTools (Network tab → Authorization header)
 2. Or by logging in and checking the session
 
-### API Endpoints
-
-Specs are available at different endpoints depending on resource scope:
-
-#### User-Scoped Resources
-
-```bash
-# Identity API
-curl -H "Authorization: Bearer $TOKEN" \
-  "${API_URL}/apis/iam.miloapis.com/v1alpha1/users/${USER_ID}/control-plane/openapi/v3/apis/identity.miloapis.com/v1alpha1" \
-  -o specs/identity.json
-```
-
-#### Organization-Scoped Resources
-
-```bash
-# IAM API
-curl -H "Authorization: Bearer $TOKEN" \
-  "${API_URL}/apis/iam.miloapis.com/v1alpha1/organizations/${ORG_ID}/control-plane/openapi/v3/apis/iam.miloapis.com/v1alpha1" \
-  -o specs/iam.json
-```
-
-#### Project-Scoped Resources
-
-```bash
-# DNS Networking API
-curl -H "Authorization: Bearer $TOKEN" \
-  "${API_URL}/apis/resourcemanager.miloapis.com/v1alpha1/projects/${PROJECT_ID}/control-plane/openapi/v3/apis/dns.networking.miloapis.com/v1alpha1" \
-  -o specs/dns-networking.json
-
-# Networking API
-curl -H "Authorization: Bearer $TOKEN" \
-  "${API_URL}/apis/resourcemanager.miloapis.com/v1alpha1/projects/${PROJECT_ID}/control-plane/openapi/v3/apis/networking.miloapis.com/v1alpha1" \
-  -o specs/networking.json
-```
-
-### Available API Groups
-
-| API Group | Scope | Description |
-|-----------|-------|-------------|
-| `identity.miloapis.com` | User | User profile, sessions |
-| `iam.miloapis.com` | Org | Organizations, members, roles |
-| `resourcemanager.miloapis.com` | Org | Projects, resource management |
-| `dns.networking.miloapis.com` | Project | DNS zones, records, domains |
-| `networking.miloapis.com` | Project | HTTP proxies, networking |
-| `compute.miloapis.com` | Project | Compute resources |
-| `quota.miloapis.com` | Org | Quota management |
-| `authorization.miloapis.com` | Org | Access reviews |
-
 ---
 
-## Generating Clients
+## Available API Groups
 
-### Configuration
+The generator will show all available API resources. Common ones include:
 
-The generation is configured in `openapi-ts.config.ts`:
-
-```typescript
-import { defineConfig, defaultPlugins } from '@hey-api/openapi-ts';
-
-export default defineConfig({
-  input: './specs/gateway.json',
-  output: './app/modules/control-plane/gateway',
-  plugins: [
-    ...defaultPlugins,
-    '@hey-api/client-axios',
-    '@hey-api/schemas',
-    {
-      enums: 'javascript',
-      name: '@hey-api/typescript',
-    },
-  ],
-});
-```
-
-### Running Generation
-
-```bash
-# Generate from the configured spec
-bun run openapi-ts
-
-# Or specify a different config
-bunx openapi-ts -c openapi-ts.config.ts
-```
-
-### Multiple Specs
-
-To generate from multiple specs, you can either:
-
-1. **Run multiple times** with different configs
-2. **Create a script** that processes all specs:
-
-```bash
-#!/bin/bash
-for spec in specs/*.json; do
-  name=$(basename "$spec" .json)
-  bunx openapi-ts \
-    --input "$spec" \
-    --output "app/modules/control-plane/$name"
-done
-```
+| API Group | Description |
+|-----------|-------------|
+| `identity.miloapis.com` | User profile, sessions |
+| `iam.miloapis.com` | Organizations, members, roles |
+| `resourcemanager.miloapis.com` | Projects, resource management |
+| `dns.networking.miloapis.com` | DNS zones, records, domains |
+| `networking.miloapis.com` | HTTP proxies, networking |
+| `compute.miloapis.com` | Compute resources |
+| `quota.miloapis.com` | Quota management |
+| `authorization.miloapis.com` | Access reviews |
 
 ---
 
@@ -221,17 +164,12 @@ Features:
 
 When the Control Plane API changes:
 
-1. **Fetch new spec:**
+1. **Run the generator:**
    ```bash
-   curl -H "Authorization: Bearer $TOKEN" \
-     "${API_URL}/apis/.../openapi/v3/apis/..." \
-     -o specs/api-name.json
+   bun run openapi
    ```
 
-2. **Regenerate clients:**
-   ```bash
-   bun run openapi-ts
-   ```
+2. **Select the resources** that need updating
 
 3. **Update adapters** if response shape changed:
    ```typescript
@@ -265,17 +203,46 @@ bun run typecheck
 
 ### Types don't match API response
 
-The spec may be outdated. Fetch a fresh spec:
+The spec may be outdated. Re-run the generator:
 ```bash
-curl -H "Authorization: Bearer $TOKEN" "$API_URL/..." -o specs/api.json
-bun run openapi-ts
+bun run openapi
 ```
 
 ### Generation fails
 
-Check the spec is valid JSON:
+Check that:
+1. Your bearer token is valid and not expired
+2. You have network access to the API URL
+3. The selected API resource is available
+
+---
+
+## Advanced: Manual Generation
+
+For advanced use cases, you can still use `@hey-api/openapi-ts` directly:
+
 ```bash
-cat specs/api.json | jq . > /dev/null
+# Generate from a local spec file
+bunx openapi-ts --input ./specs/api.json --output ./app/modules/control-plane/api-name
+```
+
+Or configure in `openapi-ts.config.ts`:
+
+```typescript
+import { defineConfig, defaultPlugins } from '@hey-api/openapi-ts';
+
+export default defineConfig({
+  input: './specs/gateway.json',
+  output: './app/modules/control-plane/gateway',
+  plugins: [
+    ...defaultPlugins,
+    '@hey-api/schemas',
+    {
+      enums: 'javascript',
+      name: '@hey-api/typescript',
+    },
+  ],
+});
 ```
 
 ---
