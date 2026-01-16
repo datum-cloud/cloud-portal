@@ -60,8 +60,11 @@ export function useActivityLogs(
     enabled = true,
   } = options;
 
-  // Build CEL filter from UI filter params
-  const celFilter = useMemo(() => buildCELFilter(filters), [filters]);
+  // Build CEL filter from UI filter params (include scope type for search behavior)
+  const celFilter = useMemo(
+    () => buildCELFilter({ ...filters, scopeType: scope.type }),
+    [filters, scope.type]
+  );
 
   // Stable filter key for cache invalidation (JSON stringify for deep comparison)
   const filterKey = useMemo(

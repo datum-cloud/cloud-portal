@@ -4,18 +4,32 @@ import { User } from '@/resources/users';
 import { Badge } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 
+export interface ActivityLogColumnsOptions {
+  /** Current user for "You" badge display */
+  user?: User;
+  /** Hide the User column (useful for account/user scope where it's always the same user) */
+  hideUserColumn?: boolean;
+}
+
 /**
  * Returns column definitions for the Activity Log table.
  *
  * Columns:
- * - User: Who performed the action (email or system account)
+ * - User: Who performed the action (email or system account) - can be hidden
  * - Action: Humanized action with error badge if failed
  * - Details: Resource type and name
  * - Date: Relative timestamp with tooltip for absolute
  */
-export function getActivityLogColumns(user?: User): ColumnDef<ActivityLog>[] {
-  return [
-    {
+export function getActivityLogColumns(
+  options: ActivityLogColumnsOptions = {}
+): ColumnDef<ActivityLog>[] {
+  const { user, hideUserColumn = false } = options;
+
+  const columns: ColumnDef<ActivityLog>[] = [];
+
+  // User column (optional)
+  if (!hideUserColumn) {
+    columns.push({
       id: 'user',
       header: 'User',
       accessorKey: 'user',
@@ -35,36 +49,44 @@ export function getActivityLogColumns(user?: User): ColumnDef<ActivityLog>[] {
           </div>
         );
       },
+    });
+  }
+
+  // Action column
+  columns.push({
+    id: 'action',
+    header: 'Action',
+    accessorKey: 'action',
+    size: 180,
+    cell: ({ row }) => <span className="text-xs font-medium">{row.original.action}</span>,
+  });
+
+  // Details/Target column
+  columns.push({
+    id: 'details',
+    header: 'Target',
+    accessorKey: 'details',
+    cell: ({ row }) => {
+      const { details, resourceName } = row.original;
+      return (
+        <span className="text-xs" title={resourceName}>
+          {details}
+        </span>
+      );
     },
-    {
-      id: 'action',
-      header: 'Action',
-      accessorKey: 'action',
-      size: 180,
-      cell: ({ row }) => <span className="text-xs font-medium">{row.original.action}</span>,
+  });
+
+  // Date column
+  columns.push({
+    id: 'date',
+    header: 'Date',
+    accessorKey: 'timestamp',
+    size: 150,
+    cell: ({ row }) => {
+      const { timestamp } = row.original;
+      return <DateTime date={timestamp} className="text-xs" />;
     },
-    {
-      id: 'details',
-      header: 'Target',
-      accessorKey: 'details',
-      cell: ({ row }) => {
-        const { details, resourceName } = row.original;
-        return (
-          <span className="text-xs" title={resourceName}>
-            {details}
-          </span>
-        );
-      },
-    },
-    {
-      id: 'date',
-      header: 'Date',
-      accessorKey: 'timestamp',
-      size: 150,
-      cell: ({ row }) => {
-        const { timestamp } = row.original;
-        return <DateTime date={timestamp} className="text-xs" />;
-      },
-    },
-  ];
+  });
+
+  return columns;
 }

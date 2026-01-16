@@ -1,5 +1,6 @@
 import { useInlineContent, InlineContentState } from '../hooks/useInlineContent';
 import { deserializeDateRange, isDateRangeFormat } from '../utils/date-serialization';
+import { deserializeTimeRange } from '../utils/time-range-serialization';
 import type {
   ColumnDef,
   ColumnFiltersState,
@@ -258,6 +259,12 @@ export function DataTableProvider<TData, TValue>({
           // Check if it's a date range format (timestamp_timestamp)
           if (isDateRangeFormat(value)) {
             urlFilters[key] = deserializeDateRange(value);
+          } else if (value.startsWith('p:') || value.startsWith('c:')) {
+            // Time range format (p:preset or c:timestamp_timestamp)
+            const deserialized = deserializeTimeRange(value);
+            if (deserialized) {
+              urlFilters[key] = deserialized;
+            }
           } else {
             // Try to parse as JSON for complex values, otherwise use as string
             try {
@@ -306,6 +313,12 @@ export function DataTableProvider<TData, TValue>({
           // Check if it's a date range format (timestamp_timestamp)
           if (isDateRangeFormat(value)) {
             urlFilters[key] = deserializeDateRange(value);
+          } else if (value.startsWith('p:') || value.startsWith('c:')) {
+            // Time range format (p:preset or c:timestamp_timestamp)
+            const deserialized = deserializeTimeRange(value);
+            if (deserialized) {
+              urlFilters[key] = deserialized;
+            }
           } else {
             // Try to parse as JSON for complex values, otherwise use as string
             try {

@@ -1,4 +1,5 @@
 import { ActivityLogTable } from '@/features/activity-log';
+import { useApp } from '@/providers/app.provider';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { MetaFunction } from 'react-router';
 
@@ -7,5 +8,6 @@ export const meta: MetaFunction = mergeMeta(() => {
 });
 
 export default function AccountSettingsActivityPage() {
-  return <ActivityLogTable scope={{ type: 'user', userId: 'me' }} />;
+  const { user } = useApp();
+  return <ActivityLogTable scope={{ type: 'user', userId: user?.sub ?? 'me' }} />;
 }

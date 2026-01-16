@@ -1,7 +1,76 @@
-import type { ActivityLogFilterParams } from './activity-log.schema';
+import type { ActivityLogFilterParams, ActivityLogScope } from './activity-log.schema';
+
+// ============================================
+// RESOURCE REGISTRY (Single Source of Truth)
+// ============================================
+
+type ScopeType = ActivityLogScope['type'];
+
+interface ResourceDefinition {
+  /** Human-readable label (singular form) */
+  label: string;
+  /** Scopes where this resource appears in filter options */
+  scopes: ScopeType[];
+}
 
 /**
- * Maps verb to past tense for humanization.
+ * Central registry of all resources.
+ * Single source of truth for labels and scope membership.
+ *
+ * To add a new resource:
+ * 1. Add entry here with label and applicable scopes
+ * 2. That's it - filter options and humanization will pick it up automatically
+ */
+const RESOURCE_REGISTRY: Record<string, ResourceDefinition> = {
+  // Organization-level resources
+  organizations: { label: 'Organization', scopes: ['organization'] },
+  users: { label: 'User', scopes: ['organization'] },
+  groups: { label: 'Group', scopes: ['organization'] },
+  roles: { label: 'Role', scopes: ['organization'] },
+  projects: { label: 'Project', scopes: ['organization'] },
+  invitations: { label: 'Invitation', scopes: ['organization'] },
+  members: { label: 'Member', scopes: ['organization'] },
+
+  // Project-level resources
+  domains: { label: 'Domain', scopes: ['project'] },
+  dnszones: { label: 'DNS zone', scopes: ['project'] },
+  dnsrecords: { label: 'DNS record', scopes: ['project'] },
+  dnsrecordsets: { label: 'DNS record set', scopes: ['project'] },
+  httpproxies: { label: 'HTTP proxy', scopes: ['project'] },
+  secrets: { label: 'Secret', scopes: ['project'] },
+  dnszonediscoveries: { label: 'DNS zone discovery', scopes: ['project'] },
+};
+
+/**
+ * Gets the human-readable label for a resource.
+ * Falls back to the raw key if not registered.
+ */
+export function getResourceLabel(resource: string): string {
+  return RESOURCE_REGISTRY[resource]?.label ?? resource;
+}
+
+/**
+ * Gets all resource keys that belong to a specific scope.
+ */
+export function getResourcesByScope(scopeType: ScopeType): string[] {
+  return Object.entries(RESOURCE_REGISTRY)
+    .filter(([, def]) => def.scopes.includes(scopeType))
+    .map(([key]) => key);
+}
+
+/**
+ * Gets all registered resource keys.
+ */
+export function getAllResources(): string[] {
+  return Object.keys(RESOURCE_REGISTRY);
+}
+
+// ============================================
+// VERB REGISTRY
+// ============================================
+
+/**
+ * Maps API verbs to past tense for humanization.
  */
 const VERB_PAST_TENSE: Record<string, string> = {
   create: 'Added',
@@ -13,76 +82,14 @@ const VERB_PAST_TENSE: Record<string, string> = {
 };
 
 /**
- * Maps resource names to human-readable singular forms.
- */
-const RESOURCE_LABELS = {
-  dnszones: 'DNS zone',
-  dnsrecords: 'DNS record',
-  dnsrecordsets: 'DNS record set',
-  httpproxies: 'HTTP proxy',
-  domains: 'Domain',
-  projects: 'Project',
-  users: 'User',
-  groups: 'Group',
-  roles: 'Role',
-  secrets: 'Secret',
-  invitations: 'Invitation',
-  members: 'Member',
-  namespaces: 'Namespace',
-  organizations: 'Organization',
-  dnszonediscoveries: 'DNS zone discovery',
-} as const;
-
-/** Type-safe resource key derived from RESOURCE_LABELS */
-type ResourceKey = keyof typeof RESOURCE_LABELS;
-
-/**
- * Type guard to check if a string is a valid ResourceKey.
- */
-function isResourceKey(key: string): key is ResourceKey {
-  return key in RESOURCE_LABELS;
-}
-
-/**
- * Safely get label for a resource key, with fallback.
- */
-function getResourceLabel(resource: string): string {
-  return isResourceKey(resource) ? RESOURCE_LABELS[resource] : resource;
-}
-
-/**
  * Verbs available for filtering in the UI.
- * Subset of VERB_PAST_TENSE - excludes 'get' and 'list' as they're less relevant for activity logs.
+ * Excludes 'get' and 'list' as they're less relevant for activity logs.
  */
 const FILTERABLE_VERBS = ['create', 'update', 'delete', 'patch'] as const;
 
-/**
- * Organization-level resource keys for filtering.
- * Type-safe: only allows keys that exist in RESOURCE_LABELS.
- */
-const ORG_RESOURCE_KEYS: readonly ResourceKey[] = [
-  'organizations',
-  'users',
-  'groups',
-  'roles',
-  'projects',
-  'invitations',
-  'members',
-];
-
-/**
- * Project-level resource keys for filtering.
- * Type-safe: only allows keys that exist in RESOURCE_LABELS.
- */
-const PROJECT_RESOURCE_KEYS: readonly ResourceKey[] = [
-  'domains',
-  'dnszones',
-  'dnsrecords',
-  'dnsrecordsets',
-  'httpproxies',
-  'secrets',
-  'dnszonediscoveries',
-];
+// ============================================
+// FILTER OPTIONS
+// ============================================
 
 /** Filter option type for UI components */
 export interface FilterOption {
@@ -102,71 +109,44 @@ export function getActionFilterOptions(): FilterOption[] {
 }
 
 /**
- * Converts resource keys to filter options using RESOURCE_LABELS.
- * Uses singular form to match formatDetails display.
- */
-function toFilterOptions(keys: readonly ResourceKey[]): FilterOption[] {
-  return keys.map((key) => {
-    const label = RESOURCE_LABELS[key];
-    // Capitalize first letter for display (singular form)
-    return {
-      label,
-      value: key,
-    };
-  });
-}
-
-/**
  * Returns resource filter options based on the current scope.
  *
- * Organization scope: IAM and org-level resources
- * Project scope: Edge and project-level resources
- * User scope: All resources (user can interact with both)
- *
- * @param scopeType - The current scope type
+ * - organization: IAM and org-level resources
+ * - project: Edge and project-level resources
+ * - user: All resources (user can interact with everything)
  */
-export function getResourceFilterOptions(
-  scopeType: 'organization' | 'project' | 'user'
-): FilterOption[] {
-  switch (scopeType) {
-    case 'organization':
-      return toFilterOptions(ORG_RESOURCE_KEYS);
-    case 'project':
-      return toFilterOptions(PROJECT_RESOURCE_KEYS);
-    case 'user':
-      return [...toFilterOptions(ORG_RESOURCE_KEYS), ...toFilterOptions(PROJECT_RESOURCE_KEYS)];
-    default:
-      return [];
-  }
+export function getResourceFilterOptions(scopeType: ScopeType): FilterOption[] {
+  // User scope sees all resources
+  const resources = scopeType === 'user' ? getAllResources() : getResourcesByScope(scopeType);
+
+  return resources.map((key) => ({
+    label: getResourceLabel(key),
+    value: key,
+  }));
 }
+
+// ============================================
+// HUMANIZATION
+// ============================================
 
 /**
  * Humanizes an action based on verb and resource.
- * Dynamically generates human-readable text from verb and resource labels.
- *
- * @param verb - The API verb (create, update, delete, etc.)
- * @param resource - The resource type (domains, dnszones, etc.)
- * @returns Human-readable action string
  *
  * @example
- * humanizeAction('create', 'domains') // "Created a domain"
+ * humanizeAction('create', 'domains') // "Added a Domain"
  * humanizeAction('delete', 'dnszones') // "Deleted a DNS zone"
  */
 export function humanizeAction(verb: string, resource: string): string {
   const verbText = VERB_PAST_TENSE[verb] || verb.charAt(0).toUpperCase() + verb.slice(1);
-  const resourceText = isResourceKey(resource)
-    ? RESOURCE_LABELS[resource]
-    : resource.replace(/s$/, '');
+  // Use registry label if available, otherwise remove trailing 's' for singular form
+  const registeredLabel = RESOURCE_REGISTRY[resource]?.label;
+  const singularLabel = registeredLabel ?? resource.replace(/s$/, '');
 
-  return `${verbText} a ${resourceText}`;
+  return `${verbText} a ${singularLabel}`;
 }
 
 /**
  * Formats resource details for display.
- *
- * @param resource - The resource type
- * @param resourceName - The specific resource name
- * @returns Formatted details string
  *
  * @example
  * formatDetails('domains', 'example.com') // "Domain: example.com"
@@ -181,33 +161,63 @@ export function formatDetails(resource: string, resourceName: string): string {
   return `${label}: ${resourceName}`;
 }
 
+// ============================================
+// CEL FILTER BUILDING
+// ============================================
+
+/**
+ * Default CEL filter to exclude system/internal activity.
+ *
+ * Filters out:
+ * - System accounts (usernames starting with 'system:')
+ * - auditlogqueries activity (querying logs creates its own activity, causing spam)
+ */
+export const DEFAULT_FILTER =
+  "user.username.startsWith('system:') == false && objectRef.resource != 'auditlogqueries'";
+
 /**
  * Builds a CEL filter string from UI filter parameters.
  * Combines search, action, and resource filters with AND logic.
  *
- * @param params - Filter parameters from UI
- * @returns CEL filter string or undefined if no filters
+ * Search coverage:
+ * - user.username (skipped for 'user' scope - it's always the same user)
+ * - objectRef.name (resource name, e.g., "example.com")
+ * - objectRef.resource (resource type, e.g., "domains")
+ * - objectRef.namespace (namespace)
+ * - verb (action, e.g., "create")
  *
  * @example
- * buildCELFilter({ search: 'john' })
- * // "(user.username.contains('john') || objectRef.name.contains('john'))"
+ * buildCELFilter({ search: 'domain' })
+ * // "(user.username.contains('domain') || objectRef.name.contains('domain') || ...)"
  *
- * buildCELFilter({ actions: ['create', 'delete'], resources: ['domains'] })
- * // "verb in ['create', 'delete'] && objectRef.resource in ['domains']"
+ * buildCELFilter({ search: 'domain', scopeType: 'user' })
+ * // "(objectRef.name.contains('domain') || objectRef.resource.contains('domain') || ...)"
  */
 export function buildCELFilter(params: ActivityLogFilterParams): string | undefined {
   const conditions: string[] = [];
 
-  // Search: across user and resource name
+  // Search: across multiple fields
   if (params.search?.trim()) {
     const escaped = params.search.trim().replace(/'/g, "\\'");
-    conditions.push(
-      `(user.username.contains('${escaped}') || objectRef.name.contains('${escaped}'))`
+    const searchConditions: string[] = [];
+
+    // Include user.username search only for non-user scopes
+    if (params.scopeType !== 'user') {
+      searchConditions.push(`user.username.contains('${escaped}')`);
+    }
+
+    // Always search these fields
+    searchConditions.push(
+      `objectRef.name.contains('${escaped}')`,
+      `objectRef.resource.contains('${escaped}')`,
+      `objectRef.namespace.contains('${escaped}')`,
+      `verb.contains('${escaped}')`
     );
+
+    conditions.push(`(${searchConditions.join(' || ')})`);
   }
 
   // Action filter: verb in [...]
-  // Normalize to array in case URL param comes as string
   if (params.actions?.length) {
     const actionsArray = Array.isArray(params.actions) ? params.actions : [params.actions];
     const verbList = actionsArray.map((a) => `'${a}'`).join(', ');
@@ -215,7 +225,6 @@ export function buildCELFilter(params: ActivityLogFilterParams): string | undefi
   }
 
   // Resource filter: objectRef.resource in [...]
-  // Normalize to array in case URL param comes as string
   if (params.resources?.length) {
     const resourcesArray = Array.isArray(params.resources) ? params.resources : [params.resources];
     const resourceList = resourcesArray.map((r) => `'${r}'`).join(', ');
@@ -226,22 +235,7 @@ export function buildCELFilter(params: ActivityLogFilterParams): string | undefi
 }
 
 /**
- * Default CEL filter to exclude system/internal activity.
- * Filters out:
- * - System accounts (usernames starting with 'system:')
- * - auditlogqueries activity (querying logs creates its own activity, causing spam)
- *
- * This ensures users only see human-initiated actions by default.
- */
-export const DEFAULT_FILTER =
-  "user.username.startsWith('system:') == false && objectRef.resource != 'auditlogqueries'";
-
-/**
- * Combines user-provided filter with system user exclusion.
- *
- * @param userFilter - Optional CEL filter from UI
- * @param excludeSystemUsers - Whether to exclude system users (default: true)
- * @returns Combined CEL filter string or undefined if no filters
+ * Combines user-provided filter with default system exclusions.
  */
 export function buildCombinedFilter(
   userFilter?: string,

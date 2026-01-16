@@ -23,14 +23,20 @@ export { useActivityLogs } from './activity-log.queries';
 
 // Helpers
 export {
+  // Humanization
   humanizeAction,
   formatDetails,
+  // CEL filter building
   buildCELFilter,
   buildCombinedFilter,
   DEFAULT_FILTER,
   // Filter options
   getActionFilterOptions,
   getResourceFilterOptions,
+  // Resource registry utilities
+  getResourceLabel,
+  getResourcesByScope,
+  getAllResources,
   type FilterOption,
 } from './activity-log.helpers';
 

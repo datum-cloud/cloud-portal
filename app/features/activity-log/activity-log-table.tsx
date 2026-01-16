@@ -1,15 +1,55 @@
 import { getActivityLogColumns } from './activity-log-columns';
 import { getResourceFilterOptions, getActionFilterOptions } from './activity-log-filters';
+import { useActivityLogTable } from './use-activity-log-table';
 import {
   DataTable,
   DataTableFilter,
   DataTableToolbarConfig,
 } from '@/modules/datum-ui/components/data-table';
 import { useApp } from '@/providers/app.provider';
-import { useActivityLogs, type ActivityLogScope } from '@/resources/activity-logs';
-import { subDays } from 'date-fns';
-import { useMemo, useState, useEffect } from 'react';
-import type { DateRange } from 'react-day-picker';
+import type { ActivityLogScope } from '@/resources/activity-logs';
+import { toast } from '@datum-ui/components';
+import { useMemo, useEffect, useRef } from 'react';
+
+// ============================================
+// HELPERS
+// ============================================
+
+/**
+ * Extracts a user-friendly error message from API errors.
+ * Handles Kubernetes-style API error responses.
+ */
+function extractErrorMessage(error: Error): string {
+  try {
+    // Try to parse the error message as JSON (API errors often include JSON in message)
+    const messageMatch = error.message?.match(/\{[\s\S]*\}/);
+    if (messageMatch) {
+      const parsed = JSON.parse(messageMatch[0]);
+
+      // Kubernetes API error format
+      if (parsed.message) {
+        // Extract the core message, removing technical details
+        const msg = parsed.message;
+
+        // Check for time range error
+        if (msg.includes('time range') && msg.includes('exceeds maximum')) {
+          return 'Time range exceeds maximum of 30 days. Please select a shorter period.';
+        }
+
+        // Return the message, truncated if too long
+        return msg.length > 200 ? msg.slice(0, 200) + '...' : msg;
+      }
+    }
+  } catch {
+    // JSON parsing failed, use raw message
+  }
+
+  return error.message || 'An unexpected error occurred';
+}
+
+// ============================================
+// TYPES
+// ============================================
 
 export interface ActivityLogTableProps {
   /** The scope to query activity logs for */
@@ -59,6 +99,10 @@ export interface ActivityLogTableProps {
   defaultResource?: string | string[];
 }
 
+// ============================================
+// COMPONENT
+// ============================================
+
 /**
  * Activity Log Table component with full server-side support.
  *
@@ -96,164 +140,115 @@ export function ActivityLogTable({
   defaultResource,
 }: ActivityLogTableProps) {
   const { user, organization } = useApp();
-  // Normalize defaultResource to array
-  const defaultResourceArray = useMemo(
-    () =>
-      defaultResource
-        ? Array.isArray(defaultResource)
-          ? defaultResource
-          : [defaultResource]
-        : undefined,
-    [defaultResource]
-  );
 
-  // Filter state managed by DataTable
-  const [filters, setFilters] = useState<{
-    q?: string;
-    actions?: string[];
-    resources?: string[];
-    date?: DateRange;
-  }>({});
-
-  // Pagination state
-  const [pageSize, setPageSize] = useState(defaultPageSize);
-
-  // Calculate default date range (last 24 hours) for DatePicker display
-  const defaultDateRange = useMemo(() => {
-    const now = new Date();
-    return { from: subDays(now, 1), to: now };
-  }, []);
-
-  // Convert date range to API format (RFC3339)
-  // Use "now" for end time if it's today or in the future (API rejects future times)
-  const timeRange = useMemo(() => {
-    if (filters.date?.from && filters.date?.to) {
-      const now = new Date();
-      const endTime = filters.date.to >= now ? 'now' : filters.date.to.toISOString();
-
-      return {
-        startTime: filters.date.from.toISOString(),
-        endTime,
-      };
-    }
-    // Default: last 24 hours using relative time
-    return {
-      startTime: 'now-24h',
-      endTime: 'now',
-    };
-  }, [filters.date]);
-
-  // Query activity logs
-  const {
-    data,
-    isLoading,
-    isFetching,
-    page,
-    hasNextPage,
-    hasPrevPage,
-    goToNextPage,
-    goToPrevPage,
-    resetPagination,
-  } = useActivityLogs(scope, {
-    filters: {
-      search: filters.q,
-      actions: filters.actions,
-      // Use defaultResource if set, otherwise use user-selected filter
-      resources: defaultResourceArray ?? filters.resources,
-    },
-    startTime: timeRange.startTime,
-    endTime: timeRange.endTime,
-    pageSize,
+  // All state management delegated to hook
+  const table = useActivityLogTable({
+    scope,
+    defaultPageSize,
+    defaultResource,
+    hideFilters,
   });
 
-  // Reset pagination when filters change
-  useEffect(() => {
-    resetPagination();
-  }, [filters.q, filters.actions, filters.resources, filters.date, resetPagination]);
+  // Track shown errors to prevent duplicate toasts
+  const shownErrorRef = useRef<string | null>(null);
 
-  // Get columns
+  // Show toast on error
+  useEffect(() => {
+    if (table.error) {
+      // Extract user-friendly message from the error
+      const errorMessage = extractErrorMessage(table.error);
+
+      // Only show toast if this is a new error (prevent duplicates)
+      if (shownErrorRef.current !== errorMessage) {
+        shownErrorRef.current = errorMessage;
+        toast.error('Activity Log', {
+          description: errorMessage,
+        });
+      }
+    } else {
+      // Clear tracked error when error is resolved
+      shownErrorRef.current = null;
+    }
+  }, [table.error]);
+
+  // Columns - hide User column for 'user' scope (it's always the logged-in user)
   const columns = useMemo(() => {
     const currentUser = organization?.type !== 'Personal' ? user : undefined;
-    return getActivityLogColumns(currentUser);
-  }, [user, organization]);
+    const hideUserColumn = scope.type === 'user';
+    return getActivityLogColumns({ user: currentUser, hideUserColumn });
+  }, [user, organization, scope.type]);
 
-  // Get scope-aware filter options
+  // Scope-aware filter options
   const resourceOptions = useMemo(() => getResourceFilterOptions(scope.type), [scope.type]);
   const actionOptions = useMemo(() => getActionFilterOptions(), []);
-  const toolbarConfig = useMemo(() => {
-    return {
+
+  // Toolbar configuration
+  const toolbarConfig = useMemo<DataTableToolbarConfig>(
+    () => ({
       layout: 'compact',
       includeSearch: hideFilters
         ? false
         : {
             placeholder: 'Search activity',
           },
-      filtersDisplay: 'dropdown',
-    } as DataTableToolbarConfig;
-  }, [hideFilters]);
+      filtersDisplay: 'auto',
+      maxInlineFilters: 1,
+      primaryFilters: ['period'],
+    }),
+    [hideFilters]
+  );
 
   return (
     <DataTable
       columns={columns}
-      data={data}
+      data={table.data}
       className={className}
       tableTitle={title ? { title } : undefined}
-      isLoading={isLoading || isFetching}
-      loadingText={isFetching && !isLoading ? 'Filtering' : 'Loading'}
+      isLoading={table.isLoading || table.isFetching}
+      loadingText={table.isFetching && !table.isLoading ? 'Filtering' : 'Loading'}
       emptyContent={{
         title: 'No activity found',
         subtitle: hideFilters ? undefined : 'Try adjusting your filters.',
       }}
       // Server-side filtering
       serverSideFiltering={!hideFilters}
-      onFiltersChange={hideFilters ? undefined : setFilters}
+      onFiltersChange={hideFilters ? undefined : table.setFilters}
       // Server-side pagination
       serverSidePagination={!hidePagination}
       hidePagination={hidePagination}
-      hasNextPage={hasNextPage}
-      hasPrevPage={hasPrevPage}
+      hasNextPage={table.hasNextPage}
+      hasPrevPage={table.hasPrevPage}
       onPageChange={(newPage) => {
-        if (newPage > page) goToNextPage();
-        else if (newPage < page) goToPrevPage();
+        if (newPage > table.page) table.goToNextPage();
+        else if (newPage < table.page) table.goToPrevPage();
       }}
-      onPageSizeChange={(size) => {
-        setPageSize(size);
-        resetPagination();
-      }}
-      controlledPageIndex={page}
-      controlledPageSize={pageSize}
+      onPageSizeChange={(size) => table.setPageSize(size)}
+      controlledPageIndex={table.page}
+      controlledPageSize={table.pageSize}
       disableShowAll
-      // Filter components
+      // Toolbar & filters
       toolbar={toolbarConfig}
       filters={
         hideFilters ? undefined : (
-          <div className="divide-stepper-line flex flex-col divide-y">
+          <>
+            {/* TimeRange filter - inline (primaryFilter) */}
+            <DataTableFilter.TimeRange filterKey="period" disableFuture className="min-w-[250px]" />
+
+            {/* Action filter - in dropdown */}
             <DataTableFilter.Tag
               filterKey="actions"
               label="Action"
               options={actionOptions.sort((a, b) => a.label.localeCompare(b.label))}
-              className="pb-5"
             />
-            {/* Hide resource filter when defaultResource is set */}
+            {/* Resource filter - in dropdown (hidden when defaultResource is set) */}
             {!defaultResource && (
               <DataTableFilter.Tag
                 filterKey="resources"
                 label="Resource"
                 options={resourceOptions.sort((a, b) => a.label.localeCompare(b.label))}
-                className="py-5"
               />
             )}
-            <DataTableFilter.DatePicker
-              filterKey="date"
-              label="Time range"
-              placeholder="Select time range"
-              mode="range"
-              maxRange={30}
-              disableFuture
-              defaultValue={defaultDateRange}
-              className="pt-5"
-            />
-          </div>
+          </>
         )
       }
     />

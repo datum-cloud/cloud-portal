@@ -54,7 +54,7 @@ export function SearchInput({
           onChange={onChange}
           disabled={disabled}
           containerClassName={cn('h-9 bg-transparent', inputClassName)}
-          className="placeholder:text-secondary text-secondary h-full bg-transparent text-sm placeholder:text-sm dark:text-white dark:placeholder:text-white"
+          className="placeholder:text-secondary text-secondary h-full bg-transparent text-xs placeholder:text-xs md:text-xs dark:text-white dark:placeholder:text-white"
           leading={
             <Icon icon={Search} size={14} className="text-icon-quaternary dark:text-white" />
           }

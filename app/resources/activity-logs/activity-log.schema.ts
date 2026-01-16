@@ -82,10 +82,12 @@ export type ActivityLogList = z.infer<typeof activityLogListSchema>;
  * Filter parameters from UI controls.
  */
 export interface ActivityLogFilterParams {
-  /** Free text search (user + resource name) */
+  /** Free text search */
   search?: string;
   /** Action verbs to include */
   actions?: string[];
   /** Resource types to include */
   resources?: string[];
+  /** Scope type - used to determine search behavior */
+  scopeType?: ActivityLogScope['type'];
 }
