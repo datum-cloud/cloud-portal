@@ -1,6 +1,6 @@
 // app/modules/datum-ui/components/time-range-picker/presets.ts
 import type { PresetConfig, DateRange } from './types';
-import { subHours, subDays } from 'date-fns';
+import { subHours, subDays, subMinutes } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
 /**
@@ -32,6 +32,42 @@ function endOfDayInTimezone(date: Date, timezone: string): Date {
  */
 export const DEFAULT_PRESETS: PresetConfig[] = [
   {
+    key: '15m',
+    label: 'Last 15 minutes',
+    shortcut: '1',
+    getRange: (_timezone: string): DateRange => {
+      const now = new Date();
+      return {
+        from: subMinutes(now, 15),
+        to: now,
+      };
+    },
+  },
+  {
+    key: '30m',
+    label: 'Last 30 minutes',
+    shortcut: '3',
+    getRange: (_timezone: string): DateRange => {
+      const now = new Date();
+      return {
+        from: subMinutes(now, 30),
+        to: now,
+      };
+    },
+  },
+  {
+    key: '1h',
+    label: 'Last hour',
+    shortcut: 'H',
+    getRange: (_timezone: string): DateRange => {
+      const now = new Date();
+      return {
+        from: subHours(now, 1),
+        to: now,
+      };
+    },
+  },
+  {
     key: 'today',
     label: 'Today',
     shortcut: 'D',
@@ -52,18 +88,6 @@ export const DEFAULT_PRESETS: PresetConfig[] = [
       return {
         from: startOfDayInTimezone(yesterday, timezone),
         to: endOfDayInTimezone(yesterday, timezone), // Yesterday's end is always in the past
-      };
-    },
-  },
-  {
-    key: '1h',
-    label: 'Last hour',
-    shortcut: 'H',
-    getRange: (_timezone: string): DateRange => {
-      const now = new Date();
-      return {
-        from: subHours(now, 1),
-        to: now,
       };
     },
   },
