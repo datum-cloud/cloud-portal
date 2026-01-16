@@ -21,9 +21,9 @@ import { logger } from '@/modules/logger';
 import type { IExtendedControlPlaneStatus } from '@/resources/base';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import type { ServiceOptions } from '@/resources/base/types';
+import { getProjectScopedBase } from '@/resources/base/utils';
 import { mapApiError } from '@/utils/errors/error-mapper';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { getProjectScopedBase } from '@/utils/scoped-urls';
 
 export const domainKeys = {
   all: ['domains'] as const,

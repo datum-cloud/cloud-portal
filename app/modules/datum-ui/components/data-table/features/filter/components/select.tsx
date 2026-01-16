@@ -106,10 +106,10 @@ export function SelectFilter({
   const hasValues = selectedValues.length > 0;
 
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('space-y-4', className)}>
       {label && (
         <div className="space-y-1">
-          <Label className="text-sm font-medium">{label}</Label>
+          <Label className="text-xs font-medium">{label}</Label>
           {description && <p className="text-muted-foreground text-xs">{description}</p>}
         </div>
       )}

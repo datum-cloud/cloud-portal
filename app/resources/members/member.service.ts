@@ -9,9 +9,9 @@ import {
 } from '@/modules/control-plane/resource-manager';
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
+import { getOrgScopedBase } from '@/resources/base/utils';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { mapApiError } from '@/utils/errors/error-mapper';
-import { getOrgScopedBase } from '@/utils/scoped-urls';
 
 export const memberKeys = {
   all: ['members'] as const,

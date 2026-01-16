@@ -1,4 +1,4 @@
-import { ActivityLogList } from '@/features/activity-log/list';
+import { ActivityLogTable } from '@/features/activity-log';
 import { useParams } from 'react-router';
 
 export const handle = {
@@ -8,5 +8,5 @@ export const handle = {
 export default function ProjectActivityLogsPage() {
   const { projectId } = useParams();
 
-  return <ActivityLogList params={{ project: projectId }} />;
+  return <ActivityLogTable scope={{ type: 'project', projectId: projectId! }} />;
 }

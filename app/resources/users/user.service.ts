@@ -22,8 +22,8 @@ import {
 } from '@/modules/control-plane/identity';
 import { client } from '@/modules/control-plane/shared/client.gen';
 import { logger } from '@/modules/logger';
+import { getUserScopedBase } from '@/resources/base/utils';
 import { mapApiError } from '@/utils/errors/error-mapper';
-import { getUserScopedBase } from '@/utils/scoped-urls';
 
 export const userKeys = {
   all: ['users'] as const,

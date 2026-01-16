@@ -1,14 +1,36 @@
 // app/server/routes/activity.ts
 import type { Variables } from '../types';
-import { type QueryParams } from '@/modules/loki';
 import { Hono } from 'hono';
+
+/**
+ * Legacy query parameters for activity log API.
+ * @deprecated This route is a stub and will be replaced by the new activity log implementation.
+ */
+interface LegacyActivityQueryParams {
+  limit?: string;
+  start?: string;
+  end?: string;
+  project?: string;
+  organization?: string;
+  q?: string;
+  user?: string;
+  status?: string;
+  actions?: string;
+  resource?: string;
+  objectName?: string;
+  apiGroup?: string;
+  apiVersion?: string;
+  stage?: string;
+  excludeDryRun?: boolean;
+}
 
 const activity = new Hono<{ Variables: Variables }>();
 
 /**
  * Helper function to parse and validate activity log query parameters
+ * @deprecated This route is a stub and will be replaced by the new activity log implementation.
  */
-const parseActivityLogParams = (searchParams: URLSearchParams): QueryParams => {
+const parseActivityLogParams = (searchParams: URLSearchParams): LegacyActivityQueryParams => {
   const getStringParam = (key: string): string | undefined => {
     const value = searchParams.get(key);
     return value || undefined;

@@ -6,9 +6,9 @@ import {
 } from '@/modules/control-plane/quota';
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
+import { getOrgScopedBase, getProjectScopedBase } from '@/resources/base/utils';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { mapApiError } from '@/utils/errors/error-mapper';
-import { getOrgScopedBase, getProjectScopedBase } from '@/utils/scoped-urls';
 
 export const allowanceBucketKeys = {
   all: ['allowance-buckets'] as const,
@@ -49,7 +49,8 @@ export function createAllowanceBucketService() {
     },
 
     async fetchList(namespace: 'organization' | 'project', id: string): Promise<AllowanceBucket[]> {
-      const bucketNamespace = namespace === 'organization' ? buildOrganizationNamespace(id) : 'milo-system';
+      const bucketNamespace =
+        namespace === 'organization' ? buildOrganizationNamespace(id) : 'milo-system';
 
       const response = await listQuotaMiloapisComV1Alpha1NamespacedAllowanceBucket({
         baseURL: getScopedBase(namespace, id),

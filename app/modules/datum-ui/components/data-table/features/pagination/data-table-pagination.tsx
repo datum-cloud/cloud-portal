@@ -11,15 +11,36 @@ import { Table as TTable } from '@tanstack/react-table';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 
+export interface DataTablePaginationProps<TData> {
+  table: TTable<TData>;
+  enableShowAll?: boolean;
+  // Server-side pagination props
+  serverSide?: boolean;
+  hasNextPage?: boolean;
+  hasPrevPage?: boolean;
+  onPageChange?: (pageIndex: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
+  currentPage?: number;
+  currentPageSize?: number;
+}
+
 export const DataTablePagination = <TData,>({
   table,
   enableShowAll = false,
-}: {
-  table: TTable<TData>;
-  enableShowAll?: boolean;
-}) => {
+  serverSide = false,
+  hasNextPage = false,
+  hasPrevPage = false,
+  onPageChange,
+  onPageSizeChange,
+  currentPage = 0,
+  currentPageSize: controlledPageSize,
+}: DataTablePaginationProps<TData>) => {
   const totalRows = table.getFilteredRowModel().rows.length;
-  const currentPageSize = table.getState().pagination.pageSize;
+  // Use controlled page size for server-side, otherwise use table state
+  const currentPageSize =
+    serverSide && controlledPageSize != null
+      ? controlledPageSize
+      : table.getState().pagination.pageSize;
 
   const [isShowingAll, setIsShowingAll] = useState(false);
 
@@ -35,7 +56,12 @@ export const DataTablePagination = <TData,>({
                 table.setPageSize(totalRows);
                 setIsShowingAll(true);
               } else {
-                table.setPageSize(Number(value));
+                const newSize = Number(value);
+                if (serverSide) {
+                  onPageSizeChange?.(newSize);
+                } else {
+                  table.setPageSize(newSize);
+                }
                 setIsShowingAll(false);
               }
             }}>
@@ -48,7 +74,7 @@ export const DataTablePagination = <TData,>({
                   {pageSize}
                 </SelectItem>
               ))}
-              {enableShowAll && (
+              {enableShowAll && !serverSide && (
                 <SelectItem key="all" value="all">
                   All
                 </SelectItem>
@@ -60,16 +86,22 @@ export const DataTablePagination = <TData,>({
       {!isShowingAll && (
         <div className="flex items-center space-x-2">
           <div className="mr-5 flex items-center justify-center text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+            {serverSide
+              ? `Page ${currentPage + 1}`
+              : `Page ${table.getState().pagination.pageIndex + 1} of ${table.getPageCount()}`}
           </div>
           <Button
             type="secondary"
             theme="outline"
             className="disabled:cursor-not-allowed disabled:opacity-20"
             onClick={() => {
-              table.previousPage();
+              if (serverSide) {
+                onPageChange?.(currentPage - 1);
+              } else {
+                table.previousPage();
+              }
             }}
-            disabled={!table.getCanPreviousPage()}>
+            disabled={serverSide ? !hasPrevPage : !table.getCanPreviousPage()}>
             <span className="sr-only">Go to previous page</span>
             <Icon icon={ArrowLeft} className="size-4" />
           </Button>
@@ -78,9 +110,13 @@ export const DataTablePagination = <TData,>({
             theme="outline"
             className="disabled:cursor-not-allowed disabled:opacity-20"
             onClick={() => {
-              table.nextPage();
+              if (serverSide) {
+                onPageChange?.(currentPage + 1);
+              } else {
+                table.nextPage();
+              }
             }}
-            disabled={!table.getCanNextPage()}>
+            disabled={serverSide ? !hasNextPage : !table.getCanNextPage()}>
             <span className="sr-only">Go to next page</span>
             <Icon icon={ArrowRight} className="size-4" />
           </Button>

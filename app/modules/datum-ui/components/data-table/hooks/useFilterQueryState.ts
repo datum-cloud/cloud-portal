@@ -1,3 +1,4 @@
+import type { TimeRangeValue } from '../../time-range-picker';
 import { useDataTableFilter, FilterValue } from '../core/data-table.context';
 import {
   serializeDateRange,
@@ -5,12 +6,16 @@ import {
   serializeDate,
   deserializeDate,
 } from '../utils/date-serialization';
+import { serializeTimeRange, deserializeTimeRange } from '../utils/time-range-serialization';
 import { useQueryState } from 'nuqs';
 import { parseAsString, parseAsArrayOf } from 'nuqs';
 import { useEffect, useMemo } from 'react';
 
 // Parser factory for different filter types
-const createParser = (type: 'string' | 'array' | 'date' | 'dateRange', defaultValue?: any) => {
+const createParser = (
+  type: 'string' | 'array' | 'date' | 'dateRange' | 'timeRange',
+  defaultValue?: any
+) => {
   switch (type) {
     case 'string':
       return parseAsString.withDefault(defaultValue || '');
@@ -22,6 +27,8 @@ const createParser = (type: 'string' | 'array' | 'date' | 'dateRange', defaultVa
     case 'dateRange':
       // For date ranges, we'll serialize as JSON string
       return parseAsString.withDefault(defaultValue || '');
+    case 'timeRange':
+      return parseAsString.withDefault(defaultValue || '');
     default:
       return parseAsString.withDefault('');
   }
@@ -29,7 +36,7 @@ const createParser = (type: 'string' | 'array' | 'date' | 'dateRange', defaultVa
 
 interface UseFilterQueryStateOptions {
   filterKey: string;
-  type: 'string' | 'array' | 'date' | 'dateRange';
+  type: 'string' | 'array' | 'date' | 'dateRange' | 'timeRange';
   defaultValue?: any;
 }
 
@@ -69,6 +76,9 @@ export function useFilterQueryState<T = FilterValue>({
     if (type === 'date' && typeof urlValue === 'string') {
       return deserializeDate(urlValue) as T;
     }
+    if (type === 'timeRange' && typeof urlValue === 'string') {
+      return deserializeTimeRange(urlValue) as T;
+    }
     return urlValue as T;
   }, [contextValue, urlValue, type]);
 
@@ -86,6 +96,9 @@ export function useFilterQueryState<T = FilterValue>({
         } else if (type === 'date') {
           // Single date: serialize to ISO string or empty string
           const serialized = serializeDate(newValue as Date | null);
+          setUrlValue(serialized);
+        } else if (type === 'timeRange' && typeof newValue === 'object' && newValue !== null) {
+          const serialized = serializeTimeRange(newValue as any);
           setUrlValue(serialized);
         } else if (newValue === null || newValue === undefined) {
           setUrlValue(null);
@@ -148,6 +161,14 @@ export function useDateRangeFilter(
   return useFilterQueryState<{ from?: Date; to?: Date } | null>({
     filterKey,
     type: 'dateRange',
+    defaultValue,
+  });
+}
+
+export function useTimeRangeFilter(filterKey: string, defaultValue: TimeRangeValue | null = null) {
+  return useFilterQueryState<TimeRangeValue | null>({
+    filterKey,
+    type: 'timeRange',
     defaultValue,
   });
 }

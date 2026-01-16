@@ -9,7 +9,46 @@ import { DataTableToolbarRowCount } from './data-table-toolbar-row-count';
 import { DataTableToolbarSearch } from './data-table-toolbar-search';
 import { PageTitle } from '@/components/page-title/page-title';
 import { cn } from '@shadcn/lib/utils';
-import { Children, ReactNode, useMemo } from 'react';
+import { Children, isValidElement, ReactElement, ReactNode, useMemo } from 'react';
+
+interface FilterProps {
+  filterKey?: string;
+  children?: ReactNode;
+}
+
+/**
+ * Recursively extracts filter children from a React node tree.
+ * Handles fragments, arrays, and wrapper divs to find actual filter components.
+ */
+function flattenFilterChildren(children: ReactNode): ReactElement<FilterProps>[] {
+  const result: ReactElement<FilterProps>[] = [];
+
+  Children.forEach(children, (child) => {
+    if (!isValidElement(child)) return;
+
+    const props = child.props as FilterProps;
+
+    // Check if this is a filter component (has filterKey prop)
+    if (props.filterKey) {
+      result.push(child as ReactElement<FilterProps>);
+      return;
+    }
+
+    // If it's a fragment or has children, recurse into it
+    if (props.children) {
+      result.push(...flattenFilterChildren(props.children));
+    }
+  });
+
+  return result;
+}
+
+/**
+ * Gets the filterKey from a filter component element
+ */
+function getFilterKey(element: ReactElement<FilterProps>): string | undefined {
+  return element.props?.filterKey;
+}
 
 export interface DataTableToolbarProps {
   /**
@@ -183,29 +222,58 @@ export const DataTableToolbar = ({
       return { inlineFilters: null, dropdownFilters: null };
     }
 
-    const childrenArray = Children.toArray(finalFilterComponent);
+    // Flatten filter children to handle wrapped/nested filters
+    // This extracts actual filter components (those with filterKey prop)
+    const flatFilters = flattenFilterChildren(finalFilterComponent);
+
+    // Fallback to Children.toArray if no filter components found
+    // (for backwards compatibility with non-standard filter structures)
+    const filterArray =
+      flatFilters.length > 0 ? flatFilters : Children.toArray(finalFilterComponent);
 
     // If stacked layout or inline display, show all filters inline
     if (toolbarConfig.layout === 'stacked' || toolbarConfig.filtersDisplay === 'inline') {
-      return { inlineFilters: childrenArray, dropdownFilters: null };
+      return { inlineFilters: filterArray, dropdownFilters: null };
     }
 
     // If dropdown display, all in dropdown
     if (toolbarConfig.filtersDisplay === 'dropdown') {
-      return { inlineFilters: null, dropdownFilters: childrenArray };
+      return { inlineFilters: null, dropdownFilters: filterArray };
     }
 
-    // Auto mode: smart split based on filter count
+    // Auto mode: smart split based on primaryFilters and maxInlineFilters
+    const primaryFilterKeys = toolbarConfig.primaryFilters || [];
     const maxInline = toolbarConfig.maxInlineFilters || 3;
 
-    if (childrenArray.length <= maxInline) {
-      return { inlineFilters: childrenArray, dropdownFilters: null };
+    // If primaryFilters is specified, use it to determine inline vs dropdown
+    if (primaryFilterKeys.length > 0) {
+      const inline: ReactNode[] = [];
+      const dropdown: ReactNode[] = [];
+
+      filterArray.forEach((filter) => {
+        const filterKey = isValidElement<FilterProps>(filter) ? filter.props?.filterKey : undefined;
+        if (filterKey && primaryFilterKeys.includes(filterKey)) {
+          inline.push(filter);
+        } else {
+          dropdown.push(filter);
+        }
+      });
+
+      return {
+        inlineFilters: inline.length > 0 ? inline : null,
+        dropdownFilters: dropdown.length > 0 ? dropdown : null,
+      };
+    }
+
+    // No primaryFilters specified - use maxInlineFilters count
+    if (filterArray.length <= maxInline) {
+      return { inlineFilters: filterArray, dropdownFilters: null };
     }
 
     // Split: first N inline, rest in dropdown
     return {
-      inlineFilters: childrenArray.slice(0, maxInline),
-      dropdownFilters: childrenArray.slice(maxInline),
+      inlineFilters: filterArray.slice(0, maxInline),
+      dropdownFilters: filterArray.slice(maxInline),
     };
   }, [finalFilterComponent, toolbarConfig]);
 
@@ -240,32 +308,34 @@ export const DataTableToolbar = ({
       {/* Compact Toolbar Row */}
 
       <DataTableFilter className="flex items-center justify-between gap-4">
-        {/* Left Section: Search + Inline Filters */}
+        {/* Left Section: Search */}
         <div className={cn('flex flex-1 items-center gap-2', leftSectionClassName)}>
           {searchConfig && (
             <DataTableToolbarSearch config={searchConfig} className="w-full rounded-md" />
           )}
+        </div>
 
+        {/* Right Section: Row Count + Inline/Primary Filters + Dropdown Filters + Actions */}
+        <div className={cn('flex items-center justify-end gap-3', rightSectionClassName)}>
+          {/* Row count appears first */}
+          {toolbarConfig.showRowCount && <DataTableToolbarRowCount />}
+
+          {/* Primary/Inline filters next to dropdown */}
           {inlineFilters && inlineFilters.length > 0 && (
             <div className="flex items-center gap-2">
               {inlineFilters.map((filter, index) => (
-                <div key={index}>{filter}</div>
+                <div key={`inline-filter-${index}`}>{filter}</div>
               ))}
             </div>
           )}
-        </div>
 
-        {/* Right Section: Row Count + Dropdown Filters + Actions */}
-        <div className={cn('flex items-center justify-end gap-3', rightSectionClassName)}>
-          {/* Row count appears before dropdown filters */}
-          {toolbarConfig.showRowCount && <DataTableToolbarRowCount />}
-
+          {/* Dropdown filters button */}
           {dropdownFilters && dropdownFilters.length > 0 && (
             <DataTableToolbarFilterDropdown
               showFilterCount={toolbarConfig.showFilterCount}
               excludeColumns={['q', 'search']}>
               {dropdownFilters.map((filter, index) => (
-                <div key={index} className="border-b last:border-b-0">
+                <div key={`filter-${index}`} className="border-b pb-5 last:border-b-0 last:pb-0">
                   {filter}
                 </div>
               ))}

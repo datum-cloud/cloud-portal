@@ -8,6 +8,7 @@ import { RadioPopoverFilter } from './components/radio-popover';
 import { SearchFilter } from './components/search';
 import { SelectFilter } from './components/select';
 import { TagFilter } from './components/tag';
+import { TimeRangeFilter } from './components/time-range';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
@@ -176,6 +177,7 @@ const DataTableFilter = Object.assign(DataTableFilterBase, {
   Radio: RadioPopoverFilter, // 🎯 Popover version by default
   Checkbox: CheckboxPopoverFilter, // 🎯 Popover version by default
   Tag: TagFilter, // 🎯 Inline multi-select with badges
+  TimeRange: TimeRangeFilter,
 
   // Inline versions for when you want the old behavior
   RadioInline: RadioFilter,
@@ -195,6 +197,7 @@ export {
   RadioPopoverFilter,
   CheckboxPopoverFilter,
   TagFilter,
+  TimeRangeFilter,
 };
 
 // Export context and hooks
