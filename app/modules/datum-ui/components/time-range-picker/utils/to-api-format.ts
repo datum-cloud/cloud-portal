@@ -1,5 +1,5 @@
 // app/modules/datum-ui/components/time-range-picker/utils/to-api-format.ts
-import { DEFAULT_PRESETS, getPresetRange } from '../presets';
+import { DEFAULT_PRESETS, getDefaultPreset, getPresetRange } from '../presets';
 import type { TimeRangeValue, ApiTimeRange, PresetConfig } from '../types';
 import { getBrowserTimezone } from './timezone';
 
@@ -22,7 +22,7 @@ export function toApiTimeRange(
 
   // Default fallback - use first preset
   if (!value) {
-    const defaultPreset = presets[0];
+    const defaultPreset = getDefaultPreset();
     const range = getPresetRange(defaultPreset, tz);
     return { startTime: range.from, endTime: range.to };
   }
@@ -45,7 +45,7 @@ export function toApiTimeRange(
   }
 
   // Ultimate fallback
-  const defaultPreset = presets[0];
+  const defaultPreset = getDefaultPreset(presets);
   const range = getPresetRange(defaultPreset, tz);
   return { startTime: range.from, endTime: range.to };
 }

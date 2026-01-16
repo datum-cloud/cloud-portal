@@ -1,7 +1,7 @@
 // app/modules/datum-ui/components/time-range-picker/time-range-picker.tsx
 import { CustomRangePanel } from './components/absolute-range-panel';
 import { QuickRangesPanel } from './components/quick-ranges-panel';
-import { DEFAULT_PRESETS, getPresetByShortcut, getPresetRange } from './presets';
+import { DEFAULT_PRESETS, getDefaultPreset, getPresetByShortcut, getPresetRange } from './presets';
 import type { TimeRangeValue, PresetConfig } from './types';
 import { formatTimeRangeDisplay } from './utils/format-display';
 import {
@@ -73,7 +73,7 @@ export function TimeRangePicker({
   const timezone = timezoneProp ?? getBrowserTimezone();
 
   // Get default range for initial state - memoized to prevent recalculation on every render
-  const defaultPreset = presets[0];
+  const defaultPreset = getDefaultPreset(presets);
   const defaultRange = useMemo(
     () => getPresetRange(defaultPreset, timezone),
     [defaultPreset, timezone]

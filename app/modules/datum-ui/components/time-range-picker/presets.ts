@@ -142,7 +142,7 @@ export function getPresetByShortcut(
  * Get the default preset (last 7 days)
  */
 export function getDefaultPreset(presets: PresetConfig[] = DEFAULT_PRESETS): PresetConfig {
-  return presets.find((p) => p.key === '7d') ?? presets[0];
+  return getPresetByKey('today', presets) ?? presets[0];
 }
 
 /**
