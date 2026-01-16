@@ -40,6 +40,9 @@ export interface UseActivityLogTableReturn {
   // Data
   data: ReturnType<typeof useActivityLogs>['data'];
 
+  // Refetch
+  refetch: () => void;
+
   // Loading states
   isLoading: boolean;
   isFetching: boolean;
@@ -292,6 +295,9 @@ export function useActivityLogTable(
   return {
     // Data
     data: query.data,
+
+    // Refetch
+    refetch: query.refetch,
 
     // Loading states
     isLoading: query.isLoading,

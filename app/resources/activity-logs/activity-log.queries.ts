@@ -190,6 +190,9 @@ export function useActivityLogs(
     // Data
     data: query.data?.items ?? [],
 
+    // Refetch
+    refetch: query.refetch,
+
     // Loading states
     isLoading: query.isLoading,
     isFetching: query.isFetching,

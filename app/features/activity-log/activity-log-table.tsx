@@ -8,7 +8,8 @@ import {
 } from '@/modules/datum-ui/components/data-table';
 import { useApp } from '@/providers/app.provider';
 import type { ActivityLogScope } from '@/resources/activity-logs';
-import { toast } from '@datum-ui/components';
+import { Button, Icon, toast } from '@datum-ui/components';
+import { RefreshCcw } from 'lucide-react';
 import { useMemo, useEffect, useRef } from 'react';
 
 // ============================================
@@ -54,8 +55,6 @@ function extractErrorMessage(error: Error): string {
 export interface ActivityLogTableProps {
   /** The scope to query activity logs for */
   scope: ActivityLogScope;
-  /** Optional title for the table */
-  title?: string;
   /** Optional CSS class name */
   className?: string;
   /**
@@ -132,7 +131,6 @@ export interface ActivityLogTableProps {
  */
 export function ActivityLogTable({
   scope,
-  title,
   className,
   defaultPageSize = 20,
   hidePagination = false,
@@ -203,9 +201,26 @@ export function ActivityLogTable({
       columns={columns}
       data={table.data}
       className={className}
-      tableTitle={title ? { title } : undefined}
+      tableTitle={
+        !hideFilters
+          ? {
+              actions: (
+                <Button
+                  type="primary"
+                  theme="solid"
+                  size="small"
+                  onClick={() => table.refetch()}
+                  icon={<Icon icon={RefreshCcw} className="size-4" />}
+                  iconPosition="left"
+                  loading={table.isFetching}>
+                  Refresh
+                </Button>
+              ),
+            }
+          : undefined
+      }
       isLoading={table.isLoading || table.isFetching}
-      loadingText={table.isFetching && !table.isLoading ? 'Filtering' : 'Loading'}
+      loadingText="Loading..."
       emptyContent={{
         title: 'No activity found',
         subtitle: hideFilters ? undefined : 'Try adjusting your filters.',
