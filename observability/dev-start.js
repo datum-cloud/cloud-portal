@@ -19,6 +19,17 @@ async function startDevServer() {
     env: { ...process.env },
   });
 
+  const forwardSignal = (signal) => {
+    try {
+      devProcess.kill(signal);
+    } catch (e) {
+      console.warn(`⚠️ Failed to forward ${signal} to dev server:`, e?.message || e);
+    }
+  };
+
+  process.on('SIGTERM', () => forwardSignal('SIGTERM'));
+  process.on('SIGINT', () => forwardSignal('SIGINT'));
+
   const exitCode = await devProcess.exited;
   if (exitCode !== 0) {
     console.error(`❌ Development server exited with code ${exitCode}`);

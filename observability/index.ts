@@ -250,11 +250,25 @@ export class ObservabilityManager {
   }
 
   private setupGracefulShutdown(): void {
-    process.on('SIGTERM', () => {
-      console.log('🛑 Received SIGTERM, shutting down observability services...');
-      this.shutdown();
-      setTimeout(() => process.exit(0), 3000);
-    });
+    // Do not force-exit the process here. The process entrypoint (e.g. `observability/start.js`)
+    // is responsible for orchestrating graceful shutdown (stop server, drain, flush telemetry, exit).
+    //
+    // We still shut down providers on termination signals as a best-effort fallback.
+    let handled = false;
+    const handler = (signal: string) => {
+      if (handled) return;
+      handled = true;
+      console.log(`🛑 Received ${signal}, shutting down observability services...`);
+      try {
+        this.shutdown();
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.warn('⚠️ Error while shutting down observability services:', msg);
+      }
+    };
+
+    process.on('SIGTERM', () => handler('SIGTERM'));
+    process.on('SIGINT', () => handler('SIGINT'));
   }
 
   private setupUncaughtExceptionHandler(): void {

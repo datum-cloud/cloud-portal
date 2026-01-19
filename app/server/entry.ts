@@ -19,6 +19,14 @@ import { requestId } from 'hono/request-id';
 import { NONCE, secureHeaders } from 'hono/secure-headers';
 import { createHonoServer } from 'react-router-hono-server/bun';
 
+let isShuttingDown = false;
+const beginShutdown = () => {
+  isShuttingDown = true;
+};
+
+process.once('SIGTERM', beginShutdown);
+process.once('SIGINT', beginShutdown);
+
 // Initialize observability (OTEL + Sentry + error handlers)
 initializeObservability().catch((error: unknown) => {
   console.error('❌ Failed to initialize observability:', error);
@@ -138,7 +146,10 @@ app.route('/api', createApiApp());
  */
 app.get('/_healthz', (c) => c.json({ status: 'ok' }));
 
-app.get('/_readyz', (c) => c.json({ status: 'ready' }));
+app.get('/_readyz', (c) => {
+  if (isShuttingDown) return c.json({ status: 'shutting_down' }, 503);
+  return c.json({ status: 'ready' });
+});
 
 // React Router SSR - must await createHonoServer for production build
 // Without await, serverModule.default is a Promise (no .fetch method)
