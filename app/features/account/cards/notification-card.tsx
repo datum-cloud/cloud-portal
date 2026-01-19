@@ -1,5 +1,6 @@
 import { NotificationSettingsCard } from '@/components/notification-settings';
 import type { NotificationPreference } from '@/components/notification-settings';
+import { useNotificationContactGroups } from '@/resources/notifications/contact-group.queries';
 import { z } from 'zod';
 
 const accountNotificationSchema = z.object({
@@ -35,6 +36,9 @@ const ACCOUNT_NOTIFICATION_PREFERENCES: NotificationPreference[] = [
 ];
 
 export const AccountNotificationSettingsCard = () => {
+  const { data: contacts } = useNotificationContactGroups({ type: 'user' });
+
+  console.log('contacts', contacts);
   return (
     <NotificationSettingsCard
       title="Marketing & Events"
