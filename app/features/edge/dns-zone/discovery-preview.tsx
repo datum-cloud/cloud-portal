@@ -78,12 +78,7 @@ export const DnsZoneDiscoveryPreview = ({
       }
 
       // Navigate to DNS zone detail after successful import
-      navigate(
-        getPathWithParams(paths.project.detail.dnsZones.detail.root, {
-          projectId,
-          dnsZoneId,
-        })
-      );
+      navigateToZoneDetails();
     },
     onError: (error: Error) => {
       toast.error('DNS records', {
@@ -91,6 +86,15 @@ export const DnsZoneDiscoveryPreview = ({
       });
     },
   });
+
+  const navigateToZoneDetails = () => {
+    navigate(
+      getPathWithParams(paths.project.detail.dnsZones.detail.root, {
+        projectId,
+        dnsZoneId,
+      })
+    );
+  };
 
   const cleanUp = () => {
     if (loadingTimeoutRef.current) {
@@ -152,10 +156,17 @@ export const DnsZoneDiscoveryPreview = ({
     });
   };
 
+  const handleSkip = () => {
+    // Stop polling and cleanup
+    setShouldPoll(false);
+    cleanUp();
+    navigateToZoneDetails();
+  };
+
   return (
     <Card className="rounded-xl py-5">
       <AnimatePresence mode="wait">
-        {isLoading ? (
+        {!isLoading ? (
           <motion.div
             key="pending"
             initial={{ opacity: 0 }}
@@ -165,6 +176,9 @@ export const DnsZoneDiscoveryPreview = ({
             <CardContent className="flex min-h-[346px] flex-col items-center justify-center gap-4.5">
               <SpinnerIcon size="xl" aria-hidden="true" />
               <p className="text-sm font-semibold">Discovering DNS records...</p>
+              <Button htmlType="button" type="quaternary" theme="outline" onClick={handleSkip}>
+                Skip
+              </Button>
             </CardContent>
           </motion.div>
         ) : dnsRecords.length > 0 ? (
@@ -198,14 +212,7 @@ export const DnsZoneDiscoveryPreview = ({
                 type="quaternary"
                 theme="outline"
                 disabled={bulkImportMutation.isPending}
-                onClick={() =>
-                  navigate(
-                    getPathWithParams(paths.project.detail.dnsZones.detail.root, {
-                      projectId,
-                      dnsZoneId,
-                    })
-                  )
-                }>
+                onClick={navigateToZoneDetails}>
                 Skip
               </Button>
               <Button
@@ -235,14 +242,7 @@ export const DnsZoneDiscoveryPreview = ({
                 htmlType="button"
                 type="quaternary"
                 theme="outline"
-                onClick={() =>
-                  navigate(
-                    getPathWithParams(paths.project.detail.dnsZones.detail.root, {
-                      projectId,
-                      dnsZoneId,
-                    })
-                  )
-                }>
+                onClick={navigateToZoneDetails}>
                 Continue to DNS Zone
               </Button>
             </CardContent>
