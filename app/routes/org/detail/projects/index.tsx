@@ -3,6 +3,7 @@ import { DateTime } from '@/components/date-time';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
+import { Organization } from '@/resources/organizations';
 import {
   createProjectService,
   projectFormSchema,
@@ -75,9 +76,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function OrgProjectsPage() {
   const { orgId } = useParams();
   const { projects: initialProjects, alertClosed } = useLoaderData<typeof loader>();
-  const organization = useRouteLoaderData('org-detail') as
-    | { type?: 'Personal' | 'Standard' }
-    | undefined;
+  const organization = useRouteLoaderData<Organization>('org-detail');
 
   // Hydrate cache with SSR data (runs once on mount)
   useHydrateProjects(orgId ?? '', initialProjects ?? []);
