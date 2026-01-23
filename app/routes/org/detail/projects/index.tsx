@@ -29,6 +29,7 @@ import {
   useNavigate,
   useParams,
   useRevalidator,
+  useRouteLoaderData,
   useSearchParams,
 } from 'react-router';
 import z from 'zod';
@@ -74,6 +75,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function OrgProjectsPage() {
   const { orgId } = useParams();
   const { projects: initialProjects, alertClosed } = useLoaderData<typeof loader>();
+  const organization = useRouteLoaderData('org-detail') as
+    | { type?: 'Personal' | 'Standard' }
+    | undefined;
 
   // Hydrate cache with SSR data (runs once on mount)
   useHydrateProjects(orgId ?? '', initialProjects ?? []);
@@ -132,6 +136,8 @@ export default function OrgProjectsPage() {
   });
 
   const showAlert = !alertClosed;
+  const isPersonalOrg = organization?.type === 'Personal';
+  const projectLimit = isPersonalOrg ? 2 : 10;
 
   const columns: ColumnDef<Project>[] = useMemo(
     () => [
@@ -245,11 +251,19 @@ export default function OrgProjectsPage() {
               title="Understanding Projects"
               description={
                 <ul className="list-disc space-y-2 pl-5 text-sm font-normal">
-                  <li>Projects are dedicated instances on Datum Cloud.</li>
+                  <li>Projects are spaces that are used to organise and group work.</li>
+                  <li>Within projects, you can manage your resources and services.</li>
+                  {!isPersonalOrg && (
+                    <li>
+                      You can set up many projects for different uses and invite your colleagues to
+                      help manage them.
+                    </li>
+                  )}
                   <li>
-                    You can use them to manage your core network services, workloads, and assets.
+                    {isPersonalOrg
+                      ? `Personal organizations can have up to ${projectLimit} projects.`
+                      : `Standard organizations can have up to ${projectLimit} projects. You can always reach out to request more.`}
                   </li>
-                  <li>There is no limit to how many you create.</li>
                 </ul>
               }
             />
@@ -260,7 +274,7 @@ export default function OrgProjectsPage() {
         open={openDialog}
         onOpenChange={setOpenDialog}
         title="Create a Project"
-        description="Add a project to manage your core network services, workloads, and assets."
+        description="Add a project to manage your resources and services."
         schema={projectFormSchema}
         defaultValues={{
           name: '',
