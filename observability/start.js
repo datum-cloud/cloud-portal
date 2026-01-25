@@ -44,8 +44,7 @@ async function checkRedisHealthOnStartup() {
   try {
     ({ default: Redis } = await import('ioredis'));
   } catch (e) {
-    console.warn('⚠️  Redis health check skipped: failed to load ioredis', e?.message || e);
-    return;
+    throw new Error(`Redis health check failed: unable to load ioredis (${e?.message || e})`);
   }
 
   const client = new Redis(url, {
@@ -64,7 +63,7 @@ async function checkRedisHealthOnStartup() {
     await withTimeout(client.ping(), commandTimeout, 'Redis ping');
     console.log('🔴 Redis: Health check passed', { latencyMs: Date.now() - start });
   } catch (e) {
-    console.warn('⚠️  Redis health check failed:', e?.message || e);
+    throw new Error(`Redis health check failed: ${e?.message || e}`);
   } finally {
     try {
       await client.quit();
@@ -154,12 +153,9 @@ function startServer(module) {
       development: module.default.development,
     });
     console.log(`✅ Server started successfully on port ${module.default.port}`);
-    // Fire-and-forget health check (do not block startup)
-    void checkRedisHealthOnStartup();
   } else {
     console.log(`⚠️ Server object does not have fetch method, assuming it's already running`);
     console.log(`✅ Server started successfully on port ${module.default.port}`);
-    void checkRedisHealthOnStartup();
   }
 }
 
@@ -191,13 +187,25 @@ try {
         );
       }
 
+      try {
+        await checkRedisHealthOnStartup();
+      } catch (e) {
+        console.error('❌', e?.message || e);
+        process.exit(1);
+      }
+
       return loadAndStartServer();
     })
     .catch((error) => {
       console.error('❌ Error loading observability module:', error);
       // Continue with server startup even if observability fails
       console.log('⚠️ Starting server without observability...');
-      return loadAndStartServer();
+      checkRedisHealthOnStartup()
+        .then(loadAndStartServer)
+        .catch((e) => {
+          console.error('❌', e?.message || e);
+          process.exit(1);
+        });
     });
 } catch (error) {
   console.error('❌ Error in startup script:', error);
