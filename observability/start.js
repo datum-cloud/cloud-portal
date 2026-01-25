@@ -16,11 +16,71 @@ let shuttingDown = false;
 let activeRequests = 0;
 let server = null;
 let shutdownObservability = null;
+let redisHealthChecked = false;
+
+function withTimeout(promise, timeoutMs, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs)
+    ),
+  ]);
+}
+
+async function checkRedisHealthOnStartup() {
+  if (redisHealthChecked) return;
+  redisHealthChecked = true;
+
+  const url = process.env?.REDIS_URL;
+  if (!url) {
+    console.log('🔴 Redis: Disabled (REDIS_URL not configured)');
+    return;
+  }
+
+  const connectTimeout = 5000;
+  const commandTimeout = 3000;
+
+  let Redis;
+  try {
+    ({ default: Redis } = await import('ioredis'));
+  } catch (e) {
+    console.warn('⚠️  Redis health check skipped: failed to load ioredis', e?.message || e);
+    return;
+  }
+
+  const client = new Redis(url, {
+    lazyConnect: true,
+    enableOfflineQueue: false,
+    enableReadyCheck: true,
+    maxRetriesPerRequest: 1,
+    connectTimeout,
+    commandTimeout,
+    retryStrategy: () => null,
+  });
+
+  const start = Date.now();
+  try {
+    await withTimeout(client.connect(), connectTimeout, 'Redis connect');
+    await withTimeout(client.ping(), commandTimeout, 'Redis ping');
+    console.log('🔴 Redis: Health check passed', { latencyMs: Date.now() - start });
+  } catch (e) {
+    console.warn('⚠️  Redis health check failed:', e?.message || e);
+  } finally {
+    try {
+      await client.quit();
+    } catch {
+      try {
+        client.disconnect();
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
 
 async function waitForDrainOrTimeout(timeoutMs) {
   const start = Date.now();
   while (activeRequests > 0 && Date.now() - start < timeoutMs) {
-     
     await new Promise((r) => setTimeout(r, SHUTDOWN_POLL_MS));
   }
 }
@@ -94,9 +154,12 @@ function startServer(module) {
       development: module.default.development,
     });
     console.log(`✅ Server started successfully on port ${module.default.port}`);
+    // Fire-and-forget health check (do not block startup)
+    void checkRedisHealthOnStartup();
   } else {
     console.log(`⚠️ Server object does not have fetch method, assuming it's already running`);
     console.log(`✅ Server started successfully on port ${module.default.port}`);
+    void checkRedisHealthOnStartup();
   }
 }
 

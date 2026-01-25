@@ -20,7 +20,9 @@ export const redisClient: Redis | null = redisConfig.enabled
       connectTimeout: redisConfig.connectTimeout,
       commandTimeout: redisConfig.commandTimeout,
       keyPrefix: redisConfig.keyPrefix,
-      lazyConnect: true, // Won't connect until first command
+      // Connect immediately so readiness reflects actual availability.
+      // (We avoid issuing commands until status === 'ready' elsewhere.)
+      lazyConnect: false,
       enableOfflineQueue: false, // Fail fast instead of queuing commands
       enableReadyCheck: true, // Wait for Redis to be ready
 
@@ -98,9 +100,18 @@ export async function checkRedisHealth(): Promise<{
     };
   }
 
+  // With enableOfflineQueue=false, issuing commands before 'ready' throws.
+  // Treat non-ready states as unavailable (but non-fatal) for callers.
+  if (redisClient.status !== 'ready') {
+    return {
+      available: false,
+      error: `Redis connection is ${redisClient.status}. Waiting for ready...`,
+    };
+  }
+
   try {
     const start = Date.now();
-    const result = await Promise.race([
+    await Promise.race([
       redisClient.ping(),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Health check timeout')), 3000)),
     ]);
