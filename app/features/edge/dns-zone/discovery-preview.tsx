@@ -176,10 +176,12 @@ export const DnsZoneDiscoveryPreview = ({
             <CardContent className="flex min-h-[346px] flex-col items-center justify-center gap-4.5">
               <SpinnerIcon size="xl" aria-hidden="true" />
               <p className="text-sm font-semibold">Discovering DNS records...</p>
-              <Button htmlType="button" type="quaternary" theme="outline" onClick={handleSkip}>
-                Skip
-              </Button>
             </CardContent>
+            <CardFooter className="flex justify-center px-5 pb-5">
+              <Button htmlType="button" type="quaternary" theme="outline" onClick={handleSkip}>
+                Cancel DNS record discovery
+              </Button>
+            </CardFooter>
           </motion.div>
         ) : dnsRecords.length > 0 ? (
           <motion.div
