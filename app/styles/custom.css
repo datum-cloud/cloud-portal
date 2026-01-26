@@ -25,3 +25,17 @@
 .recharts-wrapper .recharts-tooltip-wrapper {
   z-index: 1;
 }
+
+/* Help Scout Beacon: hide off-screen near page bottom */
+body.hs-beacon-offscreen #beacon-container {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+body:not(.hs-beacon-offscreen) #beacon-container {
+  opacity: 1;
+  pointer-events: auto;
+
+  transition: opacity 300ms ease;
+}

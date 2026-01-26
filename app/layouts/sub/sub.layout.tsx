@@ -46,7 +46,7 @@ export function SubLayout({
       {/* Content Area - Scrollable */}
       <main className="h-full flex-1 overflow-y-auto">
         <ContentWrapper
-          containerClassName={cn('overflow-y-auto', containerClassName)}
+          containerClassName={cn('overflow-y-auto scroll-container', containerClassName)}
           contentClassName={contentClassName}>
           {children}
         </ContentWrapper>
