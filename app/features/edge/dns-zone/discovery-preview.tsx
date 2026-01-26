@@ -166,7 +166,7 @@ export const DnsZoneDiscoveryPreview = ({
   return (
     <Card className="rounded-xl py-5">
       <AnimatePresence mode="wait">
-        {!isLoading ? (
+        {isLoading ? (
           <motion.div
             key="pending"
             initial={{ opacity: 0 }}
