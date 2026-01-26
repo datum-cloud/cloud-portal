@@ -1,18 +1,14 @@
-/* eslint-disable */
-import { ResultOf, DocumentTypeDecoration } from '@graphql-typed-document-node/core';
 import { Incremental, TypedDocumentString } from './graphql';
+import { ResultOf, DocumentTypeDecoration } from '@graphql-typed-document-node/core';
 
-
-export type FragmentType<TDocumentType extends DocumentTypeDecoration<any, any>> = TDocumentType extends DocumentTypeDecoration<
-  infer TType,
-  any
->
-  ? [TType] extends [{ ' $fragmentName'?: infer TKey }]
-    ? TKey extends string
-      ? { ' $fragmentRefs'?: { [key in TKey]: TType } }
+export type FragmentType<TDocumentType extends DocumentTypeDecoration<any, any>> =
+  TDocumentType extends DocumentTypeDecoration<infer TType, any>
+    ? [TType] extends [{ ' $fragmentName'?: infer TKey }]
+      ? TKey extends string
+        ? { ' $fragmentRefs'?: { [key in TKey]: TType } }
+        : never
       : never
-    : never
-  : never;
+    : never;
 
 // return non-nullable if `fragmentType` is non-nullable
 export function useFragment<TType>(
@@ -56,15 +52,19 @@ export function useFragment<TType>(
 ): ReadonlyArray<TType> | null | undefined;
 export function useFragment<TType>(
   _documentNode: DocumentTypeDecoration<TType, any>,
-  fragmentType: FragmentType<DocumentTypeDecoration<TType, any>> | Array<FragmentType<DocumentTypeDecoration<TType, any>>> | ReadonlyArray<FragmentType<DocumentTypeDecoration<TType, any>>> | null | undefined
+  fragmentType:
+    | FragmentType<DocumentTypeDecoration<TType, any>>
+    | Array<FragmentType<DocumentTypeDecoration<TType, any>>>
+    | ReadonlyArray<FragmentType<DocumentTypeDecoration<TType, any>>>
+    | null
+    | undefined
 ): TType | Array<TType> | ReadonlyArray<TType> | null | undefined {
   return fragmentType as any;
 }
 
-
 export function makeFragmentData<
   F extends DocumentTypeDecoration<any, any>,
-  FT extends ResultOf<F>
+  FT extends ResultOf<F>,
 >(data: FT, _fragment: F): FragmentType<F> {
   return data as FragmentType<F>;
 }
@@ -79,5 +79,5 @@ export function isFragmentReady<TQuery, TFrag>(
   if (!deferredFields || !fragName) return true;
 
   const fields = deferredFields[fragName] ?? [];
-  return fields.length > 0 && fields.every(field => data && field in data);
+  return fields.length > 0 && fields.every((field) => data && field in data);
 }
