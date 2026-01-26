@@ -39,7 +39,7 @@ const DashboardContent = ({
         children
       ) : (
         <ContentWrapper
-          containerClassName={cn('overflow-y-auto', containerClassName)}
+          containerClassName={cn('overflow-y-auto scroll-container', containerClassName)}
           contentClassName={cn('gap-4', contentClassName)}>
           {children}
         </ContentWrapper>

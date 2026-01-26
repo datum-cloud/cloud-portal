@@ -2,7 +2,6 @@ node_modules
 
 /.cache
 /build
-.env
 .DS_Store
 .react-router/
 
@@ -18,3 +17,4 @@ docs/plans/
 
 # OpenAPI generation temp files
 temp-openapi-spec.json
+config.bat

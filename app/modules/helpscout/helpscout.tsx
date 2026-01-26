@@ -6,6 +6,10 @@ import { getHelpScoutScriptUrl, isValidBeaconId, sanitizeUserData } from './help
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router';
 
+const HELPSCOUT_HIDE_CLASS = 'hs-beacon-offscreen';
+// Small buffer so we hide slightly before true bottom (prevents flicker due to sub-pixel/layout shifts)
+const HELPSCOUT_BOTTOM_THRESHOLD_PX = 48;
+
 export interface HelpScoutBeaconComponentProps {
   beaconId: string;
   user?: HelpScoutUser;
@@ -40,6 +44,7 @@ export const HelpScoutBeacon = ({
   const location = useLocation();
   const isLoadedRef = useRef(false);
   const configAppliedRef = useRef(false);
+  const isOffscreenRef = useRef<boolean | null>(null);
 
   // Validate beacon ID (but don't return early - hooks must be called consistently)
   const isValidBeacon = beaconId && isValidBeaconId(beaconId);
@@ -180,6 +185,140 @@ export const HelpScoutBeacon = ({
     // This helps provide context to support agents
     // For now, we'll skip this to avoid additional API calls
   }, [location.pathname, location.search, isValidBeacon]);
+
+  // Hide the Beacon button when the user is at the bottom of the page,
+  // and show it again when they scroll back up.
+  useEffect(() => {
+    if (!isValidBeacon || typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
+    const docEl = document.documentElement;
+    let rafId: number | null = null;
+
+    const findPrimaryScrollContainer = (): Window | HTMLElement => {
+      // If the app provides an explicit scroll container, prefer it.
+      const explicit = document.querySelector<HTMLElement>('.scroll-container');
+      if (explicit) return explicit;
+
+      // If the document itself scrolls, use window.
+      if ((docEl.scrollHeight ?? 0) > (window.innerHeight ?? 0) + 8) {
+        return window;
+      }
+
+      const candidates = Array.from(document.querySelectorAll<HTMLElement>('.scroll-container'));
+
+      let best: HTMLElement | null = null;
+      let bestScore = 0;
+
+      for (const el of candidates) {
+        const scrollable = el.scrollHeight - el.clientHeight > 8;
+        if (!scrollable) continue;
+
+        const style = window.getComputedStyle(el);
+        const overflowY = style.overflowY;
+        if (overflowY !== 'auto' && overflowY !== 'scroll') continue;
+
+        // Prefer the largest viewport area so we pick the primary content scroller.
+        const score = el.clientHeight * el.clientWidth;
+        if (score > bestScore) {
+          bestScore = score;
+          best = el;
+        }
+      }
+
+      return best ?? window;
+    };
+
+    const scrollContainer = findPrimaryScrollContainer();
+
+    const setOffscreen = (nextOffscreen: boolean) => {
+      if (isOffscreenRef.current === nextOffscreen) return;
+      isOffscreenRef.current = nextOffscreen;
+
+      document.body.classList.toggle(HELPSCOUT_HIDE_CLASS, nextOffscreen);
+
+      if (nextOffscreen && window.Beacon && window.BeaconLoaded) {
+        // If the Beacon UI is open, close it before moving off-screen.
+        window.Beacon('close');
+      }
+
+      // We intentionally rely on CSS for the hide/show animation instead of Beacon's
+      // `hide/show`, which can instantly remove the widget and skip transitions.
+    };
+
+    const computeAndApply = () => {
+      if (scrollContainer === window) {
+        const scrollY = window.scrollY ?? window.pageYOffset ?? 0;
+        const viewportHeight = window.innerHeight ?? 0;
+        const scrollHeight = docEl.scrollHeight ?? 0;
+
+        // If there's nothing to scroll, treat as "not at bottom" so the widget remains available.
+        if (scrollHeight <= viewportHeight + 8) {
+          setOffscreen(false);
+          return;
+        }
+
+        // Never hide at the very top, even if the page is "near bottom" due to small content.
+        if (scrollY <= 2) {
+          setOffscreen(false);
+          return;
+        }
+
+        const isNearBottom =
+          scrollY + viewportHeight >= scrollHeight - HELPSCOUT_BOTTOM_THRESHOLD_PX;
+        setOffscreen(isNearBottom);
+        return;
+      }
+
+      const el = scrollContainer;
+      const scrollTop = el.scrollTop ?? 0;
+      const viewportHeight = el.clientHeight ?? 0;
+      const scrollHeight = el.scrollHeight ?? 0;
+
+      if (scrollHeight <= viewportHeight + 8) {
+        setOffscreen(false);
+        return;
+      }
+
+      const maxScrollTop = Math.max(0, scrollHeight - viewportHeight);
+      const threshold =
+        maxScrollTop <= HELPSCOUT_BOTTOM_THRESHOLD_PX ? 2 : HELPSCOUT_BOTTOM_THRESHOLD_PX;
+
+      const isNearBottom = scrollTop + viewportHeight >= scrollHeight - threshold;
+      setOffscreen(isNearBottom);
+    };
+
+    const onScrollOrResize = () => {
+      if (rafId != null) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        computeAndApply();
+      });
+    };
+
+    window.addEventListener('resize', onScrollOrResize);
+    if (scrollContainer === window) {
+      window.addEventListener('scroll', onScrollOrResize, { passive: true });
+    } else {
+      scrollContainer.addEventListener('scroll', onScrollOrResize, { passive: true });
+    }
+
+    // Initial calculation (in case the page loads already at/near bottom)
+    computeAndApply();
+
+    return () => {
+      if (rafId != null) window.cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', onScrollOrResize);
+      if (scrollContainer === window) {
+        window.removeEventListener('scroll', onScrollOrResize);
+      } else {
+        scrollContainer.removeEventListener('scroll', onScrollOrResize);
+      }
+      document.body.classList.remove(HELPSCOUT_HIDE_CLASS);
+      isOffscreenRef.current = null;
+    };
+  }, [isValidBeacon, location.pathname, location.search]);
 
   // This component doesn't render any visible UI
   // Return null but only after all hooks have been called
