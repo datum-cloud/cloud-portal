@@ -11,6 +11,7 @@ import type {
   ComMiloapisResourcemanagerV1Alpha1OrganizationList,
   ComMiloapisResourcemanagerV1Alpha1OrganizationMembership,
 } from '@/modules/control-plane/resource-manager';
+import type { ListOrganizationMembershipsQuery } from '@/modules/graphql/gen/graphql';
 
 export function toOrganization(raw: ComMiloapisResourcemanagerV1Alpha1Organization): Organization {
   const transformed = {
@@ -60,6 +61,40 @@ export function toOrganizationFromMembership(
     updatedAt: metadata?.creationTimestamp,
     type: (status?.organization?.type as Organization['type']) ?? 'Standard',
     status: mapStatusFromConditions(status?.conditions as Condition[]),
+    memberCount: undefined,
+    projectCount: undefined,
+  };
+
+  return organizationSchema.parse(transformed);
+}
+
+type OrganizationMembershipGqlItem = NonNullable<
+  NonNullable<
+    ListOrganizationMembershipsQuery['listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces']
+  >['items'][number]
+>;
+
+export function toOrganizationFromMembershipGql(raw: OrganizationMembershipGqlItem): Organization {
+  const { metadata, spec, status } = raw;
+
+  const transformed = {
+    uid: metadata?.uid ?? '',
+    name: spec?.organizationRef?.name ?? '',
+    namespace: metadata?.namespace ?? undefined,
+    displayName: status?.organization?.displayName ?? spec?.organizationRef?.name ?? '',
+    description: undefined,
+    // Not selected in this GraphQL query (and not needed for list views)
+    resourceVersion: '',
+    createdAt: metadata?.creationTimestamp ?? new Date(),
+    updatedAt: metadata?.creationTimestamp ?? undefined,
+    type: (status?.organization?.type as Organization['type']) ?? 'Standard',
+    status: mapStatusFromConditions(
+      (status?.conditions ?? []).filter(Boolean).map((c) => ({
+        type: String(c?.type ?? ''),
+        status: c?.status ?? 'Unknown',
+        reason: String(c?.reason ?? ''),
+      }))
+    ),
     memberCount: undefined,
     projectCount: undefined,
   };

@@ -1,6 +1,6 @@
 import {
   toOrganization,
-  toOrganizationFromMembership,
+  toOrganizationFromMembershipGql,
   toCreatePayload,
   toUpdatePayload,
 } from './organization.adapter';
@@ -11,19 +11,25 @@ import {
   type CreateOrganizationInput,
   type UpdateOrganizationInput,
 } from './organization.schema';
+import { getRequestContext } from '@/modules/axios/request-context';
 import {
-  listResourcemanagerMiloapisComV1Alpha1OrganizationMembershipForAllNamespaces,
-  readResourcemanagerMiloapisComV1Alpha1Organization,
   createResourcemanagerMiloapisComV1Alpha1Organization,
-  patchResourcemanagerMiloapisComV1Alpha1Organization,
   deleteResourcemanagerMiloapisComV1Alpha1Organization,
+  patchResourcemanagerMiloapisComV1Alpha1Organization,
+  readResourcemanagerMiloapisComV1Alpha1Organization,
 } from '@/modules/control-plane/resource-manager';
+import { createGqlClient } from '@/modules/graphql/client';
+import {
+  ListOrganizationMembershipsDocument,
+  type ListOrganizationMembershipsQuery,
+} from '@/modules/graphql/gen/graphql';
 import { logger } from '@/modules/logger';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getUserScopedBase } from '@/resources/base/utils';
 import { parseOrThrow } from '@/utils/errors/error-formatter';
 import { mapApiError } from '@/utils/errors/error-mapper';
+import { gql } from '@apollo/client';
 
 // Query Keys (for React Query)
 export const organizationKeys = {
@@ -56,26 +62,23 @@ export function createOrganizationService() {
       }
     },
 
-    async fetchList(params?: PaginationParams): Promise<OrganizationList> {
-      const response =
-        await listResourcemanagerMiloapisComV1Alpha1OrganizationMembershipForAllNamespaces({
-          baseURL: getUserScopedBase(),
-          query: {
-            limit: params?.limit ?? 1000,
-            continue: params?.cursor,
-          },
-        });
+    async fetchList(_params?: PaginationParams): Promise<OrganizationList> {
+      // Auto-inject token from AsyncLocalStorage on server (same pattern as REST axios calls)
+      const token = getRequestContext()?.token;
+      const client = createGqlClient(token);
 
-      const data = response.data;
+      const result = await client.query<ListOrganizationMembershipsQuery>({
+        query: gql(ListOrganizationMembershipsDocument.toString()),
+        fetchPolicy: 'no-cache',
+      });
 
-      if (!data?.items) {
-        return { items: [], nextCursor: null, hasMore: false };
-      }
+      const gqlItems =
+        result.data?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces
+          ?.items ?? [];
 
-      // Transform memberships to organizations, filter by status, and sort
-      // Note: org.status is already mapped to 'Active', 'Pending', etc. by the adapter
-      const items = data.items
-        .map(toOrganizationFromMembership)
+      const items = gqlItems
+        .filter((m): m is NonNullable<(typeof gqlItems)[number]> => Boolean(m))
+        .map((m) => toOrganizationFromMembershipGql(m))
         .filter((org) => org.status === 'Active')
         .sort((a, b) => {
           // Personal organizations first
@@ -89,8 +92,13 @@ export function createOrganizationService() {
 
       return {
         items,
-        nextCursor: data.metadata?.continue ?? null,
-        hasMore: !!data.metadata?.continue,
+        nextCursor:
+          result.data?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces
+            ?.metadata?.continue ?? null,
+        hasMore:
+          !!result.data
+            ?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces?.metadata
+            ?.continue,
       };
     },
 

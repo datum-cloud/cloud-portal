@@ -1,0 +1,41 @@
+query ListOrganizationMemberships {
+  listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces {
+    items {
+      spec {
+        organizationRef {
+          name
+        }
+        roles {
+          name
+          namespace
+        }
+        userRef {
+          name
+        }
+      }
+      metadata {
+        annotations
+        uid
+        name
+        namespace
+        labels
+        creationTimestamp
+      }
+      status {
+        organization {
+          displayName
+          type
+        }
+        conditions {
+          reason
+          status
+          type
+        }
+      }
+    }
+    metadata {
+      continue
+      remainingItemCount
+    }
+  }
+}

@@ -48,3 +48,18 @@ export function getProjectScopedBase(projectId: string): string {
     `/apis/resourcemanager.miloapis.com/v1alpha1/projects/${projectId}/control-plane`
   );
 }
+
+/**
+ * Get GraphQL URL that works on both client and server.
+ * - Client: /api/graphql (proxied through Hono server)
+ * - Server: direct GraphQL gateway URL from env
+ */
+export function getGraphqlUrl(): string {
+  // Client: use proxy route
+  if (typeof window !== 'undefined') {
+    return '/api/graphql';
+  }
+
+  // Server: use direct GraphQL gateway URL from process.env
+  return process.env.GRAPHQL_URL || '';
+}
