@@ -61,7 +61,7 @@ export default function PrivateLayout() {
     userSignature: '',
   });
 
-  const { resolvedTheme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
 
   useEffect(() => {
     if (data?.user) {
