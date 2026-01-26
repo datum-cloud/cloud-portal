@@ -1,4 +1,7 @@
-import { NotificationSettingsCard } from '@/components/notification-settings';
+import {
+  NotificationSettingsCard,
+  NotificationSettingsCardSkeleton,
+} from '@/components/notification-settings';
 import type { NotificationPreference } from '@/components/notification-settings';
 import {
   useCreateNotificationContactGroupMembership,
@@ -88,8 +91,81 @@ export const AccountNotificationSettingsCard = () => {
     contactGroupMemberships !== undefined &&
     contactGroupMembershipRemovals !== undefined;
 
-  // TODO: Add a loading state
-  if (!isReady) return null;
+  const handleSubmit = async (data: Record<string, boolean>) => {
+    try {
+      if (!contactName) {
+        toast.error('Unable to update notification groups', {
+          description: 'No contact was found for this user.',
+        });
+        return;
+      }
+
+      const allGroupNames = (contactGroups ?? []).map((g) => g.name);
+
+      const desiredGroupNames = Object.entries(data)
+        .filter(([, enabled]) => enabled === true)
+        .map(([groupName]) => groupName);
+
+      const desiredSet = new Set(desiredGroupNames);
+
+      const existingMembershipGroupNames = new Set(
+        (contactGroupMemberships ?? []).map((m) => m.contactGroupName)
+      );
+
+      // In user scope we effectively care about "is this group removed at all?"
+      // Using groupName-only avoids contactName mismatches between queries/mutations.
+      const removalByGroupName = new Map(
+        (contactGroupMembershipRemovals ?? []).map((r) => [r.contactGroupName, r.name] as const)
+      );
+
+      const toEnable = allGroupNames.filter((groupName) => desiredSet.has(groupName));
+      const toDisable = allGroupNames.filter((groupName) => !desiredSet.has(groupName));
+
+      await Promise.all(
+        toEnable.map(async (contactGroupName) => {
+          const removalName = removalByGroupName.get(contactGroupName);
+          if (removalName) {
+            await deleteRemoval.mutateAsync(removalName);
+          }
+
+          if (!existingMembershipGroupNames.has(contactGroupName)) {
+            await createMembership.mutateAsync({
+              name: generateId(contactGroupName),
+              contactGroupName,
+              contactName,
+            });
+          }
+        })
+      );
+
+      await Promise.all(
+        toDisable.map(async (contactGroupName) => {
+          // Mark as removed (instead of deleting the membership) so re-selecting
+          // requires deleting the removal record.
+          if (!existingMembershipGroupNames.has(contactGroupName)) return;
+          if (removalByGroupName.has(contactGroupName)) return;
+
+          await createRemoval.mutateAsync({
+            name: generateId(contactGroupName, { prefix: 'cgmr' }),
+            contactGroupName,
+            contactName,
+          });
+        })
+      );
+    } catch {
+      // errors are surfaced via the mutation onError handlers
+    }
+  };
+
+  if (!isReady) {
+    return (
+      <NotificationSettingsCardSkeleton
+        title="Marketing & Events"
+        count={3}
+        showDescription={false}
+      />
+    );
+  }
 
   return (
     <NotificationSettingsCard
@@ -98,72 +174,7 @@ export const AccountNotificationSettingsCard = () => {
       defaultValues={defaultValues}
       preferences={contactGroupPreferences}
       isLoading={isSaving}
-      onSubmit={async (data) => {
-        // TODO: Refactor this mess
-        try {
-          if (!contactName) {
-            toast.error('Unable to update notification groups', {
-              description: 'No contact was found for this user.',
-            });
-            return;
-          }
-
-          const allGroupNames = (contactGroups ?? []).map((g) => g.name);
-
-          const desiredGroupNames = Object.entries(data)
-            .filter(([, enabled]) => enabled === true)
-            .map(([groupName]) => groupName);
-
-          const desiredSet = new Set(desiredGroupNames);
-
-          const existingMembershipGroupNames = new Set(
-            (contactGroupMemberships ?? []).map((m) => m.contactGroupName)
-          );
-
-          // In user scope we effectively care about "is this group removed at all?"
-          // Using groupName-only avoids contactName mismatches between queries/mutations.
-          const removalByGroupName = new Map(
-            (contactGroupMembershipRemovals ?? []).map((r) => [r.contactGroupName, r.name] as const)
-          );
-
-          const toEnable = allGroupNames.filter((groupName) => desiredSet.has(groupName));
-          const toDisable = allGroupNames.filter((groupName) => !desiredSet.has(groupName));
-
-          await Promise.all(
-            toEnable.map(async (contactGroupName) => {
-              const removalName = removalByGroupName.get(contactGroupName);
-              if (removalName) {
-                await deleteRemoval.mutateAsync(removalName);
-              }
-
-              if (!existingMembershipGroupNames.has(contactGroupName)) {
-                await createMembership.mutateAsync({
-                  name: generateId(contactGroupName),
-                  contactGroupName,
-                  contactName,
-                });
-              }
-            })
-          );
-
-          await Promise.all(
-            toDisable.map(async (contactGroupName) => {
-              // Mark as removed (instead of deleting the membership) so re-selecting
-              // requires deleting the removal record.
-              if (!existingMembershipGroupNames.has(contactGroupName)) return;
-              if (removalByGroupName.has(contactGroupName)) return;
-
-              await createRemoval.mutateAsync({
-                name: generateId(contactGroupName, { prefix: 'cgmr' }),
-                contactGroupName,
-                contactName,
-              });
-            })
-          );
-        } catch {
-          // errors are surfaced via the mutation onError handlers
-        }
-      }}
+      onSubmit={handleSubmit}
     />
   );
 };
