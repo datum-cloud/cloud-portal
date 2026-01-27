@@ -20,6 +20,7 @@ export interface HelpScoutBeaconComponentProps {
   poweredBy?: boolean;
   attachment?: boolean;
   labels?: string[];
+  displayStyle?: 'icon' | 'text' | 'iconAndText' | 'manual';
 }
 
 export const HelpScoutBeacon = ({
@@ -36,6 +37,7 @@ export const HelpScoutBeacon = ({
   poweredBy,
   attachment,
   labels,
+  displayStyle,
 }: HelpScoutBeaconComponentProps) => {
   const location = useLocation();
   const isLoadedRef = useRef(false);
@@ -129,14 +131,15 @@ export const HelpScoutBeacon = ({
       !isValidBeacon ||
       typeof window === 'undefined' ||
       !window.Beacon ||
-      configAppliedRef.current ||
-      !window.BeaconLoaded
+      configAppliedRef.current
     ) {
       return;
     }
 
     // Apply configuration options directly (no 'ready' callback needed in v2)
-    const config: Record<string, any> = {};
+    const config: Record<string, any> = {
+      display: {},
+    };
 
     if (color) config.color = color;
     if (icon) config.icon = icon;
@@ -149,6 +152,7 @@ export const HelpScoutBeacon = ({
     if (poweredBy !== undefined) config.poweredBy = poweredBy;
     if (attachment !== undefined) config.attachment = attachment;
     if (labels) config.labels = labels;
+    if (displayStyle) config.display.style = displayStyle;
 
     if (Object.keys(config).length > 0) {
       window.Beacon?.('config', config);

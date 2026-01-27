@@ -3,13 +3,14 @@ import { ProjectSwitcher } from './project-switcher';
 import { UserDropdown } from './user-dropdown';
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { NotificationDropdown } from '@/components/notification';
+import { helpScoutAPI } from '@/modules/helpscout';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, LifeBuoy } from 'lucide-react';
 import { Link } from 'react-router';
 
 export const Header = ({
@@ -51,6 +52,17 @@ export const Header = ({
       {/* Right Section */}
       <div className="flex items-center justify-end">
         <div className="flex h-full items-center gap-1.5">
+          <Tooltip message="Get in touch">
+            <Button
+              type="quaternary"
+              theme="outline"
+              size="small"
+              className="h-7 w-7 rounded-lg p-0"
+              onClick={() => helpScoutAPI.toggle()}>
+              <Icon icon={LifeBuoy} className="text-icon-primary size-3.5" />
+            </Button>
+          </Tooltip>
+
           <Tooltip message="Docs">
             <Link to="https://datum.net/docs/" target="_blank" rel="noreferrer">
               <Button
