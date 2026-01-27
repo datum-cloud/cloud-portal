@@ -6,6 +6,46 @@ import { rateLimiter as honoRateLimiter } from 'hono-rate-limiter';
 import { RedisStore } from 'rate-limit-redis';
 import type { RedisReply } from 'rate-limit-redis';
 
+type Promisify<T> = T | Promise<T>;
+type RateLimiterContext = Context<{ Variables: Variables }>;
+
+/**
+ * Local config type (matches how we use rate limiting).
+ *
+ * Note: `hono-rate-limiter`'s public TS types don't currently model the
+ * `windowMs`/`store` API we use here, so we keep a local type and cast at the
+ * integration boundary (without using `any`).
+ */
+export type RateLimiterConfig = {
+  windowMs: number;
+  limit: number;
+  keyGenerator?: (c: RateLimiterContext) => Promisify<string>;
+  standardHeaders?: string;
+  handler?: (c: RateLimiterContext) => unknown;
+  skip?: (c: RateLimiterContext) => Promisify<boolean>;
+  store?: RedisStore;
+  // Allow passing through additional config supported by hono-rate-limiter.
+  [key: string]: unknown;
+};
+
+type RateLimiterMiddleware = ReturnType<typeof honoRateLimiter<{ Variables: Variables }>>;
+type HonoRateLimiterConfigForVars = Parameters<typeof honoRateLimiter<{ Variables: Variables }>>[0];
+
+function createLimiter(config: RateLimiterConfig): RateLimiterMiddleware {
+  return honoRateLimiter<{ Variables: Variables }>(
+    config as unknown as HonoRateLimiterConfigForVars
+  );
+}
+
+function createRedisStore(): RedisStore {
+  // IMPORTANT: Only call this when redisClient.status === 'ready'
+  return new RedisStore({
+    prefix: 'rate-limit:',
+    sendCommand: async (command: string, ...args: string[]) =>
+      redisClient!.call(command, ...args) as Promise<RedisReply>,
+  });
+}
+
 // ============================================================================
 // IP Detection & Key Generation
 // ============================================================================
@@ -114,13 +154,7 @@ export const RateLimitPresets = {
     keyGenerator: defaultKeyGenerator,
     standardHeaders: 'draft-6' as const,
     handler: customRateLimitHandler,
-    // Use Redis if available, otherwise in-memory
-    ...(redisClient && {
-      store: new RedisStore({
-        sendCommand: async (command: string, ...args: string[]) =>
-          redisClient!.call(command, ...args) as Promise<RedisReply>,
-      }) as any,
-    }),
+    // Store is selected at runtime by rateLimiter() (Redis when ready, otherwise in-memory)
   },
 
   /** Development mode - 10,000 requests per minute */
@@ -132,7 +166,7 @@ export const RateLimitPresets = {
     handler: customRateLimitHandler,
     // Always in-memory for faster dev loop
   },
-} as const;
+} as const satisfies Record<string, RateLimiterConfig>;
 
 // ============================================================================
 // Rate Limiter Middleware
@@ -170,15 +204,43 @@ export const RateLimitPresets = {
  *   skip: (c) => c.get('isAdmin') === true,
  * }));
  */
-export function rateLimiter(
-  config: Partial<(typeof RateLimitPresets)[keyof typeof RateLimitPresets]> = {}
-) {
-  const finalConfig = {
+export function rateLimiter(config: Partial<RateLimiterConfig> = {}) {
+  const baseConfig: RateLimiterConfig = {
     ...RateLimitPresets.standard,
     ...config,
   };
 
-  return honoRateLimiter<{ Variables: Variables }>(finalConfig);
+  // If caller explicitly passes a store, always use it.
+  if (config.store !== undefined) {
+    return createLimiter(baseConfig);
+  }
+
+  const memoryLimiter = createLimiter(baseConfig);
+  const isDev = process.env.NODE_ENV === 'development';
+  if (isDev || !redisClient) return memoryLimiter;
+
+  // Prefer a single Redis limiter once Redis is actually ready.
+  // Until then, fall back to in-memory without retrying per-request.
+  let redisLimiter: RateLimiterMiddleware | undefined;
+  const initRedisLimiterOnce = () => {
+    if (redisLimiter) return;
+    if (!redisClient || redisClient.status !== 'ready') return;
+
+    try {
+      redisLimiter = createLimiter({
+        ...baseConfig,
+        store: createRedisStore(),
+      });
+    } catch (err) {
+      console.warn('[rate-limit] Failed to initialize Redis store, using in-memory', err);
+    }
+  };
+
+  if (redisClient.status === 'ready') initRedisLimiterOnce();
+  else redisClient.once('ready', initRedisLimiterOnce);
+
+  return (c: RateLimiterContext, next: () => Promise<void>) =>
+    (redisLimiter ?? memoryLimiter)(c, next);
 }
 
 // ============================================================================

@@ -11,7 +11,6 @@ import type { Variables } from './types';
 // Token and requestId will be auto-injected via AsyncLocalStorage
 import '@/modules/control-plane/setup.server';
 import { Logger } from '@/modules/logger';
-import { checkRedisHealth } from '@/modules/redis';
 import { env } from '@/utils/env/env.server';
 import { prometheus } from '@hono/prometheus';
 import { Hono } from 'hono';
@@ -31,18 +30,6 @@ process.once('SIGINT', beginShutdown);
 initializeObservability().catch((error: unknown) => {
   console.error('❌ Failed to initialize observability:', error);
 });
-
-// Check Redis connection on startup (non-blocking)
-checkRedisHealth()
-  .then((result) => {
-    if (!result.available && result.error !== 'Redis not configured') {
-      console.warn('⚠️  Redis health check failed:', result.error);
-      console.warn('⚠️  Falling back to in-memory rate limiting');
-    }
-  })
-  .catch((error: unknown) => {
-    console.error('❌ Unexpected error during Redis health check:', error);
-  });
 
 const app = new Hono<{ Variables: Variables }>();
 
@@ -146,7 +133,7 @@ app.route('/api', createApiApp());
  */
 app.get('/_healthz', (c) => c.json({ status: 'ok' }));
 
-app.get('/_readyz', (c) => {
+app.get('/_readyz', async (c) => {
   if (isShuttingDown) return c.json({ status: 'shutting_down' }, 503);
   return c.json({ status: 'ready' });
 });
