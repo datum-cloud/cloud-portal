@@ -23,6 +23,7 @@ export function toContactGroup(raw: ComMiloapisNotificationV1Alpha1ContactGroup)
     displayName: spec?.displayName ?? metadata?.name ?? 'Contact group',
     visibility: spec?.visibility ?? 'private',
     providers: spec?.providers?.map((p) => ({ id: p.id, name: p.name })) ?? undefined,
+    description: spec?.description ?? undefined,
   };
 }
 

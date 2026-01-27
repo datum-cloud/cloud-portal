@@ -6,12 +6,10 @@ export const contactGroupProviderSchema = z.object({
   name: z.enum(['Loops']),
 });
 
-export const contactGroupResourceSchema = resourceMetadataSchema
-  .omit({ description: true })
-  .extend({
-    visibility: z.enum(['public', 'private']),
-    providers: z.array(contactGroupProviderSchema).optional(),
-  });
+export const contactGroupResourceSchema = resourceMetadataSchema.extend({
+  visibility: z.enum(['public', 'private']),
+  providers: z.array(contactGroupProviderSchema).optional(),
+});
 
 export type ContactGroup = z.infer<typeof contactGroupResourceSchema>;
 

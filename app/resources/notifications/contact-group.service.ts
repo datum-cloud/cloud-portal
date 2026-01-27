@@ -59,6 +59,8 @@ export function createNotificationContactGroupService() {
         });
 
         const data = response.data as ComMiloapisNotificationV1Alpha1ContactGroupList;
+
+        console.log('data', data);
         const result = toContactGroupList(data);
 
         logger.service(SERVICE_NAME, 'list', {
