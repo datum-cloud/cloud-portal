@@ -1,0 +1,128 @@
+import type { ButtonProps } from '../button/button';
+import type { ReactNode } from 'react';
+
+// --- Task Status ---
+
+export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+
+// --- Task ---
+
+export interface Task<TResult = unknown> {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  icon?: ReactNode;
+  category?: string;
+
+  // Items (optional — omit for single-process tasks)
+  items?: unknown[];
+  total?: number;
+
+  // Counters
+  completed: number;
+  failed: number;
+
+  // Error details
+  failedItems: Array<{ id?: string; message: string }>;
+  errorStrategy: 'continue' | 'stop';
+
+  // Capabilities
+  cancelable: boolean;
+  retryable: boolean;
+
+  // Result storage
+  result?: TResult;
+
+  // Actions
+  completionActions?: ButtonProps[] | ((result: TResult) => ButtonProps[]);
+
+  // Retry tracking
+  retryOf?: string;
+  retryCount: number;
+
+  // Internal: processor reference (not serializable)
+  _processor?: (ctx: TaskContext<unknown, TResult>) => Promise<void>;
+  _originalItems?: unknown[];
+
+  // Timestamps
+  createdAt: number;
+  startedAt?: number;
+  completedAt?: number;
+}
+
+// --- Task Context ---
+
+export interface TaskContext<TItem = unknown, TResult = unknown> {
+  readonly items: TItem[];
+  readonly cancelled: boolean;
+  readonly failedItems: Array<{ id?: string; message: string }>;
+  succeed: () => void;
+  fail: (itemId?: string, message?: string) => void;
+  setTitle: (title: string) => void;
+  setResult: (result: TResult) => void;
+}
+
+// --- Enqueue Options ---
+
+export interface EnqueueOptions<TItem = unknown, TResult = unknown> {
+  title: string;
+  processor: (ctx: TaskContext<TItem, TResult>) => Promise<void>;
+  items?: TItem[];
+  icon?: ReactNode;
+  category?: string;
+  errorStrategy?: 'continue' | 'stop';
+  cancelable?: boolean;
+  retryable?: boolean;
+  completionActions?: ButtonProps[] | ((result: TResult) => ButtonProps[]);
+}
+
+// --- Task Handle ---
+
+export interface TaskHandle<TResult = unknown> {
+  id: string;
+  cancel: () => void;
+  promise: Promise<TaskOutcome<TResult>>;
+}
+
+export interface TaskOutcome<TResult = unknown> {
+  status: 'completed' | 'failed' | 'cancelled';
+  completed: number;
+  failed: number;
+  failedItems: Array<{ id?: string; message: string }>;
+  result?: TResult;
+}
+
+// --- Queue Config ---
+
+export interface TaskQueueConfig {
+  concurrency?: number;
+  storage?: TaskStorage;
+  storageKey?: string;
+}
+
+// --- Storage ---
+
+export interface TaskStorage {
+  getAll: () => Task[];
+  get: (id: string) => Task | undefined;
+  set: (id: string, task: Task) => void;
+  remove: (id: string) => void;
+  clear: () => void;
+}
+
+// --- Queue API (exposed via hook) ---
+
+export interface TaskQueueAPI {
+  enqueue: <TItem = unknown, TResult = unknown>(
+    options: EnqueueOptions<TItem, TResult>
+  ) => TaskHandle<TResult>;
+  cancel: (taskId: string) => void;
+  retry: (taskId: string) => void;
+  dismiss: (taskId: string) => void;
+  dismissAll: () => void;
+  tasks: Task[];
+}
+
+export interface UseTaskQueueOptions {
+  status?: TaskStatus;
+}

@@ -12,6 +12,7 @@ import {
   registrationApprovalMiddleware,
   withMiddleware,
 } from '@/utils/middlewares';
+import { TaskQueueProvider, TaskPanel } from '@datum-ui/components/task-queue';
 import { TooltipProvider } from '@shadcn/ui/tooltip';
 import { createHmac } from 'crypto';
 import { useEffect, useState } from 'react';
@@ -81,25 +82,29 @@ export default function PrivateLayout() {
 
   return (
     <WatchProvider>
-      <AppProvider initialUser={data?.user}>
-        <TooltipProvider>
-          <ConfirmationDialogProvider>
-            <Outlet />
-          </ConfirmationDialogProvider>
-        </TooltipProvider>
+      <TaskQueueProvider config={{ storageKey: `datum-task-queue:${data?.user?.sub}` }}>
+        <AppProvider initialUser={data?.user}>
+          <TooltipProvider>
+            <ConfirmationDialogProvider>
+              <Outlet />
+            </ConfirmationDialogProvider>
+          </TooltipProvider>
 
-        {helpscoutEnv.HELPSCOUT_BEACON_ID && helpscoutEnv.isProd && (
-          <HelpScoutBeacon
-            beaconId={helpscoutEnv.HELPSCOUT_BEACON_ID}
-            displayStyle="manual"
-            user={{
-              name: `${data?.user?.givenName} ${data?.user?.familyName}`,
-              email: data?.user?.email,
-              signature: helpscoutEnv.userSignature ?? '',
-            }}
-          />
-        )}
-      </AppProvider>
+          {helpscoutEnv.HELPSCOUT_BEACON_ID && helpscoutEnv.isProd && (
+            <HelpScoutBeacon
+              beaconId={helpscoutEnv.HELPSCOUT_BEACON_ID}
+              displayStyle="manual"
+              user={{
+                name: `${data?.user?.givenName} ${data?.user?.familyName}`,
+                email: data?.user?.email,
+                signature: helpscoutEnv.userSignature ?? '',
+              }}
+            />
+          )}
+
+          <TaskPanel />
+        </AppProvider>
+      </TaskQueueProvider>
     </WatchProvider>
   );
 }
