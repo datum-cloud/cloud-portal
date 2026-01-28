@@ -5,7 +5,13 @@ import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
-import type { DnsZone } from '@/resources/dns-zones';
+import {
+  createDnsZoneService,
+  useDnsZones,
+  useDnsZonesWatch,
+  useHydrateDnsZones,
+  type DnsZone,
+} from '@/resources/dns-zones';
 import {
   createDomainService,
   type Domain,
@@ -63,28 +69,38 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const domainService = createDomainService();
   const domains = await domainService.list(projectId);
 
-  return data({ domains });
+  const dnsZonesService = createDnsZoneService();
+  const dnsZones = await dnsZonesService.list(projectId);
+  return data({ domains, dnsZones });
 };
 
 export default function DomainsPage() {
   const { projectId } = useParams();
-  const { domains: initialDomains } = useLoaderData<typeof loader>();
+  const { domains: initialDomains, dnsZones: initialDnsZones } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
   // Hydrate cache with SSR data (runs once on mount)
   useHydrateDomains(projectId ?? '', initialDomains);
+  useHydrateDnsZones(projectId ?? '', initialDnsZones.items);
 
   // Subscribe to watch for real-time updates
   useDomainsWatch(projectId ?? '');
+  useDnsZonesWatch(projectId ?? '');
 
   // Read from React Query cache (gets updates from watch!)
-  const { data } = useDomains(projectId ?? '', {
+  const { data: domainsData } = useDomains(projectId ?? '', {
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: dnsZonesData } = useDnsZones(projectId ?? '', undefined, {
     refetchOnMount: false,
     staleTime: 5 * 60 * 1000,
   });
 
   // Use React Query data, fallback to SSR data
-  const domains = data ?? initialDomains;
+  const domains = domainsData ?? initialDomains;
+  const dnsZones = dnsZonesData?.items ?? initialDnsZones.items;
 
   // Format domains for display
   const formattedDomains = useMemo<FormattedDomain[]>(() => {
@@ -96,8 +112,9 @@ export default function DomainsPage() {
       expiresAt: domain.status?.registration?.expiresAt,
       status: domain.status,
       statusType: domain.status?.verified ? 'verified' : 'pending',
+      dnsZone: dnsZones.find((dnsZone) => dnsZone.domainName === domain.domainName),
     }));
-  }, [domains]);
+  }, [domains, dnsZones]);
 
   const { confirm } = useConfirmationDialog();
 
@@ -272,6 +289,12 @@ export default function DomainsPage() {
         label: 'Refresh',
         variant: 'default',
         action: (row) => handleRefreshDomain(row),
+      },
+      {
+        key: 'dnsZone',
+        label: 'Manage DNS Zone',
+        variant: 'default',
+        action: (row) => handleManageDnsZone(row),
       },
       {
         key: 'delete',

@@ -61,7 +61,7 @@ export default function PrivateLayout() {
     userSignature: '',
   });
 
-  const { resolvedTheme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
 
   useEffect(() => {
     if (data?.user) {
@@ -91,6 +91,7 @@ export default function PrivateLayout() {
         {helpscoutEnv.HELPSCOUT_BEACON_ID && helpscoutEnv.isProd && (
           <HelpScoutBeacon
             beaconId={helpscoutEnv.HELPSCOUT_BEACON_ID}
+            displayStyle="manual"
             user={{
               name: `${data?.user?.givenName} ${data?.user?.familyName}`,
               email: data?.user?.email,
