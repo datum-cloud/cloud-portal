@@ -14,7 +14,7 @@ export type NotificationScope =
       projectId: string;
     };
 
-export const DEFAULT_NOTIFICATION_NAMESPACE = 'default';
+export const DEFAULT_NOTIFICATION_NAMESPACE = 'milo-system';
 
 export function getNotificationScopedBase(scope: NotificationScope): string {
   switch (scope.type) {
