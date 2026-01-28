@@ -17,7 +17,7 @@ export {
   type ContactList,
   type CreateContactInput,
   type UpdateContactInput,
-} from './contact.schema';
+} from './contact/contact.schema';
 
 // Contact adapter exports
 export {
@@ -25,14 +25,14 @@ export {
   toContactList,
   toCreateContactPayload,
   toUpdateContactPayload,
-} from './contact.adapter';
+} from './contact/contact.adapter';
 
 // Contact service exports
 export {
   createNotificationContactService,
   notificationContactKeys,
   type NotificationContactService,
-} from './contact.service';
+} from './contact/contact.service';
 
 // Contact query hooks exports
 export {
@@ -41,7 +41,7 @@ export {
   useCreateNotificationContact,
   useUpdateNotificationContact,
   useDeleteNotificationContact,
-} from './contact.queries';
+} from './contact/contact.queries';
 
 // Contact group schema exports
 export {
@@ -54,7 +54,7 @@ export {
   type ContactGroupList,
   type CreateContactGroupInput,
   type UpdateContactGroupInput,
-} from './contact-group.schema';
+} from './contact-group/contact-group.schema';
 
 // Contact group adapter exports
 export {
@@ -62,14 +62,14 @@ export {
   toContactGroupList,
   toCreateContactGroupPayload,
   toUpdateContactGroupPayload,
-} from './contact-group.adapter';
+} from './contact-group/contact-group.adapter';
 
 // Contact group service exports
 export {
   createNotificationContactGroupService,
   notificationContactGroupKeys,
   type NotificationContactGroupService,
-} from './contact-group.service';
+} from './contact-group/contact-group.service';
 
 // Contact group query hooks exports
 export {
@@ -78,7 +78,7 @@ export {
   useCreateNotificationContactGroup,
   useUpdateNotificationContactGroup,
   useDeleteNotificationContactGroup,
-} from './contact-group.queries';
+} from './contact-group/contact-group.queries';
 
 // Contact group membership schema exports
 export {
@@ -88,21 +88,21 @@ export {
   type ContactGroupMembership,
   type ContactGroupMembershipList,
   type CreateContactGroupMembershipInput,
-} from './contact-group-membership.schema';
+} from './contact-group-membership/contact-group-membership.schema';
 
 // Contact group membership adapter exports
 export {
   toContactGroupMembership,
   toContactGroupMembershipList,
   toCreateContactGroupMembershipPayload,
-} from './contact-group-membership.adapter';
+} from './contact-group-membership/contact-group-membership.adapter';
 
 // Contact group membership service exports
 export {
   createNotificationContactGroupMembershipService,
   notificationContactGroupMembershipKeys,
   type NotificationContactGroupMembershipService,
-} from './contact-group-membership.service';
+} from './contact-group-membership/contact-group-membership.service';
 
 // Contact group membership query hooks exports
 export {
@@ -110,7 +110,7 @@ export {
   useNotificationContactGroupMembership,
   useCreateNotificationContactGroupMembership,
   useDeleteNotificationContactGroupMembership,
-} from './contact-group-membership.queries';
+} from './contact-group-membership/contact-group-membership.queries';
 
 // Contact group membership removal schema exports
 export {
@@ -120,21 +120,21 @@ export {
   type ContactGroupMembershipRemoval,
   type ContactGroupMembershipRemovalList,
   type CreateContactGroupMembershipRemovalInput,
-} from './contact-group-membership-removal.schema';
+} from './contact-group-membership-removal/contact-group-membership-removal.schema';
 
 // Contact group membership removal adapter exports
 export {
   toContactGroupMembershipRemoval,
   toContactGroupMembershipRemovalList,
   toCreateContactGroupMembershipRemovalPayload,
-} from './contact-group-membership-removal.adapter';
+} from './contact-group-membership-removal/contact-group-membership-removal.adapter';
 
 // Contact group membership removal service exports
 export {
   createNotificationContactGroupMembershipRemovalService,
   notificationContactGroupMembershipRemovalKeys,
   type NotificationContactGroupMembershipRemovalService,
-} from './contact-group-membership-removal.service';
+} from './contact-group-membership-removal/contact-group-membership-removal.service';
 
 // Contact group membership removal query hooks exports
 export {
@@ -142,4 +142,4 @@ export {
   useNotificationContactGroupMembershipRemoval,
   useCreateNotificationContactGroupMembershipRemoval,
   useDeleteNotificationContactGroupMembershipRemoval,
-} from './contact-group-membership-removal.queries';
+} from './contact-group-membership-removal/contact-group-membership-removal.queries';

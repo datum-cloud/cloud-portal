@@ -1,7 +1,7 @@
+import type { NotificationScope } from '../notification-scope';
+import { DEFAULT_NOTIFICATION_NAMESPACE, notificationScopeKey } from '../notification-scope';
 import type { Contact, CreateContactInput, UpdateContactInput } from './contact.schema';
 import { createNotificationContactService, notificationContactKeys } from './contact.service';
-import type { NotificationScope } from './notification-scope';
-import { DEFAULT_NOTIFICATION_NAMESPACE, notificationScopeKey } from './notification-scope';
 import {
   useMutation,
   useQuery,

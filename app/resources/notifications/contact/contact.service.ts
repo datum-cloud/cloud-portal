@@ -1,3 +1,5 @@
+import { DEFAULT_NOTIFICATION_NAMESPACE, getNotificationScopedBase } from '../notification-scope';
+import type { NotificationScope } from '../notification-scope';
 import {
   toContact,
   toContactList,
@@ -11,8 +13,6 @@ import {
   type CreateContactInput,
   type UpdateContactInput,
 } from './contact.schema';
-import { DEFAULT_NOTIFICATION_NAMESPACE, getNotificationScopedBase } from './notification-scope';
-import type { NotificationScope } from './notification-scope';
 import {
   createNotificationMiloapisComV1Alpha1NamespacedContact,
   deleteNotificationMiloapisComV1Alpha1NamespacedContact,

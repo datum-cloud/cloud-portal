@@ -1,3 +1,5 @@
+import { DEFAULT_NOTIFICATION_NAMESPACE, getNotificationScopedBase } from '../notification-scope';
+import type { NotificationScope } from '../notification-scope';
 import {
   toContactGroup,
   toContactGroupList,
@@ -11,8 +13,6 @@ import {
   type CreateContactGroupInput,
   type UpdateContactGroupInput,
 } from './contact-group.schema';
-import { DEFAULT_NOTIFICATION_NAMESPACE, getNotificationScopedBase } from './notification-scope';
-import type { NotificationScope } from './notification-scope';
 import {
   createNotificationMiloapisComV1Alpha1NamespacedContactGroup,
   deleteNotificationMiloapisComV1Alpha1NamespacedContactGroup,

@@ -1,3 +1,6 @@
+import { notificationContactGroupMembershipKeys } from '../contact-group-membership/contact-group-membership.service';
+import type { NotificationScope } from '../notification-scope';
+import { DEFAULT_NOTIFICATION_NAMESPACE, notificationScopeKey } from '../notification-scope';
 import type {
   ContactGroupMembershipRemoval,
   CreateContactGroupMembershipRemovalInput,
@@ -6,9 +9,6 @@ import {
   createNotificationContactGroupMembershipRemovalService,
   notificationContactGroupMembershipRemovalKeys,
 } from './contact-group-membership-removal.service';
-import type { NotificationScope } from './notification-scope';
-import { DEFAULT_NOTIFICATION_NAMESPACE, notificationScopeKey } from './notification-scope';
-import { notificationContactGroupMembershipKeys } from '@/resources/notifications';
 import {
   useMutation,
   useQuery,

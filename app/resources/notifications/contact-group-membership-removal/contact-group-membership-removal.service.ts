@@ -1,3 +1,5 @@
+import { DEFAULT_NOTIFICATION_NAMESPACE, getNotificationScopedBase } from '../notification-scope';
+import type { NotificationScope } from '../notification-scope';
 import {
   toContactGroupMembershipRemoval,
   toContactGroupMembershipRemovalList,
@@ -8,8 +10,6 @@ import {
   type ContactGroupMembershipRemoval,
   type CreateContactGroupMembershipRemovalInput,
 } from './contact-group-membership-removal.schema';
-import { DEFAULT_NOTIFICATION_NAMESPACE, getNotificationScopedBase } from './notification-scope';
-import type { NotificationScope } from './notification-scope';
 import {
   createNotificationMiloapisComV1Alpha1NamespacedContactGroupMembershipRemoval,
   deleteNotificationMiloapisComV1Alpha1NamespacedContactGroupMembershipRemoval,
