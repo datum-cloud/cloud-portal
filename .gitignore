@@ -8,6 +8,7 @@ node_modules
 
 .cursor/
 .windsurf/
+.claude/
 
 cypress/screenshots
 cypress/videos
