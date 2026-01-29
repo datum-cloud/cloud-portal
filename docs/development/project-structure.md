@@ -162,6 +162,7 @@ routes/
 ```
 
 **Conventions:**
+
 - `_layout.tsx` - Layout wrappers
 - `_index.tsx` - Index routes
 - `$param` - Dynamic parameters
@@ -269,10 +270,10 @@ observability/
 
 Use these aliases instead of relative paths:
 
-| Alias | Path |
-|-------|------|
-| `@/` | `app/` |
-| `@shadcn/` | `app/modules/shadcn/` |
+| Alias        | Path                    |
+| ------------ | ----------------------- |
+| `@/`         | `app/`                  |
+| `@shadcn/`   | `app/modules/shadcn/`   |
 | `@datum-ui/` | `app/modules/datum-ui/` |
 
 **Examples:**

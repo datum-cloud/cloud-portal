@@ -7,6 +7,10 @@ import unusedImports from 'eslint-plugin-unused-imports';
 import tseslint from 'typescript-eslint';
 
 export default [
+  // Global ignores (must be separate config object)
+  {
+    ignores: ['app/modules/gqlts/generated/**'],
+  },
   {
     files: ['**/*.ts', '**/*.tsx'],
     ignores: [

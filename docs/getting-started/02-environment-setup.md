@@ -40,13 +40,13 @@ code .env  # or vim .env
 
 These must be set for the app to start:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `APP_URL` | Your local app URL | `http://localhost:3000` |
-| `API_URL` | Control Plane API URL | `http://localhost:8080` or staging URL |
-| `SESSION_SECRET` | Session encryption key (min 32 chars) | `your-super-secret-session-key-min-32-chars` |
-| `AUTH_OIDC_ISSUER` | OIDC provider URL | `https://your-oidc-provider.com` |
-| `AUTH_OIDC_CLIENT_ID` | OIDC client ID | `your-client-id` |
+| Variable              | Description                           | Example                                      |
+| --------------------- | ------------------------------------- | -------------------------------------------- |
+| `APP_URL`             | Your local app URL                    | `http://localhost:3000`                      |
+| `API_URL`             | Control Plane API URL                 | `http://localhost:8080` or staging URL       |
+| `SESSION_SECRET`      | Session encryption key (min 32 chars) | `your-super-secret-session-key-min-32-chars` |
+| `AUTH_OIDC_ISSUER`    | OIDC provider URL                     | `https://your-oidc-provider.com`             |
+| `AUTH_OIDC_CLIENT_ID` | OIDC client ID                        | `your-client-id`                             |
 
 ### Optional Variables (Development)
 
@@ -67,11 +67,11 @@ GRAFANA_URL=http://localhost:3002
 
 ### API URLs
 
-| Environment | API URL |
-|-------------|---------|
-| Local | `http://localhost:8080` |
-| Staging | `https://api.staging.env.datum.net` |
-| Production | `https://api.datum.net` |
+| Environment | API URL                             |
+| ----------- | ----------------------------------- |
+| Local       | `http://localhost:8080`             |
+| Staging     | `https://api.staging.env.datum.net` |
+| Production  | `https://api.datum.net`             |
 
 ---
 
@@ -91,38 +91,38 @@ bun run typecheck
 
 ### Runtime Configuration
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `NODE_ENV` | No | `development` | Environment mode |
-| `VERSION` | No | - | Git commit SHA (set in CI) |
-| `DEBUG` | No | `false` | Enable debug mode |
+| Variable   | Required | Default       | Description                |
+| ---------- | -------- | ------------- | -------------------------- |
+| `NODE_ENV` | No       | `development` | Environment mode           |
+| `VERSION`  | No       | -             | Git commit SHA (set in CI) |
+| `DEBUG`    | No       | `false`       | Enable debug mode          |
 
 ### Logging
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `LOG_LEVEL` | No | `info` | Log verbosity |
-| `LOG_FORMAT` | No | `pretty` | Log output format |
-| `LOG_CURL` | No | `false` | Generate CURL commands |
-| `LOG_REDACT_TOKENS` | No | `true` | Redact sensitive data |
-| `LOG_PAYLOADS` | No | `false` | Log request/response bodies |
+| Variable            | Required | Default  | Description                 |
+| ------------------- | -------- | -------- | --------------------------- |
+| `LOG_LEVEL`         | No       | `info`   | Log verbosity               |
+| `LOG_FORMAT`        | No       | `pretty` | Log output format           |
+| `LOG_CURL`          | No       | `false`  | Generate CURL commands      |
+| `LOG_REDACT_TOKENS` | No       | `true`   | Redact sensitive data       |
+| `LOG_PAYLOADS`      | No       | `false`  | Log request/response bodies |
 
 ### Observability
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `SENTRY_DSN` | No | - | Sentry error tracking |
-| `SENTRY_ENV` | No | - | Sentry environment name |
-| `OTEL_ENABLED` | No | `false` | Enable OpenTelemetry |
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | No | - | OTEL collector endpoint |
+| Variable                      | Required | Default | Description             |
+| ----------------------------- | -------- | ------- | ----------------------- |
+| `SENTRY_DSN`                  | No       | -       | Sentry error tracking   |
+| `SENTRY_ENV`                  | No       | -       | Sentry environment name |
+| `OTEL_ENABLED`                | No       | `false` | Enable OpenTelemetry    |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | No       | -       | OTEL collector endpoint |
 
 ### External Services
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `FATHOM_ID` | No | - | Fathom Analytics ID |
-| `HELPSCOUT_BEACON_ID` | No | - | HelpScout support widget |
-| `REDIS_URL` | No | - | Redis for rate limiting |
+| Variable              | Required | Default | Description              |
+| --------------------- | -------- | ------- | ------------------------ |
+| `FATHOM_ID`           | No       | -       | Fathom Analytics ID      |
+| `HELPSCOUT_BEACON_ID` | No       | -       | HelpScout support widget |
+| `REDIS_URL`           | No       | -       | Redis for rate limiting  |
 
 ---
 

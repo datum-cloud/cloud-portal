@@ -6,17 +6,17 @@ The Datum Cloud Portal is a modern, full-stack web application for managing clou
 
 ## Tech Stack
 
-| Layer | Technology | Purpose |
-|-------|------------|---------|
-| **Runtime** | Bun 1.2.17 | JavaScript runtime & package manager |
-| **Server** | Hono | Lightweight web framework (replaced Express) |
-| **Frontend** | React 19 + React Router v7 | UI framework with SSR |
-| **State** | TanStack Query | Server state management & caching |
-| **Styling** | Tailwind CSS v4 + shadcn/ui | Utility-first CSS + component library |
-| **Validation** | Zod | Runtime type validation |
-| **API Client** | @hey-api/openapi-ts | Generated TypeScript clients |
-| **Testing** | Cypress | E2E and component testing |
-| **Observability** | Sentry + OpenTelemetry | Error tracking & tracing |
+| Layer             | Technology                  | Purpose                                      |
+| ----------------- | --------------------------- | -------------------------------------------- |
+| **Runtime**       | Bun 1.2.17                  | JavaScript runtime & package manager         |
+| **Server**        | Hono                        | Lightweight web framework (replaced Express) |
+| **Frontend**      | React 19 + React Router v7  | UI framework with SSR                        |
+| **State**         | TanStack Query              | Server state management & caching            |
+| **Styling**       | Tailwind CSS v4 + shadcn/ui | Utility-first CSS + component library        |
+| **Validation**    | Zod                         | Runtime type validation                      |
+| **API Client**    | @hey-api/openapi-ts         | Generated TypeScript clients                 |
+| **Testing**       | Cypress                     | E2E and component testing                    |
+| **Observability** | Sentry + OpenTelemetry      | Error tracking & tracing                     |
 
 ---
 
@@ -101,15 +101,15 @@ app/resources/organizations/
 
 All major decisions are documented in Architecture Decision Records (ADRs):
 
-| ADR | Decision | Impact |
-|-----|----------|--------|
-| [001](./adrs/001-express-to-hono-migration.md) | Express → Hono | ~300KB bundle reduction, native Bun support |
-| [002](./adrs/002-domain-driven-resource-modules.md) | Domain modules | Co-located code, consistent patterns |
-| [003](./adrs/003-k8s-watch-api-integration.md) | K8s Watch API | Real-time updates, no polling |
-| [004](./adrs/004-structured-logger-module.md) | Structured logging | Request correlation, CURL generation |
-| [005](./adrs/005-unified-environment-config.md) | Unified env config | Type-safe, fail-fast configuration |
-| [006](./adrs/006-sentry-otel-observability.md) | Sentry + OTEL | Unified observability stack |
-| [007](./adrs/007-dns-record-manager.md) | DNS Record Manager | Centralized DNS operations |
+| ADR                                                 | Decision           | Impact                                      |
+| --------------------------------------------------- | ------------------ | ------------------------------------------- |
+| [001](./adrs/001-express-to-hono-migration.md)      | Express → Hono     | ~300KB bundle reduction, native Bun support |
+| [002](./adrs/002-domain-driven-resource-modules.md) | Domain modules     | Co-located code, consistent patterns        |
+| [003](./adrs/003-k8s-watch-api-integration.md)      | K8s Watch API      | Real-time updates, no polling               |
+| [004](./adrs/004-structured-logger-module.md)       | Structured logging | Request correlation, CURL generation        |
+| [005](./adrs/005-unified-environment-config.md)     | Unified env config | Type-safe, fail-fast configuration          |
+| [006](./adrs/006-sentry-otel-observability.md)      | Sentry + OTEL      | Unified observability stack                 |
+| [007](./adrs/007-dns-record-manager.md)             | DNS Record Manager | Centralized DNS operations                  |
 
 ---
 
