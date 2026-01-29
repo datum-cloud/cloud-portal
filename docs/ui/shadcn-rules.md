@@ -7,6 +7,7 @@ This document covers the rules and best practices for using shadcn/ui components
 ## What is shadcn/ui?
 
 shadcn/ui is a collection of re-usable components built on:
+
 - **Radix UI** - Unstyled, accessible primitives
 - **Tailwind CSS** - Utility-first styling
 
@@ -50,8 +51,8 @@ import { Dialog, DialogTrigger, DialogContent } from '@shadcn/ui/dialog';
 ### ✅ DO: Import Utilities
 
 ```typescript
-import { cn } from '@shadcn/lib/utils';
 import { useIsMobile } from '@shadcn/hooks/use-mobile';
+import { cn } from '@shadcn/lib/utils';
 ```
 
 ### ❌ DON'T: Use Barrel Imports
@@ -66,6 +67,7 @@ import { Button, Card } from '@shadcn/ui';
 ## Available Components
 
 ### Form & Input
+
 - `button` - Button with variants
 - `checkbox` - Checkbox input
 - `input` - Text input
@@ -76,18 +78,21 @@ import { Button, Card } from '@shadcn/ui';
 - `textarea` - Multi-line input
 
 ### Layout & Navigation
+
 - `breadcrumb` - Breadcrumb navigation
 - `card` - Card container
 - `separator` - Visual divider
 - `tabs` - Tabbed interface
 
 ### Data Display
+
 - `avatar` - User avatar
 - `badge` - Status badge
 - `skeleton` - Loading skeleton
 - `table` - Data table
 
 ### Overlays & Dialogs
+
 - `dialog` - Modal dialog
 - `dropdown-menu` - Dropdown menu
 - `hover-card` - Card on hover
@@ -96,6 +101,7 @@ import { Button, Card } from '@shadcn/ui';
 - `tooltip` - Tooltip overlay
 
 ### Utility
+
 - `collapsible` - Collapsible content
 - `command` - Command palette
 - `sonner` - Toast notifications
@@ -123,15 +129,9 @@ import { Button, Card } from '@shadcn/ui';
 ```tsx
 import { cn } from '@shadcn/lib/utils';
 
-<Button
-  className={cn(
-    'base-styles',
-    isActive && 'bg-primary',
-    isDisabled && 'opacity-50'
-  )}
->
+<Button className={cn('base-styles', isActive && 'bg-primary', isDisabled && 'opacity-50')}>
   Click me
-</Button>
+</Button>;
 ```
 
 ### ✅ DO: Create Wrappers in datum-ui for Reusable Variants
@@ -140,8 +140,8 @@ If you need a consistent variant across the app:
 
 ```tsx
 // app/modules/datum-ui/components/button/index.tsx
-import { Button as ShadcnButton } from '@shadcn/ui/button';
 import { cn } from '@shadcn/lib/utils';
+import { Button as ShadcnButton } from '@shadcn/ui/button';
 
 const variants = {
   primary: 'bg-navy text-white hover:bg-navy/90',
@@ -149,12 +149,7 @@ const variants = {
 };
 
 export function Button({ variant = 'primary', className, ...props }) {
-  return (
-    <ShadcnButton
-      className={cn(variants[variant], className)}
-      {...props}
-    />
-  );
+  return <ShadcnButton className={cn(variants[variant], className)} {...props} />;
 }
 ```
 
@@ -222,7 +217,7 @@ cn('px-2 py-1', 'p-4');
 cn('base', condition && 'conditional');
 
 // Object syntax
-cn('base', { 'active': isActive, 'disabled': isDisabled });
+cn('base', { active: isActive, disabled: isDisabled });
 
 // Array syntax
 cn('base', ['class1', 'class2']);
@@ -231,6 +226,7 @@ cn('base', ['class1', 'class2']);
 ### Under the Hood
 
 `cn()` combines:
+
 - `clsx` - Conditional class joining
 - `tailwind-merge` - Tailwind conflict resolution
 
@@ -260,9 +256,7 @@ function ConfirmDialog({ onConfirm }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Confirm Delete</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone.
-          </DialogDescription>
+          <DialogDescription>This action cannot be undone.</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline">Cancel</Button>
@@ -279,29 +273,19 @@ function ConfirmDialog({ onConfirm }) {
 ### Form Pattern
 
 ```tsx
-import { Label } from '@shadcn/ui/label';
 import { Input } from '@shadcn/ui/input';
+import { Label } from '@shadcn/ui/label';
 
 <div className="space-y-2">
   <Label htmlFor="email">Email</Label>
-  <Input
-    id="email"
-    type="email"
-    placeholder="you@example.com"
-  />
-</div>
+  <Input id="email" type="email" placeholder="you@example.com" />
+</div>;
 ```
 
 ### Select Pattern
 
 ```tsx
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@shadcn/ui/select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@shadcn/ui/select';
 
 <Select value={value} onValueChange={setValue}>
   <SelectTrigger>
@@ -311,7 +295,7 @@ import {
     <SelectItem value="option1">Option 1</SelectItem>
     <SelectItem value="option2">Option 2</SelectItem>
   </SelectContent>
-</Select>
+</Select>;
 ```
 
 ---

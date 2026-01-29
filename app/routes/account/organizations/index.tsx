@@ -3,10 +3,10 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import {
-  createOrganizationService,
   organizationFormSchema,
   useCreateOrganization,
   type Organization,
+  createOrganizationGqlService,
 } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
@@ -31,7 +31,7 @@ import z from 'zod';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   // Services now use global axios client with AsyncLocalStorage
-  const orgService = createOrganizationService();
+  const orgService = createOrganizationGqlService();
   const orgList = await orgService.list();
 
   const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(

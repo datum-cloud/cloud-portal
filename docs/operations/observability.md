@@ -8,12 +8,12 @@ This document covers logging, error tracking, and monitoring in the cloud portal
 
 The observability stack consists of:
 
-| Component | Purpose | Local | Production |
-|-----------|---------|-------|------------|
-| **Sentry** | Error tracking | Optional | Required |
-| **OpenTelemetry** | Distributed tracing | Jaeger | Grafana Tempo |
-| **Prometheus** | Metrics collection | Local | Cloud |
-| **Grafana** | Dashboards | Local | Cloud |
+| Component         | Purpose             | Local    | Production    |
+| ----------------- | ------------------- | -------- | ------------- |
+| **Sentry**        | Error tracking      | Optional | Required      |
+| **OpenTelemetry** | Distributed tracing | Jaeger   | Grafana Tempo |
+| **Prometheus**    | Metrics collection  | Local    | Cloud         |
+| **Grafana**       | Dashboards          | Local    | Cloud         |
 
 ---
 
@@ -178,12 +178,14 @@ async function complexOperation() {
 ### Viewing Traces
 
 **Local (Jaeger):**
+
 1. Start observability stack: `bun run dev:otel`
 2. Open http://localhost:16686
 3. Select "cloud-portal" service
 4. Search for traces
 
 **Finding a Trace:**
+
 - By trace ID from logs
 - By operation name
 - By tags (user ID, route, etc.)
@@ -194,12 +196,12 @@ async function complexOperation() {
 
 ### Available Metrics
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `http_requests_total` | Counter | Total HTTP requests |
-| `http_request_duration_seconds` | Histogram | Request latency |
-| `http_requests_in_flight` | Gauge | Concurrent requests |
-| `nodejs_heap_size_bytes` | Gauge | Memory usage |
+| Metric                          | Type      | Description         |
+| ------------------------------- | --------- | ------------------- |
+| `http_requests_total`           | Counter   | Total HTTP requests |
+| `http_request_duration_seconds` | Histogram | Request latency     |
+| `http_requests_in_flight`       | Gauge     | Concurrent requests |
+| `nodejs_heap_size_bytes`        | Gauge     | Memory usage        |
 
 ### Custom Metrics
 
@@ -251,13 +253,13 @@ docker-compose -f docker-compose.otel.yml up -d
 
 ### Services
 
-| Service | Port | URL |
-|---------|------|-----|
-| Jaeger UI | 16686 | http://localhost:16686 |
-| Prometheus | 9090 | http://localhost:9090 |
-| Grafana | 3001 | http://localhost:3001 |
-| OTEL Collector | 4318 | (HTTP receiver) |
-| OTEL Collector | 4317 | (gRPC receiver) |
+| Service        | Port  | URL                    |
+| -------------- | ----- | ---------------------- |
+| Jaeger UI      | 16686 | http://localhost:16686 |
+| Prometheus     | 9090  | http://localhost:9090  |
+| Grafana        | 3001  | http://localhost:3001  |
+| OTEL Collector | 4318  | (HTTP receiver)        |
+| OTEL Collector | 4317  | (gRPC receiver)        |
 
 ### Grafana Dashboards
 
