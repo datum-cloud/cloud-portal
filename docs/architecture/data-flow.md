@@ -265,7 +265,7 @@ export async function list(): Promise<Organization[]> {
 }
 ```
 
-### Request Flow
+### Request Flow (REST)
 
 ```
 Component
@@ -285,6 +285,79 @@ Axios (with interceptors)
     ▼
 Control Plane API
 ```
+
+### Request Flow (GraphQL)
+
+```
+Component
+    │
+    ▼
+React Query Hook (useOrganizationsGql)
+    │
+    ▼
+GQL Service (organization.gql-service.ts)
+    │
+    ▼
+Gqlts Client (createGqlClient)
+    │
+    ▼
+Axios (with interceptors)
+    │
+    ▼
+GraphQL Gateway
+```
+
+---
+
+## GraphQL Data Flow
+
+GraphQL provides an alternative to REST for complex queries with field selection.
+
+### Environment Detection
+
+The Gqlts client automatically routes based on environment:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     createGqlClient(scope)                   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              │                               │
+              ▼                               ▼
+┌─────────────────────────┐     ┌─────────────────────────┐
+│   Server (SSR/Loader)   │     │   Client (Browser)      │
+├─────────────────────────┤     ├─────────────────────────┤
+│ - Direct to GRAPHQL_URL │     │ - Through /api/graphql  │
+│ - Auth from context     │     │ - Auth via cookies      │
+│ - Curl logging          │     │ - Sentry capture        │
+└─────────────────────────┘     └─────────────────────────┘
+```
+
+### Scoped Endpoints
+
+GraphQL endpoints are scoped to different contexts:
+
+| Scope | Use Case |
+|-------|----------|
+| `user` | User-specific data (memberships, preferences) |
+| `org` | Organization resources |
+| `project` | Project resources |
+| `global` | Cross-cutting queries |
+
+### Example Usage
+
+```typescript
+// In loader (server-side)
+const client = createGqlClient({ type: 'user', userId: 'me' });
+const result = await client.query({
+  listOrganizationMemberships: {
+    items: { metadata: { name: true }, status: { organization: { displayName: true } } }
+  }
+});
+```
+
+See [GraphQL Architecture](./graphql.md) for full details.
 
 ---
 
@@ -333,5 +406,7 @@ export function ErrorBoundary() {
 ## Related Documentation
 
 - [Domain Modules](./domain-modules.md) - Resource module structure
+- [GraphQL](./graphql.md) - GraphQL client architecture
 - [Watch API](./watch-api.md) - Real-time implementation details
 - [ADR-002](./adrs/002-domain-driven-resource-modules.md) - Module design decisions
+- [ADR-008](./adrs/008-graphql-integration.md) - GraphQL integration decision

@@ -25,8 +25,10 @@ Every resource module follows this structure:
 app/resources/{resource-name}/
 ├── {resource}.schema.ts      # Zod schemas + TypeScript types
 ├── {resource}.adapter.ts     # API response → Domain model
-├── {resource}.service.ts     # Business logic, API calls
-├── {resource}.queries.ts     # React Query hooks
+├── {resource}.service.ts     # Business logic, API calls (REST)
+├── {resource}.queries.ts     # React Query hooks (REST)
+├── {resource}.gql-service.ts # GraphQL service (optional)
+├── {resource}.gql-queries.ts # React Query hooks for GraphQL (optional)
 ├── {resource}.watch.ts       # K8s Watch hook (optional)
 └── index.ts                  # Public exports
 ```
@@ -37,8 +39,10 @@ app/resources/{resource-name}/
 app/resources/organizations/
 ├── organization.schema.ts
 ├── organization.adapter.ts
-├── organization.service.ts
-├── organization.queries.ts
+├── organization.service.ts      # REST service
+├── organization.queries.ts      # REST hooks
+├── organization.gql-service.ts  # GraphQL service
+├── organization.gql-queries.ts  # GraphQL hooks
 └── index.ts
 ```
 
