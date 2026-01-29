@@ -20,7 +20,6 @@ let shutdownObservability = null;
 async function waitForDrainOrTimeout(timeoutMs) {
   const start = Date.now();
   while (activeRequests > 0 && Date.now() - start < timeoutMs) {
-     
     await new Promise((r) => setTimeout(r, SHUTDOWN_POLL_MS));
   }
 }

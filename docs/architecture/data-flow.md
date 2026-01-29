@@ -73,12 +73,12 @@ export async function loader({ context }: Route.LoaderArgs) {
 
 The `context` object contains:
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `session` | `Session \| null` | User session with access token |
-| `logger` | `Logger` | Request-scoped logger |
-| `requestId` | `string` | Unique request identifier |
-| `cspNonce` | `string` | CSP nonce for inline scripts |
+| Property    | Type              | Description                    |
+| ----------- | ----------------- | ------------------------------ |
+| `session`   | `Session \| null` | User session with access token |
+| `logger`    | `Logger`          | Request-scoped logger          |
+| `requestId` | `string`          | Unique request identifier      |
+| `cspNonce`  | `string`          | CSP nonce for inline scripts   |
 
 ### Benefits of SSR
 
@@ -122,13 +122,13 @@ export function useOrganizations(options?: { initialData?: Organization[] }) {
 
 ### Cache Behavior
 
-| Scenario | Behavior |
-|----------|----------|
-| Initial load | Uses SSR data (no fetch) |
-| Navigation | Uses cached data if fresh |
-| Stale data | Background refetch |
-| Window focus | Automatic revalidation |
-| Manual invalidation | Immediate refetch |
+| Scenario            | Behavior                  |
+| ------------------- | ------------------------- |
+| Initial load        | Uses SSR data (no fetch)  |
+| Navigation          | Uses cached data if fresh |
+| Stale data          | Background refetch        |
+| Window focus        | Automatic revalidation    |
+| Manual invalidation | Immediate refetch         |
 
 ---
 
@@ -240,11 +240,11 @@ function DNSZonesPage() {
 
 ### Event Types
 
-| Event | Meaning | Cache Action |
-|-------|---------|--------------|
-| `ADDED` | New resource created | Add to list |
-| `MODIFIED` | Resource updated | Update in list |
-| `DELETED` | Resource removed | Remove from list |
+| Event      | Meaning              | Cache Action     |
+| ---------- | -------------------- | ---------------- |
+| `ADDED`    | New resource created | Add to list      |
+| `MODIFIED` | Resource updated     | Update in list   |
+| `DELETED`  | Resource removed     | Remove from list |
 
 ---
 
@@ -256,8 +256,8 @@ Services encapsulate API calls and transformations:
 
 ```typescript
 // app/resources/organizations/organization.service.ts
-import { getOrganizations as apiGetOrganizations } from '@/modules/control-plane/iam';
 import { toOrganizations } from './organization.adapter';
+import { getOrganizations as apiGetOrganizations } from '@/modules/control-plane/iam';
 
 export async function list(): Promise<Organization[]> {
   const response = await apiGetOrganizations();

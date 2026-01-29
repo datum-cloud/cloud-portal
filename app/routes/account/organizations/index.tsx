@@ -3,10 +3,10 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import {
-  createOrganizationService,
   organizationFormSchema,
   useCreateOrganization,
   type Organization,
+  createOrganizationGqlService,
 } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
@@ -31,8 +31,10 @@ import z from 'zod';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   // Services now use global axios client with AsyncLocalStorage
-  const orgService = createOrganizationService();
+  const orgService = createOrganizationGqlService();
   const orgList = await orgService.list();
+
+  console.log('orgList', orgList);
 
   const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
     request,
@@ -49,6 +51,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function AccountOrganizations() {
   const { orgs, alertClosed } = useLoaderData<typeof loader>();
+  // const { data: gqlOrgList } = useOrganizationsGql();
   const navigate = useNavigate();
   const revalidator = useRevalidator();
 
@@ -57,6 +60,12 @@ export default function AccountOrganizations() {
   // Alert close fetcher - native useFetcher with effect-based callback
   const alertFetcher = useFetcher<{ success: boolean }>({ key: 'alert-closed' });
   const alertSubmittedRef = useRef(false);
+
+  // console.log('orgs', orgs);
+
+  // useEffect(() => {
+  //   console.log('gqlOrgList', gqlOrgList);
+  // }, [gqlOrgList]);
 
   useEffect(() => {
     if (alertSubmittedRef.current && alertFetcher.data?.success && alertFetcher.state === 'idle') {

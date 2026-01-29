@@ -93,13 +93,17 @@ const widgetSpecSchema = z.object({
 // Widget status schema
 const widgetStatusSchema = z.object({
   phase: z.enum(['Pending', 'Active', 'Failed', 'Terminating']),
-  conditions: z.array(z.object({
-    type: z.string(),
-    status: z.enum(['True', 'False', 'Unknown']),
-    reason: z.string().optional(),
-    message: z.string().optional(),
-    lastTransitionTime: z.string().optional(),
-  })).optional(),
+  conditions: z
+    .array(
+      z.object({
+        type: z.string(),
+        status: z.enum(['True', 'False', 'Unknown']),
+        reason: z.string().optional(),
+        message: z.string().optional(),
+        lastTransitionTime: z.string().optional(),
+      })
+    )
+    .optional(),
 });
 
 // Complete widget schema
@@ -159,7 +163,7 @@ export function toWidgetModel(widget: Widget): WidgetModel {
     description: widget.spec.description,
     type: widget.spec.type,
     enabled: widget.spec.config.enabled,
-    status: widget.status?.phase?.toLowerCase() as WidgetModel['status'] ?? 'pending',
+    status: (widget.status?.phase?.toLowerCase() as WidgetModel['status']) ?? 'pending',
     createdAt: new Date(widget.metadata.creationTimestamp),
     resourceVersion: widget.metadata.resourceVersion,
   };
@@ -188,8 +192,8 @@ export function parseWidgetList(data: unknown): WidgetModel[] {
 
 ```typescript
 // app/resources/widgets/service.ts
-import { createApiClient } from '@/lib/api-client';
 import { parseWidget, parseWidgetList, type WidgetModel } from './adapter';
+import { createApiClient } from '@/lib/api-client';
 
 interface WidgetServiceParams {
   orgId: string;
@@ -238,12 +242,15 @@ export function createWidgetService(params: WidgetServiceParams) {
     },
 
     // Update widget
-    async update(name: string, spec: Partial<{
-      displayName: string;
-      description: string;
-      type: 'basic' | 'advanced' | 'premium';
-      enabled: boolean;
-    }>): Promise<WidgetModel> {
+    async update(
+      name: string,
+      spec: Partial<{
+        displayName: string;
+        description: string;
+        type: 'basic' | 'advanced' | 'premium';
+        enabled: boolean;
+      }>
+    ): Promise<WidgetModel> {
       // Get current version for optimistic concurrency
       const current = await this.get(name);
 
@@ -280,8 +287,8 @@ export type WidgetService = ReturnType<typeof createWidgetService>;
 
 ```typescript
 // app/resources/widgets/queries.ts
-import { queryOptions } from '@tanstack/react-query';
 import { createWidgetService, type WidgetModel } from './service';
+import { queryOptions } from '@tanstack/react-query';
 
 interface WidgetQueryParams {
   orgId: string;
@@ -290,11 +297,9 @@ interface WidgetQueryParams {
 
 export const widgetQueries = {
   // Query key factory
-  all: (params: WidgetQueryParams) =>
-    ['widgets', params.orgId, params.projectId] as const,
+  all: (params: WidgetQueryParams) => ['widgets', params.orgId, params.projectId] as const,
 
-  lists: (params: WidgetQueryParams) =>
-    [...widgetQueries.all(params), 'list'] as const,
+  lists: (params: WidgetQueryParams) => [...widgetQueries.all(params), 'list'] as const,
 
   list: (params: WidgetQueryParams) =>
     queryOptions({
@@ -303,8 +308,7 @@ export const widgetQueries = {
       staleTime: 30_000, // 30 seconds
     }),
 
-  details: (params: WidgetQueryParams) =>
-    [...widgetQueries.all(params), 'detail'] as const,
+  details: (params: WidgetQueryParams) => [...widgetQueries.all(params), 'detail'] as const,
 
   detail: (params: WidgetQueryParams & { name: string }) =>
     queryOptions({
@@ -332,8 +336,8 @@ export function useWidgetMutations(params: WidgetQueryParams) {
 
 ```typescript
 // app/resources/widgets/watch.ts
-import { createWatchConnection, type WatchEvent } from '@/lib/watch';
 import { parseWidget, type WidgetModel } from './adapter';
+import { createWatchConnection, type WatchEvent } from '@/lib/watch';
 
 interface WidgetWatchParams {
   orgId: string;
@@ -367,11 +371,11 @@ export function watchWidgets(params: WidgetWatchParams) {
 
 ```typescript
 // app/resources/widgets/use-widgets.ts
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import type { WidgetModel } from './adapter';
 import { widgetQueries } from './queries';
 import { watchWidgets } from './watch';
-import type { WidgetModel } from './adapter';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 interface UseWidgetsParams {
   orgId: string;
@@ -398,9 +402,7 @@ export function useWidgets({ orgId, projectId, watch = true }: UseWidgetsParams)
             case 'ADDED':
               return [...old, event.object];
             case 'MODIFIED':
-              return old.map((w) =>
-                w.id === event.object.id ? event.object : w
-              );
+              return old.map((w) => (w.id === event.object.id ? event.object : w));
             case 'DELETED':
               return old.filter((w) => w.id !== event.object.id);
             default:

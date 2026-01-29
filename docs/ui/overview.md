@@ -63,14 +63,14 @@ Need a UI component?
 
 ## Quick Reference Table
 
-| Scenario | Location | Import |
-|----------|----------|--------|
-| Basic button, input, card | `modules/shadcn/ui/` | `@shadcn/ui/button` |
-| Data table with filtering | `modules/datum-ui/` | `@datum-ui/components/data-table` |
-| Form with validation | `modules/datum-ui/` | `@datum-ui/components/new-form` |
-| Datum badge variants | `modules/datum-ui/` | `@datum-ui/components` |
-| Page header (shared) | `components/` | `@/components/page-header` |
-| DNS zone wizard (feature-specific) | `features/dns/components/` | Relative import |
+| Scenario                           | Location                   | Import                            |
+| ---------------------------------- | -------------------------- | --------------------------------- |
+| Basic button, input, card          | `modules/shadcn/ui/`       | `@shadcn/ui/button`               |
+| Data table with filtering          | `modules/datum-ui/`        | `@datum-ui/components/data-table` |
+| Form with validation               | `modules/datum-ui/`        | `@datum-ui/components/new-form`   |
+| Datum badge variants               | `modules/datum-ui/`        | `@datum-ui/components`            |
+| Page header (shared)               | `components/`              | `@/components/page-header`        |
+| DNS zone wizard (feature-specific) | `features/dns/components/` | Relative import                   |
 
 ---
 
@@ -81,6 +81,7 @@ Need a UI component?
 **What it is:** Unstyled, accessible UI primitives from Radix UI + Tailwind CSS.
 
 **Contains:**
+
 - Button, Input, Textarea
 - Dialog, Sheet, Popover
 - Select, Checkbox, Radio
@@ -88,6 +89,7 @@ Need a UI component?
 - Tooltip, HoverCard
 
 **Rules:**
+
 - Keep pristine - don't modify source files
 - Import by file path: `@shadcn/ui/button`
 - Customize via Tailwind classes, not file edits
@@ -99,6 +101,7 @@ Need a UI component?
 **What it is:** Datum's design system built on shadcn primitives.
 
 **Contains:**
+
 - DataTable (with filters, sorting, pagination)
 - Form library (Conform + Zod)
 - Badge, Alert (Datum variants)
@@ -106,6 +109,7 @@ Need a UI component?
 - Toast notifications
 
 **Rules:**
+
 - Components should be portal-agnostic
 - Will become separate npm package
 - Import from `@datum-ui/components`
@@ -117,6 +121,7 @@ Need a UI component?
 **What it is:** Core shared components for THIS portal.
 
 **Contains:**
+
 - PageHeader
 - EmptyState
 - ConfirmDialog
@@ -124,6 +129,7 @@ Need a UI component?
 - LoadingSpinner
 
 **Rules:**
+
 - Used in 3+ places across features
 - Specific to cloud-portal patterns
 - Not generic enough for datum-ui
@@ -133,11 +139,13 @@ Need a UI component?
 **What it is:** Feature-specific components.
 
 **Contains:**
+
 - DNS: ZoneWizard, RecordEditor
 - Organization: MemberInvite
 - Project: ProjectSelector
 
 **Rules:**
+
 - Only used within that feature
 - Tightly coupled to feature logic
 - Import with relative paths
@@ -148,21 +156,18 @@ Need a UI component?
 
 ```typescript
 // shadcn primitives
-import { Button } from '@shadcn/ui/button';
-import { Dialog, DialogContent } from '@shadcn/ui/dialog';
-import { cn } from '@shadcn/lib/utils';
-
+// Feature components (relative import)
+import { ZoneWizard } from './components/zone-wizard';
+import { EmptyState } from '@/components/empty-state';
+// Shared app components
+import { PageHeader } from '@/components/page-header';
+import { Badge, Alert } from '@datum-ui/components';
 // datum-ui components
 import { DataTable } from '@datum-ui/components/data-table';
 import { Form } from '@datum-ui/components/new-form';
-import { Badge, Alert } from '@datum-ui/components';
-
-// Shared app components
-import { PageHeader } from '@/components/page-header';
-import { EmptyState } from '@/components/empty-state';
-
-// Feature components (relative import)
-import { ZoneWizard } from './components/zone-wizard';
+import { cn } from '@shadcn/lib/utils';
+import { Button } from '@shadcn/ui/button';
+import { Dialog, DialogContent } from '@shadcn/ui/dialog';
 ```
 
 ---
@@ -177,6 +182,7 @@ import { DataTable, Form, Badge } from '@datum/ui';
 ```
 
 When adding to datum-ui, ensure components are:
+
 - Portal-agnostic (no cloud-portal-specific logic)
 - Self-contained (no external dependencies except shadcn)
 - Well-documented (README in component folder)

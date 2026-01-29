@@ -35,6 +35,7 @@ bun run dev 2>&1 | grep -i error
 #### "Cannot find module" Error
 
 **Symptom:**
+
 ```
 Error: Cannot find module '@/components/...'
 ```
@@ -42,6 +43,7 @@ Error: Cannot find module '@/components/...'
 **Cause:** Path alias not configured or import typo.
 
 **Solution:**
+
 1. Check `tsconfig.json` paths configuration
 2. Verify the file exists at the path
 3. Run `bun install` to ensure dependencies are installed
@@ -51,6 +53,7 @@ Error: Cannot find module '@/components/...'
 #### TypeScript Errors After OpenAPI Generation
 
 **Symptom:**
+
 ```
 Type 'X' is not assignable to type 'Y'
 ```
@@ -58,6 +61,7 @@ Type 'X' is not assignable to type 'Y'
 **Cause:** Generated types changed after spec update.
 
 **Solution:**
+
 1. Review API spec changes
 2. Update consuming code to match new types
 3. Run `bun run typecheck` to find all errors
@@ -73,12 +77,14 @@ Type 'X' is not assignable to type 'Y'
 **Causes & Solutions:**
 
 1. **Invalid callback URL:**
+
    ```bash
    # Check AUTH_URL matches your local address
    AUTH_URL=http://localhost:3000
    ```
 
 2. **Session cookie not persisting:**
+
    ```bash
    # Ensure SESSION_SECRET is set
    SESSION_SECRET=your-32-character-secret-key
@@ -97,6 +103,7 @@ Type 'X' is not assignable to type 'Y'
 **Causes & Solutions:**
 
 1. **API server not running:**
+
    ```bash
    # Check if gateway is accessible
    curl $CLOUD_GATEWAY_API_URL/health
@@ -119,6 +126,7 @@ Type 'X' is not assignable to type 'Y'
 **Causes & Solutions:**
 
 1. **EventSource connection failed:**
+
    ```javascript
    // Check browser console for SSE errors
    // Look for: EventSource failed to connect
@@ -141,6 +149,7 @@ Type 'X' is not assignable to type 'Y'
 **Symptom:** Changes not reflected without manual refresh.
 
 **Solution:**
+
 1. Check Vite dev server is running
 2. Clear browser cache
 3. Restart dev server: `bun run dev`
@@ -199,10 +208,11 @@ Type 'X' is not assignable to type 'Y'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 // Add to app root
-<ReactQueryDevtools initialIsOpen={false} />
+<ReactQueryDevtools initialIsOpen={false} />;
 ```
 
 Features:
+
 - View cache state
 - Inspect queries/mutations
 - Trigger refetches
@@ -261,31 +271,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 ### Authentication Errors
 
-| Error | Meaning | Fix |
-|-------|---------|-----|
-| `invalid_client` | Wrong client ID/secret | Check AUTH_CLIENT_ID and AUTH_CLIENT_SECRET |
-| `invalid_grant` | Token expired or invalid | Re-authenticate |
-| `access_denied` | User denied consent | Check RBAC permissions |
+| Error            | Meaning                  | Fix                                         |
+| ---------------- | ------------------------ | ------------------------------------------- |
+| `invalid_client` | Wrong client ID/secret   | Check AUTH_CLIENT_ID and AUTH_CLIENT_SECRET |
+| `invalid_grant`  | Token expired or invalid | Re-authenticate                             |
+| `access_denied`  | User denied consent      | Check RBAC permissions                      |
 
 ### API Errors
 
-| Status | Meaning | Common Cause |
-|--------|---------|--------------|
-| 400 | Bad Request | Invalid request body |
-| 401 | Unauthorized | Missing/expired token |
-| 403 | Forbidden | Insufficient permissions |
-| 404 | Not Found | Resource doesn't exist |
-| 409 | Conflict | Duplicate resource |
-| 422 | Unprocessable | Validation failed |
-| 500 | Server Error | Backend issue |
+| Status | Meaning       | Common Cause             |
+| ------ | ------------- | ------------------------ |
+| 400    | Bad Request   | Invalid request body     |
+| 401    | Unauthorized  | Missing/expired token    |
+| 403    | Forbidden     | Insufficient permissions |
+| 404    | Not Found     | Resource doesn't exist   |
+| 409    | Conflict      | Duplicate resource       |
+| 422    | Unprocessable | Validation failed        |
+| 500    | Server Error  | Backend issue            |
 
 ### React Router Errors
 
-| Error | Meaning | Fix |
-|-------|---------|-----|
-| `ErrorBoundary` triggered | Render error | Check component props |
-| `loader threw` | Loader exception | Add error handling |
-| `action threw` | Action exception | Check mutation logic |
+| Error                     | Meaning          | Fix                   |
+| ------------------------- | ---------------- | --------------------- |
+| `ErrorBoundary` triggered | Render error     | Check component props |
+| `loader threw`            | Loader exception | Add error handling    |
+| `action threw`            | Action exception | Check mutation logic  |
 
 ---
 
@@ -294,11 +304,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 ### Slow Initial Load
 
 **Diagnostics:**
+
 1. Check network tab for large bundles
 2. Review React Query prefetching
 3. Check for blocking requests
 
 **Solutions:**
+
 - Enable code splitting
 - Defer non-critical data
 - Use skeleton loaders
@@ -308,16 +320,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
 ### Memory Leaks
 
 **Symptoms:**
+
 - Increasing memory usage
 - Browser becomes sluggish
 - Tab crashes
 
 **Diagnostics:**
+
 1. Open DevTools → Memory
 2. Take heap snapshot
 3. Compare snapshots over time
 
 **Common Causes:**
+
 - Unclosed SSE connections
 - Event listeners not cleaned up
 - Large data in React Query cache
@@ -327,11 +342,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 ### Slow Queries
 
 **Diagnostics:**
+
 1. Check React Query DevTools
 2. Look for redundant fetches
 3. Review query key structure
 
 **Solutions:**
+
 - Add proper `staleTime`
 - Use query deduplication
 - Implement pagination
@@ -345,6 +362,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 When reporting issues, include:
 
 1. **Environment:**
+
    ```bash
    node --version
    bun --version

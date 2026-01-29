@@ -49,21 +49,21 @@ This ensures theme always wins over base styles.
 
 These variables control component colors:
 
-| Variable | Usage |
-|----------|-------|
-| `--background` | Page background |
-| `--foreground` | Primary text |
-| `--primary` | Primary actions |
-| `--primary-foreground` | Text on primary |
-| `--secondary` | Secondary actions |
+| Variable                 | Usage             |
+| ------------------------ | ----------------- |
+| `--background`           | Page background   |
+| `--foreground`           | Primary text      |
+| `--primary`              | Primary actions   |
+| `--primary-foreground`   | Text on primary   |
+| `--secondary`            | Secondary actions |
 | `--secondary-foreground` | Text on secondary |
-| `--muted` | Muted backgrounds |
-| `--muted-foreground` | Muted text |
-| `--accent` | Accent highlights |
-| `--destructive` | Danger/error |
-| `--border` | Borders |
-| `--input` | Input borders |
-| `--ring` | Focus rings |
+| `--muted`                | Muted backgrounds |
+| `--muted-foreground`     | Muted text        |
+| `--accent`               | Accent highlights |
+| `--destructive`          | Danger/error      |
+| `--border`               | Borders           |
+| `--input`                | Input borders     |
+| `--ring`                 | Focus rings       |
 
 ### Using Variables in Tailwind
 
@@ -171,9 +171,7 @@ Theme is applied via class on `<body>`:
 
 ```tsx
 // app/root.tsx
-<body className="theme-alpha">
-  {children}
-</body>
+<body className="theme-alpha">{children}</body>
 ```
 
 ---
@@ -259,7 +257,7 @@ if (prefersDark) {
 ```css
 /* app/styles/root.css */
 @import './themes/alpha.css';
-@import './themes/beta.css';  /* Add new theme */
+@import './themes/beta.css'; /* Add new theme */
 ```
 
 ### Step 3: Apply Theme
@@ -353,14 +351,14 @@ This enables:
 ### Check Active Theme
 
 ```javascript
-document.body.className
+document.body.className;
 // "theme-alpha" or "theme-alpha dark"
 ```
 
 ### Inspect Variables
 
 ```javascript
-getComputedStyle(document.body).getPropertyValue('--primary')
+getComputedStyle(document.body).getPropertyValue('--primary');
 // "oklch(0.205 0 0)"
 ```
 
