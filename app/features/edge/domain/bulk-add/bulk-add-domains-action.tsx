@@ -2,16 +2,20 @@ import { useBulkDomainsImport } from './use-bulk-domains-import';
 import { bulkDomainsSchema } from '@/resources/domains';
 import { readFileAsText } from '@/utils/common';
 import { parseDomainsFromFile } from '@/utils/helpers/parse.helper';
-import { Button, toast } from '@datum-ui/components';
+import { Button, toast, useTaskQueue } from '@datum-ui/components';
 import { FileInputButton } from '@datum-ui/components/file-input-button/file-input-button';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
-import { ArrowRightIcon, ListChecksIcon } from 'lucide-react';
+import { ArrowRightIcon, GlobeIcon, ListChecksIcon } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
   const [popoverOpen, setPopoverOpen] = useState(false);
+
+  const { enqueue } = useTaskQueue();
+  const navigate = useNavigate();
 
   const { submitDomains, isFormPending, isFilePending } = useBulkDomainsImport({
     projectId,
@@ -43,6 +47,42 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
     }
   };
 
+  const handleSubmit = (data: { domains: string[] }) => {
+    // submitDomains(data.domains, 'form');
+
+    const domains = data.domains;
+    enqueue({
+      title: `Adding ${domains.length} domains`,
+      icon: <GlobeIcon className="size-4" />,
+      items: domains,
+      processor: async (ctx) => {
+        let i = 0;
+        for (const domain of ctx.items) {
+          if (ctx.cancelled) break;
+          console.log(`Adding ${domain}`);
+          // await delay(3000);
+
+          if (i % 2 === 0) {
+            ctx.fail(domain, 'Failed to add domain');
+          } else {
+            ctx.succeed();
+          }
+          i++;
+        }
+        // await queryClient.invalidateQueries({ queryKey: ['domains', projectId] });
+      },
+      completionActions: [
+        {
+          children: 'View Domains',
+          type: 'secondary',
+          theme: 'outline',
+          size: 'small',
+          onClick: () => navigate(`/project/${projectId}/domains`),
+        },
+      ],
+    });
+  };
+
   return (
     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
       <PopoverTrigger asChild>
@@ -67,7 +107,7 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
         <Form.Root
           schema={bulkDomainsSchema}
           mode="onSubmit"
-          onSubmit={(data) => submitDomains(data.domains, 'form')}
+          onSubmit={(data) => handleSubmit(data)}
           className="space-y-4">
           <Form.Field name="domains" required>
             <Form.Textarea

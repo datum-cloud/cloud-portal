@@ -82,8 +82,8 @@ export default function PrivateLayout() {
 
   return (
     <WatchProvider>
-      <TaskQueueProvider config={{ storageKey: `datum-task-queue:${data?.user?.sub}` }}>
-        <AppProvider initialUser={data?.user}>
+      <AppProvider initialUser={data?.user}>
+        <TaskQueueProvider config={{ storageKey: `datum-task-queue:${data?.user?.sub}` }}>
           <TooltipProvider>
             <ConfirmationDialogProvider>
               <Outlet />
@@ -103,8 +103,8 @@ export default function PrivateLayout() {
           )}
 
           <TaskPanel />
-        </AppProvider>
-      </TaskQueueProvider>
+        </TaskQueueProvider>
+      </AppProvider>
     </WatchProvider>
   );
 }
