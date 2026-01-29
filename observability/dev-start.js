@@ -7,6 +7,63 @@
 
 /* global process */
 
+function withTimeout(promise, timeoutMs, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs)
+    ),
+  ]);
+}
+
+async function checkRedisHealthOnStartup() {
+  const url = process.env?.REDIS_URL;
+  if (!url) {
+    console.log('🔴 Redis: Disabled (REDIS_URL not configured)');
+    return;
+  }
+
+  const connectTimeout = 5000;
+  const commandTimeout = 3000;
+
+  let Redis;
+  try {
+    ({ default: Redis } = await import('ioredis'));
+  } catch (e) {
+    console.warn('⚠️  Redis health check skipped: failed to load ioredis', e?.message || e);
+    return;
+  }
+
+  const client = new Redis(url, {
+    lazyConnect: true,
+    enableOfflineQueue: false,
+    enableReadyCheck: true,
+    maxRetriesPerRequest: 1,
+    connectTimeout,
+    commandTimeout,
+    retryStrategy: () => null,
+  });
+
+  const start = Date.now();
+  try {
+    await withTimeout(client.connect(), connectTimeout, 'Redis connect');
+    await withTimeout(client.ping(), commandTimeout, 'Redis ping');
+    console.log('🔴 Redis: Health check passed', { latencyMs: Date.now() - start });
+  } catch (e) {
+    console.warn('⚠️  Redis health check failed:', e?.message || e);
+  } finally {
+    try {
+      await client.quit();
+    } catch {
+      try {
+        client.disconnect();
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
+
 /**
  * Start the React Router development server
  */
@@ -61,12 +118,16 @@ try {
         );
       }
 
+      // Fire-and-forget health check (do not block dev server startup)
+      void checkRedisHealthOnStartup();
+
       return loadAndStartDevServer();
     })
     .catch((error) => {
       console.error('❌ Error loading observability module:', error);
       // Continue with server startup even if observability fails
       console.log('⚠️ Starting development server without observability...');
+      void checkRedisHealthOnStartup();
       return loadAndStartDevServer();
     });
 } catch (error) {
