@@ -11,11 +11,40 @@ import type {
   ComMiloapisResourcemanagerV1Alpha1OrganizationMembership,
 } from '@/modules/control-plane/resource-manager';
 import { createGqlClient } from '@/modules/gqlts/client';
+import type {
+  QueryRequest,
+  MutationRequest,
+  com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest,
+  com_miloapis_resourcemanager_v1alpha1_OrganizationRequest,
+} from '@/modules/gqlts/generated';
 import { logger } from '@/modules/logger';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 const SERVICE_NAME = 'OrganizationGqlService';
+
+// ============================================================================
+// Type-safe field selections
+// ============================================================================
+/**
+ * Field selection for single organization query/mutation responses.
+ */
+const organizationSelection = {
+  metadata: {
+    uid: true,
+    name: true,
+    namespace: true,
+    creationTimestamp: true,
+    resourceVersion: true,
+    annotations: true,
+  },
+  spec: { type: true },
+  status: { conditions: { type: true, status: true, reason: true } },
+} satisfies com_miloapis_resourcemanager_v1alpha1_OrganizationRequest;
+
+// ============================================================================
+// Service implementation
+// ============================================================================
 
 /**
  * GraphQL service for organizations.
@@ -30,9 +59,9 @@ export function createOrganizationGqlService() {
         // Use user scope like REST API - 'me' gets resolved by the API
         const client = createGqlClient({ type: 'user', userId: 'me' });
 
-        const result = await client.query({
+        const query = {
           listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces: [
-            {},
+            {}, // variables
             {
               items: {
                 metadata: {
@@ -55,9 +84,11 @@ export function createOrganizationGqlService() {
                 },
               },
               metadata: { continue: true, remainingItemCount: true },
-            },
+            } satisfies com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest,
           ],
-        });
+        } satisfies QueryRequest;
+
+        const result = await client.query(query);
 
         const data =
           result.data?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces;
@@ -105,23 +136,11 @@ export function createOrganizationGqlService() {
       try {
         const client = createGqlClient({ type: 'org', orgId: name });
 
-        const result = await client.query({
-          readResourcemanagerMiloapisComV1alpha1Organization: [
-            { name },
-            {
-              metadata: {
-                uid: true,
-                name: true,
-                namespace: true,
-                creationTimestamp: true,
-                resourceVersion: true,
-                annotations: true,
-              },
-              spec: { type: true },
-              status: { conditions: { type: true, status: true, reason: true } },
-            },
-          ],
-        });
+        const query = {
+          readResourcemanagerMiloapisComV1alpha1Organization: [{ name }, organizationSelection],
+        } satisfies QueryRequest;
+
+        const result = await client.query(query);
 
         const data = result.data?.readResourcemanagerMiloapisComV1alpha1Organization;
 
@@ -147,7 +166,7 @@ export function createOrganizationGqlService() {
       try {
         const client = createGqlClient({ type: 'global' });
 
-        const result = await client.mutation({
+        const mutation = {
           createResourcemanagerMiloapisComV1alpha1Organization: [
             {
               input: {
@@ -161,20 +180,11 @@ export function createOrganizationGqlService() {
                 spec: { type: input.type },
               },
             },
-            {
-              metadata: {
-                uid: true,
-                name: true,
-                namespace: true,
-                creationTimestamp: true,
-                resourceVersion: true,
-                annotations: true,
-              },
-              spec: { type: true },
-              status: { conditions: { type: true, status: true, reason: true } },
-            },
+            organizationSelection,
           ],
-        });
+        } satisfies MutationRequest;
+
+        const result = await client.mutation(mutation);
 
         const data = result.data?.createResourcemanagerMiloapisComV1alpha1Organization;
 
@@ -200,7 +210,7 @@ export function createOrganizationGqlService() {
       try {
         const client = createGqlClient({ type: 'org', orgId: name });
 
-        const result = await client.mutation({
+        const mutation = {
           patchResourcemanagerMiloapisComV1alpha1Organization: [
             {
               name,
@@ -213,20 +223,11 @@ export function createOrganizationGqlService() {
                 },
               },
             },
-            {
-              metadata: {
-                uid: true,
-                name: true,
-                namespace: true,
-                creationTimestamp: true,
-                resourceVersion: true,
-                annotations: true,
-              },
-              spec: { type: true },
-              status: { conditions: { type: true, status: true, reason: true } },
-            },
+            organizationSelection,
           ],
-        });
+        } satisfies MutationRequest;
+
+        const result = await client.mutation(mutation);
 
         const data = result.data?.patchResourcemanagerMiloapisComV1alpha1Organization;
 
@@ -252,9 +253,11 @@ export function createOrganizationGqlService() {
       try {
         const client = createGqlClient({ type: 'org', orgId: name });
 
-        await client.mutation({
+        const mutation = {
           deleteResourcemanagerMiloapisComV1alpha1Organization: [{ name }, { status: true }],
-        });
+        } satisfies MutationRequest;
+
+        await client.mutation(mutation);
 
         logger.service(SERVICE_NAME, 'delete', {
           input: { name },
