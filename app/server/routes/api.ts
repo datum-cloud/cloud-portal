@@ -1,4 +1,3 @@
-import { activityRoutes } from './activity';
 import { cloudvalidRoutes } from './cloudvalid';
 import { grafanaRoutes } from './grafana';
 import { graphqlRoutes } from './graphql';
@@ -40,7 +39,6 @@ export function createApiApp() {
   api.route('/prometheus', prometheusRoutes);
   api.route('/grafana', grafanaRoutes);
   api.route('/notifications', notificationsRoutes);
-  api.route('/activity', activityRoutes);
   api.route('/permissions', permissionsRoutes);
   api.route('/user', userRoutes);
 

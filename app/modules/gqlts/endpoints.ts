@@ -20,7 +20,6 @@ export function parseScope(scopeType: string, scopeId: string): GqlScope {
  * Builds the full scoped endpoint URL for the GraphQL gateway.
  */
 export function buildScopedEndpoint(baseUrl: string, scope: GqlScope): string {
-  console.log('buildScopedEndpoint', `${baseUrl}${buildScopedPath(scope)}`);
   return `${baseUrl}${buildScopedPath(scope)}`;
 }
 
