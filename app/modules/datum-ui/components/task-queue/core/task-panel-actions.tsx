@@ -13,7 +13,7 @@ export function TaskPanelActions({ task }: TaskPanelActionsProps) {
   return (
     <div className="flex items-center gap-1.5 pt-1.5">
       {actions.map((action, i) => (
-        <Button key={i} {...action} />
+        <Button htmlType="button" key={i} {...action} />
       ))}
     </div>
   );
