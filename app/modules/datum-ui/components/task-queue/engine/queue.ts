@@ -9,7 +9,7 @@ import type {
 } from '../types';
 import { generateTaskId } from '../utils';
 import { executeTask } from './executor';
-import { LocalTaskStorage } from './storage';
+import { detectStorage } from './storage';
 
 export class TaskQueue {
   private storage: TaskStorage;
@@ -18,10 +18,21 @@ export class TaskQueue {
   private listeners: Set<() => void> = new Set();
   private taskResolvers: Map<string, (outcome: TaskOutcome) => void> = new Map();
   private snapshot: Task[] = [];
+  private notifyScheduled = false;
+  // Keep processors in memory (can't be serialized to storage)
+  private processors: Map<string, Task['_processor']> = new Map();
+  // Keep cancel functions in memory for running tasks
+  private cancelFunctions: Map<string, (v: boolean) => void> = new Map();
 
   constructor(config: TaskQueueConfig = {}) {
     this.concurrency = config.concurrency ?? TASK_QUEUE_DEFAULTS.concurrency;
-    this.storage = config.storage ?? new LocalTaskStorage(config.storageKey);
+    this.storage =
+      config.storage ??
+      detectStorage({
+        redisClient: config.redisClient,
+        storageKey: config.storageKey,
+        storageType: config.storageType,
+      });
     this.updateSnapshot();
   }
 
@@ -39,8 +50,15 @@ export class TaskQueue {
   };
 
   private notify(): void {
-    this.updateSnapshot();
-    this.listeners.forEach((listener) => listener());
+    // Batch notifications using microtask to avoid flooding React with sync updates
+    if (this.notifyScheduled) return;
+    this.notifyScheduled = true;
+
+    queueMicrotask(() => {
+      this.notifyScheduled = false;
+      this.updateSnapshot();
+      this.listeners.forEach((listener) => listener());
+    });
   }
 
   private updateSnapshot(): void {
@@ -65,6 +83,7 @@ export class TaskQueue {
       total: items?.length,
       completed: 0,
       failed: 0,
+      succeededItems: [],
       failedItems: [],
       errorStrategy: options.errorStrategy ?? TASK_QUEUE_DEFAULTS.errorStrategy,
       cancelable: options.cancelable ?? TASK_QUEUE_DEFAULTS.cancelable,
@@ -75,6 +94,11 @@ export class TaskQueue {
       _processor: options.processor as Task<TResult>['_processor'],
       _originalItems: items ? [...items] : undefined,
     };
+
+    // Store processor in memory (can't be serialized to storage)
+    if (options.processor) {
+      this.processors.set(id, options.processor as Task['_processor']);
+    }
 
     this.storage.set(id, task as Task);
     this.notify();
@@ -96,8 +120,8 @@ export class TaskQueue {
     const task = this.storage.get(taskId);
     if (!task || task.status !== 'running') return;
 
-    const setCancelled = (task as any)._setCancelled;
-    if (typeof setCancelled === 'function') {
+    const setCancelled = this.cancelFunctions.get(taskId);
+    if (setCancelled) {
       setCancelled(true);
     }
   };
@@ -106,64 +130,126 @@ export class TaskQueue {
     const task = this.storage.get(taskId);
     if (!task) return;
     if (task.status !== 'failed' && task.status !== 'cancelled') return;
-    if (!task._processor) return;
 
-    // Determine retry items: only failed items if batch, otherwise full re-run
-    const retryItems =
-      task._originalItems && task.failedItems.length > 0
-        ? task._originalItems.filter((item) => {
-            return task.failedItems.some((fi) => {
-              if (!fi.id) return false;
-              if (typeof item === 'string') return fi.id === item;
-              if (typeof item === 'object' && item !== null) {
-                return (item as any).id === fi.id || (item as any).name === fi.id;
-              }
-              return false;
-            });
-          })
-        : task._originalItems;
+    // Get processor from memory (wasn't serialized to storage)
+    const processor = this.processors.get(taskId);
+    if (!processor) {
+      console.error('[TaskQueue] retry: no processor found for task', taskId);
+      return;
+    }
 
-    const retryCount = task.retryCount + 1;
-    const titleSuffix = retryCount === 1 ? ' (retry)' : ` (retry ${retryCount})`;
-    const baseTitle = task.title.replace(/ \(retry( \d+)?\)$/, '');
+    // Check if this is a batch task (has items) or long process (no items)
+    const isBatchTask = task.items && task.items.length > 0;
 
-    // Dismiss the original task
-    this.storage.remove(taskId);
+    if (isBatchTask) {
+      // Batch task: Resume from where it stopped
+      const remainingItems = this.getRetryItems(task);
 
-    // Create new task
-    const newId = generateTaskId();
-    const newTask: Task = {
-      id: newId,
-      title: baseTitle + titleSuffix,
-      status: 'pending',
-      icon: task.icon,
-      category: task.category,
-      items: retryItems && retryItems.length > 0 ? retryItems : task._originalItems,
-      total: retryItems && retryItems.length > 0 ? retryItems.length : task.total,
-      completed: 0,
-      failed: 0,
-      failedItems: [],
-      errorStrategy: task.errorStrategy,
-      cancelable: task.cancelable,
-      retryable: task.retryable,
-      completionActions: task.completionActions,
-      retryOf: taskId,
-      retryCount,
-      createdAt: Date.now(),
-      _processor: task._processor,
-      _originalItems: task._originalItems,
-    };
+      if (!remainingItems || remainingItems.length === 0) {
+        // Edge case: All items already succeeded (cancel came too late)
+        // Mark as completed instead of doing nothing
+        const succeededItems = task.succeededItems ?? [];
+        const originalItems = task._originalItems ?? task.items ?? [];
 
-    this.storage.set(newId, newTask);
+        if (succeededItems.length >= originalItems.length || task.completed >= (task.total ?? 0)) {
+          task.status = 'completed';
+          task.completedAt = Date.now();
+          this.storage.set(taskId, task);
+          this.notify();
+          return;
+        }
+
+        console.warn('[TaskQueue] retry: no remaining items for task', taskId);
+        return;
+      }
+
+      // Update task in-place for resume
+      task.status = 'pending';
+      task.items = remainingItems;
+      // Keep completed count and total for continuous progress
+      // Keep succeededItems for tracking
+      // Reset only failed items for this retry attempt
+      task.failedItems = [];
+      task.failed = 0;
+      task.retryCount += 1;
+    } else {
+      // Long process: Restart from beginning
+      task.status = 'pending';
+      task.completed = 0;
+      task.failed = 0;
+      task.succeededItems = [];
+      task.failedItems = [];
+      task.result = undefined;
+      task.retryCount += 1;
+    }
+
+    // Clear timestamps for fresh run
+    task.startedAt = undefined;
+    task.completedAt = undefined;
+
+    // Re-attach processor (ensure it's in the map)
+    this.processors.set(taskId, processor);
+
+    // Update task in storage
+    this.storage.set(taskId, task);
     this.notify();
     this.drain();
   };
+
+  private getRetryItems(task: Task): unknown[] | undefined {
+    // Use _originalItems if available, otherwise fall back to items
+    const originalItems = task._originalItems ?? task.items;
+    if (!originalItems || originalItems.length === 0) return undefined;
+
+    // Ensure arrays exist (backwards compatibility)
+    const succeededItems = task.succeededItems ?? [];
+    const failedItems = task.failedItems ?? [];
+
+    // For cancelled tasks: retry items NOT in succeededItems
+    if (task.status === 'cancelled' && succeededItems.length > 0) {
+      const remaining = originalItems.filter((item) => {
+        const itemId = this.getItemId(item);
+        if (!itemId) return true; // Can't track, include it
+        return !succeededItems.includes(itemId);
+      });
+      return remaining.length > 0 ? remaining : undefined;
+    }
+
+    // For failed tasks: retry only failed items
+    if (task.status === 'failed' && failedItems.length > 0) {
+      const failed = originalItems.filter((item) => {
+        const itemId = this.getItemId(item);
+        if (!itemId) return false;
+        return failedItems.some((fi) => fi.id === itemId);
+      });
+      return failed.length > 0 ? failed : undefined;
+    }
+
+    // Fallback: retry all original items
+    return originalItems;
+  }
+
+  /** Extract ID from an item (string or object with id/name property) */
+  private getItemId(item: unknown): string | undefined {
+    if (typeof item === 'string') return item;
+    if (this.isIdentifiable(item)) {
+      return item.id ?? item.name;
+    }
+    return undefined;
+  }
+
+  /** Type guard for objects with optional id/name properties */
+  private isIdentifiable(item: unknown): item is { id?: string; name?: string } {
+    return typeof item === 'object' && item !== null;
+  }
 
   dismiss = (taskId: string): void => {
     const task = this.storage.get(taskId);
     if (!task) return;
     if (task.status === 'running' || task.status === 'pending') return;
     this.storage.remove(taskId);
+    // Clean up processor from memory
+    this.processors.delete(taskId);
     this.notify();
   };
 
@@ -172,6 +258,8 @@ export class TaskQueue {
     tasks.forEach((task) => {
       if (task.status !== 'running' && task.status !== 'pending') {
         this.storage.remove(task.id);
+        // Clean up processor from memory
+        this.processors.delete(task.id);
       }
     });
     this.notify();
@@ -193,11 +281,23 @@ export class TaskQueue {
   private async runTask(task: Task): Promise<void> {
     this.runningCount += 1;
 
+    // Attach processor from memory (wasn't serialized to storage)
+    const processor = this.processors.get(task.id);
+    if (!processor) {
+      console.error('[TaskQueue] No processor found for task', task.id);
+      this.runningCount -= 1;
+      return;
+    }
+    task._processor = processor;
+
     try {
       const outcome = await executeTask(task, {
         onUpdate: (updated) => {
           this.storage.set(updated.id, updated);
           this.notify();
+        },
+        onCancelReady: (setCancelled) => {
+          this.cancelFunctions.set(task.id, setCancelled);
         },
       });
 
@@ -206,8 +306,16 @@ export class TaskQueue {
         resolver(outcome);
         this.taskResolvers.delete(task.id);
       }
+
+      // Only clean up processor if task completed successfully (not failed/cancelled)
+      // Failed/cancelled tasks keep processor for retry
+      if (outcome.status === 'completed') {
+        this.processors.delete(task.id);
+      }
     } finally {
       this.runningCount -= 1;
+      // Clean up cancel function
+      this.cancelFunctions.delete(task.id);
       this.drain();
     }
   }

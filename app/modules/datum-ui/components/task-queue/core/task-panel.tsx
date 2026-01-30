@@ -5,7 +5,8 @@ import { cn } from '@shadcn/lib/utils';
 import { useState } from 'react';
 
 export function TaskPanel() {
-  const { tasks, cancel, retry, dismiss, dismissAll } = useTaskQueue();
+  // TODO: Re-enable retry when processor registry is implemented
+  const { tasks, cancel, /* retry, */ dismiss, dismissAll } = useTaskQueue();
   const [expanded, setExpanded] = useState(true);
 
   if (tasks.length === 0) return null;
@@ -13,7 +14,8 @@ export function TaskPanel() {
   return (
     <div
       className={cn(
-        'border-border bg-background fixed right-4 bottom-4 z-50 w-96 overflow-hidden rounded-lg border shadow-lg',
+        'bg-background fixed right-4 bottom-4 z-50 w-96 overflow-hidden',
+        'border-border/50 rounded-xl border shadow-xl shadow-black/10',
         'animate-in slide-in-from-bottom-4 fade-in duration-200'
       )}>
       <TaskPanelHeader
@@ -30,8 +32,9 @@ export function TaskPanel() {
               key={task.id}
               task={task}
               onCancel={() => cancel(task.id)}
-              onRetry={() => retry(task.id)}
               onDismiss={() => dismiss(task.id)}
+              // TODO: Re-enable when processor registry is implemented
+              // onRetry={() => retry(task.id)}
             />
           ))}
         </div>

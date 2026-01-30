@@ -2,6 +2,7 @@ import type { Task, TaskContext, TaskOutcome } from '../types';
 
 export interface ExecutorCallbacks {
   onUpdate: (task: Task) => void;
+  onCancelReady?: (setCancelled: (v: boolean) => void) => void;
 }
 
 export function createTaskContext<TItem = unknown, TResult = unknown>(
@@ -11,33 +12,53 @@ export function createTaskContext<TItem = unknown, TResult = unknown>(
   ctx: TaskContext<TItem, TResult>;
   getCancelled: () => boolean;
   setCancelled: (v: boolean) => void;
+  getShouldStop: () => boolean;
 } {
   let cancelled = false;
+  let shouldStop = false;
+
+  const updateTask = () => {
+    callbacks.onUpdate({
+      ...task,
+      succeededItems: [...task.succeededItems],
+      failedItems: [...task.failedItems],
+    } as Task);
+  };
 
   const ctx: TaskContext<TItem, TResult> = {
     get items() {
       return (task.items ?? []) as TItem[];
     },
     get cancelled() {
-      return cancelled;
+      return cancelled || shouldStop;
     },
     get failedItems() {
       return [...task.failedItems];
     },
-    succeed() {
+    succeed(itemId?: string) {
       task.completed += 1;
-      callbacks.onUpdate({ ...task } as Task);
+      if (itemId) {
+        task.succeededItems = [...task.succeededItems, itemId];
+      }
+      updateTask();
     },
     fail(itemId?: string, message?: string) {
       task.failed += 1;
       if (itemId || message) {
-        task.failedItems.push({ id: itemId, message: message ?? 'Unknown error' });
+        task.failedItems = [
+          ...task.failedItems,
+          { id: itemId, message: message ?? 'Unknown error' },
+        ];
       }
-      callbacks.onUpdate({ ...task } as Task);
+      // Check errorStrategy: 'stop' - set flag to stop processing
+      if (task.errorStrategy === 'stop') {
+        shouldStop = true;
+      }
+      updateTask();
     },
     setTitle(title: string) {
       task.title = title;
-      callbacks.onUpdate({ ...task } as Task);
+      updateTask();
     },
     setResult(result: TResult) {
       task.result = result;
@@ -50,6 +71,7 @@ export function createTaskContext<TItem = unknown, TResult = unknown>(
     setCancelled: (v: boolean) => {
       cancelled = v;
     },
+    getShouldStop: () => shouldStop,
   };
 }
 
@@ -69,19 +91,24 @@ export async function executeTask<TResult = unknown>(
 
   task.status = 'running';
   task.startedAt = Date.now();
+  // Ensure succeededItems exists (backwards compatibility)
+  if (!task.succeededItems) {
+    task.succeededItems = [];
+  }
   callbacks.onUpdate({ ...task } as Task);
 
-  const { ctx, getCancelled, setCancelled } = createTaskContext(task, callbacks);
+  const { ctx, getCancelled, setCancelled, getShouldStop } = createTaskContext(task, callbacks);
 
   // Expose setCancelled so the queue can trigger cancellation
-  (task as any)._setCancelled = setCancelled;
+  callbacks.onCancelReady?.(setCancelled);
 
   try {
     await processor(ctx);
 
     if (getCancelled()) {
       task.status = 'cancelled';
-    } else if (task.failed > 0) {
+    } else if (getShouldStop() || task.failed > 0) {
+      // errorStrategy: 'stop' triggered or has failures
       task.status = 'failed';
     } else {
       task.status = 'completed';
@@ -89,7 +116,7 @@ export async function executeTask<TResult = unknown>(
   } catch (error) {
     task.status = 'failed';
     const message = error instanceof Error ? error.message : 'Unknown error';
-    task.failedItems.push({ message });
+    task.failedItems = [...task.failedItems, { message }];
     task.failed += 1;
   }
 

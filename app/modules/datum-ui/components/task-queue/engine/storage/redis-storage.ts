@@ -1,25 +1,45 @@
 import { TASK_STORAGE_KEY } from '../../constants';
-import type { Task, TaskStorage } from '../../types';
+import type { RedisClient, Task, TaskStorage } from '../../types';
+import { isBrowser } from '../../utils';
 
-interface RedisLike {
-  get: (key: string) => Promise<string | null>;
-  set: (key: string, value: string) => Promise<string | null>;
-  del: (key: string) => Promise<number>;
-}
+// Default TTL: 7 days in seconds
+const DEFAULT_TTL = 60 * 60 * 24 * 7;
 
 export class RedisTaskStorage implements TaskStorage {
-  private client: RedisLike;
+  private client: RedisClient;
   private key: string;
   private cache: Map<string, Task> = new Map();
   private initialized = false;
+  private initPromise: Promise<void> | null = null;
+  private ttl: number;
 
-  constructor(client: RedisLike, key: string = TASK_STORAGE_KEY) {
+  constructor(client: RedisClient, key: string = TASK_STORAGE_KEY, ttl: number = DEFAULT_TTL) {
     this.client = client;
     this.key = key;
+    this.ttl = ttl;
+
+    // Auto-initialize on client side, store promise to await later
+    if (isBrowser()) {
+      this.initPromise = this.initialize();
+    }
   }
 
-  async initialize(): Promise<void> {
+  /**
+   * Wait for initialization to complete.
+   * Call this before accessing data if you need guaranteed consistency.
+   */
+  async waitForInit(): Promise<void> {
+    if (this.initPromise) {
+      await this.initPromise;
+    }
+  }
+
+  private async initialize(): Promise<void> {
     if (this.initialized) return;
+    if (!isBrowser()) {
+      this.initialized = true;
+      return;
+    }
     try {
       const raw = await this.client.get(this.key);
       if (raw) {
@@ -41,28 +61,40 @@ export class RedisTaskStorage implements TaskStorage {
   }
 
   set(id: string, task: Task): void {
+    if (!isBrowser()) return;
     this.cache.set(id, task);
     this.syncToRedis();
   }
 
   remove(id: string): void {
+    if (!isBrowser()) return;
     this.cache.delete(id);
     this.syncToRedis();
   }
 
   clear(): void {
+    if (!isBrowser()) return;
     this.cache.clear();
     this.client.del(this.key).catch(() => {});
   }
 
   private syncToRedis(): void {
+    // Strip non-serializable properties but keep _originalItems for retry
     const tasks = this.getAll().map((task) => {
-      const { _processor, _originalItems, icon, completionActions, ...rest } = task as Task & {
+      const { _processor, _icon, _completionActions, ...rest } = task as Task & {
         _processor?: unknown;
-        _originalItems?: unknown;
+        _icon?: unknown;
+        _completionActions?: unknown;
       };
       return rest;
     });
-    this.client.set(this.key, JSON.stringify(tasks)).catch(() => {});
+
+    // Use TTL if the client supports it (ioredis style)
+    const value = JSON.stringify(tasks);
+    if ('setex' in this.client && typeof (this.client as any).setex === 'function') {
+      (this.client as any).setex(this.key, this.ttl, value).catch(() => {});
+    } else {
+      this.client.set(this.key, value).catch(() => {});
+    }
   }
 }
