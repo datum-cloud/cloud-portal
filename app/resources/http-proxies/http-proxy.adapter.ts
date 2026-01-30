@@ -18,6 +18,7 @@ export function toHttpProxy(raw: ComDatumapisNetworkingV1AlphaHttpProxy): HttpPr
     createdAt: raw.metadata?.creationTimestamp ?? new Date(),
     endpoint: raw.spec?.rules?.[0]?.backends?.[0]?.endpoint,
     hostnames: raw.spec?.hostnames,
+    tlsHostname: undefined,
     status: raw.status,
   };
 }
@@ -45,9 +46,20 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
   metadata: { name: string };
   spec: {
     hostnames: string[];
-    rules: Array<{ backends: Array<{ endpoint: string }> }>;
+    rules: Array<{ backends: Array<{ endpoint: string; tls?: { hostname: string } }> }>;
   };
 } {
+  const backend: { endpoint: string; tls?: { hostname: string } } = {
+    endpoint: input.endpoint,
+  };
+
+  // Add TLS configuration if provided
+  if (input.tlsHostname) {
+    backend.tls = {
+      hostname: input.tlsHostname,
+    };
+  }
+
   return {
     kind: 'HTTPProxy',
     apiVersion: 'networking.datumapis.com/v1alpha',
@@ -58,11 +70,7 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
       hostnames: input.hostnames ?? [],
       rules: [
         {
-          backends: [
-            {
-              endpoint: input.endpoint,
-            },
-          ],
+          backends: [backend],
         },
       ],
     },
@@ -77,9 +85,20 @@ export function toUpdateHttpProxyPayload(input: UpdateHttpProxyInput): {
   apiVersion: string;
   spec: {
     hostnames: string[];
-    rules: Array<{ backends: Array<{ endpoint: string }> }>;
+    rules: Array<{ backends: Array<{ endpoint: string; tls?: { hostname: string } }> }>;
   };
 } {
+  const backend: { endpoint: string; tls?: { hostname: string } } = {
+    endpoint: input.endpoint,
+  };
+
+  // Add TLS configuration if provided
+  if (input.tlsHostname) {
+    backend.tls = {
+      hostname: input.tlsHostname,
+    };
+  }
+
   return {
     kind: 'HTTPProxy',
     apiVersion: 'networking.datumapis.com/v1alpha',
@@ -87,11 +106,7 @@ export function toUpdateHttpProxyPayload(input: UpdateHttpProxyInput): {
       hostnames: input.hostnames ?? [],
       rules: [
         {
-          backends: [
-            {
-              endpoint: input.endpoint,
-            },
-          ],
+          backends: [backend],
         },
       ],
     },

@@ -12,6 +12,7 @@ export const httpProxyResourceSchema = z.object({
   createdAt: z.coerce.date(),
   endpoint: z.string().optional(),
   hostnames: z.array(z.string()).optional(),
+  tlsHostname: z.string().optional(),
   status: z.any().optional(),
 });
 
@@ -26,6 +27,7 @@ export interface IHttpProxyControlResponse {
   namespace?: string;
   endpoint?: string;
   hostnames?: string[];
+  tlsHostname?: string;
   status?: ComDatumapisNetworkingV1AlphaHttpProxy['status'];
 }
 
@@ -43,11 +45,13 @@ export type CreateHttpProxyInput = {
   name: string;
   endpoint: string;
   hostnames?: string[];
+  tlsHostname?: string;
 };
 
 export type UpdateHttpProxyInput = {
   endpoint: string;
   hostnames?: string[];
+  tlsHostname?: string;
 };
 
 // Form validation schemas
@@ -69,6 +73,7 @@ export const httpProxySchema = z
       },
       { message: 'Endpoint must be a valid URL with HTTP/HTTPS protocol' }
     ),
+    tlsHostname: z.string().min(1).max(253).optional(),
   })
   .and(httpProxyHostnameSchema)
   .and(nameSchema);

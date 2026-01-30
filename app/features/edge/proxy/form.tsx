@@ -2,6 +2,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { Field } from '@/components/field/field';
 import { InputName } from '@/components/input-name/input-name';
 import { HostnamesForm } from '@/features/edge/proxy/form/hostnames-form';
+import { TLSForm } from '@/features/edge/proxy/form/tls-form';
 import {
   IHttpProxyControlResponse,
   httpProxySchema,
@@ -104,6 +105,7 @@ export const HttpProxyForm = ({
 
   const nameControl = useInputControl(fields.name);
   const endpointControl = useInputControl(fields.endpoint);
+  const tlsHostnameControl = useInputControl(fields.tlsHostname);
 
   useEffect(() => {
     isHydrated && inputRef.current?.focus();
@@ -113,6 +115,9 @@ export const HttpProxyForm = ({
     if (defaultValue && defaultValue.endpoint) {
       nameControl.change(defaultValue.name);
       endpointControl.change(defaultValue.endpoint);
+      if (defaultValue.tlsHostname) {
+        tlsHostnameControl.change(defaultValue.tlsHostname);
+      }
     }
   }, [defaultValue]);
 
@@ -152,6 +157,7 @@ export const HttpProxyForm = ({
               />
             </Field>
             <HostnamesForm defaultValue={defaultValue?.hostnames} form={form} fields={fields} />
+            <TLSForm fields={fields.tlsHostname} endpoint={fields.endpoint.value} />
           </CardContent>
           <CardFooter className="flex justify-between gap-2">
             {isEdit ? (
