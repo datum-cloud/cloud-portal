@@ -168,3 +168,36 @@ export const createHostnameSchema = (fieldName = 'Hostname') =>
         message: `${fieldName} labels must be 1-63 characters and cannot start or end with hyphens`,
       }
     );
+
+/**
+ * Checks if a given string is a valid IP address (IPv4 or IPv6)
+ *
+ * @param host The string to check
+ * @returns true if the string is a valid IPv4 or IPv6 address, false otherwise
+ */
+export const isIPAddress = (host: string): boolean => {
+  if (!host) return false;
+
+  try {
+    // Check for IPv4 address
+    if (/^(\d{1,3}\.){3}\d{1,3}$/.test(host)) {
+      return host.split('.').every((octet) => {
+        const num = Number(octet);
+        return num >= 0 && num <= 255;
+      });
+    }
+
+    // Check for IPv6 address
+    if (host.includes(':')) {
+      // Basic IPv6 validation: must contain hex characters and colons
+      // Must not be all colons and must have at least one valid hex segment
+      return (
+        /^[\da-f:]+$/i.test(host) && host !== ':' && !host.startsWith(':') && !host.endsWith(':')
+      );
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+};
