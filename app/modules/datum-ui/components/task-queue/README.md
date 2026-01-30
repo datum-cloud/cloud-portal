@@ -8,9 +8,9 @@ Already mounted in `private.layout.tsx`. The `TaskQueueProvider` and `TaskPanel`
 
 ## Usage
 
-### Batch Task (with items)
+### Batch Task with `processItem` (Recommended)
 
-Process a list of items with per-item progress tracking:
+The simplest way to process a list of items. The queue handles iteration, cancellation, and progress tracking automatically:
 
 ```tsx
 import { useTaskQueue } from '@datum-ui/components/task-queue';
@@ -25,27 +25,10 @@ function MyComponent() {
       title: `Adding ${domains.length} domains`,
       icon: <GlobeIcon className="size-4" />,
       items: domains,
-      processor: async (ctx) => {
-        for (const domain of ctx.items) {
-          if (ctx.cancelled) break;
-          try {
-            await createDomain({ domainName: domain });
-            ctx.succeed(domain); // Pass itemId for retry support
-          } catch (error) {
-            ctx.fail(domain, error.message);
-          }
-        }
-        await queryClient.invalidateQueries({ queryKey: ['domains', projectId] });
+      processItem: async (domain) => {
+        await createDomain({ domainName: domain });
       },
-      completionActions: [
-        {
-          children: 'View Domains',
-          type: 'secondary',
-          theme: 'outline',
-          size: 'sm',
-          onClick: () => navigate(`/project/${projectId}/domains`),
-        },
-      ],
+      onComplete: () => queryClient.invalidateQueries({ queryKey: ['domains', projectId] }),
     });
 
     // Close dialog immediately — task continues in background
@@ -54,11 +37,87 @@ function MyComponent() {
 }
 ```
 
-**Important:** Pass the `itemId` to `ctx.succeed(itemId)` to enable smart retry. If cancelled mid-way, retry will only process the remaining items, not the entire list.
+### Parallel Processing with `itemConcurrency`
 
-### Single Long-Running Task (no items)
+Process multiple items concurrently for faster execution:
 
-Wait for a single API call with indeterminate progress:
+```tsx
+enqueue({
+  title: `Uploading ${files.length} files`,
+  items: files,
+  itemConcurrency: 3,  // Process 3 items at a time
+  processItem: async (file) => {
+    await uploadFile(file);
+  },
+});
+```
+
+**Concurrency flow (10 items, concurrency 3):**
+
+```
+Slot 1: [item1]────[item4]────[item7]────[item10]
+Slot 2: [item2]────[item5]────[item8]────
+Slot 3: [item3]────[item6]────[item9]────
+```
+
+As soon as one item finishes, the next starts. Progress updates after each item.
+
+### Custom Error Handling
+
+Override auto-detection with custom error messages:
+
+```tsx
+enqueue({
+  title: `Deleting ${records.length} records`,
+  items: records,
+  processItem: async (record, ctx) => {
+    try {
+      await deleteRecord(record.id);
+    } catch (error) {
+      ctx.fail(record.id, `Cannot delete "${record.name}": ${error.message}`);
+    }
+  },
+});
+```
+
+### Custom Item ID (for objects)
+
+By default, the queue extracts IDs from items automatically (`item.id` → `item.name` → `item.key` → `item.uuid` → `JSON.stringify`). Override when needed:
+
+```tsx
+enqueue({
+  title: `Processing ${orders.length} orders`,
+  items: orders,
+  getItemId: (order) => order.orderNumber,
+  processItem: async (order) => {
+    await processOrder(order);
+  },
+});
+```
+
+### Using `onComplete` Outcome
+
+```tsx
+enqueue({
+  title: `Sending ${emails.length} emails`,
+  items: emails,
+  itemConcurrency: 5,
+  processItem: async (email) => {
+    await sendEmail(email);
+  },
+  onComplete: (outcome) => {
+    if (outcome.failed > 0) {
+      toast.warning(`Sent ${outcome.completed}, failed ${outcome.failed}`);
+    } else {
+      toast.success(`All ${outcome.completed} emails sent`);
+    }
+  },
+});
+```
+
+### Single Long-Running Task (use `processor`)
+
+For tasks without items, use the `processor` API:
 
 ```tsx
 enqueue({
@@ -78,71 +137,40 @@ enqueue({
       type: 'secondary',
       theme: 'outline',
       size: 'sm',
-      onClick: () => {
-        const url = URL.createObjectURL(result);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `report.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-    },
-    {
-      children: 'Preview',
-      type: 'quaternary',
-      theme: 'borderless',
-      size: 'sm',
-      onClick: () => openPreviewDialog(result),
+      onClick: () => downloadBlob(result, 'report.csv'),
     },
   ],
 });
 ```
 
-### Long-Running Task with Cancellation Support
+### Full Control with `processor`
 
-For truly cancellable long-running operations, use `AbortController`:
+For complex flows (custom batching, conditional logic), use `processor`:
 
 ```tsx
 enqueue({
-  title: 'Generating Monthly Report',
-  icon: <FileSpreadsheetIcon className="size-4" />,
+  title: 'Processing records',
+  items: records,
   processor: async (ctx) => {
-    const controller = new AbortController();
-
-    // Check cancellation periodically and abort if requested
-    const checkInterval = setInterval(() => {
-      if (ctx.cancelled) {
-        controller.abort();
-        clearInterval(checkInterval);
-      }
-    }, 500);
-
-    try {
-      const response = await fetch('/api/reports/generate', {
-        method: 'POST',
-        body: JSON.stringify({ orgId, startDate, endDate }),
-        signal: controller.signal, // Pass abort signal
-      });
-
-      if (!response.ok) throw new Error('Failed to generate report');
-
-      const blob = await response.blob();
-      ctx.setResult(blob);
-      ctx.succeed();
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        // Cancelled by user — don't treat as failure
-        return;
-      }
-      throw error;
-    } finally {
-      clearInterval(checkInterval);
+    // Custom batching
+    const chunks = chunkArray(ctx.items, 10);
+    for (const chunk of chunks) {
+      if (ctx.cancelled) break;
+      await bulkInsert(chunk);
+      chunk.forEach(item => ctx.succeed(item.id));
     }
   },
 });
 ```
 
-**Note:** Without `AbortController`, cancellation only sets a flag. The in-flight request will complete, but the task will be marked as cancelled.
+### When to Use Which
+
+| Use `processItem` | Use `processor` |
+|-------------------|-----------------|
+| Simple per-item CRUD | No items (single task) |
+| Straightforward async call | Custom batching |
+| Want auto success/fail handling | Complex conditional logic |
+| Want parallel processing | Need `ctx.setResult()` or `ctx.setTitle()` |
 
 ### Task Handle
 
@@ -180,7 +208,7 @@ enqueue({ errorStrategy: 'continue', ... });
 enqueue({ errorStrategy: 'stop', ... });
 ```
 
-### Cancellation and Retry
+### Cancellation
 
 Cancel is handled by the panel UI. To disable per-task:
 
@@ -191,58 +219,9 @@ enqueue({
 });
 ```
 
-> **Note:** Retry button is currently disabled because processor functions cannot be persisted to storage. After page reload, the processor is lost. See `FUTURE_ENHANCEMENTS.md` for the processor registry pattern to re-enable retry.
-
-#### How Cancellation Works
-
-Cancellation is **cooperative** — it sets `ctx.cancelled = true`, but the processor must check this flag and stop itself.
-
-| Scenario                     | Behavior                                                                                    |
-| ---------------------------- | ------------------------------------------------------------------------------------------- |
-| **Batch task (20 items)**    | Processor checks `ctx.cancelled` in loop and breaks. Task marked cancelled.                 |
-| **Long-running single task** | Flag is set, but in-flight API calls continue. Use `AbortController` for true cancellation. |
-
-#### How Retry Works (Currently Disabled)
-
-> **Note:** Retry UI is currently disabled. The logic below is implemented but the button is hidden. See `FUTURE_ENHANCEMENTS.md` to re-enable.
-
-Retry uses **in-place resume** — the same task continues rather than creating a new one.
-
-| Task Type                   | Retry Behavior                                                                |
-| --------------------------- | ----------------------------------------------------------------------------- |
-| **Batch (with items)**      | Resumes from where it stopped. Progress continues (e.g., 4/20 → 5/20 → 20/20) |
-| **Long Process (no items)** | Restarts from beginning. Progress resets.                                     |
-
-| Task Status   | Items Retried                                                         |
-| ------------- | --------------------------------------------------------------------- |
-| **Failed**    | Only the failed items (those passed to `ctx.fail(itemId)`)            |
-| **Cancelled** | Only remaining items (excludes items passed to `ctx.succeed(itemId)`) |
-
-**Example: Batch task cancelled at item 4 of 20**
-
-```tsx
-// Processor pattern for proper retry support:
-processor: async (ctx) => {
-  for (const domain of ctx.items) {
-    if (ctx.cancelled) break;
-    try {
-      await createDomain({ domainName: domain });
-      ctx.succeed(domain); // ← Pass itemId to track completion
-    } catch (error) {
-      ctx.fail(domain, error.message);
-    }
-  }
-};
-```
-
-1. Items 1-4 complete → `ctx.succeed(domain)` tracks each
-2. User clicks cancel → `ctx.cancelled = true`
-3. Loop breaks at item 5
-4. Task shows: `4/20 completed (cancelled)`
-5. User clicks retry → same task resumes
-6. Progress continues: `5/20 → 6/20 → ... → 20/20`
-
-**Important:** If you don't pass `itemId` to `ctx.succeed()`, retry will re-process ALL items.
+Cancellation is **cooperative**:
+- `processItem`: Queue checks cancellation between items automatically
+- `processor`: You must check `ctx.cancelled` in your loop
 
 ## Storage Options
 
@@ -281,81 +260,58 @@ For multi-tenant environments, use `storageKey` to isolate tasks per user:
 }}>
 ```
 
-### Using Redis Storage
-
-Pass `redisClient` with `storageType: 'auto'` to use Redis when available:
-
-```tsx
-import { redis } from '@/modules/redis';
-
-<TaskQueueProvider config={{
-  storageType: 'auto',
-  storageKey: `datum-task-queue:${user.sub}`,
-  redisClient: redis, // Uses Redis if redis.status === 'ready'
-}}>
-```
-
-The `detectStorage` function handles this automatically:
-
-- If `redisClient.status === 'ready'` → uses `RedisTaskStorage`
-- Otherwise → falls back to `LocalTaskStorage`
-
-All storage backends are **SSR-safe** and return empty data during server rendering.
-
-### Manual Storage Backend
-
-For full control, pass a custom `storage` instance:
-
-```tsx
-import { MemoryTaskStorage, LocalTaskStorage, RedisTaskStorage } from '@datum-ui/components/task-queue';
-
-<TaskQueueProvider config={{
-  storage: new RedisTaskStorage(redisClient, `datum-task-queue:${user.sub}`),
-}}>
-```
-
-Or implement the `TaskStorage` interface:
-
-```tsx
-<TaskQueueProvider config={{
-  storage: {
-    getAll: () => [...],
-    get: (id) => ...,
-    set: (id, task) => ...,
-    remove: (id) => ...,
-    clear: () => ...,
-  },
-}}>
-```
-
 ## API Reference
 
 ### `useTaskQueue(options?)`
 
-| Method             | Description                                           |
-| ------------------ | ----------------------------------------------------- |
-| `enqueue(options)` | Add task to queue, returns `TaskHandle`               |
-| `cancel(taskId)`   | Cancel a running task                                 |
-| `retry(taskId)`    | Retry a failed/cancelled task (UI currently disabled) |
-| `dismiss(taskId)`  | Remove a finished task from the panel                 |
-| `dismissAll()`     | Remove all completed/failed/cancelled tasks           |
-| `tasks`            | Reactive array of all tasks                           |
+| Method             | Description                                 |
+| ------------------ | ------------------------------------------- |
+| `enqueue(options)` | Add task to queue, returns `TaskHandle`     |
+| `cancel(taskId)`   | Cancel a running task                       |
+| `retry(taskId)`    | Retry a failed/cancelled task               |
+| `dismiss(taskId)`  | Remove a finished task from the panel       |
+| `dismissAll()`     | Remove all completed/failed/cancelled tasks |
+| `tasks`            | Reactive array of all tasks                 |
 
-### `EnqueueOptions`
+### `EnqueueOptions` (processItem mode)
 
-| Option              | Type                                         | Default      | Description                                       |
-| ------------------- | -------------------------------------------- | ------------ | ------------------------------------------------- |
-| `title`             | `string`                                     | required     | Display title in the panel                        |
-| `processor`         | `(ctx) => Promise<void>`                     | required     | The async work function                           |
-| `items`             | `T[]`                                        | —            | Items to process (enables counter UI)             |
-| `icon`              | `ReactNode`                                  | —            | Custom icon for the task row                      |
-| `category`          | `string`                                     | —            | Optional grouping label                           |
-| `errorStrategy`     | `'continue' \| 'stop'`                       | `'continue'` | How to handle failures                            |
-| `cancelable`        | `boolean`                                    | `true`       | Show cancel button                                |
-| `retryable`         | `boolean`                                    | `true`       | Show retry button on failure (currently disabled) |
-| `completionActions` | `ButtonProps[] \| (result) => ButtonProps[]` | —            | Buttons shown on completion                       |
+| Option              | Type                                         | Default      | Description                              |
+| ------------------- | -------------------------------------------- | ------------ | ---------------------------------------- |
+| `title`             | `string`                                     | required     | Display title in the panel               |
+| `items`             | `T[]`                                        | required     | Items to process                         |
+| `processItem`       | `(item, ctx) => Promise<void>`               | required     | Process one item                         |
+| `itemConcurrency`   | `number`                                     | `1`          | How many items to process in parallel    |
+| `getItemId`         | `(item) => string`                           | auto-detect  | Extract ID from item for tracking        |
+| `onComplete`        | `(outcome) => void`                          | —            | Called when task finishes                |
+| `icon`              | `ReactNode`                                  | —            | Custom icon for the task row             |
+| `category`          | `string`                                     | —            | Optional grouping label                  |
+| `errorStrategy`     | `'continue' \| 'stop'`                       | `'continue'` | How to handle failures                   |
+| `cancelable`        | `boolean`                                    | `true`       | Show cancel button                       |
+| `completionActions` | `ButtonProps[] \| (result) => ButtonProps[]` | —            | Buttons shown on completion              |
 
-### `TaskContext`
+### `EnqueueOptions` (processor mode)
+
+| Option              | Type                                         | Default      | Description                              |
+| ------------------- | -------------------------------------------- | ------------ | ---------------------------------------- |
+| `title`             | `string`                                     | required     | Display title in the panel               |
+| `processor`         | `(ctx) => Promise<void>`                     | required     | The async work function                  |
+| `items`             | `T[]`                                        | —            | Items to process (enables counter UI)    |
+| `onComplete`        | `(outcome) => void`                          | —            | Called when task finishes                |
+| `icon`              | `ReactNode`                                  | —            | Custom icon for the task row             |
+| `category`          | `string`                                     | —            | Optional grouping label                  |
+| `errorStrategy`     | `'continue' \| 'stop'`                       | `'continue'` | How to handle failures                   |
+| `cancelable`        | `boolean`                                    | `true`       | Show cancel button                       |
+| `completionActions` | `ButtonProps[] \| (result) => ButtonProps[]` | —            | Buttons shown on completion              |
+
+### `ItemContext` (for processItem)
+
+| Property/Method       | Description                                      |
+| --------------------- | ------------------------------------------------ |
+| `cancelled`           | Whether cancellation was requested               |
+| `succeed(itemId?)`    | Override auto-succeed with custom item ID        |
+| `fail(itemId?, msg?)` | Override auto-fail with custom ID and message    |
+
+### `TaskContext` (for processor)
 
 | Property/Method       | Description                                                                           |
 | --------------------- | ------------------------------------------------------------------------------------- |
@@ -366,3 +322,13 @@ Or implement the `TaskStorage` interface:
 | `fail(itemId?, msg?)` | Increment failed counter with details. Pass `itemId` to enable retry of failed items. |
 | `setTitle(title)`     | Update task title mid-process                                                         |
 | `setResult(result)`   | Store result for completion actions                                                   |
+
+### `TaskOutcome`
+
+| Property      | Type                                   | Description                |
+| ------------- | -------------------------------------- | -------------------------- |
+| `status`      | `'completed' \| 'failed' \| 'cancelled'` | Final task status          |
+| `completed`   | `number`                               | Number of successful items |
+| `failed`      | `number`                               | Number of failed items     |
+| `failedItems` | `Array<{ id?: string; message: string }>` | Details of failures     |
+| `result`      | `TResult`                              | Result set via `setResult` |

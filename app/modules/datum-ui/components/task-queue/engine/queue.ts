@@ -6,6 +6,9 @@ import type {
   EnqueueOptions,
   TaskHandle,
   TaskOutcome,
+  TaskContext,
+  ItemContext,
+  ProcessItemEnqueueOptions,
 } from '../types';
 import { generateTaskId } from '../utils';
 import { executeTask } from './executor';
@@ -23,6 +26,9 @@ export class TaskQueue {
   private processors: Map<string, Task['_processor']> = new Map();
   // Keep cancel functions in memory for running tasks
   private cancelFunctions: Map<string, (v: boolean) => void> = new Map();
+  // Keep onComplete callbacks in memory
+  private onCompleteCallbacks: Map<string, (outcome: TaskOutcome) => void | Promise<void>> =
+    new Map();
 
   constructor(config: TaskQueueConfig = {}) {
     this.concurrency = config.concurrency ?? TASK_QUEUE_DEFAULTS.concurrency;
@@ -73,6 +79,18 @@ export class TaskQueue {
     const id = generateTaskId();
     const items = options.items as unknown[] | undefined;
 
+    // Determine processor: use provided processor or build from processItem
+    let processor: Task['_processor'];
+    if ('processItem' in options && options.processItem) {
+      processor = this.buildProcessor(
+        options as ProcessItemEnqueueOptions<TItem, TResult>
+      ) as Task['_processor'];
+    } else if ('processor' in options && options.processor) {
+      processor = options.processor as Task['_processor'];
+    } else {
+      throw new Error('[TaskQueue] enqueue: must provide either processor or processItem');
+    }
+
     const task: Task<TResult> = {
       id,
       title: options.title,
@@ -91,13 +109,16 @@ export class TaskQueue {
       completionActions: options.completionActions as Task<TResult>['completionActions'],
       retryCount: 0,
       createdAt: Date.now(),
-      _processor: options.processor as Task<TResult>['_processor'],
+      _processor: processor as Task<TResult>['_processor'],
       _originalItems: items ? [...items] : undefined,
     };
 
     // Store processor in memory (can't be serialized to storage)
-    if (options.processor) {
-      this.processors.set(id, options.processor as Task['_processor']);
+    this.processors.set(id, processor);
+
+    // Store onComplete callback if provided
+    if (options.onComplete) {
+      this.onCompleteCallbacks.set(id, options.onComplete as (outcome: TaskOutcome) => void);
     }
 
     this.storage.set(id, task as Task);
@@ -208,7 +229,7 @@ export class TaskQueue {
     // For cancelled tasks: retry items NOT in succeededItems
     if (task.status === 'cancelled' && succeededItems.length > 0) {
       const remaining = originalItems.filter((item) => {
-        const itemId = this.getItemId(item);
+        const itemId = this.extractItemId(item);
         if (!itemId) return true; // Can't track, include it
         return !succeededItems.includes(itemId);
       });
@@ -218,7 +239,7 @@ export class TaskQueue {
     // For failed tasks: retry only failed items
     if (task.status === 'failed' && failedItems.length > 0) {
       const failed = originalItems.filter((item) => {
-        const itemId = this.getItemId(item);
+        const itemId = this.extractItemId(item);
         if (!itemId) return false;
         return failedItems.some((fi) => fi.id === itemId);
       });
@@ -229,18 +250,45 @@ export class TaskQueue {
     return originalItems;
   }
 
-  /** Extract ID from an item (string or object with id/name property) */
-  private getItemId(item: unknown): string | undefined {
-    if (typeof item === 'string') return item;
-    if (this.isIdentifiable(item)) {
-      return item.id ?? item.name;
+  /** Extract ID from an item using smart defaults */
+  private extractItemId<TItem>(
+    item: TItem,
+    getItemId?: (item: TItem) => string
+  ): string | undefined {
+    // 1. Custom extractor (highest priority)
+    if (getItemId) {
+      return getItemId(item);
     }
-    return undefined;
-  }
 
-  /** Type guard for objects with optional id/name properties */
-  private isIdentifiable(item: unknown): item is { id?: string; name?: string } {
-    return typeof item === 'object' && item !== null;
+    // 2. Primitives (string, number)
+    if (typeof item === 'string' || typeof item === 'number') {
+      return String(item);
+    }
+
+    // 3. Object with common ID fields
+    if (item && typeof item === 'object') {
+      const obj = item as Record<string, unknown>;
+
+      if (typeof obj.id === 'string' || typeof obj.id === 'number') {
+        return String(obj.id);
+      }
+      if (typeof obj.name === 'string') {
+        return obj.name;
+      }
+      if (typeof obj.key === 'string') {
+        return obj.key;
+      }
+      if (typeof obj.uuid === 'string') {
+        return obj.uuid;
+      }
+    }
+
+    // 4. Fallback: stringify
+    try {
+      return JSON.stringify(item);
+    } catch {
+      return undefined;
+    }
   }
 
   dismiss = (taskId: string): void => {
@@ -250,6 +298,7 @@ export class TaskQueue {
     this.storage.remove(taskId);
     // Clean up processor from memory
     this.processors.delete(taskId);
+    this.onCompleteCallbacks.delete(taskId);
     this.notify();
   };
 
@@ -260,10 +309,88 @@ export class TaskQueue {
         this.storage.remove(task.id);
         // Clean up processor from memory
         this.processors.delete(task.id);
+        this.onCompleteCallbacks.delete(task.id);
       }
     });
     this.notify();
   };
+
+  // --- processItem API ---
+
+  private buildProcessor<TItem, TResult>(
+    options: ProcessItemEnqueueOptions<TItem, TResult>
+  ): (ctx: TaskContext<TItem, TResult>) => Promise<void> {
+    const { processItem, itemConcurrency = 1, getItemId, errorStrategy = 'continue' } = options;
+
+    return async (ctx) => {
+      const pending = [...ctx.items];
+      const inFlight: Promise<void>[] = [];
+
+      while (pending.length > 0 || inFlight.length > 0) {
+        // Check cancellation
+        if (ctx.cancelled) break;
+
+        // Check stop-on-error
+        if (errorStrategy === 'stop' && ctx.failedItems.length > 0) break;
+
+        // Fill slots up to concurrency limit
+        while (inFlight.length < itemConcurrency && pending.length > 0) {
+          const item = pending.shift()!;
+          const itemId = this.extractItemId(item, getItemId) ?? String(item);
+
+          const promise = this.processOneItem(item, itemId, processItem, ctx).finally(() => {
+            // Remove from inFlight when done
+            const idx = inFlight.indexOf(promise);
+            if (idx !== -1) inFlight.splice(idx, 1);
+          });
+
+          inFlight.push(promise);
+        }
+
+        // Wait for at least one to complete before continuing
+        if (inFlight.length > 0) {
+          await Promise.race(inFlight);
+        }
+      }
+    };
+  }
+
+  private async processOneItem<TItem, TResult>(
+    item: TItem,
+    itemId: string,
+    processItem: (item: TItem, ctx: ItemContext) => Promise<void>,
+    ctx: TaskContext<TItem, TResult>
+  ): Promise<void> {
+    let manuallyHandled = false;
+
+    const itemCtx: ItemContext = {
+      get cancelled() {
+        return ctx.cancelled;
+      },
+      succeed: (id?: string) => {
+        manuallyHandled = true;
+        ctx.succeed(id ?? itemId);
+      },
+      fail: (id?: string, message?: string) => {
+        manuallyHandled = true;
+        ctx.fail(id ?? itemId, message);
+      },
+    };
+
+    try {
+      await processItem(item, itemCtx);
+      // Auto-succeed if not manually handled
+      if (!manuallyHandled) {
+        ctx.succeed(itemId);
+      }
+    } catch (error) {
+      // Auto-fail if not manually handled
+      if (!manuallyHandled) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        ctx.fail(itemId, message);
+      }
+    }
+  }
 
   // --- Internal scheduling ---
 
@@ -301,6 +428,16 @@ export class TaskQueue {
         },
       });
 
+      // Call onComplete callback if provided
+      const onComplete = this.onCompleteCallbacks.get(task.id);
+      if (onComplete) {
+        try {
+          await onComplete(outcome);
+        } catch (error) {
+          console.error('[TaskQueue] onComplete callback error:', error);
+        }
+      }
+
       const resolver = this.taskResolvers.get(task.id);
       if (resolver) {
         resolver(outcome);
@@ -311,6 +448,7 @@ export class TaskQueue {
       // Failed/cancelled tasks keep processor for retry
       if (outcome.status === 'completed') {
         this.processors.delete(task.id);
+        this.onCompleteCallbacks.delete(task.id);
       }
     } finally {
       this.runningCount -= 1;

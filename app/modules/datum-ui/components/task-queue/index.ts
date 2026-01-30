@@ -19,9 +19,12 @@ export { TaskQueue, LocalTaskStorage, RedisTaskStorage, detectStorage } from './
 // Types
 export type {
   EnqueueOptions,
+  ProcessorEnqueueOptions,
+  ProcessItemEnqueueOptions,
   TaskHandle,
   TaskOutcome,
   TaskContext,
+  ItemContext,
   TaskQueueConfig,
   TaskStorage,
   Task,
