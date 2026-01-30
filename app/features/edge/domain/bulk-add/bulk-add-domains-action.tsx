@@ -1,5 +1,4 @@
-import { useBulkDomainsImport } from './use-bulk-domains-import';
-import { bulkDomainsSchema } from '@/resources/domains';
+import { bulkDomainsSchema, domainKeys, useCreateDomain } from '@/resources/domains';
 import { readFileAsText } from '@/utils/common';
 import { parseDomainsFromFile } from '@/utils/helpers/parse.helper';
 import { Button, toast, useTaskQueue } from '@datum-ui/components';
@@ -7,7 +6,8 @@ import { FileInputButton } from '@datum-ui/components/file-input-button/file-inp
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
-import { ArrowRightIcon, ListChecksIcon } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { ArrowRightIcon, GlobeIcon, ListChecksIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -16,13 +16,31 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
 
   const { enqueue } = useTaskQueue();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { mutateAsync: createDomain } = useCreateDomain(projectId);
 
-  const { submitDomains, isFormPending, isFilePending } = useBulkDomainsImport({
-    projectId,
-    onSuccess: () => setPopoverOpen(false),
-  });
+  const submitDomains = (domains: string[]) => {
+    setPopoverOpen(false);
 
-  const isPending = isFormPending || isFilePending;
+    enqueue({
+      title: `Adding ${domains.length} domains`,
+      icon: <GlobeIcon className="size-4" />,
+      items: domains,
+      processor: async (ctx) => {
+        for (const domain of ctx.items) {
+          if (ctx.cancelled) break;
+          try {
+            await createDomain({ domainName: domain });
+            ctx.succeed(domain);
+          } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to add domain';
+            ctx.fail(domain, message);
+          }
+        }
+        await queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) });
+      },
+    });
+  };
 
   const handleFileSelect = async (files: File[]) => {
     const file = files[0];
@@ -31,56 +49,23 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
     try {
       const content = await readFileAsText(file);
       const domainsRaw = parseDomainsFromFile(content);
-
-      // Validate using the same schema as textarea input
       const result = bulkDomainsSchema.safeParse({ domains: domainsRaw.join('\n') });
 
       if (!result.success) {
-        const errorMessage = result.error.issues[0]?.message || 'Invalid domains in file';
-        toast.error('Domains', { description: errorMessage });
+        toast.error('Domains', {
+          description: result.error.issues[0]?.message || 'Invalid domains in file',
+        });
         return;
       }
 
-      submitDomains(result.data.domains, 'file');
+      submitDomains(result.data.domains);
     } catch {
       toast.error('Domains', { description: 'Failed to read file' });
     }
   };
 
-  const handleSubmit = (data: { domains: string[] }) => {
-    // submitDomains(data.domains, 'form');
-
-    const domains = data.domains;
-    enqueue({
-      title: `Adding ${domains.length} domains`,
-      items: domains,
-      processor: async (ctx) => {
-        setPopoverOpen(false);
-        for (const domain of ctx.items) {
-          if (ctx.cancelled) break;
-
-          // Simulate API call - gives React time to render updates
-          await new Promise((r) => setTimeout(r, 2000));
-
-          try {
-            // await createDomain({ domainName: domain });
-            console.log(`Adding ${domain}`);
-            ctx.succeed();
-          } catch (e: any) {
-            ctx.fail(domain, e.message);
-          }
-        }
-      },
-      completionActions: [
-        {
-          children: 'View Domains',
-          type: 'secondary',
-          theme: 'outline',
-          size: 'xs',
-          onClick: () => navigate(`/project/${projectId}/domains`),
-        },
-      ],
-    });
+  const handleFormSubmit = (data: { domains: string[] }) => {
+    submitDomains(data.domains);
   };
 
   return (
@@ -107,7 +92,7 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
         <Form.Root
           schema={bulkDomainsSchema}
           mode="onSubmit"
-          onSubmit={(data) => handleSubmit(data)}
+          onSubmit={handleFormSubmit}
           className="space-y-4">
           <Form.Field name="domains" required>
             <Form.Textarea
@@ -121,10 +106,7 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
             type="secondary"
             theme="solid"
             size="small"
-            htmlType="submit"
-            disabled={isPending}
-            loading={isFormPending}
-            loadingText="Adding...">
+            htmlType="submit">
             Add domains
           </Form.Submit>
         </Form.Root>
@@ -137,11 +119,9 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
             type="quaternary"
             theme="outline"
             size="small"
-            disabled={isPending}
-            loading={isFilePending}
             onFileSelect={handleFileSelect}
             onFileError={(error) => toast.error('Domains', { description: error.message })}>
-            {isFilePending ? 'Importing...' : 'Choose file'}
+            Choose file
           </FileInputButton>
         </div>
       </PopoverContent>
