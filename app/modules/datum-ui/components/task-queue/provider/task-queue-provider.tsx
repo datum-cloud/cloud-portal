@@ -1,6 +1,6 @@
 import { TaskQueue } from '../engine';
 import type { TaskQueueConfig } from '../types';
-import { createContext, useMemo, useRef, type ReactNode } from 'react';
+import { createContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 
 export interface TaskQueueContextValue {
   queue: TaskQueue;
@@ -19,6 +19,38 @@ export function TaskQueueProvider({ children, config }: TaskQueueProviderProps) 
   if (!queueRef.current) {
     queueRef.current = new TaskQueue(config);
   }
+
+  // Cleanup on unmount: cancel running tasks to prevent memory leaks
+  useEffect(() => {
+    const queue = queueRef.current;
+    return () => {
+      if (!queue) return;
+      const tasks = queue.getSnapshot();
+      tasks.forEach((task) => {
+        if (task.status === 'running') {
+          queue.cancel(task.id);
+        }
+      });
+    };
+  }, []);
+
+  // Warn user before leaving if there are active tasks
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const tasks = queueRef.current?.getSnapshot() ?? [];
+      const hasActiveTasks = tasks.some((t) => t.status === 'running' || t.status === 'pending');
+
+      if (hasActiveTasks) {
+        e.preventDefault();
+        // Modern browsers ignore custom messages, but this triggers the dialog
+        e.returnValue = 'Tasks in progress will be lost.';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   const value = useMemo<TaskQueueContextValue>(() => ({ queue: queueRef.current! }), []);
 

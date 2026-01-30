@@ -28,4 +28,5 @@ export type {
   TaskStatus,
   TaskQueueAPI,
   UseTaskQueueOptions,
+  RedisClient,
 } from './types';

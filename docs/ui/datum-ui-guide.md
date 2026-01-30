@@ -7,6 +7,7 @@ This document covers Datum's component library built on shadcn/ui primitives.
 ## What is datum-ui?
 
 datum-ui is Datum's design system containing:
+
 - Composed components (DataTable, Form)
 - Datum-specific variants (Badge, Alert)
 - Business logic components (Stepper, Grid)
@@ -52,11 +53,10 @@ app/modules/datum-ui/
 ```typescript
 // Named imports from components
 import { Badge, Alert, Button } from '@datum-ui/components';
-
 // Direct component imports (for complex components)
 import { DataTable } from '@datum-ui/components/data-table';
-import { Form } from '@datum-ui/components/new-form';
 import { Row, Col } from '@datum-ui/components/grid';
+import { Form } from '@datum-ui/components/new-form';
 ```
 
 ---
@@ -92,10 +92,11 @@ const columns = [
       />
     </DataTableFilter>
   }
-/>
+/>;
 ```
 
 **Features:**
+
 - Client-side and server-side filtering
 - URL state synchronization
 - Sorting with custom labels
@@ -128,10 +129,11 @@ const schema = z.object({
   </Form.Field>
 
   <Form.Submit>Save</Form.Submit>
-</Form.Root>
+</Form.Root>;
 ```
 
 **Features:**
+
 - Schema-based validation
 - Auto error display
 - Loading states
@@ -200,10 +202,11 @@ import { Row, Col } from '@datum-ui/components/grid';
   <Col span={24} md={12} lg={6}>
     Quarter on large screens
   </Col>
-</Row>
+</Row>;
 ```
 
 **Breakpoints:**
+
 - `xs`: < 576px
 - `sm`: ≥ 576px
 - `md`: ≥ 768px
@@ -225,7 +228,7 @@ import { Stepper } from '@datum-ui/components/stepper';
     { id: 'review', label: 'Review' },
   ]}
   currentStep="config"
-/>
+/>;
 ```
 
 ### Toast Notifications
@@ -268,7 +271,7 @@ import { AvatarStack } from '@datum-ui/components';
     { name: 'Bob Wilson' }, // Fallback to initials
   ]}
   max={3}
-/>
+/>;
 ```
 
 ---

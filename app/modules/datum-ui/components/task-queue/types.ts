@@ -22,7 +22,8 @@ export interface Task<TResult = unknown> {
   completed: number;
   failed: number;
 
-  // Error details
+  // Item tracking for retry
+  succeededItems: string[];
   failedItems: Array<{ id?: string; message: string }>;
   errorStrategy: 'continue' | 'stop';
 
@@ -56,7 +57,9 @@ export interface TaskContext<TItem = unknown, TResult = unknown> {
   readonly items: TItem[];
   readonly cancelled: boolean;
   readonly failedItems: Array<{ id?: string; message: string }>;
-  succeed: () => void;
+  /** Mark current item as succeeded. Pass itemId to enable retry of remaining items on cancel. */
+  succeed: (itemId?: string) => void;
+  /** Mark current item as failed. Pass itemId and message for retry support. */
   fail: (itemId?: string, message?: string) => void;
   setTitle: (title: string) => void;
   setResult: (result: TResult) => void;
@@ -92,12 +95,23 @@ export interface TaskOutcome<TResult = unknown> {
   result?: TResult;
 }
 
+// --- Redis Client Interface ---
+
+export interface RedisClient {
+  get: (key: string) => Promise<string | null>;
+  set: (key: string, value: string) => Promise<string | null>;
+  del: (key: string) => Promise<number>;
+  status?: string;
+}
+
 // --- Queue Config ---
 
 export interface TaskQueueConfig {
   concurrency?: number;
   storage?: TaskStorage;
   storageKey?: string;
+  storageType?: 'memory' | 'local' | 'auto';
+  redisClient?: RedisClient | null;
 }
 
 // --- Storage ---
