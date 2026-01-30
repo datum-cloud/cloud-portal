@@ -74,7 +74,7 @@ export function getAllResources(): string[] {
  */
 const VERB_PAST_TENSE: Record<string, string> = {
   create: 'Added',
-  update: 'Updated',
+  update: 'Modified',
   delete: 'Deleted',
   patch: 'Modified',
   get: 'Viewed',
@@ -83,9 +83,22 @@ const VERB_PAST_TENSE: Record<string, string> = {
 
 /**
  * Verbs available for filtering in the UI.
- * Excludes 'get' and 'list' as they're less relevant for activity logs.
+ * Includes both modify operations (create, update, delete, patch) and read operations (get, list).
+ * Read operations are available but not selected by default.
  */
-const FILTERABLE_VERBS = ['create', 'update', 'delete', 'patch'] as const;
+const FILTERABLE_VERBS = ['create', 'update', 'delete', 'patch', 'get', 'list'] as const;
+
+/**
+ * Maps filter display labels to their constituent verbs.
+ * Allows grouping multiple verbs under a single UI option.
+ */
+const LABEL_TO_VERBS: Record<string, string[]> = {
+  Added: ['create'],
+  Modified: ['update', 'patch'],
+  Deleted: ['delete'],
+  Viewed: ['get'],
+  Listed: ['list'],
+};
 
 // ============================================
 // FILTER OPTIONS
@@ -99,13 +112,27 @@ export interface FilterOption {
 
 /**
  * Returns action filter options derived from VERB_PAST_TENSE.
- * Maps to CEL: verb in ['create', 'update', ...]
+ * Groups verbs by their display label and uses the label as the value.
+ * When a filter option is selected, all verbs under that label are included.
+ *
+ * Example: "Modified" represents both 'update' and 'patch' operations.
  */
 export function getActionFilterOptions(): FilterOption[] {
-  return FILTERABLE_VERBS.map((verb) => ({
-    label: VERB_PAST_TENSE[verb],
-    value: verb,
-  }));
+  const labelsSeen = new Set<string>();
+  const options: FilterOption[] = [];
+
+  for (const verb of FILTERABLE_VERBS) {
+    const label = VERB_PAST_TENSE[verb];
+    if (!labelsSeen.has(label)) {
+      labelsSeen.add(label);
+      options.push({
+        label,
+        value: label,
+      });
+    }
+  }
+
+  return options;
 }
 
 /**
@@ -220,7 +247,22 @@ export function buildCELFilter(params: ActivityLogFilterParams): string | undefi
   // Action filter: verb in [...]
   if (params.actions?.length) {
     const actionsArray = Array.isArray(params.actions) ? params.actions : [params.actions];
-    const verbList = actionsArray.map((a) => `'${a}'`).join(', ');
+
+    // Expand labels to verbs (e.g., 'Modified' -> ['update', 'patch'])
+    const allVerbs = new Set<string>();
+    for (const action of actionsArray) {
+      const verbs = LABEL_TO_VERBS[action];
+      if (verbs) {
+        verbs.forEach((v) => allVerbs.add(v));
+      } else {
+        // Fallback: treat as a verb directly (for backward compatibility)
+        allVerbs.add(action);
+      }
+    }
+
+    const verbList = Array.from(allVerbs)
+      .map((v) => `'${v}'`)
+      .join(', ');
     conditions.push(`verb in [${verbList}]`);
   }
 
