@@ -65,27 +65,18 @@ export interface TaskContext<TItem = unknown, TResult = unknown> {
   setResult: (result: TResult) => void;
 }
 
-// --- Enqueue Options ---
+// --- Item Context (for processItem API) ---
 
-export interface EnqueueOptions<TItem = unknown, TResult = unknown> {
-  title: string;
-  processor: (ctx: TaskContext<TItem, TResult>) => Promise<void>;
-  items?: TItem[];
-  icon?: ReactNode;
-  category?: string;
-  errorStrategy?: 'continue' | 'stop';
-  cancelable?: boolean;
-  retryable?: boolean;
-  completionActions?: ButtonProps[] | ((result: TResult) => ButtonProps[]);
+export interface ItemContext {
+  /** Check if task was cancelled */
+  readonly cancelled: boolean;
+  /** Override auto-detected item ID for retry tracking */
+  succeed: (itemId?: string) => void;
+  /** Override auto-detected item ID and customize error message */
+  fail: (itemId?: string, message?: string) => void;
 }
 
-// --- Task Handle ---
-
-export interface TaskHandle<TResult = unknown> {
-  id: string;
-  cancel: () => void;
-  promise: Promise<TaskOutcome<TResult>>;
-}
+// --- Task Outcome ---
 
 export interface TaskOutcome<TResult = unknown> {
   status: 'completed' | 'failed' | 'cancelled';
@@ -93,6 +84,55 @@ export interface TaskOutcome<TResult = unknown> {
   failed: number;
   failedItems: Array<{ id?: string; message: string }>;
   result?: TResult;
+}
+
+// --- Enqueue Options ---
+
+interface BaseEnqueueOptions<TResult = unknown> {
+  title: string;
+  icon?: ReactNode;
+  category?: string;
+  errorStrategy?: 'continue' | 'stop';
+  cancelable?: boolean;
+  retryable?: boolean;
+  completionActions?: ButtonProps[] | ((result: TResult) => ButtonProps[]);
+  onComplete?: (outcome: TaskOutcome<TResult>) => void | Promise<void>;
+}
+
+/** Full control mode - consumer handles iteration */
+export interface ProcessorEnqueueOptions<
+  TItem = unknown,
+  TResult = unknown,
+> extends BaseEnqueueOptions<TResult> {
+  processor: (ctx: TaskContext<TItem, TResult>) => Promise<void>;
+  items?: TItem[];
+  processItem?: never;
+  itemConcurrency?: never;
+  getItemId?: never;
+}
+
+/** Simplified mode - queue handles iteration */
+export interface ProcessItemEnqueueOptions<
+  TItem = unknown,
+  TResult = unknown,
+> extends BaseEnqueueOptions<TResult> {
+  processItem: (item: TItem, ctx: ItemContext) => Promise<void>;
+  items: TItem[];
+  itemConcurrency?: number;
+  getItemId?: (item: TItem) => string;
+  processor?: never;
+}
+
+export type EnqueueOptions<TItem = unknown, TResult = unknown> =
+  | ProcessorEnqueueOptions<TItem, TResult>
+  | ProcessItemEnqueueOptions<TItem, TResult>;
+
+// --- Task Handle ---
+
+export interface TaskHandle<TResult = unknown> {
+  id: string;
+  cancel: () => void;
+  promise: Promise<TaskOutcome<TResult>>;
 }
 
 // --- Redis Client Interface ---

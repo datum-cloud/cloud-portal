@@ -9,13 +9,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRightIcon, GlobeIcon, ListChecksIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 
 export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   const { enqueue } = useTaskQueue();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { mutateAsync: createDomain } = useCreateDomain(projectId);
 
@@ -26,19 +24,11 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
       title: `Adding ${domains.length} domains`,
       icon: <GlobeIcon className="size-4" />,
       items: domains,
-      processor: async (ctx) => {
-        for (const domain of ctx.items) {
-          if (ctx.cancelled) break;
-          try {
-            await createDomain({ domainName: domain });
-            ctx.succeed(domain);
-          } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to add domain';
-            ctx.fail(domain, message);
-          }
-        }
-        await queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) });
+      itemConcurrency: 3,
+      processItem: async (domain) => {
+        await createDomain({ domainName: domain });
       },
+      onComplete: () => queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) }),
     });
   };
 
