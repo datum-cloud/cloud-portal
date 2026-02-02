@@ -41,6 +41,8 @@ export {
   useCreateNotificationContact,
   useUpdateNotificationContact,
   useDeleteNotificationContact,
+  type CreateNotificationContactVariables,
+  type DeleteNotificationContactVariables,
 } from './contact/contact.queries';
 
 // Contact group schema exports
@@ -78,6 +80,8 @@ export {
   useCreateNotificationContactGroup,
   useUpdateNotificationContactGroup,
   useDeleteNotificationContactGroup,
+  type CreateNotificationContactGroupVariables,
+  type DeleteNotificationContactGroupVariables,
 } from './contact-group/contact-group.queries';
 
 // Contact group membership schema exports
@@ -110,6 +114,8 @@ export {
   useNotificationContactGroupMembership,
   useCreateNotificationContactGroupMembership,
   useDeleteNotificationContactGroupMembership,
+  type CreateNotificationContactGroupMembershipVariables,
+  type DeleteNotificationContactGroupMembershipVariables,
 } from './contact-group-membership/contact-group-membership.queries';
 
 // Contact group membership removal schema exports
@@ -142,4 +148,6 @@ export {
   useNotificationContactGroupMembershipRemoval,
   useCreateNotificationContactGroupMembershipRemoval,
   useDeleteNotificationContactGroupMembershipRemoval,
+  type CreateNotificationContactGroupMembershipRemovalVariables,
+  type DeleteNotificationContactGroupMembershipRemovalVariables,
 } from './contact-group-membership-removal/contact-group-membership-removal.queries';

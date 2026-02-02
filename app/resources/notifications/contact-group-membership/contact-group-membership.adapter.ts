@@ -46,7 +46,8 @@ export function toContactGroupMembershipList(
 
 export function toCreateContactGroupMembershipPayload(
   input: CreateContactGroupMembershipInput,
-  namespace: string
+  contactGroupNamespace: string,
+  contactNamespace: string
 ): Pick<
   ComMiloapisNotificationV1Alpha1ContactGroupMembership,
   'apiVersion' | 'kind' | 'metadata' | 'spec'
@@ -60,11 +61,11 @@ export function toCreateContactGroupMembershipPayload(
     spec: {
       contactGroupRef: {
         name: input.contactGroupName,
-        namespace,
+        namespace: contactGroupNamespace,
       },
       contactRef: {
         name: input.contactName,
-        namespace,
+        namespace: contactNamespace,
       },
     },
   };

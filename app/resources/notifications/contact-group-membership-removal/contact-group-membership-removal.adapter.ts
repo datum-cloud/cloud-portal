@@ -46,7 +46,8 @@ export function toContactGroupMembershipRemovalList(
 
 export function toCreateContactGroupMembershipRemovalPayload(
   input: CreateContactGroupMembershipRemovalInput,
-  namespace: string
+  contactGroupNamespace: string,
+  contactNamespace: string
 ): Pick<
   ComMiloapisNotificationV1Alpha1ContactGroupMembershipRemoval,
   'apiVersion' | 'kind' | 'metadata' | 'spec'
@@ -58,11 +59,11 @@ export function toCreateContactGroupMembershipRemovalPayload(
     spec: {
       contactGroupRef: {
         name: input.contactGroupName,
-        namespace,
+        namespace: contactGroupNamespace,
       },
       contactRef: {
         name: input.contactName,
-        namespace,
+        namespace: contactNamespace,
       },
     },
   };

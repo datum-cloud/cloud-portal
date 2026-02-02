@@ -53,12 +53,15 @@ export function useNotificationContactGroupMembershipRemoval(
   });
 }
 
+export type CreateNotificationContactGroupMembershipRemovalVariables =
+  CreateContactGroupMembershipRemovalInput & { namespace?: string };
+
 export function useCreateNotificationContactGroupMembershipRemoval(
   scope: NotificationScope,
   options?: UseMutationOptions<
     ContactGroupMembershipRemoval,
     Error,
-    CreateContactGroupMembershipRemovalInput
+    CreateNotificationContactGroupMembershipRemovalVariables
   >
 ) {
   const queryClient = useQueryClient();
@@ -69,17 +72,18 @@ export function useCreateNotificationContactGroupMembershipRemoval(
   );
 
   return useMutation({
-    mutationFn: (input: CreateContactGroupMembershipRemovalInput) =>
-      createNotificationContactGroupMembershipRemovalService().create(scope, input),
+    mutationFn: (input: CreateNotificationContactGroupMembershipRemovalVariables) =>
+      createNotificationContactGroupMembershipRemovalService().create(
+        scope,
+        input,
+        input.namespace ?? DEFAULT_NOTIFICATION_NAMESPACE
+      ),
     ...options,
     onSuccess: (...args) => {
       const [created] = args;
+      const ns = created.namespace ?? DEFAULT_NOTIFICATION_NAMESPACE;
       queryClient.setQueryData(
-        notificationContactGroupMembershipRemovalKeys.detail(
-          scopeKey,
-          DEFAULT_NOTIFICATION_NAMESPACE,
-          created.name
-        ),
+        notificationContactGroupMembershipRemovalKeys.detail(scopeKey, ns, created.name),
         created
       );
       queryClient.setQueryData<ContactGroupMembershipRemoval[] | undefined>(listKey, (old) => {
@@ -98,9 +102,17 @@ export function useCreateNotificationContactGroupMembershipRemoval(
   });
 }
 
+export type DeleteNotificationContactGroupMembershipRemovalVariables =
+  | string
+  | { name: string; namespace?: string };
+
 export function useDeleteNotificationContactGroupMembershipRemoval(
   scope: NotificationScope,
-  options?: UseMutationOptions<void, Error, string>
+  options?: UseMutationOptions<
+    void,
+    Error,
+    DeleteNotificationContactGroupMembershipRemovalVariables
+  >
 ) {
   const queryClient = useQueryClient();
   const scopeKey = notificationScopeKey(scope);
@@ -110,17 +122,28 @@ export function useDeleteNotificationContactGroupMembershipRemoval(
   );
 
   return useMutation({
-    mutationFn: (name: string) =>
-      createNotificationContactGroupMembershipRemovalService().delete(scope, name),
+    mutationFn: (arg: DeleteNotificationContactGroupMembershipRemovalVariables) => {
+      const name = typeof arg === 'string' ? arg : arg.name;
+      const namespace =
+        typeof arg === 'string'
+          ? DEFAULT_NOTIFICATION_NAMESPACE
+          : (arg.namespace ?? DEFAULT_NOTIFICATION_NAMESPACE);
+      return createNotificationContactGroupMembershipRemovalService().delete(
+        scope,
+        name,
+        namespace
+      );
+    },
     ...options,
     onSuccess: async (...args) => {
-      const [, name] = args;
+      const [, arg] = args;
+      const name = typeof arg === 'string' ? arg : arg.name;
+      const namespace =
+        typeof arg === 'string'
+          ? DEFAULT_NOTIFICATION_NAMESPACE
+          : (arg.namespace ?? DEFAULT_NOTIFICATION_NAMESPACE);
       await queryClient.cancelQueries({
-        queryKey: notificationContactGroupMembershipRemovalKeys.detail(
-          scopeKey,
-          DEFAULT_NOTIFICATION_NAMESPACE,
-          name
-        ),
+        queryKey: notificationContactGroupMembershipRemovalKeys.detail(scopeKey, namespace, name),
       });
       queryClient.setQueryData<ContactGroupMembershipRemoval[] | undefined>(listKey, (old) => {
         if (!old) return old;

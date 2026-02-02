@@ -16,9 +16,9 @@ import {
 import {
   createNotificationMiloapisComV1Alpha1NamespacedContact,
   deleteNotificationMiloapisComV1Alpha1NamespacedContact,
-  listNotificationMiloapisComV1Alpha1NamespacedContact,
   patchNotificationMiloapisComV1Alpha1NamespacedContact,
   readNotificationMiloapisComV1Alpha1NamespacedContact,
+  listNotificationMiloapisComV1Alpha1ContactForAllNamespaces,
   type ComMiloapisNotificationV1Alpha1Contact,
   type ComMiloapisNotificationV1Alpha1ContactList,
 } from '@/modules/control-plane/notification';
@@ -50,9 +50,8 @@ export function createNotificationContactService() {
       const startTime = Date.now();
 
       try {
-        const response = await listNotificationMiloapisComV1Alpha1NamespacedContact({
+        const response = await listNotificationMiloapisComV1Alpha1ContactForAllNamespaces({
           baseURL: getNotificationScopedBase(scope),
-          path: { namespace },
           query: {
             limit: limit ?? 100,
           },

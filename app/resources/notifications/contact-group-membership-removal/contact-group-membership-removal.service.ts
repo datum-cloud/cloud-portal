@@ -13,7 +13,7 @@ import {
 import {
   createNotificationMiloapisComV1Alpha1NamespacedContactGroupMembershipRemoval,
   deleteNotificationMiloapisComV1Alpha1NamespacedContactGroupMembershipRemoval,
-  listNotificationMiloapisComV1Alpha1NamespacedContactGroupMembershipRemoval,
+  listNotificationMiloapisComV1Alpha1ContactGroupMembershipRemovalForAllNamespaces,
   readNotificationMiloapisComV1Alpha1NamespacedContactGroupMembershipRemoval,
   type ComMiloapisNotificationV1Alpha1ContactGroupMembershipRemoval,
   type ComMiloapisNotificationV1Alpha1ContactGroupMembershipRemovalList,
@@ -52,9 +52,8 @@ export function createNotificationContactGroupMembershipRemovalService() {
 
       try {
         const response =
-          await listNotificationMiloapisComV1Alpha1NamespacedContactGroupMembershipRemoval({
+          await listNotificationMiloapisComV1Alpha1ContactGroupMembershipRemovalForAllNamespaces({
             baseURL: getNotificationScopedBase(scope),
-            path: { namespace },
             query: { limit: limit ?? 100 },
           });
 
@@ -119,7 +118,11 @@ export function createNotificationContactGroupMembershipRemovalService() {
           message: 'Invalid contact group membership removal data',
         });
 
-        const payload = toCreateContactGroupMembershipRemovalPayload(validated, namespace);
+        const payload = toCreateContactGroupMembershipRemovalPayload(
+          validated,
+          namespace,
+          validated.contactNamespace
+        );
 
         const response =
           await createNotificationMiloapisComV1Alpha1NamespacedContactGroupMembershipRemoval({
