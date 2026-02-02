@@ -118,7 +118,11 @@ export function createNotificationContactGroupMembershipRemovalService() {
           message: 'Invalid contact group membership removal data',
         });
 
-        const payload = toCreateContactGroupMembershipRemovalPayload(validated, namespace);
+        const payload = toCreateContactGroupMembershipRemovalPayload(
+          validated,
+          namespace,
+          validated.contactNamespace
+        );
 
         const response =
           await createNotificationMiloapisComV1Alpha1NamespacedContactGroupMembershipRemoval({

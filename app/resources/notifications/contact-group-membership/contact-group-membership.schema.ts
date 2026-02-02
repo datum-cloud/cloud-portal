@@ -20,6 +20,8 @@ export const createContactGroupMembershipInputSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   contactGroupName: z.string().min(1, 'Contact group is required'),
   contactName: z.string().min(1, 'Contact is required'),
+  /** Namespace where the Contact lives; used for spec.contactRef.namespace. */
+  contactNamespace: z.string().min(1, 'Contact namespace is required'),
 });
 
 export type CreateContactGroupMembershipInput = z.infer<

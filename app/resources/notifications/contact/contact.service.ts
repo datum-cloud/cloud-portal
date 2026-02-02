@@ -52,7 +52,6 @@ export function createNotificationContactService() {
       try {
         const response = await listNotificationMiloapisComV1Alpha1ContactForAllNamespaces({
           baseURL: getNotificationScopedBase(scope),
-
           query: {
             limit: limit ?? 100,
           },

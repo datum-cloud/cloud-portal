@@ -29,10 +29,16 @@ export const AccountNotificationSettingsCard = () => {
     onError: (error) => {
       toast.error(error.message);
     },
+    onSuccess: () => {
+      toast.success('Marketing & Events Notifications updated');
+    },
   });
   const createRemoval = useCreateNotificationContactGroupMembershipRemoval(scope, {
     onError: (error) => {
       toast.error(error.message);
+    },
+    onSuccess: () => {
+      toast.success('Marketing & Events Notifications updated');
     },
   });
   const deleteRemoval = useDeleteNotificationContactGroupMembershipRemoval(scope, {
@@ -46,7 +52,7 @@ export const AccountNotificationSettingsCard = () => {
       (contactGroups ?? []).map((contactGroup) => ({
         name: contactGroup.name,
         label: contactGroup.displayName,
-        description: '',
+        description: contactGroup.description ?? '',
       })),
     [contactGroups]
   );
@@ -76,15 +82,8 @@ export const AccountNotificationSettingsCard = () => {
   }, [contactGroups, contactGroupMemberships, contactGroupMembershipRemovals]);
 
   const contactContext = useMemo(() => {
-    const contactName =
-      contactGroupMemberships?.[0]?.contactName ??
-      contactGroupMembershipRemovals?.[0]?.contactName ??
-      contacts?.[0]?.name ??
-      '';
-    const namespace =
-      contactGroupMemberships?.[0]?.namespace ??
-      contactGroupMembershipRemovals?.[0]?.namespace ??
-      contacts?.[0]?.namespace;
+    const contactName = contacts?.[0]?.name;
+    const namespace = contacts?.[0]?.namespace;
     return { contactName, namespace };
   }, [contacts, contactGroupMemberships, contactGroupMembershipRemovals]);
 
@@ -97,16 +96,17 @@ export const AccountNotificationSettingsCard = () => {
 
   const handleSubmit = async (data: Record<string, boolean>) => {
     try {
-      const { contactName, namespace } = contactContext;
+      const { contactName, namespace: contactNamespace } = contactContext;
 
-      if (!contactName) {
+      if (!contactName || !contactNamespace) {
         toast.error('Unable to update notification groups', {
           description: 'No contact was found for this user.',
         });
         return;
       }
 
-      const allGroupNames = (contactGroups ?? []).map((g) => g.name);
+      const allGroups = contactGroups ?? [];
+      const groupNamespaceByName = new Map(allGroups.map((g) => [g.name, g.namespace] as const));
 
       const desiredGroupNames = Object.entries(data)
         .filter(([, enabled]) => enabled === true)
@@ -118,8 +118,6 @@ export const AccountNotificationSettingsCard = () => {
         (contactGroupMemberships ?? []).map((m) => m.contactGroupName)
       );
 
-      // In user scope we effectively care about "is this group removed at all?"
-      // Using groupName-only avoids contactName mismatches between queries/mutations.
       const removalByGroupName = new Map(
         (contactGroupMembershipRemovals ?? []).map((r) => [
           r.contactGroupName,
@@ -127,25 +125,33 @@ export const AccountNotificationSettingsCard = () => {
         ])
       );
 
-      const toEnable = allGroupNames.filter((groupName) => desiredSet.has(groupName));
-      const toDisable = allGroupNames.filter((groupName) => !desiredSet.has(groupName));
+      const toEnable = allGroups
+        .map((g) => g.name)
+        .filter((groupName) => desiredSet.has(groupName));
+      const toDisable = allGroups
+        .map((g) => g.name)
+        .filter((groupName) => !desiredSet.has(groupName));
 
       await Promise.all(
         toEnable.map(async (contactGroupName) => {
           const removal = removalByGroupName.get(contactGroupName);
           if (removal) {
+            const removalNamespace =
+              removal.namespace ?? groupNamespaceByName.get(contactGroupName);
             await deleteRemoval.mutateAsync({
               name: removal.name,
-              namespace: removal.namespace,
+              namespace: removalNamespace,
             });
           }
 
           if (!existingMembershipGroupNames.has(contactGroupName)) {
+            const contactGroupNamespace = groupNamespaceByName.get(contactGroupName);
             await createMembership.mutateAsync({
               name: generateId(contactGroupName),
               contactGroupName,
               contactName,
-              namespace,
+              namespace: contactGroupNamespace,
+              contactNamespace,
             });
           }
         })
@@ -153,16 +159,17 @@ export const AccountNotificationSettingsCard = () => {
 
       await Promise.all(
         toDisable.map(async (contactGroupName) => {
-          // Mark as removed (instead of deleting the membership) so re-selecting
-          // requires deleting the removal record.
           if (!existingMembershipGroupNames.has(contactGroupName)) return;
           if (removalByGroupName.has(contactGroupName)) return;
 
+          const contactGroupNamespace = groupNamespaceByName.get(contactGroupName);
+          console.log('CONTACT GROUP NAMESPACE', contactGroupNamespace);
           await createRemoval.mutateAsync({
             name: generateId(contactGroupName, { prefix: 'cgmr' }),
             contactGroupName,
             contactName,
-            namespace,
+            namespace: contactGroupNamespace,
+            contactNamespace,
           });
         })
       );

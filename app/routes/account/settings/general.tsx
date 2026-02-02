@@ -24,9 +24,6 @@ export default function AccountGeneralSettingsPage() {
         <Col span={24}>
           <AccountIdentitySettingsCard />
         </Col>
-      </Row>
-
-      <Row gutter={[0, 16]}>
         <Col span={24}>
           <AccountNotificationSettingsCard />
         </Col>

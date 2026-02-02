@@ -111,7 +111,11 @@ export function createNotificationContactGroupMembershipService() {
           message: 'Invalid contact group membership data',
         });
 
-        const payload = toCreateContactGroupMembershipPayload(validated, namespace);
+        const payload = toCreateContactGroupMembershipPayload(
+          validated,
+          namespace,
+          validated.contactNamespace
+        );
 
         const response =
           await createNotificationMiloapisComV1Alpha1NamespacedContactGroupMembership({
