@@ -13,7 +13,7 @@ import {
 import {
   createNotificationMiloapisComV1Alpha1NamespacedContactGroupMembership,
   deleteNotificationMiloapisComV1Alpha1NamespacedContactGroupMembership,
-  listNotificationMiloapisComV1Alpha1NamespacedContactGroupMembership,
+  listNotificationMiloapisComV1Alpha1ContactGroupMembershipForAllNamespaces,
   readNotificationMiloapisComV1Alpha1NamespacedContactGroupMembership,
   type ComMiloapisNotificationV1Alpha1ContactGroupMembership,
   type ComMiloapisNotificationV1Alpha1ContactGroupMembershipList,
@@ -46,11 +46,11 @@ export function createNotificationContactGroupMembershipService() {
       const startTime = Date.now();
 
       try {
-        const response = await listNotificationMiloapisComV1Alpha1NamespacedContactGroupMembership({
-          baseURL: getNotificationScopedBase(scope),
-          path: { namespace },
-          query: { limit: limit ?? 100 },
-        });
+        const response =
+          await listNotificationMiloapisComV1Alpha1ContactGroupMembershipForAllNamespaces({
+            baseURL: getNotificationScopedBase(scope),
+            query: { limit: limit ?? 100 },
+          });
 
         const data = response.data as ComMiloapisNotificationV1Alpha1ContactGroupMembershipList;
         const result = toContactGroupMembershipList(data);

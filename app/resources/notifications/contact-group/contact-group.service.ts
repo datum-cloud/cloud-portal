@@ -16,7 +16,7 @@ import {
 import {
   createNotificationMiloapisComV1Alpha1NamespacedContactGroup,
   deleteNotificationMiloapisComV1Alpha1NamespacedContactGroup,
-  listNotificationMiloapisComV1Alpha1NamespacedContactGroup,
+  listNotificationMiloapisComV1Alpha1ContactGroupForAllNamespaces,
   patchNotificationMiloapisComV1Alpha1NamespacedContactGroup,
   readNotificationMiloapisComV1Alpha1NamespacedContactGroup,
   type ComMiloapisNotificationV1Alpha1ContactGroup,
@@ -50,17 +50,14 @@ export function createNotificationContactGroupService() {
       const startTime = Date.now();
 
       try {
-        const response = await listNotificationMiloapisComV1Alpha1NamespacedContactGroup({
+        const response = await listNotificationMiloapisComV1Alpha1ContactGroupForAllNamespaces({
           baseURL: getNotificationScopedBase(scope),
-          path: { namespace },
           query: {
             limit: limit ?? 100,
           },
         });
 
         const data = response.data as ComMiloapisNotificationV1Alpha1ContactGroupList;
-
-        console.log('data', data);
         const result = toContactGroupList(data);
 
         logger.service(SERVICE_NAME, 'list', {

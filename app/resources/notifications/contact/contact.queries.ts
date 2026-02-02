@@ -39,23 +39,27 @@ export function useNotificationContact(
   });
 }
 
+export type CreateNotificationContactVariables = CreateContactInput & { namespace?: string };
+
 export function useCreateNotificationContact(
   scope: NotificationScope,
-  options?: UseMutationOptions<Contact, Error, CreateContactInput>
+  options?: UseMutationOptions<Contact, Error, CreateNotificationContactVariables>
 ) {
   const queryClient = useQueryClient();
   const scopeKey = notificationScopeKey(scope);
 
   return useMutation({
-    mutationFn: (input: CreateContactInput) =>
-      createNotificationContactService().create(scope, input),
+    mutationFn: (input: CreateNotificationContactVariables) =>
+      createNotificationContactService().create(
+        scope,
+        input,
+        input.namespace ?? DEFAULT_NOTIFICATION_NAMESPACE
+      ),
     ...options,
     onSuccess: (...args) => {
       const [created] = args;
-      queryClient.setQueryData(
-        notificationContactKeys.detail(scopeKey, DEFAULT_NOTIFICATION_NAMESPACE, created.name),
-        created
-      );
+      const ns = created.namespace ?? DEFAULT_NOTIFICATION_NAMESPACE;
+      queryClient.setQueryData(notificationContactKeys.detail(scopeKey, ns, created.name), created);
       queryClient.invalidateQueries({ queryKey: notificationContactKeys.lists() });
       options?.onSuccess?.(...args);
     },
@@ -65,6 +69,7 @@ export function useCreateNotificationContact(
 export function useUpdateNotificationContact(
   scope: NotificationScope,
   name: string,
+  namespace: string = DEFAULT_NOTIFICATION_NAMESPACE,
   options?: UseMutationOptions<Contact, Error, UpdateContactInput>
 ) {
   const queryClient = useQueryClient();
@@ -72,34 +77,46 @@ export function useUpdateNotificationContact(
 
   return useMutation({
     mutationFn: (input: UpdateContactInput) =>
-      createNotificationContactService().update(scope, name, input),
+      createNotificationContactService().update(scope, name, input, namespace),
     ...options,
     onSuccess: (...args) => {
       const [updated] = args;
-      queryClient.setQueryData(
-        notificationContactKeys.detail(scopeKey, DEFAULT_NOTIFICATION_NAMESPACE, name),
-        updated
-      );
+      const ns = updated.namespace ?? namespace;
+      queryClient.setQueryData(notificationContactKeys.detail(scopeKey, ns, name), updated);
       queryClient.invalidateQueries({ queryKey: notificationContactKeys.lists() });
       options?.onSuccess?.(...args);
     },
   });
 }
 
+export type DeleteNotificationContactVariables = string | { name: string; namespace?: string };
+
 export function useDeleteNotificationContact(
   scope: NotificationScope,
-  options?: UseMutationOptions<void, Error, string>
+  options?: UseMutationOptions<void, Error, DeleteNotificationContactVariables>
 ) {
   const queryClient = useQueryClient();
   const scopeKey = notificationScopeKey(scope);
 
   return useMutation({
-    mutationFn: (name: string) => createNotificationContactService().delete(scope, name),
+    mutationFn: (arg: DeleteNotificationContactVariables) => {
+      const name = typeof arg === 'string' ? arg : arg.name;
+      const namespace =
+        typeof arg === 'string'
+          ? DEFAULT_NOTIFICATION_NAMESPACE
+          : (arg.namespace ?? DEFAULT_NOTIFICATION_NAMESPACE);
+      return createNotificationContactService().delete(scope, name, namespace);
+    },
     ...options,
     onSuccess: async (...args) => {
-      const [, name] = args;
+      const [, arg] = args;
+      const name = typeof arg === 'string' ? arg : arg.name;
+      const namespace =
+        typeof arg === 'string'
+          ? DEFAULT_NOTIFICATION_NAMESPACE
+          : (arg.namespace ?? DEFAULT_NOTIFICATION_NAMESPACE);
       await queryClient.cancelQueries({
-        queryKey: notificationContactKeys.detail(scopeKey, DEFAULT_NOTIFICATION_NAMESPACE, name),
+        queryKey: notificationContactKeys.detail(scopeKey, namespace, name),
       });
       queryClient.invalidateQueries({ queryKey: notificationContactKeys.lists() });
       options?.onSuccess?.(...args);
