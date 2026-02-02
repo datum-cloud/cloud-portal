@@ -36,6 +36,12 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: IHttpProxyContr
         ),
       },
       {
+        label: 'TLS Hostname',
+        className: 'px-2',
+        hidden: !httpProxy.tlsHostname,
+        content: <span>{httpProxy.tlsHostname ?? ''}</span>,
+      },
+      {
         label: 'Status',
         className: 'px-2',
         content: (() => {

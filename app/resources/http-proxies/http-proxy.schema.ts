@@ -1,6 +1,6 @@
 import type { ComDatumapisNetworkingV1AlphaHttpProxy } from '@/modules/control-plane/networking';
 import { nameSchema } from '@/resources/base';
-import { createHostnameSchema } from '@/utils/helpers/validation.helper';
+import { createHostnameSchema, isIPAddress } from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
 
 // HTTP Proxy resource schema (from API)
@@ -76,7 +76,24 @@ export const httpProxySchema = z
     tlsHostname: z.string().min(1).max(253).optional(),
   })
   .and(httpProxyHostnameSchema)
-  .and(nameSchema);
+  .and(nameSchema)
+  .superRefine((data, ctx) => {
+    // Require TLS hostname when endpoint is HTTPS with an IP address
+    if (data.endpoint) {
+      try {
+        const url = new URL(data.endpoint);
+        if (url.protocol === 'https:' && isIPAddress(url.hostname) && !data.tlsHostname) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'TLS hostname is required for IP-based HTTPS endpoints',
+            path: ['tlsHostname'],
+          });
+        }
+      } catch {
+        // Invalid URL - handled by endpoint refine
+      }
+    }
+  });
 
 export type HttpProxySchema = z.infer<typeof httpProxySchema>;
 export type HttpProxyHostnameSchema = z.infer<typeof httpProxyHostnameSchema>;

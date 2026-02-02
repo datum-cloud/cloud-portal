@@ -10,15 +10,20 @@ import { ComDatumapisNetworkingV1AlphaHttpProxy } from '@/modules/control-plane/
  * Transform raw API HttpProxy to domain HttpProxy type
  */
 export function toHttpProxy(raw: ComDatumapisNetworkingV1AlphaHttpProxy): HttpProxy {
+  // Type assertion for TLS field until generated types are updated
+  const backend = raw.spec?.rules?.[0]?.backends?.[0] as
+    | { endpoint?: string; tls?: { hostname?: string } }
+    | undefined;
+
   return {
     uid: raw.metadata?.uid ?? '',
     name: raw.metadata?.name ?? '',
     namespace: raw.metadata?.namespace,
     resourceVersion: raw.metadata?.resourceVersion ?? '',
     createdAt: raw.metadata?.creationTimestamp ?? new Date(),
-    endpoint: raw.spec?.rules?.[0]?.backends?.[0]?.endpoint,
+    endpoint: backend?.endpoint,
     hostnames: raw.spec?.hostnames,
-    tlsHostname: undefined,
+    tlsHostname: backend?.tls?.hostname,
     status: raw.status,
   };
 }
