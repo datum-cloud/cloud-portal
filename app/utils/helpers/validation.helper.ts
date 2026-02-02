@@ -168,3 +168,33 @@ export const createHostnameSchema = (fieldName = 'Hostname') =>
         message: `${fieldName} labels must be 1-63 characters and cannot start or end with hyphens`,
       }
     );
+
+/**
+ * Checks if a given string is a valid IP address (IPv4 or IPv6)
+ *
+ * @param host The string to check (handles bracketed IPv6 from URL.hostname like [2001:db8::1])
+ * @returns true if the string is a valid IPv4 or IPv6 address, false otherwise
+ */
+export const isIPAddress = (host: string): boolean => {
+  if (!host) return false;
+
+  // Strip brackets from IPv6 addresses (URL.hostname returns [2001:db8::1] for IPv6)
+  const normalizedHost = host.startsWith('[') && host.endsWith(']') ? host.slice(1, -1) : host;
+
+  // IPv4: four octets 0-255
+  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+  if (ipv4Regex.test(normalizedHost)) {
+    return normalizedHost.split('.').every((octet) => {
+      const num = Number(octet);
+      return num >= 0 && num <= 255;
+    });
+  }
+
+  // IPv6: comprehensive validation including compressed formats
+  // Handles: ::1, 2001:db8::1, ::, fe80::1, etc.
+  // Based on RFC 5952 recommendations
+  const ipv6Regex =
+    /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))$/;
+
+  return ipv6Regex.test(normalizedHost);
+};

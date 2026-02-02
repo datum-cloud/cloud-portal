@@ -38,7 +38,7 @@ export const Field = ({
       {errors && (
         <ul
           className={cn(
-            'text-destructive space-y-1 text-sm font-medium',
+            'text-destructive space-y-1 text-xs font-medium',
             errors.length > 1 && 'list-disc pl-4'
           )}>
           {errors.map((error) => (

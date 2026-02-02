@@ -10,14 +10,20 @@ import { ComDatumapisNetworkingV1AlphaHttpProxy } from '@/modules/control-plane/
  * Transform raw API HttpProxy to domain HttpProxy type
  */
 export function toHttpProxy(raw: ComDatumapisNetworkingV1AlphaHttpProxy): HttpProxy {
+  // Type assertion for TLS field until generated types are updated
+  const backend = raw.spec?.rules?.[0]?.backends?.[0] as
+    | { endpoint?: string; tls?: { hostname?: string } }
+    | undefined;
+
   return {
     uid: raw.metadata?.uid ?? '',
     name: raw.metadata?.name ?? '',
     namespace: raw.metadata?.namespace,
     resourceVersion: raw.metadata?.resourceVersion ?? '',
     createdAt: raw.metadata?.creationTimestamp ?? new Date(),
-    endpoint: raw.spec?.rules?.[0]?.backends?.[0]?.endpoint,
+    endpoint: backend?.endpoint,
     hostnames: raw.spec?.hostnames,
+    tlsHostname: backend?.tls?.hostname,
     status: raw.status,
   };
 }
@@ -45,9 +51,20 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
   metadata: { name: string };
   spec: {
     hostnames: string[];
-    rules: Array<{ backends: Array<{ endpoint: string }> }>;
+    rules: Array<{ backends: Array<{ endpoint: string; tls?: { hostname: string } }> }>;
   };
 } {
+  const backend: { endpoint: string; tls?: { hostname: string } } = {
+    endpoint: input.endpoint,
+  };
+
+  // Add TLS configuration if provided
+  if (input.tlsHostname) {
+    backend.tls = {
+      hostname: input.tlsHostname,
+    };
+  }
+
   return {
     kind: 'HTTPProxy',
     apiVersion: 'networking.datumapis.com/v1alpha',
@@ -58,11 +75,7 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
       hostnames: input.hostnames ?? [],
       rules: [
         {
-          backends: [
-            {
-              endpoint: input.endpoint,
-            },
-          ],
+          backends: [backend],
         },
       ],
     },
@@ -77,9 +90,20 @@ export function toUpdateHttpProxyPayload(input: UpdateHttpProxyInput): {
   apiVersion: string;
   spec: {
     hostnames: string[];
-    rules: Array<{ backends: Array<{ endpoint: string }> }>;
+    rules: Array<{ backends: Array<{ endpoint: string; tls?: { hostname: string } }> }>;
   };
 } {
+  const backend: { endpoint: string; tls?: { hostname: string } } = {
+    endpoint: input.endpoint,
+  };
+
+  // Add TLS configuration if provided
+  if (input.tlsHostname) {
+    backend.tls = {
+      hostname: input.tlsHostname,
+    };
+  }
+
   return {
     kind: 'HTTPProxy',
     apiVersion: 'networking.datumapis.com/v1alpha',
@@ -87,11 +111,7 @@ export function toUpdateHttpProxyPayload(input: UpdateHttpProxyInput): {
       hostnames: input.hostnames ?? [],
       rules: [
         {
-          backends: [
-            {
-              endpoint: input.endpoint,
-            },
-          ],
+          backends: [backend],
         },
       ],
     },
