@@ -103,3 +103,6 @@ const onResponseError = (error: AxiosError): Promise<AxiosError> => {
 
 httpClient.interceptors.request.use(onRequest, onRequestError);
 httpClient.interceptors.response.use(onResponse, onResponseError);
+
+// Register on globalThis for gqlts module to access
+(globalThis as any).__axios_client_http__ = httpClient;

@@ -9,5 +9,10 @@ export const meta: MetaFunction = mergeMeta(() => {
 export default function OrgActivityPage() {
   const { orgId } = useParams();
   if (!orgId) return null;
-  return <ActivityLogTable scope={{ type: 'organization', organizationId: orgId }} />;
+  return (
+    <ActivityLogTable
+      scope={{ type: 'organization', organizationId: orgId }}
+      initialActions={['Added', 'Modified', 'Deleted']}
+    />
+  );
 }

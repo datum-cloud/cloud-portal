@@ -32,6 +32,11 @@ export interface UseActivityLogTableOptions {
    * When set, only these resources are shown.
    */
   defaultResource?: string | string[];
+  /**
+   * Initial action filter(s) for the filter UI.
+   * Sets a default action filter that users can change.
+   */
+  initialActions?: string | string[];
   /** Whether filters are hidden (disables filter state management) */
   hideFilters?: boolean;
 }
@@ -162,7 +167,13 @@ function getInitialFiltersFromUrl(timezone: string): FilterState {
 export function useActivityLogTable(
   options: UseActivityLogTableOptions
 ): UseActivityLogTableReturn {
-  const { scope, defaultPageSize = 20, defaultResource, hideFilters = false } = options;
+  const {
+    scope,
+    defaultPageSize = 20,
+    defaultResource,
+    initialActions,
+    hideFilters = false,
+  } = options;
 
   // ----------------------------------------
   // Time range handling
@@ -171,9 +182,19 @@ export function useActivityLogTable(
   const timezone = userPreferences?.timezone ?? getBrowserTimezone();
 
   // ----------------------------------------
-  // Filter state - initialize from URL params
+  // Filter state - initialize from URL params, then initialActions
   // ----------------------------------------
-  const [filters, setFilters] = useState<FilterState>(() => getInitialFiltersFromUrl(timezone));
+  const [filters, setFilters] = useState<FilterState>(() => {
+    const urlFilters = getInitialFiltersFromUrl(timezone);
+
+    // If no URL params, use initialActions
+    if (!urlFilters.actions && initialActions) {
+      const actionsArray = Array.isArray(initialActions) ? initialActions : [initialActions];
+      return { ...urlFilters, actions: actionsArray };
+    }
+
+    return urlFilters;
+  });
 
   // Normalize defaultResource to array
   const effectiveResources = useMemo(() => {

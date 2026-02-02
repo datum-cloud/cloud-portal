@@ -2,12 +2,12 @@ node_modules
 
 /.cache
 /build
-.env
 .DS_Store
 .react-router/
 
 .cursor/
 .windsurf/
+.claude/
 
 cypress/screenshots
 cypress/videos
@@ -18,3 +18,9 @@ docs/plans/
 
 # OpenAPI generation temp files
 temp-openapi-spec.json
+
+# GraphQL generation temp files
+temp-filtered-schema.graphql
+
+
+config.bat

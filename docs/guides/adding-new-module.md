@@ -97,17 +97,17 @@ export interface WidgetListFilters {
 
 ```tsx
 // app/features/widgets/components/widget-card.tsx
-import { Card, CardHeader, CardContent, CardFooter } from '@shadcn/ui/card';
+import type { WidgetCardProps } from '../types';
 import { Badge } from '@datum-ui/components';
 import { Button } from '@shadcn/ui/button';
-import { MoreHorizontal, Edit, Trash } from 'lucide-react';
+import { Card, CardHeader, CardContent, CardFooter } from '@shadcn/ui/card';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@shadcn/ui/dropdown-menu';
-import type { WidgetCardProps } from '../types';
+import { MoreHorizontal, Edit, Trash } from 'lucide-react';
 
 const statusVariants = {
   active: 'success',
@@ -122,7 +122,7 @@ export function WidgetCard({ widget, onEdit, onDelete }: WidgetCardProps) {
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <h3 className="font-semibold">{widget.displayName}</h3>
-          <p className="text-sm text-muted-foreground">{widget.name}</p>
+          <p className="text-muted-foreground text-sm">{widget.name}</p>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -132,11 +132,11 @@ export function WidgetCard({ widget, onEdit, onDelete }: WidgetCardProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onEdit}>
-              <Edit className="h-4 w-4 mr-2" />
+              <Edit className="mr-2 h-4 w-4" />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onDelete} className="text-destructive">
-              <Trash className="h-4 w-4 mr-2" />
+              <Trash className="mr-2 h-4 w-4" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -148,12 +148,8 @@ export function WidgetCard({ widget, onEdit, onDelete }: WidgetCardProps) {
       </CardContent>
 
       <CardFooter className="flex justify-between">
-        <Badge variant={statusVariants[widget.status]}>
-          {widget.status}
-        </Badge>
-        <span className="text-xs text-muted-foreground">
-          {widget.type}
-        </span>
+        <Badge variant={statusVariants[widget.status]}>{widget.status}</Badge>
+        <span className="text-muted-foreground text-xs">{widget.type}</span>
       </CardFooter>
     </Card>
   );
@@ -164,12 +160,13 @@ export function WidgetCard({ widget, onEdit, onDelete }: WidgetCardProps) {
 
 ```tsx
 // app/features/widgets/components/widget-form.tsx
+import type { WidgetFormValues } from '../types';
 import { Form } from '@datum-ui/components/new-form';
 import { z } from 'zod';
-import type { WidgetFormValues } from '../types';
 
 const schema = z.object({
-  name: z.string()
+  name: z
+    .string()
     .min(1, 'Name is required')
     .regex(/^[a-z0-9-]+$/, 'Lowercase letters, numbers, and hyphens only'),
   displayName: z.string().min(1, 'Display name is required'),
@@ -184,17 +181,9 @@ interface WidgetFormProps {
   isEditing?: boolean;
 }
 
-export function WidgetForm({
-  defaultValues,
-  onSubmit,
-  isEditing = false,
-}: WidgetFormProps) {
+export function WidgetForm({ defaultValues, onSubmit, isEditing = false }: WidgetFormProps) {
   return (
-    <Form.Root
-      schema={schema}
-      defaultValues={defaultValues}
-      onSubmit={onSubmit}
-    >
+    <Form.Root schema={schema} defaultValues={defaultValues} onSubmit={onSubmit}>
       <div className="space-y-4">
         <Form.Field name="name" label="Name" required disabled={isEditing}>
           <Form.Input placeholder="my-widget" />
@@ -233,10 +222,10 @@ export function WidgetForm({
 
 ```tsx
 // app/features/widgets/components/widget-list.tsx
+import type { WidgetModel } from '@/resources/widgets';
+import { Badge } from '@datum-ui/components';
 import { DataTable } from '@datum-ui/components/data-table';
 import { DataTableFilter } from '@datum-ui/components/data-table/features/filter';
-import { Badge } from '@datum-ui/components';
-import type { WidgetModel } from '@/resources/widgets';
 import type { ColumnDef } from '@tanstack/react-table';
 
 const columns: ColumnDef<WidgetModel>[] = [
@@ -246,7 +235,7 @@ const columns: ColumnDef<WidgetModel>[] = [
     cell: ({ row }) => (
       <div>
         <p className="font-medium">{row.original.displayName}</p>
-        <p className="text-xs text-muted-foreground">{row.original.name}</p>
+        <p className="text-muted-foreground text-xs">{row.original.name}</p>
       </div>
     ),
   },
@@ -282,10 +271,7 @@ export function WidgetList({ widgets }: WidgetListProps) {
       tableTitle="Widgets"
       filterComponent={
         <DataTableFilter>
-          <DataTableFilter.Search
-            filterKey="displayName"
-            placeholder="Search widgets..."
-          />
+          <DataTableFilter.Search filterKey="displayName" placeholder="Search widgets..." />
           <DataTableFilter.Select
             filterKey="type"
             placeholder="Type"
@@ -326,10 +312,10 @@ export { WidgetList } from './widget-list';
 
 ```typescript
 // app/features/widgets/hooks/use-widget-actions.ts
+import type { WidgetFormValues } from '../types';
+import { createWidgetService, widgetQueries } from '@/resources/widgets';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { createWidgetService, widgetQueries } from '@/resources/widgets';
-import type { WidgetFormValues } from '../types';
 
 interface UseWidgetActionsParams {
   orgId: string;
@@ -422,9 +408,7 @@ export function formatWidgetType(type: WidgetModel['type']) {
 }
 
 export function sortWidgetsByCreated(widgets: WidgetModel[]) {
-  return [...widgets].sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-  );
+  return [...widgets].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 ```
 

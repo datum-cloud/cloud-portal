@@ -283,6 +283,7 @@ export default function ProjectHomePage() {
                 defaultPageSize={5}
                 hidePagination
                 hideFilters
+                initialActions={['Added', 'Modified', 'Deleted']}
               />
             </CardContent>
           </Card>

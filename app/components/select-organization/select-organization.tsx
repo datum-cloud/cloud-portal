@@ -1,6 +1,5 @@
 import { OrganizationItem } from './organization-item';
-import type { Organization } from '@/resources/organizations';
-import { useOrganizations } from '@/resources/organizations/organization.queries';
+import { useOrganizationsGql, type Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { Button, SpinnerIcon } from '@datum-ui/components';
 import { toast } from '@datum-ui/components';
@@ -39,7 +38,7 @@ export const SelectOrganization = ({
 }) => {
   const [open, setOpen] = useState(false);
 
-  const { data, isLoading, error } = useOrganizations(undefined, {
+  const { data, isLoading, error } = useOrganizationsGql(undefined, {
     enabled: open,
   });
   const organizations = data?.items ?? [];

@@ -1,14 +1,53 @@
-import type { AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
-
-export interface CurlOptions {
-  prettyPrint?: boolean;
+/**
+ * Generic request config for curl generation.
+ * Compatible with AxiosRequestConfig and simple fetch-style configs.
+ */
+export interface CurlRequestConfig {
+  url?: string;
+  baseURL?: string;
+  method?: string;
+  headers?: Record<string, string | number | boolean | null | undefined>;
+  data?: unknown;
+  params?: Record<string, unknown>;
 }
 
-export function generateCurl(
-  config: AxiosRequestConfig | InternalAxiosRequestConfig,
-  options: CurlOptions = {}
-): string {
-  const { prettyPrint = true } = options;
+export interface CurlOptions {
+  /**
+   * Pretty print JSON body with indentation
+   * @default true
+   */
+  prettyPrint?: boolean;
+  /**
+   * Headers to redact (show as [REDACTED])
+   * @example ['Authorization']
+   */
+  redactHeaders?: string[];
+  /**
+   * Custom redaction pattern for header values
+   * @default '[REDACTED]'
+   */
+  redactPattern?: string;
+}
+
+/**
+ * Generates a curl command from a request config.
+ * Works with both Axios configs and simple fetch-style objects.
+ *
+ * @example
+ * // Axios-style
+ * generateCurl({ baseURL: 'https://api.example.com', url: '/users', method: 'GET' })
+ *
+ * @example
+ * // Simple fetch-style (for gqlts)
+ * generateCurl({
+ *   url: 'https://api.example.com/graphql',
+ *   method: 'POST',
+ *   headers: { Authorization: 'Bearer token' },
+ *   data: { query: '{ users { id } }' }
+ * }, { redactHeaders: ['Authorization'] })
+ */
+export function generateCurl(config: CurlRequestConfig, options: CurlOptions = {}): string {
+  const { prettyPrint = true, redactHeaders = [], redactPattern = '[REDACTED]' } = options;
 
   const parts: string[] = ['curl'];
 
@@ -23,8 +62,12 @@ export function generateCurl(
   const headers = config.headers ?? {};
   for (const [key, value] of Object.entries(headers)) {
     if (value === undefined || value === null) continue;
+
     const escapedKey = String(key).replace(/'/g, "'\\''");
-    const escapedValue = String(value).replace(/'/g, "'\\''");
+    const shouldRedact = redactHeaders.some((h) => h.toLowerCase() === key.toLowerCase());
+    const displayValue = shouldRedact ? redactPattern : String(value);
+    const escapedValue = displayValue.replace(/'/g, "'\\''");
+
     parts.push(`-H '${escapedKey}: ${escapedValue}'`);
   }
 
@@ -49,7 +92,7 @@ export function generateCurl(
   return parts.join(' \\\n  ');
 }
 
-function buildUrl(config: AxiosRequestConfig | InternalAxiosRequestConfig): string {
+function buildUrl(config: CurlRequestConfig): string {
   let url = config.url ?? '';
 
   if (config.baseURL && !url.startsWith('http')) {

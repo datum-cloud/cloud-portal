@@ -10,7 +10,13 @@
     "cypress/**/*.ts",
     "cypress/**/*.tsx"
   ],
-  "exclude": ["remix.init/**/*", "node_modules/**/*", "server.ts", "otel.ts"],
+  "exclude": [
+    "remix.init/**/*",
+    "node_modules/**/*",
+    "server.ts",
+    "otel.ts",
+    "app/modules/gqlts/generated/**/*"
+  ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["@react-router/node", "vite/client", "cypress", "@testing-library/cypress"],

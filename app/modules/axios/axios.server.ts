@@ -145,3 +145,6 @@ const onResponseError = (error: AxiosError): Promise<never> => {
 
 http.interceptors.request.use(onRequest, onRequestError);
 http.interceptors.response.use(onResponse, onResponseError);
+
+// Register on globalThis for gqlts module to access
+(globalThis as any).__axios_server_http__ = http;

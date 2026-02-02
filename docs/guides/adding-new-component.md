@@ -35,12 +35,12 @@ This guide covers creating components at different layers of the architecture.
 
 ## Decision: Where Does My Component Go?
 
-| Question | Yes → Location |
-|----------|----------------|
-| Is it a basic primitive (button, input, card)? | shadcn/ui |
-| Will it be used across ALL Datum portals? | datum-ui |
-| Is it used in 3+ features in this app? | app/components |
-| Is it only used in ONE feature? | features/{name}/components |
+| Question                                       | Yes → Location             |
+| ---------------------------------------------- | -------------------------- |
+| Is it a basic primitive (button, input, card)? | shadcn/ui                  |
+| Will it be used across ALL Datum portals?      | datum-ui                   |
+| Is it used in 3+ features in this app?         | app/components             |
+| Is it only used in ONE feature?                | features/{name}/components |
 
 ---
 
@@ -118,20 +118,11 @@ const sizes = {
   lg: 'h-4 w-4',
 };
 
-export function StatusIndicator({
-  status,
-  label,
-  size = 'md',
-  className,
-}: StatusIndicatorProps) {
+export function StatusIndicator({ status, label, size = 'md', className }: StatusIndicatorProps) {
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <span
-        className={cn(
-          'rounded-full',
-          statusColors[status],
-          sizes[size]
-        )}
+        className={cn('rounded-full', statusColors[status], sizes[size])}
         aria-label={`Status: ${status}`}
       />
       {label && <span className="text-sm">{label}</span>}
@@ -161,7 +152,7 @@ export * from './status-indicator';
 ```tsx
 import { StatusIndicator } from '@datum-ui/components';
 
-<StatusIndicator status="online" label="Connected" />
+<StatusIndicator status="online" label="Connected" />;
 ```
 
 ---
@@ -211,9 +202,7 @@ export function PageHeader({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          {description && (
-            <p className="text-muted-foreground">{description}</p>
-          )}
+          {description && <p className="text-muted-foreground">{description}</p>}
         </div>
 
         {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -240,7 +229,7 @@ import { PageHeader } from '@/components/page-header';
   title="DNS Zones"
   description="Manage your DNS zones"
   actions={<Button>Create Zone</Button>}
-/>
+/>;
 ```
 
 ---
@@ -287,18 +276,9 @@ interface ZoneRecordEditorProps {
   onCancel: () => void;
 }
 
-export function ZoneRecordEditor({
-  zoneId,
-  record,
-  onSave,
-  onCancel,
-}: ZoneRecordEditorProps) {
+export function ZoneRecordEditor({ zoneId, record, onSave, onCancel }: ZoneRecordEditorProps) {
   return (
-    <Form.Root
-      schema={recordSchema}
-      defaultValues={record}
-      onSubmit={onSave}
-    >
+    <Form.Root schema={recordSchema} defaultValues={record} onSubmit={onSave}>
       <Form.Field name="name" label="Record Name" required>
         <Form.Input placeholder="www" />
       </Form.Field>
@@ -321,7 +301,7 @@ export function ZoneRecordEditor({
         <Form.Input type="number" placeholder="3600" />
       </Form.Field>
 
-      <div className="flex gap-2 justify-end">
+      <div className="flex justify-end gap-2">
         <Form.Button onClick={onCancel} type="secondary">
           Cancel
         </Form.Button>
@@ -345,11 +325,7 @@ export { ZoneRecordEditor } from './zone-record-editor';
 // In feature routes
 import { ZoneRecordEditor } from '../components';
 
-<ZoneRecordEditor
-  zoneId={zoneId}
-  onSave={handleSave}
-  onCancel={handleCancel}
-/>
+<ZoneRecordEditor zoneId={zoneId} onSave={handleSave} onCancel={handleCancel} />;
 ```
 
 ---
@@ -381,7 +357,7 @@ export interface MyComponentProps {
 ```tsx
 export function MyComponent({
   title,
-  size = 'md',  // Default in destructuring
+  size = 'md', // Default in destructuring
   onClick,
   children,
   className,

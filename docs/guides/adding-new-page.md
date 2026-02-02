@@ -36,12 +36,12 @@ app/routes/
 
 ### Route File Naming
 
-| Pattern | Route | Example |
-|---------|-------|---------|
-| `index.tsx` | Index route | `/organizations` |
-| `$param.tsx` | Dynamic param | `/organizations/:orgId` |
-| `_layout.tsx` | Layout (no URL) | Wraps children |
-| `resource.tsx` | Static segment | `/resource` |
+| Pattern        | Route           | Example                 |
+| -------------- | --------------- | ----------------------- |
+| `index.tsx`    | Index route     | `/organizations`        |
+| `$param.tsx`   | Dynamic param   | `/organizations/:orgId` |
+| `_layout.tsx`  | Layout (no URL) | Wraps children          |
+| `resource.tsx` | Static segment  | `/resource`             |
 
 ---
 
@@ -92,8 +92,8 @@ export default function WidgetsPage() {
 ### Using React Query
 
 ```tsx
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { widgetQueries } from '@/features/widgets/queries';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const { orgId, projectId } = params;
@@ -109,9 +109,7 @@ export default function WidgetsPage() {
   const { orgId, projectId } = useLoaderData<typeof loader>();
 
   // Use suspense query (data required)
-  const { data: widgets } = useSuspenseQuery(
-    widgetQueries.list({ orgId, projectId })
-  );
+  const { data: widgets } = useSuspenseQuery(widgetQueries.list({ orgId, projectId }));
 
   return (
     <div>
@@ -133,9 +131,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const { orgId, projectId } = params;
 
   // Prefetch data for faster hydration
-  await queryClient.prefetchQuery(
-    widgetQueries.list({ orgId, projectId })
-  );
+  await queryClient.prefetchQuery(widgetQueries.list({ orgId, projectId }));
 
   return { orgId, projectId };
 }
@@ -162,7 +158,7 @@ export default function WidgetsPage() {
         description="Manage your project widgets"
         actions={
           <Button>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="mr-2 h-4 w-4" />
             Create Widget
           </Button>
         }
@@ -292,16 +288,16 @@ export const projectNavigation = [
 
 ```tsx
 // app/routes/_auth/organizations/$orgId/projects/$projectId/widgets/index.tsx
-import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
-import { useLoaderData, Link } from 'react-router';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { PageHeader } from '@/components/page-header';
+import { columns } from './columns';
 import { EmptyState } from '@/components/empty-state';
+import { PageHeader } from '@/components/page-header';
+import { widgetQueries } from '@/features/widgets/queries';
 import { DataTable } from '@datum-ui/components/data-table';
 import { Button } from '@shadcn/ui/button';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { Plus, Widget } from 'lucide-react';
-import { widgetQueries } from '@/features/widgets/queries';
-import { columns } from './columns';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { useLoaderData, Link } from 'react-router';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Widgets | Datum Cloud' }];
@@ -315,9 +311,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 export default function WidgetsPage() {
   const { orgId, projectId } = useLoaderData<typeof loader>();
 
-  const { data: widgets } = useSuspenseQuery(
-    widgetQueries.list({ orgId, projectId })
-  );
+  const { data: widgets } = useSuspenseQuery(widgetQueries.list({ orgId, projectId }));
 
   if (widgets.length === 0) {
     return (
@@ -328,7 +322,7 @@ export default function WidgetsPage() {
         action={
           <Button asChild>
             <Link to="new">
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Create Widget
             </Link>
           </Button>
@@ -345,18 +339,14 @@ export default function WidgetsPage() {
         actions={
           <Button asChild>
             <Link to="new">
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Create Widget
             </Link>
           </Button>
         }
       />
 
-      <DataTable
-        columns={columns}
-        data={widgets}
-        tableTitle="Widgets"
-      />
+      <DataTable columns={columns} data={widgets} tableTitle="Widgets" />
     </div>
   );
 }

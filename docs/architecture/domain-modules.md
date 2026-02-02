@@ -25,8 +25,10 @@ Every resource module follows this structure:
 app/resources/{resource-name}/
 ├── {resource}.schema.ts      # Zod schemas + TypeScript types
 ├── {resource}.adapter.ts     # API response → Domain model
-├── {resource}.service.ts     # Business logic, API calls
-├── {resource}.queries.ts     # React Query hooks
+├── {resource}.service.ts     # Business logic, API calls (REST)
+├── {resource}.queries.ts     # React Query hooks (REST)
+├── {resource}.gql-service.ts # GraphQL service (optional)
+├── {resource}.gql-queries.ts # React Query hooks for GraphQL (optional)
 ├── {resource}.watch.ts       # K8s Watch hook (optional)
 └── index.ts                  # Public exports
 ```
@@ -37,8 +39,10 @@ app/resources/{resource-name}/
 app/resources/organizations/
 ├── organization.schema.ts
 ├── organization.adapter.ts
-├── organization.service.ts
-├── organization.queries.ts
+├── organization.service.ts      # REST service
+├── organization.queries.ts      # REST hooks
+├── organization.gql-service.ts  # GraphQL service
+├── organization.gql-queries.ts  # GraphQL hooks
 └── index.ts
 ```
 
@@ -81,6 +85,7 @@ export type UpdateOrganization = z.infer<typeof UpdateOrganizationSchema>;
 ```
 
 **Key points:**
+
 - Zod schema IS the type definition (no duplication)
 - Use `.pick()`, `.omit()`, `.partial()` to derive schemas
 - Export both schema and inferred type
@@ -91,8 +96,8 @@ Transforms API responses to domain models:
 
 ```typescript
 // organization.adapter.ts
-import type { OrganizationApiResponse } from '@/modules/control-plane/iam';
 import type { Organization } from './organization.schema';
+import type { OrganizationApiResponse } from '@/modules/control-plane/iam';
 
 /**
  * Transform API response to domain model
@@ -118,6 +123,7 @@ export function toOrganizations(responses: OrganizationApiResponse[]): Organizat
 ```
 
 **Key points:**
+
 - Isolates API structure from domain model
 - Handles null/undefined with defaults
 - One function per transformation direction
@@ -128,6 +134,8 @@ Contains business logic and API calls:
 
 ```typescript
 // organization.service.ts
+import { toOrganization, toOrganizations } from './organization.adapter';
+import type { CreateOrganization, Organization, UpdateOrganization } from './organization.schema';
 import {
   listOrganizations,
   getOrganization,
@@ -135,8 +143,6 @@ import {
   updateOrganization,
   deleteOrganization,
 } from '@/modules/control-plane/iam';
-import { toOrganization, toOrganizations } from './organization.adapter';
-import type { CreateOrganization, Organization, UpdateOrganization } from './organization.schema';
 
 export async function list(): Promise<Organization[]> {
   const response = await listOrganizations();
@@ -176,6 +182,7 @@ export async function remove(id: string): Promise<void> {
 ```
 
 **Key points:**
+
 - Uses generated API clients
 - Calls adapters to transform responses
 - Handles errors appropriately
@@ -187,9 +194,9 @@ React Query hooks for data fetching:
 
 ```typescript
 // organization.queries.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import * as service from './organization.service';
 import type { CreateOrganization, Organization, UpdateOrganization } from './organization.schema';
+import * as service from './organization.service';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Query keys factory
 export const organizationKeys = {
@@ -270,6 +277,7 @@ export function useDeleteOrganization() {
 ```
 
 **Key points:**
+
 - Query keys factory for consistency
 - Support for SSR initial data
 - Optimistic updates for better UX
@@ -281,11 +289,11 @@ Real-time updates via K8s Watch API:
 
 ```typescript
 // organization.watch.ts
-import { useWatch } from '@/modules/watch';
-import { useQueryClient } from '@tanstack/react-query';
 import { toOrganization } from './organization.adapter';
 import { organizationKeys } from './organization.queries';
 import type { Organization } from './organization.schema';
+import { useWatch } from '@/modules/watch';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function useOrganizationsWatch() {
   const queryClient = useQueryClient();
@@ -296,21 +304,18 @@ export function useOrganizationsWatch() {
     onEvent: (event) => {
       const organization = toOrganization(event.object);
 
-      queryClient.setQueryData<Organization[]>(
-        organizationKeys.list(),
-        (old = []) => {
-          switch (event.type) {
-            case 'ADDED':
-              return [...old, organization];
-            case 'MODIFIED':
-              return old.map((o) => (o.id === organization.id ? organization : o));
-            case 'DELETED':
-              return old.filter((o) => o.id !== organization.id);
-            default:
-              return old;
-          }
+      queryClient.setQueryData<Organization[]>(organizationKeys.list(), (old = []) => {
+        switch (event.type) {
+          case 'ADDED':
+            return [...old, organization];
+          case 'MODIFIED':
+            return old.map((o) => (o.id === organization.id ? organization : o));
+          case 'DELETED':
+            return old.filter((o) => o.id !== organization.id);
+          default:
+            return old;
         }
-      );
+      });
     },
   });
 }
@@ -325,7 +330,11 @@ Public exports for the module:
 
 // Types
 export type { Organization, CreateOrganization, UpdateOrganization } from './organization.schema';
-export { OrganizationSchema, CreateOrganizationSchema, UpdateOrganizationSchema } from './organization.schema';
+export {
+  OrganizationSchema,
+  CreateOrganizationSchema,
+  UpdateOrganizationSchema,
+} from './organization.schema';
 
 // Adapter
 export { toOrganization, toOrganizations } from './organization.adapter';
@@ -351,21 +360,21 @@ export { useOrganizationsWatch } from './organization.watch';
 
 ## Existing Resource Modules
 
-| Resource | Location | Has Watch |
-|----------|----------|-----------|
-| Organizations | `resources/organizations/` | No |
-| Projects | `resources/projects/` | No |
-| Members | `resources/members/` | No |
-| Groups | `resources/groups/` | No |
-| Roles | `resources/roles/` | No |
-| Invitations | `resources/invitations/` | No |
-| DNS Zones | `resources/dns-zones/` | Yes |
-| DNS Records | `resources/dns-records/` | Yes |
-| Domains | `resources/domains/` | Yes |
-| Secrets | `resources/secrets/` | Yes |
-| HTTP Proxies | `resources/http-proxies/` | Yes |
-| Policy Bindings | `resources/policy-bindings/` | No |
-| Export Policies | `resources/export-policies/` | No |
+| Resource        | Location                     | Has Watch |
+| --------------- | ---------------------------- | --------- |
+| Organizations   | `resources/organizations/`   | No        |
+| Projects        | `resources/projects/`        | No        |
+| Members         | `resources/members/`         | No        |
+| Groups          | `resources/groups/`          | No        |
+| Roles           | `resources/roles/`           | No        |
+| Invitations     | `resources/invitations/`     | No        |
+| DNS Zones       | `resources/dns-zones/`       | Yes       |
+| DNS Records     | `resources/dns-records/`     | Yes       |
+| Domains         | `resources/domains/`         | Yes       |
+| Secrets         | `resources/secrets/`         | Yes       |
+| HTTP Proxies    | `resources/http-proxies/`    | Yes       |
+| Policy Bindings | `resources/policy-bindings/` | No        |
+| Export Policies | `resources/export-policies/` | No        |
 
 ---
 
