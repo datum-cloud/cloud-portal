@@ -1,4 +1,5 @@
 import { DashboardLayout } from '@/layouts/dashboard.layout';
+import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
 import { ControlPlaneStatus } from '@/resources/base';
 import { createOrganizationService, type Organization } from '@/resources/organizations';
@@ -177,12 +178,14 @@ export default function ProjectLayout() {
   useEffect(() => {
     if (org) {
       setOrganization(org);
+      setSentryOrgContext(org);
     }
   }, [org]);
 
   useEffect(() => {
     if (project) {
       setProject(project);
+      setSentryProjectContext(project);
     }
   }, [project]);
 

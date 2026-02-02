@@ -2,6 +2,11 @@ import { getRequestContext } from './request-context';
 import { logger } from '@/modules/logger';
 import { generateCurl } from '@/modules/logger/curl.generator';
 import { LOGGER_CONFIG } from '@/modules/logger/logger.config';
+import {
+  isKubernetesResource,
+  setSentryResourceContext,
+  clearSentryResourceContext,
+} from '@/modules/sentry';
 import { env } from '@/utils/env/env.server';
 import {
   AppError,
@@ -24,6 +29,9 @@ export const http = Axios.create({
 });
 
 const onRequest = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+  // Clear previous resource context to avoid stale data
+  clearSentryResourceContext();
+
   const ctx = getRequestContext();
 
   // Auto-inject Authorization header from context
@@ -81,6 +89,11 @@ const onResponse = (response: AxiosResponse): AxiosResponse => {
       duration,
       curl: config?.curlCommand,
     });
+  }
+
+  // Set resource context if response is a K8s resource
+  if (isKubernetesResource(response.data)) {
+    setSentryResourceContext(response.data);
   }
 
   return response;

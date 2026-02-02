@@ -1,5 +1,12 @@
 import { FormProvider } from '../context/form-context';
 import type { FormRootProps, FormRootRenderProps } from '../types';
+import {
+  trackFormError,
+  trackFormSubmit,
+  trackFormSuccess,
+  trackFormValidationError,
+  captureError,
+} from '@/modules/sentry';
 import { FormProvider as ConformFormProvider, useForm, getFormProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { cn } from '@shadcn/lib/utils';
@@ -58,6 +65,7 @@ export function FormRoot<T extends z.ZodType>({
   action,
   method = 'POST',
   id,
+  name,
   defaultValues,
   mode = 'onBlur',
   isSubmitting: externalIsSubmitting,
@@ -83,6 +91,11 @@ export function FormRoot<T extends z.ZodType>({
       return parseWithZod(formData, { schema }) as any;
     },
     async onSubmit(event, { submission }) {
+      const formName = name || id || 'unnamed-form';
+
+      // Track form submission attempt
+      trackFormSubmit({ formName, formId: id });
+
       // If no onSubmit handler is provided, let React Router handle the submission
       // This allows the form to submit to the current route's action or a specified action
       if (!onSubmit) {
@@ -99,24 +112,39 @@ export function FormRoot<T extends z.ZodType>({
         try {
           await onSubmit(submission.value as z.infer<T>);
           onSuccess?.(submission.value as z.infer<T>);
+          trackFormSuccess({ formName, formId: id });
         } catch (error) {
+          trackFormError({ formName, formId: id, error: error as Error });
+          captureError(error as Error, {
+            message: `Form submission error: ${formName}`,
+            tags: { 'form.name': formName, 'form.id': id || 'unknown' },
+          });
           console.error('Form submission error:', error);
         } finally {
           setInternalIsSubmitting(false);
         }
-      } else if (submission?.status === 'error' && onError) {
-        // Handle validation errors
-        const { ZodError } = await import('zod');
-        const zodError = new ZodError(
-          Object.entries(submission.error ?? {}).flatMap(([path, messages]) =>
-            (messages ?? []).map((message) => ({
-              code: 'custom' as const,
-              path: path.split('.'),
-              message,
-            }))
-          )
-        );
-        onError(zodError as z.ZodError<z.infer<T>>);
+      } else if (submission?.status === 'error') {
+        // Track validation errors
+        trackFormValidationError({
+          formName,
+          formId: id,
+          fieldErrors: (submission.error as Record<string, string[]>) ?? {},
+        });
+
+        if (onError) {
+          // Handle validation errors
+          const { ZodError } = await import('zod');
+          const zodError = new ZodError(
+            Object.entries(submission.error ?? {}).flatMap(([path, messages]) =>
+              (messages ?? []).map((message) => ({
+                code: 'custom' as const,
+                path: path.split('.'),
+                message,
+              }))
+            )
+          );
+          onError(zodError as z.ZodError<z.infer<T>>);
+        }
       }
     },
   });

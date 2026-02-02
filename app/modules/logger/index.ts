@@ -5,9 +5,9 @@ export { generateCurl } from './integrations/curl';
 export {
   setSentryUser,
   clearSentryUser,
-  setSentryTag,
-  setSentryContext,
-} from './integrations/sentry';
+  setTag as setSentryTag,
+  setContext as setSentryContext,
+} from '@/modules/sentry';
 export type {
   LogLevel,
   LogContext,

@@ -3,7 +3,6 @@ import { sessionMiddleware } from './middleware/auth';
 import { errorHandler } from './middleware/error-handler';
 import { loggerMiddleware } from './middleware/logger';
 import { requestContextMiddleware } from './middleware/request-context';
-import { sentryTracingMiddleware } from './middleware/sentry-tracing';
 import { createApiApp } from './routes/api';
 import type { Variables } from './types';
 // Configure all @hey-api generated clients to use server axios instance
@@ -12,6 +11,7 @@ import type { Variables } from './types';
 import '@/modules/control-plane/setup.server';
 import { Logger } from '@/modules/logger';
 import { checkRedisHealth } from '@/modules/redis';
+import { sentryTracingMiddleware } from '@/modules/sentry';
 import { env } from '@/utils/env/env.server';
 import { prometheus } from '@hono/prometheus';
 import { Hono } from 'hono';

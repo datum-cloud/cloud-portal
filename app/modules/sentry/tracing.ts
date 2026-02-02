@@ -1,7 +1,16 @@
+/**
+ * Sentry Tracing
+ *
+ * HTTP request tracing middleware for Hono.
+ */
 import type { Variables } from '@/server/types';
 import * as Sentry from '@sentry/react-router';
 import { createMiddleware } from 'hono/factory';
 
+/**
+ * Creates Sentry tracing middleware for Hono.
+ * Wraps each request in a span with HTTP method, URL, and status code.
+ */
 export function sentryTracingMiddleware() {
   return createMiddleware<{ Variables: Variables }>(async (c, next) => {
     const method = c.req.method;

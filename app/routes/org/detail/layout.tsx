@@ -1,5 +1,6 @@
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { RbacProvider } from '@/modules/rbac';
+import { setSentryOrgContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
 import { createOrganizationService, type Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
@@ -92,6 +93,7 @@ export default function OrgLayout() {
   useEffect(() => {
     if (initialOrg) {
       setOrganization(initialOrg);
+      setSentryOrgContext(initialOrg);
     }
   }, [initialOrg, setOrganization]);
 

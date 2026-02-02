@@ -1,9 +1,28 @@
 import { logger } from '@/modules/logger';
 import {
+  // Context
   setSentryUser,
   clearSentryUser,
-  setLoggerContext,
-} from '@/modules/logger/integrations/sentry';
+  setSentryOrgContext,
+  clearSentryOrgContext,
+  setSentryProjectContext,
+  clearSentryProjectContext,
+  setSentryResourceContext,
+  clearSentryResourceContext,
+  // Breadcrumbs
+  trackFormSubmit,
+  trackFormSuccess,
+  trackFormValidationError,
+  trackFormError,
+  trackApiCall,
+  trackApiError,
+  // Capture
+  addBreadcrumb,
+  captureError,
+  captureMessage,
+  setTag,
+  setContext,
+} from '@/modules/sentry';
 import * as Sentry from '@sentry/react-router';
 import { useState } from 'react';
 import { Form, type LoaderFunctionArgs, type ActionFunctionArgs } from 'react-router';
@@ -15,7 +34,6 @@ const ENABLE_ACTION_ERROR = false;
 export async function loader({ context }: LoaderFunctionArgs) {
   const reqLogger = context.logger;
 
-  // Test logger with context
   reqLogger.info('Sentry test page loaded', {
     feature: 'sentry-test',
     timestamp: new Date().toISOString(),
@@ -23,7 +41,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
 
   if (ENABLE_LOADER_ERROR) {
     reqLogger.error('Test loader error about to be thrown');
-    throw new Error('🔥 Test server error from loader - Check Sentry for OTEL correlation!');
+    throw new Error('Test server error from loader - Check Sentry for OTEL correlation!');
   }
 
   return {
@@ -37,10 +55,9 @@ export async function action({ context }: ActionFunctionArgs) {
 
   if (ENABLE_ACTION_ERROR) {
     reqLogger.error('Test action error about to be thrown');
-    throw new Error('🔥 Test server error from action - Check Sentry for OTEL correlation!');
+    throw new Error('Test server error from action - Check Sentry for OTEL correlation!');
   }
 
-  // Test successful action with logger
   reqLogger.info('Test action executed successfully', {
     feature: 'sentry-test',
     action: 'form-submit',
@@ -50,538 +67,507 @@ export async function action({ context }: ActionFunctionArgs) {
 }
 
 export default function TestSentryPage() {
-  const [clientError, setClientError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const showMessage = (type: 'success' | 'error', text: string) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage(null), 5000);
+  };
+
+  // ============================================================================
+  // Context Tests
+  // ============================================================================
+
+  const testUserContext = () => {
+    setSentryUser({
+      id: 'test-user-123',
+      email: 'test@example.com',
+      username: 'testuser',
+      name: 'Test User',
+    });
+    showMessage('success', 'User context set (user.id tag + user context)');
+  };
+
+  const testOrgContext = () => {
+    setSentryOrgContext({
+      name: 'test-org-456',
+      uid: 'org-uid-abc',
+    });
+    showMessage('success', 'Organization context set (org.id tag + organization context)');
+  };
+
+  const testProjectContext = () => {
+    setSentryProjectContext({
+      name: 'test-project-789',
+      uid: 'project-uid-def',
+      namespace: 'test-namespace',
+      organizationId: 'test-org-456',
+    });
+    showMessage('success', 'Project context set (project.id tag + project context)');
+  };
+
+  const testResourceContext = () => {
+    setSentryResourceContext({
+      kind: 'HTTPProxy',
+      apiVersion: 'networking.datumapis.com/v1alpha',
+      metadata: {
+        name: 'my-proxy',
+        namespace: 'default',
+        uid: 'resource-uid-ghi',
+      },
+    });
+    showMessage(
+      'success',
+      'Resource context set (resource.kind, resource.apiGroup, resource.name, resource.namespace tags)'
+    );
+  };
+
+  const testFullHierarchy = () => {
+    setSentryUser({ id: 'user-001', email: 'user@example.com', username: 'testuser' });
+    setSentryOrgContext({ name: 'acme-corp', uid: 'org-001' });
+    setSentryProjectContext({
+      name: 'web-app',
+      uid: 'proj-001',
+      namespace: 'production',
+      organizationId: 'acme-corp',
+    });
+    setSentryResourceContext({
+      kind: 'Deployment',
+      apiVersion: 'apps/v1',
+      metadata: { name: 'frontend', namespace: 'production', uid: 'deploy-001' },
+    });
+    showMessage('success', 'Full hierarchy set: User → Org → Project → Resource');
+  };
+
+  const clearAllContext = () => {
+    clearSentryUser();
+    clearSentryOrgContext();
+    clearSentryProjectContext();
+    clearSentryResourceContext();
+    showMessage('success', 'All context cleared');
+  };
+
+  // ============================================================================
+  // Breadcrumb Tests
+  // ============================================================================
+
+  const testFormBreadcrumbs = () => {
+    trackFormSubmit({ formName: 'test-form', formId: 'form-123' });
+    trackFormSuccess({ formName: 'test-form', formId: 'form-123' });
+    showMessage('success', 'Form submit + success breadcrumbs added');
+  };
+
+  const testFormValidationError = () => {
+    trackFormSubmit({ formName: 'test-form', formId: 'form-123' });
+    trackFormValidationError({
+      formName: 'test-form',
+      formId: 'form-123',
+      fieldErrors: { email: ['Invalid email'], password: ['Too short'] },
+    });
+    showMessage('success', 'Form validation error breadcrumb added (2 fields failed)');
+  };
+
+  const testFormError = () => {
+    trackFormSubmit({ formName: 'test-form', formId: 'form-123' });
+    trackFormError({
+      formName: 'test-form',
+      formId: 'form-123',
+      error: new Error('Network timeout'),
+    });
+    showMessage('success', 'Form error breadcrumb added');
+  };
+
+  const testApiBreadcrumbs = () => {
+    trackApiCall({ method: 'GET', url: '/api/users', status: 200, duration: 150 });
+    trackApiCall({ method: 'POST', url: '/api/users', status: 201, duration: 300 });
+    trackApiError({
+      method: 'DELETE',
+      url: '/api/users/123',
+      status: 403,
+      duration: 50,
+      error: 'Forbidden',
+    });
+    showMessage('success', 'API breadcrumbs added: 2 success + 1 error');
+  };
+
+  const testCustomBreadcrumb = () => {
+    addBreadcrumb('info', 'User navigated to settings', 'navigation', { from: '/home' });
+    addBreadcrumb('warn', 'Feature flag disabled', 'feature', { flag: 'new-ui' });
+    showMessage('success', 'Custom breadcrumbs added (info + warn levels)');
+  };
+
+  // ============================================================================
+  // Capture Tests
+  // ============================================================================
+
+  const testCaptureError = () => {
+    const error = new Error('Test error for Sentry');
+    captureError(error, {
+      message: 'This is a test error capture',
+      tags: { test_type: 'manual_capture' },
+      extra: { timestamp: new Date().toISOString() },
+    });
+    showMessage('success', 'Error captured to Sentry with tags and extra context');
+  };
+
+  const testCaptureMessage = () => {
+    captureMessage('Test info message from Sentry test page', 'info', {
+      source: 'test-page',
+      timestamp: new Date().toISOString(),
+    });
+    showMessage('success', 'Info message captured to Sentry');
+  };
+
+  const testCustomTagsAndContext = () => {
+    setTag('custom.feature', 'sentry-test');
+    setTag('custom.version', '2.0');
+    setContext('test-metadata', {
+      testRun: Date.now(),
+      browser: navigator.userAgent,
+      screenSize: `${window.innerWidth}x${window.innerHeight}`,
+    });
+    showMessage('success', 'Custom tags and context set');
+  };
+
+  // ============================================================================
+  // Integration Tests
+  // ============================================================================
+
+  const testLoggerIntegration = () => {
+    logger.info('Test info via logger', { source: 'test-page' });
+    logger.warn('Test warning via logger', { level: 'warn' });
+    logger.error('Test error via logger', new Error('Logger error test'));
+    showMessage('success', 'Logger messages sent (info + warn + error with Sentry capture)');
+  };
 
   const triggerClientError = () => {
     try {
-      // Add breadcrumb before error
-      Sentry.addBreadcrumb({
-        message: 'About to trigger client error',
-        category: 'test',
-        level: 'info',
-      });
-
-      // Log before throwing
-      logger.error('Test client error about to be thrown', { source: 'test-page' });
-
-      throw new Error('💥 Test client-side error - Check Sentry for stack trace!');
+      addBreadcrumb('info', 'About to trigger client error', 'test');
+      throw new Error('Test client-side error - Check Sentry for full context!');
     } catch (error) {
-      setClientError(error instanceof Error ? error.message : String(error));
       Sentry.captureException(error);
+      showMessage('error', error instanceof Error ? error.message : String(error));
     }
   };
 
   const triggerApiError = async () => {
     try {
-      setSuccessMessage(null);
-      setClientError(null);
-
-      // Add breadcrumb
-      Sentry.addBreadcrumb({
-        message: 'Making API call to non-existent endpoint',
-        category: 'api',
-        level: 'info',
-      });
-
+      trackApiCall({ method: 'GET', url: '/api/nonexistent', status: 0, duration: 0 });
       const response = await fetch('/api/nonexistent-endpoint');
       if (!response.ok) {
-        throw new Error(
-          `🌐 API Error: ${response.status} ${response.statusText} - Check Sentry for request data!`
-        );
+        trackApiError({
+          method: 'GET',
+          url: '/api/nonexistent-endpoint',
+          status: response.status,
+          error: response.statusText,
+        });
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
-      Sentry.captureException(error, {
-        tags: { test_type: 'api_error' },
-        contexts: {
-          api: {
-            endpoint: '/api/nonexistent-endpoint',
-            method: 'GET',
-          },
-        },
-      });
-      setClientError(error instanceof Error ? error.message : String(error));
+      captureError(error as Error, { tags: { test_type: 'api_error' } });
+      showMessage('error', error instanceof Error ? error.message : String(error));
     }
   };
 
-  const triggerLoggerError = () => {
-    // Test logger with Sentry integration
-    logger.error('Test error via logger module', {
-      test_type: 'logger_integration',
-      error_code: 'TEST_ERROR',
-      timestamp: new Date().toISOString(),
+  const testResourceTags = () => {
+    // Set resource context (this sets the tags)
+    setSentryResourceContext({
+      kind: 'HTTPProxy',
+      apiVersion: 'networking.datumapis.com/v1alpha',
+      metadata: {
+        name: 'test-proxy',
+        namespace: 'production',
+        uid: 'proxy-uid-123',
+      },
     });
 
-    setSuccessMessage(
-      '✅ Error logged via logger module - Check Sentry for breadcrumb and context!'
+    // Capture an event so tags are sent to Sentry
+    captureMessage('Test resource tags - check Tags section in Sentry', 'info', {
+      test_type: 'resource_tags_test',
+    });
+
+    showMessage(
+      'success',
+      'Event captured with resource tags: resource.kind=HTTPProxy, resource.apiGroup=networking.datumapis.com, resource.name=test-proxy, resource.namespace=production'
     );
   };
 
-  const sendTestMessage = () => {
-    Sentry.captureMessage('📨 Test message from Sentry test page', {
-      level: 'info',
-      tags: { test_type: 'message' },
+  const testFullWorkflow = async () => {
+    // 1. Set full context hierarchy (including resource)
+    setSentryUser({ id: 'workflow-user', email: 'workflow@test.com' });
+    setSentryOrgContext({ name: 'workflow-org' });
+    setSentryProjectContext({ name: 'workflow-project', organizationId: 'workflow-org' });
+    setSentryResourceContext({
+      kind: 'DNSZone',
+      apiVersion: 'dns.networking.miloapis.com/v1alpha1',
+      metadata: { name: 'example-zone', namespace: 'production', uid: 'dns-001' },
     });
 
-    logger.info('Test info message via logger', { test_type: 'logger_message' });
+    // 2. Simulate user journey with breadcrumbs
+    addBreadcrumb('info', 'User started workflow test', 'test');
+    trackApiCall({ method: 'GET', url: '/api/config', status: 200, duration: 100 });
+    trackFormSubmit({ formName: 'workflow-form' });
 
-    setSuccessMessage('✅ Test message sent to Sentry - Check dashboard!');
-  };
+    // 3. Simulate an error
+    trackFormError({ formName: 'workflow-form', error: new Error('Simulated workflow error') });
 
-  const setUserContextTest = () => {
-    // Use logger integration for consistency
-    setSentryUser({
-      uid: 'test-user-123',
-      email: 'test@example.com',
-      sub: 'testuser',
+    // 4. Capture the error
+    captureError(new Error('Workflow test completed with simulated error'), {
+      message: 'Full workflow test',
+      tags: { test_type: 'full_workflow' },
     });
 
-    setLoggerContext({
-      userId: 'test-user-123',
-      organizationId: 'test-org-456',
-      requestId: 'test-request-789',
-    });
-
-    setSuccessMessage('✅ User context set - All subsequent errors will include user info!');
-  };
-
-  const clearUserContextTest = () => {
-    clearSentryUser();
-    setSuccessMessage('✅ User context cleared!');
-  };
-
-  const addBreadcrumbTest = () => {
-    // Add multiple breadcrumbs with different categories
-    Sentry.addBreadcrumb({
-      message: 'User navigation event',
-      category: 'navigation',
-      level: 'info',
-    });
-
-    Sentry.addBreadcrumb({
-      message: 'User action performed',
-      category: 'user',
-      level: 'info',
-      data: { action: 'click', target: 'test-button' },
-    });
-
-    logger.debug('Test breadcrumb via logger', { breadcrumb_test: true });
-
-    setSuccessMessage('✅ Breadcrumbs added - Trigger an error to see them in Sentry!');
-  };
-
-  const testOtelCorrelation = async () => {
-    try {
-      // Make an API call that will have OTEL trace context
-      await fetch('/api/proxy/healthz');
-
-      // Capture this as an event to see OTEL correlation
-      Sentry.captureMessage('🔗 Testing OTEL correlation', {
-        level: 'info',
-        tags: { test_type: 'otel_correlation' },
-      });
-
-      setSuccessMessage(
-        '✅ OTEL correlation test sent - Check Sentry event for trace.trace_id and trace.span_id!'
-      );
-    } catch (error) {
-      Sentry.captureException(error);
-      setClientError('Failed to test OTEL correlation');
-    }
+    showMessage(
+      'success',
+      'Full workflow captured - Check Sentry for tags: user.id, org.id, project.id, resource.kind, resource.apiGroup, resource.name, resource.namespace'
+    );
   };
 
   return (
-    <div
-      style={{
-        padding: '2rem',
-        maxWidth: '1000px',
-        margin: '0 auto',
-        fontFamily: 'system-ui, sans-serif',
-      }}>
-      <h1 style={{ marginBottom: '0.5rem' }}>🧪 Sentry Integration Test Suite</h1>
+    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'system-ui' }}>
+      <h1 style={{ marginBottom: '0.5rem' }}>Sentry Integration Test Suite</h1>
       <p style={{ color: '#666', marginBottom: '2rem' }}>
-        Comprehensive testing for Sentry + OTEL + Logger integration
+        Comprehensive testing for all Sentry module features
       </p>
 
-      {/* Success/Error Messages */}
-      {successMessage && (
+      {message && (
         <div
           style={{
             padding: '1rem',
             marginBottom: '1.5rem',
-            backgroundColor: '#d4edda',
-            border: '1px solid #c3e6cb',
+            backgroundColor: message.type === 'success' ? '#d4edda' : '#f8d7da',
+            border: `1px solid ${message.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
             borderRadius: '4px',
-            color: '#155724',
+            color: message.type === 'success' ? '#155724' : '#721c24',
           }}>
-          {successMessage}
+          {message.text}
         </div>
       )}
 
-      {clientError && (
-        <div
-          style={{
-            padding: '1rem',
-            marginBottom: '1.5rem',
-            backgroundColor: '#f8d7da',
-            border: '1px solid #f5c6cb',
-            borderRadius: '4px',
-            color: '#721c24',
-          }}>
-          <strong>Error:</strong> {clientError}
-        </div>
-      )}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+          gap: '1.5rem',
+        }}>
+        {/* Context Section */}
+        <section style={{ padding: '1.5rem', backgroundColor: '#e3f2fd', borderRadius: '8px' }}>
+          <h2 style={{ marginTop: 0, color: '#1565c0' }}>Context (Hierarchical)</h2>
+          <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '1rem' }}>
+            Set context at different levels for filtering in Sentry
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Button onClick={testUserContext} color="#1976d2">
+              Set User Context
+            </Button>
+            <Button onClick={testOrgContext} color="#1976d2">
+              Set Org Context
+            </Button>
+            <Button onClick={testProjectContext} color="#1976d2">
+              Set Project Context
+            </Button>
+            <Button onClick={testResourceContext} color="#1976d2">
+              Set Resource Context
+            </Button>
+            <Button onClick={testFullHierarchy} color="#0d47a1">
+              Set Full Hierarchy
+            </Button>
+            <Button onClick={testResourceTags} color="#0d47a1">
+              Test Resource Tags (+ Capture)
+            </Button>
+            <Button onClick={clearAllContext} color="#757575">
+              Clear All Context
+            </Button>
+          </div>
+        </section>
 
-      {/* Server-Side Error Tests */}
+        {/* Breadcrumbs Section */}
+        <section style={{ padding: '1.5rem', backgroundColor: '#fff3e0', borderRadius: '8px' }}>
+          <h2 style={{ marginTop: 0, color: '#e65100' }}>Breadcrumbs</h2>
+          <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '1rem' }}>
+            Track user journey through form and API interactions
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Button onClick={testFormBreadcrumbs} color="#f57c00">
+              Form Submit + Success
+            </Button>
+            <Button onClick={testFormValidationError} color="#f57c00">
+              Form Validation Error
+            </Button>
+            <Button onClick={testFormError} color="#f57c00">
+              Form API Error
+            </Button>
+            <Button onClick={testApiBreadcrumbs} color="#f57c00">
+              API Breadcrumbs
+            </Button>
+            <Button onClick={testCustomBreadcrumb} color="#e65100">
+              Custom Breadcrumbs
+            </Button>
+          </div>
+        </section>
+
+        {/* Capture Section */}
+        <section style={{ padding: '1.5rem', backgroundColor: '#fce4ec', borderRadius: '8px' }}>
+          <h2 style={{ marginTop: 0, color: '#c2185b' }}>Capture</h2>
+          <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '1rem' }}>
+            Capture errors and messages to Sentry
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Button onClick={testCaptureError} color="#d81b60">
+              Capture Error
+            </Button>
+            <Button onClick={testCaptureMessage} color="#d81b60">
+              Capture Message
+            </Button>
+            <Button onClick={testCustomTagsAndContext} color="#d81b60">
+              Set Custom Tags
+            </Button>
+          </div>
+        </section>
+
+        {/* Integration Section */}
+        <section style={{ padding: '1.5rem', backgroundColor: '#e8f5e9', borderRadius: '8px' }}>
+          <h2 style={{ marginTop: 0, color: '#2e7d32' }}>Integration Tests</h2>
+          <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '1rem' }}>
+            Test logger integration and real errors
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Button onClick={testLoggerIntegration} color="#43a047">
+              Logger Integration
+            </Button>
+            <Button onClick={triggerClientError} color="#c62828">
+              Trigger Client Error
+            </Button>
+            <Button onClick={triggerApiError} color="#c62828">
+              Trigger API Error
+            </Button>
+            <Button onClick={testFullWorkflow} color="#1b5e20">
+              Full Workflow Test
+            </Button>
+          </div>
+        </section>
+      </div>
+
+      {/* Server-Side Tests */}
       <section
         style={{
-          marginBottom: '2rem',
+          marginTop: '1.5rem',
           padding: '1.5rem',
-          backgroundColor: '#f8f9fa',
+          backgroundColor: '#f3e5f5',
           borderRadius: '8px',
         }}>
-        <h2 style={{ marginTop: 0 }}>🖥️ Server-Side Error Tests</h2>
-        <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '1rem' }}>
-          Tests server-side error capture with OTEL correlation, logger integration, and request
-          context.
+        <h2 style={{ marginTop: 0, color: '#7b1fa2' }}>Server-Side Tests</h2>
+        <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '1rem' }}>
+          Set <code>ENABLE_LOADER_ERROR</code> or <code>ENABLE_ACTION_ERROR</code> to{' '}
+          <code>true</code> in source code
         </p>
-
-        <Form method="post" style={{ marginBottom: '1rem' }}>
-          <button
+        <Form method="post">
+          <Button
             type="submit"
-            disabled={!ENABLE_ACTION_ERROR}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: ENABLE_ACTION_ERROR ? '#dc3545' : '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: ENABLE_ACTION_ERROR ? 'pointer' : 'not-allowed',
-              fontSize: '1rem',
-            }}>
-            🔥 Trigger Server Action Error
-          </button>
+            color={ENABLE_ACTION_ERROR ? '#7b1fa2' : '#bdbdbd'}
+            disabled={!ENABLE_ACTION_ERROR}>
+            Trigger Server Action Error
+          </Button>
         </Form>
-
-        <div
-          style={{
-            padding: '1rem',
-            backgroundColor: '#fff3cd',
-            border: '1px solid #ffc107',
-            borderRadius: '4px',
-            fontSize: '0.85rem',
-          }}>
-          <strong>⚙️ Configuration:</strong> Set <code>ENABLE_LOADER_ERROR</code> or{' '}
-          <code>ENABLE_ACTION_ERROR</code> to <code>true</code> in the source code, then
-          refresh/submit.
-          <br />
-          <br />
-          <strong>✅ What to verify in Sentry:</strong>
-          <ul style={{ margin: '0.5rem 0 0 1.25rem', paddingLeft: 0 }}>
-            <li>
-              Event has <code>trace.trace_id</code> and <code>trace.span_id</code>
-            </li>
-            <li>Request data includes headers, IP, query string, URL</li>
-            <li>Breadcrumbs from logger are present</li>
-            <li>Authorization/Cookie headers are redacted</li>
-          </ul>
-        </div>
       </section>
 
-      {/* Client-Side Error Tests */}
+      {/* Verification Guide */}
       <section
         style={{
-          marginBottom: '2rem',
+          marginTop: '1.5rem',
           padding: '1.5rem',
-          backgroundColor: '#f8f9fa',
+          backgroundColor: '#eceff1',
           borderRadius: '8px',
         }}>
-        <h2 style={{ marginTop: 0 }}>💻 Client-Side Error Tests</h2>
-        <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '1rem' }}>
-          Tests client-side error capture, API errors, and logger integration.
-        </p>
-
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-          <button
-            onClick={triggerClientError}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-            }}>
-            💥 Trigger Client Error
-          </button>
-
-          <button
-            onClick={triggerApiError}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#fd7e14',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-            }}>
-            🌐 Trigger API Error
-          </button>
-
-          <button
-            onClick={triggerLoggerError}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#e83e8c',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-            }}>
-            📝 Trigger Logger Error
-          </button>
-        </div>
-
+        <h3 style={{ marginTop: 0 }}>Verification in Sentry Dashboard</h3>
         <div
           style={{
-            padding: '1rem',
-            backgroundColor: '#d1ecf1',
-            border: '1px solid #bee5eb',
-            borderRadius: '4px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '1rem',
             fontSize: '0.85rem',
           }}>
-          <strong>✅ What to verify in Sentry:</strong>
-          <ul style={{ margin: '0.5rem 0 0 1.25rem', paddingLeft: 0 }}>
-            <li>Stack traces with source maps</li>
-            <li>Breadcrumbs leading up to error</li>
-            <li>Logger integration breadcrumbs</li>
-            <li>Custom tags and context data</li>
-          </ul>
-        </div>
-      </section>
-
-      {/* OTEL Correlation Tests */}
-      <section
-        style={{
-          marginBottom: '2rem',
-          padding: '1.5rem',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-        }}>
-        <h2 style={{ marginTop: 0 }}>🔗 OTEL Correlation Tests</h2>
-        <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '1rem' }}>
-          Tests OpenTelemetry trace correlation with Sentry events.
-        </p>
-
-        <button
-          onClick={testOtelCorrelation}
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#17a2b8',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '1rem',
-            marginBottom: '1rem',
-          }}>
-          🔗 Test OTEL Correlation
-        </button>
-
-        <div
-          style={{
-            padding: '1rem',
-            backgroundColor: '#e7f3ff',
-            border: '1px solid #b3d9ff',
-            borderRadius: '4px',
-            fontSize: '0.85rem',
-          }}>
-          <strong>✅ What to verify in Sentry:</strong>
-          <ul style={{ margin: '0.5rem 0 0 1.25rem', paddingLeft: 0 }}>
-            <li>Open event in Sentry dashboard</li>
-            <li>Go to &quot;Additional Data&quot; or &quot;Context&quot; tab</li>
-            <li>
-              Look for <code>trace.trace_id</code> and <code>trace.span_id</code>
-            </li>
-            <li>Use these IDs to find the corresponding trace in Grafana Tempo/Jaeger</li>
-            <li>Verify the trace shows the same request flow</li>
-          </ul>
-        </div>
-      </section>
-
-      {/* Sentry Features Tests */}
-      <section
-        style={{
-          marginBottom: '2rem',
-          padding: '1.5rem',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-        }}>
-        <h2 style={{ marginTop: 0 }}>🎯 Sentry Features Tests</h2>
-        <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '1rem' }}>
-          Tests Sentry features like messages, user context, breadcrumbs, and context enrichment.
-        </p>
-
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-          <button
-            onClick={sendTestMessage}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-            }}>
-            📨 Send Test Message
-          </button>
-
-          <button
-            onClick={setUserContextTest}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-            }}>
-            👤 Set User Context
-          </button>
-
-          <button
-            onClick={clearUserContextTest}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-            }}>
-            🚫 Clear User Context
-          </button>
-
-          <button
-            onClick={addBreadcrumbTest}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#6f42c1',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-            }}>
-            🍞 Add Breadcrumbs
-          </button>
-        </div>
-
-        <div
-          style={{
-            padding: '1rem',
-            backgroundColor: '#f8d7f8',
-            border: '1px solid #e7b3e7',
-            borderRadius: '4px',
-            fontSize: '0.85rem',
-          }}>
-          <strong>✅ What to verify in Sentry:</strong>
-          <ul style={{ margin: '0.5rem 0 0 1.25rem', paddingLeft: 0 }}>
-            <li>Messages appear with correct severity level</li>
-            <li>User context persists across subsequent events</li>
-            <li>Breadcrumbs show user journey chronologically</li>
-            <li>Custom tags and context appear in event details</li>
-          </ul>
-        </div>
-      </section>
-
-      {/* Testing Guide */}
-      <section style={{ padding: '1.5rem', backgroundColor: '#e9ecef', borderRadius: '8px' }}>
-        <h3 style={{ marginTop: 0 }}>📋 Complete Testing Checklist</h3>
-
-        <div style={{ marginBottom: '1.5rem' }}>
-          <h4 style={{ marginBottom: '0.5rem' }}>1. Environment Setup</h4>
-          <ul style={{ fontSize: '0.9rem' }}>
-            <li>
-              Ensure <code>SENTRY_DSN</code> is configured in <code>.env</code>
-            </li>
-            <li>
-              Ensure <code>OTEL_ENABLED=true</code> and OTEL endpoint is configured
-            </li>
-            <li>
-              Start the app: <code>bun run dev</code>
-            </li>
-            <li>
-              Navigate to <code>http://localhost:3000/test/sentry</code>
-            </li>
-          </ul>
-        </div>
-
-        <div style={{ marginBottom: '1.5rem' }}>
-          <h4 style={{ marginBottom: '0.5rem' }}>2. Test Each Category</h4>
-          <ul style={{ fontSize: '0.9rem' }}>
-            <li>✅ Server-side errors (loader/action)</li>
-            <li>✅ Client-side errors</li>
-            <li>✅ API errors</li>
-            <li>✅ Logger integration</li>
-            <li>✅ OTEL correlation</li>
-            <li>✅ User context</li>
-            <li>✅ Breadcrumbs</li>
-            <li>✅ Custom messages</li>
-          </ul>
-        </div>
-
-        <div style={{ marginBottom: '1.5rem' }}>
-          <h4 style={{ marginBottom: '0.5rem' }}>3. Verify in Sentry Dashboard</h4>
-          <ul style={{ fontSize: '0.9rem' }}>
-            <li>
-              Go to <code>https://sentry.io/organizations/datum/issues/</code>
-            </li>
-            <li>Find your test events (filter by environment if needed)</li>
-            <li>Check event details for OTEL correlation data</li>
-            <li>Verify breadcrumbs, user context, and custom tags</li>
-            <li>Confirm sensitive headers are redacted</li>
-          </ul>
-        </div>
-
-        <div style={{ marginBottom: '1.5rem' }}>
-          <h4 style={{ marginBottom: '0.5rem' }}>4. Verify OTEL Correlation</h4>
-          <ul style={{ fontSize: '0.9rem' }}>
-            <li>
-              Copy <code>trace_id</code> from Sentry event
-            </li>
-            <li>Go to Grafana Tempo/Jaeger</li>
-            <li>Search by trace ID</li>
-            <li>Verify the trace shows the complete request flow</li>
-            <li>Confirm timing data matches</li>
-          </ul>
-        </div>
-
-        <div
-          style={{
-            padding: '1rem',
-            backgroundColor: '#fff',
-            border: '2px solid #28a745',
-            borderRadius: '4px',
-            fontSize: '0.9rem',
-          }}>
-          <strong>🎉 Success Criteria:</strong>
-          <ul style={{ margin: '0.5rem 0 0 1.25rem', paddingLeft: 0 }}>
-            <li>All events appear in Sentry with full context</li>
-            <li>OTEL trace IDs present in server-side events</li>
-            <li>Breadcrumbs from logger appear in events</li>
-            <li>User context persists across events</li>
-            <li>Sensitive headers are redacted</li>
-            <li>Events can be correlated to OTEL traces</li>
-          </ul>
+          <div>
+            <strong>Tags to filter by:</strong>
+            <ul style={{ margin: '0.5rem 0', paddingLeft: '1.25rem' }}>
+              <li>
+                <code>user.id</code>
+              </li>
+              <li>
+                <code>org.id</code>
+              </li>
+              <li>
+                <code>project.id</code>
+              </li>
+              <li>
+                <code>resource.kind</code>
+              </li>
+              <li>
+                <code>resource.apiGroup</code>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <strong>Context sections:</strong>
+            <ul style={{ margin: '0.5rem 0', paddingLeft: '1.25rem' }}>
+              <li>user (id, email, name)</li>
+              <li>organization (id, uid)</li>
+              <li>project (id, uid, namespace)</li>
+              <li>resource (kind, apiGroup, name)</li>
+            </ul>
+          </div>
+          <div>
+            <strong>Breadcrumb categories:</strong>
+            <ul style={{ margin: '0.5rem 0', paddingLeft: '1.25rem' }}>
+              <li>
+                <code>form</code> - form interactions
+              </li>
+              <li>
+                <code>api</code> - API calls
+              </li>
+              <li>
+                <code>navigation</code> - user navigation
+              </li>
+              <li>
+                <code>log</code> - logger output
+              </li>
+            </ul>
+          </div>
         </div>
       </section>
     </div>
+  );
+}
+
+function Button({
+  children,
+  onClick,
+  color,
+  type = 'button',
+  disabled = false,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  color: string;
+  type?: 'button' | 'submit';
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        padding: '0.5rem 1rem',
+        backgroundColor: disabled ? '#bdbdbd' : color,
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        fontSize: '0.875rem',
+        textAlign: 'left',
+      }}>
+      {children}
+    </button>
   );
 }

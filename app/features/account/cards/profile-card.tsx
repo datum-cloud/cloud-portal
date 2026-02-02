@@ -32,6 +32,7 @@ export const AccountProfileSettingsCard = () => {
       </CardHeader>
 
       <Form.Root
+        name="update-profile"
         id="update-profile-form"
         schema={userSchema}
         defaultValues={{

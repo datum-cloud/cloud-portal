@@ -1,3 +1,8 @@
+import {
+  isKubernetesResource,
+  setSentryResourceContext,
+  clearSentryResourceContext,
+} from '@/modules/sentry';
 import * as Sentry from '@sentry/react-router';
 import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
@@ -17,6 +22,8 @@ export const httpClient = Axios.create({
 });
 
 const onRequest = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+  // Clear previous resource context to avoid stale data
+  clearSentryResourceContext();
   // Record start time for duration calculation
   (config as any).metadata = { startTime: Date.now() };
   return config;
@@ -27,6 +34,26 @@ const onRequestError = (error: AxiosError): Promise<AxiosError> => {
 };
 
 const onResponse = (response: AxiosResponse): AxiosResponse => {
+  const config = response.config as any;
+
+  // Add API breadcrumb for user journey tracking
+  Sentry.addBreadcrumb({
+    category: 'api',
+    message: `${config.method?.toUpperCase()} ${config.url}`,
+    level: 'info',
+    data: {
+      method: config.method,
+      url: config.url,
+      status: response.status,
+      duration: config.metadata?.startTime ? Date.now() - config.metadata.startTime : undefined,
+    },
+  });
+
+  // Set resource context if response is a K8s resource
+  if (isKubernetesResource(response.data)) {
+    setSentryResourceContext(response.data);
+  }
+
   return response;
 };
 
