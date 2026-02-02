@@ -7,6 +7,7 @@ import {
   RateLimitError,
   ValidationError,
 } from './app-error';
+import { isGqlError, getGqlErrorCode, getGqlErrorMessage } from '@/modules/gqlts/errors';
 import { AxiosError } from 'axios';
 
 interface ApiErrorResponse {
@@ -42,6 +43,31 @@ export function mapApiError(error: unknown, requestId?: string): AppError {
         return new AppError(message, {
           code: data?.code ?? 'API_ERROR',
           status,
+          requestId,
+          cause: error,
+        });
+    }
+  }
+
+  // Handle GraphQL errors
+  if (isGqlError(error)) {
+    const gqlError = error.errors![0];
+    const code = getGqlErrorCode(gqlError);
+    const message = getGqlErrorMessage(error);
+
+    switch (code) {
+      case 'UNAUTHENTICATED':
+        return new AuthenticationError(message, requestId);
+      case 'FORBIDDEN':
+        return new AuthorizationError(message, requestId);
+      case 'NOT_FOUND':
+        return new NotFoundError('Resource', undefined, requestId);
+      case 'BAD_USER_INPUT':
+        return new ValidationError(message, undefined, requestId);
+      default:
+        return new AppError(message, {
+          code: code ?? 'GRAPHQL_ERROR',
+          status: 500,
           requestId,
           cause: error,
         });

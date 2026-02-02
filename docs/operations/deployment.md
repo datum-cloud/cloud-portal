@@ -129,7 +129,7 @@ services:
   cloud-portal:
     build: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - NODE_ENV=production
       - AUTH_URL=${AUTH_URL}
@@ -137,7 +137,7 @@ services:
       - AUTH_CLIENT_SECRET=${AUTH_CLIENT_SECRET}
       - SESSION_SECRET=${SESSION_SECRET}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -174,7 +174,7 @@ spec:
             - containerPort: 3000
           env:
             - name: NODE_ENV
-              value: "production"
+              value: 'production'
             - name: AUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
@@ -190,11 +190,11 @@ spec:
                 name: cloud-portal-config
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
+              memory: '256Mi'
+              cpu: '100m'
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: '512Mi'
+              cpu: '500m'
           livenessProbe:
             httpGet:
               path: /health
@@ -218,13 +218,13 @@ kind: ConfigMap
 metadata:
   name: cloud-portal-config
 data:
-  AUTH_URL: "https://auth.datum.net"
-  AUTH_ISSUER: "https://auth.datum.net"
-  AUTH_CLIENT_ID: "cloud-portal"
-  CLOUD_GATEWAY_API_URL: "https://api.datum.net"
-  NETWORK_GATEWAY_API_URL: "https://network.datum.net"
-  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
-  OTEL_SERVICE_NAME: "cloud-portal"
+  AUTH_URL: 'https://auth.datum.net'
+  AUTH_ISSUER: 'https://auth.datum.net'
+  AUTH_CLIENT_ID: 'cloud-portal'
+  CLOUD_GATEWAY_API_URL: 'https://api.datum.net'
+  NETWORK_GATEWAY_API_URL: 'https://network.datum.net'
+  OTEL_EXPORTER_OTLP_ENDPOINT: 'http://otel-collector:4318'
+  OTEL_SERVICE_NAME: 'cloud-portal'
 ```
 
 ### Secrets
@@ -321,9 +321,9 @@ infra/
 
 ```typescript
 // infra/index.ts
-import * as pulumi from '@pulumi/pulumi';
-import * as k8s from '@pulumi/kubernetes';
 import * as docker from '@pulumi/docker';
+import * as k8s from '@pulumi/kubernetes';
+import * as pulumi from '@pulumi/pulumi';
 
 const config = new pulumi.Config();
 const env = pulumi.getStack();
@@ -345,12 +345,14 @@ const deployment = new k8s.apps.v1.Deployment('cloud-portal', {
     template: {
       metadata: { labels: { app: 'cloud-portal' } },
       spec: {
-        containers: [{
-          name: 'cloud-portal',
-          image: image.imageName,
-          ports: [{ containerPort: 3000 }],
-          envFrom: [{ configMapRef: { name: 'cloud-portal-config' } }],
-        }],
+        containers: [
+          {
+            name: 'cloud-portal',
+            image: image.imageName,
+            ports: [{ containerPort: 3000 }],
+            envFrom: [{ configMapRef: { name: 'cloud-portal-config' } }],
+          },
+        ],
       },
     },
   },

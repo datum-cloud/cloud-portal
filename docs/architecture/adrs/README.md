@@ -17,15 +17,15 @@ An Architecture Decision Record captures an important architectural decision mad
 
 ## Current ADRs
 
-| ADR | Title | Status | Date |
-|-----|-------|--------|------|
-| [001](./001-express-to-hono-migration.md) | Express to Hono Migration | Accepted | 2026-01 |
+| ADR                                            | Title                          | Status   | Date    |
+| ---------------------------------------------- | ------------------------------ | -------- | ------- |
+| [001](./001-express-to-hono-migration.md)      | Express to Hono Migration      | Accepted | 2026-01 |
 | [002](./002-domain-driven-resource-modules.md) | Domain-Driven Resource Modules | Accepted | 2026-01 |
-| [003](./003-k8s-watch-api-integration.md) | K8s Watch API Integration | Accepted | 2026-01 |
-| [004](./004-structured-logger-module.md) | Structured Logger Module | Accepted | 2026-01 |
-| [005](./005-unified-environment-config.md) | Unified Environment Config | Accepted | 2026-01 |
-| [006](./006-sentry-otel-observability.md) | Sentry + OTEL Observability | Accepted | 2026-01 |
-| [007](./007-dns-record-manager.md) | DNS Record Manager | Accepted | 2026-01 |
+| [003](./003-k8s-watch-api-integration.md)      | K8s Watch API Integration      | Accepted | 2026-01 |
+| [004](./004-structured-logger-module.md)       | Structured Logger Module       | Accepted | 2026-01 |
+| [005](./005-unified-environment-config.md)     | Unified Environment Config     | Accepted | 2026-01 |
+| [006](./006-sentry-otel-observability.md)      | Sentry + OTEL Observability    | Accepted | 2026-01 |
+| [007](./007-dns-record-manager.md)             | DNS Record Manager             | Accepted | 2026-01 |
 
 ---
 
@@ -74,11 +74,13 @@ Why is this the best choice among the alternatives?
 ## Alternatives Considered
 
 ### Option A: [Name]
+
 - **Pros:** ...
 - **Cons:** ...
 - **Why rejected:** ...
 
 ### Option B: [Name]
+
 - **Pros:** ...
 - **Cons:** ...
 - **Why rejected:** ...
@@ -86,16 +88,18 @@ Why is this the best choice among the alternatives?
 ## Consequences
 
 ### Positive
+
 - ...
 
 ### Negative
+
 - ...
 
 ### Risks & Mitigations
 
 | Risk | Mitigation |
-|------|------------|
-| ... | ... |
+| ---- | ---------- |
+| ...  | ...        |
 
 ## References
 

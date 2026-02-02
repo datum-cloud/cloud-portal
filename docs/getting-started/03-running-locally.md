@@ -27,8 +27,9 @@ curl http://localhost:3000/_healthz
 ```
 
 **Expected response:**
+
 ```json
-{"status":"ok"}
+{ "status": "ok" }
 ```
 
 ### 2. Open in Browser
@@ -57,34 +58,34 @@ If `LOG_CURL=true`, you'll also see CURL commands for API calls.
 
 ### Development
 
-| Command | Description |
-|---------|-------------|
-| `bun run dev` | Start development server with hot reload |
-| `bun run build` | Build for production |
-| `bun run preview` | Preview production build locally |
-| `bun run start` | Start production server |
+| Command           | Description                              |
+| ----------------- | ---------------------------------------- |
+| `bun run dev`     | Start development server with hot reload |
+| `bun run build`   | Build for production                     |
+| `bun run preview` | Preview production build locally         |
+| `bun run start`   | Start production server                  |
 
 ### Code Quality
 
-| Command | Description |
-|---------|-------------|
-| `bun run lint` | Run ESLint with auto-fix |
-| `bun run format` | Format code with Prettier |
-| `bun run format:check` | Check formatting (CI) |
-| `bun run typecheck` | TypeScript type checking |
+| Command                | Description               |
+| ---------------------- | ------------------------- |
+| `bun run lint`         | Run ESLint with auto-fix  |
+| `bun run format`       | Format code with Prettier |
+| `bun run format:check` | Check formatting (CI)     |
+| `bun run typecheck`    | TypeScript type checking  |
 
 ### Testing
 
-| Command | Description |
-|---------|-------------|
-| `bun run test:e2e` | Run E2E tests (dev server) |
+| Command                 | Description                      |
+| ----------------------- | -------------------------------- |
+| `bun run test:e2e`      | Run E2E tests (dev server)       |
 | `bun run test:e2e:prod` | Run E2E tests (production build) |
-| `bun run cypress:open` | Open Cypress UI |
+| `bun run cypress:open`  | Open Cypress UI                  |
 
 ### API Generation
 
-| Command | Description |
-|---------|-------------|
+| Command              | Description                            |
+| -------------------- | -------------------------------------- |
 | `bun run openapi-ts` | Generate TypeScript from OpenAPI specs |
 
 ---
@@ -99,19 +100,21 @@ docker-compose up -d
 
 This starts:
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| Grafana | http://localhost:3002 | Metrics dashboards (admin/admin) |
-| Prometheus | http://localhost:9090 | Metrics collection |
-| Jaeger | http://localhost:16686 | Distributed tracing |
-| OTEL Collector | localhost:4317/4318 | Telemetry ingestion |
+| Service        | URL                    | Description                      |
+| -------------- | ---------------------- | -------------------------------- |
+| Grafana        | http://localhost:3002  | Metrics dashboards (admin/admin) |
+| Prometheus     | http://localhost:9090  | Metrics collection               |
+| Jaeger         | http://localhost:16686 | Distributed tracing              |
+| OTEL Collector | localhost:4317/4318    | Telemetry ingestion              |
 
 To view app metrics:
+
 ```bash
 curl http://localhost:3000/metrics
 ```
 
 To stop the stack:
+
 ```bash
 docker-compose down
 ```

@@ -8,9 +8,9 @@ This document covers the testing strategy, tools, and patterns used in the Cloud
 
 We use **Cypress** for both end-to-end (E2E) and component testing.
 
-| Test Type | Purpose | Location |
-|-----------|---------|----------|
-| E2E Tests | Full user flows | `cypress/e2e/` |
+| Test Type       | Purpose                    | Location             |
+| --------------- | -------------------------- | -------------------- |
+| E2E Tests       | Full user flows            | `cypress/e2e/`       |
 | Component Tests | Isolated component testing | `cypress/component/` |
 
 ---
@@ -166,7 +166,7 @@ Use `data-testid` attributes for reliable element selection:
 
 ```tsx
 // In component
-<Button data-testid="create-org-btn">Create Organization</Button>
+<Button data-testid="create-org-btn">Create Organization</Button>;
 
 // In test
 cy.get('[data-testid="create-org-btn"]').click();
@@ -259,11 +259,11 @@ describe('DataTable', () => {
 // cypress/fixtures/organizations.json
 [
   {
-    "id": "org-1",
-    "name": "test-org",
-    "displayName": "Test Organization"
-  }
-]
+    id: 'org-1',
+    name: 'test-org',
+    displayName: 'Test Organization',
+  },
+];
 
 // In test
 cy.fixture('organizations').then((orgs) => {
@@ -343,10 +343,7 @@ cy.url().should('include', '/organizations');
 cy.url().should('eq', 'http://localhost:3000/');
 
 // Multiple assertions
-cy.get('.element')
-  .should('be.visible')
-  .and('have.class', 'active')
-  .and('contain', 'Text');
+cy.get('.element').should('be.visible').and('have.class', 'active').and('contain', 'Text');
 ```
 
 ### Avoid Flaky Tests
@@ -382,6 +379,7 @@ Tests run automatically in GitHub Actions:
 ### Test Artifacts
 
 On failure, Cypress saves:
+
 - Screenshots: `cypress/screenshots/`
 - Videos: `cypress/videos/`
 
@@ -393,8 +391,7 @@ On failure, Cypress saves:
 
 ```typescript
 // Increase timeout for slow operations
-cy.get('[data-testid="slow-element"]', { timeout: 10000 })
-  .should('exist');
+cy.get('[data-testid="slow-element"]', { timeout: 10000 }).should('exist');
 ```
 
 ### Element Not Found

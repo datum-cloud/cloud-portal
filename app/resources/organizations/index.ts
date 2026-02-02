@@ -44,3 +44,19 @@ export {
   useUpdateOrganization,
   useDeleteOrganization,
 } from './organization.queries';
+
+// GraphQL Service exports
+export {
+  createOrganizationGqlService,
+  type OrganizationGqlService,
+} from './organization.gql-service';
+
+// GraphQL Query hook exports
+export {
+  useOrganizationsGql,
+  useOrganizationsInfiniteGql,
+  useOrganizationGql,
+  useCreateOrganizationGql,
+  useUpdateOrganizationGql,
+  useDeleteOrganizationGql,
+} from './organization.gql-queries';

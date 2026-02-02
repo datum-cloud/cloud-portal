@@ -22,6 +22,7 @@ ls app/resources/organizations/
 ```
 
 You should see:
+
 - `organization.schema.ts` - Zod types
 - `organization.adapter.ts` - API transformers
 - `organization.service.ts` - API calls
@@ -79,6 +80,7 @@ Understand how data flows through the application.
 5. Find the API request
 
 **Questions to answer:**
+
 - What's the request URL?
 - What headers are sent?
 - What's the response structure?
@@ -92,6 +94,7 @@ With the Network request selected:
 3. Find the matching log entry
 
 **You should see:**
+
 ```
 [INFO] GET /api/... 200 XXms
   → requestId: <uuid>
@@ -218,13 +221,13 @@ You've completed onboarding if you can answer:
 
 Now that you're oriented, explore these docs based on your needs:
 
-| I want to... | Read... |
-|--------------|---------|
-| Understand the architecture | [Architecture Overview](../architecture/overview.md) |
-| Add a new page | [Adding a New Page](../guides/adding-new-page.md) |
-| Add a new API resource | [Adding a New Resource](../guides/adding-new-resource.md) |
-| Use UI components | [UI Overview](../ui/overview.md) |
-| Debug an issue | [Debugging Guide](../guides/debugging-guide.md) |
+| I want to...                | Read...                                                   |
+| --------------------------- | --------------------------------------------------------- |
+| Understand the architecture | [Architecture Overview](../architecture/overview.md)      |
+| Add a new page              | [Adding a New Page](../guides/adding-new-page.md)         |
+| Add a new API resource      | [Adding a New Resource](../guides/adding-new-resource.md) |
+| Use UI components           | [UI Overview](../ui/overview.md)                          |
+| Debug an issue              | [Debugging Guide](../guides/debugging-guide.md)           |
 
 ---
 

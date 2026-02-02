@@ -10,12 +10,12 @@ The Watch API provides instant updates when resources change, replacing the prev
 
 ### Before vs After
 
-| Aspect | Polling (Before) | Watch API (After) |
-|--------|------------------|-------------------|
-| Update latency | 5-10 seconds | Instant |
-| Requests/min | 6-12 per resource | 1 (persistent connection) |
-| Server load | High (repeated requests) | Low (event stream) |
-| Connection type | HTTP request/response | Server-Sent Events (SSE) |
+| Aspect          | Polling (Before)         | Watch API (After)         |
+| --------------- | ------------------------ | ------------------------- |
+| Update latency  | 5-10 seconds             | Instant                   |
+| Requests/min    | 6-12 per resource        | 1 (persistent connection) |
+| Server load     | High (repeated requests) | Low (event stream)        |
+| Connection type | HTTP request/response    | Server-Sent Events (SSE)  |
 
 ---
 
@@ -55,11 +55,11 @@ The Watch API provides instant updates when resources change, replacing the prev
 
 Kubernetes Watch sends three event types:
 
-| Type | Meaning | Typical Action |
-|------|---------|----------------|
-| `ADDED` | Resource created | Add to list/cache |
-| `MODIFIED` | Resource updated | Update in list/cache |
-| `DELETED` | Resource removed | Remove from list/cache |
+| Type       | Meaning          | Typical Action         |
+| ---------- | ---------------- | ---------------------- |
+| `ADDED`    | Resource created | Add to list/cache      |
+| `MODIFIED` | Resource updated | Update in list/cache   |
+| `DELETED`  | Resource removed | Remove from list/cache |
 
 ### Event Structure
 
@@ -124,11 +124,11 @@ useDNSZonesWatch({
 
 ```typescript
 // resources/dns-zones/dns-zone.watch.ts
-import { useWatch } from '@/modules/watch';
-import { useQueryClient } from '@tanstack/react-query';
 import { toDNSZone } from './dns-zone.adapter';
 import { dnsZoneKeys } from './dns-zone.queries';
 import type { DNSZone } from './dns-zone.schema';
+import { useWatch } from '@/modules/watch';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface UseWatchOptions {
   enabled?: boolean;
@@ -147,26 +147,23 @@ export function useDNSZonesWatch(options?: UseWatchOptions) {
       const event = { ...rawEvent, object: zone };
 
       // Update React Query cache
-      queryClient.setQueryData<DNSZone[]>(
-        dnsZoneKeys.list(),
-        (old = []) => {
-          switch (event.type) {
-            case 'ADDED':
-              // Avoid duplicates
-              if (old.some((z) => z.id === zone.id)) return old;
-              return [...old, zone];
+      queryClient.setQueryData<DNSZone[]>(dnsZoneKeys.list(), (old = []) => {
+        switch (event.type) {
+          case 'ADDED':
+            // Avoid duplicates
+            if (old.some((z) => z.id === zone.id)) return old;
+            return [...old, zone];
 
-            case 'MODIFIED':
-              return old.map((z) => (z.id === zone.id ? zone : z));
+          case 'MODIFIED':
+            return old.map((z) => (z.id === zone.id ? zone : z));
 
-            case 'DELETED':
-              return old.filter((z) => z.id !== zone.id);
+          case 'DELETED':
+            return old.filter((z) => z.id !== zone.id);
 
-            default:
-              return old;
-          }
+          default:
+            return old;
         }
-      );
+      });
 
       // Also update detail cache if exists
       queryClient.setQueryData(dnsZoneKeys.detail(zone.id), zone);
@@ -232,12 +229,12 @@ useDNSZonesWatch({
 
 ### Common Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| No events received | Wrong endpoint | Check API URL and path |
-| 401 errors | Token expired | Re-login, check auth |
-| Connection drops | Network issues | Auto-reconnect handles this |
-| Duplicate items | Missing dedup logic | Check `ADDED` handler |
+| Issue              | Cause               | Solution                    |
+| ------------------ | ------------------- | --------------------------- |
+| No events received | Wrong endpoint      | Check API URL and path      |
+| 401 errors         | Token expired       | Re-login, check auth        |
+| Connection drops   | Network issues      | Auto-reconnect handles this |
+| Duplicate items    | Missing dedup logic | Check `ADDED` handler       |
 
 ---
 
@@ -245,13 +242,13 @@ useDNSZonesWatch({
 
 These resources have real-time updates:
 
-| Resource | Watch Hook | Endpoint |
-|----------|------------|----------|
-| DNS Zones | `useDNSZonesWatch()` | `/apis/dns.networking.../dns-zones` |
-| DNS Records | `useDNSRecordsWatch()` | `/apis/dns.networking.../dns-records` |
-| Domains | `useDomainsWatch()` | `/apis/dns.networking.../domains` |
-| Secrets | `useSecretsWatch()` | `/apis/.../secrets` |
-| HTTP Proxies | `useHTTPProxiesWatch()` | `/apis/networking.../http-proxies` |
+| Resource     | Watch Hook              | Endpoint                              |
+| ------------ | ----------------------- | ------------------------------------- |
+| DNS Zones    | `useDNSZonesWatch()`    | `/apis/dns.networking.../dns-zones`   |
+| DNS Records  | `useDNSRecordsWatch()`  | `/apis/dns.networking.../dns-records` |
+| Domains      | `useDomainsWatch()`     | `/apis/dns.networking.../domains`     |
+| Secrets      | `useSecretsWatch()`     | `/apis/.../secrets`                   |
+| HTTP Proxies | `useHTTPProxiesWatch()` | `/apis/networking.../http-proxies`    |
 
 ---
 

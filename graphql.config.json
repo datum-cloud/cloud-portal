@@ -1,0 +1,12 @@
+{
+  "url": "https://graphql.staging.env.datum.net/graphql",
+  "queries": [
+    "listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces",
+    "readResourcemanagerMiloapisComV1alpha1Organization"
+  ],
+  "mutations": [
+    "createResourcemanagerMiloapisComV1alpha1Organization",
+    "patchResourcemanagerMiloapisComV1alpha1Organization",
+    "deleteResourcemanagerMiloapisComV1alpha1Organization"
+  ]
+}

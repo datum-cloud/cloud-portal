@@ -129,11 +129,11 @@ export async function loader({ context }: Route.LoaderArgs) {
 
 ### Session Properties in Context
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `session` | `Session \| null` | Current user session |
-| `session.accessToken` | `string` | JWT for API calls |
-| `session.user` | `User` | User info (id, email, name) |
+| Property              | Type              | Description                 |
+| --------------------- | ----------------- | --------------------------- |
+| `session`             | `Session \| null` | Current user session        |
+| `session.accessToken` | `string`          | JWT for API calls           |
+| `session.user`        | `User`            | User info (id, email, name) |
 
 ---
 
@@ -244,10 +244,13 @@ export function requestContextMiddleware() {
     const session = c.get('session');
 
     // Store token in AsyncLocalStorage
-    await runWithContext({
-      token: session?.accessToken,
-      requestId: c.get('requestId'),
-    }, next);
+    await runWithContext(
+      {
+        token: session?.accessToken,
+        requestId: c.get('requestId'),
+      },
+      next
+    );
   };
 }
 ```

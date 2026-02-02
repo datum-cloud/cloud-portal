@@ -5,8 +5,8 @@ export const NotificationCheckboxItem = ({ preference }: RenderItemProps) => {
   return (
     <div className="flex items-center justify-between gap-6">
       <div className="flex items-center space-x-3.5">
-        <div className="bg-badge-muted dark:bg-background flex size-[34px] items-center justify-center rounded-xl">
-          <Form.Checkbox className="data-[state=checked]:bg-primary space-x-0 bg-white" />
+        <div className="flex size-[34px] items-center justify-center overflow-hidden rounded-xl border">
+          <Form.Checkbox className="data-[state=checked]:bg-primary space-x-0 rounded-xl" />
         </div>
 
         <div className="text-1xs flex flex-col space-y-0.5 text-left">

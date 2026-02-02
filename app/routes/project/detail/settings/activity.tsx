@@ -8,5 +8,10 @@ export const handle = {
 export default function ProjectActivityLogsPage() {
   const { projectId } = useParams();
 
-  return <ActivityLogTable scope={{ type: 'project', projectId: projectId! }} />;
+  return (
+    <ActivityLogTable
+      scope={{ type: 'project', projectId: projectId! }}
+      initialActions={['Added', 'Modified', 'Deleted']}
+    />
+  );
 }

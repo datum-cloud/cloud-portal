@@ -25,11 +25,11 @@ export default function AccountSettingsLayout() {
     //   label: 'Access Tokens',
     //   to: paths.account.settings.accessTokens,
     // },
-    // {
-    //   value: 'notifications',
-    //   label: 'Notifications',
-    //   to: paths.account.settings.notifications,
-    // },
+    {
+      value: 'notifications',
+      label: 'Notifications',
+      to: paths.account.settings.notifications,
+    },
     {
       value: 'activity',
       label: 'Activity',

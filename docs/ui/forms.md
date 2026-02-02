@@ -7,6 +7,7 @@ This document covers the form library patterns and usage.
 ## Overview
 
 The form library is built on:
+
 - **Conform.js** - Form state management
 - **Zod** - Schema validation
 - **Compound Components** - Composable API
@@ -67,10 +68,10 @@ The root form component that provides context.
 
 ```tsx
 <Form.Root
-  schema={zodSchema}           // Required: Zod schema
-  onSubmit={(data) => {}}      // Submit handler (typed!)
-  defaultValues={{ role: 'user' }}  // Initial values
-  mode="onBlur"                // Validation: onBlur | onChange | onSubmit
+  schema={zodSchema} // Required: Zod schema
+  onSubmit={(data) => {}} // Submit handler (typed!)
+  defaultValues={{ role: 'user' }} // Initial values
+  mode="onBlur" // Validation: onBlur | onChange | onSubmit
 >
   {children}
 </Form.Root>
@@ -82,12 +83,12 @@ Field wrapper with label, description, and error handling.
 
 ```tsx
 <Form.Field
-  name="email"                 // Required: field name
-  label="Email Address"        // Label text
+  name="email" // Required: field name
+  label="Email Address" // Label text
   description="We'll never share your email"
   tooltip="More information"
-  required                     // Show required indicator
-  disabled                     // Disable field
+  required // Show required indicator
+  disabled // Disable field
 >
   <Form.Input />
 </Form.Field>
@@ -128,11 +129,7 @@ Field wrapper with label, description, and error handling.
 Submit button with automatic loading state.
 
 ```tsx
-<Form.Submit
-  loadingText="Saving..."
-  type="primary"
-  size="default"
->
+<Form.Submit loadingText="Saving..." type="primary" size="default">
   Save Changes
 </Form.Submit>
 ```
@@ -186,10 +183,14 @@ Add/remove fields dynamically:
 
 ```tsx
 const schema = z.object({
-  members: z.array(z.object({
-    email: z.string().email(),
-    role: z.enum(['admin', 'member']),
-  })).min(1),
+  members: z
+    .array(
+      z.object({
+        email: z.string().email(),
+        role: z.enum(['admin', 'member']),
+      })
+    )
+    .min(1),
 });
 
 <Form.FieldArray name="members">
@@ -216,7 +217,7 @@ const schema = z.object({
       </button>
     </>
   )}
-</Form.FieldArray>
+</Form.FieldArray>;
 ```
 
 ### Multi-Step Forms
@@ -234,8 +235,7 @@ const steps = [
   steps={steps}
   onComplete={async (data) => {
     await submitForm(data);
-  }}
->
+  }}>
   <Form.StepperNavigation variant="horizontal" />
 
   <Form.Step id="account">
@@ -261,10 +261,10 @@ const steps = [
   </Form.Step>
 
   <Form.StepperControls
-    prevLabel={(isFirst) => isFirst ? 'Cancel' : 'Previous'}
-    nextLabel={(isLast) => isLast ? 'Submit' : 'Next'}
+    prevLabel={(isFirst) => (isFirst ? 'Cancel' : 'Previous')}
+    nextLabel={(isLast) => (isLast ? 'Submit' : 'Next')}
   />
-</Form.Stepper>
+</Form.Stepper>;
 ```
 
 ---
@@ -333,34 +333,37 @@ function PriceDisplay() {
 ### Zod Schema
 
 ```typescript
-const schema = z.object({
-  // Required string
-  name: z.string().min(1, 'Name is required'),
+const schema = z
+  .object({
+    // Required string
+    name: z.string().min(1, 'Name is required'),
 
-  // Email validation
-  email: z.string().email('Invalid email'),
+    // Email validation
+    email: z.string().email('Invalid email'),
 
-  // Number with range
-  age: z.number().min(18).max(100),
+    // Number with range
+    age: z.number().min(18).max(100),
 
-  // Enum
-  status: z.enum(['active', 'inactive']),
+    // Enum
+    status: z.enum(['active', 'inactive']),
 
-  // Optional with default
-  notes: z.string().optional().default(''),
+    // Optional with default
+    notes: z.string().optional().default(''),
 
-  // Custom validation
-  password: z.string()
-    .min(8, 'At least 8 characters')
-    .regex(/[A-Z]/, 'Must contain uppercase')
-    .regex(/[0-9]/, 'Must contain number'),
+    // Custom validation
+    password: z
+      .string()
+      .min(8, 'At least 8 characters')
+      .regex(/[A-Z]/, 'Must contain uppercase')
+      .regex(/[0-9]/, 'Must contain number'),
 
-  // Conditional validation
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords must match',
-  path: ['confirmPassword'],
-});
+    // Conditional validation
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords must match',
+    path: ['confirmPassword'],
+  });
 ```
 
 ### Error Display
@@ -390,11 +393,7 @@ Custom error component:
 For React Router actions:
 
 ```tsx
-<Form.Root
-  schema={schema}
-  action="/api/users"
-  method="POST"
->
+<Form.Root schema={schema} action="/api/users" method="POST">
   {/* Fields */}
 </Form.Root>
 ```
@@ -414,8 +413,7 @@ function UserForm() {
           action: '/api/users',
         });
       }}
-      isSubmitting={fetcher.state === 'submitting'}
-    >
+      isSubmitting={fetcher.state === 'submitting'}>
       {/* Fields */}
     </Form.Root>
   );
