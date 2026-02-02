@@ -13,7 +13,7 @@ import { Hono } from 'hono';
 /**
  * API sub-application with security middleware and explicit route registration.
  *
- * Middleware order: Auth → Rate Limit → Route Handler
+ * Middleware order: Auth → Route Handler
  * Unknown routes return 404 (prevents endpoint discovery attacks)
  */
 export function createApiApp() {
