@@ -6,15 +6,15 @@ This guide covers debugging techniques and tools for the cloud portal.
 
 ## Quick Reference
 
-| Issue Type | Tool/Technique |
-|------------|----------------|
-| React state | React DevTools |
-| API data | React Query DevTools |
-| Network requests | Browser Network tab |
-| SSE/Watch | Network tab (EventStream) |
-| Server errors | Terminal logs |
-| Distributed tracing | Jaeger UI |
-| Performance | Chrome Performance tab |
+| Issue Type          | Tool/Technique            |
+| ------------------- | ------------------------- |
+| React state         | React DevTools            |
+| API data            | React Query DevTools      |
+| Network requests    | Browser Network tab       |
+| SSE/Watch           | Network tab (EventStream) |
+| Server errors       | Terminal logs             |
+| Distributed tracing | Jaeger UI                 |
+| Performance         | Chrome Performance tab    |
 
 ---
 
@@ -25,12 +25,14 @@ This guide covers debugging techniques and tools for the cloud portal.
 Install the [React DevTools extension](https://react.dev/learn/react-developer-tools).
 
 **Features:**
+
 - Inspect component tree
 - View props and state
 - Track renders
 - Profile performance
 
 **Usage:**
+
 1. Open DevTools → Components tab
 2. Select component in tree
 3. View/edit props and state
@@ -46,6 +48,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 ```
 
 **Features:**
+
 - View all queries and their state
 - Inspect cache data
 - Trigger refetches
@@ -53,6 +56,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 - View query timelines
 
 **Access:**
+
 - Click the floating React Query logo in bottom-right
 - Or press `Ctrl/Cmd + Shift + Q`
 
@@ -80,6 +84,7 @@ Watch API uses Server-Sent Events:
 4. Check "EventStream" tab for messages
 
 **Common Issues:**
+
 - Connection drops → Check auth token
 - No events → Verify resource exists
 - 401 errors → Token expired
@@ -178,6 +183,7 @@ async function debugOperation() {
 ### "Data not loading"
 
 **Checklist:**
+
 1. Check Network tab for request
 2. Verify response status (200, 401, 500?)
 3. Check React Query DevTools for query state
@@ -185,6 +191,7 @@ async function debugOperation() {
 5. Check server logs
 
 **Common Causes:**
+
 - Auth token expired
 - Wrong API endpoint
 - Query key mismatch
@@ -192,12 +199,14 @@ async function debugOperation() {
 ### "Real-time updates not working"
 
 **Checklist:**
+
 1. Check Network tab for EventSource connection
 2. Verify SSE connection is open
 3. Check for 401/403 errors
 4. Look at console for EventSource errors
 
 **Debug Steps:**
+
 ```typescript
 // Add logging to watch
 watchResources({
@@ -213,12 +222,14 @@ watchResources({
 ### "Form not submitting"
 
 **Checklist:**
+
 1. Check for validation errors
 2. Look at Network tab for request
 3. Check action response
 4. View console for errors
 
 **Debug Steps:**
+
 ```tsx
 <Form.Root
   schema={schema}
@@ -237,12 +248,14 @@ watchResources({
 ### "Component not re-rendering"
 
 **Checklist:**
+
 1. Check if state actually changed (React DevTools)
 2. Verify query is invalidated
 3. Check for stale closure issues
 4. Look for missing dependencies
 
 **Debug Steps:**
+
 ```tsx
 // Add useEffect to track renders
 useEffect(() => {
@@ -253,12 +266,14 @@ useEffect(() => {
 ### "Styles not applying"
 
 **Checklist:**
+
 1. Inspect element in DevTools
 2. Check computed styles
 3. Look for class conflicts
 4. Verify Tailwind class exists
 
 **Debug Steps:**
+
 1. Right-click element → Inspect
 2. Check "Styles" panel
 3. Look for crossed-out styles
@@ -277,6 +292,7 @@ useEffect(() => {
 5. Analyze flame graph
 
 **Look For:**
+
 - Long render times
 - Unnecessary re-renders
 - Expensive computations
@@ -290,6 +306,7 @@ useEffect(() => {
 5. Analyze timeline
 
 **Look For:**
+
 - Long tasks (blocking main thread)
 - Layout thrashing
 - Memory leaks

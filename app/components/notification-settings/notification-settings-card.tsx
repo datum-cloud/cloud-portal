@@ -10,6 +10,7 @@ export function NotificationSettingsCard<T extends z.ZodObject<z.ZodRawShape>>({
   defaultValues,
   preferences,
   onSubmit,
+  isLoading,
   renderItem,
 }: NotificationSettingsCardProps<T>) {
   const ItemRenderer = renderItem ?? NotificationCheckboxItem;
@@ -24,8 +25,9 @@ export function NotificationSettingsCard<T extends z.ZodObject<z.ZodRawShape>>({
         schema={schema}
         defaultValues={defaultValues}
         onSubmit={onSubmit}
+        isSubmitting={isLoading}
         className="flex flex-col space-y-0">
-        {({ form }) => (
+        {({ form, isSubmitting }) => (
           <>
             <CardContent className="space-y-4 px-5 py-4">
               {preferences.map((pref) => (
@@ -42,6 +44,7 @@ export function NotificationSettingsCard<T extends z.ZodObject<z.ZodRawShape>>({
                 }}
                 type="quaternary"
                 theme="outline"
+                disabled={isSubmitting}
                 size="xs">
                 Cancel
               </Form.Button>

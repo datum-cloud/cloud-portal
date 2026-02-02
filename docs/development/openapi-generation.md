@@ -49,6 +49,7 @@ bun run openapi
 ```
 
 This will:
+
 1. Prompt for API URL (defaults to `https://api.datum.net` or `API_URL` env var)
 2. Prompt for Bearer Token (can be set via `API_TOKEN` env var)
 3. Fetch and display all available API resources
@@ -73,6 +74,7 @@ bun run openapi
 ### Getting a Bearer Token
 
 You need a valid bearer token from your OIDC provider. Get it from:
+
 1. The browser DevTools (Network tab → Authorization header)
 2. Or by logging in and checking the session
 
@@ -82,16 +84,16 @@ You need a valid bearer token from your OIDC provider. Get it from:
 
 The generator will show all available API resources. Common ones include:
 
-| API Group | Description |
-|-----------|-------------|
-| `identity.miloapis.com` | User profile, sessions |
-| `iam.miloapis.com` | Organizations, members, roles |
+| API Group                      | Description                   |
+| ------------------------------ | ----------------------------- |
+| `identity.miloapis.com`        | User profile, sessions        |
+| `iam.miloapis.com`             | Organizations, members, roles |
 | `resourcemanager.miloapis.com` | Projects, resource management |
-| `dns.networking.miloapis.com` | DNS zones, records, domains |
-| `networking.miloapis.com` | HTTP proxies, networking |
-| `compute.miloapis.com` | Compute resources |
-| `quota.miloapis.com` | Quota management |
-| `authorization.miloapis.com` | Access reviews |
+| `dns.networking.miloapis.com`  | DNS zones, records, domains   |
+| `networking.miloapis.com`      | HTTP proxies, networking      |
+| `compute.miloapis.com`         | Compute resources             |
+| `quota.miloapis.com`           | Quota management              |
+| `authorization.miloapis.com`   | Access reviews                |
 
 ---
 
@@ -99,12 +101,12 @@ The generator will show all available API resources. Common ones include:
 
 Each generated module contains:
 
-| File | Purpose |
-|------|---------|
-| `sdk.gen.ts` | API functions (e.g., `getOrganization()`) |
-| `types.gen.ts` | TypeScript types for requests/responses |
-| `schemas.gen.ts` | Zod schemas for runtime validation |
-| `index.ts` | Re-exports |
+| File             | Purpose                                   |
+| ---------------- | ----------------------------------------- |
+| `sdk.gen.ts`     | API functions (e.g., `getOrganization()`) |
+| `types.gen.ts`   | TypeScript types for requests/responses   |
+| `schemas.gen.ts` | Zod schemas for runtime validation        |
+| `index.ts`       | Re-exports                                |
 
 ### Example Usage
 
@@ -139,6 +141,7 @@ import '@/modules/control-plane/setup.server';
 ```
 
 Features:
+
 - Base URL from `API_URL` env var
 - Auth token injection via AsyncLocalStorage
 - Request ID correlation
@@ -154,6 +157,7 @@ import '@/modules/control-plane/setup.client';
 ```
 
 Features:
+
 - Proxy through BFF (`/api/proxy`)
 - Cookie-based authentication
 - CSRF protection
@@ -165,6 +169,7 @@ Features:
 When the Control Plane API changes:
 
 1. **Run the generator:**
+
    ```bash
    bun run openapi
    ```
@@ -172,6 +177,7 @@ When the Control Plane API changes:
 2. **Select the resources** that need updating
 
 3. **Update adapters** if response shape changed:
+
    ```typescript
    // app/resources/{resource}/{resource}.adapter.ts
    export function toResource(response: NewApiResponse): Resource {
@@ -180,6 +186,7 @@ When the Control Plane API changes:
    ```
 
 4. **Run type check:**
+
    ```bash
    bun run typecheck
    ```
@@ -204,6 +211,7 @@ bun run typecheck
 ### Types don't match API response
 
 The spec may be outdated. Re-run the generator:
+
 ```bash
 bun run openapi
 ```
@@ -211,6 +219,7 @@ bun run openapi
 ### Generation fails
 
 Check that:
+
 1. Your bearer token is valid and not expired
 2. You have network access to the API URL
 3. The selected API resource is available

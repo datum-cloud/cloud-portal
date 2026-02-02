@@ -6,12 +6,12 @@ This document covers the tools and practices for maintaining code quality.
 
 ## Overview
 
-| Tool | Purpose | Config |
-|------|---------|--------|
-| **ESLint** | Linting | `eslint.config.js` |
-| **Prettier** | Code formatting | `.prettierrc` |
-| **TypeScript** | Type checking | `tsconfig.json` |
-| **Lefthook** | Git hooks | `lefthook.yml` |
+| Tool           | Purpose         | Config             |
+| -------------- | --------------- | ------------------ |
+| **ESLint**     | Linting         | `eslint.config.js` |
+| **Prettier**   | Code formatting | `.prettierrc`      |
+| **TypeScript** | Type checking   | `tsconfig.json`    |
+| **Lefthook**   | Git hooks       | `lefthook.yml`     |
 
 ---
 
@@ -59,12 +59,12 @@ bunx eslint "app/routes/**/*.tsx" --fix
 
 ### Key Rules
 
-| Rule | Description |
-|------|-------------|
-| `@typescript-eslint/no-explicit-any` | Disallow `any` type |
-| `react-hooks/rules-of-hooks` | Enforce hooks rules |
-| `react-hooks/exhaustive-deps` | Verify dependency arrays |
-| `import/order` | Consistent import ordering |
+| Rule                                 | Description                |
+| ------------------------------------ | -------------------------- |
+| `@typescript-eslint/no-explicit-any` | Disallow `any` type        |
+| `react-hooks/rules-of-hooks`         | Enforce hooks rules        |
+| `react-hooks/exhaustive-deps`        | Verify dependency arrays   |
+| `import/order`                       | Consistent import ordering |
 
 ### Disabling Rules
 
@@ -121,6 +121,7 @@ bun run format:check
 Install Prettier extension and enable "Format on Save":
 
 **VS Code settings:**
+
 ```json
 {
   "editor.formatOnSave": true,
@@ -143,17 +144,18 @@ bun run typecheck
 ```
 
 This runs:
+
 1. `react-router typegen` - Generate route types
 2. `tsc` - TypeScript compiler
 
 ### Strict Mode Rules
 
-| Option | Effect |
-|--------|--------|
-| `strict: true` | Enable all strict checks |
-| `noImplicitAny` | Error on implicit `any` |
+| Option             | Effect                         |
+| ------------------ | ------------------------------ |
+| `strict: true`     | Enable all strict checks       |
+| `noImplicitAny`    | Error on implicit `any`        |
 | `strictNullChecks` | Nullable types must be handled |
-| `noUnusedLocals` | Error on unused variables |
+| `noUnusedLocals`   | Error on unused variables      |
 
 ### Handling Type Errors
 
@@ -203,10 +205,10 @@ pre-commit:
   parallel: true
   commands:
     lint:
-      glob: "*.{ts,tsx}"
+      glob: '*.{ts,tsx}'
       run: bunx eslint {staged_files} --fix
     format:
-      glob: "*.{ts,tsx,json,css,md}"
+      glob: '*.{ts,tsx,json,css,md}'
       run: bunx prettier --write {staged_files}
     types:
       run: bun run typecheck
@@ -215,6 +217,7 @@ pre-commit:
 ### How It Works
 
 On `git commit`:
+
 1. ESLint runs on staged `.ts/.tsx` files
 2. Prettier formats staged files
 3. TypeScript check runs
@@ -244,19 +247,16 @@ Imports should be ordered:
 
 ```typescript
 // 1. External
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-
-// 2. Internal aliases
-import { Button } from '@shadcn/ui/button';
-import { DataTable } from '@datum-ui/components/data-table';
-import { useOrganizations } from '@/resources/organizations';
-
 // 3. Relative
 import { PageHeader } from './components/page-header';
-
+import { useOrganizations } from '@/resources/organizations';
 // 4. Types
 import type { Organization } from '@/resources/organizations';
+import { DataTable } from '@datum-ui/components/data-table';
+// 2. Internal aliases
+import { Button } from '@shadcn/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 ```
 
 ### Import Aliases
@@ -279,13 +279,13 @@ import { env } from '../../utils/env';
 
 ### File Naming
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Components | PascalCase | `PageHeader.tsx` |
-| Hooks | camelCase with `use` | `useOrganizations.ts` |
-| Utilities | camelCase | `formatDate.ts` |
-| Types | PascalCase | `Organization.ts` |
-| Constants | SCREAMING_SNAKE | `API_ENDPOINTS.ts` |
+| Type       | Convention           | Example               |
+| ---------- | -------------------- | --------------------- |
+| Components | PascalCase           | `PageHeader.tsx`      |
+| Hooks      | camelCase with `use` | `useOrganizations.ts` |
+| Utilities  | camelCase            | `formatDate.ts`       |
+| Types      | PascalCase           | `Organization.ts`     |
+| Constants  | SCREAMING_SNAKE      | `API_ENDPOINTS.ts`    |
 
 ### Component Structure
 
@@ -367,6 +367,7 @@ DEBUG=eslint:* bunx eslint app/
 ### Prettier/ESLint Conflicts
 
 Ensure Prettier runs after ESLint:
+
 ```bash
 # In lefthook or CI
 bun run lint && bun run format

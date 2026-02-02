@@ -6,6 +6,7 @@ export interface PublicEnv {
   debug: boolean;
   appUrl: string;
   apiUrl: string;
+  graphqlUrl: string;
   authOidcIssuer: string;
   sentryDsn?: string;
   sentryEnv?: string;

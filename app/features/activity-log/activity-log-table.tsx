@@ -96,6 +96,20 @@ export interface ActivityLogTableProps {
    * ```
    */
   defaultResource?: string | string[];
+  /**
+   * Initial action filter(s) for the filter UI.
+   * Sets a default action filter that users can change.
+   *
+   * @example
+   * ```tsx
+   * // Default to modify operations but allow users to change
+   * <ActivityLogTable
+   *   scope={{ type: 'project', projectId }}
+   *   initialActions={['Added', 'Modified', 'Deleted']}
+   * />
+   * ```
+   */
+  initialActions?: string | string[];
 }
 
 // ============================================
@@ -136,6 +150,7 @@ export function ActivityLogTable({
   hidePagination = false,
   hideFilters = false,
   defaultResource,
+  initialActions,
 }: ActivityLogTableProps) {
   const { user, organization } = useApp();
 
@@ -144,6 +159,7 @@ export function ActivityLogTable({
     scope,
     defaultPageSize,
     defaultResource,
+    initialActions,
     hideFilters,
   });
 
@@ -227,6 +243,7 @@ export function ActivityLogTable({
       }}
       // Server-side filtering
       serverSideFiltering={!hideFilters}
+      defaultFilters={hideFilters ? undefined : table.filters}
       onFiltersChange={hideFilters ? undefined : table.setFilters}
       // Server-side pagination
       serverSidePagination={!hidePagination}
