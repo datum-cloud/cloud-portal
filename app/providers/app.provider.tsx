@@ -48,7 +48,7 @@ export function AppProvider({ children, initialUser, initialOrganization }: AppP
       setSentryUser({
         id: initialUser.uid || '',
         email: initialUser.email,
-        sub: initialUser.sub,
+        username: initialUser.sub,
         name:
           initialUser.givenName && initialUser.familyName
             ? `${initialUser.givenName} ${initialUser.familyName}`

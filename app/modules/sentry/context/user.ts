@@ -9,7 +9,7 @@ import * as Sentry from '@sentry/react-router';
 export interface SentryUser {
   id: string;
   email?: string;
-  sub?: string;
+  username?: string;
   name?: string;
 }
 
@@ -24,19 +24,19 @@ export function setSentryUser(user: SentryUser): void {
   Sentry.setUser({
     id: user.id,
     email: user.email,
-    sub: user.sub,
+    username: user.username,
   });
 
   // Tag for filtering issues/replays by user
   Sentry.setTag('user.id', user.id);
-  Sentry.setTag('user.sub', user.sub);
+  Sentry.setTag('user.username', user.username);
   Sentry.setTag('user.email', user.email);
 
   // Context for detailed sidebar view
   Sentry.setContext('user', {
     id: user.id,
     email: user.email,
-    sub: user.sub,
+    username: user.username,
     name: user.name,
   });
 }
