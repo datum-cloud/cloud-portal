@@ -1,3 +1,4 @@
+import { httpClient } from '@/modules/axios/axios.client';
 import { logger } from '@/modules/logger';
 import {
   // Context
@@ -269,6 +270,59 @@ export default function TestSentryPage() {
     }
   };
 
+  const triggerDnsZoneApiError = async () => {
+    try {
+      // This will trigger a 404 error through the axios interceptor
+      // The interceptor will parse the URL and set resource context:
+      // - resource.apiGroup: dns.networking.miloapis.com
+      // - resource.type: dnszones
+      // - resource.name: nonexistent-zone
+      // - resource.namespace: test-namespace
+      await httpClient.get(
+        '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/test-namespace/dnszones/nonexistent-zone'
+      );
+    } catch (error) {
+      showMessage(
+        'error',
+        `DNS Zone API error captured! Check Sentry for resource tags parsed from URL.`
+      );
+    }
+  };
+
+  const triggerHttpProxyApiError = async () => {
+    try {
+      // This will trigger a 404 error through the axios interceptor
+      // The interceptor will parse the URL and set resource context:
+      // - resource.apiGroup: networking.datumapis.com
+      // - resource.type: httpproxies
+      // - resource.name: nonexistent-proxy
+      // - resource.namespace: test-namespace
+      await httpClient.get(
+        '/apis/networking.datumapis.com/v1alpha/namespaces/test-namespace/httpproxies/nonexistent-proxy'
+      );
+    } catch (error) {
+      showMessage(
+        'error',
+        `HTTPProxy API error captured! Check Sentry for resource tags parsed from URL.`
+      );
+    }
+  };
+
+  const triggerUserApiError = async () => {
+    try {
+      // This will trigger a 401/404 error through the axios interceptor
+      // The interceptor will parse the URL and set resource context:
+      // - resource.apiGroup: iam.miloapis.com
+      // - resource.type: useridentities
+      await httpClient.get('/apis/iam.miloapis.com/v1alpha1/users/test-user/useridentities');
+    } catch (error) {
+      showMessage(
+        'error',
+        `User API error captured! Check Sentry for resource tags parsed from URL.`
+      );
+    }
+  };
+
   const testResourceTags = () => {
     // Set resource context (this sets the tags)
     setSentryResourceContext({
@@ -446,6 +500,49 @@ export default function TestSentryPage() {
             </Button>
           </div>
         </section>
+
+        {/* Real API Error Tests */}
+        <section style={{ padding: '1.5rem', backgroundColor: '#ffebee', borderRadius: '8px' }}>
+          <h2 style={{ marginTop: 0, color: '#b71c1c' }}>Real API Errors (URL Parsing)</h2>
+          <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '1rem' }}>
+            Trigger real API errors to test URL-based resource context
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <Button onClick={triggerDnsZoneApiError} color="#c62828">
+              DNS Zone 404 Error
+            </Button>
+            <Button onClick={triggerHttpProxyApiError} color="#c62828">
+              HTTPProxy 404 Error
+            </Button>
+            <Button onClick={triggerUserApiError} color="#c62828">
+              User API 401/404 Error
+            </Button>
+          </div>
+          <div
+            style={{
+              marginTop: '1rem',
+              padding: '0.75rem',
+              backgroundColor: '#fff',
+              borderRadius: '4px',
+              fontSize: '0.8rem',
+            }}>
+            <strong>Expected resource tags from URL:</strong>
+            <ul style={{ margin: '0.5rem 0', paddingLeft: '1.25rem' }}>
+              <li>
+                <code>resource.apiGroup</code> (e.g., dns.networking.miloapis.com)
+              </li>
+              <li>
+                <code>resource.type</code> (e.g., dnszones, httpproxies)
+              </li>
+              <li>
+                <code>resource.name</code> (e.g., nonexistent-zone)
+              </li>
+              <li>
+                <code>resource.namespace</code> (e.g., test-namespace)
+              </li>
+            </ul>
+          </div>
+        </section>
       </div>
 
       {/* Server-Side Tests */}
@@ -500,7 +597,10 @@ export default function TestSentryPage() {
                 <code>project.id</code>
               </li>
               <li>
-                <code>resource.kind</code>
+                <code>resource.kind</code> (from response)
+              </li>
+              <li>
+                <code>resource.type</code> (from URL)
               </li>
               <li>
                 <code>resource.apiGroup</code>

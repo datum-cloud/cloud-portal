@@ -15,6 +15,7 @@
  *
  * ## Capture (error reporting)
  * - captureError - Capture errors with context
+ * - captureApiError - Capture API errors with resource context and fingerprinting
  * - captureMessage - Capture messages
  * - addBreadcrumb - Add custom breadcrumbs
  *
@@ -41,7 +42,10 @@ export {
   isKubernetesResource,
   setSentryResourceContext,
   clearSentryResourceContext,
+  parseResourceFromUrl,
+  setResourceContextFromUrl,
   type KubernetesResource,
+  type UrlResourceInfo,
 } from './context';
 
 // Breadcrumbs - user journey tracking
@@ -62,10 +66,12 @@ export {
 export {
   addBreadcrumb,
   captureError,
+  captureApiError,
   captureMessage,
   setTag,
   setContext,
   type LogLevel,
+  type CaptureApiErrorOptions,
 } from './capture';
 
 // Tracing - performance monitoring

@@ -20,5 +20,8 @@ export {
   isKubernetesResource,
   setSentryResourceContext,
   clearSentryResourceContext,
+  parseResourceFromUrl,
+  setResourceContextFromUrl,
   type KubernetesResource,
+  type UrlResourceInfo,
 } from './resource';

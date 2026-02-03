@@ -2,6 +2,7 @@ import {
   isKubernetesResource,
   setSentryResourceContext,
   clearSentryResourceContext,
+  captureApiError,
 } from '@/modules/sentry';
 import * as Sentry from '@sentry/react-router';
 import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
@@ -107,18 +108,14 @@ const onResponseError = (error: AxiosError): Promise<AxiosError> => {
 
   const errorInfo = getErrorMessage(error);
 
-  // Capture to Sentry with context
-  Sentry.captureException(error, {
-    tags: {
-      type: 'api_error',
-      status: String(error.response?.status ?? 'network'),
-    },
-    extra: {
-      url: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      requestId: errorInfo.requestId,
-    },
+  // Capture API error to Sentry with resource context and fingerprinting
+  captureApiError({
+    error,
+    method: error.config?.method,
+    url: error.config?.url,
+    status: error.response?.status ?? 'network',
+    message: errorInfo.message,
+    requestId: errorInfo.requestId,
   });
 
   // Show toast with error message

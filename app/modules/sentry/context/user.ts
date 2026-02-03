@@ -29,6 +29,8 @@ export function setSentryUser(user: SentryUser): void {
 
   // Tag for filtering issues/replays by user
   Sentry.setTag('user.id', user.id);
+  Sentry.setTag('user.username', user.username);
+  Sentry.setTag('user.email', user.email);
 
   // Context for detailed sidebar view
   Sentry.setContext('user', {

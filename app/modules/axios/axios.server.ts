@@ -6,6 +6,7 @@ import {
   isKubernetesResource,
   setSentryResourceContext,
   clearSentryResourceContext,
+  captureApiError,
 } from '@/modules/sentry';
 import { env } from '@/utils/env/env.server';
 import {
@@ -130,6 +131,16 @@ const onResponseError = (error: AxiosError): Promise<never> => {
     | undefined;
 
   const message = data?.message || data?.reason || data?.error || error.message;
+
+  // Capture API error to Sentry with resource context and fingerprinting
+  captureApiError({
+    error,
+    method: config?.method,
+    url: config?.url,
+    status: error.response?.status ?? 500,
+    message,
+    requestId,
+  });
 
   switch (error.response?.status) {
     case 401: {
