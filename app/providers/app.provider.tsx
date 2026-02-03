@@ -1,5 +1,5 @@
 import { useTheme } from '@/modules/datum-themes';
-import { clearSentryUser, setSentryUser } from '@/modules/logger/sentry.client';
+import { clearSentryUser, setSentryUser } from '@/modules/sentry';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import type { User, UserPreferences } from '@/resources/users';
@@ -45,7 +45,15 @@ export function AppProvider({ children, initialUser, initialOrganization }: AppP
   useEffect(() => {
     if (initialUser) {
       setUser(initialUser);
-      setSentryUser(initialUser);
+      setSentryUser({
+        id: initialUser.uid || '',
+        email: initialUser.email,
+        username: initialUser.sub,
+        name:
+          initialUser.givenName && initialUser.familyName
+            ? `${initialUser.givenName} ${initialUser.familyName}`
+            : undefined,
+      });
     } else {
       clearSentryUser();
     }

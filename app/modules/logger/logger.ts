@@ -1,6 +1,5 @@
 // app/modules/logger/logger.ts
 import { format } from './formatters';
-import { addBreadcrumb, setLoggerContext, captureError } from './integrations/sentry';
 import { LOGGER_CONFIG } from './logger.config';
 import type {
   LogLevel,
@@ -10,6 +9,7 @@ import type {
   ApiLogData,
   ServiceLogData,
 } from './logger.types';
+import { addBreadcrumb, captureError, setTag } from '@/modules/sentry';
 
 const LOG_LEVELS: Record<LogLevel, number> = {
   debug: 0,
@@ -32,9 +32,9 @@ export class Logger {
     const merged = { ...this.context, ...context };
     const child = new Logger(merged);
 
-    // Set Sentry context when creating request-scoped logger
+    // Set request correlation tag in Sentry
     if (context.requestId) {
-      setLoggerContext(merged);
+      setTag('request.id', context.requestId);
     }
 
     return child;
@@ -88,7 +88,7 @@ export class Logger {
       errorToCapture = new Error(message);
     }
 
-    captureError(message, errorToCapture, { ...this.context, ...data });
+    captureError(errorToCapture, { message, extra: { ...this.context, ...data } });
   }
 
   /**

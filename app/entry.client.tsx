@@ -19,8 +19,24 @@ Sentry.init({
   integrations: [
     // Performance
     Sentry.reactRouterTracingIntegration(),
-    // Session replay
-    Sentry.replayIntegration(),
+    // Session replay with sensitive data masking
+    Sentry.replayIntegration({
+      maskAllText: false,
+      maskAllInputs: false,
+      blockAllMedia: false,
+
+      // Mask sensitive fields
+      mask: [
+        '[data-sentry-mask]',
+        'input[type="password"]',
+        '[name*="secret"]',
+        '[name*="token"]',
+        '[name*="key"]',
+        '[name*="credential"]',
+      ],
+      // Block entire sections from replay
+      block: ['[data-sentry-block]'],
+    }),
     // User feedback - disabled to remove "Report a Bug" button
     // Sentry.feedbackIntegration({
     //   // Additional SDK configuration goes in here, for example:
@@ -36,9 +52,9 @@ Sentry.init({
   // Set `tracePropagationTargets` to declare which URL(s) should have trace propagation enabled
   tracePropagationTargets: [/^\//, new RegExp(window.location.origin)],
 
-  // Capture Replay for 10% of all sessions,
+  // Capture Replay for 50% of all sessions for proactive UX monitoring,
   // plus 100% of sessions with an error
-  replaysSessionSampleRate: 0.1,
+  replaysSessionSampleRate: 0.5,
   replaysOnErrorSampleRate: 1.0,
 
   // Release name

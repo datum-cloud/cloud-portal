@@ -2,6 +2,12 @@ import { getRequestContext } from './request-context';
 import { logger } from '@/modules/logger';
 import { generateCurl } from '@/modules/logger/curl.generator';
 import { LOGGER_CONFIG } from '@/modules/logger/logger.config';
+import {
+  isKubernetesResource,
+  setSentryResourceContext,
+  clearSentryResourceContext,
+  captureApiError,
+} from '@/modules/sentry';
 import { env } from '@/utils/env/env.server';
 import {
   AppError,
@@ -24,6 +30,9 @@ export const http = Axios.create({
 });
 
 const onRequest = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+  // Clear previous resource context to avoid stale data
+  clearSentryResourceContext();
+
   const ctx = getRequestContext();
 
   // Auto-inject Authorization header from context
@@ -83,6 +92,11 @@ const onResponse = (response: AxiosResponse): AxiosResponse => {
     });
   }
 
+  // Set resource context if response is a K8s resource
+  if (isKubernetesResource(response.data)) {
+    setSentryResourceContext(response.data);
+  }
+
   return response;
 };
 
@@ -117,6 +131,16 @@ const onResponseError = (error: AxiosError): Promise<never> => {
     | undefined;
 
   const message = data?.message || data?.reason || data?.error || error.message;
+
+  // Capture API error to Sentry with resource context and fingerprinting
+  captureApiError({
+    error,
+    method: config?.method,
+    url: config?.url,
+    status: error.response?.status ?? 500,
+    message,
+    requestId,
+  });
 
   switch (error.response?.status) {
     case 401: {

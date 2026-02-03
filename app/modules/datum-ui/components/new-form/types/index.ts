@@ -65,6 +65,12 @@ export interface FormRootProps<T extends z.ZodType> {
   // Configuration
   /** Unique form ID */
   id?: string;
+  /**
+   * Form name for analytics and error tracking.
+   * Used in Sentry breadcrumbs to identify which form the user interacted with.
+   * @example "http-proxy-create", "dns-zone-edit", "project-settings"
+   */
+  name?: string;
   /** Default values for form fields */
   defaultValues?: Partial<z.infer<T>>;
   /** When to validate: onBlur, onChange, or onSubmit */

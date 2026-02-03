@@ -32,6 +32,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
         <CardTitle className="text-sm font-medium">Project Info</CardTitle>
       </CardHeader>
       <Form.Root
+        name="update-project"
         id="update-project-form"
         schema={updateProjectSchema.pick({ description: true, name: true })}
         defaultValues={{

@@ -35,6 +35,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
         <CardTitle className="text-sm font-medium">Organization Info</CardTitle>
       </CardHeader>
       <Form.Root
+        name="update-organization"
         id="update-organization-form"
         schema={schema}
         defaultValues={{
