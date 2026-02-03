@@ -83,7 +83,7 @@ export default function TestSentryPage() {
     setSentryUser({
       id: 'test-user-123',
       email: 'test@example.com',
-      username: 'testuser',
+      sub: '33221123123',
       name: 'Test User',
     });
     showMessage('success', 'User context set (user.id tag + user context)');
@@ -124,7 +124,7 @@ export default function TestSentryPage() {
   };
 
   const testFullHierarchy = () => {
-    setSentryUser({ id: 'user-001', email: 'user@example.com', username: 'testuser' });
+    setSentryUser({ id: 'user-001', email: 'user@example.com', sub: '33221123123' });
     setSentryOrgContext({ name: 'acme-corp', uid: 'org-001' });
     setSentryProjectContext({
       name: 'web-app',
