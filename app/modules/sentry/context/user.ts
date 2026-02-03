@@ -47,5 +47,7 @@ export function setSentryUser(user: SentryUser): void {
 export function clearSentryUser(): void {
   Sentry.setUser(null);
   Sentry.setTag('user.id', undefined);
+  Sentry.setTag('user.username', undefined);
+  Sentry.setTag('user.email', undefined);
   Sentry.setContext('user', null);
 }

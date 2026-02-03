@@ -6,6 +6,11 @@
  */
 import * as Sentry from '@sentry/react-router';
 
+// Precompiled regex patterns for URL parsing (performance optimization)
+const CONTROL_PLANE_REGEX = /\/control-plane\/apis\/(.+)/;
+const APIS_REGEX = /^\/apis\/([^/]+)\/([^/]+)\/(.+)/;
+const CORE_API_REGEX = /^\/api\/([^/]+)\/(.+)/;
+
 export interface KubernetesResource {
   kind: string;
   apiVersion: string;
@@ -98,21 +103,21 @@ export function parseResourceFromUrl(url: string): UrlResourceInfo | null {
 
   // Handle project-scoped control-plane paths
   // Pattern: /apis/.../projects/{id}/control-plane/apis/{apiGroup}/{version}/...
-  const controlPlaneMatch = path.match(/\/control-plane\/apis\/(.+)/);
+  const controlPlaneMatch = path.match(CONTROL_PLANE_REGEX);
   if (controlPlaneMatch) {
     // Extract the nested API path after control-plane
     path = '/apis/' + controlPlaneMatch[1];
   }
 
   // Match /apis/{apiGroup}/{version}/...
-  const apisMatch = path.match(/^\/apis\/([^/]+)\/([^/]+)\/(.+)/);
+  const apisMatch = path.match(APIS_REGEX);
   if (apisMatch) {
     const [, apiGroup, version, rest] = apisMatch;
     return parseResourcePath(apiGroup, version, rest);
   }
 
   // Match /api/{version}/... (core API)
-  const coreMatch = path.match(/^\/api\/([^/]+)\/(.+)/);
+  const coreMatch = path.match(CORE_API_REGEX);
   if (coreMatch) {
     const [, version, rest] = coreMatch;
     return parseResourcePath('core', version, rest);
@@ -172,7 +177,6 @@ export function setResourceContextFromUrl(url: string): void {
     resourceType: info.resourceType,
     name: info.name,
     namespace: info.namespace,
-    // source: 'url', // Indicates this was parsed from URL, not response
   });
 }
 

@@ -3,8 +3,8 @@
  *
  * Utilities for capturing errors and adding breadcrumbs to Sentry.
  */
-import * as Sentry from '@sentry/react-router';
 import { parseResourceFromUrl, setResourceContextFromUrl } from './context/resource';
+import * as Sentry from '@sentry/react-router';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -131,8 +131,16 @@ export interface CaptureApiErrorOptions {
  * });
  */
 export function captureApiError(options: CaptureApiErrorOptions): void {
-  const { error, url, method = 'REQUEST', status = 'unknown', message, requestId, tags, extra } =
-    options;
+  const {
+    error,
+    url,
+    method = 'REQUEST',
+    status = 'unknown',
+    message,
+    requestId,
+    tags,
+    extra,
+  } = options;
 
   // Parse resource info from URL for context and fingerprinting
   const resourceInfo = url ? parseResourceFromUrl(url) : null;
