@@ -14,9 +14,11 @@ import type {
   SessionValidationResult,
 } from './auth.types';
 import { zitadelIssuer, zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
+import { redisClient } from '@/modules/redis';
 import { env } from '@/utils/env/env.server';
 import { categorizeRefreshError, RefreshError } from '@/utils/errors/auth';
 import { combineHeaders } from '@/utils/helpers/path.helper';
+import { createHash } from 'crypto';
 import { jwtDecode } from 'jwt-decode';
 import { createCookieSessionStorage, createCookie } from 'react-router';
 
@@ -70,8 +72,8 @@ function debugLog(message: string, data?: Record<string, unknown>): void {
 }
 
 /**
- * In-memory refresh lock to prevent concurrent refresh attempts
- * Key: refresh token prefix (first 20 chars), Value: { promise, timestamp }
+ * In-memory refresh lock to prevent concurrent refresh attempts (fallback)
+ * Key: derived refresh token key, Value: { promise, timestamp }
  *
  * This prevents race conditions when multiple concurrent requests
  * try to refresh the same token (Zitadel uses token rotation).
@@ -86,6 +88,103 @@ const refreshLocks = new Map<string, RefreshLockEntry>();
  * Max age for lock entries (30 seconds) - prevents stale locks
  */
 const LOCK_MAX_AGE_MS = 30 * 1000;
+
+/**
+ * Redis result TTL (short) - just long enough for concurrent requests to pick it up.
+ */
+const REDIS_RESULT_TTL_MS = 10 * 1000;
+
+type RedisRefreshResult = {
+  session: IAccessTokenSession;
+  setCookie: string[];
+};
+
+function deriveRefreshLockKey(refreshToken: string): string {
+  // Avoid putting token material (even prefixes) into Redis keys.
+  // If hashing fails for any reason, fall back to previous behavior.
+  try {
+    return createHash('sha256').update(refreshToken).digest('hex').slice(0, 32);
+  } catch {
+    return refreshToken.substring(0, 20);
+  }
+}
+
+function isRedisReadyForLocks(): boolean {
+  return !!redisClient && redisClient.status === 'ready';
+}
+
+function redisLockKey(key: string): string {
+  return `auth:refresh-lock:${key}`;
+}
+
+function redisResultKey(key: string): string {
+  return `auth:refresh-result:${key}`;
+}
+
+async function getRedisRefreshResult(key: string): Promise<RedisRefreshResult | null> {
+  if (!redisClient) return null;
+  const raw = await redisClient.get(redisResultKey(key));
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as RedisRefreshResult;
+  } catch {
+    // If something corrupt is present, ignore it and let callers proceed.
+    return null;
+  }
+}
+
+async function releaseRedisLockIfOwned(key: string, lockValue: string): Promise<void> {
+  if (!redisClient) return;
+  const lockKey = redisLockKey(key);
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await redisClient.watch(lockKey);
+      const current = await redisClient.get(lockKey);
+
+      if (current !== lockValue) {
+        await redisClient.unwatch();
+        return;
+      }
+
+      const execResult = await redisClient.multi().del(lockKey).exec();
+      if (execResult) return;
+    } catch {
+      try {
+        await redisClient.unwatch();
+      } catch {
+        // ignore
+      }
+      return;
+    }
+  }
+
+  try {
+    await redisClient.unwatch();
+  } catch {
+    // ignore
+  }
+}
+
+async function waitForRedisResultOrLockRelease(
+  key: string,
+  maxWaitMs: number = 5000
+): Promise<RedisRefreshResult | null> {
+  if (!redisClient) return null;
+
+  const start = Date.now();
+  while (Date.now() - start < maxWaitMs) {
+    const result = await getRedisRefreshResult(key);
+    if (result) return result;
+
+    const stillLocked = await redisClient.exists(redisLockKey(key));
+    if (!stillLocked) return null;
+
+    await new Promise((r) => setTimeout(r, 75 + Math.floor(Math.random() * 75)));
+  }
+
+  return null;
+}
 
 /**
  * Cleanup old locks after a delay
@@ -179,33 +278,89 @@ export class AuthService {
     sessionRaw: Awaited<ReturnType<typeof sessionStorage.getSession>>,
     refreshRaw: Awaited<ReturnType<typeof refreshTokenStorage.getSession>>
   ): Promise<{ session: IAccessTokenSession; headers: Headers }> {
-    // Use token prefix as lock key (tokens are unique enough in first 20 chars)
-    const lockKey = refreshToken.substring(0, 20);
+    const key = deriveRefreshLockKey(refreshToken);
 
-    // Check if there's already a refresh in progress for this token
-    const existingLock = refreshLocks.get(lockKey);
+    // Prefer Redis singleflight when Redis is configured and actually ready.
+    // This prevents cross-process races (e.g. multiple Bun workers / pods).
+    if (isRedisReadyForLocks()) {
+      // Fast path: if a recent result exists, reuse it.
+      const existingResult = await getRedisRefreshResult(key);
+      if (existingResult) {
+        debugLog('Redis refresh result found, reusing...');
+        const headers = new Headers();
+        for (const cookie of existingResult.setCookie) headers.append('Set-Cookie', cookie);
+        return { session: existingResult.session, headers };
+      }
+
+      const lockValue = crypto.randomUUID();
+      const acquired = await redisClient!.set(
+        redisLockKey(key),
+        lockValue,
+        'PX',
+        LOCK_MAX_AGE_MS,
+        'NX'
+      );
+
+      if (acquired !== 'OK') {
+        debugLog('Redis refresh already in progress, waiting for result...');
+        const waited = await waitForRedisResultOrLockRelease(key);
+        if (waited) {
+          const headers = new Headers();
+          for (const cookie of waited.setCookie) headers.append('Set-Cookie', cookie);
+          return { session: waited.session, headers };
+        }
+
+        // Lock released or timed out without a result; retry once by recursively calling.
+        // (If the other refresh failed, this request becomes the new leader.)
+        return this.refreshTokens(refreshToken, sessionRaw, refreshRaw);
+      }
+
+      try {
+        const result = await this.doRefreshTokens(refreshToken, sessionRaw, refreshRaw);
+
+        // Persist a short-lived result so concurrent requests can reuse it safely.
+        const setCookie: string[] = [];
+        result.headers.forEach((value, headerName) => {
+          if (headerName.toLowerCase() === 'set-cookie') setCookie.push(value);
+        });
+
+        const payload: RedisRefreshResult = {
+          session: result.session,
+          setCookie,
+        };
+
+        await redisClient!.set(
+          redisResultKey(key),
+          JSON.stringify(payload),
+          'PX',
+          REDIS_RESULT_TTL_MS
+        );
+        await releaseRedisLockIfOwned(key, lockValue);
+
+        return result;
+      } catch (error) {
+        // Ensure other waiters don't block until TTL.
+        await releaseRedisLockIfOwned(key, lockValue);
+        throw error;
+      }
+    }
+
+    // Fallback: in-memory singleflight (works within a single process).
+    const existingLock = refreshLocks.get(key);
     if (existingLock) {
-      debugLog('Refresh already in progress, waiting for result...');
+      debugLog('Refresh already in progress (in-memory), waiting for result...');
       return existingLock.promise;
     }
 
-    // Create the refresh promise
     const refreshPromise = this.doRefreshTokens(refreshToken, sessionRaw, refreshRaw);
-
-    // Store the promise with timestamp so concurrent requests can wait for it
-    refreshLocks.set(lockKey, {
-      promise: refreshPromise,
-      timestamp: Date.now(),
-    });
+    refreshLocks.set(key, { promise: refreshPromise, timestamp: Date.now() });
 
     try {
       const result = await refreshPromise;
-      // Cleanup lock after a short delay (allow time for response to propagate)
-      cleanupRefreshLock(lockKey, 5000);
+      cleanupRefreshLock(key, 5000);
       return result;
     } catch (error) {
-      // Remove lock immediately on error so next request can retry
-      refreshLocks.delete(lockKey);
+      refreshLocks.delete(key);
       throw error;
     }
   }

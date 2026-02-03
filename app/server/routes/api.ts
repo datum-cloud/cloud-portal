@@ -7,14 +7,13 @@ import { prometheusRoutes } from './prometheus';
 import { proxyRoutes } from './proxy';
 import { userRoutes } from './user';
 import { authGuardMiddleware } from '@/server/middleware/auth';
-import { rateLimiter, RateLimitPresets } from '@/server/middleware/rate-limit';
 import type { Variables } from '@/server/types';
 import { Hono } from 'hono';
 
 /**
  * API sub-application with security middleware and explicit route registration.
  *
- * Middleware order: Auth → Rate Limit → Route Handler
+ * Middleware order: Auth → Route Handler
  * Unknown routes return 404 (prevents endpoint discovery attacks)
  */
 export function createApiApp() {
@@ -22,15 +21,6 @@ export function createApiApp() {
 
   // Auth required for all API routes
   api.use('*', authGuardMiddleware());
-
-  api.use(
-    '*',
-    rateLimiter(
-      process.env.NODE_ENV === 'development'
-        ? RateLimitPresets.development
-        : RateLimitPresets.standard
-    )
-  );
 
   // Routes
   api.route('/proxy', proxyRoutes);
