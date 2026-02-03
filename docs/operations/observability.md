@@ -71,37 +71,105 @@ Sentry automatically captures:
 - Promise rejections
 - React error boundaries
 - Network errors
+- API errors (via axios interceptors)
 
-### Manual Error Reporting
+### Sentry Module
+
+The `@/modules/sentry` module provides centralized Sentry integration:
 
 ```typescript
-import * as Sentry from '@sentry/react';
+import {
+  // Context - hierarchical enrichment
+  setSentryUser,
+  setSentryOrgContext,
+  setSentryProjectContext,
+  setSentryResourceContext,
 
-// Capture exception
-try {
-  await riskyOperation();
-} catch (error) {
-  Sentry.captureException(error, {
-    tags: { feature: 'dns' },
-    extra: { zoneId, recordType },
-  });
-}
+  // Breadcrumbs - user journey tracking
+  trackFormSubmit,
+  trackFormSuccess,
+  trackFormError,
 
-// Capture message
-Sentry.captureMessage('Unexpected state', 'warning');
+  // Capture - error reporting
+  captureError,
+  captureApiError,
+  captureMessage,
+} from '@/modules/sentry';
 ```
 
-### User Context
+### Hierarchical Context
 
-User context is automatically set on login:
+Context is set automatically at different levels:
 
 ```typescript
-Sentry.setUser({
-  id: user.id,
-  email: user.email,
-  organizationId: orgId,
+// User context (set on login)
+setSentryUser({ id: 'user-123', email: 'user@example.com' });
+
+// Organization context (set in org layout)
+setSentryOrgContext({ name: 'acme-corp', uid: 'org-abc' });
+
+// Project context (set in project layout)
+setSentryProjectContext({ name: 'my-project', uid: 'proj-xyz' });
+
+// Resource context (set automatically from API responses)
+setSentryResourceContext({
+  kind: 'DNSZone',
+  apiVersion: 'dns.networking.miloapis.com/v1alpha1',
+  metadata: { name: 'example.com', namespace: 'default' },
 });
 ```
+
+### Tags for Filtering
+
+Filter issues in Sentry dashboard using these tags:
+
+| Tag | Description | Example |
+|-----|-------------|---------|
+| `user.id` | User identifier | `user-123` |
+| `org.id` | Organization name | `acme-corp` |
+| `project.id` | Project name | `my-project` |
+| `resource.kind` | K8s resource kind | `DNSZone` |
+| `resource.apiGroup` | API group | `dns.networking.miloapis.com` |
+| `resource.type` | Resource type (from URL) | `dnszones` |
+| `resource.name` | Resource name | `example.com` |
+
+### API Error Capture
+
+API errors are automatically captured with resource context:
+
+```typescript
+// Automatic capture via axios interceptors
+// Errors include: fingerprint, resource context, method, URL, status
+
+// Manual capture
+captureApiError({
+  error: axiosError,
+  method: 'GET',
+  url: '/apis/dns.networking.miloapis.com/v1alpha1/dnszones/my-zone',
+  status: 404,
+  message: 'Not Found',
+});
+```
+
+**Error Grouping:** Errors are grouped by `resource type + API group + status code`:
+- `API 404: GET dnszones` (instead of generic "AxiosError")
+- `API 401: POST projects`
+
+### Form Tracking
+
+Forms automatically track user interactions as breadcrumbs:
+
+```typescript
+// Add name prop to forms for better tracking
+<Form.Root name="dns-zone-create" schema={schema} onSubmit={handleSubmit}>
+  ...
+</Form.Root>
+```
+
+Tracked events:
+- Form submit attempts
+- Validation errors (field names only, not values)
+- Submission success/failure
 
 ### Performance Monitoring
 
@@ -329,6 +397,38 @@ Configure alerts for:
 3. View traces for slow requests
 4. Check span breakdown
 
+### Filtering Sentry Issues
+
+Use tags to filter issues in the Sentry dashboard:
+
+```
+# Find all errors for a specific organization
+org.id:acme-corp
+
+# Find errors in a specific project
+project.id:my-project
+
+# Find all DNS Zone errors
+resource.type:dnszones
+
+# Find HTTP Proxy errors with 404 status
+resource.type:httpproxies status:404
+
+# Find all errors for a resource API group
+resource.apiGroup:dns.networking.miloapis.com
+
+# Combine filters for specific customer issues
+org.id:acme-corp project.id:production resource.kind:HTTPProxy
+```
+
+### Debugging Customer Issues
+
+1. **Get customer org ID** from support ticket
+2. **Filter in Sentry**: `org.id:<customer-org>`
+3. **Check breadcrumbs** for user journey (form submissions, API calls)
+4. **View resource context** to see what resource they were working on
+5. **Correlate with trace ID** for full request flow
+
 ---
 
 ## Best Practices
@@ -339,6 +439,9 @@ Configure alerts for:
 - Use structured logging
 - Add custom spans for complex operations
 - Set meaningful span names
+- Use `captureApiError()` for API errors (automatic fingerprinting)
+- Add `name` prop to forms for better tracking
+- Filter errors by resource tags in Sentry dashboard
 
 ### DON'T
 
@@ -346,6 +449,8 @@ Configure alerts for:
 - Create too many custom metrics
 - Ignore high-cardinality labels
 - Skip error context
+- Use `Sentry.captureException()` directly for API errors (use `captureApiError()`)
+- Track form field values (only track field names)
 
 ---
 
