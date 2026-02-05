@@ -1,16 +1,29 @@
 import { useDataTable } from '../../core/data-table.context';
 
 /**
- * Component to display the filtered row count with pagination information
- * Shows "Showing X-Y of Z records" when paginated, or "Showing X records" when all are shown
+ * Component to display the filtered row count with pagination and selection information
+ *
+ * Display modes:
+ * - Selection: "X selected" (when rows are selected)
+ * - Paginated: "Showing X-Y of Z records" (when paginated, no selection)
+ * - All shown: "Showing X records" (when all fit on one page, no selection)
  */
 export function DataTableToolbarRowCount() {
-  const { table } = useDataTable();
+  const { table, selectionCount, hasSelection } = useDataTable();
   const totalFiltered = table.getFilteredRowModel().rows.length;
 
   // Hide if no records
   if (totalFiltered === 0) {
     return null;
+  }
+
+  // If rows are selected, show selection count instead
+  if (hasSelection) {
+    return (
+      <span className="text-muted-foreground text-sm font-medium whitespace-nowrap">
+        {selectionCount} of {totalFiltered} selected
+      </span>
+    );
   }
 
   const currentPageRows = table.getRowModel().rows.length;

@@ -338,12 +338,12 @@ The Gqlts client automatically routes based on environment:
 
 GraphQL endpoints are scoped to different contexts:
 
-| Scope | Use Case |
-|-------|----------|
-| `user` | User-specific data (memberships, preferences) |
-| `org` | Organization resources |
-| `project` | Project resources |
-| `global` | Cross-cutting queries |
+| Scope     | Use Case                                      |
+| --------- | --------------------------------------------- |
+| `user`    | User-specific data (memberships, preferences) |
+| `org`     | Organization resources                        |
+| `project` | Project resources                             |
+| `global`  | Cross-cutting queries                         |
 
 ### Example Usage
 
@@ -352,8 +352,8 @@ GraphQL endpoints are scoped to different contexts:
 const client = createGqlClient({ type: 'user', userId: 'me' });
 const result = await client.query({
   listOrganizationMemberships: {
-    items: { metadata: { name: true }, status: { organization: { displayName: true } } }
-  }
+    items: { metadata: { name: true }, status: { organization: { displayName: true } } },
+  },
 });
 ```
 

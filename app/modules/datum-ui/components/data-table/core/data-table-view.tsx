@@ -1,10 +1,8 @@
-import { DataTableRowActions } from '../features/actions/data-table-row-actions';
 import {
   DataTableInlineContent,
   InlineContentRenderParams,
 } from '../features/inline-content/data-table-inline-content';
 import { useDataTable } from './data-table.context';
-import { DataTableRowActionsProps } from './data-table.types';
 import { EmptyContent } from '@/components/empty-content/empty-content';
 import { cn } from '@shadcn/lib/utils';
 import { TableBody, TableCell, TableRow } from '@shadcn/ui/table';
@@ -13,10 +11,6 @@ import { Table as TTable, flexRender } from '@tanstack/react-table';
 export interface DataTableViewProps<TData> {
   table: TTable<TData>;
   columns: any[];
-  rowActions?: DataTableRowActionsProps<TData>[];
-  hideRowActions?: (row: TData) => boolean;
-  disableRowActions?: (row: TData) => boolean;
-  maxInlineActions?: number;
   onRowClick?: (row: TData) => void;
   rowClassName?: (row: TData) => string;
   // Inline form props
@@ -28,10 +22,6 @@ export interface DataTableViewProps<TData> {
 export const DataTableView = <TData,>({
   table,
   columns: _columns,
-  rowActions = [],
-  hideRowActions,
-  disableRowActions,
-  maxInlineActions = 3,
   onRowClick,
   rowClassName,
   enableInlineContent = false,
@@ -41,7 +31,7 @@ export const DataTableView = <TData,>({
   const { inlineContentState, isRowEditing, closeInlineContent } = useDataTable<TData>();
 
   // Calculate total column count for inline form
-  const columnCount = table.getVisibleLeafColumns().length + (rowActions.length > 0 ? 1 : 0);
+  const columnCount = table.getVisibleLeafColumns().length;
 
   return (
     <TableBody>
@@ -90,6 +80,7 @@ export const DataTableView = <TData,>({
                 className={cn(
                   'bg-table-cell hover:bg-table-cell-hover relative transition-colors',
                   onRowClick && 'cursor-pointer',
+                  row.getIsSelected() && 'bg-muted/50',
                   rowClassName?.(row.original)
                 )}>
                 {row.getVisibleCells().map((cell) => (
@@ -99,18 +90,6 @@ export const DataTableView = <TData,>({
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
-                {rowActions && rowActions.length > 0 && (
-                  <TableCell className="px-4 py-2.5">
-                    <DataTableRowActions
-                      row={row.original}
-                      rowId={row.id}
-                      actions={rowActions}
-                      hideRowActions={hideRowActions}
-                      disableRowActions={disableRowActions}
-                      maxInlineActions={maxInlineActions}
-                    />
-                  </TableCell>
-                )}
               </TableRow>
             );
           })}

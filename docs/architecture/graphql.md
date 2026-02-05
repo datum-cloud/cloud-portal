@@ -15,12 +15,12 @@ The portal supports GraphQL as an alternative to REST for data fetching. GraphQL
 
 ### When to Use GraphQL vs REST
 
-| Use Case | Recommended | Why |
-|----------|-------------|-----|
-| Complex nested data | GraphQL | Single request, select exact fields |
-| Simple CRUD | REST | Simpler, well-established patterns |
-| Real-time updates | REST + Watch | K8s Watch API via SSE |
-| Batch operations | GraphQL | Multiple operations in one request |
+| Use Case            | Recommended  | Why                                 |
+| ------------------- | ------------ | ----------------------------------- |
+| Complex nested data | GraphQL      | Single request, select exact fields |
+| Simple CRUD         | REST         | Simpler, well-established patterns  |
+| Real-time updates   | REST + Watch | K8s Watch API via SSE               |
+| Batch operations    | GraphQL      | Multiple operations in one request  |
 
 ---
 
@@ -90,12 +90,12 @@ app/modules/gqlts/
 
 GraphQL endpoints are scoped to different contexts:
 
-| Scope | Server Path | Client Proxy Path |
-|-------|-------------|-------------------|
-| User | `/iam.miloapis.com/v1alpha1/users/{userId}/graphql` | `/api/graphql/user/{userId}` |
-| Organization | `/resourcemanager.miloapis.com/v1alpha1/organizations/{orgId}/graphql` | `/api/graphql/org/{orgId}` |
-| Project | `/resourcemanager.miloapis.com/v1alpha1/projects/{projectId}/graphql` | `/api/graphql/project/{projectId}` |
-| Global | `/graphql` | `/api/graphql` |
+| Scope        | Server Path                                                            | Client Proxy Path                  |
+| ------------ | ---------------------------------------------------------------------- | ---------------------------------- |
+| User         | `/iam.miloapis.com/v1alpha1/users/{userId}/graphql`                    | `/api/graphql/user/{userId}`       |
+| Organization | `/resourcemanager.miloapis.com/v1alpha1/organizations/{orgId}/graphql` | `/api/graphql/org/{orgId}`         |
+| Project      | `/resourcemanager.miloapis.com/v1alpha1/projects/{projectId}/graphql`  | `/api/graphql/project/{projectId}` |
+| Global       | `/graphql`                                                             | `/api/graphql`                     |
 
 ### Scope Type Definition
 
@@ -135,8 +135,9 @@ const globalClient = createGqlClient({ type: 'global' });
 ```typescript
 const result = await client.query({
   listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces: [
-    {},  // variables (empty for list all)
-    {    // field selection
+    {}, // variables (empty for list all)
+    {
+      // field selection
       items: {
         metadata: { uid: true, name: true, namespace: true },
         spec: { organizationRef: { name: true } },
@@ -147,7 +148,8 @@ const result = await client.query({
   ],
 });
 
-const items = result.data?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces?.items;
+const items =
+  result.data?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces?.items;
 ```
 
 ### Mutation Example
@@ -226,9 +228,7 @@ graphqlRouter.post('/:scopeType/:scopeId', async (c) => {
   const session = c.get('session');
 
   // Resolve 'me' to actual user ID
-  const resolvedScopeId = scopeType === 'user' && scopeId === 'me'
-    ? session.sub
-    : scopeId;
+  const resolvedScopeId = scopeType === 'user' && scopeId === 'me' ? session.sub : scopeId;
 
   const scope = parseScope(scopeType, resolvedScopeId);
   const targetUrl = buildScopedEndpoint(env.public.graphqlUrl, scope);
@@ -238,7 +238,7 @@ graphqlRouter.post('/:scopeType/:scopeId', async (c) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session.accessToken}`,
+      Authorization: `Bearer ${session.accessToken}`,
     },
     body: JSON.stringify(await c.req.json()),
   });
@@ -268,8 +268,8 @@ app/resources/{resource}/
 
 ```typescript
 // organization.gql-service.ts
-import { createGqlClient } from '@/modules/gqlts/client';
 import { toOrganizationFromMembership } from './organization.adapter';
+import { createGqlClient } from '@/modules/gqlts/client';
 
 export function createOrganizationGqlService() {
   return {
@@ -289,7 +289,9 @@ export function createOrganizationGqlService() {
         ],
       });
 
-      const items = result.data?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces?.items ?? [];
+      const items =
+        result.data?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces
+          ?.items ?? [];
       return items.map(toOrganizationFromMembership);
     },
   };
@@ -330,8 +332,8 @@ This runs `scripts/graphql.ts` which:
 
 ## Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
+| Variable      | Description         | Example                                 |
+| ------------- | ------------------- | --------------------------------------- |
 | `GRAPHQL_URL` | GraphQL gateway URL | `https://graphql.staging.env.datum.net` |
 
 Add to `.env`:

@@ -63,6 +63,45 @@ export interface DataTableProps<TData, TValue> {
   maxInlineActions?: number; // Maximum number of inline actions to show (default: 3)
   onRowClick?: (row: TData) => void;
   rowClassName?: (row: TData) => string;
+
+  // ========================================
+  // Multi-Select Configuration
+  // ========================================
+
+  /**
+   * Enable row selection with checkboxes
+   * Auto-injects checkbox column as first column
+   * @default false
+   */
+  enableMultiSelect?: boolean;
+
+  /**
+   * Returns unique identifier for each row
+   * Required when enableMultiSelect is true
+   */
+  getRowId?: (row: TData) => string;
+
+  /**
+   * Bulk actions shown in toolbar when rows are selected
+   */
+  multiActions?: MultiAction<TData>[];
+
+  /**
+   * Controlled selection state - array of selected row IDs
+   */
+  selectedRowIds?: string[];
+
+  /**
+   * Callback when selection changes
+   * Returns both selected row IDs and full row data for convenience
+   */
+  onSelectionChange?: (selectedIds: string[], selectedRows: TData[]) => void;
+
+  /**
+   * Conditionally hide checkbox for specific rows
+   */
+  hideRowSelection?: (row: TData) => boolean;
+
   tableTitle?: DataTableTitleProps;
 
   // Loading state props
@@ -194,6 +233,39 @@ export interface DataTableRowActionsProps<TData> {
   triggerInlineEdit?: boolean;
 }
 
+// =============================================================================
+// Multi-Select Types
+// =============================================================================
+
+/**
+ * Standard button action for multi-select
+ */
+export interface MultiActionButtonProps<TData> {
+  key: string;
+  label: string;
+  icon?: React.ReactNode;
+  variant?: 'default' | 'destructive';
+  action: (selectedRows: TData[]) => void | Promise<void>;
+  disabled?: (selectedRows: TData[]) => boolean;
+}
+
+/**
+ * Custom render action for multi-select (e.g., popover)
+ */
+export interface MultiActionRenderProps<TData> {
+  key: string;
+  render: (params: {
+    selectedRows: TData[];
+    selectedRowIds: string[];
+    clearSelection: () => void;
+  }) => React.ReactNode;
+}
+
+/**
+ * Union type for multi-select actions
+ */
+export type MultiAction<TData> = MultiActionButtonProps<TData> | MultiActionRenderProps<TData>;
+
 export interface DataTableTitleProps {
   title?: string;
   description?: string;
@@ -303,4 +375,38 @@ export interface DataTableRef<TData> {
     mode: 'create' | 'edit' | null;
     editingRowId: string | null;
   };
+
+  // ========================================
+  // Selection Methods
+  // ========================================
+
+  /**
+   * Get currently selected row data
+   */
+  getSelectedRows: () => TData[];
+
+  /**
+   * Get currently selected row IDs
+   */
+  getSelectedRowIds: () => string[];
+
+  /**
+   * Get count of selected rows
+   */
+  getSelectionCount: () => number;
+
+  /**
+   * Clear all selections
+   */
+  clearSelection: () => void;
+
+  /**
+   * Select specific rows by ID
+   */
+  selectRows: (rowIds: string[]) => void;
+
+  /**
+   * Select all visible rows
+   */
+  selectAll: () => void;
 }

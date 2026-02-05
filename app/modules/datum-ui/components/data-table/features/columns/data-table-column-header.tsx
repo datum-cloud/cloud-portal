@@ -115,9 +115,6 @@ export const DataTableColumnHeader = <TData,>({
               </TableHead>
             );
           })}
-          {hasRowActions && (
-            <TableHead className="h-8 w-[50px] dark:bg-white/2 dark:hover:bg-white/5" />
-          )}
         </TableRow>
       ))}
     </TableHeader>

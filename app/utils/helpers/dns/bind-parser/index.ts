@@ -116,14 +116,18 @@ export function parseBindZoneFile(content: string): BindParseResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   const warningTypesFound = new Set<string>();
+  let parsedOrigin: string | null = null;
 
   try {
     // Preprocess: remove comments, collapse multiline, extract directives
     const { lines, origin, defaultTTL } = preprocessZoneFile(content);
 
+    // Store origin (without trailing dot) for consumers
+    parsedOrigin = origin ? origin.replace(/\.$/, '') : null;
+
     if (lines.length === 0) {
       errors.push('No valid DNS records found in the file');
-      return { records, errors, warnings };
+      return { records, errors, warnings, origin: parsedOrigin };
     }
 
     let previousName = origin || '@';
@@ -194,7 +198,7 @@ export function parseBindZoneFile(content: string): BindParseResult {
     errors.push(err instanceof Error ? err.message : 'Failed to parse zone file');
   }
 
-  return { records, errors, warnings };
+  return { records, errors, warnings, origin: parsedOrigin };
 }
 
 // Re-export types for convenience
