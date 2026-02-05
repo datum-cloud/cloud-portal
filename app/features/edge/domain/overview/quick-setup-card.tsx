@@ -32,15 +32,17 @@ export const QuickSetupCard = ({
 }) => {
   const dnsSetupMutation = useMutation<DnsSetupResponse, Error, DnsSetupInput>({
     mutationFn: async (input) => {
-      const formData = new FormData();
-      formData.append('domain', input.domain);
-      formData.append('dnsName', input.dnsName);
-      formData.append('dnsContent', input.dnsContent);
-      formData.append('redirectUri', input.redirectUri);
-
       const response = await fetch(CLOUD_VALIDATION_DNS_PATH, {
         method: 'POST',
-        body: formData,
+        body: JSON.stringify({
+          domain: input.domain,
+          dnsName: input.dnsName,
+          dnsContent: input.dnsContent,
+          redirectUri: input.redirectUri,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       const data = await response.json();
