@@ -13,47 +13,112 @@ const isTestEnv =
   process.env.VITEST === 'true';
 
 // ═══════════════════════════════════════════════════════════
-// SCHEMAS
+// HELPER: Create URL schema with test default (Zod v4)
 // ═══════════════════════════════════════════════════════════
 
-// In test mode, make required fields optional with defaults
+// Zod v4: z.url() is now a top-level schema instead of z.string().url()
+const urlSchema = (testDefault: string) => (isTestEnv ? z.url().default(testDefault) : z.url());
+
+const urlSchemaOptional = () => z.url().optional();
+
+// ═══════════════════════════════════════════════════════════
+// SCHEMAS (Zod v4)
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * Public Schema - Variables safe to expose to the browser
+ *
+ * Required fields will cause process.exit(1) if missing/invalid.
+ * Optional fields gracefully degrade when absent.
+ */
 const publicSchema = z.object({
+  // ─────────────────────────────────────────────────────────
+  // Runtime Configuration
+  // ─────────────────────────────────────────────────────────
   NODE_ENV: z.enum(['production', 'development', 'test']).default('development'),
   VERSION: z.string().optional(),
   DEBUG: z.string().optional(),
-  APP_URL: isTestEnv ? z.string().default('http://localhost:3000') : z.string().url(),
-  API_URL: isTestEnv ? z.string().default('http://localhost:8080') : z.string().url(),
-  GRAPHQL_URL: isTestEnv ? z.string().default('http://localhost:8080') : z.string().url(),
-  AUTH_OIDC_ISSUER: z.url(),
-  SENTRY_DSN: z.string().optional(),
+
+  // ─────────────────────────────────────────────────────────
+  // Required: Core URLs
+  // ─────────────────────────────────────────────────────────
+  APP_URL: urlSchema('http://localhost:3000'),
+  API_URL: urlSchema('http://localhost:8080'),
+  GRAPHQL_URL: urlSchema('http://localhost:8080/graphql'),
+
+  // ─────────────────────────────────────────────────────────
+  // Required: Authentication
+  // ─────────────────────────────────────────────────────────
+  AUTH_OIDC_ISSUER: urlSchema('http://localhost:8080'),
+
+  // ─────────────────────────────────────────────────────────
+  // Optional: Observability (graceful degradation)
+  // ─────────────────────────────────────────────────────────
+  SENTRY_DSN: urlSchemaOptional(),
   SENTRY_ENV: z.string().optional(),
+  OTEL_ENABLED: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+  OTEL_LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).optional(),
+
+  // ─────────────────────────────────────────────────────────
+  // Optional: Analytics & Support (graceful degradation)
+  // ─────────────────────────────────────────────────────────
   FATHOM_ID: z.string().optional(),
   HELPSCOUT_BEACON_ID: z.string().optional(),
+
+  // ─────────────────────────────────────────────────────────
+  // Optional: Logging Configuration
+  // ─────────────────────────────────────────────────────────
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).optional(),
   LOG_FORMAT: z.enum(['json', 'pretty', 'compact']).optional(),
   LOG_CURL: z.string().optional(),
   LOG_REDACT_TOKENS: z.string().optional(),
   LOG_PAYLOADS: z.string().optional(),
-  OTEL_ENABLED: z.string().optional(),
-  OTEL_LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).optional(),
 });
 
+/**
+ * Server Schema - Variables that must never be exposed to the browser
+ *
+ * Required fields will cause process.exit(1) if missing/invalid.
+ * Optional fields gracefully degrade when absent.
+ */
 const serverSchema = z.object({
+  // ─────────────────────────────────────────────────────────
+  // Required: Authentication & Session
+  // ─────────────────────────────────────────────────────────
   SESSION_SECRET: isTestEnv
-    ? z.string().default('test-session-secret-at-least-32-chars-long')
+    ? z.string().min(32).default('test-session-secret-at-least-32-chars-long')
     : z.string().min(32),
-  AUTH_OIDC_CLIENT_ID: z.string(),
-  TELEMETRY_URL: z.string().optional(),
-  PROMETHEUS_URL: z.string().optional(),
-  GRAFANA_URL: z.string().optional(),
-  CLOUDVALID_API_URL: z.string().optional(),
-  CLOUDVALID_API_KEY: z.string().optional(),
-  CLOUDVALID_TEMPLATE_ID: z.string().optional(),
+  AUTH_OIDC_CLIENT_ID: isTestEnv ? z.string().default('test-client-id') : z.string().min(1),
+
+  // ─────────────────────────────────────────────────────────
+  // Required: Feature Services
+  // ─────────────────────────────────────────────────────────
+  PROMETHEUS_URL: urlSchema('http://localhost:9090'),
+  CLOUDVALID_API_URL: urlSchema('http://localhost:8081'),
+  CLOUDVALID_API_KEY: isTestEnv ? z.string().default('test-cloudvalid-api-key') : z.string().min(1),
+  CLOUDVALID_TEMPLATE_ID: isTestEnv
+    ? z.string().default('test-cloudvalid-template-id')
+    : z.string().min(1),
+
+  // ─────────────────────────────────────────────────────────
+  // Optional: Observability (graceful degradation)
+  // ─────────────────────────────────────────────────────────
+  OTEL_EXPORTER_OTLP_ENDPOINT: urlSchemaOptional(),
+  OTEL_EXPORTER_TIMEOUT: z.coerce.number().int().positive().optional(),
+
+  // ─────────────────────────────────────────────────────────
+  // Optional: External Integrations (graceful degradation)
+  // ─────────────────────────────────────────────────────────
+  GRAFANA_URL: urlSchemaOptional(),
   HELPSCOUT_SECRET_KEY: z.string().optional(),
-  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
-  OTEL_EXPORTER_TIMEOUT: z.string().optional(),
-  // Redis Configuration
-  REDIS_URL: z.string().url().optional(),
+
+  // ─────────────────────────────────────────────────────────
+  // Optional: Redis (falls back to in-memory)
+  // ─────────────────────────────────────────────────────────
+  REDIS_URL: urlSchemaOptional(),
   REDIS_MAX_RETRIES: z.coerce.number().int().positive().default(3),
   REDIS_CONNECT_TIMEOUT: z.coerce.number().int().positive().default(5000),
   REDIS_COMMAND_TIMEOUT: z.coerce.number().int().positive().default(3000),
@@ -61,15 +126,18 @@ const serverSchema = z.object({
 });
 
 // ═══════════════════════════════════════════════════════════
-// VALIDATION
+// VALIDATION (Zod v4)
 // ═══════════════════════════════════════════════════════════
 
-const fullSchema = publicSchema.merge(serverSchema);
+// Zod v4: Use .extend() instead of deprecated .merge()
+const fullSchema = publicSchema.extend(serverSchema.shape);
 const parsed = fullSchema.safeParse(process.env);
 
 if (!parsed.success) {
   console.error('❌ Invalid environment variables:');
-  console.error(JSON.stringify(parsed.error.flatten().fieldErrors, null, 2));
+  // Zod v4: Use z.flattenError() instead of deprecated error.flatten()
+  const flattened = z.flattenError(parsed.error);
+  console.error(JSON.stringify(flattened.fieldErrors, null, 2));
   process.exit(1);
 }
 
@@ -97,18 +165,17 @@ export const env: Env = {
     logCurl: data.LOG_CURL !== 'false' && data.NODE_ENV === 'development',
     logRedactTokens: data.LOG_REDACT_TOKENS !== 'false' || data.NODE_ENV === 'production',
     logPayloads: data.LOG_PAYLOADS === 'true' || data.NODE_ENV === 'development',
-    otelEnabled: data.OTEL_ENABLED === 'true' && !!data.OTEL_EXPORTER_OTLP_ENDPOINT,
+    otelEnabled: data.OTEL_ENABLED === true && !!data.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelLogLevel: data.OTEL_LOG_LEVEL,
   },
   server: {
     sessionSecret: data.SESSION_SECRET,
     authOidcClientId: data.AUTH_OIDC_CLIENT_ID,
-    telemetryUrl: data.TELEMETRY_URL,
     prometheusUrl: data.PROMETHEUS_URL,
-    grafanaUrl: data.GRAFANA_URL,
     cloudvalidApiUrl: data.CLOUDVALID_API_URL,
     cloudvalidApiKey: data.CLOUDVALID_API_KEY,
     cloudvalidTemplateId: data.CLOUDVALID_TEMPLATE_ID,
+    grafanaUrl: data.GRAFANA_URL,
     helpscoutSecretKey: data.HELPSCOUT_SECRET_KEY,
     otelExporterEndpoint: data.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelExporterTimeout: data.OTEL_EXPORTER_TIMEOUT,

@@ -9,29 +9,22 @@ const prometheus = new Hono<{ Variables: Variables }>();
 
 // Health check
 prometheus.get('/', (c) => {
-  const prometheusUrl = env.server.prometheusUrl;
   return c.json({
-    configured: Boolean(prometheusUrl),
-    url: prometheusUrl ? new URL(prometheusUrl).origin : null,
+    configured: true,
+    url: new URL(env.server.prometheusUrl).origin,
   });
 });
 
 // Query endpoint
 prometheus.post('/', async (c) => {
   try {
-    const prometheusUrl = env.server.prometheusUrl;
-
-    if (!prometheusUrl) {
-      return c.json({ error: 'Prometheus URL not configured' }, 500);
-    }
-
     const session = c.get('session');
     if (!session?.accessToken) {
       return c.json({ error: 'Unauthorized' }, 401);
     }
 
     const prometheusService = new PrometheusService({
-      baseURL: prometheusUrl,
+      baseURL: env.server.prometheusUrl,
       timeout: 30000,
       retries: 1,
       headers: {
