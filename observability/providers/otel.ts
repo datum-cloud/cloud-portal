@@ -210,7 +210,7 @@ export class OtelProvider extends BaseProvider {
   private logInitializationSuccess(): void {
     console.log('✅ OpenTelemetry initialized successfully');
     console.log('📊 OTEL_EXPORTER_OTLP_ENDPOINT:', env.server.otelExporterEndpoint);
-    console.log('📊 OTEL_EXPORTER_TIMEOUT:', env.server.otelExporterTimeout || '10000');
+    console.log('📊 OTEL_EXPORTER_TIMEOUT:', env.server.otelExporterTimeout ?? 10000);
   }
 
   private shutdownSdk(): void {
@@ -281,7 +281,7 @@ export class OtelProvider extends BaseProvider {
     const exporter = new OTLPTraceExporter({
       url: env.server.otelExporterEndpoint!,
       credentials: credentials.createInsecure(),
-      timeoutMillis: parseInt(env.server.otelExporterTimeout || '10000'),
+      timeoutMillis: env.server.otelExporterTimeout ?? 10000,
       headers: {},
     });
 

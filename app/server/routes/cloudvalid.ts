@@ -10,11 +10,6 @@ const cloudvalid = new Hono<{ Variables: Variables }>();
 // DNS setup endpoint
 cloudvalid.post('/dns', async (c) => {
   try {
-    const apiKey = env.server.cloudvalidApiKey;
-    if (!apiKey) {
-      return c.json({ success: false, error: 'CloudValid API key not configured' }, 500);
-    }
-
     const session = c.get('session');
     if (!session?.accessToken) {
       return c.json({ error: 'Unauthorized' }, 401);
@@ -27,7 +22,7 @@ cloudvalid.post('/dns', async (c) => {
       return c.json({ success: false, error: 'Missing required fields' }, 400);
     }
 
-    const cloudValidService = new CloudValidService(apiKey);
+    const cloudValidService = new CloudValidService(env.server.cloudvalidApiKey);
 
     const dnsSetup = await cloudValidService.createDNSSetup({
       domain,
