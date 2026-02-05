@@ -152,7 +152,8 @@ export const ImportResultTable = ({ details }: ImportResultTableProps) => {
                   {statusConfig.label}
                 </span>
               </div>
-              {message && (
+              {/* Show message for failed and skipped records */}
+              {message && action !== 'created' && (
                 <span className="text-muted-foreground pl-5.5 text-xs text-wrap">{message}</span>
               )}
             </div>

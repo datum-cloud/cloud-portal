@@ -480,7 +480,7 @@ export class DnsRecordManager {
           value,
           ttl: record.ttl,
           action: isNewRecordSet ? 'created' : 'updated',
-          message: isNewRecordSet ? 'Created' : 'Replaced existing record',
+          message: isNewRecordSet ? 'Created new record' : 'Replaced existing record',
         });
         if (isNewRecordSet) {
           counts.created++;
@@ -517,7 +517,7 @@ export class DnsRecordManager {
           value,
           ttl: newRecord.ttl,
           action,
-          message: isNewRecordSet ? 'Created' : 'Added to existing RecordSet',
+          message: isNewRecordSet ? 'Created new record' : 'Added to existing RecordSet',
         });
         if (isNewRecordSet) {
           counts.created++;
