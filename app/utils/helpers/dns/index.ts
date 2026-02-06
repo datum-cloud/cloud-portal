@@ -2,10 +2,13 @@
 // DNS Record Helpers - Barrel Export
 // =============================================================================
 
-// Constants
+// Constants - Single source of truth for DNS record types
 export {
+  DNS_RECORD_TYPES,
+  DNS_RECORD_TYPES_SET,
   SUPPORTED_DNS_RECORD_TYPES,
   SUPPORTED_DNS_RECORD_TYPES_SET,
+  type DNSRecordType,
   type SupportedDnsRecordType,
 } from './constants';
 

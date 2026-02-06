@@ -1,4 +1,8 @@
-import { SUPPORTED_DNS_RECORD_TYPES, SupportedDnsRecordType } from './constants';
+import {
+  SUPPORTED_DNS_RECORD_TYPES,
+  type DNSRecordType,
+  type SupportedDnsRecordType,
+} from './constants';
 
 // =============================================================================
 // DNS Record Type Configuration
@@ -32,9 +36,9 @@ export interface DnsRecordTypeConfig {
 }
 
 /**
- * Centralized configuration for all DNS record types
+ * Centralized configuration for all DNS record types (includes SOA for display)
  */
-export const DNS_RECORD_TYPE_CONFIG: Record<SupportedDnsRecordType, DnsRecordTypeConfig> = {
+export const DNS_RECORD_TYPE_CONFIG: Record<DNSRecordType, DnsRecordTypeConfig> = {
   SOA: {
     description: 'Contains administrative information about the zone.',
     selectDescription: 'Zone administrative information',
@@ -278,9 +282,9 @@ export const DNS_RECORD_TYPE_CONFIG: Record<SupportedDnsRecordType, DnsRecordTyp
 };
 
 /**
- * Get configuration for a specific record type
+ * Get configuration for a specific record type (includes SOA for display)
  */
-export function getRecordTypeConfig(type: SupportedDnsRecordType): DnsRecordTypeConfig {
+export function getRecordTypeConfig(type: DNSRecordType): DnsRecordTypeConfig {
   return DNS_RECORD_TYPE_CONFIG[type];
 }
 
@@ -288,7 +292,7 @@ export function getRecordTypeConfig(type: SupportedDnsRecordType): DnsRecordType
  * Get field configuration for a specific record type and field
  */
 export function getRecordFieldConfig(
-  type: SupportedDnsRecordType,
+  type: DNSRecordType,
   fieldName: string
 ): DnsRecordFieldConfig | undefined {
   return DNS_RECORD_TYPE_CONFIG[type]?.fields?.[fieldName];
