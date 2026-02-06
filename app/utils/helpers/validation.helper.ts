@@ -170,6 +170,56 @@ export const createHostnameSchema = (fieldName = 'Hostname') =>
     );
 
 /**
+ * RFC 3986 URI format - scheme must be present, followed by ://
+ * Catches obviously invalid formats before URL parse
+ */
+const URI_SCHEME_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//;
+
+/** Rejects empty authority: :/// means nothing between // and / */
+const EMPTY_AUTHORITY_PATTERN = /:\/\/(\/|$)/;
+
+/**
+ * Validates that a string is a valid HTTP/HTTPS URI per RFC 3986.
+ * Uses URL constructor for parsing and enforces:
+ * - Required scheme (http or https)
+ * - Valid URI structure
+ * - Non-empty authority (rejects e.g. https:///host)
+ * - Non-empty host for proxy endpoints
+ * - No path, query, or fragment (matches API admission webhook requirements)
+ */
+export function isValidHttpUri(value: string): boolean {
+  if (!value || typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  if (trimmed !== value) return false; // Reject leading/trailing whitespace
+  if (!URI_SCHEME_PATTERN.test(trimmed)) return false;
+  if (EMPTY_AUTHORITY_PATTERN.test(trimmed)) return false; // Reject https:///host
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+    if (!url.hostname) return false;
+    // API requires endpoint without path component (scheme + host + port only)
+    if (url.pathname !== '' && url.pathname !== '/') return false;
+    if (url.search || url.hash) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Creates a Zod schema for validating HTTP/HTTPS endpoint URIs.
+ * Enforces RFC 3986–style URI structure with http/https scheme.
+ */
+export const createHttpEndpointSchema = (fieldName = 'Endpoint') =>
+  z
+    .string({ message: `${fieldName} is required` })
+    .trim()
+    .min(1, { message: `${fieldName} is required` })
+    .refine(isValidHttpUri, {
+      message: `${fieldName} must be a valid HTTP or HTTPS URL with no path (e.g., https://proxy.example.com:8080)`,
+    });
+
+/**
  * Checks if a given string is a valid IP address (IPv4 or IPv6)
  *
  * @param host The string to check (handles bracketed IPv6 from URL.hostname like [2001:db8::1])
