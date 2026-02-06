@@ -1,4 +1,4 @@
-import { useTaskQueue } from '../hooks';
+import { useTaskQueue, useTasksWithLabels, getContextLabel } from '../hooks';
 import { TaskPanelHeader } from './task-panel-header';
 import { TaskPanelItem } from './task-panel-item';
 import { cn } from '@shadcn/lib/utils';
@@ -7,6 +7,7 @@ import { useState } from 'react';
 export function TaskPanel() {
   // TODO: Re-enable retry when processor registry is implemented
   const { tasks, cancel, /* retry, */ dismiss, dismissAll } = useTaskQueue();
+  const { showLabels } = useTasksWithLabels(tasks);
   const [expanded, setExpanded] = useState(true);
 
   if (tasks.length === 0) return null;
@@ -31,6 +32,7 @@ export function TaskPanel() {
             <TaskPanelItem
               key={task.id}
               task={task}
+              contextLabel={showLabels ? getContextLabel(task.metadata) : undefined}
               onCancel={() => cancel(task.id)}
               onDismiss={() => dismiss(task.id)}
               // TODO: Re-enable when processor registry is implemented

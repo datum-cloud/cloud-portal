@@ -2,7 +2,14 @@
 export { TaskQueueProvider } from './provider';
 
 // Hooks
-export { useTaskQueue } from './hooks';
+export {
+  useTaskQueue,
+  useCurrentScope,
+  useTasksWithLabels,
+  matchesCurrentScope,
+  getContextLabel,
+} from './hooks';
+export type { CurrentScope, TasksWithLabels } from './hooks';
 
 // UI
 export {
@@ -15,6 +22,9 @@ export {
 
 // Engine (for advanced usage / custom storage)
 export { TaskQueue, LocalTaskStorage, RedisTaskStorage, detectStorage } from './engine';
+
+// Utils
+export { createProjectMetadata, createOrgMetadata, createUserMetadata } from './utils';
 
 // Types
 export type {
@@ -29,6 +39,7 @@ export type {
   TaskStorage,
   Task,
   TaskStatus,
+  TaskMetadata,
   TaskQueueAPI,
   UseTaskQueueOptions,
   RedisClient,

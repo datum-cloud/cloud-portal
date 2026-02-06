@@ -5,6 +5,23 @@ import type { ReactNode } from 'react';
 
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
 
+// --- Task Metadata ---
+
+export interface TaskMetadata {
+  /** Scope type: 'project' | 'org' | 'user' | custom */
+  scope?: string;
+  /** Project ID for project-scoped tasks */
+  projectId?: string;
+  /** Human-readable project name */
+  projectName?: string;
+  /** Organization ID */
+  orgId?: string;
+  /** Human-readable organization name */
+  orgName?: string;
+  /** Extensible - any additional context */
+  [key: string]: unknown;
+}
+
 // --- Task ---
 
 export interface Task<TResult = unknown> {
@@ -13,6 +30,7 @@ export interface Task<TResult = unknown> {
   status: TaskStatus;
   icon?: ReactNode;
   category?: string;
+  metadata?: TaskMetadata;
 
   // Items (optional — omit for single-process tasks)
   items?: unknown[];
@@ -92,6 +110,7 @@ interface BaseEnqueueOptions<TResult = unknown> {
   title: string;
   icon?: ReactNode;
   category?: string;
+  metadata?: TaskMetadata;
   errorStrategy?: 'continue' | 'stop';
   cancelable?: boolean;
   retryable?: boolean;

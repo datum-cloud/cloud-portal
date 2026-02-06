@@ -1,21 +1,31 @@
 import type { Task } from '../types';
 import { TaskPanelActions } from './task-panel-actions';
 import { TaskPanelCounter } from './task-panel-counter';
+import { Icon } from '@datum-ui/components';
 import { SpinnerIcon } from '@datum-ui/components/icons/spinner-icon';
 import { cn } from '@shadcn/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 // RotateCcw commented out - will be used when retry is re-enabled
-import { CheckCircle, XCircle, Ban, X, /* RotateCcw, */ FileIcon, CircleAlert } from 'lucide-react';
+import {
+  CheckCircle,
+  XCircle,
+  Ban,
+  X /* RotateCcw, */,
+  FileIcon,
+  CircleAlert,
+  CornerDownRightIcon,
+} from 'lucide-react';
 
 interface TaskPanelItemProps {
   task: Task;
+  contextLabel?: string;
   onCancel: () => void;
   onDismiss: () => void;
   // TODO: Re-enable when processor registry is implemented
   // onRetry: () => void;
 }
 
-export function TaskPanelItem({ task, onCancel, onDismiss }: TaskPanelItemProps) {
+export function TaskPanelItem({ task, contextLabel, onCancel, onDismiss }: TaskPanelItemProps) {
   // TODO: Re-enable when processor registry is implemented
   // See FUTURE_ENHANCEMENTS.md
   // const canRetry = task.retryable && (task.status === 'failed' || task.status === 'cancelled');
@@ -51,6 +61,13 @@ export function TaskPanelItem({ task, onCancel, onDismiss }: TaskPanelItemProps)
             />
           )}
 
+          {contextLabel && (
+            <span className="text-muted-foreground flex items-center gap-1 text-xs">
+              <Icon icon={CornerDownRightIcon} className="size-3 shrink-0 opacity-60" />
+              <span className="truncate">{contextLabel}</span>
+            </span>
+          )}
+
           <TaskPanelActions task={task} />
         </div>
 
@@ -70,31 +87,31 @@ function TaskIcon({ task }: { task: Task }) {
     if (task.icon) {
       return <span className="text-muted-foreground [&>svg]:size-5">{task.icon}</span>;
     }
-    return <FileIcon className="text-muted-foreground size-5" />;
+    return <Icon icon={FileIcon} className="text-muted-foreground size-5" />;
   }
 
   // Completed with some failures (partial success)
   if (task.status === 'completed' && task.failed > 0) {
-    return <CircleAlert className="size-5 text-amber-500" />;
+    return <Icon icon={CircleAlert} className="size-5 text-amber-500" />;
   }
 
   // Completed successfully
   if (task.status === 'completed') {
-    return <CheckCircle className="size-5 text-green-600 dark:text-green-400" />;
+    return <Icon icon={CheckCircle} className="size-5 text-green-600 dark:text-green-400" />;
   }
 
   // Failed
   if (task.status === 'failed') {
-    return <XCircle className="text-destructive size-5" />;
+    return <Icon icon={XCircle} className="text-destructive size-5" />;
   }
 
   // Cancelled
   if (task.status === 'cancelled') {
-    return <Ban className="text-muted-foreground size-5" />;
+    return <Icon icon={Ban} className="text-muted-foreground size-5" />;
   }
 
   // Fallback
-  return <FileIcon className="text-muted-foreground size-5" />;
+  return <Icon icon={FileIcon} className="text-muted-foreground size-5" />;
 }
 
 /** Right-side status indicator with action */
@@ -135,7 +152,7 @@ function TaskStatusAction({
                   'absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100'
                 )}
                 aria-label="Cancel task">
-                <X className="size-4" />
+                <Icon icon={X} className="size-4" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="left">Cancel</TooltipContent>
@@ -164,7 +181,7 @@ function TaskStatusAction({
             onClick={onDismiss}
             className={buttonClass}
             aria-label="Dismiss task">
-            <X className="size-4" />
+            <Icon icon={X} className="size-4" />
           </button>
         </TooltipTrigger>
         <TooltipContent side="left">Dismiss</TooltipContent>
@@ -200,7 +217,7 @@ function TaskStatusAction({
             onClick={onDismiss}
             className={buttonClass}
             aria-label="Dismiss task">
-            <X className="size-4" />
+            <Icon icon={X} className="size-4" />
           </button>
         </TooltipTrigger>
         <TooltipContent side="left">Dismiss</TooltipContent>
@@ -236,7 +253,7 @@ function TaskStatusAction({
             onClick={onDismiss}
             className={buttonClass}
             aria-label="Dismiss task">
-            <X className="size-4" />
+            <Icon icon={X} className="size-4" />
           </button>
         </TooltipTrigger>
         <TooltipContent side="left">Dismiss</TooltipContent>

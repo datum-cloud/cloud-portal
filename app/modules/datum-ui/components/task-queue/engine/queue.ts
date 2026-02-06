@@ -97,6 +97,7 @@ export class TaskQueue {
       status: 'pending',
       icon: options.icon,
       category: options.category,
+      metadata: options.metadata,
       items,
       total: items?.length,
       completed: 0,

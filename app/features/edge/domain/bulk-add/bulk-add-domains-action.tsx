@@ -1,7 +1,8 @@
+import { useApp } from '@/providers/app.provider';
 import { bulkDomainsSchema, domainKeys, useCreateDomain } from '@/resources/domains';
 import { readFileAsText } from '@/utils/common';
 import { parseDomainsFromFile } from '@/utils/helpers/parse.helper';
-import { Button, toast, useTaskQueue } from '@datum-ui/components';
+import { Button, toast, useTaskQueue, createProjectMetadata } from '@datum-ui/components';
 import { FileInputButton } from '@datum-ui/components/file-input-button/file-input-button';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
@@ -16,14 +17,25 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
   const { enqueue } = useTaskQueue();
   const queryClient = useQueryClient();
   const { mutateAsync: createDomain } = useCreateDomain(projectId);
+  const { project, organization } = useApp();
 
   const submitDomains = (domains: string[]) => {
     setPopoverOpen(false);
+
+    // Build metadata for scope-aware task panel display
+    const metadata =
+      project && organization
+        ? createProjectMetadata(
+            { id: project.name, name: project.displayName || project.name },
+            { id: organization.name, name: organization.displayName || organization.name }
+          )
+        : undefined;
 
     enqueue({
       title: `Adding ${domains.length} domains`,
       icon: <GlobeIcon className="size-4" />,
       items: domains,
+      metadata,
       itemConcurrency: 3,
       processItem: async (domain) => {
         await createDomain({ domainName: domain });
