@@ -2,10 +2,13 @@
 // DNS Record Helpers - Barrel Export
 // =============================================================================
 
-// Constants
+// Constants - Single source of truth for DNS record types
 export {
+  DNS_RECORD_TYPES,
+  DNS_RECORD_TYPES_SET,
   SUPPORTED_DNS_RECORD_TYPES,
   SUPPORTED_DNS_RECORD_TYPES_SET,
+  type DNSRecordType,
   type SupportedDnsRecordType,
 } from './constants';
 
@@ -48,15 +51,16 @@ export { transformFormToRecord, recordToFormDefaultValue } from './form-transfor
 
 // BIND import helpers
 export {
-  parseBindZoneFile,
   deduplicateParsedRecords,
   transformApexCnameToAlias,
   transformParsedToFlattened,
   transformParsedToRecordSets,
-  type ParsedDnsRecord,
-  type BindParseResult,
+  transformFlattenedToRecordSets,
   type ApexCnameTransformResult,
 } from './bind-import.helper';
+
+// BIND parser helpers
+export { parseBindZoneFile, type BindParseResult, type ParsedDnsRecord } from './bind-parser';
 
 // BIND export helpers
 export { generateBindZoneFile, transformRecordsToBindFormat } from './bind-export.helper';

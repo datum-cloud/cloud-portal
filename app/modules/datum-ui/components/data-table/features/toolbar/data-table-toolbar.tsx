@@ -2,9 +2,11 @@ import {
   DataTableSearchConfig,
   DataTableTitleProps,
   DataTableToolbarConfig,
+  MultiAction,
 } from '../../core/data-table.types';
 import { DataTableFilter } from '../filter/data-table-filter';
 import { DataTableToolbarFilterDropdown } from './data-table-toolbar-filter-dropdown';
+import { DataTableToolbarMultiActions } from './data-table-toolbar-multi-actions';
 import { DataTableToolbarRowCount } from './data-table-toolbar-row-count';
 import { DataTableToolbarSearch } from './data-table-toolbar-search';
 import { PageTitle } from '@/components/page-title/page-title';
@@ -109,6 +111,12 @@ export interface DataTableToolbarProps {
    * Custom className for right section
    */
   rightSectionClassName?: string;
+
+  /**
+   * Multi-select bulk actions
+   * Shown in the left section when rows are selected
+   */
+  multiActions?: MultiAction<any>[];
 }
 
 /**
@@ -160,6 +168,7 @@ export const DataTableToolbar = ({
   className,
   leftSectionClassName,
   rightSectionClassName,
+  multiActions,
 }: DataTableToolbarProps) => {
   // Merge title/description/actions from both old and new API
   const finalTitle = title || tableTitle?.title;
@@ -308,8 +317,13 @@ export const DataTableToolbar = ({
       {/* Compact Toolbar Row */}
 
       <DataTableFilter className="flex items-center justify-between gap-4">
-        {/* Left Section: Search */}
-        <div className={cn('flex flex-1 items-center gap-2', leftSectionClassName)}>
+        {/* Left Section: Multi-actions + Search */}
+        <div className={cn('flex flex-1 items-center gap-3', leftSectionClassName)}>
+          {/* Multi-actions (shown when rows are selected) */}
+          {multiActions && multiActions.length > 0 && (
+            <DataTableToolbarMultiActions actions={multiActions} />
+          )}
+
           {searchConfig && (
             <DataTableToolbarSearch config={searchConfig} className="w-full rounded-md" />
           )}

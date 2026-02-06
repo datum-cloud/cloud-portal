@@ -39,6 +39,8 @@ export interface BindParseResult {
   records: ParsedDnsRecord[];
   errors: string[];
   warnings: string[];
+  /** The $ORIGIN directive value (without trailing dot), if found */
+  origin: string | null;
 }
 
 // =============================================================================

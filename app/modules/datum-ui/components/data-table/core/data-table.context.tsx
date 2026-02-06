@@ -108,6 +108,28 @@ interface DataTableContextType<TData = unknown, TValue = unknown> {
   openInlineContent: (mode: 'create' | 'edit', rowData?: TData, rowId?: string) => void;
   closeInlineContent: () => void;
   isRowEditing: (rowId: string) => boolean;
+
+  // ========================================
+  // Selection State & Actions
+  // ========================================
+
+  /** Selected row data (computed from selection + table data) */
+  selectedRows: TData[];
+
+  /** Count of selected rows */
+  selectionCount: number;
+
+  /** Check if any rows are selected */
+  hasSelection: boolean;
+
+  /** Clear all selections */
+  clearSelection: () => void;
+
+  /** Select specific rows by ID */
+  selectRows: (rowIds: string[]) => void;
+
+  /** Select all visible rows */
+  selectAllVisible: () => void;
 }
 
 export const DataTableContext = createContext<DataTableContextType<any, any> | null>(null);
@@ -150,6 +172,10 @@ export interface DataTableProviderProps<TData, TValue> {
   // Inline content callbacks
   onInlineContentOpen?: (mode: 'create' | 'edit', data?: TData) => void;
   onInlineContentClose?: () => void;
+
+  // Selection props
+  enableMultiSelect?: boolean;
+  onSelectionChange?: (selectedIds: string[], selectedRows: TData[]) => void;
 }
 
 export function DataTableProvider<TData, TValue>({
@@ -216,6 +242,40 @@ export function DataTableProvider<TData, TValue>({
     inlineContent.close();
     onInlineContentClose?.();
   }, [inlineContent.close, onInlineContentClose]);
+
+  // Selection computed values and actions
+  const selectedRows = useMemo(() => {
+    const selectedIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
+    return table
+      .getRowModel()
+      .rows.filter((row) => selectedIds.includes(row.id))
+      .map((row) => row.original);
+  }, [rowSelection, table]);
+
+  const selectionCount = useMemo(() => {
+    return Object.keys(rowSelection).filter((id) => rowSelection[id]).length;
+  }, [rowSelection]);
+
+  const hasSelection = selectionCount > 0;
+
+  const clearSelection = useCallback(() => {
+    table.resetRowSelection();
+  }, [table]);
+
+  const selectRows = useCallback(
+    (rowIds: string[]) => {
+      const newSelection = rowIds.reduce(
+        (acc, id) => ({ ...acc, [id]: true }),
+        {} as Record<string, boolean>
+      );
+      table.setRowSelection(newSelection);
+    },
+    [table]
+  );
+
+  const selectAllVisible = useCallback(() => {
+    table.toggleAllPageRowsSelected(true);
+  }, [table]);
 
   // Filter state management with nuqs - using individual useQueryState for each filter
   const [internalFilterState, setInternalFilterState] = useState<FilterState>({});
@@ -506,6 +566,14 @@ export function DataTableProvider<TData, TValue>({
       openInlineContent,
       closeInlineContent,
       isRowEditing: inlineContent.isRowEditing,
+
+      // Selection state & actions
+      selectedRows,
+      selectionCount,
+      hasSelection,
+      clearSelection,
+      selectRows,
+      selectAllVisible,
     }),
     [
       // Table props
@@ -554,6 +622,14 @@ export function DataTableProvider<TData, TValue>({
       openInlineContent,
       closeInlineContent,
       inlineContent.isRowEditing,
+
+      // Selection state & actions
+      selectedRows,
+      selectionCount,
+      hasSelection,
+      clearSelection,
+      selectRows,
+      selectAllVisible,
     ]
   );
 

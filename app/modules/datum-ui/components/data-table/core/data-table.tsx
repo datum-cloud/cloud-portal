@@ -1,3 +1,4 @@
+import { DataTableRowActions } from '../features/actions/data-table-row-actions';
 import { DataTableColumnHeader } from '../features/columns/data-table-column-header';
 import { DataTablePagination } from '../features/pagination/data-table-pagination';
 import { DataTableToolbar } from '../features/toolbar/data-table-toolbar';
@@ -7,9 +8,10 @@ import { DataTableCardView } from './data-table-card-view';
 import { DataTableLoadingContent } from './data-table-loading';
 import { DataTableView } from './data-table-view';
 import { DataTableProvider, useDataTable } from './data-table.context';
-import { DataTableProps, DataTableRef } from './data-table.types';
+import { DataTableProps, DataTableRef, MultiAction } from './data-table.types';
 import { EmptyContent } from '@/components/empty-content/empty-content';
 import { cn } from '@shadcn/lib/utils';
+import { Checkbox } from '@shadcn/ui/checkbox';
 import { Table } from '@shadcn/ui/table';
 import {
   ColumnDef,
@@ -17,6 +19,7 @@ import {
   FilterFn,
   PaginationState,
   Row,
+  RowSelectionState,
   SortingState,
   Table as TTable,
   getCoreRowModel,
@@ -28,7 +31,15 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { forwardRef, useImperativeHandle, useMemo, useState, useRef, Ref } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useState,
+  useRef,
+  Ref,
+} from 'react';
 
 // Extend TanStack Table's FilterFns interface to include our custom filter functions
 declare module '@tanstack/react-table' {
@@ -135,6 +146,13 @@ function DataTableInternal<TData, TValue>(
     controlledPageIndex,
     controlledPageSize,
     disableShowAll = false,
+    // Multi-select props
+    enableMultiSelect = false,
+    getRowId,
+    multiActions = [],
+    selectedRowIds,
+    onSelectionChange,
+    hideRowSelection,
   }: DataTableProps<TData, TValue>,
   ref: Ref<DataTableRef<TData>>
 ) {
@@ -170,9 +188,44 @@ function DataTableInternal<TData, TValue>(
     excludeColumns?: string[];
   }>({});
 
-  // Enhance columns with smart sorting based on meta configuration
+  // Selection state (internal for uncontrolled mode)
+  const [internalSelection, setInternalSelection] = useState<RowSelectionState>({});
+
+  // Use controlled or internal selection state
+  const rowSelection = useMemo(() => {
+    if (selectedRowIds !== undefined) {
+      // Controlled mode: convert string[] to RowSelectionState
+      return selectedRowIds.reduce((acc, id) => ({ ...acc, [id]: true }), {} as RowSelectionState);
+    }
+    return internalSelection;
+  }, [selectedRowIds, internalSelection]);
+
+  // Handle selection changes
+  const handleSelectionChange = useCallback(
+    (updaterOrValue: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)) => {
+      const newSelection =
+        typeof updaterOrValue === 'function' ? updaterOrValue(rowSelection) : updaterOrValue;
+
+      // Update internal state (uncontrolled mode)
+      if (selectedRowIds === undefined) {
+        setInternalSelection(newSelection);
+      }
+
+      // Call external callback with both IDs and row data
+      const ids = Object.keys(newSelection).filter((id) => newSelection[id]);
+
+      // Look up full row data from the data array
+      const selectedRows = getRowId ? data.filter((row) => ids.includes(getRowId(row))) : [];
+
+      onSelectionChange?.(ids, selectedRows);
+    },
+    [rowSelection, selectedRowIds, onSelectionChange, data, getRowId]
+  );
+
+  // Enhance columns with smart sorting based on meta configuration and inject select/actions columns
   const enhancedColumns = useMemo<ColumnDef<TData, TValue>[]>(() => {
-    return columns.map((col): ColumnDef<TData, TValue> => {
+    // First, apply sorting enhancements to existing columns
+    let cols = columns.map((col): ColumnDef<TData, TValue> => {
       const meta = col.meta;
 
       // Skip if sorting is explicitly disabled
@@ -205,7 +258,79 @@ function DataTableInternal<TData, TValue>(
       // Return column as-is if no meta sorting config
       return col;
     });
-  }, [columns]);
+
+    // Inject select column at START when multiselect enabled
+    if (enableMultiSelect) {
+      const selectColumn: ColumnDef<TData, TValue> = {
+        id: '_select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+            className="translate-y-[2px]"
+          />
+        ),
+        cell: ({ row }) => {
+          if (hideRowSelection?.(row.original)) {
+            return null;
+          }
+          return (
+            <Checkbox
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              aria-label="Select row"
+              className="translate-y-[2px]"
+            />
+          );
+        },
+        size: 40,
+        enableSorting: false,
+        enableHiding: false,
+        meta: {
+          className: 'w-[40px] pl-4 !pr-4',
+        },
+      };
+      cols = [selectColumn as ColumnDef<TData, TValue>, ...cols];
+    }
+
+    // Inject actions column at END when rowActions provided
+    if (rowActions && rowActions.length > 0) {
+      const actionsColumn: ColumnDef<TData, TValue> = {
+        id: '_actions',
+        header: () => null,
+        cell: ({ row }) => (
+          <DataTableRowActions
+            row={row.original}
+            rowId={row.id}
+            actions={rowActions}
+            hideRowActions={hideRowActions}
+            disableRowActions={disableRowActions}
+            maxInlineActions={maxInlineActions}
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+        meta: {
+          className: 'w-[1%] whitespace-nowrap px-4 py-2.5',
+        },
+      };
+      cols = [...cols, actionsColumn as ColumnDef<TData, TValue>];
+    }
+
+    return cols;
+  }, [
+    columns,
+    enableMultiSelect,
+    hideRowSelection,
+    rowActions,
+    hideRowActions,
+    disableRowActions,
+    maxInlineActions,
+  ]);
 
   // Create global search filter function with dynamic options
   const globalFilterFn = useMemo(
@@ -225,11 +350,14 @@ function DataTableInternal<TData, TValue>(
   const table: TTable<TData> = useReactTable({
     data,
     columns: enhancedColumns,
-    state: { columnFilters, sorting, pagination, globalFilter },
+    state: { columnFilters, sorting, pagination, globalFilter, rowSelection },
     onColumnFiltersChange: setColumnFilters,
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onGlobalFilterChange: setGlobalFilter,
+    onRowSelectionChange: enableMultiSelect ? handleSelectionChange : undefined,
+    enableRowSelection: enableMultiSelect,
+    getRowId: enableMultiSelect && getRowId ? getRowId : undefined,
     globalFilterFn,
     // Prevent state updates during render when data changes
     autoResetPageIndex: false,
@@ -280,7 +408,7 @@ function DataTableInternal<TData, TValue>(
       columns={columns}
       columnFilters={columnFilters}
       sorting={sorting}
-      rowSelection={{}}
+      rowSelection={rowSelection}
       columnOrder={[]}
       columnVisibility={{}}
       globalFilter={globalFilter}
@@ -333,6 +461,8 @@ function DataTableInternal<TData, TValue>(
         controlledPageIndex={controlledPageIndex}
         controlledPageSize={controlledPageSize}
         disableShowAll={disableShowAll}
+        multiActions={multiActions}
+        enableMultiSelect={enableMultiSelect}
       />
     </DataTableProvider>
   );
@@ -377,6 +507,8 @@ interface DataTableContentProps<TData, TValue> {
   controlledPageIndex?: number;
   controlledPageSize?: number;
   disableShowAll?: boolean;
+  multiActions?: MultiAction<TData>[];
+  enableMultiSelect?: boolean;
 }
 
 const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
@@ -418,6 +550,8 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
     controlledPageIndex,
     controlledPageSize,
     disableShowAll = false,
+    multiActions = [],
+    enableMultiSelect = false,
   }: DataTableContentProps<TData, TValue>,
   ref: Ref<DataTableRef<TData>>
 ) {
@@ -441,8 +575,31 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
         mode: inlineContentState.mode,
         editingRowId: inlineContentState.editingRowId,
       }),
+      // Selection methods
+      getSelectedRows: () => {
+        return table.getSelectedRowModel().rows.map((row) => row.original);
+      },
+      getSelectedRowIds: () => {
+        return table.getSelectedRowModel().rows.map((row) => row.id);
+      },
+      getSelectionCount: () => {
+        return table.getSelectedRowModel().rows.length;
+      },
+      clearSelection: () => {
+        table.resetRowSelection();
+      },
+      selectRows: (rowIds: string[]) => {
+        const newSelection = rowIds.reduce(
+          (acc, id) => ({ ...acc, [id]: true }),
+          {} as RowSelectionState
+        );
+        table.setRowSelection(newSelection);
+      },
+      selectAll: () => {
+        table.toggleAllRowsSelected(true);
+      },
     }),
-    [openInlineContent, closeInlineContent, inlineContentState]
+    [openInlineContent, closeInlineContent, inlineContentState, table]
   );
 
   return (
@@ -454,6 +611,7 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
           filterComponent={filterComponent}
           filters={filters}
           config={toolbar}
+          multiActions={enableMultiSelect && multiActions.length > 0 ? multiActions : undefined}
         />
       )}
 
@@ -477,10 +635,6 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
                 <DataTableView
                   table={table}
                   columns={columns}
-                  rowActions={rowActions}
-                  hideRowActions={hideRowActions}
-                  disableRowActions={disableRowActions}
-                  maxInlineActions={maxInlineActions}
                   onRowClick={onRowClick}
                   rowClassName={rowClassName}
                   enableInlineContent={enableInlineContent}

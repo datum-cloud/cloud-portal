@@ -1,5 +1,4 @@
 import { IFlattenedDnsRecord, useBulkImportDnsRecords } from '@/resources/dns-records';
-import { IDnsZoneDiscoveryRecordSet } from '@/resources/dns-zone-discoveries';
 import { readFileAsText } from '@/utils/common';
 import {
   deduplicateParsedRecords,
@@ -7,9 +6,9 @@ import {
   parseBindZoneFile,
   SUPPORTED_DNS_RECORD_TYPES,
   transformApexCnameToAlias,
+  transformFlattenedToRecordSets,
   transformParsedToFlattened,
-  transformParsedToRecordSets,
-} from '@/utils/helpers/dns-record.helper';
+} from '@/utils/helpers/dns';
 import { useState } from 'react';
 
 export type DropzoneState = 'idle' | 'loading' | 'error' | 'success';
@@ -22,6 +21,22 @@ export interface UnsupportedRecordsInfo {
 
 export interface DuplicateRecordsInfo {
   count: number;
+}
+
+/**
+ * Information about apex SOA/NS records that are skipped during import.
+ * These records are managed automatically by Datum and should not be imported.
+ *
+ * TODO: Allow advanced users to override this behavior in the future.
+ * @see https://github.com/datum-cloud/cloud-portal/issues/901
+ */
+export interface SkippedApexRecordsInfo {
+  /** SOA records found at zone apex */
+  soa: IFlattenedDnsRecord[];
+  /** NS records found at zone apex */
+  ns: IFlattenedDnsRecord[];
+  /** Total count of skipped records */
+  totalCount: number;
 }
 
 interface UseDnsRecordImportProps {
@@ -42,9 +57,9 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
 
   // Preview state
   const [flattenedRecords, setFlattenedRecords] = useState<IFlattenedDnsRecord[]>([]);
-  const [rawRecordSets, setRawRecordSets] = useState<IDnsZoneDiscoveryRecordSet[]>([]);
   const [unsupportedRecords, setUnsupportedRecords] = useState<UnsupportedRecordsInfo | null>(null);
   const [duplicateRecords, setDuplicateRecords] = useState<DuplicateRecordsInfo | null>(null);
+  const [skippedApexRecords, setSkippedApexRecords] = useState<SkippedApexRecordsInfo | null>(null);
 
   // Import state
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
@@ -91,9 +106,9 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
     setDialogOpen(false);
     // setDialogView('preview');
     setFlattenedRecords([]);
-    setRawRecordSets([]);
     setUnsupportedRecords(null);
     setDuplicateRecords(null);
+    setSkippedApexRecords(null);
     setImportResult(null);
   };
 
@@ -171,15 +186,75 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
       const { records: transformedRecords, transformedIndices } =
         transformApexCnameToAlias(deduplicatedRecords);
 
-      // Transform records for API and display
-      const recordSets = transformParsedToRecordSets(transformedRecords);
-      const flattened = transformParsedToFlattened(
-        transformedRecords,
-        dnsZoneId,
-        transformedIndices
+      // =======================================================================
+      // Filter out apex SOA and NS records - these are managed by Datum
+      // TODO: Allow advanced users to override this behavior in the future.
+      // @see https://github.com/datum-cloud/cloud-portal/issues/901
+      // =======================================================================
+      // Apex can be represented as:
+      // - '@' (standard BIND notation)
+      // - '' (empty string)
+      // - The origin domain name itself (e.g., 'example.com' when $ORIGIN example.com.)
+      const originWithoutDot = result.origin?.replace(/\.$/, '') || null;
+      const isApexRecord = (name: string) => {
+        if (name === '@' || name === '') return true;
+        if (originWithoutDot && name === originWithoutDot) return true;
+        return false;
+      };
+
+      // Identify skipped records BEFORE transformation for accurate reporting
+      const skippedParsedSoa = transformedRecords.filter(
+        (r) => r.type === 'SOA' && isApexRecord(r.name)
+      );
+      const skippedParsedNs = transformedRecords.filter(
+        (r) => r.type === 'NS' && isApexRecord(r.name)
       );
 
-      setRawRecordSets(recordSets);
+      // Filter out apex SOA/NS from records to import
+      const importableRecords = transformedRecords.filter((r) => {
+        if (r.type === 'SOA' && isApexRecord(r.name)) return false;
+        if (r.type === 'NS' && isApexRecord(r.name)) return false;
+        return true;
+      });
+
+      // Update transformedIndices to account for filtered records
+      // (indices of transformed CNAME→ALIAS records that are still in importableRecords)
+      const importableIndices = new Set<number>();
+      let newIndex = 0;
+      for (let i = 0; i < transformedRecords.length; i++) {
+        const r = transformedRecords[i];
+        const isSkipped =
+          (r.type === 'SOA' && isApexRecord(r.name)) || (r.type === 'NS' && isApexRecord(r.name));
+        if (!isSkipped) {
+          if (transformedIndices.has(i)) {
+            importableIndices.add(newIndex);
+          }
+          newIndex++;
+        }
+      }
+
+      // Transform records for UI display only
+      // (recordSets will be built from selected records at import time)
+      const flattened = transformParsedToFlattened(importableRecords, dnsZoneId, importableIndices);
+
+      // Convert skipped parsed records to flattened format for display in alert
+      const skippedSoaFlattened = transformParsedToFlattened(
+        skippedParsedSoa,
+        dnsZoneId,
+        new Set()
+      );
+      const skippedNsFlattened = transformParsedToFlattened(skippedParsedNs, dnsZoneId, new Set());
+
+      if (skippedParsedSoa.length > 0 || skippedParsedNs.length > 0) {
+        setSkippedApexRecords({
+          soa: skippedSoaFlattened,
+          ns: skippedNsFlattened,
+          totalCount: skippedParsedSoa.length + skippedParsedNs.length,
+        });
+      } else {
+        setSkippedApexRecords(null);
+      }
+
       setFlattenedRecords(flattened);
 
       // Reset dropzone and open dialog with preview
@@ -199,11 +274,14 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
     setFiles(undefined);
   };
 
-  const handleImport = () => {
-    if (rawRecordSets.length === 0) return;
+  const handleImport = (selectedRecords: IFlattenedDnsRecord[]) => {
+    if (selectedRecords.length === 0) return;
+
+    // Transform selected flat records to grouped recordSets format for API
+    const selectedRecordSets = transformFlattenedToRecordSets(selectedRecords);
 
     importMutation.mutate({
-      discoveryRecordSets: rawRecordSets,
+      discoveryRecordSets: selectedRecordSets,
       importOptions: { skipDuplicates: true, mergeStrategy: 'append' },
     });
   };
@@ -227,6 +305,7 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
     flattenedRecords,
     unsupportedRecords,
     duplicateRecords,
+    skippedApexRecords,
 
     // Import
     isImporting: importMutation.isPending,

@@ -4,11 +4,11 @@ import { DnsRecordTable } from '@/features/edge/dns-records';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { getImportResultStatus } from '@/utils/helpers/dns-record.helper';
 import { openSupportMessage } from '@/utils/open-support-message';
-import { Alert, AlertDescription, Button, Dialog } from '@datum-ui/components';
+import { Alert, AlertDescription, AlertTitle, Button, Dialog } from '@datum-ui/components';
 import { Dropzone, DropzoneEmptyState } from '@datum-ui/components/dropzone/dropzone';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
-import { DownloadIcon, FileTextIcon, Import, PlusIcon } from 'lucide-react';
+import { AlertCircle, DownloadIcon, FileTextIcon, Import, Info, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 // =============================================================================
@@ -46,6 +46,7 @@ export const DnsRecordImportAction = ({
   onSuccess,
 }: DnsRecordImportExportProps) => {
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [selectedRecords, setSelectedRecords] = useState<IFlattenedDnsRecord[]>([]);
 
   // Import hook
   const {
@@ -59,6 +60,7 @@ export const DnsRecordImportAction = ({
     dialogView,
     flattenedRecords,
     unsupportedRecords,
+    skippedApexRecords,
     closeDialog,
     isImporting,
     handleImport,
@@ -164,17 +166,56 @@ export const DnsRecordImportAction = ({
                 className="border-b-0"
               />
               <Dialog.Body className="px-5">
-                <DnsRecordTable
-                  projectId={projectId}
-                  showStatus={false}
-                  className="rounded-xl"
-                  tableContainerClassName="rounded-xl"
-                  data={flattenedRecords}
-                  mode="compact"
-                />
+                <div className="max-h-[400px] overflow-y-auto">
+                  <DnsRecordTable
+                    projectId={projectId}
+                    showStatus={false}
+                    className="rounded-xl"
+                    tableContainerClassName="rounded-xl"
+                    data={flattenedRecords}
+                    mode="compact"
+                    enableMultiSelect={true}
+                    getRowId={(row) => `${row.type}-${row.name}-${row.value}`}
+                    onSelectionChange={(_selectedIds, selectedRows) => {
+                      setSelectedRecords(selectedRows);
+                    }}
+                  />
+                </div>
+
+                {/* Alert for skipped apex SOA/NS records
+                    TODO: Allow advanced users to override this behavior in the future.
+                    @see https://github.com/datum-cloud/cloud-portal/issues/901 */}
+                {skippedApexRecords && skippedApexRecords.totalCount > 0 && (
+                  <Alert variant="info" className="mt-4">
+                    <Icon icon={Info} className="size-4" />
+                    <AlertTitle className="text-sm">Information</AlertTitle>
+                    <AlertDescription>
+                      {skippedApexRecords.soa.length > 0 && skippedApexRecords.ns.length > 0 ? (
+                        <>
+                          We found SOA and NS records at your zone apex which are managed
+                          automatically by Datum and won&apos;t be imported.
+                        </>
+                      ) : skippedApexRecords.soa.length > 0 ? (
+                        <>
+                          We found an SOA record at your zone apex which is managed automatically by
+                          Datum and won&apos;t be imported.
+                        </>
+                      ) : (
+                        <>
+                          We found {skippedApexRecords.ns.length} NS record
+                          {skippedApexRecords.ns.length > 1 ? 's' : ''} at your zone apex which{' '}
+                          {skippedApexRecords.ns.length > 1 ? 'are' : 'is'} managed automatically by
+                          Datum and won&apos;t be imported.
+                        </>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 {unsupportedRecords && unsupportedRecords.totalRecords > 0 && (
                   <Alert variant="destructive" className="mt-4">
+                    <Icon icon={AlertCircle} className="size-4" />
+                    <AlertTitle className="text-destructive text-sm">Error</AlertTitle>
                     <AlertDescription>
                       It&apos;s not possible to import {unsupportedRecords.totalRecords} other
                       record
@@ -207,11 +248,13 @@ export const DnsRecordImportAction = ({
                   htmlType="button"
                   type="primary"
                   theme="solid"
-                  disabled={flattenedRecords.length === 0 || isImporting}
+                  disabled={
+                    flattenedRecords.length === 0 || isImporting || selectedRecords.length === 0
+                  }
                   loading={isImporting}
-                  onClick={handleImport}
+                  onClick={() => handleImport(selectedRecords)}
                   icon={<Icon icon={PlusIcon} className="size-4" />}>
-                  {isImporting ? 'Importing...' : `Import ${flattenedRecords.length} record(s)`}
+                  {isImporting ? 'Importing...' : `Import ${selectedRecords.length} record(s)`}
                 </Button>
               </Dialog.Footer>
             </>

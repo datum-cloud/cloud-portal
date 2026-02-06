@@ -19,6 +19,9 @@ export interface DnsRecordTableBaseProps {
   tableContainerClassName?: string;
   emptyContent?: EmptyContentProps;
   showStatus?: boolean;
+  enableMultiSelect?: boolean;
+  getRowId?: (row: IFlattenedDnsRecord) => string;
+  onSelectionChange?: (selectedIds: string[], selectedRows: IFlattenedDnsRecord[]) => void;
 }
 
 /**

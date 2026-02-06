@@ -1,4 +1,4 @@
-import { SupportedDnsRecordType } from './constants';
+import { type DNSRecordType } from './constants';
 import { formatSvcbParams, getDnsRecordTypePriority } from './record-type.helper';
 import { IExtendedControlPlaneStatus } from '@/resources/base';
 import { IDnsRecordSetControlResponse, IFlattenedDnsRecord } from '@/resources/dns-records';
@@ -135,7 +135,7 @@ function flattenRecordEntries(
 
     flattened.push({
       ...metadata,
-      type: recordType as SupportedDnsRecordType,
+      type: recordType as DNSRecordType,
       name: record.name || '',
       value: value,
       ttl: ttl,

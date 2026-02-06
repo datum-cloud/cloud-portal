@@ -221,8 +221,12 @@ function extractDefaultTTL(lines: string[]): {
 /**
  * Preprocess a BIND zone file
  * 1. Remove comments
- * 2. Collapse multiline records
- * 3. Extract directives ($ORIGIN, $TTL)
+ * 2. Extract directives ($ORIGIN, $TTL) - MUST happen before multiline collapsing
+ * 3. Collapse multiline records
+ *
+ * Note: Directives are always single-line per RFC 1035 and must be extracted
+ * before multiline collapsing to prevent them from being incorrectly merged
+ * with subsequent multiline records (e.g., SOA records with parentheses).
  */
 export function preprocessZoneFile(content: string): PreprocessResult {
   // Split into lines
@@ -231,17 +235,16 @@ export function preprocessZoneFile(content: string): PreprocessResult {
   // Strip comments from each line
   lines = lines.map(stripComment);
 
-  // Filter out empty lines for multiline detection, but keep for processing
+  // Filter out empty lines
   const nonEmptyLines = lines.filter((line) => line.trim() !== '');
 
-  // Collapse multiline records (parentheses)
-  lines = collapseMultilineRecords(nonEmptyLines);
+  // Extract directives FIRST (before multiline collapsing)
+  // Directives are always single-line and must not be merged with records
+  const { origin, remainingLines: afterOrigin } = extractOrigin(nonEmptyLines);
+  const { defaultTTL, remainingLines: afterTTL } = extractDefaultTTL(afterOrigin);
 
-  // Extract $ORIGIN
-  const { origin, remainingLines: afterOrigin } = extractOrigin(lines);
-
-  // Extract $TTL
-  const { defaultTTL, remainingLines: finalLines } = extractDefaultTTL(afterOrigin);
+  // Collapse multiline records (parentheses) - now safe from directive contamination
+  const finalLines = collapseMultilineRecords(afterTTL);
 
   return {
     lines: finalLines,

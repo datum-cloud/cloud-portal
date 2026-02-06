@@ -170,6 +170,12 @@ export default function DnsRecordsPage() {
             triggerInlineEdit: true,
             showLabel: false,
             action: () => {},
+
+            /**
+             * TODO: SOA records are not editable
+             * @see https://github.com/datum-cloud/cloud-portal/issues/901
+             */
+            hidden: (row) => row.type === 'SOA',
           },
           {
             key: 'delete',
@@ -178,6 +184,11 @@ export default function DnsRecordsPage() {
             display: 'inline',
             showLabel: false,
             action: (row) => handleDelete(row),
+            /**
+             * TODO: SOA records are not deletable
+             * @see https://github.com/datum-cloud/cloud-portal/issues/901
+             */
+            hidden: (row) => row.type === 'SOA',
           },
         ]}
         // Toolbar configuration

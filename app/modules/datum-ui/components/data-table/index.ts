@@ -33,9 +33,12 @@ export type { DataTableColumnHeaderProps } from './features/columns/data-table-c
 export { DataTableToolbar } from './features/toolbar/data-table-toolbar';
 export { DataTableToolbarSearch } from './features/toolbar/data-table-toolbar-search';
 export { DataTableToolbarFilterDropdown } from './features/toolbar/data-table-toolbar-filter-dropdown';
+export { DataTableToolbarMultiActions } from './features/toolbar/data-table-toolbar-multi-actions';
+export { DataTableToolbarRowCount } from './features/toolbar/data-table-toolbar-row-count';
 export type { DataTableToolbarProps } from './features/toolbar/data-table-toolbar';
 export type { DataTableToolbarSearchProps } from './features/toolbar/data-table-toolbar-search';
 export type { DataTableToolbarFilterDropdownProps } from './features/toolbar/data-table-toolbar-filter-dropdown';
+export type { DataTableToolbarMultiActionsProps } from './features/toolbar/data-table-toolbar-multi-actions';
 
 // Pagination components
 export { DataTablePagination } from './features/pagination/data-table-pagination';
@@ -63,6 +66,10 @@ export type {
   DataTableSearchConfig,
   DataTableRef,
   SearchParams,
+  // Multi-select types
+  MultiAction,
+  MultiActionButtonProps,
+  MultiActionRenderProps,
 } from './core/data-table.types';
 
 // Column types (includes module augmentation for TanStack Table)

@@ -84,12 +84,10 @@ import {
   setSentryOrgContext,
   setSentryProjectContext,
   setSentryResourceContext,
-
   // Breadcrumbs - user journey tracking
   trackFormSubmit,
   trackFormSuccess,
   trackFormError,
-
   // Capture - error reporting
   captureError,
   captureApiError,
@@ -123,15 +121,15 @@ setSentryResourceContext({
 
 Filter issues in Sentry dashboard using these tags:
 
-| Tag | Description | Example |
-|-----|-------------|---------|
-| `user.id` | User identifier | `user-123` |
-| `org.id` | Organization name | `acme-corp` |
-| `project.id` | Project name | `my-project` |
-| `resource.kind` | K8s resource kind | `DNSZone` |
-| `resource.apiGroup` | API group | `dns.networking.miloapis.com` |
-| `resource.type` | Resource type (from URL) | `dnszones` |
-| `resource.name` | Resource name | `example.com` |
+| Tag                 | Description              | Example                       |
+| ------------------- | ------------------------ | ----------------------------- |
+| `user.id`           | User identifier          | `user-123`                    |
+| `org.id`            | Organization name        | `acme-corp`                   |
+| `project.id`        | Project name             | `my-project`                  |
+| `resource.kind`     | K8s resource kind        | `DNSZone`                     |
+| `resource.apiGroup` | API group                | `dns.networking.miloapis.com` |
+| `resource.type`     | Resource type (from URL) | `dnszones`                    |
+| `resource.name`     | Resource name            | `example.com`                 |
 
 ### API Error Capture
 
@@ -152,6 +150,7 @@ captureApiError({
 ```
 
 **Error Grouping:** Errors are grouped by `resource type + API group + status code`:
+
 - `API 404: GET dnszones` (instead of generic "AxiosError")
 - `API 401: POST projects`
 
@@ -167,6 +166,7 @@ Forms automatically track user interactions as breadcrumbs:
 ```
 
 Tracked events:
+
 - Form submit attempts
 - Validation errors (field names only, not values)
 - Submission success/failure

@@ -27,6 +27,7 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
       tableContainerClassName,
       projectId,
       showStatus = true,
+      getRowId,
       ...props
     },
     ref
@@ -165,6 +166,9 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
           columns={columns}
           data={data}
           emptyContent={emptyContent || { title: 'No DNS records found' }}
+          enableMultiSelect={props.enableMultiSelect}
+          getRowId={getRowId}
+          onSelectionChange={props.onSelectionChange}
         />
       );
     }

@@ -1,27 +1,17 @@
 import { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-plane/dns-networking';
 import type { IExtendedControlPlaneStatus } from '@/resources/base';
 import { resourceMetadataSchema, paginatedResponseSchema } from '@/resources/base/base.schema';
+import {
+  DNS_RECORD_TYPES,
+  SUPPORTED_DNS_RECORD_TYPES,
+  type DNSRecordType,
+  type SupportedDnsRecordType,
+} from '@/utils/helpers/dns/constants';
 import { z } from 'zod';
 
-// DNS Record Types Enum - Based on Cloudflare & Google Cloud DNS standards
-export const DNS_RECORD_TYPES = [
-  'A',
-  'AAAA',
-  'ALIAS',
-  'CAA',
-  'CNAME',
-  'HTTPS',
-  'MX',
-  'NS',
-  'PTR',
-  'SOA',
-  'SRV',
-  'SVCB',
-  'TLSA',
-  'TXT',
-] as const;
-
-export type DNSRecordType = (typeof DNS_RECORD_TYPES)[number];
+// Re-export for convenience (single source of truth is in constants.ts)
+export { DNS_RECORD_TYPES, SUPPORTED_DNS_RECORD_TYPES };
+export type { DNSRecordType, SupportedDnsRecordType };
 
 // Common validation helpers
 const ipv4Regex =
@@ -562,33 +552,13 @@ export type DnsRecordSet = z.infer<typeof dnsRecordSetResourceSchema>;
 export const dnsRecordSetListSchema = paginatedResponseSchema(dnsRecordSetResourceSchema);
 export type DnsRecordSetList = z.infer<typeof dnsRecordSetListSchema>;
 
-// Supported DNS Record Types
-export const SUPPORTED_DNS_RECORD_TYPES = [
-  'A',
-  'AAAA',
-  'ALIAS',
-  'CAA',
-  'CNAME',
-  'HTTPS',
-  'MX',
-  'NS',
-  'PTR',
-  'SOA',
-  'SRV',
-  'SVCB',
-  'TLSA',
-  'TXT',
-] as const;
-
-export type SupportedDnsRecordType = (typeof SUPPORTED_DNS_RECORD_TYPES)[number];
-
-// Flattened DNS Record for UI display
+// Flattened DNS Record for UI display (includes all types from API, including SOA)
 export const flattenedDnsRecordSchema = z.object({
   recordSetId: z.string().optional(),
   recordSetName: z.string().optional(),
   createdAt: z.coerce.date().optional(),
   dnsZoneId: z.string(),
-  type: z.enum(SUPPORTED_DNS_RECORD_TYPES),
+  type: z.enum(DNS_RECORD_TYPES),
   name: z.string(),
   value: z.string(),
   ttl: z.number().optional(),
@@ -604,13 +574,13 @@ export interface IFlattenedDnsRecordMeta {
   transformedFrom?: SupportedDnsRecordType;
 }
 
-// Interface version for backward compatibility
+// Interface for flattened DNS record from API (includes SOA from auto-created records)
 export interface IFlattenedDnsRecord {
   recordSetId?: string;
   recordSetName?: string;
   createdAt?: Date;
   dnsZoneId: string;
-  type: SupportedDnsRecordType;
+  type: DNSRecordType;
   name: string;
   value: string;
   ttl?: number;

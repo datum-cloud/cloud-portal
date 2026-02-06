@@ -3,19 +3,12 @@
  * Transform functions for converting parsed BIND records to application formats
  */
 // Import ParsedDnsRecord type for local use
+import type { ParsedDnsRecord } from './bind-parser';
 import { isDuplicateRecord } from './record-comparison.helper';
 import { ensureFqdn, hasFqdnFields, transformFqdnFields } from './record-type.helper';
-import type { ParsedDnsRecord } from '@/modules/bind-parser';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { DNSRecordType, TTL_OPTIONS } from '@/resources/dns-records';
 import { IDnsZoneDiscoveryRecordSet } from '@/resources/dns-zone-discoveries';
-
-// Re-export parser from bind-parser module
-export {
-  parseBindZoneFile,
-  type BindParseResult,
-  type ParsedDnsRecord,
-} from '@/modules/bind-parser';
 
 // ============================================================================
 // TTL Normalization
@@ -336,6 +329,42 @@ export function transformParsedToRecordSets(
       };
 
       acc[record.type].push(entry);
+      return acc;
+    },
+    {} as Record<string, Record<string, unknown>[]>
+  );
+
+  // Convert to array format matching IDnsZoneDiscoveryRecordSet
+  return Object.entries(grouped).map(([recordType, records]) => ({
+    recordType: recordType as DNSRecordType,
+    records,
+  })) as IDnsZoneDiscoveryRecordSet[];
+}
+
+// ============================================================================
+// Transform Flattened Records to RecordSets (for selected import)
+// ============================================================================
+
+/**
+ * Transform selected flattened records back to recordSets format for import API.
+ * Groups selected records by type, using rawData which already has the correct structure.
+ *
+ * This is used when importing only user-selected records from a BIND file import preview.
+ *
+ * @param selectedRecords - Array of selected IFlattenedDnsRecord from UI
+ * @returns Array of IDnsZoneDiscoveryRecordSet grouped by type for API submission
+ */
+export function transformFlattenedToRecordSets(
+  selectedRecords: IFlattenedDnsRecord[]
+): IDnsZoneDiscoveryRecordSet[] {
+  // Group by recordType
+  const grouped = selectedRecords.reduce(
+    (acc, record) => {
+      if (!acc[record.type]) {
+        acc[record.type] = [];
+      }
+      // Use rawData which already has the correct K8s API structure
+      acc[record.type].push(record.rawData);
       return acc;
     },
     {} as Record<string, Record<string, unknown>[]>

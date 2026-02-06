@@ -4,9 +4,12 @@
 // =============================================================================
 
 export {
-  // Constants
+  // Constants - Single source of truth for DNS record types
+  DNS_RECORD_TYPES,
+  DNS_RECORD_TYPES_SET,
   SUPPORTED_DNS_RECORD_TYPES,
   SUPPORTED_DNS_RECORD_TYPES_SET,
+  type DNSRecordType,
   type SupportedDnsRecordType,
 
   // Nameserver helpers
