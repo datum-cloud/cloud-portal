@@ -1,6 +1,10 @@
 import type { ComDatumapisNetworkingV1AlphaHttpProxy } from '@/modules/control-plane/networking';
 import { nameSchema } from '@/resources/base';
-import { createHostnameSchema, isIPAddress } from '@/utils/helpers/validation.helper';
+import {
+  createHostnameSchema,
+  createHttpEndpointSchema,
+  isIPAddress,
+} from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
 
 // HTTP Proxy resource schema (from API)
@@ -61,18 +65,7 @@ export const httpProxyHostnameSchema = z.object({
 
 export const httpProxySchema = z
   .object({
-    endpoint: z.string({ error: 'Endpoint is required' }).refine(
-      (value) => {
-        try {
-          const url = new URL(value);
-          // Must have http:// or https:// protocol
-          return url.protocol === 'http:' || url.protocol === 'https:';
-        } catch {
-          return false;
-        }
-      },
-      { message: 'Endpoint must be a valid URL with HTTP/HTTPS protocol' }
-    ),
+    endpoint: createHttpEndpointSchema('Endpoint'),
     tlsHostname: z.string().min(1).max(253).optional(),
   })
   .and(httpProxyHostnameSchema)
