@@ -27,7 +27,7 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Badge, Button, toast } from '@datum-ui/components';
+import { Badge, Button, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
 import { ColumnDef } from '@tanstack/react-table';
@@ -47,7 +47,9 @@ type FormattedDomain = {
   name: string;
   domainName: string;
   registrar?: string;
+  registrationFetching: boolean;
   nameservers?: NonNullable<Domain['status']>['nameservers'];
+  nameserversFetching: boolean;
   expiresAt?: string;
   status: Domain['status'];
   statusType: 'verified' | 'pending';
@@ -108,7 +110,9 @@ export default function DomainsPage() {
       name: domain.name,
       domainName: domain.domainName,
       registrar: domain.status?.registration?.registrar?.name,
+      registrationFetching: !!domain.status && !domain.status?.registration,
       nameservers: domain.status?.nameservers,
+      nameserversFetching: !!domain.status && !domain.status?.nameservers?.length,
       expiresAt: domain.status?.registration?.expiresAt,
       status: domain.status,
       statusType: domain.status?.verified ? 'verified' : 'pending',
@@ -228,14 +232,32 @@ export default function DomainsPage() {
         id: 'registrar',
         header: 'Registrar',
         accessorKey: 'registrar',
-        cell: ({ row }) =>
-          row.original?.registrar ? (
-            <Badge type="quaternary" theme="outline" className="rounded-xl text-sm font-normal">
-              {row.original?.registrar}
-            </Badge>
-          ) : (
-            '-'
-          ),
+        cell: ({ row }) => {
+          if (row.original.registrationFetching) {
+            return (
+              <Tooltip message="Registrar information is being fetched and will appear shortly.">
+                <span className="text-muted-foreground animate-pulse text-xs">Looking up...</span>
+              </Tooltip>
+            );
+          }
+          if (row.original.registrar) {
+            return (
+              <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
+                {row.original.registrar}
+              </Badge>
+            );
+          }
+          if (row.original.status?.registration) {
+            return (
+              <Tooltip message="Registrar information is not publicly available. This is common when WHOIS privacy protection is enabled.">
+                <Badge type="muted" theme="outline" className="rounded-xl text-xs font-normal">
+                  Private
+                </Badge>
+              </Tooltip>
+            );
+          }
+          return '-';
+        },
         meta: {
           sortPath: 'registrar',
           sortType: 'text',
@@ -246,6 +268,13 @@ export default function DomainsPage() {
         header: 'DNS Host',
         accessorKey: 'nameservers',
         cell: ({ row }) => {
+          if (row.original.nameserversFetching) {
+            return (
+              <Tooltip message="DNS host information is being fetched and will appear shortly.">
+                <span className="text-muted-foreground animate-pulse text-xs">Looking up...</span>
+              </Tooltip>
+            );
+          }
           return <NameserverChips data={row.original?.nameservers} maxVisible={2} />;
         },
         meta: {
