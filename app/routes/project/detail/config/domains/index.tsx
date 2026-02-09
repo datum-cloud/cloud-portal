@@ -7,6 +7,7 @@ import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-tab
 import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
 import {
   createDnsZoneService,
+  dnsZoneKeys,
   useDnsZones,
   useDnsZonesWatch,
   useHydrateDnsZones,
@@ -15,6 +16,7 @@ import {
 import {
   createDomainService,
   type Domain,
+  domainKeys,
   domainSchema,
   useCreateDomain,
   useDeleteDomain,
@@ -27,12 +29,13 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Badge, Button, toast } from '@datum-ui/components';
+import { Badge, Button, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
+import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import {
   data,
   LoaderFunctionArgs,
@@ -47,7 +50,9 @@ type FormattedDomain = {
   name: string;
   domainName: string;
   registrar?: string;
+  registrationFetching: boolean;
   nameservers?: NonNullable<Domain['status']>['nameservers'];
+  nameserversFetching: boolean;
   expiresAt?: string;
   status: Domain['status'];
   statusType: 'verified' | 'pending';
@@ -65,12 +70,11 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     throw new BadRequestError('Project ID is required');
   }
 
-  // Services now use global axios client with AsyncLocalStorage
-  const domainService = createDomainService();
-  const domains = await domainService.list(projectId);
+  const [domains, dnsZones] = await Promise.all([
+    createDomainService().list(projectId),
+    createDnsZoneService().list(projectId),
+  ]);
 
-  const dnsZonesService = createDnsZoneService();
-  const dnsZones = await dnsZonesService.list(projectId);
   return data({ domains, dnsZones });
 };
 
@@ -78,6 +82,15 @@ export default function DomainsPage() {
   const { projectId } = useParams();
   const { domains: initialDomains, dnsZones: initialDnsZones } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Cancel in-flight queries on unmount to prevent orphaned requests
+  useEffect(() => {
+    return () => {
+      queryClient.cancelQueries({ queryKey: domainKeys.list(projectId ?? '') });
+      queryClient.cancelQueries({ queryKey: dnsZoneKeys.list(projectId ?? '') });
+    };
+  }, [queryClient, projectId]);
 
   // Hydrate cache with SSR data (runs once on mount)
   useHydrateDomains(projectId ?? '', initialDomains);
@@ -102,19 +115,30 @@ export default function DomainsPage() {
   const domains = domainsData ?? initialDomains;
   const dnsZones = dnsZonesData?.items ?? initialDnsZones.items;
 
+  // Build O(1) lookup map for DNS zones by domain name
+  const dnsZoneMap = useMemo(() => {
+    const map = new Map<string, DnsZone>();
+    for (const zone of dnsZones) {
+      if (zone.domainName) map.set(zone.domainName, zone);
+    }
+    return map;
+  }, [dnsZones]);
+
   // Format domains for display
   const formattedDomains = useMemo<FormattedDomain[]>(() => {
     return domains.map((domain) => ({
       name: domain.name,
       domainName: domain.domainName,
       registrar: domain.status?.registration?.registrar?.name,
+      registrationFetching: !!domain.status && !domain.status?.registration,
       nameservers: domain.status?.nameservers,
+      nameserversFetching: !!domain.status && !domain.status?.nameservers?.length,
       expiresAt: domain.status?.registration?.expiresAt,
       status: domain.status,
       statusType: domain.status?.verified ? 'verified' : 'pending',
-      dnsZone: dnsZones.find((dnsZone) => dnsZone.domainName === domain.domainName),
+      dnsZone: dnsZoneMap.get(domain.domainName),
     }));
-  }, [domains, dnsZones]);
+  }, [domains, dnsZoneMap]);
 
   const { confirm } = useConfirmationDialog();
 
@@ -228,14 +252,32 @@ export default function DomainsPage() {
         id: 'registrar',
         header: 'Registrar',
         accessorKey: 'registrar',
-        cell: ({ row }) =>
-          row.original?.registrar ? (
-            <Badge type="quaternary" theme="outline" className="rounded-xl text-sm font-normal">
-              {row.original?.registrar}
-            </Badge>
-          ) : (
-            '-'
-          ),
+        cell: ({ row }) => {
+          if (row.original.registrationFetching) {
+            return (
+              <Tooltip message="Registrar information is being fetched and will appear shortly.">
+                <span className="text-muted-foreground animate-pulse text-xs">Looking up...</span>
+              </Tooltip>
+            );
+          }
+          if (row.original.registrar) {
+            return (
+              <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
+                {row.original.registrar}
+              </Badge>
+            );
+          }
+          if (row.original.status?.registration) {
+            return (
+              <Tooltip message="Registrar information is not publicly available. This is common when WHOIS privacy protection is enabled.">
+                <Badge type="muted" theme="outline" className="rounded-xl text-xs font-normal">
+                  Private
+                </Badge>
+              </Tooltip>
+            );
+          }
+          return '-';
+        },
         meta: {
           sortPath: 'registrar',
           sortType: 'text',
@@ -246,6 +288,13 @@ export default function DomainsPage() {
         header: 'DNS Host',
         accessorKey: 'nameservers',
         cell: ({ row }) => {
+          if (row.original.nameserversFetching) {
+            return (
+              <Tooltip message="DNS host information is being fetched and will appear shortly.">
+                <span className="text-muted-foreground animate-pulse text-xs">Looking up...</span>
+              </Tooltip>
+            );
+          }
           return <NameserverChips data={row.original?.nameservers} maxVisible={2} />;
         },
         meta: {
