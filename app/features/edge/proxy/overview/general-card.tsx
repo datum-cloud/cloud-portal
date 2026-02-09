@@ -1,49 +1,68 @@
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
-import { TextCopy } from '@/components/text-copy/text-copy';
 import { ControlPlaneStatus } from '@/resources/base';
-import { IHttpProxyControlResponse } from '@/resources/http-proxies';
+import { type HttpProxy } from '@/resources/http-proxies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
+import { getShortId } from '@/utils/helpers/text.helper';
+import { Button, Card, CardContent } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { PencilIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { Link } from 'react-router';
 
-export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: IHttpProxyControlResponse }) => {
+export const HttpProxyGeneralCard = ({
+  httpProxy,
+  onEdit,
+}: {
+  httpProxy: HttpProxy;
+  onEdit?: () => void;
+}) => {
   const listItems: ListItem[] = useMemo(() => {
     if (!httpProxy) return [];
 
     return [
       {
-        label: 'Name',
-        className: 'px-2',
+        label: 'Resource Name',
         content: (
-          <TextCopy className="text-sm" value={httpProxy.name ?? ''} text={httpProxy.name} />
+          <BadgeCopy
+            value={httpProxy.name ?? ''}
+            text={httpProxy.name}
+            badgeType="muted"
+            badgeTheme="solid"
+          />
+        ),
+      },
+      {
+        label: 'UID',
+        content: (
+          <BadgeCopy
+            value={httpProxy.uid ?? ''}
+            text={getShortId(httpProxy.uid ?? '')}
+            badgeType="muted"
+            badgeTheme="solid"
+          />
         ),
       },
       {
         label: 'Namespace',
-        className: 'px-2',
-        content: <span>{httpProxy.namespace}</span>,
+        content: <span className="capitalize">{httpProxy.namespace}</span>,
       },
       {
         label: 'Endpoint',
-        className: 'px-2',
         content: (
-          <Link to={httpProxy.endpoint ?? ''} target="_blank">
+          <a href={httpProxy.endpoint ?? ''} target="_blank" rel="noopener noreferrer">
             {httpProxy.endpoint}
-          </Link>
+          </a>
         ),
       },
       {
         label: 'TLS Hostname',
-        className: 'px-2',
         hidden: !httpProxy.tlsHostname,
         content: <span>{httpProxy.tlsHostname ?? ''}</span>,
       },
       {
         label: 'Status',
-        className: 'px-2',
         content: (() => {
           const transformedStatus = transformControlPlaneStatus(httpProxy.status);
           return (
@@ -56,18 +75,23 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: IHttpProxyContr
       },
       {
         label: 'Created At',
-        className: 'px-2',
         content: <DateTime className="text-sm" date={httpProxy?.createdAt ?? ''} variant="both" />,
       },
     ];
   }, [httpProxy]);
 
   return (
-    <Card className="w-full">
-      <CardHeader className="px-6">
-        <CardTitle className="text-base leading-none font-medium">General</CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 pt-0 pb-2">
+    <Card className="w-full p-0 shadow-md">
+      <CardContent className="px-9 py-6">
+        <div className="mb-4 flex items-center justify-between">
+          <span className="text-base font-semibold">General</span>
+          {onEdit && (
+            <Button htmlType="button" type="primary" theme="solid" size="xs" onClick={onEdit}>
+              <Icon icon={PencilIcon} size={12} />
+              Edit
+            </Button>
+          )}
+        </div>
         <List items={listItems} />
       </CardContent>
     </Card>

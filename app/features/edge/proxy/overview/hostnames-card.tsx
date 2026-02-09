@@ -1,12 +1,12 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
-import { IHttpProxyControlResponse } from '@/resources/http-proxies';
+import { type HttpProxy } from '@/resources/http-proxies';
 import { Badge } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
+import { Card, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
-import { CopyIcon } from 'lucide-react';
+import { CopyIcon, GlobeIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 export const HttpProxyHostnamesCard = ({
@@ -15,7 +15,7 @@ export const HttpProxyHostnamesCard = ({
   customHostnames,
 }: {
   endpoint?: string;
-  status: IHttpProxyControlResponse['status'];
+  status: HttpProxy['status'];
   customHostnames?: string[];
 }) => {
   const [_, copy] = useCopyToClipboard();
@@ -40,7 +40,7 @@ export const HttpProxyHostnamesCard = ({
     const defaultHostnames = status?.hostnames ?? [];
 
     const system =
-      defaultHostnames.map((hostname) => {
+      defaultHostnames.map((hostname: string) => {
         return {
           hostname,
           valid: true,
@@ -52,7 +52,8 @@ export const HttpProxyHostnamesCard = ({
         ?.filter((hostname) => !defaultHostnames.includes(hostname))
         ?.map((hostname) => {
           const hostNameCondition = status?.conditions?.find(
-            (condition) => condition.type === 'HostnamesVerified' && condition.status === 'False'
+            (condition: { type: string; status: string; message: string }) =>
+              condition.type === 'HostnamesVerified' && condition.status === 'False'
           );
           const valid = !hostNameCondition?.message.includes('hostname');
           return {
@@ -65,19 +66,20 @@ export const HttpProxyHostnamesCard = ({
   }, [status, customHostnames]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Hostnames</CardTitle>
+    <Card className="w-full p-0 shadow-md">
+      <CardContent className="flex flex-col gap-5 px-9 py-8">
+        <div className="flex items-center gap-2.5">
+          <Icon icon={GlobeIcon} size={20} className="text-secondary stroke-2" />
+          <span className="text-base font-semibold">Hostnames</span>
+        </div>
         {endpoint && (
-          <CardDescription>
+          <div className="text-[14px] font-normal">
             These endpoints will forward requests to your backend:{' '}
-            <Badge type="tertiary" theme="light">
+            <Badge type="quaternary" theme="outline">
               {endpoint}
             </Badge>
-          </CardDescription>
+          </div>
         )}
-      </CardHeader>
-      <CardContent>
         {(hostnames ?? [])?.length > 0 && (
           <div className="flex flex-col gap-2.5">
             {hostnames?.map((val) => {
@@ -89,11 +91,14 @@ export const HttpProxyHostnamesCard = ({
                     <Tooltip message={val.valid ? 'Valid' : val.message}>
                       <Badge
                         type={val.valid ? 'primary' : 'danger'}
-                        className={cn(val.valid ? 'pointer-events-none' : 'cursor-pointer')}>
+                        className={cn(
+                          '!text-xs',
+                          val.valid ? 'pointer-events-none' : 'cursor-pointer'
+                        )}>
                         {val.valid ? 'HTTP/HTTPS' : 'Invalid'}
                       </Badge>
                     </Tooltip>
-                    <span className="text-sm font-medium break-all">{val.hostname}</span>
+                    <span className="text-xs font-medium break-all">{val.hostname}</span>
                   </div>
                   <Button
                     type="quaternary"
