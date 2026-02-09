@@ -100,7 +100,9 @@ export default function AccountOrganizations() {
         id: 'name',
         cell: ({ row }) => {
           return (
-            <div className="flex items-center justify-between gap-2">
+            <div
+              className="flex items-center justify-between gap-2"
+              data-e2e={`organization-card-${row.original.type.toLowerCase()}`}>
               <div className="flex items-center gap-5">
                 <Icon
                   icon={Building}
@@ -113,6 +115,7 @@ export default function AccountOrganizations() {
               </div>
               <div className="flex items-center gap-6">
                 <BadgeCopy
+                  data-e2e={`organization-card-id-copy`}
                   value={row.original.name ?? ''}
                   text={row.original.name ?? ''}
                   badgeTheme="solid"

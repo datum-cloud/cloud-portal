@@ -14,6 +14,9 @@ export default defineConfig({
   },
   e2e: {
     baseUrl: process.env.CYPRESS_BASE_URL || 'http://localhost:3000',
+    supportFile: 'cypress/support/e2e.ts',
+    // Disable web security to allow cross-origin navigation (needed for OIDC redirects)
+    chromeWebSecurity: false,
     setupNodeEvents(on, config) {
       // implement node event listeners here
       on('task', {

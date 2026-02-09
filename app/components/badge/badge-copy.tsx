@@ -15,6 +15,7 @@ export interface BadgeCopyProps {
   badgeTheme?: BadgeProps['theme'];
   showTooltip?: boolean;
   copyButtonClassName?: string;
+  'data-e2e'?: string;
 }
 
 export const BadgeCopy = ({
@@ -27,6 +28,7 @@ export const BadgeCopy = ({
   badgeTheme = 'light',
   showTooltip = true,
   copyButtonClassName,
+  'data-e2e': dataE2e,
 }: BadgeCopyProps) => {
   const [_, copy] = useCopyToClipboard();
   const [copied, setCopied] = useState(false);
@@ -85,5 +87,9 @@ export const BadgeCopy = ({
     </Badge>
   );
 
-  return <div className={cn('w-fit', containerClassName)}>{badgeContent}</div>;
+  return (
+    <div className={cn('w-fit', containerClassName)} data-e2e={dataE2e}>
+      {badgeContent}
+    </div>
+  );
 };

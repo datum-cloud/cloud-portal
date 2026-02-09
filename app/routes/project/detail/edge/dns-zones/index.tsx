@@ -190,8 +190,10 @@ export default function DnsZonesPage() {
           const { status } = row.original._computed;
 
           return (
-            <div className="flex items-center gap-2">
-              <span className="font-medium">{row.original.domainName}</span>
+            <div className="flex items-center gap-2" data-e2e="dns-zone-card">
+              <span className="font-medium" data-e2e="dns-zone-name">
+                {row.original.domainName}
+              </span>
               <BadgeProgrammingError
                 className="rounded-lg px-2 py-0.5"
                 isProgrammed={status.isProgrammed}
@@ -214,12 +216,20 @@ export default function DnsZonesPage() {
           if (!hasNameservers) {
             // Show dash if there's an error, spinner if still loading
             if (hasError) {
-              return <>-</>;
+              return <span data-e2e="dns-zone-nameservers">-</span>;
             }
-            return <SpinnerIcon size="sm" aria-hidden="true" className="text-muted-foreground" />;
+            return (
+              <span data-e2e="dns-zone-nameservers">
+                <SpinnerIcon size="sm" aria-hidden="true" className="text-muted-foreground" />
+              </span>
+            );
           }
 
-          return <NameserverChips data={nameservers} maxVisible={2} />;
+          return (
+            <span data-e2e="dns-zone-nameservers">
+              <NameserverChips data={nameservers} maxVisible={2} />
+            </span>
+          );
         },
         meta: {
           sortPath: 'status.domainRef.status.nameservers',
@@ -234,8 +244,10 @@ export default function DnsZonesPage() {
         cell: ({ row }) => {
           const status = row.original.status;
 
-          if (!status?.recordCount) return <>-</>;
-          return status?.recordCount;
+          if (!status?.recordCount) {
+            return <span data-e2e="dns-zone-records">-</span>;
+          }
+          return <span data-e2e="dns-zone-records">{status?.recordCount}</span>;
         },
         meta: {
           sortPath: 'status.recordCount',
@@ -247,7 +259,13 @@ export default function DnsZonesPage() {
         header: 'Created At',
         accessorKey: 'createdAt',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateTime date={row.original.createdAt} />;
+          return (
+            row.original.createdAt && (
+              <span data-e2e="dns-zone-created-at">
+                <DateTime date={row.original.createdAt} />
+              </span>
+            )
+          );
         },
         meta: {
           sortPath: 'createdAt',
@@ -260,11 +278,11 @@ export default function DnsZonesPage() {
         accessorKey: 'description',
         cell: ({ row }) => {
           return (
-            <>
+            <span data-e2e="dns-zone-description">
               {row.original.description && row.original.description.length > 0
                 ? row.original.description
                 : '-'}
-            </>
+            </span>
           );
         },
       },

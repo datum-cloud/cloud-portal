@@ -241,7 +241,11 @@ export default function DomainsPage() {
         accessorKey: 'domainName',
         id: 'domainName',
         cell: ({ row }) => {
-          return row.original.domainName;
+          return (
+            <div data-e2e="domain-card">
+              <span data-e2e="domain-name">{row.original.domainName}</span>
+            </div>
+          );
         },
         meta: {
           sortPath: 'domainName',
@@ -255,28 +259,37 @@ export default function DomainsPage() {
         cell: ({ row }) => {
           if (row.original.registrationFetching) {
             return (
-              <Tooltip message="Registrar information is being fetched and will appear shortly.">
-                <span className="text-muted-foreground animate-pulse text-xs">Looking up...</span>
-              </Tooltip>
+              <span data-e2e="domain-registrar">
+                <Tooltip message="Registrar information is being fetched and will appear shortly.">
+                  <span className="text-muted-foreground animate-pulse text-xs">Looking up...</span>
+                </Tooltip>
+              </span>
             );
           }
           if (row.original.registrar) {
             return (
-              <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
-                {row.original.registrar}
-              </Badge>
+              <span data-e2e="domain-registrar">
+                <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
+                  {row.original.registrar}
+                </Badge>
+              </span>
             );
           }
           if (row.original.status?.registration) {
             return (
-              <Tooltip message="Registrar information is not publicly available. This is common when WHOIS privacy protection is enabled.">
-                <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
-                  Private
-                </Badge>
-              </Tooltip>
+              <span data-e2e="domain-registrar">
+                <Tooltip message="Registrar information is not publicly available. This is common when WHOIS privacy protection is enabled.">
+                  <Badge
+                    type="quaternary"
+                    theme="outline"
+                    className="rounded-xl text-xs font-normal">
+                    Private
+                  </Badge>
+                </Tooltip>
+              </span>
             );
           }
-          return '-';
+          return <span data-e2e="domain-registrar">-</span>;
         },
         meta: {
           sortPath: 'registrar',
@@ -290,12 +303,18 @@ export default function DomainsPage() {
         cell: ({ row }) => {
           if (row.original.nameserversFetching) {
             return (
-              <Tooltip message="DNS host information is being fetched and will appear shortly.">
-                <span className="text-muted-foreground animate-pulse text-xs">Looking up...</span>
-              </Tooltip>
+              <span data-e2e="domain-nameservers">
+                <Tooltip message="DNS host information is being fetched and will appear shortly.">
+                  <span className="text-muted-foreground animate-pulse text-xs">Looking up...</span>
+                </Tooltip>
+              </span>
             );
           }
-          return <NameserverChips data={row.original?.nameservers} maxVisible={2} />;
+          return (
+            <span data-e2e="domain-nameservers">
+              <NameserverChips data={row.original?.nameservers} maxVisible={2} />
+            </span>
+          );
         },
         meta: {
           sortPath: 'status.nameservers',
@@ -308,7 +327,11 @@ export default function DomainsPage() {
         header: 'Expiration Date',
         accessorKey: 'expiresAt',
         cell: ({ row }) => {
-          return <DomainExpiration expiresAt={row.original.expiresAt} />;
+          return (
+            <span data-e2e="domain-expiration">
+              <DomainExpiration expiresAt={row.original.expiresAt} />
+            </span>
+          );
         },
         meta: {
           sortPath: 'expiresAt',
