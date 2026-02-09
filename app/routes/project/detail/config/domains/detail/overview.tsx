@@ -43,7 +43,7 @@ export default function DomainOverviewPage() {
     initialData: domain,
   });
   // Subscribe to real-time domain updates (for nameserver status)
-  useDomainWatch(projectId ?? '', (liveDomain?.name ?? domain?.name) ?? '', {
+  useDomainWatch(projectId ?? '', liveDomain?.name ?? domain?.name ?? '', {
     enabled: !!(liveDomain?.name ?? domain?.name),
   });
 
@@ -55,7 +55,7 @@ export default function DomainOverviewPage() {
 
   const status = useMemo(
     () => transformControlPlaneStatus(effectiveDomain?.status),
-    [effectiveDomain],
+    [effectiveDomain]
   );
   const isPending = useMemo(() => status.status === ControlPlaneStatus.Pending, [status]);
 
@@ -84,7 +84,6 @@ export default function DomainOverviewPage() {
       setSearchParams({});
     }
   }, [searchParams]);
-  
 
   return (
     <Row gutter={[24, 32]}>

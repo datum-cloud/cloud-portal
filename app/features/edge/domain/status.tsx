@@ -28,11 +28,7 @@ const getConditionTitle = (condition: Condition): string => {
   }
 };
 
-export const DomainStatus = ({
-  domainStatus,
-}: {
-  domainStatus: Domain['status'];
-}) => {
+export const DomainStatus = ({ domainStatus }: { domainStatus: Domain['status'] }) => {
   const currentStatus = useMemo(() => {
     return transformControlPlaneStatus(domainStatus);
   }, [domainStatus]);

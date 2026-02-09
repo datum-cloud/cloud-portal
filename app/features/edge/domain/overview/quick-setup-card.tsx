@@ -23,13 +23,7 @@ type DnsSetupResponse = {
   data?: CreateDNSSetupResponse;
 };
 
-export const QuickSetupCard = ({
-  projectId,
-  domain,
-}: {
-  projectId: string;
-  domain: Domain;
-}) => {
+export const QuickSetupCard = ({ projectId, domain }: { projectId: string; domain: Domain }) => {
   const dnsSetupMutation = useMutation<DnsSetupResponse, Error, DnsSetupInput>({
     mutationFn: async (input) => {
       const response = await fetch(CLOUD_VALIDATION_DNS_PATH, {
