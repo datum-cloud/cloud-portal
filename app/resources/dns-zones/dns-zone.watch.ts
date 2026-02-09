@@ -1,6 +1,6 @@
 // app/resources/dns-zones/dns-zone.watch.ts
 import { toDnsZone } from './dns-zone.adapter';
-import type { DnsZone } from './dns-zone.schema';
+import type { DnsZone, DnsZoneList } from './dns-zone.schema';
 import { dnsZoneKeys } from './dns-zone.service';
 import type { ComMiloapisNetworkingDnsV1Alpha1DnsZone } from '@/modules/control-plane/dns-networking';
 import { useResourceWatch } from '@/modules/watch';
@@ -28,6 +28,15 @@ export function useDnsZonesWatch(projectId: string, options?: { enabled?: boolea
     queryKey: dnsZoneKeys.list(projectId),
     transform: (item) => toDnsZone(item as ComMiloapisNetworkingDnsV1Alpha1DnsZone),
     enabled: options?.enabled ?? true,
+    // In-place cache update for MODIFIED events (avoids full list refetch)
+    getItemKey: (zone) => zone.name,
+    updateListCache: (oldData, newItem) => {
+      const old = oldData as DnsZoneList;
+      return {
+        ...old,
+        items: old.items.map((z) => (z.name === newItem.name ? newItem : z)),
+      };
+    },
   });
 }
 

@@ -21,7 +21,9 @@ export function useDomainsWatch(projectId: string, options?: { enabled?: boolean
     queryKey: domainKeys.list(projectId),
     transform: (item) => toDomain(item as ComDatumapisNetworkingV1AlphaDomain),
     enabled: options?.enabled ?? true,
-    // Slow throttle for continuous status updates (prevents UI flickering)
+    // In-place cache update for MODIFIED events (avoids full list refetch)
+    getItemKey: (domain) => domain.name,
+    // Slow throttle for ADDED/DELETED events that still use invalidation
     throttleMs: 5000,
     debounceMs: 300,
     // Skip initial sync - cache is already hydrated from SSR

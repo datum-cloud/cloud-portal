@@ -61,4 +61,18 @@ export interface UseResourceWatchOptions<T> extends WatchOptions {
    * @default true
    */
   skipInitialSync?: boolean;
+  /**
+   * Extract unique identifier from a transformed item.
+   * When provided, MODIFIED events on list watches update items in-place
+   * via setQueryData instead of invalidating (avoids full refetch).
+   * @example (item) => item.name
+   */
+  getItemKey?: (item: T) => string;
+  /**
+   * Update the list cache with a modified item.
+   * Required when the query data structure isn't a plain array (e.g. paginated { items: T[] }).
+   * Defaults to array find-and-replace by getItemKey.
+   * @example (oldData, newItem) => ({ ...oldData, items: oldData.items.map(...) })
+   */
+  updateListCache?: (oldData: unknown, newItem: T) => unknown;
 }

@@ -7,6 +7,7 @@ import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-tab
 import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
 import {
   createDnsZoneService,
+  dnsZoneKeys,
   useDnsZones,
   useDnsZonesWatch,
   useHydrateDnsZones,
@@ -15,6 +16,7 @@ import {
 import {
   createDomainService,
   type Domain,
+  domainKeys,
   domainSchema,
   useCreateDomain,
   useDeleteDomain,
@@ -30,9 +32,10 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge, Button, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
+import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import {
   data,
   LoaderFunctionArgs,
@@ -67,12 +70,11 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     throw new BadRequestError('Project ID is required');
   }
 
-  // Services now use global axios client with AsyncLocalStorage
-  const domainService = createDomainService();
-  const domains = await domainService.list(projectId);
+  const [domains, dnsZones] = await Promise.all([
+    createDomainService().list(projectId),
+    createDnsZoneService().list(projectId),
+  ]);
 
-  const dnsZonesService = createDnsZoneService();
-  const dnsZones = await dnsZonesService.list(projectId);
   return data({ domains, dnsZones });
 };
 
@@ -80,6 +82,15 @@ export default function DomainsPage() {
   const { projectId } = useParams();
   const { domains: initialDomains, dnsZones: initialDnsZones } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Cancel in-flight queries on unmount to prevent orphaned requests
+  useEffect(() => {
+    return () => {
+      queryClient.cancelQueries({ queryKey: domainKeys.list(projectId ?? '') });
+      queryClient.cancelQueries({ queryKey: dnsZoneKeys.list(projectId ?? '') });
+    };
+  }, [queryClient, projectId]);
 
   // Hydrate cache with SSR data (runs once on mount)
   useHydrateDomains(projectId ?? '', initialDomains);
@@ -104,6 +115,15 @@ export default function DomainsPage() {
   const domains = domainsData ?? initialDomains;
   const dnsZones = dnsZonesData?.items ?? initialDnsZones.items;
 
+  // Build O(1) lookup map for DNS zones by domain name
+  const dnsZoneMap = useMemo(() => {
+    const map = new Map<string, DnsZone>();
+    for (const zone of dnsZones) {
+      if (zone.domainName) map.set(zone.domainName, zone);
+    }
+    return map;
+  }, [dnsZones]);
+
   // Format domains for display
   const formattedDomains = useMemo<FormattedDomain[]>(() => {
     return domains.map((domain) => ({
@@ -116,9 +136,9 @@ export default function DomainsPage() {
       expiresAt: domain.status?.registration?.expiresAt,
       status: domain.status,
       statusType: domain.status?.verified ? 'verified' : 'pending',
-      dnsZone: dnsZones.find((dnsZone) => dnsZone.domainName === domain.domainName),
+      dnsZone: dnsZoneMap.get(domain.domainName),
     }));
-  }, [domains, dnsZones]);
+  }, [domains, dnsZoneMap]);
 
   const { confirm } = useConfirmationDialog();
 

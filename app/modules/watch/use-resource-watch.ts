@@ -44,12 +44,16 @@ export function useResourceWatch<T>({
   throttleMs = DEFAULT_THROTTLE_MS,
   debounceMs = DEFAULT_DEBOUNCE_MS,
   skipInitialSync = true,
+  getItemKey,
+  updateListCache,
   ...watchOptions
 }: UseResourceWatchOptions<T>) {
   const queryClient = useQueryClient();
   const transformRef = useRef(transform);
   const onEventRef = useRef(onEvent);
   const queryKeyRef = useRef(queryKey);
+  const getItemKeyRef = useRef(getItemKey);
+  const updateListCacheRef = useRef(updateListCache);
   const invalidateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const subscriptionStartTimeRef = useRef<number>(0);
   const lastRefetchTimeRef = useRef<number>(0);
@@ -63,6 +67,8 @@ export function useResourceWatch<T>({
   transformRef.current = transform;
   onEventRef.current = onEvent;
   queryKeyRef.current = queryKey;
+  getItemKeyRef.current = getItemKey;
+  updateListCacheRef.current = updateListCache;
   throttleMsRef.current = throttleMs;
   debounceMsRef.current = debounceMs;
   skipInitialSyncRef.current = skipInitialSync;
@@ -148,8 +154,27 @@ export function useResourceWatch<T>({
             if (name) {
               // Single resource: update cache directly
               queryClient.setQueryData(queryKeyRef.current, transformedEvent.object);
+            } else if (getItemKeyRef.current) {
+              // List with key extractor: in-place update (no network call)
+              queryClient.setQueryData(queryKeyRef.current, (oldData: unknown) => {
+                if (!oldData) return oldData;
+                const itemKey = getItemKeyRef.current!(transformedEvent.object);
+
+                if (updateListCacheRef.current) {
+                  return updateListCacheRef.current(oldData, transformedEvent.object);
+                }
+
+                // Default: plain array find-and-replace
+                if (Array.isArray(oldData)) {
+                  return oldData.map((item: T) =>
+                    getItemKeyRef.current!(item) === itemKey ? transformedEvent.object : item
+                  );
+                }
+
+                return oldData;
+              });
             } else {
-              // List: debounced invalidate to batch multiple events
+              // List without key extractor: fallback to invalidate
               debouncedInvalidate();
             }
             break;
