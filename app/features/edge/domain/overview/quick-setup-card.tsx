@@ -1,5 +1,5 @@
 import { CreateDNSSetupResponse } from '@/modules/cloudvalid';
-import { IDomainControlResponse } from '@/resources/domains';
+import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
@@ -23,13 +23,7 @@ type DnsSetupResponse = {
   data?: CreateDNSSetupResponse;
 };
 
-export const QuickSetupCard = ({
-  projectId,
-  domain,
-}: {
-  projectId: string;
-  domain: IDomainControlResponse;
-}) => {
+export const QuickSetupCard = ({ projectId, domain }: { projectId: string; domain: Domain }) => {
   const dnsSetupMutation = useMutation<DnsSetupResponse, Error, DnsSetupInput>({
     mutationFn: async (input) => {
       const response = await fetch(CLOUD_VALIDATION_DNS_PATH, {

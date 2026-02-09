@@ -270,7 +270,7 @@ export default function DomainsPage() {
           if (row.original.status?.registration) {
             return (
               <Tooltip message="Registrar information is not publicly available. This is common when WHOIS privacy protection is enabled.">
-                <Badge type="muted" theme="outline" className="rounded-xl text-xs font-normal">
+                <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
                   Private
                 </Badge>
               </Tooltip>

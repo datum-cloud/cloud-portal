@@ -3,7 +3,7 @@ import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card'
 import { QuickSetupCard } from '@/features/edge/domain/overview/quick-setup-card';
 import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
 import { ControlPlaneStatus } from '@/resources/base';
-import { IDomainControlResponse } from '@/resources/domains';
+import { useDomain, useDomainWatch } from '@/resources/domains';
 import { dataWithToast } from '@/utils/cookies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Col, Row, toast } from '@datum-ui/components';
@@ -37,11 +37,27 @@ export default function DomainOverviewPage() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // Get live domain data from React Query
+  const { data: liveDomain } = useDomain(projectId ?? '', domain?.name ?? '', {
+    enabled: !!domain?.name,
+    initialData: domain,
+  });
+  // Subscribe to real-time domain updates (for nameserver status)
+  useDomainWatch(projectId ?? '', liveDomain?.name ?? domain?.name ?? '', {
+    enabled: !!(liveDomain?.name ?? domain?.name),
+  });
+
+  // Prefer live data from React Query, fall back to SSR loader data
+  const effectiveDomain = liveDomain ?? domain;
+
   // Track previous status for transition detection
   const previousStatusRef = useRef<ControlPlaneStatus | null>(null);
 
-  const status = useMemo(() => transformControlPlaneStatus(domain?.status), [domain]);
-  const isPending = status.status === ControlPlaneStatus.Pending;
+  const status = useMemo(
+    () => transformControlPlaneStatus(effectiveDomain?.status),
+    [effectiveDomain]
+  );
+  const isPending = useMemo(() => status.status === ControlPlaneStatus.Pending, [status]);
 
   // Handle status transitions and show success toast
   useEffect(() => {
@@ -52,16 +68,16 @@ export default function DomainOverviewPage() {
     if (
       previousStatus === ControlPlaneStatus.Pending &&
       currentStatus === ControlPlaneStatus.Success &&
-      domain?.name
+      effectiveDomain?.name
     ) {
       toast.success('Domain verification completed!', {
-        description: `${domain.name} has been successfully verified.`,
+        description: `${effectiveDomain.name} has been successfully verified.`,
       });
     }
 
     // Update the previous status reference
     previousStatusRef.current = currentStatus;
-  }, [status.status, domain?.name]);
+  }, [status.status, effectiveDomain?.name]);
 
   useEffect(() => {
     if (searchParams.get('cloudvalid') === 'success') {
@@ -72,18 +88,18 @@ export default function DomainOverviewPage() {
   return (
     <Row gutter={[24, 32]}>
       <Col span={24}>
-        <PageTitle title={(domain as IDomainControlResponse)?.domainName ?? 'Domain'} />
+        <PageTitle title={effectiveDomain?.domainName ?? 'Domain'} />
       </Col>
       <Col span={24}>
-        <DomainGeneralCard domain={domain} dnsZone={dnsZone} projectId={projectId} />
+        <DomainGeneralCard domain={effectiveDomain} dnsZone={dnsZone} projectId={projectId} />
       </Col>
       {isPending && (
         <>
           <Col span={12}>
-            <QuickSetupCard domain={domain} projectId={projectId ?? ''} />
+            <QuickSetupCard domain={effectiveDomain} projectId={projectId ?? ''} />
           </Col>
           <Col span={12}>
-            <DomainVerificationCard domain={domain} />
+            <DomainVerificationCard domain={effectiveDomain} />
           </Col>
         </>
       )}

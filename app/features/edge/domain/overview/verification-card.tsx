@@ -1,11 +1,11 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
-import { IDomainControlResponse } from '@/resources/domains';
+import type { Domain } from '@/resources/domains';
 import { Card, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { BookOpenIcon } from 'lucide-react';
 
-export const DomainVerificationCard = ({ domain }: { domain: IDomainControlResponse }) => {
+export const DomainVerificationCard = ({ domain }: { domain: Domain }) => {
   const dnsRecord = domain.status?.verification?.dnsRecord;
   const httpToken = domain.status?.verification?.httpToken;
 

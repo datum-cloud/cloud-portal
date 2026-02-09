@@ -1,6 +1,6 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { ControlPlaneStatus } from '@/resources/base';
-import { IDomainControlResponse } from '@/resources/domains';
+import type { Domain } from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { cn } from '@shadcn/lib/utils';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@shadcn/ui/hover-card';
@@ -28,11 +28,7 @@ const getConditionTitle = (condition: Condition): string => {
   }
 };
 
-export const DomainStatus = ({
-  domainStatus,
-}: {
-  domainStatus: IDomainControlResponse['status'];
-}) => {
+export const DomainStatus = ({ domainStatus }: { domainStatus: Domain['status'] }) => {
   const currentStatus = useMemo(() => {
     return transformControlPlaneStatus(domainStatus);
   }, [domainStatus]);
