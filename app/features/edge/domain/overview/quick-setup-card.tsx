@@ -1,5 +1,5 @@
 import { CreateDNSSetupResponse } from '@/modules/cloudvalid';
-import { IDomainControlResponse } from '@/resources/domains';
+import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
@@ -28,7 +28,7 @@ export const QuickSetupCard = ({
   domain,
 }: {
   projectId: string;
-  domain: IDomainControlResponse;
+  domain: Domain;
 }) => {
   const dnsSetupMutation = useMutation<DnsSetupResponse, Error, DnsSetupInput>({
     mutationFn: async (input) => {

@@ -5,7 +5,7 @@ import { PageTitle } from '@/components/page-title/page-title';
 import { useDeleteDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Col, Row } from '@datum-ui/components';
+import { Col, Row, toast } from '@datum-ui/components';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export default function DomainSettingsPage() {
@@ -23,6 +23,9 @@ export default function DomainSettingsPage() {
           projectId,
         })
       );
+    },
+    onError: (error) => {
+      toast.error('Domain', { description: error.message || 'Failed to delete domain' });
     },
   });
 

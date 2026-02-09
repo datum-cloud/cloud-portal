@@ -93,18 +93,6 @@ export type DomainRegistration = NonNullable<
 export type IDnsNameserver = DomainNameserver;
 export type IDnsRegistration = DomainRegistration;
 
-// Legacy control response interface
-export interface IDomainControlResponse {
-  name?: string;
-  createdAt?: Date;
-  uid?: string;
-  resourceVersion?: string;
-  namespace?: string;
-  domainName?: string;
-  status?: ComDatumapisNetworkingV1AlphaDomain['status'];
-  desiredRegistrationRefreshAttempt?: string;
-}
-
 // Input types for service operations
 export const createDomainInputSchema = z.object({
   domainName: createFqdnSchema('Domain'),

@@ -10,7 +10,7 @@ export {
   type DomainRegistration,
   type IDnsNameserver,
   type IDnsRegistration,
-  type IDomainControlResponse,
+
   type CreateDomainInput,
   type UpdateDomainInput,
   // Re-exported validation schemas
