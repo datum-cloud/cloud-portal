@@ -192,12 +192,22 @@ export function FormRoot<T extends z.ZodType>({
     return children;
   };
 
+  // Extract Conform's onSubmit so we can wrap it with stopPropagation.
+  // This prevents nested forms (e.g. Form.Dialog inside another form)
+  // from triggering the parent form's Conform handler via React's
+  // synthetic event bubbling through portals.
+  const { onSubmit: conformOnSubmit, ...conformFormProps } = getFormProps(form);
+
   return (
     <FormProvider value={contextValue}>
       <ConformFormProvider context={form.context}>
         <RouterForm
           ref={formRef}
-          {...getFormProps(form)}
+          {...conformFormProps}
+          onSubmit={(e) => {
+            e.stopPropagation();
+            conformOnSubmit(e);
+          }}
           method={method}
           action={action}
           className={cn('space-y-6', className)}

@@ -1,9 +1,6 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { type HttpProxy } from '@/resources/http-proxies';
-import { Badge } from '@datum-ui/components';
-import { Button, toast } from '@datum-ui/components';
-import { Tooltip } from '@datum-ui/components';
-import { Card, CardContent } from '@datum-ui/components';
+import { Badge, Button, Card, CardContent, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { CopyIcon, GlobeIcon } from 'lucide-react';
@@ -73,7 +70,7 @@ export const HttpProxyHostnamesCard = ({
           <span className="text-base font-semibold">Hostnames</span>
         </div>
         {endpoint && (
-          <div className="text-[14px] font-normal">
+          <div className="text-sm font-normal">
             These endpoints will forward requests to your backend:{' '}
             <Badge type="quaternary" theme="outline">
               {endpoint}

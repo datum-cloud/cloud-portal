@@ -50,10 +50,12 @@ export const HttpProxyGeneralCard = ({
       },
       {
         label: 'Endpoint',
-        content: (
-          <a href={httpProxy.endpoint ?? ''} target="_blank" rel="noopener noreferrer">
+        content: httpProxy.endpoint ? (
+          <a href={httpProxy.endpoint} target="_blank" rel="noopener noreferrer">
             {httpProxy.endpoint}
           </a>
+        ) : (
+          <span className="text-muted-foreground">—</span>
         ),
       },
       {

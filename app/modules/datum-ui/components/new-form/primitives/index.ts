@@ -1,3 +1,10 @@
+export { Autocomplete } from './autocomplete';
+export type {
+  AutocompleteOption,
+  AutocompleteGroup,
+  AutocompleteProps,
+  FormAutocompleteProps,
+} from './autocomplete.types';
 export { Input } from './input';
 export { Textarea } from './textarea';
 export { Label } from './label';

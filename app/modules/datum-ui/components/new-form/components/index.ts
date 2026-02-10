@@ -16,6 +16,7 @@ export { FormRadioGroup, FormRadioItem } from './form-radio-group';
 export { FormCopyBox } from './form-copy-box';
 
 // Advanced components
+export { FormAutocomplete } from './form-autocomplete';
 export { FormWhen } from './form-when';
 export { FormFieldArray } from './form-field-array';
 export { FormCustom } from './form-custom';

@@ -32,37 +32,8 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
 
     const isEdit = !!editProxyName;
 
-    const createMutation = useCreateHttpProxy(projectId, {
-      onSuccess: (proxy) => {
-        toast.success('Proxy', {
-          description: 'The proxy has been created successfully',
-        });
-        setOpen(false);
-        onCreateSuccess?.(proxy);
-      },
-      onError: (error) => {
-        toast.error('Proxy', {
-          description: error.message || 'Failed to create proxy',
-        });
-        onError?.(error);
-      },
-    });
-
-    const updateMutation = useUpdateHttpProxy(projectId, editProxyName, {
-      onSuccess: () => {
-        toast.success('Proxy', {
-          description: 'The proxy has been updated successfully',
-        });
-        setOpen(false);
-        onEditSuccess?.();
-      },
-      onError: (error) => {
-        toast.error('Proxy', {
-          description: error.message || 'Failed to update proxy',
-        });
-        onError?.(error);
-      },
-    });
+    const createMutation = useCreateHttpProxy(projectId);
+    const updateMutation = useUpdateHttpProxy(projectId, editProxyName);
 
     const show = useCallback((initialValues?: HttpProxy) => {
       if (initialValues?.uid) {
@@ -87,14 +58,32 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     useImperativeHandle(ref, () => ({ show, hide }), [show, hide]);
 
     const handleSubmit = async (data: HttpProxySchema) => {
-      if (isEdit) {
-        await updateMutation.mutateAsync({
-          endpoint: data.endpoint,
-          hostnames: data.hostnames,
-          tlsHostname: data.tlsHostname,
+      try {
+        if (isEdit) {
+          await updateMutation.mutateAsync({
+            endpoint: data.endpoint,
+            hostnames: data.hostnames,
+            tlsHostname: data.tlsHostname,
+          });
+          toast.success('Proxy', {
+            description: 'The proxy has been updated successfully',
+          });
+          setOpen(false);
+          onEditSuccess?.();
+        } else {
+          const proxy = await createMutation.mutateAsync(data);
+          toast.success('Proxy', {
+            description: 'The proxy has been created successfully',
+          });
+          setOpen(false);
+          onCreateSuccess?.(proxy);
+        }
+      } catch (error) {
+        toast.error('Proxy', {
+          description:
+            (error as Error).message || `Failed to ${isEdit ? 'update' : 'create'} proxy`,
         });
-      } else {
-        await createMutation.mutateAsync(data);
+        onError?.(error as Error);
       }
     };
 
@@ -135,7 +124,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
             />
           </Form.Field>
 
-          <ProxyHostnamesField />
+          <ProxyHostnamesField projectId={projectId} />
 
           <ProxyTlsField />
         </div>

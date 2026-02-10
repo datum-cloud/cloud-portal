@@ -10,7 +10,7 @@ export interface DomainFormDialogRef {
 
 interface DomainFormDialogProps {
   projectId: string;
-  onSuccess?: () => void;
+  onSuccess?: (domainName: string) => void;
   onError?: (error: Error) => void;
 }
 
@@ -19,21 +19,7 @@ export const DomainFormDialog = forwardRef<DomainFormDialogRef, DomainFormDialog
     const [open, setOpen] = useState(false);
     const [defaultValues, setDefaultValues] = useState<Partial<DomainSchema>>();
 
-    const createDomainMutation = useCreateDomain(projectId, {
-      onSuccess: () => {
-        toast.success('Domain', {
-          description: 'The domain has been added to your project',
-        });
-        setOpen(false);
-        onSuccess?.();
-      },
-      onError: (error) => {
-        toast.error('Domain', {
-          description: error.message || 'Failed to add domain',
-        });
-        onError?.(error);
-      },
-    });
+    const createDomainMutation = useCreateDomain(projectId);
 
     const show = useCallback((initialValues?: Partial<DomainSchema>) => {
       setDefaultValues(initialValues);
@@ -47,7 +33,19 @@ export const DomainFormDialog = forwardRef<DomainFormDialogRef, DomainFormDialog
     useImperativeHandle(ref, () => ({ show, hide }), [show, hide]);
 
     const handleSubmit = async (formData: DomainSchema) => {
-      await createDomainMutation.mutateAsync({ domainName: formData.domain });
+      try {
+        await createDomainMutation.mutateAsync({ domainName: formData.domain });
+        toast.success('Domain', {
+          description: 'The domain has been added to your project',
+        });
+        setOpen(false);
+        onSuccess?.(formData.domain);
+      } catch (error) {
+        toast.error('Domain', {
+          description: (error as Error).message || 'Failed to add domain',
+        });
+        onError?.(error as Error);
+      }
     };
 
     return (

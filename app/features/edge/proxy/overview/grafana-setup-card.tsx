@@ -14,7 +14,7 @@ export const GrafanaSetupCard = ({ projectId }: { projectId: string }) => {
             <Icon icon={SignalHighIcon} size={20} className="text-secondary stroke-2" />
             <span className="text-base font-semibold">Export Metrics to Grafana</span>
           </div>
-          <p className="text-[14px] font-normal">
+          <p className="text-sm font-normal">
             Export metrics from your Datum project to Grafana Cloud using Prometheus remote write.
             Configure credentials, secrets, and an ExportPolicy to start monitoring your proxy.
           </p>

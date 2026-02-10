@@ -647,3 +647,14 @@ export interface FormDialogProps<T extends z.ZodType> {
    */
   children: React.ReactNode | ((props: FormRootRenderProps) => React.ReactNode);
 }
+
+// ============================================================================
+// Autocomplete Types (re-exported from primitives)
+// ============================================================================
+
+export type {
+  AutocompleteOption,
+  AutocompleteGroup,
+  AutocompleteProps,
+  FormAutocompleteProps,
+} from '../primitives/autocomplete.types';

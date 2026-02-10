@@ -2,7 +2,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DangerCard } from '@/components/danger-card/danger-card';
 import { PageTitle } from '@/components/page-title/page-title';
 import { HttpProxyGeneralCard } from '@/features/edge/proxy/overview/general-card';
-import { GrafanaSetupCard } from '@/features/edge/proxy/overview/grafana-tutorial-card';
+import { GrafanaSetupCard } from '@/features/edge/proxy/overview/grafana-setup-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames-card';
 import {
   HttpProxyFormDialog,
