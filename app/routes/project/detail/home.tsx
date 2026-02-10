@@ -144,7 +144,7 @@ export default function ProjectHomePage() {
               !hasDomains ? (
                 <LinkButton
                   icon={<Icon icon={PlusIcon} className="size-4" />}
-                  to={getPathWithParams(paths.project.detail.proxy.new, {
+                  to={getPathWithParams(paths.project.detail.proxy.root, {
                     projectId: project.name,
                   })}>
                   Setup a Proxy

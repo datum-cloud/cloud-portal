@@ -1,4 +1,5 @@
 import { ComDatumapisNetworkingV1AlphaDomain } from '@/modules/control-plane/networking';
+import { ControlPlaneStatus } from '@/resources/base';
 import { resourceMetadataSchema, paginatedResponseSchema } from '@/resources/base/base.schema';
 import { createFqdnSchema } from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
@@ -107,3 +108,20 @@ export const updateDomainInputSchema = z.object({
 });
 
 export type UpdateDomainInput = z.infer<typeof updateDomainInputSchema>;
+
+// ============================================================================
+// Domain verification status display config
+// ============================================================================
+
+export interface DomainStatusConfig {
+  /** Badge status key for BadgeStatus component */
+  badgeStatus: string;
+  /** Display label */
+  label: string;
+}
+
+export const DOMAIN_VERIFICATION_STATUS: Record<ControlPlaneStatus, DomainStatusConfig> = {
+  [ControlPlaneStatus.Success]: { badgeStatus: 'success', label: 'Verified' },
+  [ControlPlaneStatus.Pending]: { badgeStatus: 'pending', label: 'Verifying' },
+  [ControlPlaneStatus.Error]: { badgeStatus: 'error', label: 'Unverified' },
+};

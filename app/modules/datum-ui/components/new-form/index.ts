@@ -75,6 +75,7 @@ import {
   FormRadioGroup,
   FormRadioItem,
   FormCopyBox,
+  FormAutocomplete,
   FormWhen,
   FormFieldArray,
   FormCustom,
@@ -111,6 +112,7 @@ import {
  * - Form.Submit - Submit button with loading state
  * - Form.Error - Error display
  * - Form.Description - Helper text
+ * - Form.Autocomplete - Searchable select with virtualization
  * - Form.When - Conditional rendering
  * - Form.FieldArray - Dynamic array of fields
  * - Form.Custom - Escape hatch for custom implementations
@@ -146,6 +148,7 @@ export const Form = {
   RadioGroup: FormRadioGroup,
   RadioItem: FormRadioItem,
   CopyBox: FormCopyBox,
+  Autocomplete: FormAutocomplete,
 
   // Advanced
   When: FormWhen,
@@ -190,6 +193,7 @@ export {
   FormRadioGroup,
   FormRadioItem,
   FormCopyBox,
+  FormAutocomplete,
 
   // Advanced
   FormWhen,
@@ -249,4 +253,8 @@ export type {
   UseFieldReturn,
   UseWatchReturn,
   FormDialogProps,
+  AutocompleteOption,
+  AutocompleteGroup,
+  AutocompleteProps,
+  FormAutocompleteProps,
 } from './types';

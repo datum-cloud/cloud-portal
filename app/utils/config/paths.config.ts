@@ -67,11 +67,9 @@ export const paths = {
       },
       proxy: {
         root: '/project/[projectId]/proxy',
-        new: '/project/[projectId]/proxy/new',
         detail: {
           root: '/project/[projectId]/proxy/[proxyId]',
           overview: '/project/[projectId]/proxy/[proxyId]/overview',
-          edit: '/project/[projectId]/proxy/[proxyId]/edit',
           metrics: '/project/[projectId]/proxy/[proxyId]/metrics',
         },
       },

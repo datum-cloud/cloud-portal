@@ -1,6 +1,10 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { BulkAddDomainsAction } from '@/features/edge/domain/bulk-add';
+import {
+  DomainFormDialog,
+  type DomainFormDialogRef,
+} from '@/features/edge/domain/domain-form-dialog';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
@@ -16,14 +20,12 @@ import {
 import {
   createDomainService,
   type Domain,
-  domainKeys,
-  domainSchema,
-  useCreateDomain,
   useDeleteDomain,
   useDomains,
   useDomainsWatch,
   useHydrateDomains,
   useRefreshDomainRegistration,
+  domainKeys,
 } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
@@ -31,11 +33,10 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge, Button, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Form } from '@datum-ui/components/new-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import {
   data,
   LoaderFunctionArgs,
@@ -44,7 +45,6 @@ import {
   useNavigate,
   useParams,
 } from 'react-router';
-import { z } from 'zod';
 
 type FormattedDomain = {
   name: string;
@@ -141,22 +141,7 @@ export default function DomainsPage() {
   }, [domains, dnsZoneMap]);
 
   const { confirm } = useConfirmationDialog();
-
-  const [openAddDialog, setOpenAddDialog] = useState(false);
-
-  const createDomainMutation = useCreateDomain(projectId ?? '', {
-    onSuccess: () => {
-      toast.success('Domain', {
-        description: 'The domain has been added to your project',
-      });
-      setOpenAddDialog(false);
-    },
-    onError: (error) => {
-      toast.error('Domain', {
-        description: error.message || 'Failed to add domain',
-      });
-    },
-  });
+  const domainFormRef = useRef<DomainFormDialogRef>(null);
 
   const deleteDomainMutation = useDeleteDomain(projectId ?? '', {
     onSuccess: () => {
@@ -183,10 +168,6 @@ export default function DomainsPage() {
       });
     },
   });
-
-  const handleAddDomain = async (formData: z.infer<typeof domainSchema>) => {
-    await createDomainMutation.mutateAsync({ domainName: formData.domain });
-  };
 
   const handleDeleteDomain = async (domain: FormattedDomain) => {
     await confirm({
@@ -375,7 +356,7 @@ export default function DomainsPage() {
             {
               type: 'button',
               label: 'Add domain',
-              onClick: () => setOpenAddDialog(true),
+              onClick: () => domainFormRef.current?.show(),
               variant: 'default',
               icon: <Icon icon={PlusIcon} className="size-3" />,
               iconPosition: 'start',
@@ -391,7 +372,7 @@ export default function DomainsPage() {
                 type="primary"
                 theme="solid"
                 size="small"
-                onClick={() => setOpenAddDialog(true)}>
+                onClick={() => domainFormRef.current?.show()}>
                 <Icon icon={PlusIcon} className="size-4" />
                 Add domain
               </Button>
@@ -428,25 +409,7 @@ export default function DomainsPage() {
         rowActions={rowActions}
       />
 
-      <Form.Dialog
-        open={openAddDialog}
-        onOpenChange={setOpenAddDialog}
-        title="Add a Domain"
-        description="To use a custom domain for your services, you must first verify ownership. This form creates a domain resource that provides the necessary DNS records for verification. Once verified, you can securely use your domain in HTTPProxies and Gateways."
-        schema={domainSchema}
-        onSubmit={handleAddDomain}
-        submitText="Add domain"
-        submitTextLoading="Adding..."
-        className="w-full sm:max-w-2xl">
-        <Form.Field
-          name="domain"
-          label="Domain"
-          description="Enter the domain where your service is running"
-          required
-          className="px-5">
-          <Form.Input placeholder="e.g. example.com" autoFocus />
-        </Form.Field>
-      </Form.Dialog>
+      <DomainFormDialog ref={domainFormRef} projectId={projectId!} />
     </>
   );
 }
