@@ -1,7 +1,7 @@
 import { DomainFormDialog, type DomainFormDialogRef } from './domain-form-dialog';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { ControlPlaneStatus } from '@/resources/base';
-import { domainKeys, useDomains } from '@/resources/domains';
+import { DOMAIN_VERIFICATION_STATUS, domainKeys, useDomains } from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { useInputControl } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
@@ -10,7 +10,7 @@ import { useFieldContext } from '@datum-ui/components/new-form';
 import { Autocomplete } from '@datum-ui/components/new-form/primitives';
 import { cn } from '@shadcn/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { CheckIcon, PlusIcon } from 'lucide-react';
+import { AlertTriangleIcon, CheckIcon, PlusIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
 
 // ============================================================================
@@ -32,12 +32,14 @@ function DomainOptionContent({
   option: DomainOption;
   isSelected: boolean;
 }) {
+  const statusConfig = DOMAIN_VERIFICATION_STATUS[option.domainStatus];
+
   return (
     <div className="flex w-full cursor-pointer items-center justify-between gap-2">
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <span className="truncate text-xs">{option.label}</span>
-        {option.domainStatus === ControlPlaneStatus.Success && (
-          <BadgeStatus status="success" label="Verified" />
+        {statusConfig && (
+          <BadgeStatus status={statusConfig.badgeStatus} label={statusConfig.label} />
         )}
       </div>
       {isSelected && <CheckIcon className="text-primary size-4 shrink-0" />}
@@ -113,6 +115,11 @@ export function SelectDomain({
     );
   }, [domainOptions, excludeValues, value]);
 
+  const selectedOption = useMemo(
+    () => domainOptions.find((o) => o.value === value),
+    [domainOptions, value]
+  );
+
   const handleDomainCreated = useCallback(
     async (domainName: string) => {
       // Refetch the domains list so the new domain appears in options
@@ -121,6 +128,8 @@ export function SelectDomain({
     },
     [queryClient, projectId, onValueChange]
   );
+
+  const isUnverified = selectedOption && selectedOption.domainStatus !== ControlPlaneStatus.Success;
 
   return (
     <>
@@ -152,6 +161,16 @@ export function SelectDomain({
         }
         {...rest}
       />
+      {isUnverified && (
+        <div className="flex items-start gap-1.5 pt-1 text-xs text-amber-600 dark:text-amber-500">
+          <AlertTriangleIcon className="mt-0.5 size-3 shrink-0" />
+          <span>
+            {selectedOption.domainStatus === ControlPlaneStatus.Pending
+              ? 'This domain is being verified — your proxy may not activate until verification is complete.'
+              : "This domain is not verified — your proxy won't activate until the domain is verified."}
+          </span>
+        </div>
+      )}
       <DomainFormDialog ref={domainFormRef} projectId={projectId} onSuccess={handleDomainCreated} />
     </>
   );
