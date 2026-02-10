@@ -57,7 +57,7 @@ export default function HttpProxyOverviewPage() {
 
   const deleteHttpProxy = async () => {
     await confirm({
-      title: 'Delete Proxy',
+      title: 'Delete Edge Endpoint',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
@@ -84,7 +84,7 @@ export default function HttpProxyOverviewPage() {
     <>
       <Row gutter={[24, 32]}>
         <Col span={24}>
-          <PageTitle title={effectiveProxy.name ?? 'Proxy'} />
+          <PageTitle title={effectiveProxy.chosenName ?? effectiveProxy.name ?? 'Edge endpoint'} />
         </Col>
         <Col span={24}>
           <HttpProxyGeneralCard
@@ -103,9 +103,9 @@ export default function HttpProxyOverviewPage() {
           <GrafanaSetupCard projectId={projectId ?? ''} />
         </Col>
         <Col span={24}>
-          <h3 className="mb-4 text-base font-medium">Delete Proxy</h3>
+          <h3 className="mb-4 text-base font-medium">Delete Edge endpoint</h3>
           <DangerCard
-            deleteText="Delete proxy"
+            deleteText="Delete edge endpoint"
             loading={deleteMutation.isPending}
             onDelete={deleteHttpProxy}
           />

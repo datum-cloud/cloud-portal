@@ -70,9 +70,9 @@ export const HttpProxyHostnamesCard = ({
           <span className="text-base font-semibold">Hostnames</span>
         </div>
         {endpoint && (
-          <div className="text-sm font-normal">
-            These endpoints will forward requests to your backend:{' '}
-            <Badge type="quaternary" theme="outline">
+          <div className="flex flex-col gap-2.5 text-sm font-normal">
+            These endpoints will forward requests to your origin:{' '}
+            <Badge type="quaternary" theme="outline" className="w-fit">
               {endpoint}
             </Badge>
           </div>

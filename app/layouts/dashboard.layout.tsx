@@ -74,7 +74,7 @@ export function DashboardLayout({
   closeOnNavigation?: boolean;
 }) {
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden">
+    <div className="flex h-screen w-full flex-col overflow-hidden overscroll-none">
       {/* Header at the top - outside sidebar context */}
       <Header currentProject={currentProject} currentOrg={currentOrg} />
 
@@ -96,7 +96,7 @@ export function DashboardLayout({
           title={sidebarHeader as any}
           navItems={navItems}
           collapsible={sidebarCollapsible}
-          className="top-[54px]"
+          className="top-12"
           closeOnNavigation={closeOnNavigation}
         />
         <SidebarInset>

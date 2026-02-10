@@ -40,7 +40,7 @@ export default function HttpProxyDetailLayout() {
             to={getPathWithParams(paths.project.detail.proxy.root, {
               projectId,
             })}>
-            Back to Proxy
+            Back to AI Edge
           </BackButton>
           <span className="text-primary text-sm font-semibold">Manage Proxy</span>
         </div>

@@ -3,6 +3,7 @@
 export const com_datumapis_networking_v1alpha_DomainSchema = {
   description: 'Domain represents a domain name in the Datum system',
   type: 'object',
+  required: ['spec'],
   properties: {
     apiVersion: {
       description:
@@ -28,19 +29,71 @@ export const com_datumapis_networking_v1alpha_DomainSchema = {
       type: 'object',
       required: ['domainName'],
       properties: {
+        desiredRegistrationRefreshAttempt: {
+          description:
+            'DesiredRegistrationRefreshAttempt is the desired time of the next registration refresh attempt.',
+          type: 'string',
+          format: 'date-time',
+          'x-kubernetes-validations': [
+            {
+              rule: "oldSelf == null || self == null || self == oldSelf || self >= oldSelf + duration('5m')",
+              message:
+                'must be at least 5m after the previous desiredRegistrationRefreshAttempt when changed',
+            },
+          ],
+        },
         domainName: {
           description: 'DomainName is the fully qualified domain name (FQDN) to be managed',
           type: 'string',
           maxLength: 253,
           minLength: 1,
           pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+          'x-kubernetes-validations': [
+            {
+              rule: "oldSelf == '' || self == oldSelf",
+              message: 'A domain name is immutable and cannot be changed after creation',
+            },
+            {
+              rule: "self.indexOf('.') != -1",
+              message: 'Must have at least two segments separated by dots',
+            },
+          ],
         },
       },
     },
     status: {
       description: 'DomainStatus defines the observed state of Domain',
       type: 'object',
+      default: {
+        conditions: [
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'Verified',
+          },
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'VerifiedDNS',
+          },
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'VerifiedHTTP',
+          },
+        ],
+      },
       properties: {
+        apex: {
+          description: 'Apex is true when spec.domainName is the registered domain (eTLD+1).',
+          type: 'boolean',
+        },
         conditions: {
           type: 'array',
           items: {
@@ -50,31 +103,27 @@ export const com_datumapis_networking_v1alpha_DomainSchema = {
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -95,52 +144,196 @@ This field may not be empty.`,
             },
           },
         },
-        registrar: {
-          description: 'DomainRegistrarStatus represents the registrar information for a domain',
-          type: 'object',
-          properties: {
-            clientStatusCodes: {
-              type: 'array',
-              items: {
+        nameservers: {
+          description:
+            'Nameservers lists the authoritative NS for the *effective* domain name:\n- If Apex == true: taken from RDAP for the registered domain (eTLD+1)\n- If Apex == false: taken from DNS delegation for the subdomain; falls back to apex NS if no cut',
+          type: 'array',
+          items: {
+            type: 'object',
+            required: ['hostname'],
+            properties: {
+              hostname: {
                 type: 'string',
               },
+              ips: {
+                type: 'array',
+                items: {
+                  description: 'NameserverIP captures per-address provenance for a nameserver.',
+                  type: 'object',
+                  required: ['address'],
+                  properties: {
+                    address: {
+                      type: 'string',
+                    },
+                    registrantName: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
             },
-            createdDate: {
+          },
+        },
+        registration: {
+          description: 'Registration represents the registration information for a domain',
+          type: 'object',
+          properties: {
+            abuse: {
+              description: 'Abuse / support contacts (registrar/registry)',
+              type: 'object',
+              properties: {
+                email: {
+                  type: 'string',
+                },
+                phone: {
+                  type: 'string',
+                },
+              },
+            },
+            contacts: {
+              description: 'Contacts (minimal, non-PII summary if available)',
+              type: 'object',
+              properties: {
+                admin: {
+                  type: 'object',
+                  properties: {
+                    email: {
+                      type: 'string',
+                    },
+                    organization: {
+                      type: 'string',
+                    },
+                    phone: {
+                      type: 'string',
+                    },
+                  },
+                },
+                registrant: {
+                  type: 'object',
+                  properties: {
+                    email: {
+                      type: 'string',
+                    },
+                    organization: {
+                      type: 'string',
+                    },
+                    phone: {
+                      type: 'string',
+                    },
+                  },
+                },
+                tech: {
+                  type: 'object',
+                  properties: {
+                    email: {
+                      type: 'string',
+                    },
+                    organization: {
+                      type: 'string',
+                    },
+                    phone: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+            createdAt: {
+              description: 'Lifecycle',
               type: 'string',
+              format: 'date-time',
             },
             dnssec: {
-              description: 'DNSSECStatus represents the DNSSEC status of a domain',
+              description: 'DNSSEC (from RDAP secureDNS, with WHOIS fallback when parsable)',
               type: 'object',
-              required: ['signed'],
               properties: {
-                signed: {
+                ds: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    required: ['algorithm', 'digest', 'digestType', 'keyTag'],
+                    properties: {
+                      algorithm: {
+                        type: 'integer',
+                      },
+                      digest: {
+                        type: 'string',
+                      },
+                      digestType: {
+                        type: 'integer',
+                      },
+                      keyTag: {
+                        type: 'integer',
+                      },
+                    },
+                  },
+                },
+                enabled: {
                   type: 'boolean',
                 },
               },
             },
-            expirationDate: {
+            domain: {
+              description: 'Identity & provenance',
               type: 'string',
             },
-            ianaID: {
+            expiresAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            handle: {
               type: 'string',
             },
-            ianaName: {
+            lastRefreshAttempt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            nextRefreshAttempt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            registrar: {
+              type: 'object',
+              properties: {
+                ianaID: {
+                  type: 'string',
+                },
+                name: {
+                  type: 'string',
+                },
+                url: {
+                  type: 'string',
+                },
+              },
+            },
+            registry: {
+              type: 'object',
+              properties: {
+                name: {
+                  type: 'string',
+                },
+                url: {
+                  type: 'string',
+                },
+              },
+            },
+            registryDomainID: {
               type: 'string',
             },
-            modifiedDate: {
+            source: {
               type: 'string',
             },
-            nameservers: {
+            statuses: {
+              description:
+                'Raw statuses that will either be rdap rfc8056 or whois EPP status strings',
               type: 'array',
               items: {
                 type: 'string',
               },
             },
-            serverStatusCodes: {
-              type: 'array',
-              items: {
-                type: 'string',
-              },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
             },
           },
         },
@@ -148,25 +341,38 @@ This field may not be empty.`,
           description: 'DomainVerificationStatus represents the verification status of a domain',
           type: 'object',
           properties: {
-            requiredDNSRecords: {
-              type: 'array',
-              items: {
-                description:
-                  'DNSVerificationExpectedRecord represents a DNS record required for verification',
-                type: 'object',
-                required: ['content', 'name', 'type'],
-                properties: {
-                  content: {
-                    type: 'string',
-                  },
-                  name: {
-                    type: 'string',
-                  },
-                  type: {
-                    type: 'string',
-                  },
+            dnsRecord: {
+              description:
+                'DNSVerificationRecord represents a DNS record required for verification',
+              type: 'object',
+              required: ['content', 'name', 'type'],
+              properties: {
+                content: {
+                  type: 'string',
+                },
+                name: {
+                  type: 'string',
+                },
+                type: {
+                  type: 'string',
                 },
               },
+            },
+            httpToken: {
+              type: 'object',
+              required: ['body', 'url'],
+              properties: {
+                body: {
+                  type: 'string',
+                },
+                url: {
+                  type: 'string',
+                },
+              },
+            },
+            nextVerificationAttempt: {
+              type: 'string',
+              format: 'date-time',
             },
           },
         },
@@ -227,8 +433,8 @@ export const com_datumapis_networking_v1alpha_DomainListSchema = {
 } as const;
 
 export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
-  description: `An HTTPProxy builds on top of Gateway API resources to provide a more convenient
-method to manage simple reverse proxy use cases.`,
+  description:
+    'An HTTPProxy builds on top of Gateway API resources to provide a more convenient\nmethod to manage simple reverse proxy use cases.',
   type: 'object',
   required: ['spec'],
   properties: {
@@ -256,24 +462,33 @@ method to manage simple reverse proxy use cases.`,
       type: 'object',
       required: ['rules'],
       properties: {
+        hostnames: {
+          description:
+            'Hostnames defines a set of hostnames that should match against the HTTP\nHost header to select a HTTPProxy used to process the request.\n\nValid values for Hostnames are determined by RFC 1123 definition of a\nhostname with 1 notable exception:\n\n1. IPs are not allowed.\n\nHostnames must be verified before being programmed. This is accomplished\nvia the use of `Domain` resources. A hostname is considered verified if any\nverified `Domain` resource exists in the same namespace where the\n`spec.domainName` of the resource either exactly matches the hostname, or\nis a suffix match of the hostname. That means that a Domain with a\n`spec.domainName` of `example.com` will match a hostname of\n`test.example.com`, `foo.test.example.com`, and exactly `example.com`, but\nnot a hostname of `test-example.com`. If a `Domain` resource does not exist\nthat matches a hostname, one will automatically be created when the system\nattempts to program the HTTPProxy.\n\nIn addition to verifying ownership, hostnames must be unique across the\nplatform. If a hostname is already programmed on another resource, a\nconflict will be encountered and communicated in the `HostnamesVerified`\ncondition.\n\nHostnames which have been programmed will be listed in the\n`status.hostnames` field. Any hostname which has not been programmed will\nbe listed in the `message` field of the `HostnamesVerified` condition with\nan indication as to why it was not programmed.\n\nThe system may automatically generate and associate hostnames with the\nHTTPProxy. In such cases, these will be listed in the `status.hostnames`\nfield and do not require additional configuration by the user.\n\nWildcard hostnames are not supported at this time.',
+          type: 'array',
+          maxItems: 16,
+          items: {
+            description:
+              'Hostname is the fully qualified domain name of a network host. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n 1. IPs are not allowed.\n 2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n    label must appear by itself as the first label.\n\nHostname can be "precise" which is a domain name without the terminating\ndot of a network host (e.g. "foo.example.com") or "wildcard", which is a\ndomain name prefixed with a single wildcard label (e.g. `*.example.com`).\n\nNote that as per RFC1035 and RFC1123, a *label* must consist of lower case\nalphanumeric characters or \'-\', and must start and end with an alphanumeric\ncharacter. No other punctuation is allowed.',
+            type: 'string',
+            maxLength: 253,
+            minLength: 1,
+            pattern: '^(\\*\\.)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+          },
+        },
         rules: {
           description: 'Rules are a list of HTTP matchers, filters and actions.',
           type: 'array',
           maxItems: 16,
           minItems: 1,
           items: {
-            description: `HTTPProxyRule defines semantics for matching an HTTP request based on
-conditions (matches), processing it (filters), and forwarding the request to
-backends.`,
+            description:
+              'HTTPProxyRule defines semantics for matching an HTTP request based on\nconditions (matches), processing it (filters), and forwarding the request to\nbackends.',
             type: 'object',
             properties: {
               backends: {
-                description: `Backends defines the backend(s) where matching requests should be
-sent.
-
-Note: While this field is a list, only a single element is permitted at
-this time due to underlying Gateway limitations. Once addressed, MaxItems
-will be increased to allow for multiple backends on any given route.`,
+                description:
+                  'Backends defines the backend(s) where matching requests should be\nsent.\n\nNote: While this field is a list, only a single element is permitted at\nthis time due to underlying Gateway limitations. Once addressed, MaxItems\nwill be increased to allow for multiple backends on any given route.',
                 type: 'array',
                 maxItems: 1,
                 minItems: 0,
@@ -281,43 +496,139 @@ will be increased to allow for multiple backends on any given route.`,
                   type: 'object',
                   required: ['endpoint'],
                   properties: {
+                    connector: {
+                      description:
+                        'Connector references the Connector that should be used for this backend.\n\nFor now, only a name reference is supported. In the future this can be\nextended to selector-based matching to allow multiple connectors.',
+                      type: 'object',
+                      required: ['name'],
+                      properties: {
+                        name: {
+                          description: 'Name of the referenced Connector.',
+                          type: 'string',
+                        },
+                      },
+                    },
                     endpoint: {
-                      description: `Endpoint for the backend. Must be a valid URL.
-
-Supports http and https protocols, IPs or DNS addresses in the host, custom
-ports, and paths.`,
+                      description:
+                        'Endpoint for the backend. Must be a valid URL.\n\nSupports http and https protocols, IPs or DNS addresses in the host, custom\nports, and paths.',
                       type: 'string',
                     },
                     filters: {
-                      description: `Filters defined at this level should be executed if and only if the
-request is being forwarded to the backend defined here.`,
+                      description:
+                        'Filters defined at this level should be executed if and only if the\nrequest is being forwarded to the backend defined here.',
                       type: 'array',
                       maxItems: 16,
                       items: {
-                        description: `HTTPRouteFilter defines processing steps that must be completed during the
-request or response lifecycle. HTTPRouteFilters are meant as an extension
-point to express processing that may be done in Gateway implementations. Some
-examples include request or response modification, implementing
-authentication strategies, rate-limiting, and traffic shaping. API
-guarantee/conformance is defined based on the type of the filter.`,
+                        description:
+                          'HTTPRouteFilter defines processing steps that must be completed during the\nrequest or response lifecycle. HTTPRouteFilters are meant as an extension\npoint to express processing that may be done in Gateway implementations. Some\nexamples include request or response modification, implementing\nauthentication strategies, rate-limiting, and traffic shaping. API\nguarantee/conformance is defined based on the type of the filter.\n\n<gateway:experimental:validation:XValidation:message="filter.cors must be nil if the filter.type is not CORS",rule="!(has(self.cors) && self.type != \'CORS\')">\n<gateway:experimental:validation:XValidation:message="filter.cors must be specified for CORS filter.type",rule="!(!has(self.cors) && self.type == \'CORS\')">',
                         type: 'object',
                         required: ['type'],
                         properties: {
+                          cors: {
+                            description:
+                              'CORS defines a schema for a filter that responds to the\ncross-origin request based on HTTP response header.\n\nSupport: Extended\n\n<gateway:experimental>',
+                            type: 'object',
+                            properties: {
+                              allowCredentials: {
+                                description:
+                                  'AllowCredentials indicates whether the actual cross-origin request allows\nto include credentials.\n\nThe only valid value for the `Access-Control-Allow-Credentials` response\nheader is true (case-sensitive).\n\nIf the credentials are not allowed in cross-origin requests, the gateway\nwill omit the header `Access-Control-Allow-Credentials` entirely rather\nthan setting its value to false.\n\nSupport: Extended',
+                                type: 'boolean',
+                                enum: [true],
+                              },
+                              allowHeaders: {
+                                description:
+                                  'AllowHeaders indicates which HTTP request headers are supported for\naccessing the requested resource.\n\nHeader names are not case sensitive.\n\nMultiple header names in the value of the `Access-Control-Allow-Headers`\nresponse header are separated by a comma (",").\n\nWhen the `AllowHeaders` field is configured with one or more headers, the\ngateway must return the `Access-Control-Allow-Headers` response header\nwhich value is present in the `AllowHeaders` field.\n\nIf any header name in the `Access-Control-Request-Headers` request header\nis not included in the list of header names specified by the response\nheader `Access-Control-Allow-Headers`, it will present an error on the\nclient side.\n\nIf any header name in the `Access-Control-Allow-Headers` response header\ndoes not recognize by the client, it will also occur an error on the\nclient side.\n\nA wildcard indicates that the requests with all HTTP headers are allowed.\nThe `Access-Control-Allow-Headers` response header can only use `*`\nwildcard as value when the `AllowCredentials` field is unspecified.\n\nWhen the `AllowCredentials` field is specified and `AllowHeaders` field\nspecified with the `*` wildcard, the gateway must specify one or more\nHTTP headers in the value of the `Access-Control-Allow-Headers` response\nheader. The value of the header `Access-Control-Allow-Headers` is same as\nthe `Access-Control-Request-Headers` header provided by the client. If\nthe header `Access-Control-Request-Headers` is not included in the\nrequest, the gateway will omit the `Access-Control-Allow-Headers`\nresponse header, instead of specifying the `*` wildcard. A Gateway\nimplementation may choose to add implementation-specific default headers.\n\nSupport: Extended',
+                                type: 'array',
+                                maxItems: 64,
+                                items: {
+                                  description:
+                                    'HTTPHeaderName is the name of an HTTP header.\n\nValid values include:\n\n* "Authorization"\n* "Set-Cookie"\n\nInvalid values include:\n\n  - ":method" - ":" is an invalid character. This means that HTTP/2 pseudo\n    headers are not currently supported by this type.\n  - "/invalid" - "/ " is an invalid character',
+                                  type: 'string',
+                                  maxLength: 256,
+                                  minLength: 1,
+                                  pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
+                                },
+                                'x-kubernetes-list-type': 'set',
+                              },
+                              allowMethods: {
+                                description:
+                                  'AllowMethods indicates which HTTP methods are supported for accessing the\nrequested resource.\n\nValid values are any method defined by RFC9110, along with the special\nvalue `*`, which represents all HTTP methods are allowed.\n\nMethod names are case sensitive, so these values are also case-sensitive.\n(See https://www.rfc-editor.org/rfc/rfc2616#section-5.1.1)\n\nMultiple method names in the value of the `Access-Control-Allow-Methods`\nresponse header are separated by a comma (",").\n\nA CORS-safelisted method is a method that is `GET`, `HEAD`, or `POST`.\n(See https://fetch.spec.whatwg.org/#cors-safelisted-method) The\nCORS-safelisted methods are always allowed, regardless of whether they\nare specified in the `AllowMethods` field.\n\nWhen the `AllowMethods` field is configured with one or more methods, the\ngateway must return the `Access-Control-Allow-Methods` response header\nwhich value is present in the `AllowMethods` field.\n\nIf the HTTP method of the `Access-Control-Request-Method` request header\nis not included in the list of methods specified by the response header\n`Access-Control-Allow-Methods`, it will present an error on the client\nside.\n\nThe `Access-Control-Allow-Methods` response header can only use `*`\nwildcard as value when the `AllowCredentials` field is unspecified.\n\nWhen the `AllowCredentials` field is specified and `AllowMethods` field\nspecified with the `*` wildcard, the gateway must specify one HTTP method\nin the value of the Access-Control-Allow-Methods response header. The\nvalue of the header `Access-Control-Allow-Methods` is same as the\n`Access-Control-Request-Method` header provided by the client. If the\nheader `Access-Control-Request-Method` is not included in the request,\nthe gateway will omit the `Access-Control-Allow-Methods` response header,\ninstead of specifying the `*` wildcard. A Gateway implementation may\nchoose to add implementation-specific default methods.\n\nSupport: Extended',
+                                type: 'array',
+                                maxItems: 9,
+                                items: {
+                                  type: 'string',
+                                  enum: [
+                                    'GET',
+                                    'HEAD',
+                                    'POST',
+                                    'PUT',
+                                    'DELETE',
+                                    'CONNECT',
+                                    'OPTIONS',
+                                    'TRACE',
+                                    'PATCH',
+                                    '*',
+                                  ],
+                                },
+                                'x-kubernetes-list-type': 'set',
+                                'x-kubernetes-validations': [
+                                  {
+                                    rule: "!('*' in self && self.size() > 1)",
+                                    message:
+                                      "AllowMethods cannot contain '*' alongside other methods",
+                                  },
+                                ],
+                              },
+                              allowOrigins: {
+                                description:
+                                  'AllowOrigins indicates whether the response can be shared with requested\nresource from the given `Origin`.\n\nThe `Origin` consists of a scheme and a host, with an optional port, and\ntakes the form `<scheme>://<host>(:<port>)`.\n\nValid values for scheme are: `http` and `https`.\n\nValid values for port are any integer between 1 and 65535 (the list of\navailable TCP/UDP ports). Note that, if not included, port `80` is\nassumed for `http` scheme origins, and port `443` is assumed for `https`\norigins. This may affect origin matching.\n\nThe host part of the origin may contain the wildcard character `*`. These\nwildcard characters behave as follows:\n\n* `*` is a greedy match to the _left_, including any number of\n  DNS labels to the left of its position. This also means that\n  `*` will include any number of period `.` characters to the\n  left of its position.\n* A wildcard by itself matches all hosts.\n\nAn origin value that includes _only_ the `*` character indicates requests\nfrom all `Origin`s are allowed.\n\nWhen the `AllowOrigins` field is configured with multiple origins, it\nmeans the server supports clients from multiple origins. If the request\n`Origin` matches the configured allowed origins, the gateway must return\nthe given `Origin` and sets value of the header\n`Access-Control-Allow-Origin` same as the `Origin` header provided by the\nclient.\n\nThe status code of a successful response to a "preflight" request is\nalways an OK status (i.e., 204 or 200).\n\nIf the request `Origin` does not match the configured allowed origins,\nthe gateway returns 204/200 response but doesn\'t set the relevant\ncross-origin response headers. Alternatively, the gateway responds with\n403 status to the "preflight" request is denied, coupled with omitting\nthe CORS headers. The cross-origin request fails on the client side.\nTherefore, the client doesn\'t attempt the actual cross-origin request.\n\nThe `Access-Control-Allow-Origin` response header can only use `*`\nwildcard as value when the `AllowCredentials` field is unspecified.\n\nWhen the `AllowCredentials` field is specified and `AllowOrigins` field\nspecified with the `*` wildcard, the gateway must return a single origin\nin the value of the `Access-Control-Allow-Origin` response header,\ninstead of specifying the `*` wildcard. The value of the header\n`Access-Control-Allow-Origin` is same as the `Origin` header provided by\nthe client.\n\nSupport: Extended',
+                                type: 'array',
+                                maxItems: 64,
+                                items: {
+                                  description:
+                                    'The AbsoluteURI MUST NOT be a relative URI, and it MUST follow the URI syntax and\nencoding rules specified in RFC3986.  The AbsoluteURI MUST include both a\nscheme (e.g., "http" or "spiffe") and a scheme-specific-part.  URIs that\ninclude an authority MUST include a fully qualified domain name or\nIP address as the host.\n<gateway:util:excludeFromCRD> The below regex is taken from the regex section in RFC 3986 with a slight modification to enforce a full URI and not relative. </gateway:util:excludeFromCRD>',
+                                  type: 'string',
+                                  maxLength: 253,
+                                  minLength: 1,
+                                  pattern:
+                                    '^(([^:/?#]+):)(//([^/?#]*))([^?#]*)(\\?([^#]*))?(#(.*))?',
+                                },
+                                'x-kubernetes-list-type': 'set',
+                              },
+                              exposeHeaders: {
+                                description:
+                                  'ExposeHeaders indicates which HTTP response headers can be exposed\nto client-side scripts in response to a cross-origin request.\n\nA CORS-safelisted response header is an HTTP header in a CORS response\nthat it is considered safe to expose to the client scripts.\nThe CORS-safelisted response headers include the following headers:\n`Cache-Control`\n`Content-Language`\n`Content-Length`\n`Content-Type`\n`Expires`\n`Last-Modified`\n`Pragma`\n(See https://fetch.spec.whatwg.org/#cors-safelisted-response-header-name)\nThe CORS-safelisted response headers are exposed to client by default.\n\nWhen an HTTP header name is specified using the `ExposeHeaders` field,\nthis additional header will be exposed as part of the response to the\nclient.\n\nHeader names are not case sensitive.\n\nMultiple header names in the value of the `Access-Control-Expose-Headers`\nresponse header are separated by a comma (",").\n\nA wildcard indicates that the responses with all HTTP headers are exposed\nto clients. The `Access-Control-Expose-Headers` response header can only\nuse `*` wildcard as value when the `AllowCredentials` field is\nunspecified.\n\nSupport: Extended',
+                                type: 'array',
+                                maxItems: 64,
+                                items: {
+                                  description:
+                                    'HTTPHeaderName is the name of an HTTP header.\n\nValid values include:\n\n* "Authorization"\n* "Set-Cookie"\n\nInvalid values include:\n\n  - ":method" - ":" is an invalid character. This means that HTTP/2 pseudo\n    headers are not currently supported by this type.\n  - "/invalid" - "/ " is an invalid character',
+                                  type: 'string',
+                                  maxLength: 256,
+                                  minLength: 1,
+                                  pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
+                                },
+                                'x-kubernetes-list-type': 'set',
+                              },
+                              maxAge: {
+                                description:
+                                  'MaxAge indicates the duration (in seconds) for the client to cache the\nresults of a "preflight" request.\n\nThe information provided by the `Access-Control-Allow-Methods` and\n`Access-Control-Allow-Headers` response headers can be cached by the\nclient until the time specified by `Access-Control-Max-Age` elapses.\n\nThe default value of `Access-Control-Max-Age` response header is 5\n(seconds).',
+                                type: 'integer',
+                                format: 'int32',
+                                default: 5,
+                                minimum: 1,
+                              },
+                            },
+                          },
                           extensionRef: {
-                            description: `ExtensionRef is an optional, implementation-specific extension to the
-"filter" behavior.  For example, resource "myroutefilter" in group
-"networking.example.net"). ExtensionRef MUST NOT be used for core and
-extended filters.
-
-This filter can be used multiple times within the same rule.
-
-Support: Implementation-specific`,
+                            description:
+                              'ExtensionRef is an optional, implementation-specific extension to the\n"filter" behavior.  For example, resource "myroutefilter" in group\n"networking.example.net"). ExtensionRef MUST NOT be used for core and\nextended filters.\n\nThis filter can be used multiple times within the same rule.\n\nSupport: Implementation-specific',
                             type: 'object',
                             required: ['group', 'kind', 'name'],
                             properties: {
                               group: {
-                                description: `Group is the group of the referent. For example, "gateway.networking.k8s.io".
-When unspecified or empty string, core API group is inferred.`,
+                                description:
+                                  'Group is the group of the referent. For example, "gateway.networking.k8s.io".\nWhen unspecified or empty string, core API group is inferred.',
                                 type: 'string',
                                 maxLength: 253,
                                 pattern:
@@ -340,29 +651,13 @@ When unspecified or empty string, core API group is inferred.`,
                             },
                           },
                           requestHeaderModifier: {
-                            description: `RequestHeaderModifier defines a schema for a filter that modifies request
-headers.
-
-Support: Core`,
+                            description:
+                              'RequestHeaderModifier defines a schema for a filter that modifies request\nheaders.\n\nSupport: Core',
                             type: 'object',
                             properties: {
                               add: {
-                                description: `Add adds the given header(s) (name, value) to the request
-before the action. It appends to any existing values associated
-with the header name.
-
-Input:
-  GET /foo HTTP/1.1
-  my-header: foo
-
-Config:
-  add:
-  - name: "my-header"
-    value: "bar,baz"
-
-Output:
-  GET /foo HTTP/1.1
-  my-header: foo,bar,baz`,
+                                description:
+                                  'Add adds the given header(s) (name, value) to the request\nbefore the action. It appends to any existing values associated\nwith the header name.\n\nInput:\n  GET /foo HTTP/1.1\n  my-header: foo\n\nConfig:\n  add:\n  - name: "my-header"\n    value: "bar,baz"\n\nOutput:\n  GET /foo HTTP/1.1\n  my-header: foo,bar,baz',
                                 type: 'array',
                                 maxItems: 16,
                                 items: {
@@ -372,14 +667,8 @@ Output:
                                   required: ['name', 'value'],
                                   properties: {
                                     name: {
-                                      description: `Name is the name of the HTTP Header to be matched. Name matching MUST be
-case insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).
-
-If multiple entries specify equivalent header names, the first entry with
-an equivalent name MUST be considered for a match. Subsequent entries
-with an equivalent header name MUST be ignored. Due to the
-case-insensitivity of header names, "foo" and "Foo" are considered
-equivalent.`,
+                                      description:
+                                        'Name is the name of the HTTP Header to be matched. Name matching MUST be\ncase-insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).\n\nIf multiple entries specify equivalent header names, the first entry with\nan equivalent name MUST be considered for a match. Subsequent entries\nwith an equivalent header name MUST be ignored. Due to the\ncase-insensitivity of header names, "foo" and "Foo" are considered\nequivalent.',
                                       type: 'string',
                                       maxLength: 256,
                                       minLength: 1,
@@ -398,23 +687,8 @@ equivalent.`,
                                 'x-kubernetes-list-type': 'map',
                               },
                               remove: {
-                                description: `Remove the given header(s) from the HTTP request before the action. The
-value of Remove is a list of HTTP header names. Note that the header
-names are case-insensitive (see
-https://datatracker.ietf.org/doc/html/rfc2616#section-4.2).
-
-Input:
-  GET /foo HTTP/1.1
-  my-header1: foo
-  my-header2: bar
-  my-header3: baz
-
-Config:
-  remove: ["my-header1", "my-header3"]
-
-Output:
-  GET /foo HTTP/1.1
-  my-header2: bar`,
+                                description:
+                                  'Remove the given header(s) from the HTTP request before the action. The\nvalue of Remove is a list of HTTP header names. Note that the header\nnames are case-insensitive (see\nhttps://datatracker.ietf.org/doc/html/rfc2616#section-4.2).\n\nInput:\n  GET /foo HTTP/1.1\n  my-header1: foo\n  my-header2: bar\n  my-header3: baz\n\nConfig:\n  remove: ["my-header1", "my-header3"]\n\nOutput:\n  GET /foo HTTP/1.1\n  my-header2: bar',
                                 type: 'array',
                                 maxItems: 16,
                                 items: {
@@ -423,21 +697,8 @@ Output:
                                 'x-kubernetes-list-type': 'set',
                               },
                               set: {
-                                description: `Set overwrites the request with the given header (name, value)
-before the action.
-
-Input:
-  GET /foo HTTP/1.1
-  my-header: foo
-
-Config:
-  set:
-  - name: "my-header"
-    value: "bar"
-
-Output:
-  GET /foo HTTP/1.1
-  my-header: bar`,
+                                description:
+                                  'Set overwrites the request with the given header (name, value)\nbefore the action.\n\nInput:\n  GET /foo HTTP/1.1\n  my-header: foo\n\nConfig:\n  set:\n  - name: "my-header"\n    value: "bar"\n\nOutput:\n  GET /foo HTTP/1.1\n  my-header: bar',
                                 type: 'array',
                                 maxItems: 16,
                                 items: {
@@ -447,14 +708,8 @@ Output:
                                   required: ['name', 'value'],
                                   properties: {
                                     name: {
-                                      description: `Name is the name of the HTTP Header to be matched. Name matching MUST be
-case insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).
-
-If multiple entries specify equivalent header names, the first entry with
-an equivalent name MUST be considered for a match. Subsequent entries
-with an equivalent header name MUST be ignored. Due to the
-case-insensitivity of header names, "foo" and "Foo" are considered
-equivalent.`,
+                                      description:
+                                        'Name is the name of the HTTP Header to be matched. Name matching MUST be\ncase-insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).\n\nIf multiple entries specify equivalent header names, the first entry with\nan equivalent name MUST be considered for a match. Subsequent entries\nwith an equivalent header name MUST be ignored. Due to the\ncase-insensitivity of header names, "foo" and "Foo" are considered\nequivalent.',
                                       type: 'string',
                                       maxLength: 256,
                                       minLength: 1,
@@ -475,50 +730,20 @@ equivalent.`,
                             },
                           },
                           requestMirror: {
-                            description: `RequestMirror defines a schema for a filter that mirrors requests.
-Requests are sent to the specified destination, but responses from
-that destination are ignored.
-
-This filter can be used multiple times within the same rule. Note that
-not all implementations will be able to support mirroring to multiple
-backends.
-
-Support: Extended
-
-<gateway:experimental:validation:XValidation:message="Only one of percent or fraction may be specified in HTTPRequestMirrorFilter",rule="!(has(self.percent) && has(self.fraction))">`,
+                            description:
+                              'RequestMirror defines a schema for a filter that mirrors requests.\nRequests are sent to the specified destination, but responses from\nthat destination are ignored.\n\nThis filter can be used multiple times within the same rule. Note that\nnot all implementations will be able to support mirroring to multiple\nbackends.\n\nSupport: Extended',
                             type: 'object',
                             required: ['backendRef'],
                             properties: {
                               backendRef: {
-                                description: `BackendRef references a resource where mirrored requests are sent.
-
-Mirrored requests must be sent only to a single destination endpoint
-within this BackendRef, irrespective of how many endpoints are present
-within this BackendRef.
-
-If the referent cannot be found, this BackendRef is invalid and must be
-dropped from the Gateway. The controller must ensure the "ResolvedRefs"
-condition on the Route status is set to \`status: False\` and not configure
-this backend in the underlying implementation.
-
-If there is a cross-namespace reference to an *existing* object
-that is not allowed by a ReferenceGrant, the controller must ensure the
-"ResolvedRefs"  condition on the Route is set to \`status: False\`,
-with the "RefNotPermitted" reason and not configure this backend in the
-underlying implementation.
-
-In either error case, the Message of the \`ResolvedRefs\` Condition
-should be used to provide more detail about the problem.
-
-Support: Extended for Kubernetes Service
-
-Support: Implementation-specific for any other resource`,
+                                description:
+                                  'BackendRef references a resource where mirrored requests are sent.\n\nMirrored requests must be sent only to a single destination endpoint\nwithin this BackendRef, irrespective of how many endpoints are present\nwithin this BackendRef.\n\nIf the referent cannot be found, this BackendRef is invalid and must be\ndropped from the Gateway. The controller must ensure the "ResolvedRefs"\ncondition on the Route status is set to `status: False` and not configure\nthis backend in the underlying implementation.\n\nIf there is a cross-namespace reference to an *existing* object\nthat is not allowed by a ReferenceGrant, the controller must ensure the\n"ResolvedRefs"  condition on the Route is set to `status: False`,\nwith the "RefNotPermitted" reason and not configure this backend in the\nunderlying implementation.\n\nIn either error case, the Message of the `ResolvedRefs` Condition\nshould be used to provide more detail about the problem.\n\nSupport: Extended for Kubernetes Service\n\nSupport: Implementation-specific for any other resource',
                                 type: 'object',
                                 required: ['name'],
                                 properties: {
                                   group: {
-                                    description: `Group is the group of the referent. For example, "gateway.networking.k8s.io".
-When unspecified or empty string, core API group is inferred.`,
+                                    description:
+                                      'Group is the group of the referent. For example, "gateway.networking.k8s.io".\nWhen unspecified or empty string, core API group is inferred.',
                                     type: 'string',
                                     default: '',
                                     maxLength: 253,
@@ -526,20 +751,8 @@ When unspecified or empty string, core API group is inferred.`,
                                       '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
                                   },
                                   kind: {
-                                    description: `Kind is the Kubernetes resource kind of the referent. For example
-"Service".
-
-Defaults to "Service" when not specified.
-
-ExternalName services can refer to CNAME DNS records that may live
-outside of the cluster and as such are difficult to reason about in
-terms of conformance. They also may not be safe to forward to (see
-CVE-2021-25740 for more information). Implementations SHOULD NOT
-support ExternalName Services.
-
-Support: Core (Services with a type other than ExternalName)
-
-Support: Implementation-specific (Services with type ExternalName)`,
+                                    description:
+                                      'Kind is the Kubernetes resource kind of the referent. For example\n"Service".\n\nDefaults to "Service" when not specified.\n\nExternalName services can refer to CNAME DNS records that may live\noutside of the cluster and as such are difficult to reason about in\nterms of conformance. They also may not be safe to forward to (see\nCVE-2021-25740 for more information). Implementations SHOULD NOT\nsupport ExternalName Services.\n\nSupport: Core (Services with a type other than ExternalName)\n\nSupport: Implementation-specific (Services with type ExternalName)',
                                     type: 'string',
                                     default: 'Service',
                                     maxLength: 63,
@@ -553,26 +766,16 @@ Support: Implementation-specific (Services with type ExternalName)`,
                                     minLength: 1,
                                   },
                                   namespace: {
-                                    description: `Namespace is the namespace of the backend. When unspecified, the local
-namespace is inferred.
-
-Note that when a namespace different than the local namespace is specified,
-a ReferenceGrant object is required in the referent namespace to allow that
-namespace's owner to accept the reference. See the ReferenceGrant
-documentation for details.
-
-Support: Core`,
+                                    description:
+                                      "Namespace is the namespace of the backend. When unspecified, the local\nnamespace is inferred.\n\nNote that when a namespace different than the local namespace is specified,\na ReferenceGrant object is required in the referent namespace to allow that\nnamespace's owner to accept the reference. See the ReferenceGrant\ndocumentation for details.\n\nSupport: Core",
                                     type: 'string',
                                     maxLength: 63,
                                     minLength: 1,
                                     pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$',
                                   },
                                   port: {
-                                    description: `Port specifies the destination port number to use for this resource.
-Port is required when the referent is a Kubernetes Service. In this
-case, the port number is the service port number, not the target port.
-For other resources, destination port might be derived from the referent
-resource or this field.`,
+                                    description:
+                                      'Port specifies the destination port number to use for this resource.\nPort is required when the referent is a Kubernetes Service. In this\ncase, the port number is the service port number, not the target port.\nFor other resources, destination port might be derived from the referent\nresource or this field.',
                                     type: 'integer',
                                     format: 'int32',
                                     maximum: 65535,
@@ -587,13 +790,8 @@ resource or this field.`,
                                 ],
                               },
                               fraction: {
-                                description: `Fraction represents the fraction of requests that should be
-mirrored to BackendRef.
-
-Only one of Fraction or Percent may be specified. If neither field
-is specified, 100% of requests will be mirrored.
-
-<gateway:experimental>`,
+                                description:
+                                  'Fraction represents the fraction of requests that should be\nmirrored to BackendRef.\n\nOnly one of Fraction or Percent may be specified. If neither field\nis specified, 100% of requests will be mirrored.',
                                 type: 'object',
                                 required: ['numerator'],
                                 properties: {
@@ -617,34 +815,30 @@ is specified, 100% of requests will be mirrored.
                                 ],
                               },
                               percent: {
-                                description: `Percent represents the percentage of requests that should be
-mirrored to BackendRef. Its minimum value is 0 (indicating 0% of
-requests) and its maximum value is 100 (indicating 100% of requests).
-
-Only one of Fraction or Percent may be specified. If neither field
-is specified, 100% of requests will be mirrored.
-
-<gateway:experimental>`,
+                                description:
+                                  'Percent represents the percentage of requests that should be\nmirrored to BackendRef. Its minimum value is 0 (indicating 0% of\nrequests) and its maximum value is 100 (indicating 100% of requests).\n\nOnly one of Fraction or Percent may be specified. If neither field\nis specified, 100% of requests will be mirrored.',
                                 type: 'integer',
                                 format: 'int32',
                                 maximum: 100,
                                 minimum: 0,
                               },
                             },
+                            'x-kubernetes-validations': [
+                              {
+                                rule: '!(has(self.percent) && has(self.fraction))',
+                                message:
+                                  'Only one of percent or fraction may be specified in HTTPRequestMirrorFilter',
+                              },
+                            ],
                           },
                           requestRedirect: {
-                            description: `RequestRedirect defines a schema for a filter that responds to the
-request with an HTTP redirection.
-
-Support: Core`,
+                            description:
+                              'RequestRedirect defines a schema for a filter that responds to the\nrequest with an HTTP redirection.\n\nSupport: Core',
                             type: 'object',
                             properties: {
                               hostname: {
-                                description: `Hostname is the hostname to be used in the value of the \`Location\`
-header in the response.
-When empty, the hostname in the \`Host\` header of the request is used.
-
-Support: Core`,
+                                description:
+                                  'Hostname is the hostname to be used in the value of the `Location`\nheader in the response.\nWhen empty, the hostname in the `Host` header of the request is used.\n\nSupport: Core',
                                 type: 'string',
                                 maxLength: 253,
                                 minLength: 1,
@@ -652,50 +846,26 @@ Support: Core`,
                                   '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
                               },
                               path: {
-                                description: `Path defines parameters used to modify the path of the incoming request.
-The modified path is then used to construct the \`Location\` header. When
-empty, the request path is used as-is.
-
-Support: Extended`,
+                                description:
+                                  'Path defines parameters used to modify the path of the incoming request.\nThe modified path is then used to construct the `Location` header. When\nempty, the request path is used as-is.\n\nSupport: Extended',
                                 type: 'object',
                                 required: ['type'],
                                 properties: {
                                   replaceFullPath: {
-                                    description: `ReplaceFullPath specifies the value with which to replace the full path
-of a request during a rewrite or redirect.`,
+                                    description:
+                                      'ReplaceFullPath specifies the value with which to replace the full path\nof a request during a rewrite or redirect.',
                                     type: 'string',
                                     maxLength: 1024,
                                   },
                                   replacePrefixMatch: {
-                                    description: `ReplacePrefixMatch specifies the value with which to replace the prefix
-match of a request during a rewrite or redirect. For example, a request
-to "/foo/bar" with a prefix match of "/foo" and a ReplacePrefixMatch
-of "/xyz" would be modified to "/xyz/bar".
-
-Note that this matches the behavior of the PathPrefix match type. This
-matches full path elements. A path element refers to the list of labels
-in the path split by the \`/\` separator. When specified, a trailing \`/\` is
-ignored. For example, the paths \`/abc\`, \`/abc/\`, and \`/abc/def\` would all
-match the prefix \`/abc\`, but the path \`/abcd\` would not.
-
-ReplacePrefixMatch is only compatible with a \`PathPrefix\` HTTPRouteMatch.
-Using any other HTTPRouteMatch type on the same HTTPRouteRule will result in
-the implementation setting the Accepted Condition for the Route to \`status: False\`.
-
-Request Path | Prefix Match | Replace Prefix | Modified Path`,
+                                    description:
+                                      'ReplacePrefixMatch specifies the value with which to replace the prefix\nmatch of a request during a rewrite or redirect. For example, a request\nto "/foo/bar" with a prefix match of "/foo" and a ReplacePrefixMatch\nof "/xyz" would be modified to "/xyz/bar".\n\nNote that this matches the behavior of the PathPrefix match type. This\nmatches full path elements. A path element refers to the list of labels\nin the path split by the `/` separator. When specified, a trailing `/` is\nignored. For example, the paths `/abc`, `/abc/`, and `/abc/def` would all\nmatch the prefix `/abc`, but the path `/abcd` would not.\n\nReplacePrefixMatch is only compatible with a `PathPrefix` HTTPRouteMatch.\nUsing any other HTTPRouteMatch type on the same HTTPRouteRule will result in\nthe implementation setting the Accepted Condition for the Route to `status: False`.\n\nRequest Path | Prefix Match | Replace Prefix | Modified Path',
                                     type: 'string',
                                     maxLength: 1024,
                                   },
                                   type: {
-                                    description: `Type defines the type of path modifier. Additional types may be
-added in a future release of the API.
-
-Note that values may be added to this enum, implementations
-must ensure that unknown values will not cause a crash.
-
-Unknown values here must result in the implementation setting the
-Accepted Condition for the Route to \`status: False\`, with a
-Reason of \`UnsupportedValue\`.`,
+                                    description:
+                                      'Type defines the type of path modifier. Additional types may be\nadded in a future release of the API.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.',
                                     type: 'string',
                                     enum: ['ReplaceFullPath', 'ReplacePrefixMatch'],
                                   },
@@ -724,62 +894,22 @@ Reason of \`UnsupportedValue\`.`,
                                 ],
                               },
                               port: {
-                                description: `Port is the port to be used in the value of the \`Location\`
-header in the response.
-
-If no port is specified, the redirect port MUST be derived using the
-following rules:
-
-* If redirect scheme is not-empty, the redirect port MUST be the well-known
-  port associated with the redirect scheme. Specifically "http" to port 80
-  and "https" to port 443. If the redirect scheme does not have a
-  well-known port, the listener port of the Gateway SHOULD be used.
-* If redirect scheme is empty, the redirect port MUST be the Gateway
-  Listener port.
-
-Implementations SHOULD NOT add the port number in the 'Location'
-header in the following cases:
-
-* A Location header that will use HTTP (whether that is determined via
-  the Listener protocol or the Scheme field) _and_ use port 80.
-* A Location header that will use HTTPS (whether that is determined via
-  the Listener protocol or the Scheme field) _and_ use port 443.
-
-Support: Extended`,
+                                description:
+                                  'Port is the port to be used in the value of the `Location`\nheader in the response.\n\nIf no port is specified, the redirect port MUST be derived using the\nfollowing rules:\n\n* If redirect scheme is not-empty, the redirect port MUST be the well-known\n  port associated with the redirect scheme. Specifically "http" to port 80\n  and "https" to port 443. If the redirect scheme does not have a\n  well-known port, the listener port of the Gateway SHOULD be used.\n* If redirect scheme is empty, the redirect port MUST be the Gateway\n  Listener port.\n\nImplementations SHOULD NOT add the port number in the \'Location\'\nheader in the following cases:\n\n* A Location header that will use HTTP (whether that is determined via\n  the Listener protocol or the Scheme field) _and_ use port 80.\n* A Location header that will use HTTPS (whether that is determined via\n  the Listener protocol or the Scheme field) _and_ use port 443.\n\nSupport: Extended',
                                 type: 'integer',
                                 format: 'int32',
                                 maximum: 65535,
                                 minimum: 1,
                               },
                               scheme: {
-                                description: `Scheme is the scheme to be used in the value of the \`Location\` header in
-the response. When empty, the scheme of the request is used.
-
-Scheme redirects can affect the port of the redirect, for more information,
-refer to the documentation for the port field of this filter.
-
-Note that values may be added to this enum, implementations
-must ensure that unknown values will not cause a crash.
-
-Unknown values here must result in the implementation setting the
-Accepted Condition for the Route to \`status: False\`, with a
-Reason of \`UnsupportedValue\`.
-
-Support: Extended`,
+                                description:
+                                  'Scheme is the scheme to be used in the value of the `Location` header in\nthe response. When empty, the scheme of the request is used.\n\nScheme redirects can affect the port of the redirect, for more information,\nrefer to the documentation for the port field of this filter.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.\n\nSupport: Extended',
                                 type: 'string',
                                 enum: ['http', 'https'],
                               },
                               statusCode: {
-                                description: `StatusCode is the HTTP status code to be used in response.
-
-Note that values may be added to this enum, implementations
-must ensure that unknown values will not cause a crash.
-
-Unknown values here must result in the implementation setting the
-Accepted Condition for the Route to \`status: False\`, with a
-Reason of \`UnsupportedValue\`.
-
-Support: Core`,
+                                description:
+                                  'StatusCode is the HTTP status code to be used in response.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.\n\nSupport: Core',
                                 type: 'integer',
                                 default: 302,
                                 enum: [301, 302],
@@ -787,29 +917,13 @@ Support: Core`,
                             },
                           },
                           responseHeaderModifier: {
-                            description: `ResponseHeaderModifier defines a schema for a filter that modifies response
-headers.
-
-Support: Extended`,
+                            description:
+                              'ResponseHeaderModifier defines a schema for a filter that modifies response\nheaders.\n\nSupport: Extended',
                             type: 'object',
                             properties: {
                               add: {
-                                description: `Add adds the given header(s) (name, value) to the request
-before the action. It appends to any existing values associated
-with the header name.
-
-Input:
-  GET /foo HTTP/1.1
-  my-header: foo
-
-Config:
-  add:
-  - name: "my-header"
-    value: "bar,baz"
-
-Output:
-  GET /foo HTTP/1.1
-  my-header: foo,bar,baz`,
+                                description:
+                                  'Add adds the given header(s) (name, value) to the request\nbefore the action. It appends to any existing values associated\nwith the header name.\n\nInput:\n  GET /foo HTTP/1.1\n  my-header: foo\n\nConfig:\n  add:\n  - name: "my-header"\n    value: "bar,baz"\n\nOutput:\n  GET /foo HTTP/1.1\n  my-header: foo,bar,baz',
                                 type: 'array',
                                 maxItems: 16,
                                 items: {
@@ -819,14 +933,8 @@ Output:
                                   required: ['name', 'value'],
                                   properties: {
                                     name: {
-                                      description: `Name is the name of the HTTP Header to be matched. Name matching MUST be
-case insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).
-
-If multiple entries specify equivalent header names, the first entry with
-an equivalent name MUST be considered for a match. Subsequent entries
-with an equivalent header name MUST be ignored. Due to the
-case-insensitivity of header names, "foo" and "Foo" are considered
-equivalent.`,
+                                      description:
+                                        'Name is the name of the HTTP Header to be matched. Name matching MUST be\ncase-insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).\n\nIf multiple entries specify equivalent header names, the first entry with\nan equivalent name MUST be considered for a match. Subsequent entries\nwith an equivalent header name MUST be ignored. Due to the\ncase-insensitivity of header names, "foo" and "Foo" are considered\nequivalent.',
                                       type: 'string',
                                       maxLength: 256,
                                       minLength: 1,
@@ -845,23 +953,8 @@ equivalent.`,
                                 'x-kubernetes-list-type': 'map',
                               },
                               remove: {
-                                description: `Remove the given header(s) from the HTTP request before the action. The
-value of Remove is a list of HTTP header names. Note that the header
-names are case-insensitive (see
-https://datatracker.ietf.org/doc/html/rfc2616#section-4.2).
-
-Input:
-  GET /foo HTTP/1.1
-  my-header1: foo
-  my-header2: bar
-  my-header3: baz
-
-Config:
-  remove: ["my-header1", "my-header3"]
-
-Output:
-  GET /foo HTTP/1.1
-  my-header2: bar`,
+                                description:
+                                  'Remove the given header(s) from the HTTP request before the action. The\nvalue of Remove is a list of HTTP header names. Note that the header\nnames are case-insensitive (see\nhttps://datatracker.ietf.org/doc/html/rfc2616#section-4.2).\n\nInput:\n  GET /foo HTTP/1.1\n  my-header1: foo\n  my-header2: bar\n  my-header3: baz\n\nConfig:\n  remove: ["my-header1", "my-header3"]\n\nOutput:\n  GET /foo HTTP/1.1\n  my-header2: bar',
                                 type: 'array',
                                 maxItems: 16,
                                 items: {
@@ -870,21 +963,8 @@ Output:
                                 'x-kubernetes-list-type': 'set',
                               },
                               set: {
-                                description: `Set overwrites the request with the given header (name, value)
-before the action.
-
-Input:
-  GET /foo HTTP/1.1
-  my-header: foo
-
-Config:
-  set:
-  - name: "my-header"
-    value: "bar"
-
-Output:
-  GET /foo HTTP/1.1
-  my-header: bar`,
+                                description:
+                                  'Set overwrites the request with the given header (name, value)\nbefore the action.\n\nInput:\n  GET /foo HTTP/1.1\n  my-header: foo\n\nConfig:\n  set:\n  - name: "my-header"\n    value: "bar"\n\nOutput:\n  GET /foo HTTP/1.1\n  my-header: bar',
                                 type: 'array',
                                 maxItems: 16,
                                 items: {
@@ -894,14 +974,8 @@ Output:
                                   required: ['name', 'value'],
                                   properties: {
                                     name: {
-                                      description: `Name is the name of the HTTP Header to be matched. Name matching MUST be
-case insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).
-
-If multiple entries specify equivalent header names, the first entry with
-an equivalent name MUST be considered for a match. Subsequent entries
-with an equivalent header name MUST be ignored. Due to the
-case-insensitivity of header names, "foo" and "Foo" are considered
-equivalent.`,
+                                      description:
+                                        'Name is the name of the HTTP Header to be matched. Name matching MUST be\ncase-insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).\n\nIf multiple entries specify equivalent header names, the first entry with\nan equivalent name MUST be considered for a match. Subsequent entries\nwith an equivalent header name MUST be ignored. Due to the\ncase-insensitivity of header names, "foo" and "Foo" are considered\nequivalent.',
                                       type: 'string',
                                       maxLength: 256,
                                       minLength: 1,
@@ -922,38 +996,8 @@ equivalent.`,
                             },
                           },
                           type: {
-                            description: `Type identifies the type of filter to apply. As with other API fields,
-types are classified into three conformance levels:
-
-- Core: Filter types and their corresponding configuration defined by
-  "Support: Core" in this package, e.g. "RequestHeaderModifier". All
-  implementations must support core filters.
-
-- Extended: Filter types and their corresponding configuration defined by
-  "Support: Extended" in this package, e.g. "RequestMirror". Implementers
-  are encouraged to support extended filters.
-
-- Implementation-specific: Filters that are defined and supported by
-  specific vendors.
-  In the future, filters showing convergence in behavior across multiple
-  implementations will be considered for inclusion in extended or core
-  conformance levels. Filter-specific configuration for such filters
-  is specified using the ExtensionRef field. \`Type\` should be set to
-  "ExtensionRef" for custom filters.
-
-Implementers are encouraged to define custom implementation types to
-extend the core API with implementation-specific behavior.
-
-If a reference to a custom filter type cannot be resolved, the filter
-MUST NOT be skipped. Instead, requests that would have been processed by
-that filter MUST receive a HTTP error response.
-
-Note that values may be added to this enum, implementations
-must ensure that unknown values will not cause a crash.
-
-Unknown values here must result in the implementation setting the
-Accepted Condition for the Route to \`status: False\`, with a
-Reason of \`UnsupportedValue\`.`,
+                            description:
+                              'Type identifies the type of filter to apply. As with other API fields,\ntypes are classified into three conformance levels:\n\n- Core: Filter types and their corresponding configuration defined by\n  "Support: Core" in this package, e.g. "RequestHeaderModifier". All\n  implementations must support core filters.\n\n- Extended: Filter types and their corresponding configuration defined by\n  "Support: Extended" in this package, e.g. "RequestMirror". Implementers\n  are encouraged to support extended filters.\n\n- Implementation-specific: Filters that are defined and supported by\n  specific vendors.\n  In the future, filters showing convergence in behavior across multiple\n  implementations will be considered for inclusion in extended or core\n  conformance levels. Filter-specific configuration for such filters\n  is specified using the ExtensionRef field. `Type` should be set to\n  "ExtensionRef" for custom filters.\n\nImplementers are encouraged to define custom implementation types to\nextend the core API with implementation-specific behavior.\n\nIf a reference to a custom filter type cannot be resolved, the filter\nMUST NOT be skipped. Instead, requests that would have been processed by\nthat filter MUST receive a HTTP error response.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.\n\n<gateway:experimental:validation:Enum=RequestHeaderModifier;ResponseHeaderModifier;RequestMirror;RequestRedirect;URLRewrite;ExtensionRef;CORS>',
                             type: 'string',
                             enum: [
                               'RequestHeaderModifier',
@@ -965,16 +1009,13 @@ Reason of \`UnsupportedValue\`.`,
                             ],
                           },
                           urlRewrite: {
-                            description: `URLRewrite defines a schema for a filter that modifies a request during forwarding.
-
-Support: Extended`,
+                            description:
+                              'URLRewrite defines a schema for a filter that modifies a request during forwarding.\n\nSupport: Extended',
                             type: 'object',
                             properties: {
                               hostname: {
-                                description: `Hostname is the value to be used to replace the Host header value during
-forwarding.
-
-Support: Extended`,
+                                description:
+                                  'Hostname is the value to be used to replace the Host header value during\nforwarding.\n\nSupport: Extended',
                                 type: 'string',
                                 maxLength: 253,
                                 minLength: 1,
@@ -982,48 +1023,25 @@ Support: Extended`,
                                   '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
                               },
                               path: {
-                                description: `Path defines a path rewrite.
-
-Support: Extended`,
+                                description: 'Path defines a path rewrite.\n\nSupport: Extended',
                                 type: 'object',
                                 required: ['type'],
                                 properties: {
                                   replaceFullPath: {
-                                    description: `ReplaceFullPath specifies the value with which to replace the full path
-of a request during a rewrite or redirect.`,
+                                    description:
+                                      'ReplaceFullPath specifies the value with which to replace the full path\nof a request during a rewrite or redirect.',
                                     type: 'string',
                                     maxLength: 1024,
                                   },
                                   replacePrefixMatch: {
-                                    description: `ReplacePrefixMatch specifies the value with which to replace the prefix
-match of a request during a rewrite or redirect. For example, a request
-to "/foo/bar" with a prefix match of "/foo" and a ReplacePrefixMatch
-of "/xyz" would be modified to "/xyz/bar".
-
-Note that this matches the behavior of the PathPrefix match type. This
-matches full path elements. A path element refers to the list of labels
-in the path split by the \`/\` separator. When specified, a trailing \`/\` is
-ignored. For example, the paths \`/abc\`, \`/abc/\`, and \`/abc/def\` would all
-match the prefix \`/abc\`, but the path \`/abcd\` would not.
-
-ReplacePrefixMatch is only compatible with a \`PathPrefix\` HTTPRouteMatch.
-Using any other HTTPRouteMatch type on the same HTTPRouteRule will result in
-the implementation setting the Accepted Condition for the Route to \`status: False\`.
-
-Request Path | Prefix Match | Replace Prefix | Modified Path`,
+                                    description:
+                                      'ReplacePrefixMatch specifies the value with which to replace the prefix\nmatch of a request during a rewrite or redirect. For example, a request\nto "/foo/bar" with a prefix match of "/foo" and a ReplacePrefixMatch\nof "/xyz" would be modified to "/xyz/bar".\n\nNote that this matches the behavior of the PathPrefix match type. This\nmatches full path elements. A path element refers to the list of labels\nin the path split by the `/` separator. When specified, a trailing `/` is\nignored. For example, the paths `/abc`, `/abc/`, and `/abc/def` would all\nmatch the prefix `/abc`, but the path `/abcd` would not.\n\nReplacePrefixMatch is only compatible with a `PathPrefix` HTTPRouteMatch.\nUsing any other HTTPRouteMatch type on the same HTTPRouteRule will result in\nthe implementation setting the Accepted Condition for the Route to `status: False`.\n\nRequest Path | Prefix Match | Replace Prefix | Modified Path',
                                     type: 'string',
                                     maxLength: 1024,
                                   },
                                   type: {
-                                    description: `Type defines the type of path modifier. Additional types may be
-added in a future release of the API.
-
-Note that values may be added to this enum, implementations
-must ensure that unknown values will not cause a crash.
-
-Unknown values here must result in the implementation setting the
-Accepted Condition for the Route to \`status: False\`, with a
-Reason of \`UnsupportedValue\`.`,
+                                    description:
+                                      'Type defines the type of path modifier. Additional types may be\nadded in a future release of the API.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.',
                                     type: 'string',
                                     enum: ['ReplaceFullPath', 'ReplacePrefixMatch'],
                                   },
@@ -1140,42 +1158,137 @@ Reason of \`UnsupportedValue\`.`,
                         },
                       ],
                     },
+                    tls: {
+                      description:
+                        'TLS contains backend TLS configuration.\n\nWhen the backend endpoint uses HTTPS with an IP address, the Hostname field\nmust be specified for TLS certificate validation.',
+                      type: 'object',
+                      properties: {
+                        hostname: {
+                          description:
+                            'Hostname is used for TLS certificate validation when connecting to an\nHTTPS backend. This hostname is used for:\n\n1. SNI (Server Name Indication) during the TLS handshake\n2. Certificate validation - the certificate must be valid for this hostname\n\nThis field is required when the backend endpoint uses HTTPS with an IP\naddress, as there is no hostname to extract from the endpoint URL.\n\nWhen the backend endpoint uses HTTPS with a DNS hostname, this field is\noptional and defaults to the hostname from the endpoint URL.',
+                          type: 'string',
+                          maxLength: 253,
+                          minLength: 1,
+                        },
+                      },
+                    },
                   },
                 },
               },
               filters: {
-                description: `Filters define the filters that are applied to requests that match
-this rule.
-
-See documentation for the \`filters\` field in the \`HTTPRouteRule\` type at
-https://gateway-api.sigs.k8s.io/reference/spec/#httprouterule`,
+                description:
+                  'Filters define the filters that are applied to requests that match\nthis rule.\n\nSee documentation for the `filters` field in the `HTTPRouteRule` type at\nhttps://gateway-api.sigs.k8s.io/reference/spec/#httprouterule',
                 type: 'array',
                 maxItems: 16,
                 items: {
-                  description: `HTTPRouteFilter defines processing steps that must be completed during the
-request or response lifecycle. HTTPRouteFilters are meant as an extension
-point to express processing that may be done in Gateway implementations. Some
-examples include request or response modification, implementing
-authentication strategies, rate-limiting, and traffic shaping. API
-guarantee/conformance is defined based on the type of the filter.`,
+                  description:
+                    'HTTPRouteFilter defines processing steps that must be completed during the\nrequest or response lifecycle. HTTPRouteFilters are meant as an extension\npoint to express processing that may be done in Gateway implementations. Some\nexamples include request or response modification, implementing\nauthentication strategies, rate-limiting, and traffic shaping. API\nguarantee/conformance is defined based on the type of the filter.\n\n<gateway:experimental:validation:XValidation:message="filter.cors must be nil if the filter.type is not CORS",rule="!(has(self.cors) && self.type != \'CORS\')">\n<gateway:experimental:validation:XValidation:message="filter.cors must be specified for CORS filter.type",rule="!(!has(self.cors) && self.type == \'CORS\')">',
                   type: 'object',
                   required: ['type'],
                   properties: {
+                    cors: {
+                      description:
+                        'CORS defines a schema for a filter that responds to the\ncross-origin request based on HTTP response header.\n\nSupport: Extended\n\n<gateway:experimental>',
+                      type: 'object',
+                      properties: {
+                        allowCredentials: {
+                          description:
+                            'AllowCredentials indicates whether the actual cross-origin request allows\nto include credentials.\n\nThe only valid value for the `Access-Control-Allow-Credentials` response\nheader is true (case-sensitive).\n\nIf the credentials are not allowed in cross-origin requests, the gateway\nwill omit the header `Access-Control-Allow-Credentials` entirely rather\nthan setting its value to false.\n\nSupport: Extended',
+                          type: 'boolean',
+                          enum: [true],
+                        },
+                        allowHeaders: {
+                          description:
+                            'AllowHeaders indicates which HTTP request headers are supported for\naccessing the requested resource.\n\nHeader names are not case sensitive.\n\nMultiple header names in the value of the `Access-Control-Allow-Headers`\nresponse header are separated by a comma (",").\n\nWhen the `AllowHeaders` field is configured with one or more headers, the\ngateway must return the `Access-Control-Allow-Headers` response header\nwhich value is present in the `AllowHeaders` field.\n\nIf any header name in the `Access-Control-Request-Headers` request header\nis not included in the list of header names specified by the response\nheader `Access-Control-Allow-Headers`, it will present an error on the\nclient side.\n\nIf any header name in the `Access-Control-Allow-Headers` response header\ndoes not recognize by the client, it will also occur an error on the\nclient side.\n\nA wildcard indicates that the requests with all HTTP headers are allowed.\nThe `Access-Control-Allow-Headers` response header can only use `*`\nwildcard as value when the `AllowCredentials` field is unspecified.\n\nWhen the `AllowCredentials` field is specified and `AllowHeaders` field\nspecified with the `*` wildcard, the gateway must specify one or more\nHTTP headers in the value of the `Access-Control-Allow-Headers` response\nheader. The value of the header `Access-Control-Allow-Headers` is same as\nthe `Access-Control-Request-Headers` header provided by the client. If\nthe header `Access-Control-Request-Headers` is not included in the\nrequest, the gateway will omit the `Access-Control-Allow-Headers`\nresponse header, instead of specifying the `*` wildcard. A Gateway\nimplementation may choose to add implementation-specific default headers.\n\nSupport: Extended',
+                          type: 'array',
+                          maxItems: 64,
+                          items: {
+                            description:
+                              'HTTPHeaderName is the name of an HTTP header.\n\nValid values include:\n\n* "Authorization"\n* "Set-Cookie"\n\nInvalid values include:\n\n  - ":method" - ":" is an invalid character. This means that HTTP/2 pseudo\n    headers are not currently supported by this type.\n  - "/invalid" - "/ " is an invalid character',
+                            type: 'string',
+                            maxLength: 256,
+                            minLength: 1,
+                            pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
+                          },
+                          'x-kubernetes-list-type': 'set',
+                        },
+                        allowMethods: {
+                          description:
+                            'AllowMethods indicates which HTTP methods are supported for accessing the\nrequested resource.\n\nValid values are any method defined by RFC9110, along with the special\nvalue `*`, which represents all HTTP methods are allowed.\n\nMethod names are case sensitive, so these values are also case-sensitive.\n(See https://www.rfc-editor.org/rfc/rfc2616#section-5.1.1)\n\nMultiple method names in the value of the `Access-Control-Allow-Methods`\nresponse header are separated by a comma (",").\n\nA CORS-safelisted method is a method that is `GET`, `HEAD`, or `POST`.\n(See https://fetch.spec.whatwg.org/#cors-safelisted-method) The\nCORS-safelisted methods are always allowed, regardless of whether they\nare specified in the `AllowMethods` field.\n\nWhen the `AllowMethods` field is configured with one or more methods, the\ngateway must return the `Access-Control-Allow-Methods` response header\nwhich value is present in the `AllowMethods` field.\n\nIf the HTTP method of the `Access-Control-Request-Method` request header\nis not included in the list of methods specified by the response header\n`Access-Control-Allow-Methods`, it will present an error on the client\nside.\n\nThe `Access-Control-Allow-Methods` response header can only use `*`\nwildcard as value when the `AllowCredentials` field is unspecified.\n\nWhen the `AllowCredentials` field is specified and `AllowMethods` field\nspecified with the `*` wildcard, the gateway must specify one HTTP method\nin the value of the Access-Control-Allow-Methods response header. The\nvalue of the header `Access-Control-Allow-Methods` is same as the\n`Access-Control-Request-Method` header provided by the client. If the\nheader `Access-Control-Request-Method` is not included in the request,\nthe gateway will omit the `Access-Control-Allow-Methods` response header,\ninstead of specifying the `*` wildcard. A Gateway implementation may\nchoose to add implementation-specific default methods.\n\nSupport: Extended',
+                          type: 'array',
+                          maxItems: 9,
+                          items: {
+                            type: 'string',
+                            enum: [
+                              'GET',
+                              'HEAD',
+                              'POST',
+                              'PUT',
+                              'DELETE',
+                              'CONNECT',
+                              'OPTIONS',
+                              'TRACE',
+                              'PATCH',
+                              '*',
+                            ],
+                          },
+                          'x-kubernetes-list-type': 'set',
+                          'x-kubernetes-validations': [
+                            {
+                              rule: "!('*' in self && self.size() > 1)",
+                              message: "AllowMethods cannot contain '*' alongside other methods",
+                            },
+                          ],
+                        },
+                        allowOrigins: {
+                          description:
+                            'AllowOrigins indicates whether the response can be shared with requested\nresource from the given `Origin`.\n\nThe `Origin` consists of a scheme and a host, with an optional port, and\ntakes the form `<scheme>://<host>(:<port>)`.\n\nValid values for scheme are: `http` and `https`.\n\nValid values for port are any integer between 1 and 65535 (the list of\navailable TCP/UDP ports). Note that, if not included, port `80` is\nassumed for `http` scheme origins, and port `443` is assumed for `https`\norigins. This may affect origin matching.\n\nThe host part of the origin may contain the wildcard character `*`. These\nwildcard characters behave as follows:\n\n* `*` is a greedy match to the _left_, including any number of\n  DNS labels to the left of its position. This also means that\n  `*` will include any number of period `.` characters to the\n  left of its position.\n* A wildcard by itself matches all hosts.\n\nAn origin value that includes _only_ the `*` character indicates requests\nfrom all `Origin`s are allowed.\n\nWhen the `AllowOrigins` field is configured with multiple origins, it\nmeans the server supports clients from multiple origins. If the request\n`Origin` matches the configured allowed origins, the gateway must return\nthe given `Origin` and sets value of the header\n`Access-Control-Allow-Origin` same as the `Origin` header provided by the\nclient.\n\nThe status code of a successful response to a "preflight" request is\nalways an OK status (i.e., 204 or 200).\n\nIf the request `Origin` does not match the configured allowed origins,\nthe gateway returns 204/200 response but doesn\'t set the relevant\ncross-origin response headers. Alternatively, the gateway responds with\n403 status to the "preflight" request is denied, coupled with omitting\nthe CORS headers. The cross-origin request fails on the client side.\nTherefore, the client doesn\'t attempt the actual cross-origin request.\n\nThe `Access-Control-Allow-Origin` response header can only use `*`\nwildcard as value when the `AllowCredentials` field is unspecified.\n\nWhen the `AllowCredentials` field is specified and `AllowOrigins` field\nspecified with the `*` wildcard, the gateway must return a single origin\nin the value of the `Access-Control-Allow-Origin` response header,\ninstead of specifying the `*` wildcard. The value of the header\n`Access-Control-Allow-Origin` is same as the `Origin` header provided by\nthe client.\n\nSupport: Extended',
+                          type: 'array',
+                          maxItems: 64,
+                          items: {
+                            description:
+                              'The AbsoluteURI MUST NOT be a relative URI, and it MUST follow the URI syntax and\nencoding rules specified in RFC3986.  The AbsoluteURI MUST include both a\nscheme (e.g., "http" or "spiffe") and a scheme-specific-part.  URIs that\ninclude an authority MUST include a fully qualified domain name or\nIP address as the host.\n<gateway:util:excludeFromCRD> The below regex is taken from the regex section in RFC 3986 with a slight modification to enforce a full URI and not relative. </gateway:util:excludeFromCRD>',
+                            type: 'string',
+                            maxLength: 253,
+                            minLength: 1,
+                            pattern: '^(([^:/?#]+):)(//([^/?#]*))([^?#]*)(\\?([^#]*))?(#(.*))?',
+                          },
+                          'x-kubernetes-list-type': 'set',
+                        },
+                        exposeHeaders: {
+                          description:
+                            'ExposeHeaders indicates which HTTP response headers can be exposed\nto client-side scripts in response to a cross-origin request.\n\nA CORS-safelisted response header is an HTTP header in a CORS response\nthat it is considered safe to expose to the client scripts.\nThe CORS-safelisted response headers include the following headers:\n`Cache-Control`\n`Content-Language`\n`Content-Length`\n`Content-Type`\n`Expires`\n`Last-Modified`\n`Pragma`\n(See https://fetch.spec.whatwg.org/#cors-safelisted-response-header-name)\nThe CORS-safelisted response headers are exposed to client by default.\n\nWhen an HTTP header name is specified using the `ExposeHeaders` field,\nthis additional header will be exposed as part of the response to the\nclient.\n\nHeader names are not case sensitive.\n\nMultiple header names in the value of the `Access-Control-Expose-Headers`\nresponse header are separated by a comma (",").\n\nA wildcard indicates that the responses with all HTTP headers are exposed\nto clients. The `Access-Control-Expose-Headers` response header can only\nuse `*` wildcard as value when the `AllowCredentials` field is\nunspecified.\n\nSupport: Extended',
+                          type: 'array',
+                          maxItems: 64,
+                          items: {
+                            description:
+                              'HTTPHeaderName is the name of an HTTP header.\n\nValid values include:\n\n* "Authorization"\n* "Set-Cookie"\n\nInvalid values include:\n\n  - ":method" - ":" is an invalid character. This means that HTTP/2 pseudo\n    headers are not currently supported by this type.\n  - "/invalid" - "/ " is an invalid character',
+                            type: 'string',
+                            maxLength: 256,
+                            minLength: 1,
+                            pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
+                          },
+                          'x-kubernetes-list-type': 'set',
+                        },
+                        maxAge: {
+                          description:
+                            'MaxAge indicates the duration (in seconds) for the client to cache the\nresults of a "preflight" request.\n\nThe information provided by the `Access-Control-Allow-Methods` and\n`Access-Control-Allow-Headers` response headers can be cached by the\nclient until the time specified by `Access-Control-Max-Age` elapses.\n\nThe default value of `Access-Control-Max-Age` response header is 5\n(seconds).',
+                          type: 'integer',
+                          format: 'int32',
+                          default: 5,
+                          minimum: 1,
+                        },
+                      },
+                    },
                     extensionRef: {
-                      description: `ExtensionRef is an optional, implementation-specific extension to the
-"filter" behavior.  For example, resource "myroutefilter" in group
-"networking.example.net"). ExtensionRef MUST NOT be used for core and
-extended filters.
-
-This filter can be used multiple times within the same rule.
-
-Support: Implementation-specific`,
+                      description:
+                        'ExtensionRef is an optional, implementation-specific extension to the\n"filter" behavior.  For example, resource "myroutefilter" in group\n"networking.example.net"). ExtensionRef MUST NOT be used for core and\nextended filters.\n\nThis filter can be used multiple times within the same rule.\n\nSupport: Implementation-specific',
                       type: 'object',
                       required: ['group', 'kind', 'name'],
                       properties: {
                         group: {
-                          description: `Group is the group of the referent. For example, "gateway.networking.k8s.io".
-When unspecified or empty string, core API group is inferred.`,
+                          description:
+                            'Group is the group of the referent. For example, "gateway.networking.k8s.io".\nWhen unspecified or empty string, core API group is inferred.',
                           type: 'string',
                           maxLength: 253,
                           pattern:
@@ -1198,29 +1311,13 @@ When unspecified or empty string, core API group is inferred.`,
                       },
                     },
                     requestHeaderModifier: {
-                      description: `RequestHeaderModifier defines a schema for a filter that modifies request
-headers.
-
-Support: Core`,
+                      description:
+                        'RequestHeaderModifier defines a schema for a filter that modifies request\nheaders.\n\nSupport: Core',
                       type: 'object',
                       properties: {
                         add: {
-                          description: `Add adds the given header(s) (name, value) to the request
-before the action. It appends to any existing values associated
-with the header name.
-
-Input:
-  GET /foo HTTP/1.1
-  my-header: foo
-
-Config:
-  add:
-  - name: "my-header"
-    value: "bar,baz"
-
-Output:
-  GET /foo HTTP/1.1
-  my-header: foo,bar,baz`,
+                          description:
+                            'Add adds the given header(s) (name, value) to the request\nbefore the action. It appends to any existing values associated\nwith the header name.\n\nInput:\n  GET /foo HTTP/1.1\n  my-header: foo\n\nConfig:\n  add:\n  - name: "my-header"\n    value: "bar,baz"\n\nOutput:\n  GET /foo HTTP/1.1\n  my-header: foo,bar,baz',
                           type: 'array',
                           maxItems: 16,
                           items: {
@@ -1230,14 +1327,8 @@ Output:
                             required: ['name', 'value'],
                             properties: {
                               name: {
-                                description: `Name is the name of the HTTP Header to be matched. Name matching MUST be
-case insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).
-
-If multiple entries specify equivalent header names, the first entry with
-an equivalent name MUST be considered for a match. Subsequent entries
-with an equivalent header name MUST be ignored. Due to the
-case-insensitivity of header names, "foo" and "Foo" are considered
-equivalent.`,
+                                description:
+                                  'Name is the name of the HTTP Header to be matched. Name matching MUST be\ncase-insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).\n\nIf multiple entries specify equivalent header names, the first entry with\nan equivalent name MUST be considered for a match. Subsequent entries\nwith an equivalent header name MUST be ignored. Due to the\ncase-insensitivity of header names, "foo" and "Foo" are considered\nequivalent.',
                                 type: 'string',
                                 maxLength: 256,
                                 minLength: 1,
@@ -1255,23 +1346,8 @@ equivalent.`,
                           'x-kubernetes-list-type': 'map',
                         },
                         remove: {
-                          description: `Remove the given header(s) from the HTTP request before the action. The
-value of Remove is a list of HTTP header names. Note that the header
-names are case-insensitive (see
-https://datatracker.ietf.org/doc/html/rfc2616#section-4.2).
-
-Input:
-  GET /foo HTTP/1.1
-  my-header1: foo
-  my-header2: bar
-  my-header3: baz
-
-Config:
-  remove: ["my-header1", "my-header3"]
-
-Output:
-  GET /foo HTTP/1.1
-  my-header2: bar`,
+                          description:
+                            'Remove the given header(s) from the HTTP request before the action. The\nvalue of Remove is a list of HTTP header names. Note that the header\nnames are case-insensitive (see\nhttps://datatracker.ietf.org/doc/html/rfc2616#section-4.2).\n\nInput:\n  GET /foo HTTP/1.1\n  my-header1: foo\n  my-header2: bar\n  my-header3: baz\n\nConfig:\n  remove: ["my-header1", "my-header3"]\n\nOutput:\n  GET /foo HTTP/1.1\n  my-header2: bar',
                           type: 'array',
                           maxItems: 16,
                           items: {
@@ -1280,21 +1356,8 @@ Output:
                           'x-kubernetes-list-type': 'set',
                         },
                         set: {
-                          description: `Set overwrites the request with the given header (name, value)
-before the action.
-
-Input:
-  GET /foo HTTP/1.1
-  my-header: foo
-
-Config:
-  set:
-  - name: "my-header"
-    value: "bar"
-
-Output:
-  GET /foo HTTP/1.1
-  my-header: bar`,
+                          description:
+                            'Set overwrites the request with the given header (name, value)\nbefore the action.\n\nInput:\n  GET /foo HTTP/1.1\n  my-header: foo\n\nConfig:\n  set:\n  - name: "my-header"\n    value: "bar"\n\nOutput:\n  GET /foo HTTP/1.1\n  my-header: bar',
                           type: 'array',
                           maxItems: 16,
                           items: {
@@ -1304,14 +1367,8 @@ Output:
                             required: ['name', 'value'],
                             properties: {
                               name: {
-                                description: `Name is the name of the HTTP Header to be matched. Name matching MUST be
-case insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).
-
-If multiple entries specify equivalent header names, the first entry with
-an equivalent name MUST be considered for a match. Subsequent entries
-with an equivalent header name MUST be ignored. Due to the
-case-insensitivity of header names, "foo" and "Foo" are considered
-equivalent.`,
+                                description:
+                                  'Name is the name of the HTTP Header to be matched. Name matching MUST be\ncase-insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).\n\nIf multiple entries specify equivalent header names, the first entry with\nan equivalent name MUST be considered for a match. Subsequent entries\nwith an equivalent header name MUST be ignored. Due to the\ncase-insensitivity of header names, "foo" and "Foo" are considered\nequivalent.',
                                 type: 'string',
                                 maxLength: 256,
                                 minLength: 1,
@@ -1331,50 +1388,20 @@ equivalent.`,
                       },
                     },
                     requestMirror: {
-                      description: `RequestMirror defines a schema for a filter that mirrors requests.
-Requests are sent to the specified destination, but responses from
-that destination are ignored.
-
-This filter can be used multiple times within the same rule. Note that
-not all implementations will be able to support mirroring to multiple
-backends.
-
-Support: Extended
-
-<gateway:experimental:validation:XValidation:message="Only one of percent or fraction may be specified in HTTPRequestMirrorFilter",rule="!(has(self.percent) && has(self.fraction))">`,
+                      description:
+                        'RequestMirror defines a schema for a filter that mirrors requests.\nRequests are sent to the specified destination, but responses from\nthat destination are ignored.\n\nThis filter can be used multiple times within the same rule. Note that\nnot all implementations will be able to support mirroring to multiple\nbackends.\n\nSupport: Extended',
                       type: 'object',
                       required: ['backendRef'],
                       properties: {
                         backendRef: {
-                          description: `BackendRef references a resource where mirrored requests are sent.
-
-Mirrored requests must be sent only to a single destination endpoint
-within this BackendRef, irrespective of how many endpoints are present
-within this BackendRef.
-
-If the referent cannot be found, this BackendRef is invalid and must be
-dropped from the Gateway. The controller must ensure the "ResolvedRefs"
-condition on the Route status is set to \`status: False\` and not configure
-this backend in the underlying implementation.
-
-If there is a cross-namespace reference to an *existing* object
-that is not allowed by a ReferenceGrant, the controller must ensure the
-"ResolvedRefs"  condition on the Route is set to \`status: False\`,
-with the "RefNotPermitted" reason and not configure this backend in the
-underlying implementation.
-
-In either error case, the Message of the \`ResolvedRefs\` Condition
-should be used to provide more detail about the problem.
-
-Support: Extended for Kubernetes Service
-
-Support: Implementation-specific for any other resource`,
+                          description:
+                            'BackendRef references a resource where mirrored requests are sent.\n\nMirrored requests must be sent only to a single destination endpoint\nwithin this BackendRef, irrespective of how many endpoints are present\nwithin this BackendRef.\n\nIf the referent cannot be found, this BackendRef is invalid and must be\ndropped from the Gateway. The controller must ensure the "ResolvedRefs"\ncondition on the Route status is set to `status: False` and not configure\nthis backend in the underlying implementation.\n\nIf there is a cross-namespace reference to an *existing* object\nthat is not allowed by a ReferenceGrant, the controller must ensure the\n"ResolvedRefs"  condition on the Route is set to `status: False`,\nwith the "RefNotPermitted" reason and not configure this backend in the\nunderlying implementation.\n\nIn either error case, the Message of the `ResolvedRefs` Condition\nshould be used to provide more detail about the problem.\n\nSupport: Extended for Kubernetes Service\n\nSupport: Implementation-specific for any other resource',
                           type: 'object',
                           required: ['name'],
                           properties: {
                             group: {
-                              description: `Group is the group of the referent. For example, "gateway.networking.k8s.io".
-When unspecified or empty string, core API group is inferred.`,
+                              description:
+                                'Group is the group of the referent. For example, "gateway.networking.k8s.io".\nWhen unspecified or empty string, core API group is inferred.',
                               type: 'string',
                               default: '',
                               maxLength: 253,
@@ -1382,20 +1409,8 @@ When unspecified or empty string, core API group is inferred.`,
                                 '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
                             },
                             kind: {
-                              description: `Kind is the Kubernetes resource kind of the referent. For example
-"Service".
-
-Defaults to "Service" when not specified.
-
-ExternalName services can refer to CNAME DNS records that may live
-outside of the cluster and as such are difficult to reason about in
-terms of conformance. They also may not be safe to forward to (see
-CVE-2021-25740 for more information). Implementations SHOULD NOT
-support ExternalName Services.
-
-Support: Core (Services with a type other than ExternalName)
-
-Support: Implementation-specific (Services with type ExternalName)`,
+                              description:
+                                'Kind is the Kubernetes resource kind of the referent. For example\n"Service".\n\nDefaults to "Service" when not specified.\n\nExternalName services can refer to CNAME DNS records that may live\noutside of the cluster and as such are difficult to reason about in\nterms of conformance. They also may not be safe to forward to (see\nCVE-2021-25740 for more information). Implementations SHOULD NOT\nsupport ExternalName Services.\n\nSupport: Core (Services with a type other than ExternalName)\n\nSupport: Implementation-specific (Services with type ExternalName)',
                               type: 'string',
                               default: 'Service',
                               maxLength: 63,
@@ -1409,26 +1424,16 @@ Support: Implementation-specific (Services with type ExternalName)`,
                               minLength: 1,
                             },
                             namespace: {
-                              description: `Namespace is the namespace of the backend. When unspecified, the local
-namespace is inferred.
-
-Note that when a namespace different than the local namespace is specified,
-a ReferenceGrant object is required in the referent namespace to allow that
-namespace's owner to accept the reference. See the ReferenceGrant
-documentation for details.
-
-Support: Core`,
+                              description:
+                                "Namespace is the namespace of the backend. When unspecified, the local\nnamespace is inferred.\n\nNote that when a namespace different than the local namespace is specified,\na ReferenceGrant object is required in the referent namespace to allow that\nnamespace's owner to accept the reference. See the ReferenceGrant\ndocumentation for details.\n\nSupport: Core",
                               type: 'string',
                               maxLength: 63,
                               minLength: 1,
                               pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$',
                             },
                             port: {
-                              description: `Port specifies the destination port number to use for this resource.
-Port is required when the referent is a Kubernetes Service. In this
-case, the port number is the service port number, not the target port.
-For other resources, destination port might be derived from the referent
-resource or this field.`,
+                              description:
+                                'Port specifies the destination port number to use for this resource.\nPort is required when the referent is a Kubernetes Service. In this\ncase, the port number is the service port number, not the target port.\nFor other resources, destination port might be derived from the referent\nresource or this field.',
                               type: 'integer',
                               format: 'int32',
                               maximum: 65535,
@@ -1443,13 +1448,8 @@ resource or this field.`,
                           ],
                         },
                         fraction: {
-                          description: `Fraction represents the fraction of requests that should be
-mirrored to BackendRef.
-
-Only one of Fraction or Percent may be specified. If neither field
-is specified, 100% of requests will be mirrored.
-
-<gateway:experimental>`,
+                          description:
+                            'Fraction represents the fraction of requests that should be\nmirrored to BackendRef.\n\nOnly one of Fraction or Percent may be specified. If neither field\nis specified, 100% of requests will be mirrored.',
                           type: 'object',
                           required: ['numerator'],
                           properties: {
@@ -1473,34 +1473,30 @@ is specified, 100% of requests will be mirrored.
                           ],
                         },
                         percent: {
-                          description: `Percent represents the percentage of requests that should be
-mirrored to BackendRef. Its minimum value is 0 (indicating 0% of
-requests) and its maximum value is 100 (indicating 100% of requests).
-
-Only one of Fraction or Percent may be specified. If neither field
-is specified, 100% of requests will be mirrored.
-
-<gateway:experimental>`,
+                          description:
+                            'Percent represents the percentage of requests that should be\nmirrored to BackendRef. Its minimum value is 0 (indicating 0% of\nrequests) and its maximum value is 100 (indicating 100% of requests).\n\nOnly one of Fraction or Percent may be specified. If neither field\nis specified, 100% of requests will be mirrored.',
                           type: 'integer',
                           format: 'int32',
                           maximum: 100,
                           minimum: 0,
                         },
                       },
+                      'x-kubernetes-validations': [
+                        {
+                          rule: '!(has(self.percent) && has(self.fraction))',
+                          message:
+                            'Only one of percent or fraction may be specified in HTTPRequestMirrorFilter',
+                        },
+                      ],
                     },
                     requestRedirect: {
-                      description: `RequestRedirect defines a schema for a filter that responds to the
-request with an HTTP redirection.
-
-Support: Core`,
+                      description:
+                        'RequestRedirect defines a schema for a filter that responds to the\nrequest with an HTTP redirection.\n\nSupport: Core',
                       type: 'object',
                       properties: {
                         hostname: {
-                          description: `Hostname is the hostname to be used in the value of the \`Location\`
-header in the response.
-When empty, the hostname in the \`Host\` header of the request is used.
-
-Support: Core`,
+                          description:
+                            'Hostname is the hostname to be used in the value of the `Location`\nheader in the response.\nWhen empty, the hostname in the `Host` header of the request is used.\n\nSupport: Core',
                           type: 'string',
                           maxLength: 253,
                           minLength: 1,
@@ -1508,50 +1504,26 @@ Support: Core`,
                             '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
                         },
                         path: {
-                          description: `Path defines parameters used to modify the path of the incoming request.
-The modified path is then used to construct the \`Location\` header. When
-empty, the request path is used as-is.
-
-Support: Extended`,
+                          description:
+                            'Path defines parameters used to modify the path of the incoming request.\nThe modified path is then used to construct the `Location` header. When\nempty, the request path is used as-is.\n\nSupport: Extended',
                           type: 'object',
                           required: ['type'],
                           properties: {
                             replaceFullPath: {
-                              description: `ReplaceFullPath specifies the value with which to replace the full path
-of a request during a rewrite or redirect.`,
+                              description:
+                                'ReplaceFullPath specifies the value with which to replace the full path\nof a request during a rewrite or redirect.',
                               type: 'string',
                               maxLength: 1024,
                             },
                             replacePrefixMatch: {
-                              description: `ReplacePrefixMatch specifies the value with which to replace the prefix
-match of a request during a rewrite or redirect. For example, a request
-to "/foo/bar" with a prefix match of "/foo" and a ReplacePrefixMatch
-of "/xyz" would be modified to "/xyz/bar".
-
-Note that this matches the behavior of the PathPrefix match type. This
-matches full path elements. A path element refers to the list of labels
-in the path split by the \`/\` separator. When specified, a trailing \`/\` is
-ignored. For example, the paths \`/abc\`, \`/abc/\`, and \`/abc/def\` would all
-match the prefix \`/abc\`, but the path \`/abcd\` would not.
-
-ReplacePrefixMatch is only compatible with a \`PathPrefix\` HTTPRouteMatch.
-Using any other HTTPRouteMatch type on the same HTTPRouteRule will result in
-the implementation setting the Accepted Condition for the Route to \`status: False\`.
-
-Request Path | Prefix Match | Replace Prefix | Modified Path`,
+                              description:
+                                'ReplacePrefixMatch specifies the value with which to replace the prefix\nmatch of a request during a rewrite or redirect. For example, a request\nto "/foo/bar" with a prefix match of "/foo" and a ReplacePrefixMatch\nof "/xyz" would be modified to "/xyz/bar".\n\nNote that this matches the behavior of the PathPrefix match type. This\nmatches full path elements. A path element refers to the list of labels\nin the path split by the `/` separator. When specified, a trailing `/` is\nignored. For example, the paths `/abc`, `/abc/`, and `/abc/def` would all\nmatch the prefix `/abc`, but the path `/abcd` would not.\n\nReplacePrefixMatch is only compatible with a `PathPrefix` HTTPRouteMatch.\nUsing any other HTTPRouteMatch type on the same HTTPRouteRule will result in\nthe implementation setting the Accepted Condition for the Route to `status: False`.\n\nRequest Path | Prefix Match | Replace Prefix | Modified Path',
                               type: 'string',
                               maxLength: 1024,
                             },
                             type: {
-                              description: `Type defines the type of path modifier. Additional types may be
-added in a future release of the API.
-
-Note that values may be added to this enum, implementations
-must ensure that unknown values will not cause a crash.
-
-Unknown values here must result in the implementation setting the
-Accepted Condition for the Route to \`status: False\`, with a
-Reason of \`UnsupportedValue\`.`,
+                              description:
+                                'Type defines the type of path modifier. Additional types may be\nadded in a future release of the API.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.',
                               type: 'string',
                               enum: ['ReplaceFullPath', 'ReplacePrefixMatch'],
                             },
@@ -1579,62 +1551,22 @@ Reason of \`UnsupportedValue\`.`,
                           ],
                         },
                         port: {
-                          description: `Port is the port to be used in the value of the \`Location\`
-header in the response.
-
-If no port is specified, the redirect port MUST be derived using the
-following rules:
-
-* If redirect scheme is not-empty, the redirect port MUST be the well-known
-  port associated with the redirect scheme. Specifically "http" to port 80
-  and "https" to port 443. If the redirect scheme does not have a
-  well-known port, the listener port of the Gateway SHOULD be used.
-* If redirect scheme is empty, the redirect port MUST be the Gateway
-  Listener port.
-
-Implementations SHOULD NOT add the port number in the 'Location'
-header in the following cases:
-
-* A Location header that will use HTTP (whether that is determined via
-  the Listener protocol or the Scheme field) _and_ use port 80.
-* A Location header that will use HTTPS (whether that is determined via
-  the Listener protocol or the Scheme field) _and_ use port 443.
-
-Support: Extended`,
+                          description:
+                            'Port is the port to be used in the value of the `Location`\nheader in the response.\n\nIf no port is specified, the redirect port MUST be derived using the\nfollowing rules:\n\n* If redirect scheme is not-empty, the redirect port MUST be the well-known\n  port associated with the redirect scheme. Specifically "http" to port 80\n  and "https" to port 443. If the redirect scheme does not have a\n  well-known port, the listener port of the Gateway SHOULD be used.\n* If redirect scheme is empty, the redirect port MUST be the Gateway\n  Listener port.\n\nImplementations SHOULD NOT add the port number in the \'Location\'\nheader in the following cases:\n\n* A Location header that will use HTTP (whether that is determined via\n  the Listener protocol or the Scheme field) _and_ use port 80.\n* A Location header that will use HTTPS (whether that is determined via\n  the Listener protocol or the Scheme field) _and_ use port 443.\n\nSupport: Extended',
                           type: 'integer',
                           format: 'int32',
                           maximum: 65535,
                           minimum: 1,
                         },
                         scheme: {
-                          description: `Scheme is the scheme to be used in the value of the \`Location\` header in
-the response. When empty, the scheme of the request is used.
-
-Scheme redirects can affect the port of the redirect, for more information,
-refer to the documentation for the port field of this filter.
-
-Note that values may be added to this enum, implementations
-must ensure that unknown values will not cause a crash.
-
-Unknown values here must result in the implementation setting the
-Accepted Condition for the Route to \`status: False\`, with a
-Reason of \`UnsupportedValue\`.
-
-Support: Extended`,
+                          description:
+                            'Scheme is the scheme to be used in the value of the `Location` header in\nthe response. When empty, the scheme of the request is used.\n\nScheme redirects can affect the port of the redirect, for more information,\nrefer to the documentation for the port field of this filter.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.\n\nSupport: Extended',
                           type: 'string',
                           enum: ['http', 'https'],
                         },
                         statusCode: {
-                          description: `StatusCode is the HTTP status code to be used in response.
-
-Note that values may be added to this enum, implementations
-must ensure that unknown values will not cause a crash.
-
-Unknown values here must result in the implementation setting the
-Accepted Condition for the Route to \`status: False\`, with a
-Reason of \`UnsupportedValue\`.
-
-Support: Core`,
+                          description:
+                            'StatusCode is the HTTP status code to be used in response.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.\n\nSupport: Core',
                           type: 'integer',
                           default: 302,
                           enum: [301, 302],
@@ -1642,29 +1574,13 @@ Support: Core`,
                       },
                     },
                     responseHeaderModifier: {
-                      description: `ResponseHeaderModifier defines a schema for a filter that modifies response
-headers.
-
-Support: Extended`,
+                      description:
+                        'ResponseHeaderModifier defines a schema for a filter that modifies response\nheaders.\n\nSupport: Extended',
                       type: 'object',
                       properties: {
                         add: {
-                          description: `Add adds the given header(s) (name, value) to the request
-before the action. It appends to any existing values associated
-with the header name.
-
-Input:
-  GET /foo HTTP/1.1
-  my-header: foo
-
-Config:
-  add:
-  - name: "my-header"
-    value: "bar,baz"
-
-Output:
-  GET /foo HTTP/1.1
-  my-header: foo,bar,baz`,
+                          description:
+                            'Add adds the given header(s) (name, value) to the request\nbefore the action. It appends to any existing values associated\nwith the header name.\n\nInput:\n  GET /foo HTTP/1.1\n  my-header: foo\n\nConfig:\n  add:\n  - name: "my-header"\n    value: "bar,baz"\n\nOutput:\n  GET /foo HTTP/1.1\n  my-header: foo,bar,baz',
                           type: 'array',
                           maxItems: 16,
                           items: {
@@ -1674,14 +1590,8 @@ Output:
                             required: ['name', 'value'],
                             properties: {
                               name: {
-                                description: `Name is the name of the HTTP Header to be matched. Name matching MUST be
-case insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).
-
-If multiple entries specify equivalent header names, the first entry with
-an equivalent name MUST be considered for a match. Subsequent entries
-with an equivalent header name MUST be ignored. Due to the
-case-insensitivity of header names, "foo" and "Foo" are considered
-equivalent.`,
+                                description:
+                                  'Name is the name of the HTTP Header to be matched. Name matching MUST be\ncase-insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).\n\nIf multiple entries specify equivalent header names, the first entry with\nan equivalent name MUST be considered for a match. Subsequent entries\nwith an equivalent header name MUST be ignored. Due to the\ncase-insensitivity of header names, "foo" and "Foo" are considered\nequivalent.',
                                 type: 'string',
                                 maxLength: 256,
                                 minLength: 1,
@@ -1699,23 +1609,8 @@ equivalent.`,
                           'x-kubernetes-list-type': 'map',
                         },
                         remove: {
-                          description: `Remove the given header(s) from the HTTP request before the action. The
-value of Remove is a list of HTTP header names. Note that the header
-names are case-insensitive (see
-https://datatracker.ietf.org/doc/html/rfc2616#section-4.2).
-
-Input:
-  GET /foo HTTP/1.1
-  my-header1: foo
-  my-header2: bar
-  my-header3: baz
-
-Config:
-  remove: ["my-header1", "my-header3"]
-
-Output:
-  GET /foo HTTP/1.1
-  my-header2: bar`,
+                          description:
+                            'Remove the given header(s) from the HTTP request before the action. The\nvalue of Remove is a list of HTTP header names. Note that the header\nnames are case-insensitive (see\nhttps://datatracker.ietf.org/doc/html/rfc2616#section-4.2).\n\nInput:\n  GET /foo HTTP/1.1\n  my-header1: foo\n  my-header2: bar\n  my-header3: baz\n\nConfig:\n  remove: ["my-header1", "my-header3"]\n\nOutput:\n  GET /foo HTTP/1.1\n  my-header2: bar',
                           type: 'array',
                           maxItems: 16,
                           items: {
@@ -1724,21 +1619,8 @@ Output:
                           'x-kubernetes-list-type': 'set',
                         },
                         set: {
-                          description: `Set overwrites the request with the given header (name, value)
-before the action.
-
-Input:
-  GET /foo HTTP/1.1
-  my-header: foo
-
-Config:
-  set:
-  - name: "my-header"
-    value: "bar"
-
-Output:
-  GET /foo HTTP/1.1
-  my-header: bar`,
+                          description:
+                            'Set overwrites the request with the given header (name, value)\nbefore the action.\n\nInput:\n  GET /foo HTTP/1.1\n  my-header: foo\n\nConfig:\n  set:\n  - name: "my-header"\n    value: "bar"\n\nOutput:\n  GET /foo HTTP/1.1\n  my-header: bar',
                           type: 'array',
                           maxItems: 16,
                           items: {
@@ -1748,14 +1630,8 @@ Output:
                             required: ['name', 'value'],
                             properties: {
                               name: {
-                                description: `Name is the name of the HTTP Header to be matched. Name matching MUST be
-case insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).
-
-If multiple entries specify equivalent header names, the first entry with
-an equivalent name MUST be considered for a match. Subsequent entries
-with an equivalent header name MUST be ignored. Due to the
-case-insensitivity of header names, "foo" and "Foo" are considered
-equivalent.`,
+                                description:
+                                  'Name is the name of the HTTP Header to be matched. Name matching MUST be\ncase-insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).\n\nIf multiple entries specify equivalent header names, the first entry with\nan equivalent name MUST be considered for a match. Subsequent entries\nwith an equivalent header name MUST be ignored. Due to the\ncase-insensitivity of header names, "foo" and "Foo" are considered\nequivalent.',
                                 type: 'string',
                                 maxLength: 256,
                                 minLength: 1,
@@ -1775,38 +1651,8 @@ equivalent.`,
                       },
                     },
                     type: {
-                      description: `Type identifies the type of filter to apply. As with other API fields,
-types are classified into three conformance levels:
-
-- Core: Filter types and their corresponding configuration defined by
-  "Support: Core" in this package, e.g. "RequestHeaderModifier". All
-  implementations must support core filters.
-
-- Extended: Filter types and their corresponding configuration defined by
-  "Support: Extended" in this package, e.g. "RequestMirror". Implementers
-  are encouraged to support extended filters.
-
-- Implementation-specific: Filters that are defined and supported by
-  specific vendors.
-  In the future, filters showing convergence in behavior across multiple
-  implementations will be considered for inclusion in extended or core
-  conformance levels. Filter-specific configuration for such filters
-  is specified using the ExtensionRef field. \`Type\` should be set to
-  "ExtensionRef" for custom filters.
-
-Implementers are encouraged to define custom implementation types to
-extend the core API with implementation-specific behavior.
-
-If a reference to a custom filter type cannot be resolved, the filter
-MUST NOT be skipped. Instead, requests that would have been processed by
-that filter MUST receive a HTTP error response.
-
-Note that values may be added to this enum, implementations
-must ensure that unknown values will not cause a crash.
-
-Unknown values here must result in the implementation setting the
-Accepted Condition for the Route to \`status: False\`, with a
-Reason of \`UnsupportedValue\`.`,
+                      description:
+                        'Type identifies the type of filter to apply. As with other API fields,\ntypes are classified into three conformance levels:\n\n- Core: Filter types and their corresponding configuration defined by\n  "Support: Core" in this package, e.g. "RequestHeaderModifier". All\n  implementations must support core filters.\n\n- Extended: Filter types and their corresponding configuration defined by\n  "Support: Extended" in this package, e.g. "RequestMirror". Implementers\n  are encouraged to support extended filters.\n\n- Implementation-specific: Filters that are defined and supported by\n  specific vendors.\n  In the future, filters showing convergence in behavior across multiple\n  implementations will be considered for inclusion in extended or core\n  conformance levels. Filter-specific configuration for such filters\n  is specified using the ExtensionRef field. `Type` should be set to\n  "ExtensionRef" for custom filters.\n\nImplementers are encouraged to define custom implementation types to\nextend the core API with implementation-specific behavior.\n\nIf a reference to a custom filter type cannot be resolved, the filter\nMUST NOT be skipped. Instead, requests that would have been processed by\nthat filter MUST receive a HTTP error response.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.\n\n<gateway:experimental:validation:Enum=RequestHeaderModifier;ResponseHeaderModifier;RequestMirror;RequestRedirect;URLRewrite;ExtensionRef;CORS>',
                       type: 'string',
                       enum: [
                         'RequestHeaderModifier',
@@ -1818,16 +1664,13 @@ Reason of \`UnsupportedValue\`.`,
                       ],
                     },
                     urlRewrite: {
-                      description: `URLRewrite defines a schema for a filter that modifies a request during forwarding.
-
-Support: Extended`,
+                      description:
+                        'URLRewrite defines a schema for a filter that modifies a request during forwarding.\n\nSupport: Extended',
                       type: 'object',
                       properties: {
                         hostname: {
-                          description: `Hostname is the value to be used to replace the Host header value during
-forwarding.
-
-Support: Extended`,
+                          description:
+                            'Hostname is the value to be used to replace the Host header value during\nforwarding.\n\nSupport: Extended',
                           type: 'string',
                           maxLength: 253,
                           minLength: 1,
@@ -1835,48 +1678,25 @@ Support: Extended`,
                             '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
                         },
                         path: {
-                          description: `Path defines a path rewrite.
-
-Support: Extended`,
+                          description: 'Path defines a path rewrite.\n\nSupport: Extended',
                           type: 'object',
                           required: ['type'],
                           properties: {
                             replaceFullPath: {
-                              description: `ReplaceFullPath specifies the value with which to replace the full path
-of a request during a rewrite or redirect.`,
+                              description:
+                                'ReplaceFullPath specifies the value with which to replace the full path\nof a request during a rewrite or redirect.',
                               type: 'string',
                               maxLength: 1024,
                             },
                             replacePrefixMatch: {
-                              description: `ReplacePrefixMatch specifies the value with which to replace the prefix
-match of a request during a rewrite or redirect. For example, a request
-to "/foo/bar" with a prefix match of "/foo" and a ReplacePrefixMatch
-of "/xyz" would be modified to "/xyz/bar".
-
-Note that this matches the behavior of the PathPrefix match type. This
-matches full path elements. A path element refers to the list of labels
-in the path split by the \`/\` separator. When specified, a trailing \`/\` is
-ignored. For example, the paths \`/abc\`, \`/abc/\`, and \`/abc/def\` would all
-match the prefix \`/abc\`, but the path \`/abcd\` would not.
-
-ReplacePrefixMatch is only compatible with a \`PathPrefix\` HTTPRouteMatch.
-Using any other HTTPRouteMatch type on the same HTTPRouteRule will result in
-the implementation setting the Accepted Condition for the Route to \`status: False\`.
-
-Request Path | Prefix Match | Replace Prefix | Modified Path`,
+                              description:
+                                'ReplacePrefixMatch specifies the value with which to replace the prefix\nmatch of a request during a rewrite or redirect. For example, a request\nto "/foo/bar" with a prefix match of "/foo" and a ReplacePrefixMatch\nof "/xyz" would be modified to "/xyz/bar".\n\nNote that this matches the behavior of the PathPrefix match type. This\nmatches full path elements. A path element refers to the list of labels\nin the path split by the `/` separator. When specified, a trailing `/` is\nignored. For example, the paths `/abc`, `/abc/`, and `/abc/def` would all\nmatch the prefix `/abc`, but the path `/abcd` would not.\n\nReplacePrefixMatch is only compatible with a `PathPrefix` HTTPRouteMatch.\nUsing any other HTTPRouteMatch type on the same HTTPRouteRule will result in\nthe implementation setting the Accepted Condition for the Route to `status: False`.\n\nRequest Path | Prefix Match | Replace Prefix | Modified Path',
                               type: 'string',
                               maxLength: 1024,
                             },
                             type: {
-                              description: `Type defines the type of path modifier. Additional types may be
-added in a future release of the API.
-
-Note that values may be added to this enum, implementations
-must ensure that unknown values will not cause a crash.
-
-Unknown values here must result in the implementation setting the
-Accepted Condition for the Route to \`status: False\`, with a
-Reason of \`UnsupportedValue\`.`,
+                              description:
+                                'Type defines the type of path modifier. Additional types may be\nadded in a future release of the API.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.',
                               type: 'string',
                               enum: ['ReplaceFullPath', 'ReplacePrefixMatch'],
                             },
@@ -1990,12 +1810,8 @@ Reason of \`UnsupportedValue\`.`,
                 ],
               },
               matches: {
-                description: `Matches define conditions used for matching the rule against incoming
-HTTP requests. Each match is independent, i.e. this rule will be matched
-if **any** one of the matches is satisfied.
-
-See documentation for the \`matches\` field in the \`HTTPRouteRule\` type at
-https://gateway-api.sigs.k8s.io/reference/spec/#httprouterule`,
+                description:
+                  'Matches define conditions used for matching the rule against incoming\nHTTP requests. Each match is independent, i.e. this rule will be matched\nif **any** one of the matches is satisfied.\n\nSee documentation for the `matches` field in the `HTTPRouteRule` type at\nhttps://gateway-api.sigs.k8s.io/reference/spec/#httprouterule',
                 type: 'array',
                 default: [
                   {
@@ -2008,68 +1824,32 @@ https://gateway-api.sigs.k8s.io/reference/spec/#httprouterule`,
                 maxItems: 64,
                 minItems: 1,
                 items: {
-                  description: `HTTPRouteMatch defines the predicate used to match requests to a given
-action. Multiple match types are ANDed together, i.e. the match will
-evaluate to true only if all conditions are satisfied.
-
-For example, the match below will match a HTTP request only if its path
-starts with \`/foo\` AND it contains the \`version: v1\` header:
-
-\`\`\`
-match:
-
-	path:
-	  value: "/foo"
-	headers:
-	- name: "version"
-	  value "v1"
-
-\`\`\``,
+                  description:
+                    'HTTPRouteMatch defines the predicate used to match requests to a given\naction. Multiple match types are ANDed together, i.e. the match will\nevaluate to true only if all conditions are satisfied.\n\nFor example, the match below will match a HTTP request only if its path\nstarts with `/foo` AND it contains the `version: v1` header:\n\n```\nmatch:\n\n\tpath:\n\t  value: "/foo"\n\theaders:\n\t- name: "version"\n\t  value "v1"\n\n```',
                   type: 'object',
                   properties: {
                     headers: {
-                      description: `Headers specifies HTTP request header matchers. Multiple match values are
-ANDed together, meaning, a request must match all the specified headers
-to select the route.`,
+                      description:
+                        'Headers specifies HTTP request header matchers. Multiple match values are\nANDed together, meaning, a request must match all the specified headers\nto select the route.',
                       type: 'array',
                       maxItems: 16,
                       items: {
-                        description: `HTTPHeaderMatch describes how to select a HTTP route by matching HTTP request
-headers.`,
+                        description:
+                          'HTTPHeaderMatch describes how to select a HTTP route by matching HTTP request\nheaders.',
                         type: 'object',
                         required: ['name', 'value'],
                         properties: {
                           name: {
-                            description: `Name is the name of the HTTP Header to be matched. Name matching MUST be
-case insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).
-
-If multiple entries specify equivalent header names, only the first
-entry with an equivalent name MUST be considered for a match. Subsequent
-entries with an equivalent header name MUST be ignored. Due to the
-case-insensitivity of header names, "foo" and "Foo" are considered
-equivalent.
-
-When a header is repeated in an HTTP request, it is
-implementation-specific behavior as to how this is represented.
-Generally, proxies should follow the guidance from the RFC:
-https://www.rfc-editor.org/rfc/rfc7230.html#section-3.2.2 regarding
-processing a repeated header, with special handling for "Set-Cookie".`,
+                            description:
+                              'Name is the name of the HTTP Header to be matched. Name matching MUST be\ncase-insensitive. (See https://tools.ietf.org/html/rfc7230#section-3.2).\n\nIf multiple entries specify equivalent header names, only the first\nentry with an equivalent name MUST be considered for a match. Subsequent\nentries with an equivalent header name MUST be ignored. Due to the\ncase-insensitivity of header names, "foo" and "Foo" are considered\nequivalent.\n\nWhen a header is repeated in an HTTP request, it is\nimplementation-specific behavior as to how this is represented.\nGenerally, proxies should follow the guidance from the RFC:\nhttps://www.rfc-editor.org/rfc/rfc7230.html#section-3.2.2 regarding\nprocessing a repeated header, with special handling for "Set-Cookie".',
                             type: 'string',
                             maxLength: 256,
                             minLength: 1,
                             pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
                           },
                           type: {
-                            description: `Type specifies how to match against the value of the header.
-
-Support: Core (Exact)
-
-Support: Implementation-specific (RegularExpression)
-
-Since RegularExpression HeaderMatchType has implementation-specific
-conformance, implementations can support POSIX, PCRE or any other dialects
-of regular expressions. Please read the implementation's documentation to
-determine the supported dialect.`,
+                            description:
+                              "Type specifies how to match against the value of the header.\n\nSupport: Core (Exact)\n\nSupport: Implementation-specific (RegularExpression)\n\nSince RegularExpression HeaderMatchType has implementation-specific\nconformance, implementations can support POSIX, PCRE or any other dialects\nof regular expressions. Please read the implementation's documentation to\ndetermine the supported dialect.",
                             type: 'string',
                             default: 'Exact',
                             enum: ['Exact', 'RegularExpression'],
@@ -2086,11 +1866,8 @@ determine the supported dialect.`,
                       'x-kubernetes-list-type': 'map',
                     },
                     method: {
-                      description: `Method specifies HTTP method matcher.
-When specified, this route will be matched only if the request has the
-specified method.
-
-Support: Extended`,
+                      description:
+                        'Method specifies HTTP method matcher.\nWhen specified, this route will be matched only if the request has the\nspecified method.\n\nSupport: Extended',
                       type: 'string',
                       enum: [
                         'GET',
@@ -2105,8 +1882,8 @@ Support: Extended`,
                       ],
                     },
                     path: {
-                      description: `Path specifies a HTTP request path matcher. If this field is not
-specified, a default prefix match on the "/" path is provided.`,
+                      description:
+                        'Path specifies a HTTP request path matcher. If this field is not\nspecified, a default prefix match on the "/" path is provided.',
                       type: 'object',
                       default: {
                         type: 'PathPrefix',
@@ -2114,11 +1891,8 @@ specified, a default prefix match on the "/" path is provided.`,
                       },
                       properties: {
                         type: {
-                          description: `Type specifies how to match against the path Value.
-
-Support: Core (Exact, PathPrefix)
-
-Support: Implementation-specific (RegularExpression)`,
+                          description:
+                            'Type specifies how to match against the path Value.\n\nSupport: Core (Exact, PathPrefix)\n\nSupport: Implementation-specific (RegularExpression)',
                           type: 'string',
                           default: 'PathPrefix',
                           enum: ['Exact', 'PathPrefix', 'RegularExpression'],
@@ -2180,60 +1954,34 @@ Support: Implementation-specific (RegularExpression)`,
                             "type must be one of ['Exact', 'PathPrefix', 'RegularExpression']",
                         },
                         {
-                          rule: `(self.type in ['Exact','PathPrefix']) ? self.value.matches(r"""^(?:[-A-Za-z0-9/._~!$&'()*+,;=:@]|[%][0-9a-fA-F]{2})+$""") : true`,
+                          rule: '(self.type in [\'Exact\',\'PathPrefix\']) ? self.value.matches(r"""^(?:[-A-Za-z0-9/._~!$&\'()*+,;=:@]|[%][0-9a-fA-F]{2})+$""") : true',
                           message:
                             "must only contain valid characters (matching ^(?:[-A-Za-z0-9/._~!$&'()*+,;=:@]|[%][0-9a-fA-F]{2})+$) for types ['Exact', 'PathPrefix']",
                         },
                       ],
                     },
                     queryParams: {
-                      description: `QueryParams specifies HTTP query parameter matchers. Multiple match
-values are ANDed together, meaning, a request must match all the
-specified query parameters to select the route.
-
-Support: Extended`,
+                      description:
+                        'QueryParams specifies HTTP query parameter matchers. Multiple match\nvalues are ANDed together, meaning, a request must match all the\nspecified query parameters to select the route.\n\nSupport: Extended',
                       type: 'array',
                       maxItems: 16,
                       items: {
-                        description: `HTTPQueryParamMatch describes how to select a HTTP route by matching HTTP
-query parameters.`,
+                        description:
+                          'HTTPQueryParamMatch describes how to select a HTTP route by matching HTTP\nquery parameters.',
                         type: 'object',
                         required: ['name', 'value'],
                         properties: {
                           name: {
-                            description: `Name is the name of the HTTP query param to be matched. This must be an
-exact string match. (See
-https://tools.ietf.org/html/rfc7230#section-2.7.3).
-
-If multiple entries specify equivalent query param names, only the first
-entry with an equivalent name MUST be considered for a match. Subsequent
-entries with an equivalent query param name MUST be ignored.
-
-If a query param is repeated in an HTTP request, the behavior is
-purposely left undefined, since different data planes have different
-capabilities. However, it is *recommended* that implementations should
-match against the first value of the param if the data plane supports it,
-as this behavior is expected in other load balancing contexts outside of
-the Gateway API.
-
-Users SHOULD NOT route traffic based on repeated query params to guard
-themselves against potential differences in the implementations.`,
+                            description:
+                              'Name is the name of the HTTP query param to be matched. This must be an\nexact string match. (See\nhttps://tools.ietf.org/html/rfc7230#section-2.7.3).\n\nIf multiple entries specify equivalent query param names, only the first\nentry with an equivalent name MUST be considered for a match. Subsequent\nentries with an equivalent query param name MUST be ignored.\n\nIf a query param is repeated in an HTTP request, the behavior is\npurposely left undefined, since different data planes have different\ncapabilities. However, it is *recommended* that implementations should\nmatch against the first value of the param if the data plane supports it,\nas this behavior is expected in other load balancing contexts outside of\nthe Gateway API.\n\nUsers SHOULD NOT route traffic based on repeated query params to guard\nthemselves against potential differences in the implementations.',
                             type: 'string',
                             maxLength: 256,
                             minLength: 1,
                             pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
                           },
                           type: {
-                            description: `Type specifies how to match against the value of the query parameter.
-
-Support: Extended (Exact)
-
-Support: Implementation-specific (RegularExpression)
-
-Since RegularExpression QueryParamMatchType has Implementation-specific
-conformance, implementations can support POSIX, PCRE or any other
-dialects of regular expressions. Please read the implementation's
-documentation to determine the supported dialect.`,
+                            description:
+                              "Type specifies how to match against the value of the query parameter.\n\nSupport: Extended (Exact)\n\nSupport: Implementation-specific (RegularExpression)\n\nSince RegularExpression QueryParamMatchType has Implementation-specific\nconformance, implementations can support POSIX, PCRE or any other\ndialects of regular expressions. Please read the implementation's\ndocumentation to determine the supported dialect.",
                             type: 'string',
                             default: 'Exact',
                             enum: ['Exact', 'RegularExpression'],
@@ -2253,8 +2001,8 @@ documentation to determine the supported dialect.`,
                 },
               },
               name: {
-                description: `Name is the name of the route rule. This name MUST be unique within a Route
-if it is set.`,
+                description:
+                  'Name is the name of the route rule. This name MUST be unique within a Route\nif it is set.',
                 type: 'string',
                 maxLength: 253,
                 minLength: 1,
@@ -2325,11 +2073,8 @@ if it is set.`,
       },
       properties: {
         addresses: {
-          description: `Addresses lists the network addresses that have been bound to the
-HTTPProxy.
-
-This field will not contain custom hostnames defined in the HTTPProxy. See
-the \`hostnames\` field`,
+          description:
+            'Addresses lists the network addresses that have been bound to the\nHTTPProxy.\n\nThis field will not contain custom hostnames defined in the HTTPProxy. See\nthe `hostnames` field',
           type: 'array',
           maxItems: 16,
           items: {
@@ -2348,10 +2093,8 @@ the \`hostnames\` field`,
                   "^Hostname|IPAddress|NamedAddress|[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*\\/[A-Za-z0-9\\/\\-._~%!$&'()*+,;=:]+$",
               },
               value: {
-                description: `Value of the address. The validity of the values will depend
-on the type and support by the controller.
-
-Examples: \`1.2.3.4\`, \`128::1\`, \`my-ip-address\`.`,
+                description:
+                  'Value of the address. The validity of the values will depend\non the type and support by the controller.\n\nExamples: `1.2.3.4`, `128::1`, `my-ip-address`.',
                 type: 'string',
                 maxLength: 253,
                 minLength: 1,
@@ -2359,7 +2102,7 @@ Examples: \`1.2.3.4\`, \`128::1\`, \`my-ip-address\`.`,
             },
             'x-kubernetes-validations': [
               {
-                rule: `self.type == 'Hostname' ? self.value.matches(r"""^(\*\.)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"""): true`,
+                rule: 'self.type == \'Hostname\' ? self.value.matches(r"""^(\\*\\.)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"""): true',
                 message:
                   'Hostname value must only contain valid characters (matching ^(\\*\\.)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$)',
               },
@@ -2376,31 +2119,27 @@ Examples: \`1.2.3.4\`, \`128::1\`, \`my-ip-address\`.`,
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -2424,26 +2163,12 @@ This field may not be empty.`,
           'x-kubernetes-list-type': 'map',
         },
         hostnames: {
-          description: `Hostnames lists the hostnames that have been bound to the HTTPProxy.
-
-If this list does not match that defined in the HTTPProxy, see the
-\`Programmed\` condition message for details.`,
+          description:
+            'Hostnames lists the hostnames that have been bound to the HTTPProxy.\n\nIf this list does not match that defined in the HTTPProxy, see the\n`HostnamesVerified` condition message for details.',
           type: 'array',
           items: {
-            description: `Hostname is the fully qualified domain name of a network host. This matches
-the RFC 1123 definition of a hostname with 2 notable exceptions:
-
- 1. IPs are not allowed.
- 2. A hostname may be prefixed with a wildcard label (\`*.\`). The wildcard
-    label must appear by itself as the first label.
-
-Hostname can be "precise" which is a domain name without the terminating
-dot of a network host (e.g. "foo.example.com") or "wildcard", which is a
-domain name prefixed with a single wildcard label (e.g. \`*.example.com\`).
-
-Note that as per RFC1035 and RFC1123, a *label* must consist of lower case
-alphanumeric characters or '-', and must start and end with an alphanumeric
-character. No other punctuation is allowed.`,
+            description:
+              'Hostname is the fully qualified domain name of a network host. This matches\nthe RFC 1123 definition of a hostname with 2 notable exceptions:\n\n 1. IPs are not allowed.\n 2. A hostname may be prefixed with a wildcard label (`*.`). The wildcard\n    label must appear by itself as the first label.\n\nHostname can be "precise" which is a domain name without the terminating\ndot of a network host (e.g. "foo.example.com") or "wildcard", which is a\ndomain name prefixed with a single wildcard label (e.g. `*.example.com`).\n\nNote that as per RFC1035 and RFC1123, a *label* must consist of lower case\nalphanumeric characters or \'-\', and must start and end with an alphanumeric\ncharacter. No other punctuation is allowed.',
             type: 'string',
             maxLength: 253,
             minLength: 1,
@@ -2535,12 +2260,8 @@ export const com_datumapis_networking_v1alpha_LocationSchema = {
       required: ['locationClassName', 'provider', 'topology'],
       properties: {
         locationClassName: {
-          description: `The location class that indicates control plane behavior of entities
-associated with the location.
-
-Valid values are:
-	- datum-managed
-	- self-managed`,
+          description:
+            'The location class that indicates control plane behavior of entities\nassociated with the location.\n\nValid values are:\n\t- datum-managed\n\t- self-managed',
           type: 'string',
         },
         provider: {
@@ -2552,11 +2273,8 @@ Valid values are:
               required: ['projectId', 'region', 'zone'],
               properties: {
                 projectId: {
-                  description: `The GCP project servicing the location
-
-For locations with the class of \`datum-managed\`, a service account will be
-required for each unique GCP project ID across all locations registered in a
-namespace.`,
+                  description:
+                    'The GCP project servicing the location\n\nFor locations with the class of `datum-managed`, a service account will be\nrequired for each unique GCP project ID across all locations registered in a\nnamespace.',
                   type: 'string',
                 },
                 region: {
@@ -2572,11 +2290,8 @@ namespace.`,
           },
         },
         topology: {
-          description: `The topology of the location
-
-This may contain arbitrary topology keys. Some keys may be well known, such
-as:
-	- topology.datum.net/city-code`,
+          description:
+            'The topology of the location\n\nThis may contain arbitrary topology keys. Some keys may be well known, such\nas:\n\t- topology.datum.net/city-code',
           type: 'object',
           additionalProperties: {
             type: 'string',
@@ -2598,31 +2313,27 @@ as:
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -2782,31 +2493,27 @@ export const com_datumapis_networking_v1alpha_NetworkSchema = {
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -2894,9 +2601,8 @@ export const com_datumapis_networking_v1alpha_NetworkBindingSchema = {
               type: 'string',
             },
             namespace: {
-              description: `The network namespace.
-
-Defaults to the namespace for the type the reference is embedded in.`,
+              description:
+                'The network namespace.\n\nDefaults to the namespace for the type the reference is embedded in.',
               type: 'string',
             },
           },
@@ -2928,31 +2634,27 @@ Defaults to the namespace for the type the reference is embedded in.`,
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -3131,31 +2833,27 @@ export const com_datumapis_networking_v1alpha_NetworkContextSchema = {
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -3480,31 +3178,27 @@ export const com_datumapis_networking_v1alpha_SubnetSchema = {
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -3660,31 +3354,27 @@ export const com_datumapis_networking_v1alpha_SubnetClaimSchema = {
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -3823,6 +3513,429 @@ export const com_datumapis_networking_v1alpha_SubnetListSchema = {
   'x-kubernetes-selectable-fields': [],
 } as const;
 
+export const com_datumapis_networking_v1alpha_TrafficProtectionPolicySchema = {
+  description: 'TrafficProtectionPolicy is the Schema for the trafficprotectionpolicies API.',
+  type: 'object',
+  required: ['spec'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'TrafficProtectionPolicySpec defines the desired state of TrafficProtectionPolicy.',
+      type: 'object',
+      required: ['ruleSets', 'targetRefs'],
+      properties: {
+        mode: {
+          description:
+            'Mode specifies the mode of traffic protection to apply.\nIf not specified, defaults to "Observe".',
+          type: 'string',
+          default: 'Observe',
+          enum: ['Observe', 'Enforce', 'Disabled'],
+        },
+        ruleSets: {
+          description: 'RuleSets specifies the TrafficProtectionPolicy rulesets to apply.',
+          type: 'array',
+          default: [
+            {
+              owaspCoreRuleSet: {},
+              type: 'OWASPCoreRuleSet',
+            },
+          ],
+          maxItems: 16,
+          minItems: 1,
+          items: {
+            type: 'object',
+            required: ['type'],
+            properties: {
+              owaspCoreRuleSet: {
+                description:
+                  'OWASPCoreRuleSet defines configuration options for the OWASP ModSecurity\nCore Rule Set (CRS).',
+                type: 'object',
+                properties: {
+                  paranoiaLevels: {
+                    description:
+                      'ParanoiaLevels specifies the OWASP ModSecurity Core Rule Set (CRS)\nparanoia levels to use.',
+                    type: 'object',
+                    default: {},
+                    properties: {
+                      blocking: {
+                        description:
+                          'Blocking specifies the paranoia level for blocking requests or responses.',
+                        type: 'integer',
+                        default: 1,
+                        maximum: 4,
+                        minimum: 1,
+                      },
+                      detection: {
+                        description:
+                          'Detection specifies the paranoia level for detection only. This allows\nsetting a higher paranoia level for detection while keeping blocking at a\nlower level.',
+                        type: 'integer',
+                        default: 1,
+                        maximum: 4,
+                        minimum: 1,
+                      },
+                    },
+                  },
+                  ruleExclusions: {
+                    description:
+                      'RuleExclusions can be used to disable specific OWASP ModSecurity Rules.\nThis allows operators to disable specific rules that may be causing false\npositives.',
+                    type: 'object',
+                    properties: {
+                      idRanges: {
+                        description: 'IDRanges is a list of specific rule ID ranges to disable.',
+                        type: 'array',
+                        maxItems: 100,
+                        items: {
+                          description: 'OWASPIDRange is a range of OWASP ModSecurity Rule IDs.',
+                          type: 'string',
+                          maxLength: 21,
+                          pattern: '^\\d{1,10}-\\d{1,10}$',
+                          'x-kubernetes-validations': [
+                            {
+                              rule: "int(self.split('-')[1]) > int(self.split('-')[0])",
+                              message: 'Max must be greater than min',
+                            },
+                          ],
+                        },
+                      },
+                      ids: {
+                        description: 'IDs is a list of specific rule IDs to disable',
+                        type: 'array',
+                        maxItems: 100,
+                        items: {
+                          type: 'integer',
+                        },
+                      },
+                      tags: {
+                        description: 'Tags is a list of rule tags to disable.',
+                        type: 'array',
+                        maxItems: 100,
+                        items: {
+                          type: 'string',
+                          pattern: '^[a-zA-Z0-9_\\-/]+$',
+                        },
+                      },
+                    },
+                  },
+                  scoreThresholds: {
+                    description:
+                      'ScoreThresholds specifies the OWASP ModSecurity Core Rule Set (CRS)\nscore thresholds to block a request or response.\n\nSee: https://coreruleset.org/docs/2-how-crs-works/2-1-anomaly_scoring/',
+                    type: 'object',
+                    default: {},
+                    properties: {
+                      inbound: {
+                        description:
+                          'Inbound is the score threshold for blocking inbound (request) traffic.',
+                        type: 'integer',
+                        default: 5,
+                        maximum: 10000,
+                        minimum: 1,
+                      },
+                      outbound: {
+                        description:
+                          'Outbound is the score threshold for blocking outbound (response) traffic.',
+                        type: 'integer',
+                        default: 4,
+                        maximum: 10000,
+                        minimum: 1,
+                      },
+                    },
+                  },
+                },
+              },
+              type: {
+                description: 'Type specifies the type of TrafficProtectionPolicy ruleset.',
+                type: 'string',
+                enum: ['OWASPCoreRuleSet'],
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+          'x-kubernetes-validations': [
+            {
+              rule: "self.filter(f, f.type == 'OWASPCoreRuleSet').size() <= 1",
+              message: 'OWASPCoreRuleSet filter cannot be repeated',
+            },
+          ],
+        },
+        samplingPercentage: {
+          description:
+            'SamplingPercentage controls the percentage of traffic that will be processed\nby the TrafficProtectionPolicy.',
+          type: 'integer',
+          default: 100,
+          maximum: 100,
+          minimum: 1,
+        },
+        targetRefs: {
+          description:
+            'TargetRefs are the names of the Gateway resources this policy\nis being attached to.',
+          type: 'array',
+          minItems: 1,
+          items: {
+            description:
+              'LocalPolicyTargetReferenceWithSectionName identifies an API object to apply a\ndirect policy to. This should be used as part of Policy resources that can\ntarget single resources. For more information on how this policy attachment\nmode works, and a sample Policy resource, refer to the policy attachment\ndocumentation for Gateway API.\n\nNote: This should only be used for direct policy attachment when references\nto SectionName are actually needed. In all other cases,\nLocalPolicyTargetReference should be used.',
+            type: 'object',
+            required: ['group', 'kind', 'name'],
+            properties: {
+              group: {
+                description: 'Group is the group of the target resource.',
+                type: 'string',
+                maxLength: 253,
+                pattern: '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+              },
+              kind: {
+                description: 'Kind is kind of the target resource.',
+                type: 'string',
+                maxLength: 63,
+                minLength: 1,
+                pattern: '^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$',
+              },
+              name: {
+                description: 'Name is the name of the target resource.',
+                type: 'string',
+                maxLength: 253,
+                minLength: 1,
+              },
+              sectionName: {
+                description:
+                  "SectionName is the name of a section within the target resource. When\nunspecified, this targetRef targets the entire resource. In the following\nresources, SectionName is interpreted as the following:\n\n* Gateway: Listener name\n* HTTPRoute: HTTPRouteRule name\n* Service: Port name\n\nIf a SectionName is specified, but does not exist on the targeted object,\nthe Policy must fail to attach, and the policy implementation should record\na `ResolvedRefs` or similar Condition in the Policy's status.",
+                type: 'string',
+                maxLength: 253,
+                minLength: 1,
+                pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+              },
+            },
+          },
+        },
+      },
+      'x-kubernetes-validations': [
+        {
+          rule: "has(self.targetRefs) ? self.targetRefs.all(ref, ref.group == 'gateway.networking.k8s.io') : true ",
+          message: 'this policy can only have a targetRefs[*].group of gateway.networking.k8s.io',
+        },
+        {
+          rule: "has(self.targetRefs) ? self.targetRefs.all(ref, ref.kind in ['Gateway', 'HTTPRoute']) : true ",
+          message: 'this policy can only have a targetRefs[*].kind of Gateway/HTTPRoute',
+        },
+      ],
+    },
+    status: {
+      description:
+        'TrafficProtectionPolicyStatus defines the observed state of TrafficProtectionPolicy.',
+      type: 'object',
+      required: ['ancestors'],
+      properties: {
+        ancestors: {
+          description:
+            'Ancestors is a list of ancestor resources (usually Gateways) that are\nassociated with the policy, and the status of the policy with respect to\neach ancestor. When this policy attaches to a parent, the controller that\nmanages the parent and the ancestors MUST add an entry to this list when\nthe controller first sees the policy and SHOULD update the entry as\nappropriate when the relevant ancestor is modified.\n\nNote that choosing the relevant ancestor is left to the Policy designers;\nan important part of Policy design is designing the right object level at\nwhich to namespace this status.\n\nNote also that implementations MUST ONLY populate ancestor status for\nthe Ancestor resources they are responsible for. Implementations MUST\nuse the ControllerName field to uniquely identify the entries in this list\nthat they are responsible for.\n\nNote that to achieve this, the list of PolicyAncestorStatus structs\nMUST be treated as a map with a composite key, made up of the AncestorRef\nand ControllerName fields combined.\n\nA maximum of 16 ancestors will be represented in this list. An empty list\nmeans the Policy is not relevant for any ancestors.\n\nIf this slice is full, implementations MUST NOT add further entries.\nInstead they MUST consider the policy unimplementable and signal that\non any related resources such as the ancestor that would be referenced\nhere. For example, if this list was full on BackendTLSPolicy, no\nadditional Gateways would be able to reference the Service targeted by\nthe BackendTLSPolicy.',
+          type: 'array',
+          maxItems: 16,
+          items: {
+            description:
+              "PolicyAncestorStatus describes the status of a route with respect to an\nassociated Ancestor.\n\nAncestors refer to objects that are either the Target of a policy or above it\nin terms of object hierarchy. For example, if a policy targets a Service, the\nPolicy's Ancestors are, in order, the Service, the HTTPRoute, the Gateway, and\nthe GatewayClass. Almost always, in this hierarchy, the Gateway will be the most\nuseful object to place Policy status on, so we recommend that implementations\nSHOULD use Gateway as the PolicyAncestorStatus object unless the designers\nhave a _very_ good reason otherwise.\n\nIn the context of policy attachment, the Ancestor is used to distinguish which\nresource results in a distinct application of this policy. For example, if a policy\ntargets a Service, it may have a distinct result per attached Gateway.\n\nPolicies targeting the same resource may have different effects depending on the\nancestors of those resources. For example, different Gateways targeting the same\nService may have different capabilities, especially if they have different underlying\nimplementations.\n\nFor example, in BackendTLSPolicy, the Policy attaches to a Service that is\nused as a backend in a HTTPRoute that is itself attached to a Gateway.\nIn this case, the relevant object for status is the Gateway, and that is the\nancestor object referred to in this status.\n\nNote that a parent is also an ancestor, so for objects where the parent is the\nrelevant object for status, this struct SHOULD still be used.\n\nThis struct is intended to be used in a slice that's effectively a map,\nwith a composite key made up of the AncestorRef and the ControllerName.",
+            type: 'object',
+            required: ['ancestorRef', 'controllerName'],
+            properties: {
+              ancestorRef: {
+                description:
+                  'AncestorRef corresponds with a ParentRef in the spec that this\nPolicyAncestorStatus struct describes the status of.',
+                type: 'object',
+                required: ['name'],
+                properties: {
+                  group: {
+                    description:
+                      'Group is the group of the referent.\nWhen unspecified, "gateway.networking.k8s.io" is inferred.\nTo set the core API group (such as for a "Service" kind referent),\nGroup must be explicitly set to "" (empty string).\n\nSupport: Core',
+                    type: 'string',
+                    default: 'gateway.networking.k8s.io',
+                    maxLength: 253,
+                    pattern:
+                      '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+                  },
+                  kind: {
+                    description:
+                      'Kind is kind of the referent.\n\nThere are two kinds of parent resources with "Core" support:\n\n* Gateway (Gateway conformance profile)\n* Service (Mesh conformance profile, ClusterIP Services only)\n\nSupport for other resources is Implementation-Specific.',
+                    type: 'string',
+                    default: 'Gateway',
+                    maxLength: 63,
+                    minLength: 1,
+                    pattern: '^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$',
+                  },
+                  name: {
+                    description: 'Name is the name of the referent.\n\nSupport: Core',
+                    type: 'string',
+                    maxLength: 253,
+                    minLength: 1,
+                  },
+                  namespace: {
+                    description:
+                      'Namespace is the namespace of the referent. When unspecified, this refers\nto the local namespace of the Route.\n\nNote that there are specific rules for ParentRefs which cross namespace\nboundaries. Cross-namespace references are only valid if they are explicitly\nallowed by something in the namespace they are referring to. For example:\nGateway has the AllowedRoutes field, and ReferenceGrant provides a\ngeneric way to enable any other kind of cross-namespace reference.\n\n<gateway:experimental:description>\nParentRefs from a Route to a Service in the same namespace are "producer"\nroutes, which apply default routing rules to inbound connections from\nany namespace to the Service.\n\nParentRefs from a Route to a Service in a different namespace are\n"consumer" routes, and these routing rules are only applied to outbound\nconnections originating from the same namespace as the Route, for which\nthe intended destination of the connections are a Service targeted as a\nParentRef of the Route.\n</gateway:experimental:description>\n\nSupport: Core',
+                    type: 'string',
+                    maxLength: 63,
+                    minLength: 1,
+                    pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$',
+                  },
+                  port: {
+                    description:
+                      "Port is the network port this Route targets. It can be interpreted\ndifferently based on the type of parent resource.\n\nWhen the parent resource is a Gateway, this targets all listeners\nlistening on the specified port that also support this kind of Route(and\nselect this Route). It's not recommended to set `Port` unless the\nnetworking behaviors specified in a Route must apply to a specific port\nas opposed to a listener(s) whose port(s) may be changed. When both Port\nand SectionName are specified, the name and port of the selected listener\nmust match both specified values.\n\n<gateway:experimental:description>\nWhen the parent resource is a Service, this targets a specific port in the\nService spec. When both Port (experimental) and SectionName are specified,\nthe name and port of the selected port must match both specified values.\n</gateway:experimental:description>\n\nImplementations MAY choose to support other parent resources.\nImplementations supporting other types of parent resources MUST clearly\ndocument how/if Port is interpreted.\n\nFor the purpose of status, an attachment is considered successful as\nlong as the parent resource accepts it partially. For example, Gateway\nlisteners can restrict which Routes can attach to them by Route kind,\nnamespace, or hostname. If 1 of 2 Gateway listeners accept attachment\nfrom the referencing Route, the Route MUST be considered successfully\nattached. If no Gateway listeners accept attachment from this Route,\nthe Route MUST be considered detached from the Gateway.\n\nSupport: Extended",
+                    type: 'integer',
+                    format: 'int32',
+                    maximum: 65535,
+                    minimum: 1,
+                  },
+                  sectionName: {
+                    description:
+                      'SectionName is the name of a section within the target resource. In the\nfollowing resources, SectionName is interpreted as the following:\n\n* Gateway: Listener name. When both Port (experimental) and SectionName\nare specified, the name and port of the selected listener must match\nboth specified values.\n* Service: Port name. When both Port (experimental) and SectionName\nare specified, the name and port of the selected listener must match\nboth specified values.\n\nImplementations MAY choose to support attaching Routes to other resources.\nIf that is the case, they MUST clearly document how SectionName is\ninterpreted.\n\nWhen unspecified (empty string), this will reference the entire resource.\nFor the purpose of status, an attachment is considered successful if at\nleast one section in the parent resource accepts it. For example, Gateway\nlisteners can restrict which Routes can attach to them by Route kind,\nnamespace, or hostname. If 1 of 2 Gateway listeners accept attachment from\nthe referencing Route, the Route MUST be considered successfully\nattached. If no Gateway listeners accept attachment from this Route, the\nRoute MUST be considered detached from the Gateway.\n\nSupport: Core',
+                    type: 'string',
+                    maxLength: 253,
+                    minLength: 1,
+                    pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+                  },
+                },
+              },
+              conditions: {
+                description:
+                  'Conditions describes the status of the Policy with respect to the given Ancestor.',
+                type: 'array',
+                maxItems: 8,
+                minItems: 1,
+                items: {
+                  description:
+                    'Condition contains details for one aspect of the current state of this API Resource.',
+                  type: 'object',
+                  required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+                  properties: {
+                    lastTransitionTime: {
+                      description:
+                        'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                      type: 'string',
+                      format: 'date-time',
+                    },
+                    message: {
+                      description:
+                        'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                      type: 'string',
+                      maxLength: 32768,
+                    },
+                    observedGeneration: {
+                      description:
+                        'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                      type: 'integer',
+                      format: 'int64',
+                      minimum: 0,
+                    },
+                    reason: {
+                      description:
+                        "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                      type: 'string',
+                      maxLength: 1024,
+                      minLength: 1,
+                      pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+                    },
+                    status: {
+                      description: 'status of the condition, one of True, False, Unknown.',
+                      type: 'string',
+                      enum: ['True', 'False', 'Unknown'],
+                    },
+                    type: {
+                      description:
+                        'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                      type: 'string',
+                      maxLength: 316,
+                      pattern:
+                        '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+                    },
+                  },
+                },
+                'x-kubernetes-list-map-keys': ['type'],
+                'x-kubernetes-list-type': 'map',
+              },
+              controllerName: {
+                description:
+                  'ControllerName is a domain/path string that indicates the name of the\ncontroller that wrote this status. This corresponds with the\ncontrollerName field on GatewayClass.\n\nExample: "example.net/gateway-controller".\n\nThe format of this field is DOMAIN "/" PATH, where DOMAIN and PATH are\nvalid Kubernetes names\n(https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).\n\nControllers MUST populate this field when writing status. Controllers should ensure that\nentries to status populated with their ControllerName are cleaned up when they are no\nlonger necessary.',
+                type: 'string',
+                maxLength: 253,
+                minLength: 1,
+                pattern:
+                  "^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*\\/[A-Za-z0-9\\/\\-._~%!$&'()*+,;=:]+$",
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'networking.datumapis.com',
+      kind: 'TrafficProtectionPolicy',
+      version: 'v1alpha',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_datumapis_networking_v1alpha_TrafficProtectionPolicyListSchema = {
+  description: 'TrafficProtectionPolicyList is a list of TrafficProtectionPolicy',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of trafficprotectionpolicies. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.datumapis.networking.v1alpha.TrafficProtectionPolicy',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'networking.datumapis.com',
+      kind: 'TrafficProtectionPolicyList',
+      version: 'v1alpha',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
 export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
   description: 'DeleteOptions may be provided when deleting an API object.',
   type: 'object',
@@ -3859,7 +3972,8 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       type: 'string',
     },
     orphanDependents: {
-      description: `Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.`,
+      description:
+        'Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object\'s finalizers list. Either this field or PropagationPolicy may be set, but not both.',
       type: 'boolean',
     },
     preconditions: {
@@ -4152,11 +4266,8 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
 } as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_FieldsV1Schema = {
-  description: `FieldsV1 stores a set of fields in a data structure like a Trie, in JSON format.
-
-Each key is either a '.' representing the field itself, and will always map to an empty set, or a string representing a sub-field or item. The string will follow one of these four formats: 'f:<name>', where <name> is the name of a field in a struct, or key in a map 'v:<value>', where <value> is the exact json formatted value of a list item 'i:<index>', where <index> is position of a item in a list 'k:<keys>', where <keys> is a map of  a list item's key fields to their unique values If a key maps to an empty Fields value, the field that key represents is part of the set.
-
-The exact format is defined in sigs.k8s.io/structured-merge-diff`,
+  description:
+    "FieldsV1 stores a set of fields in a data structure like a Trie, in JSON format.\n\nEach key is either a '.' representing the field itself, and will always map to an empty set, or a string representing a sub-field or item. The string will follow one of these four formats: 'f:<name>', where <name> is the name of a field in a struct, or key in a map 'v:<value>', where <value> is the exact json formatted value of a list item 'i:<index>', where <index> is position of a item in a list 'k:<keys>', where <keys> is a map of  a list item's key fields to their unique values If a key maps to an empty Fields value, the field that key represents is part of the set.\n\nThe exact format is defined in sigs.k8s.io/structured-merge-diff",
   type: 'object',
 } as const;
 
@@ -4254,9 +4365,8 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMetaSchema = {
       },
     },
     creationTimestamp: {
-      description: `CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
-
-Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata`,
+      description:
+        'CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata',
       allOf: [
         {
           $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.Time',
@@ -4270,9 +4380,8 @@ Populated by the system. Read-only. Null for lists. More info: https://git.k8s.i
       format: 'int64',
     },
     deletionTimestamp: {
-      description: `DeletionTimestamp is RFC 3339 date and time at which this resource will be deleted. This field is set by the server when a graceful deletion is requested by the user, and is not directly settable by a client. The resource is expected to be deleted (no longer visible from resource lists, and not reachable by name) after the time in this field, once the finalizers list is empty. As long as the finalizers list contains items, deletion is blocked. Once the deletionTimestamp is set, this value may not be unset or be set further into the future, although it may be shortened or the resource may be deleted prior to this time. For example, a user may request that a pod is deleted in 30 seconds. The Kubelet will react by sending a graceful termination signal to the containers in the pod. After that 30 seconds, the Kubelet will send a hard termination signal (SIGKILL) to the container and after cleanup, remove the pod from the API. In the presence of network partitions, this object may still exist after this timestamp, until an administrator or automated process can determine the resource is fully terminated. If not set, graceful deletion of the object has not been requested.
-
-Populated by the system when a graceful deletion is requested. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata`,
+      description:
+        'DeletionTimestamp is RFC 3339 date and time at which this resource will be deleted. This field is set by the server when a graceful deletion is requested by the user, and is not directly settable by a client. The resource is expected to be deleted (no longer visible from resource lists, and not reachable by name) after the time in this field, once the finalizers list is empty. As long as the finalizers list contains items, deletion is blocked. Once the deletionTimestamp is set, this value may not be unset or be set further into the future, although it may be shortened or the resource may be deleted prior to this time. For example, a user may request that a pod is deleted in 30 seconds. The Kubelet will react by sending a graceful termination signal to the containers in the pod. After that 30 seconds, the Kubelet will send a hard termination signal (SIGKILL) to the container and after cleanup, remove the pod from the API. In the presence of network partitions, this object may still exist after this timestamp, until an administrator or automated process can determine the resource is fully terminated. If not set, graceful deletion of the object has not been requested.\n\nPopulated by the system when a graceful deletion is requested. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata',
       allOf: [
         {
           $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.Time',
@@ -4291,11 +4400,8 @@ Populated by the system when a graceful deletion is requested. Read-only. More i
       'x-kubernetes-patch-strategy': 'merge',
     },
     generateName: {
-      description: `GenerateName is an optional prefix, used by the server, to generate a unique name ONLY IF the Name field has not been provided. If this field is used, the name returned to the client will be different than the name passed. This value will also be combined with a unique suffix. The provided value has the same validation rules as the Name field, and may be truncated by the length of the suffix required to make the value unique on the server.
-
-If this field is specified and the generated name exists, the server will return a 409.
-
-Applied only if Name is not specified. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#idempotency`,
+      description:
+        'GenerateName is an optional prefix, used by the server, to generate a unique name ONLY IF the Name field has not been provided. If this field is used, the name returned to the client will be different than the name passed. This value will also be combined with a unique suffix. The provided value has the same validation rules as the Name field, and may be truncated by the length of the suffix required to make the value unique on the server.\n\nIf this field is specified and the generated name exists, the server will return a 409.\n\nApplied only if Name is not specified. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#idempotency',
       type: 'string',
     },
     generation: {
@@ -4314,7 +4420,8 @@ Applied only if Name is not specified. More info: https://git.k8s.io/community/c
       },
     },
     managedFields: {
-      description: `ManagedFields maps workflow-id and version to the set of fields that are managed by that workflow. This is mostly for internal housekeeping, and users typically shouldn't need to set or understand this field. A workflow can be the user's name, a controller's name, or the name of a specific apply path like "ci-cd". The set of fields is always in the version that the workflow used when modifying the object.`,
+      description:
+        "ManagedFields maps workflow-id and version to the set of fields that are managed by that workflow. This is mostly for internal housekeeping, and users typically shouldn't need to set or understand this field. A workflow can be the user's name, a controller's name, or the name of a specific apply path like \"ci-cd\". The set of fields is always in the version that the workflow used when modifying the object.",
       type: 'array',
       items: {
         default: {},
@@ -4332,9 +4439,8 @@ Applied only if Name is not specified. More info: https://git.k8s.io/community/c
       type: 'string',
     },
     namespace: {
-      description: `Namespace defines the space within which each name must be unique. An empty namespace is equivalent to the "default" namespace, but "default" is the canonical representation. Not all objects are required to be scoped to a namespace - the value of this field for those objects will be empty.
-
-Must be a DNS_LABEL. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces`,
+      description:
+        'Namespace defines the space within which each name must be unique. An empty namespace is equivalent to the "default" namespace, but "default" is the canonical representation. Not all objects are required to be scoped to a namespace - the value of this field for those objects will be empty.\n\nMust be a DNS_LABEL. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces',
       type: 'string',
     },
     ownerReferences: {
@@ -4355,9 +4461,8 @@ Must be a DNS_LABEL. Cannot be updated. More info: https://kubernetes.io/docs/co
       'x-kubernetes-patch-strategy': 'merge',
     },
     resourceVersion: {
-      description: `An opaque value that represents the internal version of this object that can be used by clients to determine when objects have changed. May be used for optimistic concurrency, change detection, and the watch operation on a resource or set of resources. Clients must treat these values as opaque and passed unmodified back to the server. They may only be valid for a particular resource or set of resources.
-
-Populated by the system. Read-only. Value must be treated as opaque by clients and . More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency`,
+      description:
+        'An opaque value that represents the internal version of this object that can be used by clients to determine when objects have changed. May be used for optimistic concurrency, change detection, and the watch operation on a resource or set of resources. Clients must treat these values as opaque and passed unmodified back to the server. They may only be valid for a particular resource or set of resources.\n\nPopulated by the system. Read-only. Value must be treated as opaque by clients and . More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency',
       type: 'string',
     },
     selfLink: {
@@ -4366,9 +4471,8 @@ Populated by the system. Read-only. Value must be treated as opaque by clients a
       type: 'string',
     },
     uid: {
-      description: `UID is the unique in time and space value for this object. It is typically generated by the server on successful creation of a resource and is not allowed to change on PUT operations.
-
-Populated by the system. Read-only. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids`,
+      description:
+        'UID is the unique in time and space value for this object. It is typically generated by the server on successful creation of a resource and is not allowed to change on PUT operations.\n\nPopulated by the system. Read-only. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids',
       type: 'string',
     },
   },
@@ -4507,11 +4611,8 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusCauseSchema = {
   type: 'object',
   properties: {
     field: {
-      description: `The field of the resource that has caused this error, as named by its JSON serialization. May include dot and postfix notation for nested attributes. Arrays are zero-indexed.  Fields may appear more than once in an array of causes due to fields having multiple errors. Optional.
-
-Examples:
-  "name" - the field "name" on the current resource
-  "items[0].name" - the field "name" on the first array entry in "items"`,
+      description:
+        'The field of the resource that has caused this error, as named by its JSON serialization. May include dot and postfix notation for nested attributes. Arrays are zero-indexed.  Fields may appear more than once in an array of causes due to fields having multiple errors. Optional.\n\nExamples:\n  "name" - the field "name" on the current resource\n  "items[0].name" - the field "name" on the first array entry in "items"',
       type: 'string',
     },
     message: {

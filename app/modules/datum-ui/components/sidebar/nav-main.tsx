@@ -35,6 +35,8 @@ export type NavItem = {
   children?: NavItem[];
   open?: boolean;
   hidden?: boolean;
+  showSeparatorAbove?: boolean;
+  showSeparatorBelow?: boolean;
 
   // Exclude specific sub-paths from activating this nav item
   // Use this for sibling routes like `/export-policies` and `/export-policies/new`
@@ -53,7 +55,7 @@ export type NavItem = {
 // Centralized style constants for nav menu buttons
 const NAV_STYLES = {
   menuButton:
-    'text-sidebar-foreground rounded-lg h-8 font-normal text-xs transition-all px-2 py-1 data-[active=true]:bg-sidebar data-[active=true]:text-foreground data-[active=true]:text-sidebar-primary data-[active=true]:[&>svg]:text-primary hover:bg-sidebar hover:text-sidebar-primary hover:[&>svg]:text-sidebar-primary data-[active=true]:hover:[&>svg]:text-sidebar-primary duration-300 gap-2.5',
+    'rounded-xl h-8 font-normal text-xs transition-all px-2 py-1 data-[active=true]:bg-sidebar data-[active=true]:text-foreground data-[active=true]:text-sidebar-primary data-[active=true]:[&>svg]:text-primary hover:bg-sidebar hover:text-sidebar-primary hover:[&>svg]:text-sidebar-primary hover:bg-sidebar-accent data-[active=true]:bg-sidebar-accent hover:font-semibold data-[active=true]:hover:[&>svg]:text-sidebar-primary transition-colors duration-300 gap-2.5 text-foreground [&>svg]:text-icon-primary',
   disabled: 'pointer-events-none opacity-50',
   icon: 'duration-300 transition-all',
   iconSmall: 'size-4 duration-300 transition-all',
@@ -318,7 +320,7 @@ export const NavMain = forwardRef<
       if ('type' in item && item.type === 'group') {
         return (
           <Fragment key={itemKey}>
-            <SidebarGroup className="mb-2 p-0!">
+            <SidebarGroup className="mb-2 p-0! px-2">
               {item.title && (
                 <SidebarGroupLabel className="lowercase group-data-[state=collapsed]:hidden first-letter:uppercase">
                   {item.title}
@@ -328,7 +330,7 @@ export const NavMain = forwardRef<
                 {(item.children || []).map((child) => renderNavItem(child, level + 1))}
               </SidebarGroupContent>
             </SidebarGroup>
-            <SidebarSeparator className="hidden group-data-[state=collapsed]:block" />
+            <SidebarSeparator className="my-2 hidden group-data-[state=collapsed]:block" />
           </Fragment>
         );
       }
@@ -349,166 +351,174 @@ export const NavMain = forwardRef<
       // Handle collapsed state - expand sidebar when clicking items with children
       if (state === 'collapsed' && !isMobile && level <= 2 && hasChildren) {
         return (
-          <SidebarMenu key={itemKey}>
-            <div className="flex flex-col">
-              <NavSidebarMenuButton
-                item={item}
-                isActive={isActive}
-                disableTooltip={disableTooltip}
-                className={itemClassName}
-                onClick={() => {
-                  // Expand sidebar when clicking an item with children
-                  setOpen(true);
-                  // Also open the collapsible for this item
-                  if (item.href) {
-                    setOpenItems((prev) => ({ ...prev, [item.href as string]: true }));
-                  }
-                }}
-              />
-              {/* Show dots for each sub-item only if one is active */}
-              {hasActiveChild && (
-                <motion.div
-                  variants={{
-                    hidden: { opacity: 0 },
-                    visible: {
-                      opacity: 1,
-                      transition: {
-                        staggerChildren: 0.05,
-                        delayChildren: 0.1,
-                      },
-                    },
+          <Fragment key={itemKey}>
+            {item.showSeparatorAbove && <SidebarSeparator className="my-1" />}
+            <SidebarMenu>
+              <div className="flex flex-col px-2">
+                <NavSidebarMenuButton
+                  item={item}
+                  isActive={isActive}
+                  disableTooltip={disableTooltip}
+                  className={itemClassName}
+                  onClick={() => {
+                    // Expand sidebar when clicking an item with children
+                    setOpen(true);
+                    // Also open the collapsible for this item
+                    if (item.href) {
+                      setOpenItems((prev) => ({ ...prev, [item.href as string]: true }));
+                    }
                   }}
-                  initial="hidden"
-                  animate="visible"
-                  className="flex flex-col gap-0.5">
-                  {item.children?.map((subItem) => {
-                    const isSubItemActive = activeNavItem(subItem);
-                    return (
-                      <motion.div
-                        key={`collapsed-dot-${subItem.href}-${level}`}
-                        variants={{
-                          hidden: { opacity: 0 },
-                          visible: {
-                            opacity: 1,
-                            transition: {
-                              duration: 0.2,
-                              ease: 'easeOut',
+                />
+                {/* Show dots for each sub-item only if one is active */}
+                {hasActiveChild && (
+                  <motion.div
+                    variants={{
+                      hidden: { opacity: 0 },
+                      visible: {
+                        opacity: 1,
+                        transition: {
+                          staggerChildren: 0.05,
+                          delayChildren: 0.1,
+                        },
+                      },
+                    }}
+                    initial="hidden"
+                    animate="visible"
+                    className="flex flex-col gap-0.5">
+                    {item.children?.map((subItem) => {
+                      const isSubItemActive = activeNavItem(subItem);
+                      return (
+                        <motion.div
+                          key={`collapsed-dot-${subItem.href}-${level}`}
+                          variants={{
+                            hidden: { opacity: 0 },
+                            visible: {
+                              opacity: 1,
+                              transition: {
+                                duration: 0.2,
+                                ease: 'easeOut',
+                              },
                             },
-                          },
-                        }}>
-                        <SidebarMenuButton
-                          tooltip={subItem.title}
-                          isActive={isSubItemActive}
-                          className="h-6 p-0 group-data-[collapsible=icon]:h-6! group-data-[collapsible=icon]:p-0!"
-                          asChild>
-                          <Link
-                            className="flex items-center justify-center"
-                            to={subItem.href || ''}
-                            onClick={() => {
-                              handleNavigation();
-                            }}>
-                            <span
-                              className={cn(
-                                'size-1 rounded-full',
-                                isSubItemActive ? 'bg-primary' : 'bg-sidebar-primary-foreground'
-                              )}
-                            />
-                          </Link>
-                        </SidebarMenuButton>
-                      </motion.div>
-                    );
-                  })}
-                </motion.div>
-              )}
-            </div>
-          </SidebarMenu>
+                          }}>
+                          <SidebarMenuButton
+                            tooltip={subItem.title}
+                            isActive={isSubItemActive}
+                            className="h-6 p-0 group-data-[collapsible=icon]:h-6! group-data-[collapsible=icon]:p-0!"
+                            asChild>
+                            <Link
+                              className="flex items-center justify-center"
+                              to={subItem.href || ''}
+                              onClick={() => {
+                                handleNavigation();
+                              }}>
+                              <span
+                                className={cn(
+                                  'size-1 rounded-full',
+                                  isSubItemActive ? 'bg-primary' : 'bg-sidebar-primary-foreground'
+                                )}
+                              />
+                            </Link>
+                          </SidebarMenuButton>
+                        </motion.div>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </div>
+            </SidebarMenu>
+            {item.showSeparatorBelow && <SidebarSeparator className="my-2" />}
+          </Fragment>
         );
       }
 
       // Handle expanded state with collapsible menus (for levels 0-3)
       if (hasChildren && level <= 3) {
         return (
-          <SidebarMenu key={itemKey}>
-            <Collapsible
-              key={`collapsed-item-drop-down-item-${item.title}-${level}`}
-              asChild
-              open={isOpen}
-              onOpenChange={(open) => {
-                if (item.href) {
-                  // Allow toggling even if it has an active child
-                  setOpenItems((prev) => ({ ...prev, [item.href as string]: open }));
-                }
-              }}
-              className="group/collapsible">
-              <SidebarMenuItem>
-                <CollapsibleTrigger asChild className="w-full">
-                  <NavSidebarMenuButton
-                    item={item}
-                    isActive={isActive}
-                    disableTooltip={disableTooltip}
-                    className={itemClassName}>
-                    <span>{item.title}</span>
-                    <Icon
-                      icon={ChevronRight}
-                      className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
-                    />
-                  </NavSidebarMenuButton>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
-                  <div style={{ minHeight: 0, overflow: 'hidden' }}>
-                    <motion.div
-                      key={`collapsible-${item.href}-${isOpen}`}
-                      variants={{
-                        hidden: { opacity: 0 },
-                        visible: {
-                          opacity: 1,
-                          transition: {
-                            staggerChildren: 0.05,
-                            delayChildren: 0.1,
+          <Fragment key={itemKey}>
+            {item.showSeparatorAbove && <SidebarSeparator className="my-2" />}
+            <SidebarMenu className="px-2">
+              <Collapsible
+                key={`collapsed-item-drop-down-item-${item.title}-${level}`}
+                asChild
+                open={isOpen}
+                onOpenChange={(open) => {
+                  if (item.href) {
+                    // Allow toggling even if it has an active child
+                    setOpenItems((prev) => ({ ...prev, [item.href as string]: open }));
+                  }
+                }}
+                className="group/collapsible">
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild className="w-full">
+                    <NavSidebarMenuButton
+                      item={item}
+                      isActive={isActive}
+                      disableTooltip={disableTooltip}
+                      className={itemClassName}>
+                      <span>{item.title}</span>
+                      <Icon
+                        icon={ChevronRight}
+                        className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                      />
+                    </NavSidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
+                    <div style={{ minHeight: 0, overflow: 'hidden' }}>
+                      <motion.div
+                        key={`collapsible-${item.href}-${isOpen}`}
+                        variants={{
+                          hidden: { opacity: 0 },
+                          visible: {
+                            opacity: 1,
+                            transition: {
+                              staggerChildren: 0.05,
+                              delayChildren: 0.1,
+                            },
                           },
-                        },
-                      }}
-                      initial={
-                        isInitialMount.current ||
-                        (previousOpenItems.current[item.href as string] ===
-                          openItems[item.href as string] &&
-                          previousState.current === state &&
-                          previousPathname.current === pathname &&
-                          !hasActiveChild)
-                          ? 'visible'
-                          : 'hidden'
-                      }
-                      animate={isOpen ? 'visible' : 'hidden'}>
-                      <SidebarMenuSub
-                        className={cn(
-                          level >= 1 ? 'mr-0 pr-[.1rem]' : '',
-                          level === 2 ? 'pl-4' : '',
-                          level === 3 ? 'pl-6' : '',
-                          'mr-0 gap-0.5 pr-0'
-                        )}>
-                        {item.children?.map((subItem, index) => (
-                          <motion.div
-                            key={`${subItem.href}-${level}-${index}`}
-                            variants={{
-                              hidden: { opacity: 0 },
-                              visible: {
-                                opacity: 1,
-                                transition: {
-                                  duration: 0.2,
-                                  ease: 'easeOut',
+                        }}
+                        initial={
+                          isInitialMount.current ||
+                          (previousOpenItems.current[item.href as string] ===
+                            openItems[item.href as string] &&
+                            previousState.current === state &&
+                            previousPathname.current === pathname &&
+                            !hasActiveChild)
+                            ? 'visible'
+                            : 'hidden'
+                        }
+                        animate={isOpen ? 'visible' : 'hidden'}>
+                        <SidebarMenuSub
+                          className={cn(
+                            level >= 1 ? 'mr-0 pr-[.1rem]' : '',
+                            level === 2 ? 'pl-4' : '',
+                            level === 3 ? 'pl-6' : '',
+                            'mr-0 gap-0.5 pr-0'
+                          )}>
+                          {item.children?.map((subItem, index) => (
+                            <motion.div
+                              key={`${subItem.href}-${level}-${index}`}
+                              variants={{
+                                hidden: { opacity: 0 },
+                                visible: {
+                                  opacity: 1,
+                                  transition: {
+                                    duration: 0.2,
+                                    ease: 'easeOut',
+                                  },
                                 },
-                              },
-                            }}>
-                            {renderNavItem(subItem, level + 1)}
-                          </motion.div>
-                        ))}
-                      </SidebarMenuSub>
-                    </motion.div>
-                  </div>
-                </CollapsibleContent>
-              </SidebarMenuItem>
-            </Collapsible>
-          </SidebarMenu>
+                              }}>
+                              {renderNavItem(subItem, level + 1)}
+                            </motion.div>
+                          ))}
+                        </SidebarMenuSub>
+                      </motion.div>
+                    </div>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+            </SidebarMenu>
+            {item.showSeparatorBelow && <SidebarSeparator className="my-2" />}
+          </Fragment>
         );
       }
 
@@ -563,45 +573,57 @@ export const NavMain = forwardRef<
       };
 
       if (level <= 2 && hasChildren) {
-        return <SidebarMenu key={itemKey}>{renderCollapsible(item, level)}</SidebarMenu>;
+        return (
+          <Fragment key={itemKey}>
+            {item.showSeparatorAbove && <SidebarSeparator className="my-2" />}
+            <SidebarMenu className="px-2">{renderCollapsible(item, level)}</SidebarMenu>
+            {item.showSeparatorBelow && <SidebarSeparator className="my-2" />}
+          </Fragment>
+        );
       }
 
       return (
-        <SidebarMenu key={itemKey} className={cn(`level_${level}`)}>
-          <SidebarMenuItem>
-            <NavSidebarMenuButton
-              asChild
-              item={item}
-              isActive={isActive && !hasActiveChild}
-              disableTooltip={disableTooltip}
-              onClick={() => hasChildren && toggleItem(item.href as string)}
-              className={cn(level >= 1 && 'h-6', itemClassName)}>
-              {item.type === 'externalLink' ? (
-                <a
-                  href={item.href || ''}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+        <Fragment key={itemKey}>
+          {item.showSeparatorAbove && <SidebarSeparator className="my-2" />}
+          <SidebarMenu className={cn(`level_${level} px-2`)}>
+            <SidebarMenuItem>
+              <NavSidebarMenuButton
+                asChild
+                item={item}
+                isActive={isActive && !hasActiveChild}
+                disableTooltip={disableTooltip}
+                onClick={() => hasChildren && toggleItem(item.href as string)}
+                className={cn(level >= 1 && 'h-6', itemClassName)}>
+                {item.type === 'externalLink' ? (
+                  <a
+                    href={item.href || ''}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {item?.icon && (
+                        <Icon icon={item.icon} className="size-4 transition-all duration-300" />
+                      )}
+                      <span>{item.title}</span>
+                    </div>
+                    <Icon icon={ExternalLinkIcon} className="ml-auto size-4" />
+                  </a>
+                ) : (
+                  <Link to={item.href || ''} onClick={handleNavigation}>
                     {item?.icon && (
                       <Icon
                         icon={item.icon}
-                        className="text-icon-primary size-4 transition-all duration-300"
+                        className="text-sidebar-primary transition-all duration-300"
                       />
                     )}
                     <span>{item.title}</span>
-                  </div>
-                  <Icon icon={ExternalLinkIcon} className="ml-auto size-4" />
-                </a>
-              ) : (
-                <Link to={item.href || ''} onClick={handleNavigation}>
-                  {item?.icon && <Icon icon={item.icon} className="transition-all duration-300" />}
-                  <span>{item.title}</span>
-                </Link>
-              )}
-            </NavSidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+                  </Link>
+                )}
+              </NavSidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+          {item.showSeparatorBelow && <SidebarSeparator className="my-2" />}
+        </Fragment>
       );
     };
 
@@ -609,7 +631,7 @@ export const NavMain = forwardRef<
       <ul
         ref={ref}
         data-sidebar="menu"
-        className={cn('flex h-full w-full min-w-0 flex-col p-2', className)}
+        className={cn('flex h-full w-full min-w-0 flex-col gap-0.5 py-2', className)}
         {...props}>
         {(items || []).map((item) => renderNavItem(item))}
       </ul>

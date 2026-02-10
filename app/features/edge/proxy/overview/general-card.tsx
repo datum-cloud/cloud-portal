@@ -23,7 +23,11 @@ export const HttpProxyGeneralCard = ({
 
     return [
       {
-        label: 'Resource Name',
+        label: 'Name',
+        content: <span>{httpProxy.chosenName || httpProxy.name}</span>,
+      },
+      {
+        label: 'Resource name',
         content: (
           <BadgeCopy
             value={httpProxy.name ?? ''}
@@ -49,7 +53,7 @@ export const HttpProxyGeneralCard = ({
         content: <span className="capitalize">{httpProxy.namespace}</span>,
       },
       {
-        label: 'Endpoint',
+        label: 'Origin',
         content: httpProxy.endpoint ? (
           <a href={httpProxy.endpoint} target="_blank" rel="noopener noreferrer">
             {httpProxy.endpoint}
@@ -74,6 +78,12 @@ export const HttpProxyGeneralCard = ({
             />
           );
         })(),
+      },
+      {
+        label: 'Protection Level',
+        content: (
+          <span className="capitalize">{httpProxy.trafficProtectionMode || 'Disabled'}</span>
+        ),
       },
       {
         label: 'Created At',

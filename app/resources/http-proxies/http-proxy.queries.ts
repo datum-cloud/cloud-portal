@@ -46,8 +46,8 @@ export function useCreateHttpProxy(
     ...options,
     onSuccess: (...args) => {
       const [newHttpProxy] = args;
-      // Set detail cache - Watch handles list update
       queryClient.setQueryData(httpProxyKeys.detail(projectId, newHttpProxy.name), newHttpProxy);
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
 
       options?.onSuccess?.(...args);
     },
@@ -67,8 +67,9 @@ export function useUpdateHttpProxy(
     ...options,
     onSuccess: (...args) => {
       const [data] = args;
-      // Update detail cache with server response - Watch handles list sync
       queryClient.setQueryData(httpProxyKeys.detail(projectId, name), data);
+      // Invalidate list so it refetches with updated WAF mode etc.
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
 
       options?.onSuccess?.(...args);
     },
@@ -86,8 +87,9 @@ export function useDeleteHttpProxy(
     ...options,
     onSuccess: async (...args) => {
       const [, name] = args;
-      // Cancel in-flight queries - Watch handles list update
       await queryClient.cancelQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
+      // Invalidate list so it refetches without the deleted item
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
 
       options?.onSuccess?.(...args);
     },

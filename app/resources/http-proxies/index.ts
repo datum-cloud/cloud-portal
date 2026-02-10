@@ -7,6 +7,8 @@ export {
   type HttpProxyList,
   type CreateHttpProxyInput,
   type UpdateHttpProxyInput,
+  trafficProtectionModeSchema,
+  type TrafficProtectionMode,
   // Re-exported validation schemas
   httpProxyHostnameSchema,
   httpProxySchema,

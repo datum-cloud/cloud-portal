@@ -21,7 +21,7 @@ export const Header = ({
   currentOrg?: Organization;
 }) => {
   return (
-    <header className="bg-background border-sidebar-border sticky top-0 z-50 flex h-[54px] w-full max-w-screen shrink-0 items-center justify-between gap-4 border-b px-4 py-3.5">
+    <header className="bg-background border-sidebar-border sticky top-0 z-50 flex h-12 w-full max-w-screen shrink-0 items-center justify-between gap-4 border-b px-4">
       {/* Left Section */}
       <div className="flex flex-1 items-center">
         <Link to={paths.account.root} className="mr-6 flex items-center justify-center">
@@ -50,35 +50,38 @@ export const Header = ({
         )}
       </div>
       {/* Right Section */}
-      <div className="flex items-center justify-end">
-        <div className="flex h-full items-center gap-1.5">
-          <Tooltip message="Get in touch">
-            <Button
-              type="quaternary"
-              theme="outline"
-              size="small"
-              className="h-7 w-7 rounded-lg p-0"
-              onClick={() => helpScoutAPI.toggle()}>
-              <Icon icon={LifeBuoy} className="text-icon-primary size-3.5" />
-            </Button>
-          </Tooltip>
-
-          <Tooltip message="Docs">
-            <Link to="https://datum.net/docs/" target="_blank" rel="noreferrer">
+      <div className="border-sidebar-border flex h-full items-center justify-end border-l">
+        <div className="flex h-full items-center justify-end">
+          <div className="flex h-full items-center px-4">
+            <Tooltip message="Get in touch">
               <Button
                 type="quaternary"
-                theme="outline"
+                theme="borderless"
                 size="small"
-                className="h-7 w-7 rounded-lg p-0">
-                <Icon icon={BookOpen} className="text-icon-primary size-3.5" />
+                className="h-7 w-7 rounded-lg p-0"
+                onClick={() => helpScoutAPI.toggle()}>
+                <Icon icon={LifeBuoy} className="text-icon-header size-4" />
               </Button>
-            </Link>
-          </Tooltip>
+            </Tooltip>
 
-          {/* Notification Dropdown, polling every 15 minutes */}
-          <NotificationDropdown defaultTab="invitation" />
+            <Tooltip message="Docs">
+              <Link to="https://datum.net/docs/" target="_blank" rel="noreferrer">
+                <Button
+                  type="quaternary"
+                  theme="borderless"
+                  size="small"
+                  className="h-7 w-7 rounded-lg p-0">
+                  <Icon icon={BookOpen} className="text-icon-header size-4" />
+                </Button>
+              </Link>
+            </Tooltip>
 
-          <UserDropdown />
+            {/* Notification Dropdown, polling every 15 minutes */}
+            <NotificationDropdown defaultTab="invitation" />
+          </div>
+          <div className="border-sidebar-border flex h-full items-center justify-center border-l pl-3">
+            <UserDropdown />
+          </div>
         </div>
       </div>
     </header>
