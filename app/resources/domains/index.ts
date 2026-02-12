@@ -13,6 +13,7 @@ export {
   type CreateDomainInput,
   type UpdateDomainInput,
   // Re-exported validation schemas
+  parseDomains,
   domainSchema,
   bulkDomainsSchema,
   type DomainSchema,

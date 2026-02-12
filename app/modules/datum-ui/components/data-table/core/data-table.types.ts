@@ -1,5 +1,6 @@
 import type { InlineContentRenderParams } from '../features/inline-content/data-table-inline-content';
 import { EmptyContentProps } from '@/components/empty-content/empty-content';
+import type { ButtonProps } from '@datum-ui/components/button/button';
 import { ColumnDef, ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 // Re-export InlineContentRenderParams from data-table-inline-content for convenience
@@ -239,12 +240,15 @@ export interface DataTableRowActionsProps<TData> {
 
 /**
  * Standard button action for multi-select
+ * Picks variant, size, and className from ButtonProps for type-safe styling
  */
-export interface MultiActionButtonProps<TData> {
+export interface MultiActionButtonProps<TData> extends Pick<
+  ButtonProps,
+  'type' | 'theme' | 'size' | 'className'
+> {
   key: string;
   label: string;
   icon?: React.ReactNode;
-  variant?: 'default' | 'destructive';
   action: (selectedRows: TData[]) => void | Promise<void>;
   disabled?: (selectedRows: TData[]) => boolean;
 }
