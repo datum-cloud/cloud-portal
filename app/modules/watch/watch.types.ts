@@ -10,6 +10,11 @@ export interface WatchEvent<T = unknown> {
 export interface WatchOptions {
   resourceType: string;
   /**
+   * Organization ID for org-scoped resources (e.g., projects).
+   * Used to construct: /apis/resourcemanager.../organizations/{orgId}/control-plane/...
+   */
+  orgId?: string;
+  /**
    * Project ID for project-scoped resources.
    * Used to construct: /apis/resourcemanager.../projects/{projectId}/control-plane/...
    */

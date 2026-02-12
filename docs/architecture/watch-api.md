@@ -19,53 +19,79 @@ The Watch API provides instant updates when resources change, replacing the prev
 
 ---
 
-## How It Works
+## Architecture
 
-### Architecture
+The watch system uses a **server-side multiplexer** to avoid HTTP/1.1 connection starvation. Instead of each resource opening its own SSE connection (which would exhaust the browser's 6-connection-per-origin limit), all watch subscriptions are multiplexed through a single SSE stream per browser tab.
 
 ```
-┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
-│     Browser     │         │   Hono Server   │         │  Control Plane  │
-│                 │         │                 │         │   (Kubernetes)  │
-│  ┌───────────┐  │         │                 │         │                 │
-│  │EventSource│◄─┼─────────┼─────SSE─────────┼─────────┤  Watch Stream   │
-│  └─────┬─────┘  │         │                 │         │                 │
-│        │        │         │                 │         │                 │
-│        ▼        │         │                 │         │                 │
-│  ┌───────────┐  │         │                 │         │                 │
-│  │React Query│  │         │                 │         │                 │
-│  │   Cache   │  │         │                 │         │                 │
-│  └───────────┘  │         │                 │         │                 │
-└─────────────────┘         └─────────────────┘         └─────────────────┘
+ ┌─────────────────────────────────────────────────────────────────┐
+ │ Browser Tab                                                     │
+ │                                                                 │
+ │  useDomainsWatch()─┐                                            │
+ │  useDnsZonesWatch()─┼─▶ WatchManager ──1 SSE──┐                │
+ │  useSecretsWatch()──┘   (client-side)          │                │
+ │                                                │                │
+ └────────────────────────────────────────────────┼────────────────┘
+                                                  │
+                                    POST /subscribe
+                                    POST /unsubscribe
+                                                  │
+ ┌────────────────────────────────────────────────┼────────────────┐
+ │ Hono Server                                    │                │
+ │                                                ▼                │
+ │                                          WatchHub               │
+ │                                       (server-side)             │
+ │                                           │    │                │
+ │                       ┌───────────────────┘    └──────┐         │
+ │                       ▼                               ▼         │
+ │              fetch (upstream)                 fetch (upstream)   │
+ │              K8s Watch: domains              K8s Watch: dnszones │
+ │                                                                 │
+ └─────────────────────────────────────────────────────────────────┘
+                         │                               │
+                         ▼                               ▼
+                 ┌───────────────────────────────────────────────┐
+                 │           Control Plane (Kubernetes)          │
+                 │              Watch API streams                │
+                 └───────────────────────────────────────────────┘
 ```
 
-### Event Flow
+### Connection Model
 
-1. Component mounts and calls `useWatch()` hook
-2. Hook creates `EventSource` connection to watch endpoint
-3. Server proxies to K8s Watch API with `?watch=true`
-4. K8s streams events as resources change
-5. Events arrive via SSE to browser
-6. `onEvent` handler updates React Query cache
-7. Components re-render with new data
+| Component        | Connections         | Scope              |
+| ---------------- | ------------------- | ------------------ |
+| Browser → Server | 1 SSE               | Per tab            |
+| Server → K8s     | 1 per resource type | Shared across tabs |
+
+### Protocol
+
+1. **Browser** opens `GET /api/watch/stream?cid=<uuid>` (single SSE connection)
+2. **Browser** sends `POST /api/watch/subscribe` with `{ clientId, resourceType, projectId, namespace, ... }`
+3. **Server** starts an upstream K8s Watch fetch if one doesn't exist for this channel
+4. **K8s** streams NDJSON events → **Server** parses and fans out via SSE to all subscribed clients
+5. **Browser** dispatches events to `useResourceWatch` callbacks → React Query cache updates
+6. **Browser** sends `POST /api/watch/unsubscribe` when a component unmounts
+7. **Server** starts a 10-second grace period; if no one re-subscribes, upstream is closed
 
 ---
 
 ## Event Types
 
-Kubernetes Watch sends three event types:
+Kubernetes Watch sends these event types:
 
 | Type       | Meaning          | Typical Action         |
 | ---------- | ---------------- | ---------------------- |
 | `ADDED`    | Resource created | Add to list/cache      |
 | `MODIFIED` | Resource updated | Update in list/cache   |
 | `DELETED`  | Resource removed | Remove from list/cache |
+| `BOOKMARK` | Version marker   | Track resourceVersion  |
+| `ERROR`    | Watch error      | Log / reconnect        |
 
 ### Event Structure
 
 ```typescript
 interface WatchEvent<T> {
-  type: 'ADDED' | 'MODIFIED' | 'DELETED';
+  type: 'ADDED' | 'MODIFIED' | 'DELETED' | 'BOOKMARK' | 'ERROR';
   object: T; // The full resource object
 }
 ```
@@ -77,164 +103,150 @@ interface WatchEvent<T> {
 ### Basic Watch Hook
 
 ```typescript
-// In a page component
-import { useDNSZonesWatch } from '@/resources/dns-zones';
+import { useDnsZonesWatch } from '@/resources/dns-zones';
 
-function DNSZonesPage() {
-  const { data: zones } = useDNSZones();
+function DnsZonesPage() {
+  const { data: zones } = useDnsZones(projectId);
 
   // Enable real-time updates
-  useDNSZonesWatch();
+  useDnsZonesWatch(projectId);
 
   return <ZoneList zones={zones} />;
 }
 ```
 
-### Watch with Event Handler
+### Watch with Custom Options
 
 ```typescript
-useDNSZonesWatch({
-  onEvent: (event) => {
-    console.log('Zone event:', event.type, event.object.name);
+// Disable watch conditionally
+useDnsZonesWatch(projectId, { enabled: isListView });
 
-    // Show toast notification
-    if (event.type === 'ADDED') {
-      toast.success(`Zone "${event.object.name}" created`);
-    }
-  },
-});
+// Watch a single resource
+useDnsZoneWatch(projectId, zoneName);
 ```
 
-### Conditional Watch
+### Wait for Async K8s Operations
+
+For task queue processors that need to wait for a resource to become ready:
 
 ```typescript
-// Only watch when viewing the list
-const isListView = location.pathname === '/dns-zones';
+import { waitForDnsZoneReady } from '@/resources/dns-zones';
 
-useDNSZonesWatch({
-  enabled: isListView,
-});
+const processor = async () => {
+  const response = await createDnsZone({ projectId, body: zoneSpec });
+  // Subscribes to watch, resolves when status is Ready
+  const zone = await waitForDnsZoneReady(projectId, response.data.metadata.name);
+  return zone;
+};
 ```
 
 ---
 
 ## Implementation Pattern
 
-### Watch Hook (`*.watch.ts`)
+### Resource Watch Hook (`*.watch.ts`)
+
+Each resource defines watch hooks in its `*.watch.ts` file:
 
 ```typescript
 // resources/dns-zones/dns-zone.watch.ts
-import { toDNSZone } from './dns-zone.adapter';
-import { dnsZoneKeys } from './dns-zone.queries';
-import type { DNSZone } from './dns-zone.schema';
-import { useWatch } from '@/modules/watch';
-import { useQueryClient } from '@tanstack/react-query';
+import { useResourceWatch } from '@/modules/watch';
 
-interface UseWatchOptions {
-  enabled?: boolean;
-  onEvent?: (event: WatchEvent<DNSZone>) => void;
-}
-
-export function useDNSZonesWatch(options?: UseWatchOptions) {
-  const queryClient = useQueryClient();
-  const { enabled = true, onEvent } = options ?? {};
-
-  return useWatch({
-    endpoint: '/apis/dns.networking.miloapis.com/v1alpha1/dns-zones',
-    enabled,
-    onEvent: (rawEvent) => {
-      const zone = toDNSZone(rawEvent.object);
-      const event = { ...rawEvent, object: zone };
-
-      // Update React Query cache
-      queryClient.setQueryData<DNSZone[]>(dnsZoneKeys.list(), (old = []) => {
-        switch (event.type) {
-          case 'ADDED':
-            // Avoid duplicates
-            if (old.some((z) => z.id === zone.id)) return old;
-            return [...old, zone];
-
-          case 'MODIFIED':
-            return old.map((z) => (z.id === zone.id ? zone : z));
-
-          case 'DELETED':
-            return old.filter((z) => z.id !== zone.id);
-
-          default:
-            return old;
-        }
-      });
-
-      // Also update detail cache if exists
-      queryClient.setQueryData(dnsZoneKeys.detail(zone.id), zone);
-
-      // Call user's event handler
-      onEvent?.(event);
-    },
+export function useDnsZonesWatch(projectId: string, options?: { enabled?: boolean }) {
+  return useResourceWatch<DnsZone>({
+    resourceType: 'apis/dns.networking.miloapis.com/v1alpha1/dnszones',
+    projectId,
+    namespace: 'default',
+    queryKey: dnsZoneKeys.list(projectId),
+    transform: (item) => toDnsZone(item),
+    enabled: options?.enabled ?? true,
+    // In-place update for MODIFIED events (avoids full list refetch)
+    getItemKey: (zone) => zone.name,
+    // Throttle for ADDED/DELETED events that use invalidation
+    throttleMs: 1000,
+    debounceMs: 300,
+    skipInitialSync: true,
   });
 }
 ```
 
-### Watch Module (`modules/watch/`)
+### Key Options
 
-The core watch module handles:
+| Option             | Description                                                     | Default |
+| ------------------ | --------------------------------------------------------------- | ------- |
+| `throttleMs`       | Min interval between list refetches                             | `1000`  |
+| `debounceMs`       | Batch window for rapid events                                   | `300`   |
+| `skipInitialSync`  | Ignore ADDED events in first 2s (cache already hydrated by SSR) | `true`  |
+| `getItemKey`       | Extract unique ID for in-place MODIFIED updates                 | -       |
+| `updateListCache`  | Custom cache updater for non-array data structures              | -       |
 
-- EventSource connection management
-- Automatic reconnection on disconnect
-- Authentication token injection
-- Error handling and recovery
+### Module Structure
 
-```typescript
-// Simplified usage of the watch module
-import { useWatch } from '@/modules/watch';
+```text
+app/modules/watch/                  # Client-side watch infrastructure
+├── watch.manager.ts                # Multiplexed SSE client (singleton)
+├── use-resource-watch.ts           # React hook for watch subscriptions
+├── watch-wait.helper.ts            # Promise wrapper for async K8s ops
+├── watch.context.tsx               # React context provider
+├── watch.parser.ts                 # NDJSON event parser
+├── watch.types.ts                  # Shared type definitions
+└── index.ts                        # Barrel exports
 
-useWatch({
-  endpoint: '/api/watch/dns-zones',
-  queryKey: ['dns-zones'],
-  onEvent: (event) => {
-    // Handle event
-  },
-});
+app/server/watch/                   # Server-side watch multiplexer
+├── watch-hub.ts                    # WatchHub engine (singleton)
+├── watch-hub.types.ts              # Server-side type definitions
+└── index.ts                        # Barrel exports
+
+app/server/routes/watch.ts          # HTTP endpoints for the watch protocol
 ```
 
 ---
 
 ## Debugging Watch Connections
 
-### Check Network Tab
+### Browser Console
+
+```javascript
+// Show current connection state, active channels, and subscriber counts
+window.__watchStatus()
+```
+
+### Server Stats (dev only)
+
+```bash
+curl http://localhost:3000/api/watch/stats | jq
+```
+
+Returns:
+
+```json
+{
+  "clients": 1,
+  "upstreams": 2,
+  "subscriptions": {
+    "apis/networking.datumapis.com/v1alpha/domains::proj-abc:default:::": 1,
+    "apis/dns.networking.miloapis.com/v1alpha1/dnszones::proj-abc:default:::": 1
+  }
+}
+```
+
+### Network Tab
 
 1. Open DevTools → Network tab
-2. Filter by "EventStream" or "XHR"
-3. Look for requests with `?watch=true`
-4. Click to see streaming events
-
-### Verify Connection
-
-```typescript
-useDNSZonesWatch({
-  onEvent: (event) => {
-    console.log('[Watch] Event received:', event);
-  },
-  onConnect: () => {
-    console.log('[Watch] Connected');
-  },
-  onDisconnect: () => {
-    console.log('[Watch] Disconnected');
-  },
-  onError: (error) => {
-    console.error('[Watch] Error:', error);
-  },
-});
-```
+2. Filter by "Fetch/XHR" and look for `/api/watch/stream`
+3. Click the stream request → EventStream tab shows live events
+4. Look for `subscribe` / `unsubscribe` POST requests
 
 ### Common Issues
 
-| Issue              | Cause               | Solution                    |
-| ------------------ | ------------------- | --------------------------- |
-| No events received | Wrong endpoint      | Check API URL and path      |
-| 401 errors         | Token expired       | Re-login, check auth        |
-| Connection drops   | Network issues      | Auto-reconnect handles this |
-| Duplicate items    | Missing dedup logic | Check `ADDED` handler       |
+| Issue                     | Cause                         | Solution                                                |
+| ------------------------- | ----------------------------- | ------------------------------------------------------- |
+| No events received        | Upstream URL wrong            | Check `buildUpstreamUrl` in `watch-hub.ts`              |
+| 401 on upstream           | Token expired                 | Token refreshed on each subscribe; re-login if needed   |
+| Events stop after 30s     | K8s watch timeout (expected)  | Server auto-reconnects with latest resourceVersion      |
+| Subscription leaks        | React Strict Mode callback    | `WatchManager.subscribe` cleans stale callbacks         |
+| Channel not unsubscribed  | Multiple subscribers remain   | Check `__watchStatus()` for subscriber counts           |
+| 410 Gone in server logs   | resourceVersion expired       | Server silently reconnects (no client notification)     |
 
 ---
 
@@ -242,24 +254,32 @@ useDNSZonesWatch({
 
 These resources have real-time updates:
 
-| Resource     | Watch Hook              | Endpoint                              |
-| ------------ | ----------------------- | ------------------------------------- |
-| DNS Zones    | `useDNSZonesWatch()`    | `/apis/dns.networking.../dns-zones`   |
-| DNS Records  | `useDNSRecordsWatch()`  | `/apis/dns.networking.../dns-records` |
-| Domains      | `useDomainsWatch()`     | `/apis/dns.networking.../domains`     |
-| Secrets      | `useSecretsWatch()`     | `/apis/.../secrets`                   |
-| HTTP Proxies | `useHTTPProxiesWatch()` | `/apis/networking.../http-proxies`    |
+| Resource        | List Watch Hook           | Detail Watch Hook        |
+| --------------- | ------------------------- | ------------------------ |
+| DNS Zones       | `useDnsZonesWatch()`      | `useDnsZoneWatch()`      |
+| DNS Records     | `useDnsRecordSetsWatch()` | `useDnsRecordSetWatch()` |
+| Domains         | `useDomainsWatch()`       | `useDomainWatch()`       |
+| Secrets         | `useSecretsWatch()`       | `useSecretWatch()`       |
+| HTTP Proxies    | `useHttpProxiesWatch()`   | `useHttpProxyWatch()`    |
+| Export Policies | `useExportPoliciesWatch()`| -                        |
 
 ---
 
-## Adding Watch to a Resource
+## Adding Watch to a New Resource
 
-See [Adding a New Resource](../guides/adding-new-resource.md#step-7-optional-add-watch) for implementation steps.
+1. Create `resources/{resource}/{resource}.watch.ts`
+2. Define `use{Resource}Watch()` using `useResourceWatch` from `@/modules/watch`
+3. Optionally define `waitFor{Resource}Ready()` using `waitForWatch` for task queue integration
+4. Export from the resource's `index.ts` barrel
+5. Call the hook in the list/detail page components
+
+See [Adding a New Resource](../guides/adding-new-resource.md#step-7-optional-add-watch) for full implementation steps.
 
 ---
 
 ## Related Documentation
 
 - [ADR-003: K8s Watch API Integration](./adrs/003-k8s-watch-api-integration.md)
+- [ADR-009: Task Queue K8s Integration](./adrs/009-task-queue-k8s-integration.md)
 - [Domain Modules](./domain-modules.md)
 - [Data Flow](./data-flow.md)
