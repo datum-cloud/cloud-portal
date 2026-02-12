@@ -53,7 +53,7 @@ export function TaskQueueDropdown() {
           <TaskQueueTrigger tasks={tasks} />
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-96 p-0">
+        <DropdownMenuContent align="end" className="w-96 rounded-lg p-0">
           <TaskPanelHeader />
           <div className="max-h-[350px] overflow-y-auto">
             {tasks.map((task) => (

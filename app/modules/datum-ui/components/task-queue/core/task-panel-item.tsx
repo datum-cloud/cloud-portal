@@ -7,13 +7,13 @@ import { cn } from '@shadcn/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@shadcn/ui/tooltip';
 import { formatDistanceToNowStrict } from 'date-fns';
 import {
-  CheckCircle,
   XCircle,
   Ban,
   X,
   FileIcon,
   CircleAlert,
   CornerDownRightIcon,
+  CircleCheck,
 } from 'lucide-react';
 
 interface TaskPanelItemProps {
@@ -92,7 +92,7 @@ function TaskIcon({ task }: { task: Task }) {
 
   // Completed successfully
   if (task.status === 'completed') {
-    return <Icon icon={CheckCircle} className="size-4 text-green-600 dark:text-green-400" />;
+    return <Icon icon={CircleCheck} className="size-4 text-green-600 dark:text-green-400" />;
   }
 
   // Failed

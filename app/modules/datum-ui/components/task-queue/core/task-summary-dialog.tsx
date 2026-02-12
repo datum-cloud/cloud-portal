@@ -6,7 +6,7 @@ import { Dialog } from '@datum-ui/components/dialog';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CircleCheck, XCircle } from 'lucide-react';
 import { ReactNode, useMemo } from 'react';
 
 type BaseProps = {
@@ -38,7 +38,7 @@ export type TaskSummaryDialogProps = ItemsMode | TaskIdMode;
 const getStatusConfig = (status: TaskSummaryItem['status']) => {
   switch (status) {
     case 'success':
-      return { icon: CheckCircle, label: 'Success', className: 'text-green-600' };
+      return { icon: CircleCheck, label: 'Success', className: 'text-green-600' };
     case 'failed':
       return { icon: XCircle, label: 'Failed', className: 'text-destructive' };
   }
