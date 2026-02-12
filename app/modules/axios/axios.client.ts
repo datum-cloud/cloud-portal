@@ -18,7 +18,7 @@ export const PROXY_URL = '/api/proxy';
  */
 export const httpClient = Axios.create({
   baseURL: PROXY_URL,
-  timeout: 20_000,
+  timeout: 60_000, // 60 seconds
   withCredentials: true,
 });
 

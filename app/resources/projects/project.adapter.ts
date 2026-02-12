@@ -9,6 +9,8 @@ import type {
   ComMiloapisResourcemanagerV1Alpha1Project,
   ComMiloapisResourcemanagerV1Alpha1ProjectList,
 } from '@/modules/control-plane/resource-manager';
+import { ControlPlaneStatus } from '@/resources/base';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { filterLabels } from '@/utils/helpers/object.helper';
 
 export function toProject(raw: ComMiloapisResourcemanagerV1Alpha1Project): Project {
@@ -32,7 +34,15 @@ export function toProject(raw: ComMiloapisResourcemanagerV1Alpha1Project): Proje
 }
 
 export function toProjectList(raw: ComMiloapisResourcemanagerV1Alpha1ProjectList): ProjectList {
-  const items = (raw.items ?? []).filter((p) => !p.metadata?.deletionTimestamp).map(toProject);
+  const items = (raw.items ?? [])
+    // Only include projects that are not being deleted
+    .filter((p) => !p.metadata?.deletionTimestamp)
+    .filter((p) => {
+      // Only include projects that are ready
+      const status = transformControlPlaneStatus(p.status);
+      return status.status === ControlPlaneStatus.Success;
+    })
+    .map(toProject);
 
   return {
     items,

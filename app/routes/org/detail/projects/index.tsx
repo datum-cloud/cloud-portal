@@ -11,13 +11,16 @@ import {
   useHydrateProjects,
   useProjects,
   type Project,
+  projectKeys,
 } from '@/resources/projects';
+import { waitForProjectReady } from '@/resources/projects/project.watch';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, Col, Row, toast } from '@datum-ui/components';
+import { Button, Col, Row, useTaskQueue } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
+import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { FolderRoot, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -93,6 +96,15 @@ export default function OrgProjectsPage() {
   const navigate = useNavigate();
   const revalidator = useRevalidator();
 
+  const { enqueue } = useTaskQueue();
+  const queryClient = useQueryClient();
+
+  // Alert close fetcher - native useFetcher with effect-based callback
+  const alertFetcher = useFetcher<{ success: boolean }>({ key: 'alert-closed' });
+  const alertSubmittedRef = useRef(false);
+
+  const { mutateAsync: createProject } = useCreateProject();
+
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -111,28 +123,12 @@ export default function OrgProjectsPage() {
     }
   }, [searchParams, setSearchParams]);
 
-  // Alert close fetcher - native useFetcher with effect-based callback
-  const alertFetcher = useFetcher<{ success: boolean }>({ key: 'alert-closed' });
-  const alertSubmittedRef = useRef(false);
-
   useEffect(() => {
     if (alertSubmittedRef.current && alertFetcher.data?.success && alertFetcher.state === 'idle') {
       alertSubmittedRef.current = false;
       revalidator.revalidate();
     }
   }, [alertFetcher.data, alertFetcher.state, revalidator]);
-
-  const createMutation = useCreateProject({
-    onSuccess: (newProject) => {
-      setOpenDialog(false);
-      navigate(getPathWithParams(paths.project.detail.root, { projectId: newProject.name }));
-    },
-    onError: (error) => {
-      toast.error('Project', {
-        description: error?.message || 'Failed to create project',
-      });
-    },
-  });
 
   const showAlert = !alertClosed;
   const isPersonalOrg = organization?.type === 'Personal';
@@ -180,10 +176,46 @@ export default function OrgProjectsPage() {
   };
 
   const handleSubmit = async (formData: z.infer<typeof projectFormSchema>) => {
-    await createMutation.mutateAsync({
-      name: formData.name,
-      description: formData.description,
-      organizationId: orgId as string,
+    setOpenDialog(false); // Close dialog immediately
+
+    enqueue({
+      title: `Create project "${formData.description}"`,
+      icon: <Icon icon={FolderRoot} className="size-4" />,
+      cancelable: false,
+      metadata: {
+        scope: 'org',
+        orgId,
+        orgName: organization?.displayName,
+      },
+      processor: async (ctx) => {
+        // 1. Create via API (returns 200 immediately)
+        await createProject({
+          name: formData.name,
+          description: formData.description,
+          organizationId: orgId as string,
+        });
+
+        // 2. Wait for K8s reconciliation
+        const { promise, cancel } = waitForProjectReady(orgId as string, formData.name);
+        ctx.onCancel(cancel); // Register cleanup - called automatically on cancel/timeout
+
+        const readyProject = await promise;
+
+        // 3. Task completes when Ready
+        ctx.setResult(readyProject);
+        ctx.succeed();
+      },
+      onComplete: () => queryClient.invalidateQueries({ queryKey: projectKeys.list(orgId ?? '') }),
+      completionActions: (result: Project) => [
+        {
+          children: 'View Project',
+          type: 'primary',
+          theme: 'outline',
+          size: 'xs',
+          onClick: () =>
+            navigate(getPathWithParams(paths.project.detail.root, { projectId: result.name })),
+        },
+      ],
     });
   };
 
@@ -239,7 +271,7 @@ export default function OrgProjectsPage() {
                 filterKey: 'q',
               },
             }}
-            defaultSorting={[{ id: 'createdAt', desc: true }]}
+            defaultSorting={[{ id: 'name', desc: true }]}
           />
         </Col>
         {showAlert && (

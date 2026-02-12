@@ -158,6 +158,7 @@ export default function HttpProxyPage() {
       {
         key: 'edit',
         label: 'Edit',
+        variant: 'default',
         action: (row) => proxyFormRef.current?.show(row),
       },
       {

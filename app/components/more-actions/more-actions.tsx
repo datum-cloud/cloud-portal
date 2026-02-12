@@ -77,7 +77,7 @@ export const MoreActions = <TData,>({
                 action.action(row);
               }}
               className={cn(
-                'cursor-pointer',
+                'cursor-pointer text-xs',
                 action.variant === 'destructive' &&
                   'text-destructive [&_svg]:!text-destructive hover:!text-destructive hover:[&_svg]:!text-destructive',
                 action.className
