@@ -1,20 +1,27 @@
+import { ProxyAdvancedConfigDialog } from '@/features/edge/proxy/proxy-advanced-config-dialog';
+import type { ProxyAdvancedConfigDialogRef } from '@/features/edge/proxy/proxy-advanced-config-dialog';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { type HttpProxy } from '@/resources/http-proxies';
 import { Badge, Button, Card, CardContent, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
-import { CopyIcon, GlobeIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { CopyIcon, GlobeIcon, PencilIcon } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
 
 export const HttpProxyHostnamesCard = ({
   endpoint,
   status,
   customHostnames,
+  proxy,
+  projectId,
 }: {
   endpoint?: string;
   status: HttpProxy['status'];
   customHostnames?: string[];
+  proxy?: HttpProxy;
+  projectId?: string;
 }) => {
+  const advancedConfigDialogRef = useRef<ProxyAdvancedConfigDialogRef>(null);
   const [_, copy] = useCopyToClipboard();
   const [copiedText, setCopiedText] = useState('');
   const [copied, setCopied] = useState(false);
@@ -68,6 +75,19 @@ export const HttpProxyHostnamesCard = ({
         <div className="flex items-center gap-2.5">
           <Icon icon={GlobeIcon} size={20} className="text-secondary stroke-2" />
           <span className="text-base font-semibold">Hostnames</span>
+          <Button
+            type="primary"
+            theme="solid"
+            size="xs"
+            className="ml-auto"
+            onClick={() => {
+              if (proxy) {
+                advancedConfigDialogRef.current?.show(proxy);
+              }
+            }}>
+            <Icon icon={PencilIcon} size={12} />
+            Edit hostnames
+          </Button>
         </div>
         {endpoint && (
           <div className="flex flex-col gap-2.5 text-sm font-normal">
@@ -89,7 +109,7 @@ export const HttpProxyHostnamesCard = ({
                       <Badge
                         type={val.valid ? 'primary' : 'danger'}
                         className={cn(
-                          '!text-xs',
+                          'text-xs!',
                           val.valid ? 'pointer-events-none' : 'cursor-pointer'
                         )}>
                         {val.valid ? 'HTTP/HTTPS' : 'Invalid'}
@@ -112,6 +132,9 @@ export const HttpProxyHostnamesCard = ({
           </div>
         )}
       </CardContent>
+      {proxy && projectId && (
+        <ProxyAdvancedConfigDialog ref={advancedConfigDialogRef} projectId={projectId} />
+      )}
     </Card>
   );
 };

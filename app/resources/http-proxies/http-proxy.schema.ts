@@ -19,6 +19,8 @@ export const httpProxyResourceSchema = z.object({
   tlsHostname: z.string().optional(),
   status: z.any().optional(),
   chosenName: z.string().optional(),
+  /** Device name stored as a Kubernetes annotation */
+  deviceName: z.string().optional(),
   /** WAF mode from the linked TrafficProtectionPolicy (if present) */
   trafficProtectionMode: z.enum(['Observe', 'Enforce', 'Disabled']).optional(),
 });

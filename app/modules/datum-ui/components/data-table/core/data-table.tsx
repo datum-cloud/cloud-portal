@@ -315,7 +315,8 @@ function DataTableInternal<TData, TValue>(
         enableSorting: false,
         enableHiding: false,
         meta: {
-          className: 'w-[1%] whitespace-nowrap px-4 py-2.5',
+          className:
+            'w-[1%] whitespace-nowrap px-4.5 py-2.5 sticky right-0 bg-table-cell z-20 shadow-[inset_1px_0_0_0_var(--border)] [&:is(th)]:bg-background [&:is(th)]:shadow-none',
         },
       };
       cols = [...cols, actionsColumn as ColumnDef<TData, TValue>];
@@ -622,7 +623,7 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
           {/* Table Section */}
           <div
             className={cn(
-              'flex max-w-full flex-col overflow-hidden',
+              'flex max-w-full flex-col overflow-x-auto',
               mode === 'table' ? 'rounded-lg border' : '',
               tableContainerClassName
             )}>

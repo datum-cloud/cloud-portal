@@ -8,42 +8,12 @@ import {
   useCreateHttpProxy,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
-import type { TrafficProtectionMode } from '@/resources/http-proxies/http-proxy.schema';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
-import { cn } from '@shadcn/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
-import { ChevronDownIcon, Eye, ShieldCheck, ShieldOff } from 'lucide-react';
+import { ChevronDownIcon } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
-
-const WAF_MODE_OPTIONS: Array<{
-  value: TrafficProtectionMode;
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-}> = [
-  {
-    value: 'Enforce',
-    title: 'Enforce',
-    description:
-      "Block requests that match OWASP rules. Best for production when you're ready to protect your service.",
-    icon: ShieldCheck,
-  },
-  {
-    value: 'Observe',
-    title: 'Observe',
-    description:
-      'Log rule matches without blocking. Use this to tune rules and reduce false positives before enforcing.',
-    icon: Eye,
-  },
-  {
-    value: 'Disabled',
-    title: 'Disabled',
-    description: 'WAF is off. No inspection or blocking; traffic passes through unchanged.',
-    icon: ShieldOff,
-  },
-];
 
 export interface HttpProxyFormDialogRef {
   show: (initialValues?: HttpProxy) => void;
@@ -130,8 +100,8 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
         key={open ? `open-${editProxyName || 'create'}` : 'closed'}
         open={open}
         onOpenChange={setOpen}
-        title={isEdit ? 'Edit Edge endpoint' : 'Create a new Edge endpoint'}
-        description={`${isEdit ? 'Edit' : 'Create'} an Edge endpoint to expose your service via Datum AI Edge — with automatic HTTPS, smart routing, intelligent WAF and zero hassle. Just tell us your origin, and we'll handle the rest.`}
+        title={isEdit ? 'Edit AI Edge' : 'New AI Edge'}
+        description={`${isEdit ? 'Edit your AI Edge endpoint' : `Put your apps, API's, and agents behind a secure, global proxy.`} `}
         schema={httpProxySchema}
         defaultValues={defaultValues}
         onSubmit={handleSubmit}
@@ -139,10 +109,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
         submitTextLoading={isEdit ? 'Saving...' : 'Creating...'}
         className="w-full focus:ring-0 focus:outline-none sm:max-w-2xl">
         <div className="divide-border space-y-0 divide-y *:px-5 *:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
-          <Form.Field
-            name="chosenName"
-            description="A human-friendly name for this Edge endpoint. This is what you'll see in Datum applications."
-            required>
+          <Form.Field name="chosenName" required>
             {({ field, meta }) => {
               const resourceName =
                 isEdit && editProxyName
@@ -185,87 +152,42 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           </Form.Field>
 
           <Form.Field
+            tooltip="Origin is the URL or hostname where your service is running"
             name="endpoint"
             label="Origin"
-            description="Enter the URL or hostname where your service is running"
             required>
-            <Form.Input
-              autoFocus={isEdit}
-              placeholder="e.g. https://api.example.com"
-              defaultValue={isEdit ? defaultValues?.endpoint : 'https://'}
-            />
+            <Form.Input autoFocus={isEdit} placeholder="e.g. api.example.com" />
           </Form.Field>
 
-          <Collapsible defaultOpen={false}>
-            <CollapsibleTrigger className="text-foreground hover:text-foreground/80 flex items-center gap-2 text-sm font-medium transition-colors [&[data-state=open]>svg]:rotate-180">
-              <ChevronDownIcon className="size-4 shrink-0 transition-transform duration-200" />
-              Advanced Config
-            </CollapsibleTrigger>
-            <CollapsibleContent className="flex flex-col gap-5 pt-5">
-              <p className="text-foreground/80 text-sm font-normal">
-                Use our awesome defaults or configure your own here, you can always come back and
-                add or edit these later.
-              </p>
+          <Form.Field
+            name="trafficProtectionMode"
+            label="WAF mode"
+            description="Choose how the Web Application Firewall (OWASP Core Rule Set) should handle traffic."
+            required>
+            <Form.Select placeholder="Select WAF mode">
+              <Form.SelectItem value="Enforce">Enforce</Form.SelectItem>
+              <Form.SelectItem value="Observe">Observe</Form.SelectItem>
+              <Form.SelectItem value="Disabled">Disabled</Form.SelectItem>
+            </Form.Select>
+          </Form.Field>
 
-              <Form.Field
-                name="trafficProtectionMode"
-                label="WAF mode"
-                description="Choose how the Web Application Firewall (OWASP Core Rule Set) should handle traffic."
-                required>
-                {({ field, control }) => {
-                  const value = (control.value as TrafficProtectionMode) || 'Enforce';
-                  return (
-                    <>
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        {WAF_MODE_OPTIONS.map((option) => {
-                          const Icon = option.icon;
-                          const isSelected = value === option.value;
-                          return (
-                            <button
-                              key={option.value}
-                              type="button"
-                              role="radio"
-                              aria-checked={isSelected}
-                              aria-label={option.title}
-                              onClick={() => control.change(option.value)}
-                              className={cn(
-                                'relative flex flex-col items-start rounded-lg border p-4 text-left transition-colors',
-                                'hover:border-border/80 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none',
-                                isSelected
-                                  ? 'border-primary bg-primary/5 ring-primary ring-2'
-                                  : 'border-border bg-card'
-                              )}>
-                              <span
-                                className={cn(
-                                  'absolute top-3 right-3 size-4 rounded-full border-2',
-                                  isSelected
-                                    ? 'border-primary bg-primary'
-                                    : 'border-muted-foreground/40'
-                                )}
-                                aria-hidden
-                              />
-                              <div className="bg-muted/80 mb-3 flex size-9 shrink-0 items-center justify-center rounded-xl">
-                                <Icon className="text-muted-foreground size-4" />
-                              </div>
-                              <span className="text-foreground mb-1 text-sm font-semibold">
-                                {option.title}
-                              </span>
-                              <p className="text-muted-foreground text-xs leading-relaxed">
-                                {option.description}
-                              </p>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <input type="hidden" name={field.name} value={value} readOnly aria-hidden />
-                    </>
-                  );
-                }}
-              </Form.Field>
-              <ProxyHostnamesField projectId={projectId} />
-              <ProxyTlsField />
-            </CollapsibleContent>
-          </Collapsible>
+          {isEdit && (
+            <Collapsible defaultOpen={false}>
+              <CollapsibleTrigger className="text-foreground hover:text-foreground/80 flex items-center gap-2 text-sm font-medium transition-colors [&[data-state=open]>svg]:rotate-180">
+                <ChevronDownIcon className="size-4 shrink-0 transition-transform duration-200" />
+                Advanced Config
+              </CollapsibleTrigger>
+              <CollapsibleContent className="flex flex-col gap-5 pt-5">
+                <p className="text-foreground/80 text-sm font-normal">
+                  Use our awesome defaults or configure your own here, you can always come back and
+                  add or edit these later.
+                </p>
+
+                <ProxyHostnamesField projectId={projectId} />
+                <ProxyTlsField />
+              </CollapsibleContent>
+            </Collapsible>
+          )}
         </div>
       </Form.Dialog>
     );

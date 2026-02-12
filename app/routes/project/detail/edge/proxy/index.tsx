@@ -3,6 +3,10 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import {
+  ProxyAdvancedConfigDialog,
+  type ProxyAdvancedConfigDialogRef,
+} from '@/features/edge/proxy/proxy-advanced-config-dialog';
+import {
   HttpProxyFormDialog,
   type HttpProxyFormDialogRef,
 } from '@/features/edge/proxy/proxy-form-dialog';
@@ -25,7 +29,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
+import { GlobeIcon, PencilIcon, PlusIcon, TrashIcon, MonitorIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 import {
   LoaderFunctionArgs,
@@ -74,6 +78,7 @@ export default function HttpProxyPage() {
 
   const { confirm } = useConfirmationDialog();
   const proxyFormRef = useRef<HttpProxyFormDialogRef>(null);
+  const advancedConfigRef = useRef<ProxyAdvancedConfigDialogRef>(null);
 
   const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
     onSuccess: () => {
@@ -114,47 +119,16 @@ export default function HttpProxyPage() {
         accessorKey: 'chosenName',
         cell: ({ row }) => {
           return (
-            <Tooltip message={row.original.name || row.original.chosenName}>
-              <span className="font-medium">{row.original.chosenName || row.original.name}</span>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        header: 'Origin',
-        accessorKey: 'origin',
-        cell: ({ row }) => {
-          return row.original.endpoint;
-        },
-      },
-      {
-        header: 'Hostnames',
-        accessorKey: 'hostnames',
-        cell: ({ row }) => {
-          const hostnames = row.original.status.hostnames?.map((hostname: string) => hostname);
-          return (
-            <div className="flex flex-wrap gap-2">
-              {hostnames?.map((hostname: string) => (
-                <BadgeCopy
-                  key={hostname}
-                  value={hostname}
-                  badgeTheme="solid"
-                  badgeType="muted"
-                  textClassName="max-w-[10rem] truncate"
-                  showTooltip={false}
-                  wrapperTooltipMessage={hostname}
-                />
-              ))}
+            <div className="flex items-center gap-2">
+              <Tooltip message={row.original.name || row.original.chosenName}>
+                <span className="font-medium">{row.original.chosenName || row.original.name}</span>
+              </Tooltip>
+              {row.original.deviceName && (
+                <Tooltip message={`${row.original.deviceName}`}>
+                  <Icon icon={MonitorIcon} className="text-icon-primary size-4" />
+                </Tooltip>
+              )}
             </div>
-          );
-        },
-      },
-      {
-        header: 'Protection Level',
-        accessorKey: 'trafficProtectionMode',
-        cell: ({ row }) => {
-          return (
-            <span className="capitalize">{row.original.trafficProtectionMode || 'Disabled'}</span>
           );
         },
       },
@@ -179,6 +153,46 @@ export default function HttpProxyPage() {
         },
       },
       {
+        header: 'Origin',
+        accessorKey: 'origin',
+        cell: ({ row }) => {
+          return row.original.endpoint;
+        },
+      },
+      {
+        header: 'Hostnames',
+        accessorKey: 'hostnames',
+        cell: ({ row }) => {
+          const hostnames = row.original.status.hostnames?.map((hostname: string) => hostname);
+          const hasMultipleHostnames = (hostnames?.length ?? 0) > 1;
+          return (
+            <div className="flex flex-wrap gap-2">
+              {hostnames?.map((hostname: string) => (
+                <BadgeCopy
+                  key={hostname}
+                  value={hostname}
+                  badgeTheme="solid"
+                  badgeType="muted"
+                  textClassName={hasMultipleHostnames ? 'max-w-[10rem] truncate' : undefined}
+                  showTooltip={false}
+                  wrapperTooltipMessage={hostname}
+                />
+              ))}
+            </div>
+          );
+        },
+      },
+      {
+        header: 'Protection Level',
+        accessorKey: 'trafficProtectionMode',
+        cell: ({ row }) => {
+          return (
+            <span className="capitalize">{row.original.trafficProtectionMode || 'Disabled'}</span>
+          );
+        },
+      },
+
+      {
         header: 'Created At',
         accessorKey: 'createdAt',
         cell: ({ row }) => {
@@ -192,14 +206,23 @@ export default function HttpProxyPage() {
   const rowActions: DataTableRowActionsProps<HttpProxy>[] = useMemo(
     () => [
       {
+        key: 'edit-hostnames',
+        label: 'Edit hostnames',
+        icon: <Icon icon={GlobeIcon} className="size-4" />,
+        variant: 'default',
+        action: (row) => advancedConfigRef.current?.show(row),
+      },
+      {
         key: 'edit',
         label: 'Edit',
+        icon: <Icon icon={PencilIcon} className="size-4" />,
         variant: 'default',
         action: (row) => proxyFormRef.current?.show(row),
       },
       {
         key: 'delete',
         label: 'Delete',
+        icon: <Icon icon={TrashIcon} className="size-4" />,
         variant: 'destructive',
         action: (row) => deleteHttpProxy(row),
       },
@@ -249,13 +272,14 @@ export default function HttpProxyPage() {
         toolbar={{
           layout: 'compact',
           includeSearch: {
-            placeholder: 'Search AI Edge',
+            placeholder: 'Search',
           },
         }}
         rowActions={rowActions}
       />
 
       <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId!} />
+      <ProxyAdvancedConfigDialog ref={advancedConfigRef} projectId={projectId!} />
     </>
   );
 }

@@ -78,6 +78,7 @@ export function toHttpProxy(
     tlsHostname: backend?.tls?.hostname,
     status: raw.status,
     chosenName: raw.metadata?.annotations?.['app.kubernetes.io/name'] ?? '',
+    deviceName: raw.metadata?.annotations?.['app.kubernetes.io/device-name'],
     ...(trafficProtectionMode !== undefined && { trafficProtectionMode }),
   };
 }

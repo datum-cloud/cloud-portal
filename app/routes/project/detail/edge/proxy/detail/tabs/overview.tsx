@@ -97,6 +97,8 @@ export default function HttpProxyOverviewPage() {
             endpoint={effectiveProxy?.endpoint}
             customHostnames={effectiveProxy?.hostnames ?? []}
             status={effectiveProxy?.status}
+            proxy={effectiveProxy}
+            projectId={projectId}
           />
         </Col>
         <Col span={12}>

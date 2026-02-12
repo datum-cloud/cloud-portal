@@ -31,7 +31,7 @@ const DashboardContent = ({
   return (
     <div
       className={cn(
-        'h-full transition-opacity duration-75',
+        'h-full min-w-0 transition-opacity duration-75',
         !isReady && 'opacity-0',
         isReady && 'opacity-100'
       )}>

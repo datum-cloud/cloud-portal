@@ -21,7 +21,6 @@ import {
   GaugeIcon,
   HomeIcon,
   LayersIcon,
-  NetworkIcon,
   SettingsIcon,
   SignpostIcon,
 } from 'lucide-react';
@@ -126,13 +125,13 @@ export default function ProjectLayout() {
         type: 'link',
         showSeparatorAbove: true,
       },
-      {
-        title: 'Tunnels',
-        href: '/',
-        icon: NetworkIcon,
-        disabled: true,
-        type: 'link',
-      },
+      // {
+      //   title: 'Tunnels',
+      //   href: '/',
+      //   icon: NetworkIcon,
+      //   disabled: true,
+      //   type: 'link',
+      // },
       {
         title: 'DNS',
         href: getPathWithParams(paths.project.detail.dnsZones.root, {
