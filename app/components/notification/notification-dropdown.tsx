@@ -63,7 +63,7 @@ export function NotificationDropdown({
       </DropdownMenuTrigger>
 
       {/* Dropdown Content */}
-      <DropdownMenuContent align="end" className="w-[360px] p-0">
+      <DropdownMenuContent align="end" className="w-[360px] rounded-lg p-0">
         {/* Custom Button-Style Tabs */}
         <div className="border-border flex items-center justify-between border-b">
           <div className="flex items-center">
