@@ -6,9 +6,9 @@ import {
   type DomainFormDialogRef,
 } from '@/features/edge/domain/domain-form-dialog';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
+import { DataTable, type DataTableRef } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
-import { DataTableFilter } from '@/modules/datum-ui/components/data-table';
+import { useApp } from '@/providers/app.provider';
 import {
   createDnsZoneService,
   dnsZoneKeys,
@@ -31,11 +31,18 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Badge, Button, toast, Tooltip } from '@datum-ui/components';
+import {
+  Badge,
+  Button,
+  toast,
+  Tooltip,
+  useTaskQueue,
+  createProjectMetadata,
+} from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
+import { GlobeIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useEffect, useRef } from 'react';
 import {
   data,
@@ -141,20 +148,12 @@ export default function DomainsPage() {
   }, [domains, dnsZoneMap]);
 
   const { confirm } = useConfirmationDialog();
+  const { enqueue, showSummary } = useTaskQueue();
+  const { project, organization } = useApp();
   const domainFormRef = useRef<DomainFormDialogRef>(null);
+  const tableRef = useRef<DataTableRef<FormattedDomain>>(null);
 
-  const deleteDomainMutation = useDeleteDomain(projectId ?? '', {
-    onSuccess: () => {
-      toast.success('Domain', {
-        description: 'The domain has been deleted successfully',
-      });
-    },
-    onError: (error) => {
-      toast.error('Domain', {
-        description: error.message || 'Failed to delete domain',
-      });
-    },
-  });
+  const deleteDomainMutation = useDeleteDomain(projectId ?? '');
 
   const refreshDomainMutation = useRefreshDomainRegistration(projectId ?? '', {
     onSuccess: () => {
@@ -183,7 +182,16 @@ export default function DomainsPage() {
       variant: 'destructive',
       showConfirmInput: false,
       onSubmit: async () => {
-        deleteDomainMutation.mutate(domain?.name ?? '');
+        try {
+          await deleteDomainMutation.mutateAsync(domain?.name ?? '');
+          toast.success('Domain', {
+            description: 'The domain has been deleted successfully',
+          });
+        } catch (error) {
+          toast.error('Domain', {
+            description: (error as Error).message || 'Failed to delete domain',
+          });
+        }
       },
     });
   };
@@ -296,20 +304,8 @@ export default function DomainsPage() {
           sortType: 'date',
         },
       },
-      /* {
-        id: 'statusType',
-        header: 'Status',
-        accessorKey: 'statusType',
-        cell: ({ row }) => {
-          return row.original.status && <DomainStatus domainStatus={row.original.status} />;
-        },
-        meta: {
-          sortable: false,
-          searchable: false,
-        },
-      }, */
     ],
-    [projectId]
+    []
   );
 
   const rowActions: DataTableRowActionsProps<FormattedDomain>[] = useMemo(
@@ -336,12 +332,92 @@ export default function DomainsPage() {
     [projectId]
   );
 
+  const handleDeleteDomains = async (domains: FormattedDomain[]) => {
+    await confirm({
+      title: 'Delete Domains',
+      description: (
+        <span>
+          Are you sure you want to delete <strong>{domains.length}</strong> domains?
+        </span>
+      ),
+      submitText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      showConfirmInput: false,
+      onSubmit: async () => {
+        const metadata =
+          project && organization
+            ? createProjectMetadata(
+                { id: project.name, name: project.displayName || project.name },
+                { id: organization.name, name: organization.displayName || organization.name }
+              )
+            : undefined;
+
+        const taskTitle = `Delete ${domains.length} domains`;
+
+        enqueue({
+          title: taskTitle,
+          icon: <Icon icon={GlobeIcon} className="size-4" />,
+          items: domains,
+          metadata,
+          itemConcurrency: 2,
+          getItemId: (d) => d.name,
+          processItem: async (domain) => {
+            await deleteDomainMutation.mutateAsync(domain.name);
+          },
+          completionActions: (_result, { failed, items }) => {
+            return [
+              ...(failed > 0
+                ? [
+                    {
+                      children: 'Summary',
+                      type: 'quaternary' as const,
+                      theme: 'outline' as const,
+                      size: 'xs' as const,
+                      onClick: () =>
+                        showSummary(
+                          taskTitle,
+                          items.map((item) => ({
+                            id: item.id,
+                            label: item.data?.domainName ?? item.id,
+                            status: item.status === 'failed' ? 'failed' : 'success',
+                            message: item.message,
+                          }))
+                        ),
+                    },
+                  ]
+                : []),
+              {
+                children: 'View Domains',
+                type: 'primary',
+                theme: 'outline',
+                size: 'xs',
+                onClick: () =>
+                  navigate(
+                    getPathWithParams(paths.project.detail.domains.root, { projectId: projectId! })
+                  ),
+              },
+            ];
+          },
+          onComplete: () => {
+            queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId ?? '') });
+          },
+        });
+
+        tableRef.current?.clearSelection();
+      },
+    });
+  };
+
   return (
     <>
       <DataTable
+        ref={tableRef}
         pageSize={50}
         columns={columns}
         data={formattedDomains}
+        enableMultiSelect
+        getRowId={(row) => row.name}
         onRowClick={(row) => {
           navigate(
             getPathWithParams(paths.project.detail.domains.detail.overview, {
@@ -385,27 +461,19 @@ export default function DomainsPage() {
             placeholder: 'Search domains',
           },
           filtersDisplay: 'dropdown',
+          showRowCount: true,
         }}
-        filters={
-          <>
-            <DataTableFilter.Select
-              label="Status"
-              placeholder="Status"
-              filterKey="statusType"
-              options={[
-                {
-                  label: 'Verified',
-                  value: 'verified',
-                },
-                {
-                  label: 'Pending',
-                  value: 'pending',
-                },
-              ]}
-              triggerClassName="min-w-32"
-            />
-          </>
-        }
+        multiActions={[
+          {
+            key: 'delete',
+            label: 'Delete Selected',
+            size: 'small',
+            icon: <Icon icon={TrashIcon} className="size-4" />,
+            type: 'danger',
+            theme: 'outline',
+            action: (rows) => handleDeleteDomains(rows),
+          },
+        ]}
         rowActions={rowActions}
       />
 

@@ -1,7 +1,7 @@
 import { useDataTable } from '../../core/data-table.context';
 import { MultiAction, MultiActionButtonProps } from '../../core/data-table.types';
+import { Button } from '@datum-ui/components/button/button';
 import { cn } from '@shadcn/lib/utils';
-import { Button } from '@shadcn/ui/button';
 
 export interface DataTableToolbarMultiActionsProps<TData> {
   /**
@@ -32,7 +32,7 @@ function isButtonAction<TData>(
  * Automatically hides when no rows are selected.
  *
  * Supports two action types:
- * - Button actions: Standard button with label, icon, variant, and click handler
+ * - Button actions: Standard button with label, icon, variant, size, and click handler
  * - Render actions: Custom render function for complex UI (e.g., popovers)
  *
  * @example
@@ -43,12 +43,16 @@ function isButtonAction<TData>(
  *       key: 'delete',
  *       label: 'Delete',
  *       icon: <TrashIcon />,
- *       variant: 'destructive',
+ *       type: 'danger',
+ *       theme: 'outline',
  *       action: (rows) => handleDelete(rows),
  *     },
  *     {
  *       key: 'export',
  *       label: 'Export',
+ *       type: 'quaternary',
+ *       theme: 'outline',
+ *       size: 'small',
  *       action: (rows) => handleExport(rows),
  *     },
  *   ]}
@@ -71,8 +75,7 @@ export function DataTableToolbarMultiActions<TData>({
   actions,
   className,
 }: DataTableToolbarMultiActionsProps<TData>) {
-  const { selectedRows, selectionCount, hasSelection, clearSelection, rowSelection } =
-    useDataTable<TData>();
+  const { selectedRows, hasSelection, clearSelection, rowSelection } = useDataTable<TData>();
 
   // Don't render if no rows are selected
   if (!hasSelection) {
@@ -84,26 +87,20 @@ export function DataTableToolbarMultiActions<TData>({
 
   return (
     <div className={cn('flex items-center gap-2', className)}>
-      {/* Selection count indicator */}
-      <span className="text-muted-foreground text-sm font-medium whitespace-nowrap">
-        {selectionCount} selected
-      </span>
-
-      {/* Render actions */}
       {actions.map((action) => {
         if (isButtonAction(action)) {
-          // Button action
           const isDisabled = action.disabled?.(selectedRows) ?? false;
 
           return (
             <Button
               key={action.key}
-              variant={action.variant === 'destructive' ? 'destructive' : 'outline'}
-              size="sm"
+              type={action.type ?? 'quaternary'}
+              theme={action.theme ?? 'outline'}
+              size={action.size ?? 'small'}
               disabled={isDisabled}
               onClick={() => action.action(selectedRows)}
-              className="h-8">
-              {action.icon && <span className="mr-1.5">{action.icon}</span>}
+              icon={action.icon}
+              className={action.className}>
               {action.label}
             </Button>
           );

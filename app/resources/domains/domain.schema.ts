@@ -9,7 +9,7 @@ export const domainSchema = z.object({ domain: createFqdnSchema('Domain') });
 
 export type DomainSchema = z.infer<typeof domainSchema>;
 
-const parseDomains = (value: string) =>
+export const parseDomains = (value: string) =>
   value
     .split(/[\n,]+/)
     .map((d) => d.trim().toLowerCase())

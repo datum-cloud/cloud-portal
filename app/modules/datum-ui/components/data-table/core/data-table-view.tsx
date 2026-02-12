@@ -76,7 +76,13 @@ export const DataTableView = <TData,>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && 'selected'}
-                onClick={() => onRowClick?.(row.original)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Skip row click when clicking on checkbox/select column
+                  const target = e.target as HTMLElement;
+                  if (target.closest('[data-slot="checkbox"]')) return;
+                  onRowClick?.(row.original);
+                }}
                 className={cn(
                   'bg-table-cell hover:bg-table-cell-hover relative transition-colors',
                   onRowClick && 'cursor-pointer',
