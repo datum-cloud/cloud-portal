@@ -12,6 +12,7 @@ import '@/modules/control-plane/setup.server';
 import { Logger } from '@/modules/logger';
 import { checkRedisHealth } from '@/modules/redis';
 import { sentryTracingMiddleware } from '@/modules/sentry';
+import { watchHub } from '@/server/watch';
 import { env } from '@/utils/env/env.server';
 import { prometheus } from '@hono/prometheus';
 import { Hono } from 'hono';
@@ -22,6 +23,7 @@ import { createHonoServer } from 'react-router-hono-server/bun';
 let isShuttingDown = false;
 const beginShutdown = () => {
   isShuttingDown = true;
+  watchHub.shutdown();
 };
 
 process.once('SIGTERM', beginShutdown);

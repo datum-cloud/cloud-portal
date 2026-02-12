@@ -6,6 +6,7 @@ import { permissionsRoutes } from './permissions';
 import { prometheusRoutes } from './prometheus';
 import { proxyRoutes } from './proxy';
 import { userRoutes } from './user';
+import { watchRoutes } from './watch';
 import { authGuardMiddleware } from '@/server/middleware/auth';
 import { rateLimiter, RateLimitPresets } from '@/server/middleware/rate-limit';
 import type { Variables } from '@/server/types';
@@ -41,6 +42,7 @@ export function createApiApp() {
   api.route('/notifications', notificationsRoutes);
   api.route('/permissions', permissionsRoutes);
   api.route('/user', userRoutes);
+  api.route('/watch', watchRoutes);
 
   // 404 for unregistered routes
   api.all('*', (c) =>

@@ -1,605 +1,466 @@
 // app/modules/watch/watch.manager.ts
-import { parseWatchEvent, extractResourceVersion } from './watch.parser';
-import type { WatchConnection, WatchOptions, WatchSubscriber, WatchEvent } from './watch.types';
-import { logger } from '@/modules/logger';
-import { isDev } from '@/utils/env';
+//
+// Multiplexed Watch Manager
+//
+// Instead of opening N direct fetch streams to K8s (one per resource),
+// this implementation opens 1 SSE connection to the server-side WatchHub
+// and sends subscribe/unsubscribe POST requests to control which resources
+// are watched. This reduces HTTP/1.1 connection usage from N+1 to 1,
+// freeing slots for task queue mutations and API fetches.
+//
+// Public API is unchanged — all consumers (useResourceWatch, waitForWatch,
+// WatchProvider) work without modification.
+import type { WatchOptions, WatchEvent, WatchSubscriber } from './watch.types';
 
-// Configuration
-const MAX_RECONNECT_ATTEMPTS = 5;
-const BASE_RECONNECT_DELAY = 1000;
-const CLEANUP_DELAY_MS = 100; // Handles React Strict Mode re-mounts
-const HEALTH_CHECK_INTERVAL_MS = 30000; // 30 seconds
-const STALE_THRESHOLD_MS = 60000; // 1 minute without activity = stale
-const CONNECTION_TIMEOUT_MS = 30000; // 30 seconds without data = timeout
+/** Base delay before reconnecting after the SSE stream drops (ms). */
+const SSE_RECONNECT_BASE_DELAY = 1000;
+/** Maximum delay between SSE reconnection attempts (ms). */
+const SSE_RECONNECT_MAX_DELAY = 60000;
+/** Maximum number of consecutive SSE reconnection attempts before giving up. */
+const SSE_MAX_RETRIES = 10;
+/**
+ * Delay before actually removing a subscriber after unsubscribe is called.
+ * Handles React Strict Mode's mount → unmount → mount cycle: the first
+ * unmount schedules a delayed cleanup, and the immediate re-mount cancels it.
+ */
+const CLEANUP_DELAY_MS = 100;
 
-const SERVICE_NAME = 'WatchManager';
-
-function debug(message: string, data?: Record<string, unknown>) {
-  if (isDev()) {
-    logger.debug(`[${SERVICE_NAME}] ${message}`, { type: 'watch', ...data });
-  }
-}
-
-// Extended connection type to store options for reconnection
-interface ManagedConnection extends WatchConnection {
-  options: WatchOptions;
-  lastActivity: number;
-  isConnecting: boolean;
-  cleanupTimeout?: ReturnType<typeof setTimeout>;
-  timeoutTimer?: ReturnType<typeof setTimeout>;
+interface ChannelSubscription {
+  subscribers: Set<WatchSubscriber<unknown>>;
+  watchOptions: WatchOptions;
 }
 
 /**
- * WatchManager handles K8s Watch API connections with:
- * - Connection pooling (shared connections for same resource)
+ * WatchManager multiplexes all K8s watch subscriptions through a single SSE
+ * connection to the server-side WatchHub. The server handles upstream K8s
+ * connections, deduplication, and fan-out.
+ *
+ * Features:
+ * - Single SSE connection per browser tab (1 HTTP slot instead of N)
+ * - Subscribe/unsubscribe via POST requests
  * - Automatic reconnection with exponential backoff
- * - resourceVersion tracking for gap-free updates
- * - Subscriber pattern for broadcasting events
- * - Visibility change handling (reconnect when tab becomes visible)
- * - Periodic health checks (detect dead connections)
- * - Connection timeout detection (no data = reconnect)
- * - Delayed cleanup to handle React Strict Mode re-mounts
+ * - Visibility change handling (disconnect on hidden, reconnect on visible)
+ * - Delayed cleanup for React Strict Mode re-mounts
  * - HMR-safe singleton (persists across hot reloads)
  */
 class WatchManager {
-  private connections = new Map<string, ManagedConnection>();
+  private clientId: string;
+  private channels = new Map<string, ChannelSubscription>();
+  private reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
+  private controller: AbortController | null = null;
+  private isConnected = false;
+  private pendingSubscriptions = new Map<string, WatchOptions>();
+  private cleanupTimers = new Map<
+    string,
+    { timer: ReturnType<typeof setTimeout>; callback: WatchSubscriber<unknown> }
+  >();
   private visibilityListenerAttached = false;
-  private healthCheckInterval: ReturnType<typeof setInterval> | null = null;
+  private visibilityHandler: (() => void) | null = null;
+  private reconnectAttempts = 0;
 
   constructor() {
-    debug('WatchManager created');
+    this.clientId = crypto.randomUUID();
+    if (typeof window !== 'undefined') {
+      this.connect();
+      this.attachVisibilityListener();
+    }
   }
 
-  /**
-   * Build a unique key for a watch connection.
-   */
-  private buildKey(options: WatchOptions): string {
-    const { resourceType, projectId, namespace, name, labelSelector, fieldSelector } = options;
-    return [resourceType, projectId, namespace, name, labelSelector, fieldSelector]
-      .filter(Boolean)
-      .join(':');
-  }
+  // ─── Public API (same signature as before) ──────
 
   /**
-   * Subscribe to watch events for a resource.
-   * Returns an unsubscribe function.
+   * Subscribe to watch events for a K8s resource.
+   *
+   * If a channel for this resource already exists, the callback is added to
+   * the existing subscriber set. Otherwise a new channel is created and
+   * a `POST /api/watch/subscribe` is sent to the server.
+   *
+   * @returns An unsubscribe function. Calling it schedules a delayed cleanup
+   *          ({@link CLEANUP_DELAY_MS}) to handle React Strict Mode re-mounts.
+   *          When the last subscriber is removed, the channel is torn down and
+   *          a server-side unsubscribe is sent.
    */
   subscribe<T = unknown>(options: WatchOptions, callback: WatchSubscriber<T>): () => void {
-    // Attach visibility listener and start health check on first subscription
-    this.attachVisibilityListener();
-    this.startHealthCheck();
+    const channel = this.buildChannelKey(options);
 
-    const key = this.buildKey(options);
-    const existing = this.connections.get(key);
-
-    debug('Subscribe', { key, status: existing ? 'existing' : 'new' });
-
-    if (existing) {
-      // Cancel any pending cleanup (React Strict Mode re-mount)
-      if (existing.cleanupTimeout) {
-        clearTimeout(existing.cleanupTimeout);
-        existing.cleanupTimeout = undefined;
-      }
-      existing.subscribers.add(callback as WatchSubscriber);
-      return () => this.unsubscribe(key, callback as WatchSubscriber);
+    // Cancel pending cleanup (React Strict Mode re-mount)
+    // Also remove the stale callback that was pending cleanup — otherwise
+    // Strict Mode's mount/unmount/mount cycle leaks orphan callbacks that
+    // prevent the channel from ever reaching subscriber count 0.
+    const pending = this.cleanupTimers.get(channel);
+    if (pending) {
+      clearTimeout(pending.timer);
+      const sub = this.channels.get(channel);
+      if (sub) sub.subscribers.delete(pending.callback);
+      this.cleanupTimers.delete(channel);
     }
 
-    const connection: ManagedConnection = {
-      key,
-      controller: new AbortController(),
-      subscribers: new Set([callback as WatchSubscriber]),
-      resourceVersion: options.resourceVersion || '0',
-      reconnectAttempts: 0,
-      options,
-      lastActivity: Date.now(),
-      isConnecting: false,
-    };
+    if (!this.channels.has(channel)) {
+      this.channels.set(channel, {
+        subscribers: new Set(),
+        watchOptions: options,
+      });
 
-    this.connections.set(key, connection);
-    this.startWatch(options, connection);
-
-    return () => this.unsubscribe(key, callback as WatchSubscriber);
-  }
-
-  /**
-   * Start periodic health check to detect and reconnect dead connections.
-   */
-  private startHealthCheck(): void {
-    if (this.healthCheckInterval || typeof window === 'undefined') return;
-
-    debug('Starting health check interval', {});
-
-    this.healthCheckInterval = setInterval(() => {
-      this.performHealthCheck();
-    }, HEALTH_CHECK_INTERVAL_MS);
-  }
-
-  /**
-   * Stop periodic health check.
-   */
-  private stopHealthCheck(): void {
-    if (this.healthCheckInterval) {
-      clearInterval(this.healthCheckInterval);
-      this.healthCheckInterval = null;
-      debug('Stopped health check interval', {});
-    }
-  }
-
-  /**
-   * Check all connections and reconnect stale ones.
-   */
-  private performHealthCheck(): void {
-    const now = Date.now();
-    let activeCount = 0;
-    let reconnectedCount = 0;
-
-    this.connections.forEach((connection, key) => {
-      const timeSinceActivity = now - connection.lastActivity;
-      activeCount++;
-
-      // If connection is stale and not currently connecting, reconnect
-      if (timeSinceActivity > STALE_THRESHOLD_MS && !connection.isConnecting) {
-        debug('Health check: reconnecting stale connection', {
-          key,
-          inactiveMs: timeSinceActivity,
-        });
-        this.forceReconnect(connection);
-        reconnectedCount++;
-      }
-    });
-
-    debug('Health check completed', { activeCount, reconnectedCount });
-
-    // Stop health check if no connections
-    if (activeCount === 0) {
-      this.stopHealthCheck();
-    }
-  }
-
-  /**
-   * Force reconnect a connection.
-   */
-  private forceReconnect(connection: ManagedConnection): void {
-    // Clear any existing timeout timer
-    if (connection.timeoutTimer) {
-      clearTimeout(connection.timeoutTimer);
-      connection.timeoutTimer = undefined;
-    }
-
-    // Abort current connection
-    connection.controller.abort();
-    connection.controller = new AbortController();
-    connection.reconnectAttempts = 0;
-
-    // Start new watch
-    this.startWatch(connection.options, connection);
-  }
-
-  /**
-   * Attach visibility change listener to manage connections based on tab visibility.
-   * - When tab becomes hidden: pause all connections (abort but keep subscriptions)
-   * - When tab becomes visible: reconnect all paused connections
-   *
-   * This helps avoid HTTP/1.1's 6-connection-per-domain limit when multiple tabs are open.
-   */
-  private attachVisibilityListener(): void {
-    if (this.visibilityListenerAttached || typeof document === 'undefined') return;
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        debug('Tab became visible, reconnecting all connections', {});
-        this.handleTabVisible();
+      // Subscribe on server
+      if (this.isConnected) {
+        this.serverSubscribe(options);
       } else {
-        debug('Tab became hidden, pausing all connections', {});
-        this.handleTabHidden();
+        this.pendingSubscriptions.set(channel, options);
       }
-    });
-
-    this.visibilityListenerAttached = true;
-    debug('Visibility listener attached', {});
-  }
-
-  /**
-   * Handle tab becoming hidden - pause all connections to free up HTTP connections.
-   * Connections are aborted but subscriptions are preserved for reconnection.
-   */
-  private handleTabHidden(): void {
-    this.connections.forEach((connection, key) => {
-      // Clear any pending cleanup or timeout timers
-      if (connection.cleanupTimeout) {
-        clearTimeout(connection.cleanupTimeout);
-        connection.cleanupTimeout = undefined;
-      }
-      if (connection.timeoutTimer) {
-        clearTimeout(connection.timeoutTimer);
-        connection.timeoutTimer = undefined;
-      }
-
-      // Abort the connection to free up HTTP slot
-      connection.controller.abort();
-      debug('Paused connection', { key });
-    });
-  }
-
-  /**
-   * Handle tab becoming visible - reconnect all connections.
-   */
-  private handleTabVisible(): void {
-    this.connections.forEach((connection, key) => {
-      // Create new abort controller and reconnect
-      connection.controller = new AbortController();
-      connection.reconnectAttempts = 0;
-      debug('Reconnecting connection', { key });
-      this.startWatch(connection.options, connection);
-    });
-  }
-
-  /**
-   * Start connection timeout timer.
-   * If no data received within timeout, force reconnect.
-   */
-  private startTimeoutTimer(connection: ManagedConnection): void {
-    // Clear existing timer
-    if (connection.timeoutTimer) {
-      clearTimeout(connection.timeoutTimer);
     }
 
-    connection.timeoutTimer = setTimeout(() => {
-      const timeSinceActivity = Date.now() - connection.lastActivity;
+    this.channels.get(channel)!.subscribers.add(callback as WatchSubscriber<unknown>);
 
-      // Only reconnect if still no activity
-      if (timeSinceActivity >= CONNECTION_TIMEOUT_MS && !connection.isConnecting) {
-        debug('Timeout: no data received, reconnecting', { key: connection.key });
-        this.forceReconnect(connection);
-      }
-    }, CONNECTION_TIMEOUT_MS);
+    // Return unsubscribe function
+    const typedCallback = callback as WatchSubscriber<unknown>;
+    return () => {
+      this.cleanupTimers.set(channel, {
+        timer: setTimeout(() => {
+          this.doUnsubscribe(channel, typedCallback);
+          this.cleanupTimers.delete(channel);
+        }, CLEANUP_DELAY_MS),
+        callback: typedCallback,
+      });
+    };
   }
 
-  /**
-   * Unsubscribe from watch events.
-   * Uses delayed cleanup to handle React Strict Mode re-mounts.
-   */
-  private unsubscribe(key: string, callback: WatchSubscriber): void {
-    const connection = this.connections.get(key);
-    if (!connection) return;
+  /** Unsubscribe all channels, close the SSE connection, and clear all state. */
+  disconnectAll(): void {
+    // Unsubscribe all channels on server
+    for (const [channel] of this.channels) {
+      this.serverUnsubscribe(channel);
+    }
+    this.channels.clear();
 
-    connection.subscribers.delete(callback);
-    debug('Unsubscribe', { key, remaining: connection.subscribers.size });
+    // Clear pending cleanup timers
+    for (const { timer } of this.cleanupTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.cleanupTimers.clear();
 
-    if (connection.subscribers.size === 0) {
-      // Delay cleanup to allow re-subscription (React Strict Mode)
-      connection.cleanupTimeout = setTimeout(() => {
-        // Double-check no new subscribers were added
-        if (connection.subscribers.size === 0) {
-          debug('Cleanup: removing connection', { key });
+    // Close SSE connection
+    this.controller?.abort();
+    this.reader = null;
+    this.isConnected = false;
 
-          // Clear timeout timer
-          if (connection.timeoutTimer) {
-            clearTimeout(connection.timeoutTimer);
-          }
-
-          connection.controller.abort();
-          this.connections.delete(key);
-
-          // Stop health check if no more connections
-          if (this.connections.size === 0) {
-            this.stopHealthCheck();
-          }
-        }
-      }, CLEANUP_DELAY_MS);
+    // Remove visibility listener
+    if (this.visibilityHandler) {
+      document.removeEventListener('visibilitychange', this.visibilityHandler);
+      this.visibilityListenerAttached = false;
+      this.visibilityHandler = null;
     }
   }
 
-  /**
-   * Build the URL for K8s Watch API.
-   */
-  private buildUrl(options: WatchOptions, connection: WatchConnection): string {
-    const { resourceType, projectId, namespace, name } = options;
-
-    let url: string;
-    const isClusterScoped = !projectId && !namespace;
-
-    if (projectId) {
-      const parts = resourceType.split('/');
-      const resourceName = parts.pop();
-      const apiPath = parts.join('/');
-
-      url = `/api/proxy/apis/resourcemanager.miloapis.com/v1alpha1/projects/${projectId}/control-plane/${apiPath}/namespaces/${namespace}/${resourceName}`;
-    } else if (namespace) {
-      const parts = resourceType.split('/');
-      const resourceName = parts.pop();
-      const apiPath = parts.join('/');
-
-      url = `/api/proxy/${apiPath}/namespaces/${namespace}/${resourceName}`;
-    } else {
-      url = `/api/proxy/${resourceType}`;
-    }
-
-    if (isClusterScoped && name) {
-      url += `/${name}`;
-    }
-
-    const params = new URLSearchParams({
-      watch: 'true',
-      resourceVersion: connection.resourceVersion,
-      timeoutSeconds: String(options.timeoutSeconds || 30), // k8s watch timeout
-    });
-
-    if (options.labelSelector) {
-      params.set('labelSelector', options.labelSelector);
-    }
-
-    if (name && !isClusterScoped) {
-      const existingFieldSelector = options.fieldSelector;
-      const nameSelector = `metadata.name=${name}`;
-      params.set(
-        'fieldSelector',
-        existingFieldSelector ? `${existingFieldSelector},${nameSelector}` : nameSelector
-      );
-    } else if (options.fieldSelector) {
-      params.set('fieldSelector', options.fieldSelector);
-    }
-
-    return `${url}?${params}`;
+  /** Number of active watch channels. */
+  getConnectionCount(): number {
+    return this.channels.size;
   }
 
-  /**
-   * Start watching a resource.
-   */
-  private async startWatch(options: WatchOptions, connection: ManagedConnection): Promise<void> {
-    const url = this.buildUrl(options, connection);
+  /** Debug snapshot of connection state. Accessible via `window.__watchStatus()`. */
+  getStatus() {
+    return {
+      clientId: this.clientId,
+      connected: this.isConnected,
+      channels: Array.from(this.channels.keys()),
+      subscriberCounts: Object.fromEntries(
+        Array.from(this.channels.entries()).map(([k, v]) => [k, v.subscribers.size])
+      ),
+    };
+  }
 
-    connection.isConnecting = true;
-    connection.lastActivity = Date.now();
+  // ─── SSE Connection ──────────────────────────────
 
-    debug('Starting watch', { key: connection.key, url });
+  /** Open the SSE stream to `GET /api/watch/stream` and flush pending subscriptions. */
+  private async connect(): Promise<void> {
+    this.controller = new AbortController();
 
     try {
-      const response = await fetch(url, {
-        signal: connection.controller.signal,
-        headers: { Accept: 'application/json' },
+      const response = await fetch(`/api/watch/stream?cid=${this.clientId}`, {
+        signal: this.controller.signal,
+        headers: { Accept: 'text/event-stream' },
       });
 
-      if (!response.ok) {
-        throw new Error(`Watch failed: ${response.status} ${response.statusText}`);
+      if (!response.ok || !response.body) {
+        throw new Error(`SSE connection failed: ${response.status}`);
       }
 
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No response body');
-      }
+      this.reader = response.body.getReader();
+      this.reconnectAttempts = 0;
 
-      connection.isConnecting = false;
-      connection.lastActivity = Date.now();
+      // Don't set isConnected or flush pending here — wait for the
+      // server's "connected" SSE event which confirms the client is
+      // registered. Flushing too early causes a race: the subscribe
+      // POST arrives before registerClient() completes → 403.
 
-      // Start timeout timer
-      this.startTimeoutTimer(connection);
+      // Read SSE stream (will process "connected" event inside)
+      await this.readStream();
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return;
+      this.isConnected = false;
 
-      debug('Watch connected', { key: connection.key });
+      this.scheduleReconnect();
+    }
+  }
 
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let receivedData = false;
-      const startTime = Date.now();
+  /** Read the SSE byte stream, parse messages, and dispatch to handlers. */
+  private async readStream(): Promise<void> {
+    if (!this.reader) return;
 
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
       while (true) {
-        const { done, value } = await reader.read();
+        const { done, value } = await this.reader.read();
         if (done) break;
 
-        receivedData = true;
-        connection.lastActivity = Date.now();
-
-        // Reset timeout timer on each data chunk
-        this.startTimeoutTimer(connection);
-
         buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
 
-        for (const line of lines) {
-          const event = parseWatchEvent(line);
-          if (!event) continue;
+        // Parse SSE format: "event: <type>\ndata: <json>\n\n"
+        const messages = buffer.split('\n\n');
+        buffer = messages.pop() || '';
 
-          // Handle 410 Gone / Resource Version Expired
-          // Reset resourceVersion and reconnect fresh
-          if (event.type === 'ERROR') {
-            const status = event.object as { code?: number; reason?: string };
-            if (status.code === 410 || status.reason === 'Expired') {
-              debug('Resource version expired, resetting to 0', { key: connection.key });
-              connection.resourceVersion = '0';
-              connection.reconnectAttempts = 0;
-              // Close current connection and reconnect
-              reader.cancel();
-              this.scheduleReconnect(options, connection, 100);
-              return;
-            }
-          }
-
-          const resourceVersion = extractResourceVersion(event.object);
-          if (resourceVersion) {
-            connection.resourceVersion = resourceVersion;
-          }
-
-          debug('Event received', {
-            key: connection.key,
-            type: event.type,
-            name: (event.object as any)?.metadata?.name,
-          });
-
-          connection.subscribers.forEach((subscriber) => subscriber(event));
+        for (const message of messages) {
+          this.handleSSEMessage(message);
         }
       }
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return;
+    }
 
-      // Connection closed
-      const connectionDuration = Date.now() - startTime;
-      const MIN_HEALTHY_DURATION = 3000;
-      const NORMAL_RECONNECT_DELAY = 1000;
-      const SINGLE_RESOURCE_RECONNECT_DELAY = 30000;
+    // Stream ended — reconnect and re-subscribe
+    this.isConnected = false;
+    this.resubscribeAll();
+    this.scheduleReconnect();
+  }
 
-      const isSingleResourceWatch = !!options.name;
+  /**
+   * Schedule a reconnection attempt with exponential backoff.
+   * Stops attempting after {@link SSE_MAX_RETRIES} consecutive failures.
+   * Visibility change resets the counter, allowing fresh attempts when the tab returns.
+   */
+  private scheduleReconnect(): void {
+    if (this.reconnectAttempts >= SSE_MAX_RETRIES) return;
 
-      debug('Watch closed', { key: connection.key, durationMs: connectionDuration, receivedData });
+    const delay = Math.min(
+      SSE_RECONNECT_BASE_DELAY * Math.pow(2, this.reconnectAttempts),
+      SSE_RECONNECT_MAX_DELAY
+    );
+    this.reconnectAttempts++;
+    setTimeout(() => this.connect(), delay);
+  }
 
-      if (receivedData && connectionDuration >= MIN_HEALTHY_DURATION) {
-        connection.reconnectAttempts = 0;
-        this.scheduleReconnect(options, connection, NORMAL_RECONNECT_DELAY);
-      } else if (receivedData && isSingleResourceWatch && connection.resourceVersion !== '0') {
-        connection.reconnectAttempts = 0;
-        this.scheduleReconnect(options, connection, SINGLE_RESOURCE_RECONNECT_DELAY);
-      } else {
-        throw new Error(
-          `Watch connection closed prematurely (duration: ${connectionDuration}ms, received data: ${receivedData})`
+  /** Route a parsed SSE message to the appropriate channel subscribers. */
+  private handleSSEMessage(raw: string): void {
+    let event = '';
+    const dataLines: string[] = [];
+
+    for (const line of raw.split('\n')) {
+      if (line.startsWith('event: ')) {
+        event = line.slice(7);
+      } else if (line.startsWith('data: ')) {
+        dataLines.push(line.slice(6));
+      } else if (line === 'data:') {
+        dataLines.push('');
+      }
+    }
+
+    if (!event || dataLines.length === 0) return;
+
+    const data = dataLines.join('\n');
+
+    try {
+      const parsed = JSON.parse(data);
+
+      switch (event) {
+        case 'connected': {
+          // Server has registered the client — safe to send subscriptions now
+          this.isConnected = true;
+
+          for (const opts of this.pendingSubscriptions.values()) {
+            this.serverSubscribe(opts);
+          }
+          this.pendingSubscriptions.clear();
+          break;
+        }
+
+        case 'watch': {
+          const channel = parsed.channel as string;
+          const sub = this.channels.get(channel);
+          if (!sub) return;
+
+          const watchEvent: WatchEvent<unknown> = {
+            type: parsed.type,
+            object: parsed.object,
+          };
+
+          for (const subscriber of Array.from(sub.subscribers)) {
+            subscriber(watchEvent);
+          }
+          break;
+        }
+        case 'watch-error': {
+          const channel = parsed.channel as string;
+          const sub = this.channels.get(channel);
+          if (!sub) return;
+
+          const errorEvent: WatchEvent<unknown> = {
+            type: 'ERROR',
+            object: parsed,
+          };
+
+          for (const subscriber of Array.from(sub.subscribers)) {
+            subscriber(errorEvent);
+          }
+          break;
+        }
+        // subscribed, unsubscribed, heartbeat — no action needed
+      }
+    } catch {
+      // Invalid JSON — skip
+    }
+  }
+
+  // ─── Server Communication ────────────────────────
+
+  /** Send `POST /api/watch/subscribe` to the server-side WatchHub. */
+  private async serverSubscribe(options: WatchOptions): Promise<void> {
+    try {
+      const response = await fetch('/api/watch/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: this.clientId,
+          resourceType: options.resourceType,
+          orgId: options.orgId,
+          projectId: options.projectId,
+          namespace: options.namespace,
+          name: options.name,
+          labelSelector: options.labelSelector,
+          fieldSelector: options.fieldSelector,
+        }),
+      });
+      if (!response.ok) {
+        const body = await response.text().catch(() => '');
+        console.warn(
+          `[WatchManager] subscribe failed (${response.status}): ${body}`,
+          options.resourceType
         );
       }
-    } catch (error) {
-      connection.isConnecting = false;
+    } catch (err) {
+      console.warn('[WatchManager] subscribe network error:', err);
+      // Will retry on reconnect
+    }
+  }
 
-      // Clear timeout timer
-      if (connection.timeoutTimer) {
-        clearTimeout(connection.timeoutTimer);
-        connection.timeoutTimer = undefined;
-      }
-
-      // Aborted intentionally, don't reconnect
-      if (connection.controller.signal.aborted) {
-        debug('Watch aborted', { key: connection.key });
-        return;
-      }
-
-      debug('Watch error', {
-        key: connection.key,
-        error: error instanceof Error ? error.message : String(error),
+  /** Send `POST /api/watch/unsubscribe` to the server-side WatchHub. */
+  private async serverUnsubscribe(channel: string): Promise<void> {
+    try {
+      await fetch('/api/watch/unsubscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: this.clientId,
+          channel,
+        }),
       });
+    } catch {
+      // Best effort
+    }
+  }
 
-      // Exponential backoff reconnection
-      if (connection.reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-        const delay = BASE_RECONNECT_DELAY * Math.pow(2, connection.reconnectAttempts);
-        connection.reconnectAttempts++;
-        debug('Scheduling reconnect', {
-          key: connection.key,
-          attempt: connection.reconnectAttempts,
-          delayMs: delay,
-        });
-        this.scheduleReconnect(options, connection, delay);
-      } else {
-        debug('Max retries exceeded', { key: connection.key });
-        const errorEvent: WatchEvent = {
-          type: 'ERROR',
-          object: {
-            message: 'Watch connection failed after max retries',
-            error: error instanceof Error ? error.message : String(error),
-          },
-        };
-        connection.subscribers.forEach((subscriber) => subscriber(errorEvent));
-      }
+  // ─── Helpers ─────────────────────────────────────
+
+  /** Remove a single subscriber from a channel; tear down channel if empty. */
+  private doUnsubscribe(channel: string, callback: WatchSubscriber<unknown>): void {
+    const sub = this.channels.get(channel);
+    if (!sub) return;
+
+    sub.subscribers.delete(callback);
+
+    if (sub.subscribers.size === 0) {
+      this.channels.delete(channel);
+      this.serverUnsubscribe(channel);
+    }
+  }
+
+  /** Queue all active channels for re-subscription on next connect. */
+  private resubscribeAll(): void {
+    this.pendingSubscriptions.clear();
+    for (const [channel, sub] of this.channels) {
+      this.pendingSubscriptions.set(channel, sub.watchOptions);
     }
   }
 
   /**
-   * Schedule a reconnection attempt.
+   * Build a deterministic channel key from watch options.
+   * Must match the server-side `WatchHub.buildWatchKey()` format exactly.
    */
-  private scheduleReconnect(
-    options: WatchOptions,
-    connection: ManagedConnection,
-    delay: number
-  ): void {
-    setTimeout(() => {
-      if (this.connections.has(connection.key)) {
-        connection.controller = new AbortController();
-        this.startWatch(options, connection);
-      }
-    }, delay);
+  private buildChannelKey(options: WatchOptions): string {
+    return [
+      options.resourceType,
+      options.orgId ?? '',
+      options.projectId ?? '',
+      options.namespace ?? '',
+      options.name ?? '',
+      options.labelSelector ?? '',
+      options.fieldSelector ?? '',
+    ].join(':');
   }
 
-  /**
-   * Disconnect all watch connections.
-   * Call this on app unmount.
-   */
-  disconnectAll(): void {
-    debug('Disconnecting all', { connectionCount: this.connections.size });
+  /** Disconnect when tab is hidden; reconnect when visible (saves connections). */
+  private attachVisibilityListener(): void {
+    if (this.visibilityListenerAttached) return;
+    this.visibilityListenerAttached = true;
 
-    this.stopHealthCheck();
-
-    this.connections.forEach((connection) => {
-      if (connection.cleanupTimeout) {
-        clearTimeout(connection.cleanupTimeout);
+    this.visibilityHandler = () => {
+      if (document.hidden) {
+        this.controller?.abort();
+        this.isConnected = false;
+      } else if (!this.isConnected) {
+        this.reconnectAttempts = 0;
+        this.resubscribeAll();
+        this.connect();
       }
-      if (connection.timeoutTimer) {
-        clearTimeout(connection.timeoutTimer);
-      }
-      connection.controller.abort();
-    });
-    this.connections.clear();
-  }
+    };
 
-  /**
-   * Get current connection count (for debugging).
-   */
-  getConnectionCount(): number {
-    return this.connections.size;
-  }
-
-  /**
-   * Get connection status (for debugging).
-   */
-  getStatus(): Array<{
-    key: string;
-    lastActivity: number;
-    isConnecting: boolean;
-    subscribers: number;
-  }> {
-    return Array.from(this.connections.entries()).map(([key, conn]) => ({
-      key,
-      lastActivity: Date.now() - conn.lastActivity,
-      isConnecting: conn.isConnecting,
-      subscribers: conn.subscribers.size,
-    }));
+    document.addEventListener('visibilitychange', this.visibilityHandler);
   }
 }
 
+// ─── Singleton ─────────────────────────────────────
+
 /**
  * Get or create the singleton WatchManager instance.
- * Uses window storage in development to survive HMR.
+ * Persists across HMR reloads by storing on `window.__watchManager`.
+ * Returns a no-op instance on the server (SSR).
  */
 function getWatchManager(): WatchManager {
-  // Server-side: always create new instance
   if (typeof window === 'undefined') {
     return new WatchManager();
   }
 
-  // Client-side in development: use window storage for HMR persistence
-  const isDev = import.meta.env?.DEV ?? process.env.NODE_ENV === 'development';
-
-  if (isDev) {
-    const key = '__watchManager';
-    if (!(window as any)[key]) {
-      debug('Creating HMR-safe singleton');
-      (window as any)[key] = new WatchManager();
+  // HMR persistence
+  const win = window as unknown as { __watchManager?: WatchManager };
+  if (import.meta.hot) {
+    if (!win.__watchManager) {
+      win.__watchManager = new WatchManager();
     }
-    return (window as any)[key];
+    return win.__watchManager;
   }
 
-  // Production: module-level singleton
-  return new WatchManager();
+  if (!win.__watchManager) {
+    win.__watchManager = new WatchManager();
+  }
+  return win.__watchManager;
 }
 
-// Singleton instance
 export const watchManager = getWatchManager();
 
-// Expose debug utilities in development
-if (
-  typeof window !== 'undefined' &&
-  (import.meta.env?.DEV ?? process.env.NODE_ENV === 'development')
-) {
-  (window as any).__enableWatchDebug = () => {
-    (window as any).__WATCH_DEBUG = true;
-    console.log('[WatchManager] Debug mode enabled. Refresh to see logs.');
-  };
-  (window as any).__disableWatchDebug = () => {
-    (window as any).__WATCH_DEBUG = false;
-    console.log('[WatchManager] Debug mode disabled.');
-  };
-  (window as any).__watchStatus = () => {
-    console.log('[WatchManager] Status:', watchManager.getStatus());
+// Debug utilities — call `window.__watchStatus()` in browser console
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  const win = window as unknown as Record<string, unknown>;
+  win.__watchStatus = () => {
+    console.table(watchManager.getStatus());
   };
 }
