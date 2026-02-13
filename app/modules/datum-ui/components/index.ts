@@ -17,6 +17,7 @@ export * from './dropdown';
 export * from './form';
 export * from './input-number';
 export * from './input-with-addons';
+export * from './sheet';
 export * from './sidebar';
 export * from './stepper';
 export * from './tabs';

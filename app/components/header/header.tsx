@@ -1,5 +1,4 @@
-import { OrganizationSwitcher } from './org-switcher';
-import { ProjectSwitcher } from './project-switcher';
+import { OrgProjectSwitcher } from './org-project-switcher';
 import { UserDropdown } from './user-dropdown';
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { NotificationDropdown } from '@/components/notification';
@@ -22,33 +21,15 @@ export const Header = ({
   currentOrg?: Organization;
 }) => {
   return (
-    <header className="bg-background border-sidebar-border sticky top-0 z-50 flex h-12 w-full max-w-screen shrink-0 items-center justify-between gap-4 border-b px-4">
+    <header className="bg-background border-sidebar-border sticky top-0 z-50 flex h-12 w-full items-center justify-between gap-4 border-b px-4">
       {/* Left Section */}
       <div className="flex flex-1 items-center">
-        <Link to={paths.account.root} className="mr-6 flex items-center justify-center">
+        <Link to={paths.account.root} className="mr-6 flex shrink-0 items-center justify-center">
           <LogoIcon width={21} />
         </Link>
-        {currentOrg && <OrganizationSwitcher currentOrg={currentOrg} />}
-        {currentProject && (
-          <>
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 14 14"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg">
-              <path
-                opacity="0.1"
-                className="stroke-foreground"
-                d="M9.96004 1.31641L4.04004 12.6837"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-
-            <ProjectSwitcher currentProject={currentProject} triggerClassName="w-4 h-4" />
-          </>
-        )}
+        <div className="hidden md:block">
+          <OrgProjectSwitcher currentOrg={currentOrg} currentProject={currentProject} />
+        </div>
       </div>
       {/* Right Section */}
       <div className="border-sidebar-border flex h-full items-center justify-end border-l">

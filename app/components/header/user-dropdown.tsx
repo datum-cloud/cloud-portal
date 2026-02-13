@@ -75,7 +75,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
             </AvatarFallback>
           </Avatar>
 
-          <p className="text-foreground text-xs font-semibold">{user?.fullName}</p>
+          <p className="text-foreground hidden text-xs font-semibold lg:block">{user?.fullName}</p>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

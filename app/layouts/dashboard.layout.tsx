@@ -1,5 +1,6 @@
 import { ContentWrapper } from '@/components/content-wrapper';
 import { Header } from '@/components/header';
+import { MobileMenu } from '@/components/mobile-menu';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import { SidebarInset, SidebarProvider, useSidebar } from '@datum-ui/components';
@@ -77,6 +78,9 @@ export function DashboardLayout({
     <div className="flex h-screen w-full flex-col overflow-hidden overscroll-none">
       {/* Header at the top - outside sidebar context */}
       <Header currentProject={currentProject} currentOrg={currentOrg} />
+
+      {/* Mobile menu */}
+      <MobileMenu navItems={navItems} currentOrg={currentOrg} currentProject={currentProject} />
 
       {/* Sidebar + Content area below header */}
       <SidebarProvider
