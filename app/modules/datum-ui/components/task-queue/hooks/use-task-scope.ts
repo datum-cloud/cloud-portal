@@ -7,7 +7,8 @@ import { useParams } from 'react-router';
 export type CurrentScope =
   | { type: 'project'; projectId: string; orgId?: string }
   | { type: 'org'; orgId: string }
-  | { type: 'global' };
+  | { type: 'global' }
+  | { type: 'edge'; projectId: string; orgId?: string };
 
 /**
  * Detect the current scope from URL params.
@@ -85,6 +86,11 @@ export function getContextLabel(metadata: TaskMetadata | undefined): string | un
   // User-scoped task
   if (scope === 'user') {
     return 'User';
+  }
+
+  // Edge-scoped task
+  if (scope === 'edge' && metadata.projectName) {
+    return `AI Edge: ${metadata.projectName}`;
   }
 
   // Fallback: try to infer from available data

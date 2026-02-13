@@ -59,7 +59,7 @@ export const Header = ({
                 type="quaternary"
                 theme="borderless"
                 size="small"
-                className="h-7 w-7 rounded-lg p-0"
+                className="hover:bg-sidebar-accent h-7 w-7 rounded-lg p-0"
                 onClick={() => helpScoutAPI.toggle()}>
                 <Icon icon={LifeBuoy} className="text-icon-header size-4" />
               </Button>
@@ -71,7 +71,7 @@ export const Header = ({
                   type="quaternary"
                   theme="borderless"
                   size="small"
-                  className="h-7 w-7 rounded-lg p-0">
+                  className="hover:bg-sidebar-accent h-7 w-7 rounded-lg p-0">
                   <Icon icon={BookOpen} className="text-icon-header size-4" />
                 </Button>
               </Link>

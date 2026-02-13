@@ -39,4 +39,4 @@ export {
 } from './http-proxy.queries';
 
 // Watch hooks exports
-export { useHttpProxiesWatch, useHttpProxyWatch } from './http-proxy.watch';
+export { useHttpProxiesWatch, useHttpProxyWatch, waitForHttpProxyReady } from './http-proxy.watch';

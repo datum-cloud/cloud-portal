@@ -58,7 +58,9 @@ export function getTrafficProtectionMode(
  */
 export function toHttpProxy(
   raw: ComDatumapisNetworkingV1AlphaHttpProxy,
-  trafficProtectionMode?: TrafficProtectionMode
+  options?: {
+    trafficProtectionMode?: TrafficProtectionMode;
+  }
 ): HttpProxy {
   // Type assertion for TLS field until generated types are updated
   const backend = raw.spec?.rules?.[0]?.backends?.[0] as
@@ -78,8 +80,9 @@ export function toHttpProxy(
     tlsHostname: backend?.tls?.hostname,
     status: raw.status,
     chosenName: raw.metadata?.annotations?.['app.kubernetes.io/name'] ?? '',
-    deviceName: raw.metadata?.annotations?.['app.kubernetes.io/device-name'],
-    ...(trafficProtectionMode !== undefined && { trafficProtectionMode }),
+    ...(options?.trafficProtectionMode !== undefined && {
+      trafficProtectionMode: options.trafficProtectionMode,
+    }),
   };
 }
 
@@ -101,17 +104,20 @@ export function toTrafficProtectionModeMap(
 
 /**
  * Transform raw API list to domain HttpProxyList.
- * Optionally merge WAF modes from a name -> mode map (e.g. from listing TrafficProtectionPolicies).
+ * Optionally merge WAF modes from map.
  */
 export function toHttpProxyList(
   items: ComDatumapisNetworkingV1AlphaHttpProxy[],
   nextCursor?: string,
-  trafficProtectionModeByName?: Map<string, TrafficProtectionMode>
+  options?: {
+    trafficProtectionModeByName?: Map<string, TrafficProtectionMode>;
+  }
 ): HttpProxyList {
   return {
     items: items.map((raw) => {
-      const mode = trafficProtectionModeByName?.get(raw.metadata?.name ?? '');
-      return toHttpProxy(raw, mode);
+      const proxyName = raw.metadata?.name ?? '';
+      const mode = options?.trafficProtectionModeByName?.get(proxyName);
+      return toHttpProxy(raw, { trafficProtectionMode: mode });
     }),
     nextCursor: nextCursor ?? null,
     hasMore: !!nextCursor,

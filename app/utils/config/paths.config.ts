@@ -66,11 +66,11 @@ export const paths = {
         },
       },
       proxy: {
-        root: '/project/[projectId]/proxy',
+        root: '/project/[projectId]/edge',
         detail: {
-          root: '/project/[projectId]/proxy/[proxyId]',
-          overview: '/project/[projectId]/proxy/[proxyId]/overview',
-          metrics: '/project/[projectId]/proxy/[proxyId]/metrics',
+          root: '/project/[projectId]/edge/[proxyId]',
+          overview: '/project/[projectId]/edge/[proxyId]/overview',
+          metrics: '/project/[projectId]/edge/[proxyId]/metrics',
         },
       },
       domains: {

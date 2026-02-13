@@ -15,7 +15,7 @@ export function NotificationBell({ unreadCount }: NotificationBellProps) {
         type="quaternary"
         theme="borderless"
         size="small"
-        className="relative h-7 w-7 cursor-pointer rounded-lg p-0"
+        className="hover:bg-sidebar-accent relative h-7 w-7 cursor-pointer rounded-lg p-0"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}>
         <Icon icon={Bell} className="text-icon-header size-4" />
         {unreadCount > 0 && (

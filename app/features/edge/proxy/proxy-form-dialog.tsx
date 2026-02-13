@@ -1,19 +1,74 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { ProxyHostnamesField } from '@/features/edge/proxy/form/hostnames-field';
 import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
+import { useApp } from '@/providers/app.provider';
 import {
   type HttpProxy,
   type HttpProxySchema,
   httpProxySchema,
-  useCreateHttpProxy,
   useUpdateHttpProxy,
+  createHttpProxyService,
+  waitForHttpProxyReady,
+  httpProxyKeys,
 } from '@/resources/http-proxies';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
-import { toast } from '@datum-ui/components';
+import { useInputControl } from '@conform-to/react';
+import { toast, useTaskQueue } from '@datum-ui/components';
+import { InputWithAddons } from '@datum-ui/components/input-with-addons';
 import { Form } from '@datum-ui/components/new-form';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
-import { ChevronDownIcon } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+import { useQueryClient } from '@tanstack/react-query';
+import { ChevronDownIcon, GaugeIcon } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
+import { useNavigate } from 'react-router';
+
+// Custom component that combines protocol selector with endpoint input
+const ProtocolEndpointInput = ({ autoFocus }: { autoFocus?: boolean }) => {
+  const { fields } = Form.useFormContext();
+  const protocolField = fields.protocol as any;
+  const endpointField = fields.endpointHost as any;
+
+  const protocolControl = useInputControl(protocolField);
+  const endpointControl = useInputControl(endpointField);
+
+  const protocolValue =
+    (Array.isArray(protocolControl.value) ? protocolControl.value[0] : protocolControl.value) ||
+    'https';
+  const endpointValue =
+    (Array.isArray(endpointControl.value) ? endpointControl.value[0] : endpointControl.value) || '';
+
+  return (
+    <InputWithAddons
+      leading={
+        <Select
+          value={protocolValue}
+          onValueChange={protocolControl.change}
+          name={protocolField.name}>
+          <SelectTrigger
+            id={protocolField.id}
+            className="bg-accent h-6 min-h-6 gap-1 border px-2 py-0 shadow-none focus:ring-0 focus-visible:ring-0">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="http">http</SelectItem>
+            <SelectItem value="https">https</SelectItem>
+          </SelectContent>
+        </Select>
+      }
+      value={endpointValue}
+      onChange={(e) => endpointControl.change(e.target.value)}
+      onBlur={endpointControl.blur}
+      name={endpointField.name}
+      id={endpointField.id}
+      autoFocus={autoFocus}
+      placeholder="e.g. api.example.com or 192.168.1.1:8080"
+      className="text-xs!"
+    />
+  );
+};
 
 export interface HttpProxyFormDialogRef {
   show: (initialValues?: HttpProxy) => void;
@@ -36,23 +91,52 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
 
     const isEdit = !!editProxyName;
 
-    const createMutation = useCreateHttpProxy(projectId);
+    const { enqueue } = useTaskQueue();
+    const queryClient = useQueryClient();
+    const navigate = useNavigate();
+    const { project, organization } = useApp();
     const updateMutation = useUpdateHttpProxy(projectId, editProxyName);
+    const httpProxyService = createHttpProxyService();
 
     const show = useCallback((initialValues?: HttpProxy) => {
       if (initialValues?.uid) {
         setEditProxyName(initialValues.name);
+
+        // Parse existing endpoint to extract protocol and hostname:port
+        let protocol: 'http' | 'https' = 'https';
+        let endpointHost = '';
+
+        if (initialValues.endpoint) {
+          try {
+            const url = new URL(initialValues.endpoint);
+            protocol = url.protocol === 'http:' ? 'http' : 'https';
+            endpointHost = url.port ? `${url.hostname}:${url.port}` : url.hostname;
+          } catch {
+            // If parsing fails, try to extract protocol manually
+            if (initialValues.endpoint.startsWith('http://')) {
+              protocol = 'http';
+              endpointHost = initialValues.endpoint.replace(/^https?:\/\//, '');
+            } else if (initialValues.endpoint.startsWith('https://')) {
+              protocol = 'https';
+              endpointHost = initialValues.endpoint.replace(/^https?:\/\//, '');
+            } else {
+              endpointHost = initialValues.endpoint;
+            }
+          }
+        }
+
         setDefaultValues({
           name: initialValues.name,
           chosenName: initialValues.chosenName || '',
-          endpoint: initialValues.endpoint ?? '',
+          protocol,
+          endpointHost,
           hostnames: initialValues.hostnames,
           tlsHostname: initialValues.tlsHostname,
           trafficProtectionMode: initialValues.trafficProtectionMode ?? 'Disabled',
         });
       } else {
         setEditProxyName('');
-        setDefaultValues({ trafficProtectionMode: 'Enforce' });
+        setDefaultValues({ protocol: 'https', trafficProtectionMode: 'Enforce' });
       }
       setOpen(true);
     }, []);
@@ -64,10 +148,16 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     useImperativeHandle(ref, () => ({ show, hide }), [show, hide]);
 
     const handleSubmit = async (data: HttpProxySchema) => {
-      try {
-        if (isEdit) {
+      // Ensure protocol has a value (default to 'https' if not set)
+      const protocol = data.protocol || 'https';
+      // Combine protocol and endpointHost into full endpoint URL
+      const fullEndpoint = `${protocol}://${data.endpointHost}`;
+
+      if (isEdit) {
+        // Updates don't need async waiting - they're synchronous
+        try {
           await updateMutation.mutateAsync({
-            endpoint: data.endpoint,
+            endpoint: fullEndpoint,
             hostnames: data.hostnames,
             tlsHostname: data.tlsHostname,
             chosenName: data.chosenName,
@@ -78,20 +168,91 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           });
           setOpen(false);
           onEditSuccess?.();
-        } else {
-          const proxy = await createMutation.mutateAsync(data);
-          toast.success('AI Edge', {
-            description: 'The Edge endpoint has been created successfully',
+        } catch (error) {
+          toast.error('AI Edge', {
+            description: (error as Error).message || 'Failed to update Edge endpoint',
           });
-          setOpen(false);
-          onCreateSuccess?.(proxy);
+          onError?.(error as Error);
         }
-      } catch (error) {
-        toast.error('AI Edge', {
-          description:
-            (error as Error).message || `Failed to ${isEdit ? 'update' : 'create'} Edge endpoint`,
+      } else {
+        // Close dialog immediately - task queue will handle the rest
+        setOpen(false);
+
+        // Generate the resource name
+        const resourceName = data.chosenName
+          ? generateId(data.chosenName as string, {
+              randomText: nameRandomSuffix,
+              randomLength: 6,
+            })
+          : data.name;
+
+        const metadata =
+          project && organization
+            ? {
+                scope: 'edge',
+                projectId: project.name,
+                projectName: project.displayName || project.name,
+                orgId: organization.name,
+                orgName: organization.displayName || organization.name,
+              }
+            : undefined;
+
+        enqueue({
+          title: `Creating Edge endpoint "${data.chosenName || resourceName}"`,
+          icon: <GaugeIcon className="size-4" />,
+          cancelable: false,
+          metadata,
+          processor: async (ctx) => {
+            try {
+              await httpProxyService.create(projectId, {
+                name: resourceName,
+                chosenName: data.chosenName,
+                endpoint: fullEndpoint,
+                hostnames: data.hostnames,
+                tlsHostname: data.tlsHostname,
+                trafficProtectionMode: data.trafficProtectionMode,
+              });
+
+              const { promise, cancel } = waitForHttpProxyReady(projectId, resourceName);
+              ctx.onCancel(cancel); // Register cleanup - called automatically on cancel/timeout
+
+              const readyProxy = await promise;
+
+              ctx.setResult(readyProxy);
+              ctx.succeed();
+            } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              ctx.fail(undefined, errorMessage);
+            }
+          },
+          onComplete: (outcome) => {
+            queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
+            if (outcome.status === 'completed' && outcome.result) {
+              onCreateSuccess?.(outcome.result);
+            } else if (outcome.status === 'failed') {
+              const errorMessage =
+                outcome.failedItems[0]?.message || 'Failed to create Edge endpoint';
+              onError?.(new Error(errorMessage));
+            }
+          },
+          completionActions: (result: HttpProxy) => [
+            {
+              children: 'View Edge Overview',
+              type: 'primary',
+              theme: 'outline',
+              size: 'xs',
+              onClick: () => {
+                navigate(
+                  getPathWithParams(paths.project.detail.proxy.detail.overview, {
+                    projectId,
+                    proxyId: result.name,
+                  })
+                );
+                onCreateSuccess?.(result);
+              },
+            },
+          ],
         });
-        onError?.(error as Error);
       }
     };
 
@@ -152,11 +313,11 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           </Form.Field>
 
           <Form.Field
-            tooltip="Origin is the URL or hostname where your service is running"
-            name="endpoint"
+            tooltip="Origin is the hostname or IP address where your service is running"
+            name="endpointHost"
             label="Origin"
             required>
-            <Form.Input autoFocus={isEdit} placeholder="e.g. api.example.com" />
+            <ProtocolEndpointInput autoFocus={isEdit} />
           </Form.Field>
 
           <Form.Field

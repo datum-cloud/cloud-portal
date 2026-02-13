@@ -2,6 +2,7 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { ProxySparkline } from '@/features/edge/proxy/metrics/proxy-sparkline';
 import {
   ProxyAdvancedConfigDialog,
   type ProxyAdvancedConfigDialogRef,
@@ -29,7 +30,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
-import { GlobeIcon, PencilIcon, PlusIcon, TrashIcon, MonitorIcon } from 'lucide-react';
+import { GlobeIcon, PencilIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 import {
   LoaderFunctionArgs,
@@ -69,7 +70,7 @@ export default function HttpProxyPage() {
 
   // Read from React Query cache (gets updates from watch!)
   const { data: queryData } = useHttpProxies(projectId ?? '', {
-    refetchOnMount: false,
+    refetchOnMount: true,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -82,8 +83,8 @@ export default function HttpProxyPage() {
 
   const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
     onSuccess: () => {
-      toast.success('Edge', {
-        description: 'The edge has been deleted successfully',
+      toast.success('AI Edge', {
+        description: 'Edge endpoint has been deleted successfully',
       });
     },
     onError: (error) => {
@@ -93,7 +94,7 @@ export default function HttpProxyPage() {
 
   const deleteHttpProxy = async (httpProxy: HttpProxy) => {
     await confirm({
-      title: 'Delete Edge',
+      title: 'Delete Edge Endpoint',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
@@ -119,16 +120,9 @@ export default function HttpProxyPage() {
         accessorKey: 'chosenName',
         cell: ({ row }) => {
           return (
-            <div className="flex items-center gap-2">
-              <Tooltip message={row.original.name || row.original.chosenName}>
-                <span className="font-medium">{row.original.chosenName || row.original.name}</span>
-              </Tooltip>
-              {row.original.deviceName && (
-                <Tooltip message={`${row.original.deviceName}`}>
-                  <Icon icon={MonitorIcon} className="text-icon-primary size-4" />
-                </Tooltip>
-              )}
-            </div>
+            <Tooltip message={row.original.name || row.original.chosenName}>
+              <span className="font-medium">{row.original.chosenName || row.original.name}</span>
+            </Tooltip>
           );
         },
       },
@@ -150,6 +144,14 @@ export default function HttpProxyPage() {
               );
             })()
           );
+        },
+      },
+      {
+        header: 'Edge Activity',
+        accessorKey: 'activity',
+        enableSorting: false,
+        cell: ({ row }) => {
+          return <ProxySparkline projectId={projectId ?? ''} proxyId={row.original.name} />;
         },
       },
       {

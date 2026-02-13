@@ -56,7 +56,7 @@ export const TaskQueueTrigger = forwardRef<HTMLButtonElement, TaskQueueTriggerPr
           theme="borderless"
           size="small"
           className={cn(
-            'relative h-7 w-7 rounded-lg p-0 transition-colors duration-300',
+            'hover:bg-sidebar-accent relative h-7 w-7 rounded-lg p-0 transition-colors duration-300',
             flash && 'bg-primary/10'
           )}
           aria-label={`Tasks${activeCount > 0 ? ` (${activeCount} active)` : ''}`}

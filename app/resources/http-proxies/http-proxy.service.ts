@@ -80,7 +80,10 @@ export function createHttpProxyService() {
 
       const proxyData = proxyResponse.data as ComDatumapisNetworkingV1AlphaHttpProxyList;
       const modeMap = toTrafficProtectionModeMap(policyResponse.data);
-      return toHttpProxyList(proxyData?.items ?? [], undefined, modeMap).items;
+
+      return toHttpProxyList(proxyData?.items ?? [], undefined, {
+        trafficProtectionModeByName: modeMap,
+      }).items;
     },
 
     async createTrafficProtectionPolicy(
@@ -174,7 +177,7 @@ export function createHttpProxyService() {
       }
 
       const wafMode = getTrafficProtectionMode(policyResponse.data);
-      return toHttpProxy(data, wafMode);
+      return toHttpProxy(data, { trafficProtectionMode: wafMode });
     },
 
     /**

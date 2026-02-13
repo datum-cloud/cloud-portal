@@ -1,10 +1,6 @@
 import type { ComDatumapisNetworkingV1AlphaHttpProxy } from '@/modules/control-plane/networking';
 import { nameSchema } from '@/resources/base';
-import {
-  createHostnameSchema,
-  createHttpEndpointSchema,
-  isIPAddress,
-} from '@/utils/helpers/validation.helper';
+import { createHostnameSchema, isIPAddress } from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
 
 // HTTP Proxy resource schema (from API)
@@ -19,8 +15,6 @@ export const httpProxyResourceSchema = z.object({
   tlsHostname: z.string().optional(),
   status: z.any().optional(),
   chosenName: z.string().optional(),
-  /** Device name stored as a Kubernetes annotation */
-  deviceName: z.string().optional(),
   /** WAF mode from the linked TrafficProtectionPolicy (if present) */
   trafficProtectionMode: z.enum(['Observe', 'Enforce', 'Disabled']).optional(),
 });
@@ -85,13 +79,48 @@ export const httpProxyHostnameSchema = z.object({
   hostnames: z.array(createHostnameSchema('Hostname')).optional(),
 });
 
+// Helper function to validate hostname:port (without protocol)
+function isValidHostnamePort(value: string): boolean {
+  if (!value || typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  if (trimmed !== value) return false;
+
+  // Check for port separator
+  const parts = trimmed.split(':');
+  if (parts.length > 2) return false; // Only one colon allowed for port
+
+  const hostname = parts[0];
+  const port = parts[1];
+
+  // Validate hostname (can be hostname or IP)
+  if (!hostname || hostname.length === 0) return false;
+
+  // Validate port if present
+  if (port !== undefined) {
+    const portNum = Number.parseInt(port, 10);
+    if (Number.isNaN(portNum) || portNum < 1 || portNum > 65535) return false;
+  }
+
+  // Hostname can be a valid hostname or IP address
+  // Basic validation - more detailed validation happens when combining with protocol
+  return hostname.length > 0 && hostname.length <= 253;
+}
+
 export const httpProxySchema = z
   .object({
     chosenName: z
       .string({ error: 'Name is required' })
       .min(1, { message: 'Name is required' })
       .max(50, { message: 'Name must be less than 50 characters long.' }),
-    endpoint: createHttpEndpointSchema('Endpoint'),
+    protocol: z.enum(['http', 'https']).default('https'),
+    endpointHost: z
+      .string({ message: 'Origin is required' })
+      .trim()
+      .min(1, { message: 'Origin is required' })
+      .refine(isValidHostnamePort, {
+        message:
+          'Origin must be a valid hostname or IP address with optional port (e.g., api.example.com:8080)',
+      }),
     tlsHostname: z.string().min(1).max(253).optional(),
     trafficProtectionMode: trafficProtectionModeSchema.default('Enforce'),
   })
@@ -99,18 +128,15 @@ export const httpProxySchema = z
   .and(nameSchema)
   .superRefine((data, ctx) => {
     // Require TLS hostname when endpoint is HTTPS with an IP address
-    if (data.endpoint) {
-      try {
-        const url = new URL(data.endpoint);
-        if (url.protocol === 'https:' && isIPAddress(url.hostname) && !data.tlsHostname) {
-          ctx.addIssue({
-            code: 'custom',
-            message: 'TLS hostname is required for IP-based HTTPS endpoints',
-            path: ['tlsHostname'],
-          });
-        }
-      } catch {
-        // Invalid URL - handled by endpoint refine
+    if (data.endpointHost && data.protocol === 'https') {
+      const parts = data.endpointHost.split(':');
+      const hostname = parts[0];
+      if (isIPAddress(hostname) && !data.tlsHostname) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'TLS hostname is required for IP-based HTTPS endpoints',
+          path: ['tlsHostname'],
+        });
       }
     }
   });
