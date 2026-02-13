@@ -1,3 +1,4 @@
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { Badge } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 import { AlertCircle, CheckCircle, XCircle, Star, Info } from 'lucide-react';
@@ -9,6 +10,7 @@ export const badgeDemoSections = [
   { id: 'status-indicators', label: 'Status Indicators' },
   { id: 'custom-styling', label: 'Custom Styling' },
   { id: 'interactive-badges', label: 'Interactive Badges' },
+  { id: 'badge-copy', label: 'Copyable Badges' },
   { id: 'use-cases', label: 'Common Use Cases' },
 ];
 
@@ -177,6 +179,44 @@ export default function BadgeDemo() {
               Hover Effect
             </Badge>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Copyable Badges */}
+      <Card id="badge-copy">
+        <CardHeader>
+          <CardTitle>Copyable Badges</CardTitle>
+          <CardDescription>
+            Use `BadgeCopy` for quickly copying values like IDs, hostnames, or tokens.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {['solid', 'outline', 'light'].map((theme) => (
+            <div key={theme} className="space-y-2">
+              <h4 className="text-sm font-medium capitalize">{theme} theme</h4>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  'primary',
+                  'secondary',
+                  'tertiary',
+                  'quaternary',
+                  'info',
+                  'warning',
+                  'danger',
+                  'success',
+                ].map((type) => (
+                  <BadgeCopy
+                    key={`${type}-${theme}`}
+                    value={`${type}-${theme}`}
+                    text={`${type} • ${theme}`}
+                    badgeType={type as any}
+                    badgeTheme={theme as any}
+                    showTooltip
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
 
