@@ -14,8 +14,8 @@ export const DomainVerificationCard = ({ domain }: { domain: Domain }) => {
   }
 
   return (
-    <Card className="w-full p-0 shadow-md">
-      <CardContent className="flex flex-col gap-5 px-9 py-8">
+    <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
+      <CardContent className="flex flex-col gap-5 p-0 sm:px-6 sm:pb-4">
         <div className="flex items-center gap-2.5">
           <Icon icon={BookOpenIcon} size={20} className="text-secondary stroke-2" />
           <span className="text-base font-semibold">Manual Verification</span>

@@ -30,10 +30,10 @@ export default function HttpProxyMetrics() {
         <Col span={24}>
           <HttpProxyGlobalUpstreamLatency projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
         </Col>
-        <Col span={12}>
+        <Col span={24} xs={{ span: 24 }} sm={{ span: 24 }} md={{ span: 24 }} lg={{ span: 12 }}>
           <HttpProxyUpstreamRps projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
         </Col>
-        <Col span={12}>
+        <Col span={24} xs={{ span: 24 }} sm={{ span: 24 }} md={{ span: 24 }} lg={{ span: 12 }}>
           <HttpProxyUpstreamResponse projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
         </Col>
       </Row>

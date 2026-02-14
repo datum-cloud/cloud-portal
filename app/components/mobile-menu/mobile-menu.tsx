@@ -17,12 +17,23 @@ const MenuIcon = () => (
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden>
     <path
-      d="M2.66699 5.33203H13.3337"
+      d="M2.66699 3.33301H13.3337"
       stroke="currentColor"
       strokeLinecap="round"
       strokeLinejoin="round"
     />
-    <path d="M3 11H10" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M2.66699 8H13.3337"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M2.66699 12.667H10.0003"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 

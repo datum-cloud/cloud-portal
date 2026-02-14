@@ -33,10 +33,22 @@ export default function ExportPolicyOverview() {
         </Col>
       </Row>
       <Row type="flex" gutter={[24, 32]}>
-        <Col span={12} className="mb-4">
+        <Col
+          span={24}
+          className="mb-4"
+          xs={{ span: 24 }}
+          sm={{ span: 24 }}
+          md={{ span: 24 }}
+          lg={{ span: 12 }}>
           <ExportPolicyGeneralCard exportPolicy={exportPolicy ?? {}} />
         </Col>
-        <Col span={12} className="mb-4">
+        <Col
+          span={24}
+          className="mb-4"
+          xs={{ span: 24 }}
+          sm={{ span: 24 }}
+          md={{ span: 24 }}
+          lg={{ span: 12 }}>
           <ExportPolicyActivityCard />
         </Col>
       </Row>

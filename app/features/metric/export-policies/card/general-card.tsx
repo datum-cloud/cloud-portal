@@ -68,8 +68,8 @@ export const ExportPolicyGeneralCard = ({
   }, [exportPolicy]);
 
   return (
-    <Card className="h-full px-3 py-8 shadow">
-      <CardHeader className="mb-2">
+    <Card className="h-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
+      <CardHeader className="mb-2 px-0 sm:px-6">
         <CardTitle className="flex items-center justify-between gap-2">
           <span className="text-lg font-medium">General</span>
           <LinkButton
@@ -83,7 +83,7 @@ export const ExportPolicyGeneralCard = ({
           </LinkButton>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0 sm:px-6 sm:pb-4">
         <List items={listItems} className="border-table-accent dark:border-quaternary border-t" />
       </CardContent>
     </Card>

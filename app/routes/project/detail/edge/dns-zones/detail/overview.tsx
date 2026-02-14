@@ -79,7 +79,7 @@ export default function DnsZoneOverviewPage() {
               nameservers={dnsZone?.status?.domainRef?.status?.nameservers ?? []}
               registration={domain?.status?.registration ?? {}}
               actions={
-                <div className="flex items-center gap-2.5">
+                <div className="flex flex-wrap items-center justify-end gap-2.5">
                   {domain?.name && (
                     <RefreshNameserversButton
                       size="xs"

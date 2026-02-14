@@ -80,7 +80,7 @@ export const HttpProxyGeneralCard = ({
         })(),
       },
       {
-        label: 'Protection Level',
+        label: 'Protection',
         content: (
           <span className="capitalize">{httpProxy.trafficProtectionMode || 'Disabled'}</span>
         ),
@@ -93,8 +93,8 @@ export const HttpProxyGeneralCard = ({
   }, [httpProxy]);
 
   return (
-    <Card className="w-full p-0 shadow-md">
-      <CardContent className="px-9 py-6">
+    <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
+      <CardContent className="p-0 sm:px-6 sm:pb-4">
         <div className="mb-4 flex items-center justify-between">
           <span className="text-base font-semibold">General</span>
           {onEdit && (

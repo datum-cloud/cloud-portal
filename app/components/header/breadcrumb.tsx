@@ -1,4 +1,5 @@
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { cn } from '@shadcn/lib/utils';
 import {
   BreadcrumbItem,
   BreadcrumbLink,
@@ -100,8 +101,8 @@ export const Breadcrumb = ({ className }: { className?: string }): React.ReactEl
   if (items?.length <= 1) return null;
 
   return (
-    <BreadcrumbUI className={className}>
-      <BreadcrumbList className="gap-[5px] text-xs sm:gap-[5px]">
+    <BreadcrumbUI className={cn('min-w-0 shrink-0 overflow-hidden', className)}>
+      <BreadcrumbList className="scrollbar-hide w-full flex-nowrap gap-[5px] overflow-x-auto overflow-y-hidden text-xs whitespace-nowrap *:shrink-0 sm:gap-[5px]">
         <BreadcrumbItem>
           <BreadcrumbLink
             href="/"

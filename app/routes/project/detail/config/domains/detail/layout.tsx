@@ -85,6 +85,7 @@ export default function DomainDetailLayout() {
       sidebarHeader={
         <div className="flex flex-col gap-5.5">
           <BackButton
+            className="hidden md:flex"
             to={getPathWithParams(paths.project.detail.domains.root, {
               projectId,
             })}>

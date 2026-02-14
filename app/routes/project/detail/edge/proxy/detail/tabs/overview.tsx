@@ -92,7 +92,7 @@ export default function HttpProxyOverviewPage() {
             onEdit={() => proxyFormRef.current?.show(effectiveProxy)}
           />
         </Col>
-        <Col span={12}>
+        <Col span={24} xs={{ span: 24 }} sm={{ span: 24 }} md={{ span: 24 }} lg={{ span: 12 }}>
           <HttpProxyHostnamesCard
             endpoint={effectiveProxy?.endpoint}
             customHostnames={effectiveProxy?.hostnames ?? []}
@@ -101,7 +101,7 @@ export default function HttpProxyOverviewPage() {
             projectId={projectId}
           />
         </Col>
-        <Col span={12}>
+        <Col span={24} xs={{ span: 24 }} sm={{ span: 24 }} md={{ span: 24 }} lg={{ span: 12 }}>
           <GrafanaSetupCard projectId={projectId ?? ''} />
         </Col>
         <Col span={24}>

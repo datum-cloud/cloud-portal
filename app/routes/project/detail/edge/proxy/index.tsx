@@ -30,7 +30,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
-import { GlobeIcon, PencilIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 import {
   LoaderFunctionArgs,
@@ -118,6 +118,7 @@ export default function HttpProxyPage() {
       {
         header: 'Name',
         accessorKey: 'chosenName',
+        meta: { className: 'min-w-32' },
         cell: ({ row }) => {
           return (
             <Tooltip message={row.original.name || row.original.chosenName}>
@@ -150,6 +151,7 @@ export default function HttpProxyPage() {
         header: 'Edge Activity',
         accessorKey: 'activity',
         enableSorting: false,
+        meta: { tooltip: 'Traffic activity over the last 24 hours to this edge' },
         cell: ({ row }) => {
           return <ProxySparkline projectId={projectId ?? ''} proxyId={row.original.name} />;
         },
@@ -157,6 +159,7 @@ export default function HttpProxyPage() {
       {
         header: 'Origin',
         accessorKey: 'origin',
+        meta: { tooltip: 'Upstream origin URL' },
         cell: ({ row }) => {
           return row.original.endpoint;
         },
@@ -185,8 +188,9 @@ export default function HttpProxyPage() {
         },
       },
       {
-        header: 'Protection Level',
+        header: 'Protection',
         accessorKey: 'trafficProtectionMode',
+        meta: { tooltip: 'What level of WAF protection is applied to this Edge' },
         cell: ({ row }) => {
           return (
             <span className="capitalize">{row.original.trafficProtectionMode || 'Disabled'}</span>
@@ -208,23 +212,14 @@ export default function HttpProxyPage() {
   const rowActions: DataTableRowActionsProps<HttpProxy>[] = useMemo(
     () => [
       {
-        key: 'edit-hostnames',
-        label: 'Edit hostnames',
-        icon: <Icon icon={GlobeIcon} className="size-4" />,
-        variant: 'default',
-        action: (row) => advancedConfigRef.current?.show(row),
-      },
-      {
         key: 'edit',
         label: 'Edit',
-        icon: <Icon icon={PencilIcon} className="size-4" />,
         variant: 'default',
         action: (row) => proxyFormRef.current?.show(row),
       },
       {
         key: 'delete',
         label: 'Delete',
-        icon: <Icon icon={TrashIcon} className="size-4" />,
         variant: 'destructive',
         action: (row) => deleteHttpProxy(row),
       },

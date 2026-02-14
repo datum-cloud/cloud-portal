@@ -35,7 +35,7 @@ export function SearchInput({
   inputClassName,
 }: SearchInputProps) {
   return (
-    <div className={cn('min-w-60 space-y-4', className)}>
+    <div className={cn('pace-y-4 md:min-w-60', className)}>
       {label && (
         <div className="space-y-1">
           <Label htmlFor={id} className="text-xs font-medium">

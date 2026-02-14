@@ -80,7 +80,9 @@ export function DashboardLayout({
       <Header currentProject={currentProject} currentOrg={currentOrg} />
 
       {/* Mobile menu */}
-      <MobileMenu navItems={navItems} currentOrg={currentOrg} currentProject={currentProject} />
+      {navItems.length > 0 && (
+        <MobileMenu navItems={navItems} currentOrg={currentOrg} currentProject={currentProject} />
+      )}
 
       {/* Sidebar + Content area below header */}
       <SidebarProvider
@@ -96,13 +98,15 @@ export function DashboardLayout({
             '--sidebar-width-mobile': '18.75rem', // Custom desktop width
           } as React.CSSProperties
         }>
-        <AppSidebar
-          title={sidebarHeader as any}
-          navItems={navItems}
-          collapsible={sidebarCollapsible}
-          className="top-12"
-          closeOnNavigation={closeOnNavigation}
-        />
+        {(navItems.length > 0 || sidebarHeader != null) && (
+          <AppSidebar
+            title={sidebarHeader as any}
+            navItems={navItems}
+            collapsible={sidebarCollapsible}
+            className="top-12"
+            closeOnNavigation={closeOnNavigation}
+          />
+        )}
         <SidebarInset>
           <DashboardContent
             containerClassName={containerClassName}

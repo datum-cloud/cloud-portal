@@ -37,6 +37,7 @@ export default function HttpProxyDetailLayout() {
       sidebarHeader={
         <div className="flex flex-col gap-5.5">
           <BackButton
+            className="hidden md:flex"
             to={getPathWithParams(paths.project.detail.proxy.root, {
               projectId,
             })}>

@@ -10,7 +10,7 @@ export function ContentWrapper({
   return (
     <div
       className={cn(
-        'flex h-full w-full min-w-0 flex-col gap-5 p-4 py-9 md:p-9',
+        'flex h-full w-full min-w-0 flex-col gap-5 p-4 py-7 md:p-9',
         containerClassName
       )}>
       <Breadcrumb className="mx-auto w-full max-w-[1600px]" />
