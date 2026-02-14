@@ -11,7 +11,7 @@ import { Autocomplete } from '@datum-ui/components/new-form/primitives';
 import { cn } from '@shadcn/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangleIcon, CheckIcon, PlusIcon } from 'lucide-react';
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 // ============================================================================
 // Domain Option Type
@@ -60,6 +60,8 @@ type SelectDomainProps = {
   onValueChange?: (value: string) => void;
   /** Domain values to exclude from the options (e.g., already selected in other fields) */
   excludeValues?: string[];
+  /** Allow custom hostnames not in the domain list */
+  creatable?: boolean;
   /** Disable the component */
   disabled?: boolean;
   /** Placeholder text */
@@ -75,6 +77,7 @@ export function SelectDomain({
   value,
   onValueChange,
   excludeValues,
+  creatable,
   disabled,
   placeholder = 'Select a domain...',
   className,
@@ -95,9 +98,9 @@ export function SelectDomain({
       domainStatus: transformControlPlaneStatus(d.status).status,
     }));
 
-    // If the current value isn't in the domain list (e.g., legacy free-text value),
-    // inject it so it remains visible and selectable
-    if (value && !options.some((o) => o.value === value)) {
+    // In creatable mode, the Autocomplete trigger handles unknown values natively.
+    // In non-creatable mode, inject the current value so it remains visible and selectable.
+    if (!creatable && value && !options.some((o) => o.value === value)) {
       options.unshift({
         value,
         label: value,
@@ -106,7 +109,7 @@ export function SelectDomain({
     }
 
     return options;
-  }, [domains, value]);
+  }, [domains, value, creatable]);
 
   const filteredOptions = useMemo(() => {
     if (!excludeValues?.length) return domainOptions;
@@ -114,6 +117,23 @@ export function SelectDomain({
       (option) => option.value === value || !excludeValues.includes(option.value)
     );
   }, [domainOptions, excludeValues, value]);
+
+  // In creatable mode, we take over filtering from cmdk so we can keep
+  // parent domains visible when the user types a subdomain.
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const searchFilteredOptions = useMemo(() => {
+    if (!creatable) return filteredOptions;
+    const needle = searchTerm.trim().toLowerCase();
+    if (!needle) return filteredOptions;
+    return filteredOptions.filter((option) => {
+      // Normal substring match
+      if (option.label.toLowerCase().includes(needle)) return true;
+      // Keep parent domains visible: typing "app.hiyahya.dev" keeps "hiyahya.dev"
+      if (needle.endsWith(`.${option.value.toLowerCase()}`)) return true;
+      return false;
+    });
+  }, [creatable, searchTerm, filteredOptions]);
 
   const selectedOption = useMemo(
     () => domainOptions.find((o) => o.value === value),
@@ -131,33 +151,59 @@ export function SelectDomain({
 
   const isUnverified = selectedOption && selectedOption.domainStatus !== ControlPlaneStatus.Success;
 
+  const renderCreatableLabel = useCallback(
+    (val: string) => {
+      // Check if the typed value is a subdomain of a registered domain
+      const parentDomain = domainOptions.find(
+        (d) => val.endsWith(`.${d.value}`) && val !== d.value
+      );
+
+      return (
+        <div className="flex flex-col">
+          <span>Use &ldquo;{val}&rdquo;</span>
+          {parentDomain && (
+            <span className="text-muted-foreground text-[11px]">
+              subdomain of {parentDomain.value}
+            </span>
+          )}
+        </div>
+      );
+    },
+    [domainOptions]
+  );
+
   return (
     <>
       <Autocomplete<DomainOption>
-        options={filteredOptions}
+        options={searchFilteredOptions}
         value={value}
         onValueChange={onValueChange}
+        onSearchChange={creatable ? setSearchTerm : undefined}
         loading={externalLoading ?? isLoading}
         disabled={disabled}
         placeholder={placeholder}
         emptyContent={emptyContent}
         className={className}
         triggerClassName={triggerClassName}
+        creatable={creatable}
+        creatableLabel={creatable ? renderCreatableLabel : undefined}
         renderOption={(option, isSelected) => (
           <DomainOptionContent option={option} isSelected={isSelected} />
         )}
         footer={
-          <Button
-            htmlType="button"
-            type="quaternary"
-            theme="borderless"
-            size="small"
-            className="hover:bg-accent hover:text-accent-foreground flex w-full cursor-pointer justify-start gap-2 px-3 py-2 text-xs font-normal transition-all"
-            onClick={() => domainFormRef.current?.show()}
-            icon={<PlusIcon className="size-3.5" />}
-            iconPosition="left">
-            Add a Domain
-          </Button>
+          creatable ? undefined : (
+            <Button
+              htmlType="button"
+              type="quaternary"
+              theme="borderless"
+              size="small"
+              className="hover:bg-accent hover:text-accent-foreground flex w-full cursor-pointer justify-start gap-2 px-3 py-2 text-xs font-normal transition-all"
+              onClick={() => domainFormRef.current?.show()}
+              icon={<PlusIcon className="size-3.5" />}
+              iconPosition="left">
+              Add a Domain
+            </Button>
+          )
         }
         {...rest}
       />
@@ -171,7 +217,13 @@ export function SelectDomain({
           </span>
         </div>
       )}
-      <DomainFormDialog ref={domainFormRef} projectId={projectId} onSuccess={handleDomainCreated} />
+      {!creatable && (
+        <DomainFormDialog
+          ref={domainFormRef}
+          projectId={projectId}
+          onSuccess={handleDomainCreated}
+        />
+      )}
     </>
   );
 }

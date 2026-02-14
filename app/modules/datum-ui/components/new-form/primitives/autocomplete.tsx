@@ -279,6 +279,8 @@ export function Autocomplete<T extends AutocompleteOption = AutocompleteOption>(
   placeholder = 'Select...',
   emptyContent = 'No results found',
   footer,
+  creatable = false,
+  creatableLabel,
   virtualize = false,
   itemSize = 36,
   loading = false,
@@ -291,6 +293,7 @@ export function Autocomplete<T extends AutocompleteOption = AutocompleteOption>(
   listClassName,
 }: AutocompleteProps<T>) {
   const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState('');
 
   const flatOptions = React.useMemo(() => flattenOptions(options), [options]);
   const selectedOption = React.useMemo(
@@ -298,23 +301,66 @@ export function Autocomplete<T extends AutocompleteOption = AutocompleteOption>(
     [flatOptions, value]
   );
 
+  // When creatable and value doesn't match any option, show raw value in trigger
+  const displayOption = React.useMemo(() => {
+    if (selectedOption) return selectedOption;
+    if (creatable && value) return { value, label: value } as T;
+    return undefined;
+  }, [selectedOption, creatable, value]);
+
   // External search mode when onSearchChange is provided
   const isExternalSearch = !!onSearchChange;
+
+  // Creatable item visibility
+  const trimmedSearch = React.useMemo(() => search.trim(), [search]);
+  const showCreatableItem = React.useMemo(() => {
+    if (!creatable || trimmedSearch.length === 0) return false;
+    const needle = trimmedSearch.toLowerCase();
+    return !flatOptions.some(
+      (o) => o.value.toLowerCase() === needle || o.label.toLowerCase() === needle
+    );
+  }, [creatable, trimmedSearch, flatOptions]);
 
   const handleSelect = React.useCallback(
     (optionValue: string) => {
       onValueChange?.(optionValue);
+      setSearch('');
       setOpen(false);
     },
     [onValueChange]
   );
 
+  const handleCreatableSelect = React.useCallback(() => {
+    onValueChange?.(trimmedSearch);
+    setSearch('');
+    setOpen(false);
+  }, [onValueChange, trimmedSearch]);
+
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      setOpen(nextOpen);
+      if (!nextOpen) {
+        setSearch('');
+        if (isExternalSearch) onSearchChange?.('');
+      }
+    },
+    [isExternalSearch, onSearchChange]
+  );
+
+  const handleSearchChange = React.useCallback(
+    (val: string) => {
+      setSearch(val);
+      if (isExternalSearch) onSearchChange?.(val);
+    },
+    [isExternalSearch, onSearchChange]
+  );
+
   return (
     <div className={cn('relative', className)}>
-      <Popover open={open} onOpenChange={setOpen} modal>
+      <Popover open={open} onOpenChange={handleOpenChange} modal>
         <PopoverTrigger asChild>
           <Trigger
-            selectedOption={selectedOption}
+            selectedOption={displayOption}
             renderValue={renderValue}
             placeholder={placeholder}
             loading={loading}
@@ -327,24 +373,27 @@ export function Autocomplete<T extends AutocompleteOption = AutocompleteOption>(
         <PopoverContent
           className={cn('popover-content-width-full p-0', contentClassName)}
           align="start">
-          <Command shouldFilter={!isExternalSearch} defaultValue={value}>
+          <Command shouldFilter={!isExternalSearch && !creatable} defaultValue={value}>
             {!disableSearch && (
               <CommandInput
                 className="placeholder:text-secondary/60 h-7 border-none text-xs placeholder:text-xs focus-visible:ring-0"
                 iconClassName="text-secondary size-3.5"
                 wrapperClassName="px-3 py-2"
                 placeholder={searchPlaceholder}
-                onValueChange={isExternalSearch ? onSearchChange : undefined}
+                value={search}
+                onValueChange={handleSearchChange}
               />
             )}
             <CommandList className={cn(!virtualize && 'max-h-[300px]', listClassName)}>
-              <CommandEmpty>
-                {typeof emptyContent === 'string' ? (
-                  <span className="text-muted-foreground text-xs">{emptyContent}</span>
-                ) : (
-                  emptyContent
-                )}
-              </CommandEmpty>
+              {!showCreatableItem && (
+                <CommandEmpty>
+                  {typeof emptyContent === 'string' ? (
+                    <span className="text-muted-foreground text-xs">{emptyContent}</span>
+                  ) : (
+                    emptyContent
+                  )}
+                </CommandEmpty>
+              )}
 
               {virtualize ? (
                 <VirtualizedOptions
@@ -362,6 +411,21 @@ export function Autocomplete<T extends AutocompleteOption = AutocompleteOption>(
                   onSelect={handleSelect}
                   renderOption={renderOption}
                 />
+              )}
+
+              {showCreatableItem && (
+                <CommandGroup forceMount className="p-0">
+                  <CommandItem
+                    forceMount
+                    // \0 prefix prevents collision with real option values;
+                    // handleCreatableSelect passes trimmedSearch to onValueChange
+                    value={`\0creatable:${trimmedSearch}`}
+                    keywords={[trimmedSearch]}
+                    onSelect={handleCreatableSelect}
+                    className="cursor-pointer px-3 py-2 text-xs">
+                    {creatableLabel ? creatableLabel(trimmedSearch) : `Use "${trimmedSearch}"`}
+                  </CommandItem>
+                </CommandGroup>
               )}
             </CommandList>
 

@@ -223,6 +223,7 @@ function MyComponent() {
 **How cancellation works:**
 
 When a task is cancelled or times out:
+
 1. Task queue calls `setCancelled(true)`
 2. All functions registered via `ctx.onCancel()` are called automatically
 3. Watch subscriptions are cleaned up, preventing memory leaks
@@ -248,7 +249,7 @@ processor: async (ctx) => {
 
   ctx.setResult({ project: readyProject, zone: readyZone });
   ctx.succeed();
-}
+};
 ```
 
 **Browser confirmation for K8s operations:**
@@ -352,7 +353,7 @@ enqueue({
   processor: async (ctx) => {
     // Mutation operations - user MUST be warned
     await createRecords();
-  }
+  },
 });
 
 // Skip confirmation for non-critical background tasks
@@ -361,19 +362,21 @@ enqueue({
   confirmBeforeUnload: false, // Safe - can be interrupted
   processor: async () => {
     await prefetchData();
-  }
+  },
 });
 ```
 
 **When to use `confirmBeforeUnload: false`:**
 
 ✅ **Safe to skip confirmation:**
+
 - Background/analytics tasks (cache updates, metrics)
 - Quick operations (< 5 seconds)
 - Read-only operations that can be retried
 - Idempotent operations with no side effects
 
 ⚠️ **MUST keep confirmation (default true):**
+
 - Mutating operations (creates, updates, deletes)
 - Long-running operations (> 5 seconds)
 - Operations with side effects (emails, billing, external APIs)
@@ -452,37 +455,37 @@ For multi-tenant environments, use `storageKey` to isolate tasks per user:
 
 ### `EnqueueOptions` (processItem mode)
 
-| Option              | Type                                         | Default      | Description                             |
-| ------------------- | -------------------------------------------- | ------------ | --------------------------------------- |
-| `title`             | `string`                                     | required     | Display title in the panel              |
-| `items`             | `T[]`                                        | required     | Items to process                        |
-| `processItem`       | `(item, ctx) => Promise<void>`               | required     | Process one item                        |
-| `itemConcurrency`   | `number`                                     | `1`          | How many items to process in parallel   |
-| `getItemId`         | `(item) => string`                           | auto-detect  | Extract ID from item for tracking       |
-| `onComplete`        | `(outcome) => void`                          | —            | Called when task finishes               |
-| `icon`              | `ReactNode`                                  | —            | Custom icon for the task row            |
-| `category`            | `string`                                     | —            | Optional grouping label                       |
-| `errorStrategy`       | `'continue' \| 'stop'`                       | `'continue'` | How to handle failures                        |
-| `cancelable`          | `boolean`                                    | `true`       | Show cancel button                            |
-| `confirmBeforeUnload` | `boolean`                                    | `true`       | Show browser warning when closing/reloading   |
-| `timeout`             | `number`                                     | `300000`     | Timeout in milliseconds (default 5 min)       |
-| `completionActions`   | `ButtonProps[] \| (result) => ButtonProps[]` | —            | Buttons shown on completion                   |
+| Option                | Type                                         | Default      | Description                                 |
+| --------------------- | -------------------------------------------- | ------------ | ------------------------------------------- |
+| `title`               | `string`                                     | required     | Display title in the panel                  |
+| `items`               | `T[]`                                        | required     | Items to process                            |
+| `processItem`         | `(item, ctx) => Promise<void>`               | required     | Process one item                            |
+| `itemConcurrency`     | `number`                                     | `1`          | How many items to process in parallel       |
+| `getItemId`           | `(item) => string`                           | auto-detect  | Extract ID from item for tracking           |
+| `onComplete`          | `(outcome) => void`                          | —            | Called when task finishes                   |
+| `icon`                | `ReactNode`                                  | —            | Custom icon for the task row                |
+| `category`            | `string`                                     | —            | Optional grouping label                     |
+| `errorStrategy`       | `'continue' \| 'stop'`                       | `'continue'` | How to handle failures                      |
+| `cancelable`          | `boolean`                                    | `true`       | Show cancel button                          |
+| `confirmBeforeUnload` | `boolean`                                    | `true`       | Show browser warning when closing/reloading |
+| `timeout`             | `number`                                     | `300000`     | Timeout in milliseconds (default 5 min)     |
+| `completionActions`   | `ButtonProps[] \| (result) => ButtonProps[]` | —            | Buttons shown on completion                 |
 
 ### `EnqueueOptions` (processor mode)
 
-| Option              | Type                                         | Default      | Description                             |
-| ------------------- | -------------------------------------------- | ------------ | --------------------------------------- |
-| `title`             | `string`                                     | required     | Display title in the panel              |
-| `processor`         | `(ctx) => Promise<void>`                     | required     | The async work function                 |
-| `items`             | `T[]`                                        | —            | Items to process (enables counter UI)   |
-| `onComplete`        | `(outcome) => void`                          | —            | Called when task finishes               |
-| `icon`              | `ReactNode`                                  | —            | Custom icon for the task row            |
-| `category`            | `string`                                     | —            | Optional grouping label                       |
-| `errorStrategy`       | `'continue' \| 'stop'`                       | `'continue'` | How to handle failures                        |
-| `cancelable`          | `boolean`                                    | `true`       | Show cancel button                            |
-| `confirmBeforeUnload` | `boolean`                                    | `true`       | Show browser warning when closing/reloading   |
-| `timeout`             | `number`                                     | `300000`     | Timeout in milliseconds (default 5 min)       |
-| `completionActions`   | `ButtonProps[] \| (result) => ButtonProps[]` | —            | Buttons shown on completion                   |
+| Option                | Type                                         | Default      | Description                                 |
+| --------------------- | -------------------------------------------- | ------------ | ------------------------------------------- |
+| `title`               | `string`                                     | required     | Display title in the panel                  |
+| `processor`           | `(ctx) => Promise<void>`                     | required     | The async work function                     |
+| `items`               | `T[]`                                        | —            | Items to process (enables counter UI)       |
+| `onComplete`          | `(outcome) => void`                          | —            | Called when task finishes                   |
+| `icon`                | `ReactNode`                                  | —            | Custom icon for the task row                |
+| `category`            | `string`                                     | —            | Optional grouping label                     |
+| `errorStrategy`       | `'continue' \| 'stop'`                       | `'continue'` | How to handle failures                      |
+| `cancelable`          | `boolean`                                    | `true`       | Show cancel button                          |
+| `confirmBeforeUnload` | `boolean`                                    | `true`       | Show browser warning when closing/reloading |
+| `timeout`             | `number`                                     | `300000`     | Timeout in milliseconds (default 5 min)     |
+| `completionActions`   | `ButtonProps[] \| (result) => ButtonProps[]` | —            | Buttons shown on completion                 |
 
 ### `ItemContext` (for processItem)
 

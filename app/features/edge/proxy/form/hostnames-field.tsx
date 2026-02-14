@@ -34,6 +34,7 @@ export const ProxyHostnamesField = ({ projectId }: ProxyHostnamesFieldProps) => 
                       <FormSelectDomain
                         projectId={projectId}
                         excludeValues={getExcludeValues(index)}
+                        creatable
                       />
                     </Form.Field>
                     <Button
