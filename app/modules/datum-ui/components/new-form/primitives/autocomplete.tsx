@@ -336,10 +336,16 @@ export function Autocomplete<T extends AutocompleteOption = AutocompleteOption>(
     setOpen(false);
   }, [onValueChange, trimmedSearch]);
 
-  const handleOpenChange = React.useCallback((nextOpen: boolean) => {
-    setOpen(nextOpen);
-    if (!nextOpen) setSearch('');
-  }, []);
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      setOpen(nextOpen);
+      if (!nextOpen) {
+        setSearch('');
+        if (isExternalSearch) onSearchChange?.('');
+      }
+    },
+    [isExternalSearch, onSearchChange]
+  );
 
   const handleSearchChange = React.useCallback(
     (val: string) => {
@@ -367,7 +373,7 @@ export function Autocomplete<T extends AutocompleteOption = AutocompleteOption>(
         <PopoverContent
           className={cn('popover-content-width-full p-0', contentClassName)}
           align="start">
-          <Command shouldFilter={!isExternalSearch} defaultValue={value}>
+          <Command shouldFilter={!isExternalSearch && !creatable} defaultValue={value}>
             {!disableSearch && (
               <CommandInput
                 className="placeholder:text-secondary/60 h-7 border-none text-xs placeholder:text-xs focus-visible:ring-0"
@@ -411,6 +417,8 @@ export function Autocomplete<T extends AutocompleteOption = AutocompleteOption>(
                 <CommandGroup forceMount className="p-0">
                   <CommandItem
                     forceMount
+                    // \0 prefix prevents collision with real option values;
+                    // handleCreatableSelect passes trimmedSearch to onValueChange
                     value={`\0creatable:${trimmedSearch}`}
                     keywords={[trimmedSearch]}
                     onSelect={handleCreatableSelect}
