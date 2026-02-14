@@ -58,6 +58,10 @@ export interface AutocompleteProps<T extends AutocompleteOption = AutocompleteOp
   footer?: React.ReactNode;
 
   // Behavior
+  /** Allow custom values not in the options list */
+  creatable?: boolean;
+  /** Custom render for the creatable item. Default: (value) => `Use "${value}"` */
+  creatableLabel?: (value: string) => React.ReactNode;
   /** Enable virtualization for large lists (default: false) */
   virtualize?: boolean;
   /** Item height in pixels for virtualizer estimateSize (default: 36) */

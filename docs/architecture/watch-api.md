@@ -172,13 +172,13 @@ export function useDnsZonesWatch(projectId: string, options?: { enabled?: boolea
 
 ### Key Options
 
-| Option             | Description                                                     | Default |
-| ------------------ | --------------------------------------------------------------- | ------- |
-| `throttleMs`       | Min interval between list refetches                             | `1000`  |
-| `debounceMs`       | Batch window for rapid events                                   | `300`   |
-| `skipInitialSync`  | Ignore ADDED events in first 2s (cache already hydrated by SSR) | `true`  |
-| `getItemKey`       | Extract unique ID for in-place MODIFIED updates                 | -       |
-| `updateListCache`  | Custom cache updater for non-array data structures              | -       |
+| Option            | Description                                                     | Default |
+| ----------------- | --------------------------------------------------------------- | ------- |
+| `throttleMs`      | Min interval between list refetches                             | `1000`  |
+| `debounceMs`      | Batch window for rapid events                                   | `300`   |
+| `skipInitialSync` | Ignore ADDED events in first 2s (cache already hydrated by SSR) | `true`  |
+| `getItemKey`      | Extract unique ID for in-place MODIFIED updates                 | -       |
+| `updateListCache` | Custom cache updater for non-array data structures              | -       |
 
 ### Module Structure
 
@@ -208,7 +208,7 @@ app/server/routes/watch.ts          # HTTP endpoints for the watch protocol
 
 ```javascript
 // Show current connection state, active channels, and subscriber counts
-window.__watchStatus()
+window.__watchStatus();
 ```
 
 ### Server Stats (dev only)
@@ -239,14 +239,14 @@ Returns:
 
 ### Common Issues
 
-| Issue                     | Cause                         | Solution                                                |
-| ------------------------- | ----------------------------- | ------------------------------------------------------- |
-| No events received        | Upstream URL wrong            | Check `buildUpstreamUrl` in `watch-hub.ts`              |
-| 401 on upstream           | Token expired                 | Token refreshed on each subscribe; re-login if needed   |
-| Events stop after 30s     | K8s watch timeout (expected)  | Server auto-reconnects with latest resourceVersion      |
-| Subscription leaks        | React Strict Mode callback    | `WatchManager.subscribe` cleans stale callbacks         |
-| Channel not unsubscribed  | Multiple subscribers remain   | Check `__watchStatus()` for subscriber counts           |
-| 410 Gone in server logs   | resourceVersion expired       | Server silently reconnects (no client notification)     |
+| Issue                    | Cause                        | Solution                                              |
+| ------------------------ | ---------------------------- | ----------------------------------------------------- |
+| No events received       | Upstream URL wrong           | Check `buildUpstreamUrl` in `watch-hub.ts`            |
+| 401 on upstream          | Token expired                | Token refreshed on each subscribe; re-login if needed |
+| Events stop after 30s    | K8s watch timeout (expected) | Server auto-reconnects with latest resourceVersion    |
+| Subscription leaks       | React Strict Mode callback   | `WatchManager.subscribe` cleans stale callbacks       |
+| Channel not unsubscribed | Multiple subscribers remain  | Check `__watchStatus()` for subscriber counts         |
+| 410 Gone in server logs  | resourceVersion expired      | Server silently reconnects (no client notification)   |
 
 ---
 
@@ -254,14 +254,14 @@ Returns:
 
 These resources have real-time updates:
 
-| Resource        | List Watch Hook           | Detail Watch Hook        |
-| --------------- | ------------------------- | ------------------------ |
-| DNS Zones       | `useDnsZonesWatch()`      | `useDnsZoneWatch()`      |
-| DNS Records     | `useDnsRecordSetsWatch()` | `useDnsRecordSetWatch()` |
-| Domains         | `useDomainsWatch()`       | `useDomainWatch()`       |
-| Secrets         | `useSecretsWatch()`       | `useSecretWatch()`       |
-| HTTP Proxies    | `useHttpProxiesWatch()`   | `useHttpProxyWatch()`    |
-| Export Policies | `useExportPoliciesWatch()`| -                        |
+| Resource        | List Watch Hook            | Detail Watch Hook        |
+| --------------- | -------------------------- | ------------------------ |
+| DNS Zones       | `useDnsZonesWatch()`       | `useDnsZoneWatch()`      |
+| DNS Records     | `useDnsRecordSetsWatch()`  | `useDnsRecordSetWatch()` |
+| Domains         | `useDomainsWatch()`        | `useDomainWatch()`       |
+| Secrets         | `useSecretsWatch()`        | `useSecretWatch()`       |
+| HTTP Proxies    | `useHttpProxiesWatch()`    | `useHttpProxyWatch()`    |
+| Export Policies | `useExportPoliciesWatch()` | -                        |
 
 ---
 
