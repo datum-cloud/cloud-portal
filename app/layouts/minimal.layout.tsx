@@ -10,7 +10,7 @@ export function MinimalLayout({
   className?: string;
 }) {
   return (
-    <div className="flex h-screen w-full flex-col">
+    <div className="mx-auto flex h-screen w-full flex-col">
       {/* Header at the top - outside sidebar context */}
       <Header />
 

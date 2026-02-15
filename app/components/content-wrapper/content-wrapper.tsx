@@ -10,15 +10,11 @@ export function ContentWrapper({
   return (
     <div
       className={cn(
-        'flex h-full w-full min-w-0 flex-col gap-5 p-4 py-7 md:p-9',
+        'bg-background mx-auto flex h-full w-full flex-col gap-5 p-4 py-7 md:p-9',
         containerClassName
       )}>
-      <Breadcrumb className="mx-auto w-full max-w-[1600px]" />
-      <div
-        className={cn(
-          'mx-auto flex w-full max-w-[1600px] min-w-0 flex-1 flex-col',
-          contentClassName
-        )}>
+      <Breadcrumb className="mx-auto w-full max-w-[1800px]" />
+      <div className={cn('mx-auto flex w-full max-w-[1800px] flex-1 flex-col', contentClassName)}>
         {children}
       </div>
     </div>

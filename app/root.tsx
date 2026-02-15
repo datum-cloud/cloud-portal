@@ -95,7 +95,7 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
   return (
     <html
       lang="en"
-      className="theme-alpha overflow-x-hidden overscroll-none"
+      className="theme-alpha bg-background overflow-x-hidden overscroll-none"
       suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />

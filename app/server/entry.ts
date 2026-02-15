@@ -123,8 +123,11 @@ app.use(
       scriptSrcAttr: [NONCE, ...(isDev ? ["'unsafe-inline'"] : [])],
       // Allow inline styles for third-party widgets
       styleSrc: ["'self'", "'unsafe-inline'", 'https://*.jsdelivr.net', 'https://*.googleapis.com'],
-      upgradeInsecureRequests: [],
+      // Only in production: upgrade HTTP→HTTPS. Omit in dev so Safari (and others) can use http://localhost
+      ...(isDev ? {} : { upgradeInsecureRequests: [] }),
     },
+    // Disable HSTS in dev so Safari doesn't force HTTPS for localhost
+    strictTransportSecurity: !isDev,
   })
 );
 

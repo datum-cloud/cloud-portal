@@ -45,7 +45,7 @@ export const IdentityItem = ({
   className,
 }: IdentityItemProps) => {
   return (
-    <div className={cn('flex items-center justify-between gap-6', className)}>
+    <div className={cn('flex flex-wrap items-center justify-between gap-6', className)}>
       {/* Left Section */}
       <div className="flex items-center space-x-3.5">
         <div className="bg-badge-muted dark:bg-background flex size-[34px] items-center justify-center rounded-xl">
@@ -58,7 +58,7 @@ export const IdentityItem = ({
       </div>
 
       {/* Middle Section */}
-      {middleContent && <div className="flex-shrink-0">{middleContent}</div>}
+      {middleContent && <div className="shrink-0">{middleContent}</div>}
 
       {/* Right Section */}
       {rightContent && <div className="flex items-center justify-end gap-10">{rightContent}</div>}

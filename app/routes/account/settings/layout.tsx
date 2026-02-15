@@ -33,7 +33,7 @@ export default function AccountSettingsLayout() {
   ];
   return (
     <DashboardLayout navItems={[]} sidebarCollapsible="none" contentClassName="w-full">
-      <div className="flex flex-col gap-4">
+      <div className="mx-auto flex w-full flex-col gap-4 md:max-w-[1200px]">
         <BackButton to={paths.home}>Back to Dashboard</BackButton>
         <TabsLayout tabsTitle={{ title: 'Account Settings' }} navItems={navItems}>
           <Outlet />
