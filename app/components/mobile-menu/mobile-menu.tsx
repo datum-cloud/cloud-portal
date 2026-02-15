@@ -92,6 +92,7 @@ export function MobileMenu({
 
           <SheetContent
             side="left"
+            onOpenAutoFocus={(e) => e.preventDefault()}
             className="bg-background border-sidebar-border h-fit min-h-svh w-75 max-w-[85vw] gap-0 overflow-y-hidden border-r p-0 pt-10">
             <Link to={paths.account.root} className="absolute top-4 left-4 mb-4 flex">
               <LogoIcon width={21} />

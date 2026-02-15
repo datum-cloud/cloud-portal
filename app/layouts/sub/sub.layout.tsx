@@ -86,6 +86,7 @@ export function SubLayout({
               </SheetTrigger>
               <SheetContent
                 side="right"
+                onOpenAutoFocus={(e) => e.preventDefault()}
                 className="bg-sidebar border-sidebar-border flex h-full w-75 max-w-[85vw] flex-col gap-0 overflow-y-hidden border-l p-0 pt-10">
                 {sidebarHeader && (
                   <div className="border-sidebar-border border-b px-4 pt-2 pb-3">
