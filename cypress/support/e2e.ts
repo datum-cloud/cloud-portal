@@ -2,77 +2,76 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import '@testing-library/cypress/add-commands';
 
-Cypress.Commands.add(
-  'login',
-  (options?: { accessToken?: string; sub?: string }) => {
-    // Get accessToken and sub from options or environment variables
-    cy.env(['ACCESS_TOKEN', 'SUB']).then((env) => {
-      const accessToken = options?.accessToken ?? env.ACCESS_TOKEN;
-      const sub = options?.sub ?? env.SUB;
+Cypress.Commands.add('login', (options?: { accessToken?: string; sub?: string }) => {
+  // Get accessToken and sub from options or environment variables
+  cy.env(['ACCESS_TOKEN', 'SUB']).then((env) => {
+    const accessToken = options?.accessToken ?? env.ACCESS_TOKEN;
+    const sub = options?.sub ?? env.SUB;
 
-      if (!accessToken) {
-        throw new Error('accessToken is required. Provide it via options or ACCESS_TOKEN environment variable.');
-      }
-      if (!sub) {
-        throw new Error('sub is required. Provide it via options or SUB environment variable.');
-      }
+    if (!accessToken) {
+      throw new Error(
+        'accessToken is required. Provide it via options or ACCESS_TOKEN environment variable.'
+      );
+    }
+    if (!sub) {
+      throw new Error('sub is required. Provide it via options or SUB environment variable.');
+    }
 
-      // Create a unique session ID based on accessToken and sub
-      const sessionId = `session-${accessToken.substring(0, 20)}-${sub}`;
+    // Create a unique session ID based on accessToken and sub
+    const sessionId = `session-${accessToken.substring(0, 20)}-${sub}`;
 
-      cy.session(
-        sessionId,
-        () => {
-          const baseUrl = Cypress.config('baseUrl');
-          if (!baseUrl) {
-            throw new Error('baseUrl is required in Cypress configuration');
+    cy.session(
+      sessionId,
+      () => {
+        const baseUrl = Cypress.config('baseUrl');
+        if (!baseUrl) {
+          throw new Error('baseUrl is required in Cypress configuration');
+        }
+        const url = new URL(baseUrl);
+        const domain = url.hostname;
+        const isSecure = url.protocol === 'https:';
+
+        // Build session object and sign it
+        const now = new Date();
+        const expiredAt = new Date(now.getTime() + 12 * 60 * 60 * 1000); // Now + 12 hours
+
+        const sessionData = {
+          accessToken,
+          expiredAt: expiredAt.toISOString(),
+          sub,
+        };
+
+        // Sign the cookie using React Router's signing mechanism
+        cy.task<string>('signSessionCookie', sessionData).then((signedCookieValue) => {
+          if (!signedCookieValue) {
+            throw new Error('Failed to sign session cookie');
           }
-          const url = new URL(baseUrl);
-          const domain = url.hostname;
-          const isSecure = url.protocol === 'https:';
 
-          // Build session object and sign it
-          const now = new Date();
-          const expiredAt = new Date(now.getTime() + 12 * 60 * 60 * 1000); // Now + 12 hours
-
-          const sessionData = {
-            accessToken,
-            expiredAt: expiredAt.toISOString(),
-            sub,
-          };
-
-          // Sign the cookie using React Router's signing mechanism
-          cy.task<string>('signSessionCookie', sessionData).then((signedCookieValue) => {
-            if (!signedCookieValue) {
-              throw new Error('Failed to sign session cookie');
+          cy.setCookie('_session', signedCookieValue, {
+            httpOnly: true,
+            secure: isSecure,
+            path: '/',
+            sameSite: 'lax',
+            domain: domain,
+          });
+        });
+      },
+      {
+        validate: () => {
+          cy.request({
+            url: `${Cypress.config('baseUrl')}${paths.account.organizations.root}`,
+            failOnStatusCode: false,
+          }).then((response) => {
+            if (response.status !== 200) {
+              throw new Error('Session validation failed');
             }
-
-            cy.setCookie('_session', signedCookieValue, {
-              httpOnly: true,
-              secure: isSecure,
-              path: '/',
-              sameSite: 'lax',
-              domain: domain,
-            });
           });
         },
-        {
-          validate: () => {
-            cy.request({
-              url: `${Cypress.config('baseUrl')}${paths.account.organizations.root}`,
-              failOnStatusCode: false,
-            }).then((response) => {
-              if (response.status !== 200) {
-                throw new Error('Session validation failed');
-              }
-            });
-          },
-          cacheAcrossSpecs: true,
-        }
-      );
-    });
-  }
-);
+        cacheAcrossSpecs: true,
+      }
+    );
+  });
+});
 
 // Prevent uncaught exceptions from failing tests
 Cypress.on('uncaught:exception', (err) => {
