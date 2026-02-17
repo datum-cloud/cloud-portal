@@ -33,7 +33,7 @@
     "@hono/prometheus": "^1.0.2",
     "@monaco-editor/react": "^4.7.0",
     "@myunisoft/loki": "^6.1.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.69.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.70.0",
     "@opentelemetry/exporter-metrics-otlp-http": "^0.212.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.212.0",
     "@opentelemetry/sdk-node": "^0.212.0",
