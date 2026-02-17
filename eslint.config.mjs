@@ -50,6 +50,14 @@ export default [
       'react/react-in-jsx-scope': 'off',
       'react-hooks/exhaustive-deps': 'off',
 
+      // Disable React Compiler rules (React 19) - not using React Compiler yet
+      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/incompatible-library': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/purity': 'off',
+
       'no-unused-vars': 'off', // or "@typescript-eslint/no-unused-vars": "off",
       'unused-imports/no-unused-imports': 'error',
       'unused-imports/no-unused-vars': [
