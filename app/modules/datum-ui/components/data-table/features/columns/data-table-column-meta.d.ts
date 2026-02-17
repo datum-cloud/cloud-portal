@@ -6,6 +6,7 @@ import type { ColumnHeaderTooltip } from './data-table-column.types';
 import type { RowData } from '@tanstack/table-core';
 
 declare module '@tanstack/table-core' {
+  // eslint-disable-next-line unused-imports/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     /** Custom className for the column header/cell */
     className?: string;

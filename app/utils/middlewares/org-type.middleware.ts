@@ -14,7 +14,7 @@ type OrganizationType = Organization['type'];
  */
 export function createOrgTypeMiddleware(allowedTypes: OrganizationType[]) {
   return async (ctx: MiddlewareContext, next: NextFunction): Promise<Response> => {
-    const { request, context } = ctx;
+    const { request } = ctx;
 
     // Extract orgId from URL path
     const url = new URL(request.url);

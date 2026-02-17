@@ -49,9 +49,7 @@ const deploySchema = z.object({
     .default('grafana-export-policy'),
 });
 
-const schema = instanceSchema.extend(deploySchema.shape);
-
-type GrafanaFormData = z.infer<typeof schema>;
+type GrafanaFormData = z.infer<typeof instanceSchema> & z.infer<typeof deploySchema>;
 
 // ============================================================================
 // Steps Configuration

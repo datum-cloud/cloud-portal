@@ -23,7 +23,7 @@ export default function DnsZoneNewPage() {
   } | null>(null);
 
   const createDnsZoneDiscovery = useCreateDnsZoneDiscovery(projectId ?? '', {
-    onSuccess: (dnsDiscovery, dnsZoneId) => {
+    onSuccess: (_dnsDiscovery, _dnsZoneId) => {
       // Discovery was created successfully, but we need the dnsZone from the outer scope
       // This is handled in the createDnsZone.onSuccess callback
     },

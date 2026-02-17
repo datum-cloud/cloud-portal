@@ -5,7 +5,6 @@ import { RefreshControl } from '@/modules/metrics/components/controls/refresh-co
 import { StepControl } from '@/modules/metrics/components/controls/step-control';
 // Import existing controls (will be updated to use new context)
 import { TimeRangeControl } from '@/modules/metrics/components/controls/time-range-control';
-import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { Card, CardContent } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { ReactNode } from 'react';
@@ -32,36 +31,14 @@ function CoreControls({ className }: { className?: string }) {
 function Filters({
   children,
   className,
-  showResetButton = true,
 }: {
   children: ReactNode;
   className?: string;
   showResetButton?: boolean;
 }) {
-  const { hasActiveFilters, resetAllFilters, getActiveFilterCount } = useMetrics();
-
-  const hasFilters = hasActiveFilters();
-  const filterCount = getActiveFilterCount();
-
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <div className="flex items-center gap-2">{children}</div>
-      {/* {showResetButton && hasFilters && (
-        <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-xs">
-            {filterCount} filter{filterCount !== 1 ? 's' : ''}
-          </span>
-          <Button
-            type="quaternary"
-            theme="borderless"
-            size="small"
-            onClick={resetAllFilters}
-            className="hover:bg-destructive hover:text-destructive-foreground h-7 px-2 text-xs">
-            <RotateCcw className="mr-1 h-3 w-3" />
-            Clear
-          </Button>
-        </div>
-      )} */}
     </div>
   );
 }
