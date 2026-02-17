@@ -45,7 +45,7 @@ export function useWatch<T = unknown>(name: string): T | undefined {
         }
       } else {
         // Try getFieldset for nested objects
-        if (current.getFieldset) {
+        if (typeof current.getFieldset === 'function') {
           current = current.getFieldset()[part];
         } else {
           current = current[part];
@@ -101,7 +101,7 @@ export function useWatchAll<T extends Record<string, unknown>>(names: string[]):
             current = current[part];
           }
         } else {
-          if (current.getFieldset) {
+          if (typeof current.getFieldset === 'function') {
             current = current.getFieldset()[part];
           } else {
             current = current[part];

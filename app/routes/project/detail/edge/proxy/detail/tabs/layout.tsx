@@ -1,36 +1,15 @@
 import { BackButton } from '@/components/back-button';
-import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DateTime } from '@/components/date-time';
-import { MoreActions } from '@/components/more-actions/more-actions';
 import { SubLayout } from '@/layouts';
-import { type HttpProxy, useDeleteHttpProxy } from '@/resources/http-proxies';
+import { type HttpProxy } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, toast } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { NavItem } from '@datum-ui/components/sidebar';
-import { ClockIcon, PencilIcon, TrashIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { Outlet, Link, useParams, useRouteLoaderData, useNavigate } from 'react-router';
+import { Outlet, useParams, useRouteLoaderData } from 'react-router';
 
 export default function HttpProxyDetailLayout() {
   const httpProxy = useRouteLoaderData('proxy-detail') as HttpProxy | undefined;
   const { projectId } = useParams();
-  const navigate = useNavigate();
-
-  const { confirm } = useConfirmationDialog();
-
-  const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
-    onSuccess: () => {
-      toast.success('Proxy deleted successfully', {
-        description: 'The proxy has been deleted successfully',
-      });
-      navigate(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to delete proxy');
-    },
-  });
 
   const navItems: NavItem[] = useMemo(() => {
     return [
@@ -53,30 +32,8 @@ export default function HttpProxyDetailLayout() {
     ];
   }, [projectId, httpProxy]);
 
-  const deleteHttpProxy = async () => {
-    await confirm({
-      title: 'Delete Proxy',
-      description: (
-        <span>
-          Are you sure you want to delete&nbsp;
-          <strong>{httpProxy?.name}</strong>?
-        </span>
-      ),
-      submitText: 'Delete',
-      cancelText: 'Cancel',
-      variant: 'destructive',
-      showConfirmInput: true,
-      confirmValue: httpProxy?.name,
-      confirmInputLabel: `Type "${httpProxy?.name}" to confirm.`,
-      onSubmit: async () => {
-        await deleteMutation.mutateAsync(httpProxy?.name ?? '');
-      },
-    });
-  };
-
   return (
     <SubLayout
-      navItems={navItems}
       sidebarHeader={
         <div className="flex flex-col gap-5.5">
           <BackButton
@@ -87,48 +44,8 @@ export default function HttpProxyDetailLayout() {
           </BackButton>
           <span className="text-primary text-sm font-semibold">Manage Proxy</span>
         </div>
-      }>
-      {/* Header Section */}
-      <div className="mb-6 flex items-start justify-between">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold">{httpProxy?.name ?? 'Proxy'}</h1>
-          <div className="flex items-center gap-1">
-            <Icon icon={ClockIcon} className="text-muted-foreground h-4 w-4" />
-            <DateTime
-              className="text-muted-foreground text-sm"
-              date={httpProxy?.createdAt ?? ''}
-              variant="both"
-            />
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button type="quaternary" theme="outline" size="small">
-            <Link
-              className="flex items-center gap-2"
-              to={getPathWithParams(paths.project.detail.proxy.detail.edit, {
-                projectId,
-                proxyId: httpProxy?.name ?? '',
-              })}>
-              <Icon icon={PencilIcon} className="size-4" />
-              Edit
-            </Link>
-          </Button>
-          <MoreActions
-            className="border-input bg-background hover:bg-accent hover:text-accent-foreground size-9 rounded-md border px-3"
-            actions={[
-              {
-                key: 'delete',
-                label: 'Delete',
-                variant: 'destructive',
-                icon: <Icon icon={TrashIcon} className="size-4" />,
-                action: deleteHttpProxy,
-              },
-            ]}
-          />
-        </div>
-      </div>
-
-      {/* Content Area */}
+      }
+      navItems={navItems}>
       <Outlet />
     </SubLayout>
   );

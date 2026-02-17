@@ -123,7 +123,6 @@ export default [
           // Proxies
           route('proxy', 'routes/project/detail/edge/proxy/layout.tsx', [
             index('routes/project/detail/edge/proxy/index.tsx'),
-            route('new', 'routes/project/detail/edge/proxy/new.tsx'),
 
             route(
               ':proxyId',
@@ -131,7 +130,6 @@ export default [
               { id: 'proxy-detail' },
               [
                 index('routes/project/detail/edge/proxy/detail/index.tsx'),
-                route('edit', 'routes/project/detail/edge/proxy/detail/edit.tsx'),
 
                 route('', 'routes/project/detail/edge/proxy/detail/tabs/layout.tsx', [
                   // Tabs Layout

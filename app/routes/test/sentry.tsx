@@ -281,7 +281,7 @@ export default function TestSentryPage() {
       await httpClient.get(
         '/apis/dns.networking.miloapis.com/v1alpha1/namespaces/test-namespace/dnszones/nonexistent-zone'
       );
-    } catch (error) {
+    } catch {
       showMessage(
         'error',
         `DNS Zone API error captured! Check Sentry for resource tags parsed from URL.`
@@ -300,7 +300,7 @@ export default function TestSentryPage() {
       await httpClient.get(
         '/apis/networking.datumapis.com/v1alpha/namespaces/test-namespace/httpproxies/nonexistent-proxy'
       );
-    } catch (error) {
+    } catch {
       showMessage(
         'error',
         `HTTPProxy API error captured! Check Sentry for resource tags parsed from URL.`
@@ -315,7 +315,7 @@ export default function TestSentryPage() {
       // - resource.apiGroup: iam.miloapis.com
       // - resource.type: useridentities
       await httpClient.get('/apis/iam.miloapis.com/v1alpha1/users/test-user/useridentities');
-    } catch (error) {
+    } catch {
       showMessage(
         'error',
         `User API error captured! Check Sentry for resource tags parsed from URL.`

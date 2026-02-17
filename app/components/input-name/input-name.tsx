@@ -22,6 +22,7 @@ interface InputNameProps {
   labelClassName?: string;
   showTooltip?: boolean;
   disabledRandomSuffix?: boolean;
+  autoFocus?: boolean;
 }
 
 export const InputName = ({
@@ -37,6 +38,7 @@ export const InputName = ({
   labelClassName,
   showTooltip = true,
   disabledRandomSuffix = false,
+  autoFocus = false,
 }: InputNameProps) => {
   const nameControl = useInputControl({
     key: field.id,
@@ -102,6 +104,7 @@ export const InputName = ({
           readOnly={readOnly || auto}
           key={field.id}
           ref={inputRef}
+          autoFocus={autoFocus}
           placeholder="e.g. my-name-3sd122"
         />
       </Field>

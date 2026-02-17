@@ -1,6 +1,6 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { ControlPlaneStatus } from '@/resources/base';
-import type { Domain } from '@/resources/domains';
+import { DOMAIN_VERIFICATION_STATUS, type Domain } from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { cn } from '@shadcn/lib/utils';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@shadcn/ui/hover-card';
@@ -46,12 +46,9 @@ export const DomainStatus = ({ domainStatus }: { domainStatus: Domain['status'] 
     );
   }, [conditions]);
 
-  // Determine label based on status
-  const getLabel = () => {
-    if (currentStatus?.status === ControlPlaneStatus.Success) return 'Verified';
-    if (currentStatus?.status === ControlPlaneStatus.Pending) return 'Verifying...';
-    return undefined; // Use default
-  };
+  const statusLabel = currentStatus
+    ? DOMAIN_VERIFICATION_STATUS[currentStatus.status]?.label
+    : undefined;
 
   if (!currentStatus) {
     return null;
@@ -66,7 +63,7 @@ export const DomainStatus = ({ domainStatus }: { domainStatus: Domain['status'] 
         )}>
         <BadgeStatus
           status={currentStatus}
-          label={getLabel()}
+          label={statusLabel}
           showIcon={true}
           showTooltip={false}
         />

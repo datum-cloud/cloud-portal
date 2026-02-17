@@ -10,6 +10,7 @@ import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { TaskQueueDropdown } from '@datum-ui/components/task-queue';
 import { BookOpen, LifeBuoy } from 'lucide-react';
 import { Link } from 'react-router';
 
@@ -74,6 +75,9 @@ export const Header = ({
               </Button>
             </Link>
           </Tooltip>
+
+          {/* Task Queue Dropdown */}
+          <TaskQueueDropdown />
 
           {/* Notification Dropdown, polling every 15 minutes */}
           <NotificationDropdown defaultTab="invitation" />

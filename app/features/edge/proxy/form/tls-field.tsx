@@ -1,37 +1,27 @@
-import { Field } from '@/components/field/field';
-import { HttpProxySchema } from '@/resources/http-proxies';
 import { isIPAddress } from '@/utils/helpers/validation.helper';
-import { getInputProps, useForm } from '@conform-to/react';
-import { Input } from '@datum-ui/components';
+import { Form, useWatch } from '@datum-ui/components/new-form';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronDownIcon } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
-export const TLSForm = ({
-  fields,
-  endpoint,
-}: {
-  fields: ReturnType<typeof useForm<HttpProxySchema>>[1]['tlsHostname'];
-  endpoint?: string;
-}) => {
+export const ProxyTlsField = () => {
+  const endpoint = useWatch<string>('endpoint');
+  const tlsHostname = useWatch<string>('tlsHostname');
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Determine if TLS hostname is required
   const isTLSRequired = useMemo(() => {
     if (!endpoint) return false;
     try {
       const url = new URL(endpoint);
-      const host = url.hostname;
-      return url.protocol === 'https:' && isIPAddress(host);
+      return url.protocol === 'https:' && isIPAddress(url.hostname);
     } catch {
       return false;
     }
   }, [endpoint]);
 
-  // Auto-expand if TLS is required or if tlsHostname already has a value
   const shouldBeExpanded = useMemo(() => {
-    return isTLSRequired || isExpanded || !!fields.value;
-  }, [isTLSRequired, isExpanded, fields.value]);
+    return isTLSRequired || isExpanded || !!tlsHostname;
+  }, [isTLSRequired, isExpanded, tlsHostname]);
 
   return (
     <Collapsible open={shouldBeExpanded} onOpenChange={setIsExpanded}>
@@ -41,21 +31,17 @@ export const TLSForm = ({
       </CollapsibleTrigger>
 
       <CollapsibleContent className="mt-4 flex flex-col gap-4 pl-6">
-        <Field
-          isRequired={isTLSRequired}
+        <Form.Field
+          name="tlsHostname"
           label="Hostname"
+          required={isTLSRequired}
           description={
             isTLSRequired
               ? 'The hostname to use for TLS certificate validation with your IP-based endpoint (required for SNI and certificate hostname matching)'
               : 'The hostname to use for TLS certificate validation (SNI and certificate hostname matching). Leave empty to use the hostname from the endpoint URL.'
-          }
-          errors={fields.errors}>
-          <Input
-            {...getInputProps(fields, { type: 'text' })}
-            key={fields.id}
-            placeholder="e.g. api.example.com"
-          />
-        </Field>
+          }>
+          <Form.Input placeholder="e.g. api.example.com" />
+        </Form.Field>
       </CollapsibleContent>
     </Collapsible>
   );

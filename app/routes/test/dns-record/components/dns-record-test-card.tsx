@@ -1,6 +1,5 @@
 import { DnsRecordForm } from '../../../../features/edge/dns-zone/form/dns-record-form';
 import { TestScenario } from './default-test-scenarios';
-import { getPreviewFields } from './preview-fields.helper';
 import { CreateDnsRecordSchema, DNSRecordType } from '@/resources/dns-records';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
@@ -132,7 +131,6 @@ export function DnsRecordTestCard({
 
   if (!scenario) return null;
 
-  const previewFields = getPreviewFields(recordType, scenario.data);
   const isValid = validationResult?.status === 'success';
   const errors = validationResult?.error
     ? Object.entries(validationResult.error).flatMap(([field, msgs]) =>

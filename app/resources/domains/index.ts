@@ -13,10 +13,14 @@ export {
   type CreateDomainInput,
   type UpdateDomainInput,
   // Re-exported validation schemas
+  parseDomains,
   domainSchema,
   bulkDomainsSchema,
   type DomainSchema,
   type BulkDomainsSchema,
+  // Domain verification status config
+  DOMAIN_VERIFICATION_STATUS,
+  type DomainStatusConfig,
 } from './domain.schema';
 
 // Adapter exports

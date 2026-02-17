@@ -45,13 +45,6 @@ function flattenFilterChildren(children: ReactNode): ReactElement<FilterProps>[]
   return result;
 }
 
-/**
- * Gets the filterKey from a filter component element
- */
-function getFilterKey(element: ReactElement<FilterProps>): string | undefined {
-  return element.props?.filterKey;
-}
-
 export interface DataTableToolbarProps {
   /**
    * Table title, description, and actions configuration
@@ -317,22 +310,22 @@ export const DataTableToolbar = ({
       {/* Compact Toolbar Row */}
 
       <DataTableFilter className="flex items-center justify-between gap-4">
-        {/* Left Section: Multi-actions + Search */}
+        {/* Left Section: Search */}
         <div className={cn('flex flex-1 items-center gap-3', leftSectionClassName)}>
-          {/* Multi-actions (shown when rows are selected) */}
-          {multiActions && multiActions.length > 0 && (
-            <DataTableToolbarMultiActions actions={multiActions} />
-          )}
-
           {searchConfig && (
             <DataTableToolbarSearch config={searchConfig} className="w-full rounded-md" />
           )}
         </div>
 
-        {/* Right Section: Row Count + Inline/Primary Filters + Dropdown Filters + Actions */}
+        {/* Right Section: Row Count + Multi-actions + Inline/Primary Filters + Dropdown Filters + Actions */}
         <div className={cn('flex items-center justify-end gap-3', rightSectionClassName)}>
-          {/* Row count appears first */}
+          {/* Row count (shows "X of Y selected" when rows are selected) */}
           {toolbarConfig.showRowCount && <DataTableToolbarRowCount />}
+
+          {/* Multi-actions (shown when rows are selected) */}
+          {multiActions && multiActions.length > 0 && (
+            <DataTableToolbarMultiActions actions={multiActions} />
+          )}
 
           {/* Primary/Inline filters next to dropdown */}
           {inlineFilters && inlineFilters.length > 0 && (

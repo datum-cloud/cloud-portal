@@ -49,42 +49,34 @@ export const BadgeCopy = ({
 
   const copyButton = (
     <span
-      onClick={(event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        copyToClipboard();
-      }}
-      className={cn(
-        'flex items-center justify-center transition-colors',
-        'hover:bg-black/5 dark:hover:bg-white/5',
-        'focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-hidden',
-        'cursor-pointer disabled:pointer-events-none disabled:opacity-50',
-        copyButtonClassName
-      )}
+      className={cn('flex items-center justify-center', copyButtonClassName)}
       aria-label={copied ? 'Copied!' : 'Copy to clipboard'}>
       <Icon icon={CopyIcon} className="size-3" />
     </span>
   );
 
-  const badgeContent = (
+  const badge = (
     <Badge
       type={badgeType}
       theme={badgeTheme}
       className={cn(
-        'flex cursor-default items-center gap-2.5 rounded-md px-1.5 py-[5px] font-mono text-xs font-normal',
+        'flex cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-[5px] font-mono text-xs font-normal',
         className
       )}
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
+        copyToClipboard();
       }}>
       <span className={textClassName}>{displayText}</span>
-      {showTooltip ? (
-        <Tooltip message={copied ? 'Copied!' : 'Copy'}>{copyButton}</Tooltip>
-      ) : (
-        copyButton
-      )}
+      {copyButton}
     </Badge>
+  );
+
+  const badgeContent = showTooltip ? (
+    <Tooltip message={copied ? 'Copied!' : 'Copy'}>{badge}</Tooltip>
+  ) : (
+    badge
   );
 
   return (

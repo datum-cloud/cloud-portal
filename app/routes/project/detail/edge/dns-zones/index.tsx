@@ -17,13 +17,7 @@ import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import {
-  Button,
-  DataTable,
-  DataTableRowActionsProps,
-  SpinnerIcon,
-  toast,
-} from '@datum-ui/components';
+import { Button, DataTable, DataTableRowActionsProps, Tooltip, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
@@ -219,9 +213,13 @@ export default function DnsZonesPage() {
               return <span data-e2e="dns-zone-nameservers">-</span>;
             }
             return (
-              <span data-e2e="dns-zone-nameservers">
-                <SpinnerIcon size="sm" aria-hidden="true" className="text-muted-foreground" />
-              </span>
+              <Tooltip message="DNS host information is being fetched and will appear shortly.">
+                <span
+                  className="text-muted-foreground animate-pulse text-xs"
+                  data-e2e="dns-zone-nameservers">
+                  Looking up...
+                </span>
+              </Tooltip>
             );
           }
 

@@ -49,7 +49,7 @@ export function FormFieldArray({ name, children }: FormFieldArrayProps) {
     for (const part of parts) {
       if (!current) break;
 
-      if (current.getFieldset) {
+      if (typeof current.getFieldset === 'function') {
         current = current.getFieldset()[part];
       } else {
         current = current[part];

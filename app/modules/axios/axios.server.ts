@@ -26,7 +26,7 @@ import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'ax
  */
 export const http = Axios.create({
   baseURL: env.public.apiUrl,
-  timeout: 20_000,
+  timeout: 60_000, // 60 seconds
 });
 
 const onRequest = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {

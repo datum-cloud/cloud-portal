@@ -3,7 +3,7 @@ import { DateTime } from '@/components/date-time';
 import { ActivityLogTable } from '@/features/activity-log';
 import { ActionCard } from '@/features/project/dashboard';
 import { createDomainService } from '@/resources/domains';
-import { createHttpProxyService } from '@/resources/http-proxies';
+import { createExportPolicyService } from '@/resources/export-policies';
 import { createProjectService, useUpdateProject } from '@/resources/projects';
 import NotFound from '@/routes/not-found';
 import { paths } from '@/utils/config/paths.config';
@@ -58,33 +58,33 @@ export const handle = {
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
   if (!projectId) {
-    return data({ hasDomains: false, hasHttpProxies: false, hasDesktop: false });
+    return data({ hasDomains: false, hasDesktop: false, hasMetrics: false });
   }
-  // Services now use global axios client with AsyncLocalStorage
-  const domainService = createDomainService();
-  const httpProxyService = createHttpProxyService();
-  const projectService = createProjectService();
 
-  const [project, domains, httpProxies] = await Promise.all([
+  const domainService = createDomainService();
+  const projectService = createProjectService();
+  const exportPolicyService = createExportPolicyService();
+
+  const [project, domains, exportPolicies] = await Promise.all([
     projectService.get(projectId),
     domainService.list(projectId, { limit: 1 }),
-    httpProxyService.list(projectId, { limit: 1 }),
+    exportPolicyService.list(projectId),
   ]);
 
   return data({
     hasDomains: isDashboardItemCompleted(project, domains.length > 0, 'dashboard.domains.skipped'),
-    hasHttpProxies: isDashboardItemCompleted(
-      project,
-      httpProxies.length > 0,
-      'dashboard.proxy.skipped'
-    ),
     hasDesktop: isDashboardItemCompleted(project, false, 'dashboard.desktop.skipped'),
+    hasMetrics: isDashboardItemCompleted(
+      project,
+      exportPolicies.length > 0,
+      'dashboard.metrics.skipped'
+    ),
   });
 };
 
 export default function ProjectHomePage() {
   const { project } = useRouteLoaderData('project-detail');
-  const { hasDomains, hasHttpProxies, hasDesktop } = useLoaderData<typeof loader>();
+  const { hasDomains, hasDesktop, hasMetrics } = useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
 
   const updateMutation = useUpdateProject(project?.name ?? '', {
@@ -144,7 +144,7 @@ export default function ProjectHomePage() {
               !hasDomains ? (
                 <LinkButton
                   icon={<Icon icon={PlusIcon} className="size-4" />}
-                  to={getPathWithParams(paths.project.detail.proxy.new, {
+                  to={getPathWithParams(paths.project.detail.proxy.root, {
                     projectId: project.name,
                   })}>
                   Setup a Proxy
@@ -216,7 +216,7 @@ export default function ProjectHomePage() {
           transition={{ duration: 0.3, delay: 0.3, ease: 'easeOut' }}
           className="md:col-span-2 xl:col-span-1">
           <ActionCard
-            completed={hasHttpProxies}
+            completed={hasMetrics}
             image="/images/dashboard/proxy-dashboard-image.png"
             className="h-full"
             title="Export metrics to Grafana"
@@ -227,7 +227,7 @@ export default function ProjectHomePage() {
               </p>
             }
             primaryButton={
-              !hasHttpProxies ? (
+              !hasMetrics ? (
                 <LinkButton
                   to={getPathWithParams(paths.project.detail.metrics.exportPolicies.new, {
                     projectId: project.name,
@@ -249,10 +249,10 @@ export default function ProjectHomePage() {
             }
             onSkip={async () => {
               await updateMutation.mutateAsync({
-                annotations: { 'dashboard.proxy.skipped': 'true' },
+                annotations: { 'dashboard.metrics.skipped': 'true' },
               });
             }}
-            showSkip={!hasHttpProxies}
+            showSkip={!hasMetrics}
           />
         </motion.div>
 

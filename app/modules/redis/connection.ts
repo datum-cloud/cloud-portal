@@ -100,7 +100,7 @@ export async function checkRedisHealth(): Promise<{
 
   try {
     const start = Date.now();
-    const result = await Promise.race([
+    await Promise.race([
       redisClient.ping(),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Health check timeout')), 3000)),
     ]);

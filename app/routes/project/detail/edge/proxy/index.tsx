@@ -1,6 +1,10 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import {
+  HttpProxyFormDialog,
+  type HttpProxyFormDialogRef,
+} from '@/features/edge/proxy/proxy-form-dialog';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { ControlPlaneStatus } from '@/resources/base';
@@ -20,10 +24,9 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, PlusIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { PlusIcon } from 'lucide-react';
+import { useMemo, useRef } from 'react';
 import {
-  Link,
   LoaderFunctionArgs,
   MetaFunction,
   useLoaderData,
@@ -69,10 +72,11 @@ export default function HttpProxyPage() {
   const data = queryData ?? initialData ?? [];
 
   const { confirm } = useConfirmationDialog();
+  const proxyFormRef = useRef<HttpProxyFormDialogRef>(null);
 
   const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
     onSuccess: () => {
-      toast.success('Proxy deleted successfully', {
+      toast.success('Proxy', {
         description: 'The proxy has been deleted successfully',
       });
     },
@@ -154,14 +158,8 @@ export default function HttpProxyPage() {
       {
         key: 'edit',
         label: 'Edit',
-        action: (row) => {
-          navigate(
-            getPathWithParams(paths.project.detail.proxy.detail.edit, {
-              projectId,
-              proxyId: row.name,
-            })
-          );
-        },
+        variant: 'default',
+        action: (row) => proxyFormRef.current?.show(row),
       },
       {
         key: 'delete',
@@ -174,53 +172,54 @@ export default function HttpProxyPage() {
   );
 
   return (
-    <DataTable
-      columns={columns}
-      data={data ?? []}
-      onRowClick={(row) => {
-        navigate(
-          getPathWithParams(paths.project.detail.proxy.detail.overview, {
-            projectId,
-            proxyId: row.name,
-          })
-        );
-      }}
-      emptyContent={{
-        title: "let's add a Proxy to get you started",
-        actions: [
-          {
-            type: 'link',
-            label: 'Add proxy',
-            to: getPathWithParams(paths.project.detail.proxy.new, {
+    <>
+      <DataTable
+        columns={columns}
+        data={data ?? []}
+        onRowClick={(row) => {
+          navigate(
+            getPathWithParams(paths.project.detail.proxy.detail.overview, {
               projectId,
-            }),
-            variant: 'default',
-            icon: <Icon icon={ArrowRightIcon} className="size-4" />,
-            iconPosition: 'end',
-          },
-        ],
-      }}
-      tableTitle={{
-        title: 'Proxy',
-        actions: (
-          <Link
-            to={getPathWithParams(paths.project.detail.proxy.new, {
-              projectId,
-            })}>
-            <Button type="primary" theme="solid" size="small">
+              proxyId: row.name,
+            })
+          );
+        }}
+        emptyContent={{
+          title: "let's add a Proxy to get you started",
+          actions: [
+            {
+              type: 'button',
+              label: 'Add proxy',
+              onClick: () => proxyFormRef.current?.show(),
+              variant: 'default',
+              icon: <Icon icon={PlusIcon} className="size-3" />,
+              iconPosition: 'start',
+            },
+          ],
+        }}
+        tableTitle={{
+          title: 'Proxy',
+          actions: (
+            <Button
+              type="primary"
+              theme="solid"
+              size="small"
+              onClick={() => proxyFormRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               Add proxy
             </Button>
-          </Link>
-        ),
-      }}
-      toolbar={{
-        layout: 'compact',
-        includeSearch: {
-          placeholder: 'Search proxies',
-        },
-      }}
-      rowActions={rowActions}
-    />
+          ),
+        }}
+        toolbar={{
+          layout: 'compact',
+          includeSearch: {
+            placeholder: 'Search proxies',
+          },
+        }}
+        rowActions={rowActions}
+      />
+
+      <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId!} />
+    </>
   );
 }
