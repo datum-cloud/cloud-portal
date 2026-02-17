@@ -1,3 +1,4 @@
+import { fixupPluginRules } from '@eslint/compat';
 import prettierConfig from './prettier.config.mjs';
 import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
@@ -9,7 +10,7 @@ import tseslint from 'typescript-eslint';
 export default [
   // Global ignores (must be separate config object)
   {
-    ignores: ['app/modules/gqlts/generated/**'],
+    ignores: ['app/modules/gqlts/generated/**', 'app/modules/control-plane/**/client.gen.ts'],
   },
   {
     files: ['**/*.ts', '**/*.tsx'],
@@ -34,10 +35,9 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tseslint.plugin,
-      react: eslintPluginReact,
-      'react-hooks': eslintPluginReactHooks,
-      // import: eslintPluginImport,
-      'jsx-a11y': eslintPluginJsxA11y,
+      react: fixupPluginRules(eslintPluginReact),
+      'react-hooks': fixupPluginRules(eslintPluginReactHooks),
+      'jsx-a11y': fixupPluginRules(eslintPluginJsxA11y),
       prettier: eslintPluginPrettier,
       'unused-imports': unusedImports,
     },
@@ -48,13 +48,6 @@ export default [
       ...eslintPluginPrettier.configs.recommended.rules,
       'prettier/prettier': ['error', prettierConfig],
       'react/react-in-jsx-scope': 'off',
-      // 'import/order': [
-      //   'warn',
-      //   {
-      //     groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
-      //     'newlines-between': 'never',
-      //   },
-      // ],
       'react-hooks/exhaustive-deps': 'off',
 
       'no-unused-vars': 'off', // or "@typescript-eslint/no-unused-vars": "off",

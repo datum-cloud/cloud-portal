@@ -16,7 +16,7 @@ export async function registrationApprovalMiddleware(
   ctx: MiddlewareContext,
   next: NextFunction
 ): Promise<Response> {
-  const { request, context } = ctx;
+  const { request } = ctx;
   const url = new URL(request.url);
 
   // Allowed paths that don't require registration approval

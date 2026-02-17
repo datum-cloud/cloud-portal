@@ -16,7 +16,7 @@ const saveToLS = (storageKey: string, value: string) => {
   // Save to storage
   try {
     localStorage.setItem(storageKey, value);
-  } catch (e) {
+  } catch {
     // Unsupported
   }
 };
@@ -45,7 +45,7 @@ const Theme = ({
   value,
   children,
   nonce,
-  scriptProps,
+  scriptProps: _scriptProps,
 }: ThemeProviderProps) => {
   const [theme, setThemeState] = React.useState<Theme>(
     () => (isServer ? defaultTheme : getTheme(storageKey, defaultTheme)) as Theme
@@ -185,7 +185,7 @@ const getTheme = (key: string, fallback?: string): string | undefined => {
   let theme;
   try {
     theme = localStorage.getItem(key) || undefined;
-  } catch (e) {
+  } catch {
     // Unsupported
   }
   return theme || fallback;

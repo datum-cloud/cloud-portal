@@ -45,13 +45,6 @@ function flattenFilterChildren(children: ReactNode): ReactElement<FilterProps>[]
   return result;
 }
 
-/**
- * Gets the filterKey from a filter component element
- */
-function getFilterKey(element: ReactElement<FilterProps>): string | undefined {
-  return element.props?.filterKey;
-}
-
 export interface DataTableToolbarProps {
   /**
    * Table title, description, and actions configuration

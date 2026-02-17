@@ -48,7 +48,7 @@ export const script = (
       const isSystem = enableSystem && themeName === 'system';
       const theme = isSystem ? getSystemTheme() : themeName;
       updateDOM(theme);
-    } catch (e) {
+    } catch {
       // Ignore
     }
   }

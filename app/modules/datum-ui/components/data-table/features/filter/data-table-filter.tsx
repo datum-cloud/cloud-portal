@@ -43,11 +43,10 @@ function FilterBar({
   defaultExpanded?: boolean;
   variant?: 'default' | 'card';
 }) {
-  const { hasActiveFilters, getActiveFilterCount, resetAllFilters } = useDataTableFilter();
+  const { hasActiveFilters, resetAllFilters } = useDataTableFilter();
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   const hasActiveFiltersValue = hasActiveFilters();
-  const activeCount = getActiveFilterCount();
 
   // Default variant - simple filters without card wrapper
   if (variant === 'default') {
