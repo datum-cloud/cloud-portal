@@ -15,9 +15,6 @@ permissions:
   packages: write
   attestations: write
 
-env:
-  AUTH_OIDC_CLIENT_ID: "325848903272435738"
-
 concurrency:
   group: preview-${{ github.event.pull_request.number || github.event.client_payload.pr_number }}
   cancel-in-progress: false
@@ -100,19 +97,13 @@ jobs:
         run: |
           PREVIEW_URL="${{ github.event.client_payload.preview_url }}"
           PREVIEW_NAMESPACE="${{ github.event.client_payload.preview_namespace }}"
-          API_URL="${{ github.event.client_payload.api_url }}"
-          AUTH_URL="${{ github.event.client_payload.auth_url }}"
 
           echo "preview_url=${PREVIEW_URL}" >> "$GITHUB_OUTPUT"
           echo "preview_namespace=${PREVIEW_NAMESPACE}" >> "$GITHUB_OUTPUT"
-          echo "api_url=${API_URL}" >> "$GITHUB_OUTPUT"
-          echo "auth_url=${AUTH_URL}" >> "$GITHUB_OUTPUT"
 
           echo "🚀 Preview Environment Ready!"
           echo "Preview URL: ${PREVIEW_URL}"
           echo "Namespace: ${PREVIEW_NAMESPACE}"
-          echo "API URL: ${API_URL}"
-          echo "Auth URL: ${AUTH_URL}"
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -145,8 +136,6 @@ jobs:
           CYPRESS_BASE_URL=${{ steps.preview-info.outputs.preview_url }}
           NODE_ENV=test
           CYPRESS=true
-          AUTH_OIDC_ISSUER=${{ steps.preview-info.outputs.auth_url }}
-          AUTH_OIDC_CLIENT_ID=${AUTH_OIDC_CLIENT_ID}
           EOF
 
       - name: Verify Preview URL is accessible
@@ -159,8 +148,6 @@ jobs:
           NODE_ENV: test
           CYPRESS: "true"
           CYPRESS_BASE_URL: ${{ steps.preview-info.outputs.preview_url }}
-          AUTH_OIDC_ISSUER: ${{ steps.preview-info.outputs.auth_url }}
-          AUTH_OIDC_CLIENT_ID: ${{ env.AUTH_OIDC_CLIENT_ID }}
         run: bun run test:e2e:preview
 
       - name: Upload Artifacts
