@@ -4,42 +4,73 @@ import '@testing-library/cypress/add-commands';
 
 Cypress.Commands.add(
   'login',
-  (
-    sessionToken: string = 'eyJfc2Vzc2lvbiI6eyJhY2Nlc3NUb2tlbiI6ImV5SmhiR2NpT2lKU1V6STFOaUlzSW10cFpDSTZJak0xT1RJMk1USTNNamczTURRNE5qVXpPQ0lzSW5SNWNDSTZJa3BYVkNKOS5leUpoZFdRaU9sc2lNek15TWpBNU16VXdOVEl6TWprd05qVXhJaXdpTXpJNE5EUTVNamc1TnpZeU1UZ3hNVE16SWl3aU16VXhOalF4TlRVMU1UVXdNemMxTkRVNElpd2lNekkxT0RRNE9UQTBNVEk0TURjek56VTBJaXdpTXpJMU9EUTRPVEF6TWpjeU5ETTFOek00SWl3aU16STFPRFE0T1RBd09UUXdNek0zTVRjNElsMHNJbU5zYVdWdWRGOXBaQ0k2SWpNeU5UZzBPRGt3TXpJM01qUXpOVGN6T0NJc0ltVnRZV2xzSWpvaWJXcGxibXRwYm5OdmJpdDBaWE4wUUdSaGRIVnRMbTVsZENJc0ltVjRjQ0k2TVRjM01EWTRNems1Tml3aWFXRjBJam94Tnpjd05qUXdOemsyTENKcGMzTWlPaUpvZEhSd2N6b3ZMMkYxZEdndWMzUmhaMmx1Wnk1bGJuWXVaR0YwZFcwdWJtVjBJaXdpYW5ScElqb2lWakpmTXpVNU1qYzFNelE1T1RJM056azROemsxTFdGMFh6TTFPVEkzTlRNME9Ua3lOemcyTkRNek1TSXNJbTVpWmlJNk1UYzNNRFkwTURjNU5pd2ljM1ZpSWpvaU16VTVNalUyT0RnMU56UTFPVFV4TWpRNEluMC5OYUMwdmIxU18yRGNVLXZGOV9EbFJGVEVsdFFxRDJVN3FCbG9MaVpZRkhkeEpDX1UxSVpRNy1HODMwbEZoOThqSGlCUXQxZ3lzaVNVZXpVQjFKcHlWWjhZSTFybV9JQVlEU3h5bzZKVUlmYnNnUllSeXY3aXJrb1pmd3ZpWWNyQk8xRk9lS2VjOUliYWdmZF9xbHRRT1djYVZvSzdrR2NucWd0aEEzcXNpd3lINmkwWlJEempuR0ZUUzBfZWszY181S29NR2ZhdF9LenhfNUd5OVZtZkJWNmlKNUVYQzhPSEU0R2txQVRBXy1XT1pJcnBwQnFKN3lVWThsODJ2bmVkamtkbjJzcHBGOGdndjJCOThTZkYza2RTckVERmFBeWJDLUFvMnhIbnBiOGRnQkFiOVdhZWFnaU1BNTFYZGVrZ0kzSHJpTlZMaHhjODZRN2I5bkJ0SHciLCJleHBpcmVkQXQiOiIyMDI2LTAyLTEwVDAwOjM5OjU1LjE4NFoiLCJzdWIiOiIzNTkyNTY4ODU3NDU5NTEyNDgifX0=.92OHIQSoWsAbds2QZReazHohL7DIf7u8bYCvOlRn41c'
-  ) => {
-    cy.session(
-      sessionToken, // Session ID - unique per session token
-      () => {
-        const baseUrl = Cypress.config('baseUrl') || 'http://localhost:3000';
-        const url = new URL(baseUrl);
+  (options?: { accessToken?: string; sub?: string }) => {
+    // Get accessToken and sub from options or environment variables
+    cy.env(['ACCESS_TOKEN', 'SUB']).then((env) => {
+      const accessToken = options?.accessToken ?? env.ACCESS_TOKEN;
+      const sub = options?.sub ?? env.SUB;
 
-        // Set the _session cookie with all attributes matching production
-        // Extract domain from baseUrl (remove port if present)
-        const domain = url.hostname;
-        const isSecure = url.protocol === 'https:';
+      if (!accessToken) {
+        throw new Error('accessToken is required. Provide it via options or ACCESS_TOKEN environment variable.');
+      }
+      if (!sub) {
+        throw new Error('sub is required. Provide it via options or SUB environment variable.');
+      }
 
-        cy.setCookie('_session', sessionToken, {
-          httpOnly: true,
-          secure: isSecure,
-          path: '/',
-          sameSite: 'lax',
-          domain: domain,
-        });
-      },
-      {
-        validate: () => {
-          cy.request({
-            url: `${Cypress.config('baseUrl')}${paths.account.organizations.root}`,
-            failOnStatusCode: false,
-          }).then((response) => {
-            if (response.status !== 200) {
-              throw new Error('Session validation failed');
+      // Create a unique session ID based on accessToken and sub
+      const sessionId = `session-${accessToken.substring(0, 20)}-${sub}`;
+
+      cy.session(
+        sessionId,
+        () => {
+          const baseUrl = Cypress.config('baseUrl');
+          if (!baseUrl) {
+            throw new Error('baseUrl is required in Cypress configuration');
+          }
+          const url = new URL(baseUrl);
+          const domain = url.hostname;
+          const isSecure = url.protocol === 'https:';
+
+          // Build session object and sign it
+          const now = new Date();
+          const expiredAt = new Date(now.getTime() + 12 * 60 * 60 * 1000); // Now + 12 hours
+
+          const sessionData = {
+            accessToken,
+            expiredAt: expiredAt.toISOString(),
+            sub,
+          };
+
+          // Sign the cookie using React Router's signing mechanism
+          cy.task<string>('signSessionCookie', sessionData).then((signedCookieValue) => {
+            if (!signedCookieValue) {
+              throw new Error('Failed to sign session cookie');
             }
+
+            cy.setCookie('_session', signedCookieValue, {
+              httpOnly: true,
+              secure: isSecure,
+              path: '/',
+              sameSite: 'lax',
+              domain: domain,
+            });
           });
         },
-        cacheAcrossSpecs: true,
-      }
-    );
+        {
+          validate: () => {
+            cy.request({
+              url: `${Cypress.config('baseUrl')}${paths.account.organizations.root}`,
+              failOnStatusCode: false,
+            }).then((response) => {
+              if (response.status !== 200) {
+                throw new Error('Session validation failed');
+              }
+            });
+          },
+          cacheAcrossSpecs: true,
+        }
+      );
+    });
   }
 );
 
@@ -174,11 +205,13 @@ declare global {
     interface Chainable {
       /**
        * Login command that sets the _session cookie and caches authentication state using cy.session()
-       * @param sessionToken - The session token to set as the _session cookie (optional, has default)
+       * Session token is always built dynamically from accessToken and sub.
+       * Values can be provided via options or environment variables (ACCESS_TOKEN, SUB).
+       * @param options - Optional object with accessToken and sub properties
        * @example cy.login()
-       * @example cy.login('your-session-token-here')
+       * @example cy.login({ accessToken: 'token', sub: 'user-id' })
        */
-      login(sessionToken?: string): Chainable<void>;
+      login(options?: { accessToken?: string; sub?: string }): Chainable<void>;
 
       /**
        * Get the personal org ID from shared state
