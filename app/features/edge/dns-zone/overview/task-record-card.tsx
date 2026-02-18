@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, LinkButton } from '@datum-ui/
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { CheckIcon } from 'lucide-react';
 import { useMemo } from 'react';
+import { Link } from 'react-router';
 
 export const TaskRecordCard = ({ projectId, dnsZone }: { projectId: string; dnsZone: DnsZone }) => {
   const dnsRecordItems = useMemo(
@@ -40,11 +41,12 @@ export const TaskRecordCard = ({ projectId, dnsZone }: { projectId: string; dnsZ
         </ul>
 
         <LinkButton
+          as={Link}
           type="primary"
           theme="solid"
           size="small"
           className="mt-6"
-          to={getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
+          href={getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
             projectId: projectId ?? '',
             dnsZoneId: dnsZone?.name ?? '',
           })}>

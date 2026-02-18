@@ -1,6 +1,6 @@
 import { DataTableRowActions } from '../features/actions/data-table-row-actions';
 import { DataTableRowActionsProps } from './data-table.types';
-import { EmptyContent } from '@/components/empty-content/empty-content';
+import { EmptyContent } from '@datum-ui/components/empty-content';
 import { cn } from '@shadcn/lib/utils';
 import { TableBody, TableCell, TableRow } from '@shadcn/ui/table';
 import { Table as TTable, flexRender } from '@tanstack/react-table';

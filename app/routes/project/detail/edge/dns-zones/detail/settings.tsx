@@ -1,12 +1,12 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
-import { PageTitle } from '@/components/page-title/page-title';
 import { ComingSoonCard } from '@/features/edge/dns-zone/overview/coming-soon-card';
 import { DescriptionFormCard } from '@/features/edge/dns-zone/overview/description-form-card';
 import { useDeleteDnsZone } from '@/resources/dns-zones';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-ui/components';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {

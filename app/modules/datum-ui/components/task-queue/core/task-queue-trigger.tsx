@@ -1,7 +1,7 @@
 import type { Task } from '../types';
-import { Badge } from '@/modules/datum-ui/components/badge';
-import { Button } from '@/modules/datum-ui/components/button';
 import { Tooltip } from '@datum-ui/components';
+import { Badge } from '@datum-ui/components/badge';
+import { Button } from '@datum-ui/components/button';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { ListTodo } from 'lucide-react';

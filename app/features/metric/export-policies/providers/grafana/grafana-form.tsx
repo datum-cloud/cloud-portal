@@ -191,7 +191,7 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                     </div>
 
                     <LinkButton
-                      to="https://grafana.com"
+                      href="https://grafana.com"
                       target="_blank"
                       rel="noreferrer"
                       type="secondary"
@@ -232,7 +232,7 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                         buttonVariant="icon-only"
                       />
                       <LinkButton
-                        to={connectionUrl}
+                        href={connectionUrl}
                         target="_blank"
                         rel="noreferrer"
                         type="secondary"

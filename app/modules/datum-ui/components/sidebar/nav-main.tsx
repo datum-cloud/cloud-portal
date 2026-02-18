@@ -16,6 +16,7 @@ import { ChevronRight, ExternalLinkIcon, LucideIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import {
   ComponentProps,
+  ElementType,
   Fragment,
   forwardRef,
   useCallback,
@@ -23,7 +24,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Link, useLocation } from 'react-router';
 
 export type NavItem = {
   title: string;
@@ -119,6 +119,10 @@ export const NavMain = forwardRef<
   HTMLUListElement,
   ComponentProps<'ul'> & {
     items: NavItem[];
+    /** Current URL pathname — replaces internal useLocation() */
+    currentPath: string;
+    /** Link component to render navigation links (defaults to native `<a>`) */
+    linkComponent?: ElementType;
     overrideState?: 'expanded' | 'collapsed';
     itemClassName?: string;
     disableTooltip?: boolean;
@@ -126,10 +130,20 @@ export const NavMain = forwardRef<
   }
 >(
   (
-    { className, items, overrideState, itemClassName, disableTooltip, closeOnNavigation, ...props },
+    {
+      className,
+      items,
+      currentPath,
+      linkComponent: LinkComp = 'a',
+      overrideState,
+      itemClassName,
+      disableTooltip,
+      closeOnNavigation,
+      ...props
+    },
     ref
   ) => {
-    const { pathname } = useLocation();
+    const pathname = currentPath;
     const { state: sidebarState, isMobile, closeForNavigation, setOpen } = useSidebar();
     const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
     const isInitialMount = useRef(true);
@@ -405,9 +419,11 @@ export const NavMain = forwardRef<
                             isActive={isSubItemActive}
                             className="h-6 p-0 group-data-[collapsible=icon]:h-6! group-data-[collapsible=icon]:p-0!"
                             asChild>
-                            <Link
+                            <LinkComp
                               className="flex items-center justify-center"
-                              to={subItem.href || ''}
+                              {...(LinkComp === 'a'
+                                ? { href: subItem.href || '' }
+                                : { to: subItem.href || '' })}
                               onClick={() => {
                                 handleNavigation();
                               }}>
@@ -417,7 +433,7 @@ export const NavMain = forwardRef<
                                   isSubItemActive ? 'bg-primary' : 'bg-sidebar-primary-foreground'
                                 )}
                               />
-                            </Link>
+                            </LinkComp>
                           </SidebarMenuButton>
                         </motion.div>
                       );
@@ -609,7 +625,9 @@ export const NavMain = forwardRef<
                     <Icon icon={ExternalLinkIcon} className="ml-auto size-4" />
                   </a>
                 ) : (
-                  <Link to={item.href || ''} onClick={handleNavigation}>
+                  <LinkComp
+                    {...(LinkComp === 'a' ? { href: item.href || '' } : { to: item.href || '' })}
+                    onClick={handleNavigation}>
                     {item?.icon && (
                       <Icon
                         icon={item.icon}
@@ -617,7 +635,7 @@ export const NavMain = forwardRef<
                       />
                     )}
                     <span>{item.title}</span>
-                  </Link>
+                  </LinkComp>
                 )}
               </NavSidebarMenuButton>
             </SidebarMenuItem>

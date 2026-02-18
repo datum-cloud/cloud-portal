@@ -1,6 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
-import { PageTitle } from '@/components/page-title/page-title';
 import { HttpProxyGlobalUpstreamLatency } from '@/features/edge/proxy/metrics/global-upstream-latency';
 import { HttpProxyUpstreamResponse } from '@/features/edge/proxy/metrics/upstream-response';
 import { HttpProxyUpstreamRps } from '@/features/edge/proxy/metrics/upstream-rps';
@@ -25,6 +24,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Icon, toast } from '@datum-ui/components';
 import { Card, CardContent, Col, Row } from '@datum-ui/components';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { ChartSplineIcon } from 'lucide-react';
 import { useRef } from 'react';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';

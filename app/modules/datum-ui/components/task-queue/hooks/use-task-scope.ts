@@ -1,6 +1,5 @@
 import type { Task, TaskMetadata } from '../types';
 import { useMemo } from 'react';
-import { useParams } from 'react-router';
 
 // --- Current Scope Detection ---
 
@@ -13,10 +12,10 @@ export type CurrentScope =
 /**
  * Detect the current scope from URL params.
  * Returns project scope if projectId is present, org scope if only orgId, otherwise global.
+ *
+ * @param params - Route params (e.g. from useParams() in react-router)
  */
-export function useCurrentScope(): CurrentScope {
-  const params = useParams();
-
+export function useCurrentScope(params: { projectId?: string; orgId?: string }): CurrentScope {
   return useMemo(() => {
     // Project scope takes precedence (projectId implies orgId context)
     if (params.projectId) {
@@ -121,9 +120,15 @@ export interface TasksWithLabels {
  * Labels are shown when:
  * - User is on a global page (account, etc.)
  * - Tasks are from mixed scopes (not all match current scope)
+ *
+ * @param tasks - Array of tasks to evaluate
+ * @param params - Route params (e.g. from useParams() in react-router)
  */
-export function useTasksWithLabels(tasks: Task[]): TasksWithLabels {
-  const currentScope = useCurrentScope();
+export function useTasksWithLabels(
+  tasks: Task[],
+  params: { projectId?: string; orgId?: string }
+): TasksWithLabels {
+  const currentScope = useCurrentScope(params);
 
   const showLabels = useMemo(() => {
     // No tasks = no labels needed

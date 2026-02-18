@@ -82,6 +82,10 @@ export function FormDialog<T extends z.ZodType>({
   // Loading state
   loading,
 
+  // Form customization
+  formComponent,
+  telemetry,
+
   // Styling
   className,
   formClassName,
@@ -151,6 +155,8 @@ export function FormDialog<T extends z.ZodType>({
           onError={onError}
           isSubmitting={isSubmitting}
           mode="onSubmit"
+          formComponent={formComponent}
+          telemetry={telemetry}
           className={cn('space-y-0', formClassName)}>
           {(renderProps: FormRootRenderProps) => (
             <>

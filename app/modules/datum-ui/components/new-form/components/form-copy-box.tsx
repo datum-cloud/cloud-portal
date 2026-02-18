@@ -1,7 +1,7 @@
 import { useFieldContext } from '../context/field-context';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { useInputControl } from '@conform-to/react';
 import { Button, toast } from '@datum-ui/components';
+import { useCopyToClipboard } from '@datum-ui/hooks/use-copy-to-clipboard';
 import { cn } from '@shadcn/lib/utils';
 import { CheckIcon, CopyIcon } from 'lucide-react';
 import * as React from 'react';

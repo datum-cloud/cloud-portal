@@ -1,11 +1,11 @@
 import { ComingSoonFeatureCard } from '@/components/coming-soon/coming-soon-feature-card';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
-import { PageTitle } from '@/components/page-title/page-title';
 import { useDeleteDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row, toast } from '@datum-ui/components';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export default function DomainSettingsPage() {

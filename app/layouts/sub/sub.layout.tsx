@@ -4,7 +4,7 @@ import { Button, Sheet, SheetContent, SheetTrigger } from '@datum-ui/components'
 import { NavMain, useSidebar } from '@datum-ui/components/sidebar';
 import { cn } from '@shadcn/lib/utils';
 import { useLayoutEffect, useState } from 'react';
-import { useLocation } from 'react-router';
+import { Link, useLocation } from 'react-router';
 
 const SubNavMenuIcon = () => (
   <svg
@@ -69,6 +69,8 @@ export function SubLayout({
                   className="px-0 py-3.5"
                   itemClassName="text-xs h-6"
                   disableTooltip
+                  currentPath={pathname}
+                  linkComponent={Link}
                 />
               </div>
             </div>
@@ -99,6 +101,8 @@ export function SubLayout({
                     className="px-0 py-0"
                     itemClassName="text-xs h-6"
                     disableTooltip
+                    currentPath={pathname}
+                    linkComponent={Link}
                   />
                 </div>
               </SheetContent>

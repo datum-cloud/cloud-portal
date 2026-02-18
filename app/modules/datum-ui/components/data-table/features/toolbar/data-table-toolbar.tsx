@@ -9,7 +9,7 @@ import { DataTableToolbarFilterDropdown } from './data-table-toolbar-filter-drop
 import { DataTableToolbarMultiActions } from './data-table-toolbar-multi-actions';
 import { DataTableToolbarRowCount } from './data-table-toolbar-row-count';
 import { DataTableToolbarSearch } from './data-table-toolbar-search';
-import { PageTitle } from '@/components/page-title/page-title';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { cn } from '@shadcn/lib/utils';
 import { Children, isValidElement, ReactElement, ReactNode, useMemo } from 'react';
 

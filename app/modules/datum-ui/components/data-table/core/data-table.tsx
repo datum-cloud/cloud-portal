@@ -9,7 +9,7 @@ import { DataTableLoadingContent } from './data-table-loading';
 import { DataTableView } from './data-table-view';
 import { DataTableProvider, useDataTable } from './data-table.context';
 import { DataTableProps, DataTableRef, MultiAction } from './data-table.types';
-import { EmptyContent } from '@/components/empty-content/empty-content';
+import { EmptyContent } from '@datum-ui/components/empty-content';
 import { cn } from '@shadcn/lib/utils';
 import { Checkbox } from '@shadcn/ui/checkbox';
 import { Table } from '@shadcn/ui/table';

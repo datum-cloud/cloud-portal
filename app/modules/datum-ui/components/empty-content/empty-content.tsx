@@ -1,8 +1,6 @@
-import { useApp } from '@/providers/app.provider';
 import { Button } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { Link } from 'react-router';
 
 export interface EmptyContentAction {
   type: 'button' | 'link' | 'external-link';
@@ -129,6 +127,10 @@ export interface EmptyContentProps extends VariantProps<typeof containerVariants
   className?: string;
   actions?: EmptyContentAction[];
   spacing?: 'compact' | 'normal' | 'relaxed';
+  /** User's display name for greeting (e.g., "Hey John, ..."). Defaults to "there". */
+  userName?: string;
+  /** Link component for action links (e.g., React Router's Link). Defaults to <a>. */
+  linkComponent?: React.ElementType;
 }
 
 export const EmptyContent = ({
@@ -140,9 +142,11 @@ export const EmptyContent = ({
   actions = [],
   orientation = 'vertical',
   spacing = 'normal',
+  userName,
+  linkComponent,
 }: EmptyContentProps) => {
-  const { user } = useApp();
   const buttonSize = BUTTON_SIZE_MAP[size ?? 'md'];
+  const LinkComp = linkComponent || 'a';
 
   const renderAction = (action: EmptyContentAction) => {
     const { icon: actionIcon, iconPosition = 'start' } = action;
@@ -160,14 +164,16 @@ export const EmptyContent = ({
     );
 
     if (action.type === 'link' || action.type === 'external-link') {
+      const linkProps = LinkComp === 'a' ? { href: action.to ?? '' } : { to: action.to ?? '' };
+
       return (
-        <Link
+        <LinkComp
           key={action.label}
-          to={action.to ?? ''}
+          {...linkProps}
           target={action.type === 'external-link' ? '_blank' : '_self'}
           rel={action.type === 'external-link' ? 'noopener noreferrer' : undefined}>
           {buttonContent}
-        </Link>
+        </LinkComp>
       );
     }
 
@@ -211,7 +217,7 @@ export const EmptyContent = ({
 
       <div className="dark:bg-background border-border relative flex max-w-[224px] flex-col items-center justify-center gap-3.5 rounded-lg border bg-white px-6 py-7">
         <h3 className={titleVariants({ size })}>
-          {`Hey ${user?.givenName ?? 'there'}, ${title ? title : ''}`}
+          {`Hey ${userName ?? 'there'}, ${title ? title : ''}`}
         </h3>
         {subtitle && <span className={subtitleVariants({ size })}>{subtitle}</span>}
         {actions.length > 0 && (

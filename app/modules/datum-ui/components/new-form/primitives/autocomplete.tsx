@@ -3,7 +3,7 @@ import type {
   AutocompleteOption,
   AutocompleteProps,
 } from './autocomplete.types';
-import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
+import { LoaderOverlay } from '@datum-ui/components/loader-overlay';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,

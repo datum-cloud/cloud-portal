@@ -7,6 +7,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { LinkButton } from '@datum-ui/components';
 import { Dialog } from '@datum-ui/components/dialog';
 import { useState } from 'react';
+import { Link } from 'react-router';
 
 export function GrafanaDialog({ projectId, open, onOpenChange }: GrafanaDialogProps) {
   const [success, setSuccess] = useState(false);
@@ -52,7 +53,8 @@ export function GrafanaDialog({ projectId, open, onOpenChange }: GrafanaDialogPr
           </div>
 
           <LinkButton
-            to={getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
+            as={Link}
+            href={getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
               projectId,
             })}
             type="primary"

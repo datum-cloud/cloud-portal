@@ -10,7 +10,7 @@ import { getShortId } from '@/utils/helpers/text.helper';
 import { Card, CardContent, CardHeader, CardTitle, LinkButton } from '@datum-ui/components';
 import { PencilIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 
 export const ExportPolicyGeneralCard = ({
   exportPolicy,
@@ -73,9 +73,10 @@ export const ExportPolicyGeneralCard = ({
         <CardTitle className="flex items-center justify-between gap-2">
           <span className="text-lg font-medium">General</span>
           <LinkButton
+            as={Link}
             size="xs"
             icon={<PencilIcon size={12} />}
-            to={getPathWithParams(paths.project.detail.metrics.exportPolicies.detail.edit, {
+            href={getPathWithParams(paths.project.detail.metrics.exportPolicies.detail.edit, {
               projectId: projectId ?? '',
               exportPolicyId: exportPolicy?.name ?? '',
             })}>

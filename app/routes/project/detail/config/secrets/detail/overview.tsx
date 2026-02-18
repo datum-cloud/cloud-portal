@@ -1,10 +1,10 @@
 import type { loader } from './layout';
-import { PageTitle } from '@/components/page-title/page-title';
 import { EditSecretKeys } from '@/features/secret/form/edit/edit-keys';
 import { SecretDangerCard } from '@/features/secret/form/overview/danger-card';
 import { SecretGeneralCard } from '@/features/secret/form/overview/general-card';
 import { useSecret } from '@/resources/secrets';
 import { Row, Col } from '@datum-ui/components';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { useParams, useRouteLoaderData } from 'react-router';
 
 export default function EditSecret() {

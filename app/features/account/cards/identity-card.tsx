@@ -93,7 +93,7 @@ export const AccountIdentitySettingsCard = () => {
                         </Tooltip>
                       )}
                       <LinkButton
-                        to={`${env.public.authOidcIssuer}/ui/v2/login/idp/link`}
+                        href={`${env.public.authOidcIssuer}/ui/v2/login/idp/link`}
                         target="_blank"
                         rel="noopener noreferrer"
                         type="quaternary"
