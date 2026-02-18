@@ -1,5 +1,4 @@
 import { getRegionCoordinates } from './region-coordinates';
-import { ClientOnly } from '@/modules/datum-themes';
 import { usePrometheusLabels } from '@/modules/metrics';
 import { buildPrometheusLabelSelector } from '@/modules/metrics/utils/query-builders';
 import { SpinnerIcon } from '@datum-ui/components';
@@ -74,13 +73,10 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
         {!isLoading && !error && regionOptions.length > 0 && (
           <div className="flex flex-col gap-4">
             {regionsWithCoords.length > 0 && (
-              <ClientOnly
+              <Suspense
                 fallback={<div className="bg-muted h-64 animate-pulse rounded-lg border" />}>
-                <Suspense
-                  fallback={<div className="bg-muted h-64 animate-pulse rounded-lg border" />}>
-                  <ActivePopsMap regionsWithCoords={regionsWithCoords} />
-                </Suspense>
-              </ClientOnly>
+                <ActivePopsMap regionsWithCoords={regionsWithCoords} />
+              </Suspense>
             )}
             {regionsWithCoords.length === 0 && (
               <div className="bg-muted flex h-64 w-full items-center justify-center rounded-lg border">

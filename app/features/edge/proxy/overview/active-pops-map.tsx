@@ -1,16 +1,10 @@
-import {
-  Map,
-  MapFullscreenControl,
-  MapMarker,
-  MapTileLayer,
-  MapTooltip,
-  MapZoomControl,
-} from '@shadcn/ui/map';
+import { Map, MapMarker, MapTileLayer, MapTooltip, MapZoomControl } from '@shadcn/ui/map';
+import type { LatLngExpression } from 'leaflet';
 
 interface RegionWithCoords {
   value: string;
   label: string;
-  coords: [number, number];
+  coords: LatLngExpression;
 }
 
 const GreenPulseDot = () => (
@@ -26,7 +20,6 @@ export const ActivePopsMap = ({ regionsWithCoords }: { regionsWithCoords: Region
       <Map center={[20, 0]} zoom={2} minZoom={2} maxZoom={10} className="h-full w-full">
         <MapTileLayer />
         <MapZoomControl />
-        <MapFullscreenControl />
         {regionsWithCoords.map(({ value, label, coords }) => (
           <MapMarker key={value} position={coords} icon={<GreenPulseDot />} iconAnchor={[12, 12]}>
             <MapTooltip permanent={false}>{label}</MapTooltip>
