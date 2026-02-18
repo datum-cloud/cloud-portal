@@ -54,12 +54,12 @@ const FieldLabel = ({
           message={tooltip}
           open={isTooltipVisible}
           onOpenChange={setIsTooltipVisible}
-          side="bottom">
+          side="bottom"
+          contentClassName="max-w-xs text-wrap">
           <Icon
             icon={CircleHelp}
             className={cn(
-              'text-ring absolute top-0.5 -right-3 size-3.5 cursor-pointer transition-opacity duration-400',
-              isHovering || isTooltipVisible ? 'opacity-100' : 'opacity-0'
+              'text-ring absolute top-0.5 -right-3 size-3.5 cursor-pointer transition-opacity duration-400'
             )}
           />
         </Tooltip>

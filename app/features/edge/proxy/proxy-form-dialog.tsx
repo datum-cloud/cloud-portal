@@ -1,16 +1,99 @@
-import { InputName } from '@/components/input-name/input-name';
 import { ProxyHostnamesField } from '@/features/edge/proxy/form/hostnames-field';
 import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
+import { useApp } from '@/providers/app.provider';
 import {
   type HttpProxy,
   type HttpProxySchema,
   httpProxySchema,
-  useCreateHttpProxy,
   useUpdateHttpProxy,
+  createHttpProxyService,
+  waitForHttpProxyReady,
+  httpProxyKeys,
+  getWafModeWithParanoia,
+  parseWafModeWithParanoia,
 } from '@/resources/http-proxies';
-import { toast } from '@datum-ui/components';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
+import { useInputControl } from '@conform-to/react';
+import { toast, useTaskQueue } from '@datum-ui/components';
+import { InputWithAddons } from '@datum-ui/components/input-with-addons';
 import { Form } from '@datum-ui/components/new-form';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+import { useQueryClient } from '@tanstack/react-query';
+import { ChevronDownIcon, GaugeIcon } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
+import { useNavigate } from 'react-router';
+
+// Custom component that combines protocol selector with endpoint input
+const ProtocolEndpointInput = ({ autoFocus }: { autoFocus?: boolean }) => {
+  const { fields } = Form.useFormContext();
+  const protocolField = fields.protocol as any;
+  const endpointField = fields.endpointHost as any;
+
+  const protocolControl = useInputControl(protocolField);
+  const endpointControl = useInputControl(endpointField);
+
+  const protocolValue =
+    (Array.isArray(protocolControl.value) ? protocolControl.value[0] : protocolControl.value) ||
+    'https';
+  const endpointValue =
+    (Array.isArray(endpointControl.value) ? endpointControl.value[0] : endpointControl.value) || '';
+
+  return (
+    <InputWithAddons
+      leading={
+        <Select
+          value={protocolValue}
+          onValueChange={protocolControl.change}
+          name={protocolField.name}>
+          <SelectTrigger
+            id={protocolField.id}
+            className="bg-accent h-6 min-h-6 gap-1 border px-2 py-0 shadow-none focus:ring-0 focus-visible:ring-0">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="http">http</SelectItem>
+            <SelectItem value="https">https</SelectItem>
+          </SelectContent>
+        </Select>
+      }
+      value={endpointValue}
+      onChange={(e) => endpointControl.change(e.target.value)}
+      onBlur={endpointControl.blur}
+      name={endpointField.name}
+      id={endpointField.id}
+      autoFocus={autoFocus}
+      placeholder="e.g. api.example.com or 192.168.1.1:8080"
+      className="text-xs!"
+    />
+  );
+};
+
+// Component that conditionally disables HTTP redirect option based on protocol
+const ConditionalHttpRedirectField = () => {
+  const { fields } = Form.useFormContext();
+  const protocolField = fields.protocol as any;
+  const protocolControl = useInputControl(protocolField);
+  const protocolValue =
+    (Array.isArray(protocolControl.value) ? protocolControl.value[0] : protocolControl.value) ||
+    'https';
+  const isHttpProtocol = protocolValue === 'http';
+
+  return (
+    <Form.Field
+      label="Force HTTPS"
+      name="enableHttpRedirect"
+      tooltip={
+        isHttpProtocol
+          ? 'Force all HTTP requests to be redirected to HTTPS using a 301 permanent redirect'
+          : 'Force HTTPS is only available when the origin protocol is HTTP'
+      }>
+      <Form.Switch label="Enable Force HTTPS" disabled={!isHttpProtocol} />
+    </Form.Field>
+  );
+};
 
 export interface HttpProxyFormDialogRef {
   show: (initialValues?: HttpProxy) => void;
@@ -29,24 +112,67 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     const [open, setOpen] = useState(false);
     const [defaultValues, setDefaultValues] = useState<Partial<HttpProxySchema>>();
     const [editProxyName, setEditProxyName] = useState('');
+    const [nameRandomSuffix] = useState(() => generateRandomString(6));
 
     const isEdit = !!editProxyName;
 
-    const createMutation = useCreateHttpProxy(projectId);
+    const { enqueue } = useTaskQueue();
+    const queryClient = useQueryClient();
+    const navigate = useNavigate();
+    const { project, organization } = useApp();
     const updateMutation = useUpdateHttpProxy(projectId, editProxyName);
+    const httpProxyService = createHttpProxyService();
 
     const show = useCallback((initialValues?: HttpProxy) => {
       if (initialValues?.uid) {
         setEditProxyName(initialValues.name);
+
+        // Parse existing endpoint to extract protocol and hostname:port
+        let protocol: 'http' | 'https' = 'https';
+        let endpointHost = '';
+
+        if (initialValues.endpoint) {
+          try {
+            const url = new URL(initialValues.endpoint);
+            protocol = url.protocol === 'http:' ? 'http' : 'https';
+            endpointHost = url.port ? `${url.hostname}:${url.port}` : url.hostname;
+          } catch {
+            // If parsing fails, try to extract protocol manually
+            if (initialValues.endpoint.startsWith('http://')) {
+              protocol = 'http';
+              endpointHost = initialValues.endpoint.replace(/^https?:\/\//, '');
+            } else if (initialValues.endpoint.startsWith('https://')) {
+              protocol = 'https';
+              endpointHost = initialValues.endpoint.replace(/^https?:\/\//, '');
+            } else {
+              endpointHost = initialValues.endpoint;
+            }
+          }
+        }
+
+        const wafModeWithParanoia = getWafModeWithParanoia(
+          initialValues.trafficProtectionMode,
+          initialValues.paranoiaLevels?.blocking
+        );
+
         setDefaultValues({
           name: initialValues.name,
-          endpoint: initialValues.endpoint ?? '',
+          chosenName: initialValues.chosenName || '',
+          protocol,
+          endpointHost,
           hostnames: initialValues.hostnames,
           tlsHostname: initialValues.tlsHostname,
+          trafficProtectionMode: initialValues.trafficProtectionMode ?? 'Disabled',
+          wafModeWithParanoia,
+          enableHttpRedirect: initialValues.enableHttpRedirect ?? false,
         });
       } else {
         setEditProxyName('');
-        setDefaultValues(undefined);
+        setDefaultValues({
+          protocol: 'https',
+          trafficProtectionMode: 'Enforce',
+          wafModeWithParanoia: 'Enforce (Basic)',
+        });
       }
       setOpen(true);
     }, []);
@@ -58,32 +184,122 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     useImperativeHandle(ref, () => ({ show, hide }), [show, hide]);
 
     const handleSubmit = async (data: HttpProxySchema) => {
-      try {
-        if (isEdit) {
+      // Ensure protocol has a value (default to 'https' if not set)
+      const protocol = data.protocol || 'https';
+      // Combine protocol and endpointHost into full endpoint URL
+      const fullEndpoint = `${protocol}://${data.endpointHost}`;
+
+      // Parse the combined WAF mode + paranoia level
+      const wafConfig = data.wafModeWithParanoia
+        ? parseWafModeWithParanoia(data.wafModeWithParanoia)
+        : { mode: data.trafficProtectionMode ?? 'Enforce', blocking: undefined };
+
+      if (isEdit) {
+        // Updates don't need async waiting - they're synchronous
+        try {
           await updateMutation.mutateAsync({
-            endpoint: data.endpoint,
+            endpoint: fullEndpoint,
             hostnames: data.hostnames,
             tlsHostname: data.tlsHostname,
+            chosenName: data.chosenName,
+            trafficProtectionMode: wafConfig.mode,
+            paranoiaLevels:
+              wafConfig.blocking !== undefined ? { blocking: wafConfig.blocking } : undefined,
+            enableHttpRedirect: data.enableHttpRedirect ?? false,
           });
-          toast.success('Proxy', {
-            description: 'The proxy has been updated successfully',
+          toast.success('AI Edge', {
+            description: 'The Edge endpoint has been updated successfully',
           });
           setOpen(false);
           onEditSuccess?.();
-        } else {
-          const proxy = await createMutation.mutateAsync(data);
-          toast.success('Proxy', {
-            description: 'The proxy has been created successfully',
+        } catch (error) {
+          toast.error('AI Edge', {
+            description: (error as Error).message || 'Failed to update Edge endpoint',
           });
-          setOpen(false);
-          onCreateSuccess?.(proxy);
+          onError?.(error as Error);
         }
-      } catch (error) {
-        toast.error('Proxy', {
-          description:
-            (error as Error).message || `Failed to ${isEdit ? 'update' : 'create'} proxy`,
+      } else {
+        // Close dialog immediately - task queue will handle the rest
+        setOpen(false);
+
+        // Generate the resource name
+        const resourceName = data.chosenName
+          ? generateId(data.chosenName as string, {
+              randomText: nameRandomSuffix,
+              randomLength: 6,
+            })
+          : data.name;
+
+        const metadata =
+          project && organization
+            ? {
+                scope: 'edge',
+                projectId: project.name,
+                projectName: project.displayName || project.name,
+                orgId: organization.name,
+                orgName: organization.displayName || organization.name,
+              }
+            : undefined;
+
+        enqueue({
+          title: `Creating Edge endpoint "${data.chosenName || resourceName}"`,
+          icon: <GaugeIcon className="size-4" />,
+          cancelable: false,
+          metadata,
+          processor: async (ctx) => {
+            try {
+              await httpProxyService.create(projectId, {
+                name: resourceName,
+                chosenName: data.chosenName,
+                endpoint: fullEndpoint,
+                hostnames: data.hostnames,
+                tlsHostname: data.tlsHostname,
+                trafficProtectionMode: wafConfig.mode,
+                paranoiaLevels:
+                  wafConfig.blocking !== undefined ? { blocking: wafConfig.blocking } : undefined,
+                enableHttpRedirect: data.enableHttpRedirect ?? false,
+              });
+
+              const { promise, cancel } = waitForHttpProxyReady(projectId, resourceName);
+              ctx.onCancel(cancel); // Register cleanup - called automatically on cancel/timeout
+
+              const readyProxy = await promise;
+
+              ctx.setResult(readyProxy);
+              ctx.succeed();
+            } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              ctx.fail(undefined, errorMessage);
+            }
+          },
+          onComplete: (outcome) => {
+            queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
+            if (outcome.status === 'completed' && outcome.result) {
+              onCreateSuccess?.(outcome.result);
+            } else if (outcome.status === 'failed') {
+              const errorMessage =
+                outcome.failedItems[0]?.message || 'Failed to create Edge endpoint';
+              onError?.(new Error(errorMessage));
+            }
+          },
+          completionActions: (result: HttpProxy) => [
+            {
+              children: 'View Edge Overview',
+              type: 'primary',
+              theme: 'outline',
+              size: 'xs',
+              onClick: () => {
+                navigate(
+                  getPathWithParams(paths.project.detail.proxy.detail.overview, {
+                    projectId,
+                    proxyId: result.name,
+                  })
+                );
+                onCreateSuccess?.(result);
+              },
+            },
+          ],
         });
-        onError?.(error as Error);
       }
     };
 
@@ -92,41 +308,101 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
         key={open ? `open-${editProxyName || 'create'}` : 'closed'}
         open={open}
         onOpenChange={setOpen}
-        title={isEdit ? 'Edit Proxy' : 'Create a new Proxy'}
-        description={`${isEdit ? 'Edit' : 'Create'} a Proxy to expose your service on a custom domain — with automatic HTTPS, smart routing, and zero hassle. Just tell us your backend endpoint, and we'll handle the rest.`}
+        title={isEdit ? 'Edit AI Edge' : 'New AI Edge'}
+        description={`${isEdit ? 'Edit your AI Edge endpoint' : `Put your apps, API's, and agents behind a secure, global proxy.`} `}
         schema={httpProxySchema}
         defaultValues={defaultValues}
         onSubmit={handleSubmit}
         submitText={isEdit ? 'Save' : 'Create'}
         submitTextLoading={isEdit ? 'Saving...' : 'Creating...'}
-        className="w-full sm:max-w-2xl">
-        <div className="divide-border space-y-0 divide-y [&>*]:px-5 [&>*]:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
-          <Form.Field name="name">
-            {({ field }) => (
-              <InputName
-                field={field}
-                readOnly={isEdit}
-                autoFocus={!isEdit}
-                autoGenerate={false}
-                description="This unique resource name will be used to identify your Proxy resource and cannot be changed."
-              />
-            )}
+        className="w-full focus:ring-0 focus:outline-none sm:max-w-2xl">
+        <div className="divide-border space-y-0 divide-y *:px-5 *:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+          <Form.Field name="chosenName" required>
+            {({ field, meta }) => {
+              const resourceName =
+                isEdit && editProxyName
+                  ? editProxyName
+                  : field.value
+                    ? generateId(field.value as string, {
+                        randomText: nameRandomSuffix,
+                        randomLength: 6,
+                      })
+                    : '';
+
+              return (
+                <div className="relative space-y-2">
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <label htmlFor={field.id} className="text-foreground/80 text-xs font-semibold">
+                      Name {meta.required && <span className="text-destructive/80">*</span>}
+                    </label>
+                  </div>
+                  <Form.Input
+                    autoFocus={!isEdit}
+                    placeholder="e.g. Customer API"
+                    className="-mb-0.5"
+                  />
+                  {/* Hidden input to satisfy schema and submit the generated resource name */}
+                  <input type="hidden" name="name" value={resourceName} />
+                </div>
+              );
+            }}
           </Form.Field>
 
           <Form.Field
-            name="endpoint"
-            label="Backend Endpoint"
-            description="Enter the URL or hostname where your service is running"
+            tooltip="Origin is the hostname or IP address where your service is running"
+            name="endpointHost"
+            label="Origin"
             required>
-            <Form.Input
-              autoFocus={isEdit}
-              placeholder="e.g. https://api.example.com or api.example.com"
-            />
+            <ProtocolEndpointInput autoFocus={isEdit} />
           </Form.Field>
 
-          <ProxyHostnamesField projectId={projectId} />
+          <Form.Field
+            name="wafModeWithParanoia"
+            label="WAF mode"
+            tooltip="Choose how the Web Application Firewall (OWASP Core Rule Set) should handle traffic and it's paranoia level. You can change the protection mode after your edge is created."
+            required>
+            {({ field }) => {
+              // Sync trafficProtectionMode when wafModeWithParanoia changes
+              const wafConfig = field.value
+                ? parseWafModeWithParanoia(
+                    field.value as
+                      | 'Observe (none)'
+                      | 'Enforce (Basic)'
+                      | 'Enforce (Medium)'
+                      | 'Enforce (High)'
+                      | 'Disabled'
+                  )
+                : { mode: 'Enforce' as const };
 
-          <ProxyTlsField />
+              return (
+                <>
+                  <Form.RadioGroup orientation="vertical">
+                    <Form.RadioItem value="Observe (none)" label="Observe (none)" />
+                    <Form.RadioItem value="Enforce (Basic)" label="Enforce (Basic)" />
+                    <Form.RadioItem value="Enforce (Medium)" label="Enforce (Medium)" />
+                    <Form.RadioItem value="Enforce (High)" label="Enforce (High)" />
+                    <Form.RadioItem value="Disabled" label="Disabled" />
+                  </Form.RadioGroup>
+                  {/* Hidden field to satisfy schema requirement */}
+                  <input type="hidden" name="trafficProtectionMode" value={wafConfig.mode} />
+                </>
+              );
+            }}
+          </Form.Field>
+
+          {isEdit && (
+            <Collapsible defaultOpen={false}>
+              <CollapsibleTrigger className="text-foreground hover:text-foreground/80 flex items-center gap-2 text-sm font-medium transition-colors [&[data-state=open]>svg]:rotate-180">
+                <ChevronDownIcon className="size-4 shrink-0 transition-transform duration-200" />
+                Advanced Config
+              </CollapsibleTrigger>
+              <CollapsibleContent className="flex flex-col gap-5 pt-5">
+                <ProxyHostnamesField projectId={projectId} />
+                <ProxyTlsField />
+                <ConditionalHttpRedirectField />
+              </CollapsibleContent>
+            </Collapsible>
+          )}
         </div>
       </Form.Dialog>
     );

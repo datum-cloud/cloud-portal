@@ -9,7 +9,7 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export default function Layout() {
   return (
-    <MinimalLayout>
+    <MinimalLayout className="max-w-[1200px]">
       <Outlet />
     </MinimalLayout>
   );

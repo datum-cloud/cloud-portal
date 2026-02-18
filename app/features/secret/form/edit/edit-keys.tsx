@@ -56,8 +56,8 @@ export const EditSecretKeys = ({ secret }: { secret?: Secret }) => {
 
   return (
     <>
-      <Card className="px-3 py-8 shadow">
-        <CardHeader className="mb-2">
+      <Card className="overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
+        <CardHeader className="mb-2 px-0 sm:px-6">
           <CardTitle className="flex items-center justify-between gap-2">
             <span className="text-lg font-medium">Key-value pairs</span>
             <Button
@@ -71,7 +71,7 @@ export const EditSecretKeys = ({ secret }: { secret?: Secret }) => {
           </CardTitle>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="p-0 sm:px-6 sm:pb-4">
           <div className="flex max-w-full flex-col overflow-hidden rounded-lg border">
             <Table>
               <TableHeader>

@@ -1,13 +1,20 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
 import { PageTitle } from '@/components/page-title/page-title';
+import { HttpProxyGlobalUpstreamLatency } from '@/features/edge/proxy/metrics/global-upstream-latency';
+import { HttpProxyUpstreamResponse } from '@/features/edge/proxy/metrics/upstream-response';
+import { HttpProxyUpstreamRps } from '@/features/edge/proxy/metrics/upstream-rps';
+import { ActivePopsCard } from '@/features/edge/proxy/overview/active-pops-card';
 import { HttpProxyGeneralCard } from '@/features/edge/proxy/overview/general-card';
 import { GrafanaSetupCard } from '@/features/edge/proxy/overview/grafana-setup-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames-card';
+import { HttpProxyOriginsCard } from '@/features/edge/proxy/overview/origins-card';
 import {
   HttpProxyFormDialog,
   type HttpProxyFormDialogRef,
 } from '@/features/edge/proxy/proxy-form-dialog';
+import { MetricsProvider, MetricsToolbar } from '@/modules/metrics';
+import { RegionsFilter } from '@/modules/metrics/components/filters/regions-filter';
 import {
   type HttpProxy,
   useDeleteHttpProxy,
@@ -16,14 +23,11 @@ import {
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { toast } from '@datum-ui/components';
-import { Col, Row } from '@datum-ui/components';
+import { Icon, toast } from '@datum-ui/components';
+import { Card, CardContent, Col, Row } from '@datum-ui/components';
+import { ChartSplineIcon } from 'lucide-react';
 import { useRef } from 'react';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
-
-export const handle = {
-  breadcrumb: () => <span>Overview</span>,
-};
 
 export default function HttpProxyOverviewPage() {
   const loaderData = useRouteLoaderData('proxy-detail') as HttpProxy | undefined;
@@ -57,7 +61,7 @@ export default function HttpProxyOverviewPage() {
 
   const deleteHttpProxy = async () => {
     await confirm({
-      title: 'Delete Proxy',
+      title: 'Delete Edge Endpoint',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
@@ -81,10 +85,10 @@ export default function HttpProxyOverviewPage() {
   if (!effectiveProxy) return null;
 
   return (
-    <>
+    <MetricsProvider>
       <Row gutter={[24, 32]}>
         <Col span={24}>
-          <PageTitle title={effectiveProxy.name ?? 'Proxy'} />
+          <PageTitle title={effectiveProxy.chosenName ?? effectiveProxy.name ?? 'Edge endpoint'} />
         </Col>
         <Col span={24}>
           <HttpProxyGeneralCard
@@ -92,20 +96,63 @@ export default function HttpProxyOverviewPage() {
             onEdit={() => proxyFormRef.current?.show(effectiveProxy)}
           />
         </Col>
-        <Col span={12}>
+        <Col span={24} lg={12}>
           <HttpProxyHostnamesCard
-            endpoint={effectiveProxy?.endpoint}
             customHostnames={effectiveProxy?.hostnames ?? []}
             status={effectiveProxy?.status}
+            proxy={effectiveProxy}
+            projectId={projectId}
           />
+        </Col>
+        <Col span={24} lg={12}>
+          <HttpProxyOriginsCard
+            proxy={effectiveProxy}
+            onEdit={() => proxyFormRef.current?.show(effectiveProxy)}
+          />
+        </Col>
+        <Col span={24}>
+          <ActivePopsCard projectId={projectId ?? ''} proxyId={effectiveProxy.name ?? ''} />
+        </Col>
+        <Col span={24}>
+          <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
+            <CardContent className="flex flex-col gap-5 p-0 sm:px-6 sm:pb-4">
+              <div className="flex items-center gap-2.5">
+                <Icon icon={ChartSplineIcon} size={20} className="text-secondary stroke-2" />
+                <span className="text-base font-semibold">Metrics</span>
+              </div>
+              <MetricsToolbar className="justify-between">
+                <MetricsToolbar.Filters>
+                  <RegionsFilter />
+                </MetricsToolbar.Filters>
+                <MetricsToolbar.CoreControls />
+              </MetricsToolbar>
+              <div className="flex flex-col gap-6">
+                <HttpProxyGlobalUpstreamLatency
+                  projectId={projectId ?? ''}
+                  proxyId={proxyId ?? ''}
+                />
+                <Row gutter={[24, 24]}>
+                  <Col span={24} lg={12}>
+                    <HttpProxyUpstreamRps projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
+                  </Col>
+                  <Col span={24} lg={12}>
+                    <HttpProxyUpstreamResponse
+                      projectId={projectId ?? ''}
+                      proxyId={proxyId ?? ''}
+                    />
+                  </Col>
+                </Row>
+              </div>
+            </CardContent>
+          </Card>
         </Col>
         <Col span={12}>
           <GrafanaSetupCard projectId={projectId ?? ''} />
         </Col>
         <Col span={24}>
-          <h3 className="mb-4 text-base font-medium">Delete Proxy</h3>
+          <h3 className="mb-4 text-base font-medium">Delete Edge endpoint</h3>
           <DangerCard
-            deleteText="Delete proxy"
+            deleteText="Delete edge endpoint"
             loading={deleteMutation.isPending}
             onDelete={deleteHttpProxy}
           />
@@ -113,6 +160,6 @@ export default function HttpProxyOverviewPage() {
       </Row>
 
       <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId!} />
-    </>
+    </MetricsProvider>
   );
 }

@@ -100,7 +100,7 @@ export default function AccountOrganizations() {
         id: 'name',
         cell: ({ row }) => {
           return (
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex w-full flex-col items-start justify-start gap-4 md:flex-row md:items-center md:justify-between md:gap-2">
               <div className="flex items-center gap-5">
                 <Icon
                   icon={Building}
@@ -111,7 +111,7 @@ export default function AccountOrganizations() {
                 />
                 <span>{row.original.displayName || row.original.name}</span>
               </div>
-              <div className="flex items-center gap-6">
+              <div className="flex w-full items-center justify-between gap-6 md:w-auto">
                 <BadgeCopy
                   value={row.original.name ?? ''}
                   text={row.original.name ?? ''}
@@ -139,9 +139,8 @@ export default function AccountOrganizations() {
 
   return (
     <div className="mx-auto flex w-full flex-col gap-6">
-      {/* Organizations Table */}
-      <Row gutter={16}>
-        <Col span={20} push={2}>
+      <Row gutter={[0, 24]}>
+        <Col span={24}>
           <DataTable
             hideHeader
             mode="card"
@@ -190,12 +189,8 @@ export default function AccountOrganizations() {
             }}
           />
         </Col>
-      </Row>
-
-      {/* Alert for understanding organizations */}
-      {showAlert && (
-        <Row gutter={16}>
-          <Col span={20} push={2}>
+        {showAlert && (
+          <Col span={24}>
             <NoteCard
               closable
               onClose={handleAlertClose}
@@ -217,8 +212,8 @@ export default function AccountOrganizations() {
               }
             />
           </Col>
-        </Row>
-      )}
+        )}
+      </Row>
 
       {/* Create Organization Dialog */}
       <Form.Dialog

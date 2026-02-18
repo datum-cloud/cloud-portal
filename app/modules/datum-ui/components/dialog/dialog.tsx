@@ -37,7 +37,12 @@ interface DialogOverlayProps {
 }
 
 function DialogOverlay({ className, ...props }: DialogOverlayProps) {
-  return <ShadcnDialogOverlay className={cn('bg-dialog-overlay/50', className)} {...props} />;
+  return (
+    <ShadcnDialogOverlay
+      className={cn('bg-dialog-overlay/50 backdrop-blur-[2px]', className)}
+      {...props}
+    />
+  );
 }
 
 /* -----------------------------------------------------------------------------

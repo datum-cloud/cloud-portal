@@ -1,6 +1,12 @@
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { ProxySparkline } from '@/features/edge/proxy/metrics/proxy-sparkline';
+import {
+  ProxyAdvancedConfigDialog,
+  type ProxyAdvancedConfigDialogRef,
+} from '@/features/edge/proxy/proxy-advanced-config-dialog';
 import {
   HttpProxyFormDialog,
   type HttpProxyFormDialogRef,
@@ -15,13 +21,14 @@ import {
   useHttpProxies,
   useHydrateHttpProxies,
   useHttpProxiesWatch,
+  formatWafProtectionDisplay,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, toast } from '@datum-ui/components';
+import { Button, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
@@ -35,7 +42,7 @@ import {
 } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Proxy');
+  return metaObject('AI Edge');
 });
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
@@ -64,7 +71,7 @@ export default function HttpProxyPage() {
 
   // Read from React Query cache (gets updates from watch!)
   const { data: queryData } = useHttpProxies(projectId ?? '', {
-    refetchOnMount: false,
+    refetchOnMount: true,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -73,21 +80,22 @@ export default function HttpProxyPage() {
 
   const { confirm } = useConfirmationDialog();
   const proxyFormRef = useRef<HttpProxyFormDialogRef>(null);
+  const advancedConfigRef = useRef<ProxyAdvancedConfigDialogRef>(null);
 
   const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
     onSuccess: () => {
-      toast.success('Proxy', {
-        description: 'The proxy has been deleted successfully',
+      toast.success('AI Edge', {
+        description: 'Edge endpoint has been deleted successfully',
       });
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to delete proxy');
+      toast.error(error.message || 'Failed to delete edge');
     },
   });
 
   const deleteHttpProxy = async (httpProxy: HttpProxy) => {
     await confirm({
-      title: 'Delete Proxy',
+      title: 'Delete Edge Endpoint',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
@@ -109,17 +117,15 @@ export default function HttpProxyPage() {
   const columns: ColumnDef<HttpProxy>[] = useMemo(
     () => [
       {
-        header: 'Resource Name',
-        accessorKey: 'name',
+        header: 'Name',
+        accessorKey: 'chosenName',
+        meta: { className: 'min-w-32' },
         cell: ({ row }) => {
-          return <span className="font-medium">{row.original.name}</span>;
-        },
-      },
-      {
-        header: 'Endpoint',
-        accessorKey: 'endpoint',
-        cell: ({ row }) => {
-          return row.original.endpoint;
+          return (
+            <Tooltip message={row.original.name || row.original.chosenName}>
+              <span className="font-medium">{row.original.chosenName || row.original.name}</span>
+            </Tooltip>
+          );
         },
       },
       {
@@ -142,6 +148,56 @@ export default function HttpProxyPage() {
           );
         },
       },
+      {
+        header: 'Edge Activity',
+        accessorKey: 'activity',
+        enableSorting: false,
+        meta: { tooltip: 'Traffic activity over the last hour to this edge' },
+        cell: ({ row }) => {
+          return <ProxySparkline projectId={projectId ?? ''} proxyId={row.original.name} />;
+        },
+      },
+      {
+        header: 'Origin',
+        accessorKey: 'origin',
+        meta: { tooltip: 'Upstream origin URL' },
+        cell: ({ row }) => {
+          return row.original.endpoint;
+        },
+      },
+      {
+        header: 'Hostnames',
+        accessorKey: 'hostnames',
+        meta: { tooltip: 'Verified hostnames that are pointing to your origin' },
+        cell: ({ row }) => {
+          const hostnames = row.original.status.hostnames?.map((hostname: string) => hostname);
+          const hasMultipleHostnames = (hostnames?.length ?? 0) > 1;
+          return (
+            <div className="flex flex-wrap gap-2">
+              {hostnames?.map((hostname: string) => (
+                <BadgeCopy
+                  key={hostname}
+                  value={hostname}
+                  badgeTheme="solid"
+                  badgeType="muted"
+                  textClassName={hasMultipleHostnames ? 'max-w-[10rem] truncate' : undefined}
+                  showTooltip={false}
+                  wrapperTooltipMessage={hostname}
+                />
+              ))}
+            </div>
+          );
+        },
+      },
+      {
+        header: 'Protection',
+        accessorKey: 'trafficProtectionMode',
+        meta: { tooltip: 'What level of WAF protection is applied to this Edge' },
+        cell: ({ row }) => {
+          return <span className="capitalize">{formatWafProtectionDisplay(row.original)}</span>;
+        },
+      },
+
       {
         header: 'Created At',
         accessorKey: 'createdAt',
@@ -185,11 +241,11 @@ export default function HttpProxyPage() {
           );
         }}
         emptyContent={{
-          title: "let's add a Proxy to get you started",
+          title: "let's add an Edge endpoint to get you started",
           actions: [
             {
               type: 'button',
-              label: 'Add proxy',
+              label: 'New',
               onClick: () => proxyFormRef.current?.show(),
               variant: 'default',
               icon: <Icon icon={PlusIcon} className="size-3" />,
@@ -198,7 +254,7 @@ export default function HttpProxyPage() {
           ],
         }}
         tableTitle={{
-          title: 'Proxy',
+          title: 'AI Edge',
           actions: (
             <Button
               type="primary"
@@ -206,20 +262,21 @@ export default function HttpProxyPage() {
               size="small"
               onClick={() => proxyFormRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
-              Add proxy
+              New
             </Button>
           ),
         }}
         toolbar={{
           layout: 'compact',
           includeSearch: {
-            placeholder: 'Search proxies',
+            placeholder: 'Search',
           },
         }}
         rowActions={rowActions}
       />
 
       <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId!} />
+      <ProxyAdvancedConfigDialog ref={advancedConfigRef} projectId={projectId!} />
     </>
   );
 }

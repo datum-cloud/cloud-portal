@@ -78,6 +78,7 @@ export default function OrgLayout() {
         href: settingsPreferences,
         type: 'link',
         icon: SettingsIcon,
+        showSeparatorAbove: true,
         tabChildLinks: [
           settingsPreferences,
           settingsNotifications,

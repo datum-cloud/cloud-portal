@@ -1,5 +1,6 @@
 import { ContentWrapper } from '@/components/content-wrapper';
 import { Header } from '@/components/header';
+import { MobileMenu } from '@/components/mobile-menu';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import { SidebarInset, SidebarProvider, useSidebar } from '@datum-ui/components';
@@ -31,7 +32,7 @@ const DashboardContent = ({
   return (
     <div
       className={cn(
-        'h-full transition-opacity duration-75',
+        'h-full min-w-0 transition-opacity duration-75',
         !isReady && 'opacity-0',
         isReady && 'opacity-100'
       )}>
@@ -74,9 +75,14 @@ export function DashboardLayout({
   closeOnNavigation?: boolean;
 }) {
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden">
+    <div className="flex h-screen w-full flex-col overflow-hidden overscroll-none">
       {/* Header at the top - outside sidebar context */}
       <Header currentProject={currentProject} currentOrg={currentOrg} />
+
+      {/* Mobile menu */}
+      {navItems.length > 0 && (
+        <MobileMenu navItems={navItems} currentOrg={currentOrg} currentProject={currentProject} />
+      )}
 
       {/* Sidebar + Content area below header */}
       <SidebarProvider
@@ -92,13 +98,15 @@ export function DashboardLayout({
             '--sidebar-width-mobile': '18.75rem', // Custom desktop width
           } as React.CSSProperties
         }>
-        <AppSidebar
-          title={sidebarHeader as any}
-          navItems={navItems}
-          collapsible={sidebarCollapsible}
-          className="top-[54px]"
-          closeOnNavigation={closeOnNavigation}
-        />
+        {(navItems.length > 0 || sidebarHeader != null) && (
+          <AppSidebar
+            title={sidebarHeader as any}
+            navItems={navItems}
+            collapsible={sidebarCollapsible}
+            className="top-12"
+            closeOnNavigation={closeOnNavigation}
+          />
+        )}
         <SidebarInset>
           <DashboardContent
             containerClassName={containerClassName}

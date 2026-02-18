@@ -53,20 +53,17 @@ export const TaskQueueTrigger = forwardRef<HTMLButtonElement, TaskQueueTriggerPr
         <Button
           ref={ref}
           type="quaternary"
-          theme="outline"
+          theme="borderless"
           size="small"
           className={cn(
-            'relative h-7 w-7 cursor-pointer rounded-lg p-0 transition-colors duration-300',
+            'hover:bg-sidebar-accent relative h-7 w-7 rounded-lg p-0 transition-colors duration-300',
             flash && 'bg-primary/10'
           )}
           aria-label={`Tasks${activeCount > 0 ? ` (${activeCount} active)` : ''}`}
           {...props}>
           <Icon
             icon={ListTodo}
-            className={cn(
-              'size-3.5 transition-colors duration-300',
-              flash ? 'text-primary' : 'text-icon-primary'
-            )}
+            className={cn('text-icon-header size-4', flash ? 'text-primary' : 'text-icon-header')}
           />
 
           {/* Spinning ring when tasks are running */}

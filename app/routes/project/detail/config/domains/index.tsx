@@ -1,3 +1,4 @@
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { BulkAddDomainsAction } from '@/features/edge/domain/bulk-add';
@@ -6,6 +7,7 @@ import {
   type DomainFormDialogRef,
 } from '@/features/edge/domain/domain-form-dialog';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
+import { DomainStatus } from '@/features/edge/domain/status';
 import { DataTable, type DataTableRef } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { useApp } from '@/providers/app.provider';
@@ -238,6 +240,18 @@ export default function DomainsPage() {
         },
       },
       {
+        id: 'status',
+        header: 'Status',
+        accessorKey: 'status',
+        cell: ({ row }) => {
+          return <DomainStatus domainStatus={row.original.status} />;
+        },
+        meta: {
+          sortPath: 'status.verified',
+          sortType: 'boolean',
+        },
+      },
+      {
         id: 'registrar',
         header: 'Registrar',
         accessorKey: 'registrar',
@@ -302,6 +316,18 @@ export default function DomainsPage() {
         meta: {
           sortPath: 'expiresAt',
           sortType: 'date',
+        },
+      },
+      {
+        id: 'resourceName',
+        header: 'Resource Name',
+        accessorKey: 'name',
+        cell: ({ row }) => {
+          return <BadgeCopy value={row.original.name} badgeType="muted" badgeTheme="solid" />;
+        },
+        meta: {
+          sortPath: 'name',
+          sortType: 'text',
         },
       },
     ],

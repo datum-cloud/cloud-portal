@@ -94,7 +94,7 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
           accessorKey: 'value',
           enableSorting: false,
           meta: {
-            className: 'max-w-96 break-all text-wrap whitespace-normal',
+            className: 'max-w-96 truncate',
           },
           cell: ({ row }) => {
             const { type, value } = row.original;
@@ -104,7 +104,9 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
               const [preference, exchange] = value.split('|');
               return (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm break-all">{exchange}</span>
+                  <Tooltip side="bottom" message={exchange} contentClassName="max-w-96">
+                    <span className="truncate text-sm">{exchange}</span>
+                  </Tooltip>
                   <Tooltip
                     side="bottom"
                     message="Priority of mail servers defined by MX records. Lowest value = highest priority."
@@ -124,19 +126,30 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
             if (type === 'SOA') {
               try {
                 const soa = JSON.parse(value);
+                const formattedValue = `${soa.mname} ${soa.rname} ${soa.refresh || 0} ${soa.retry || 0} ${soa.expire || 0} ${soa.ttl || 0}`;
                 return (
-                  <span className="text-sm break-all">
-                    {soa.mname} {soa.rname} {soa.refresh || 0} {soa.retry || 0} {soa.expire || 0}{' '}
-                    {soa.ttl || 0}
-                  </span>
+                  <Tooltip side="bottom" message={formattedValue} contentClassName="max-w-96">
+                    <span className="truncate text-sm">
+                      {soa.mname} {soa.rname} {soa.refresh || 0} {soa.retry || 0} {soa.expire || 0}{' '}
+                      {soa.ttl || 0}
+                    </span>
+                  </Tooltip>
                 );
               } catch {
                 // Fallback if JSON parsing fails
-                return <span className="text-sm break-all">{value}</span>;
+                return (
+                  <Tooltip side="bottom" message={value} contentClassName="max-w-96">
+                    <span className="truncate text-sm">{value}</span>
+                  </Tooltip>
+                );
               }
             }
 
-            return <span className="text-sm break-all">{value}</span>;
+            return (
+              <Tooltip side="bottom" message={value} contentClassName="max-w-96">
+                <span className="truncate text-sm">{value}</span>
+              </Tooltip>
+            );
           },
         },
         {

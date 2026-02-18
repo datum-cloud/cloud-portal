@@ -46,8 +46,8 @@ export function useCreateHttpProxy(
     ...options,
     onSuccess: (...args) => {
       const [newHttpProxy] = args;
-      // Set detail cache - Watch handles list update
       queryClient.setQueryData(httpProxyKeys.detail(projectId, newHttpProxy.name), newHttpProxy);
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
 
       options?.onSuccess?.(...args);
     },
@@ -65,10 +65,12 @@ export function useUpdateHttpProxy(
     mutationFn: (input: UpdateHttpProxyInput) =>
       createHttpProxyService().update(projectId, name, input) as Promise<HttpProxy>,
     ...options,
-    onSuccess: (...args) => {
-      const [data] = args;
-      // Update detail cache with server response - Watch handles list sync
-      queryClient.setQueryData(httpProxyKeys.detail(projectId, name), data);
+    onSuccess: async (...args) => {
+      // Invalidate and refetch both detail and list queries to ensure WAF mode and paranoia levels are refreshed
+      // We refetch because paranoia levels come from a separate TrafficProtectionPolicy that's fetched in get()
+      await queryClient.invalidateQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
+      await queryClient.refetchQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
 
       options?.onSuccess?.(...args);
     },
@@ -86,8 +88,9 @@ export function useDeleteHttpProxy(
     ...options,
     onSuccess: async (...args) => {
       const [, name] = args;
-      // Cancel in-flight queries - Watch handles list update
       await queryClient.cancelQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
+      // Invalidate list so it refetches without the deleted item
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
 
       options?.onSuccess?.(...args);
     },

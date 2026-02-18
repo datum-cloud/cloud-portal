@@ -57,7 +57,7 @@ export class PrometheusService {
         return this.getBuildInfo();
       }
       case 'labels': {
-        return this.getLabels(params.label);
+        return this.getLabels(params.label, params.match);
       }
       default:
         throw new PrometheusError(`Unsupported query type: ${type}`, 'query');
@@ -183,9 +183,10 @@ export class PrometheusService {
 
   /**
    * Get Prometheus labels information
+   * @param match - Optional series selector to scope label values
    */
-  async getLabels(label: string): Promise<string[]> {
-    return await getLabels(this.client, label);
+  async getLabels(label: string, match?: string): Promise<string[]> {
+    return await getLabels(this.client, label, match);
   }
 
   /**

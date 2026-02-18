@@ -62,19 +62,20 @@ export const UserDropdown = ({ className }: { className?: string }) => {
       <DropdownMenuTrigger asChild>
         <Button
           type="primary"
-          theme="solid"
+          theme="borderless"
           size="small"
           className={cn(
-            'h-7 w-7 cursor-pointer rounded-lg border-none p-0 focus-visible:ring-0 focus-visible:ring-offset-0',
+            'hover:bg-sidebar-accent cursor-pointer border-none p-0 px-1 focus-visible:ring-0 focus-visible:ring-offset-0',
             className
           )}>
-          <Avatar className="size-full rounded-lg">
+          <Avatar className="size-full h-7 w-7 rounded-xl">
             {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user?.fullName || 'User'} />}
             <AvatarFallback className="rounded-lg bg-transparent font-semibold">
               {getInitials(user?.fullName || '')}
             </AvatarFallback>
           </Avatar>
-          {/* <ChevronDownIcon className="size-4 text-primary/60" /> */}
+
+          <p className="text-foreground hidden text-xs font-semibold lg:block">{user?.fullName}</p>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
