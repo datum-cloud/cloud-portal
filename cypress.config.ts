@@ -8,15 +8,13 @@ process.env.NODE_ENV = 'test';
 export default defineConfig({
   env: {
     CYPRESS: 'true',
-    APP_URL: 'http://localhost:3000',
-    AUTH_OIDC_ISSUER: process.env.AUTH_OIDC_ISSUER || 'http://localhost:3000',
-    AUTH_OIDC_CLIENT_ID: process.env.AUTH_OIDC_CLIENT_ID,
+    APP_URL: process.env.CYPRESS_BASE_URL,
+    ACCESS_TOKEN: process.env.ACCESS_TOKEN,
+    SUB: process.env.SUB,
   },
   e2e: {
-    baseUrl: process.env.CYPRESS_BASE_URL || 'http://localhost:3000',
+    baseUrl: process.env.CYPRESS_BASE_URL,
     supportFile: 'cypress/support/e2e.ts',
-    // Disable web security to allow cross-origin navigation (needed for OIDC redirects)
-    chromeWebSecurity: false,
     setupNodeEvents(on, config) {
       // implement node event listeners here
       on('task', {
@@ -28,8 +26,7 @@ export default defineConfig({
         signSessionCookie(sessionData: { accessToken: string; expiredAt: string; sub: string }) {
           // Import React Router's cookie utilities to sign the cookie properly
           const { createCookie, createCookieSessionStorage } = require('react-router');
-          const sessionSecret =
-            process.env.SESSION_SECRET || 'test-session-secret-minimum-32-chars-for-testing';
+          const sessionSecret = process.env.SESSION_SECRET;
 
           const sessionCookie = createCookie('_session', {
             path: '/',
@@ -37,7 +34,7 @@ export default defineConfig({
             httpOnly: true,
             maxAge: 60 * 60 * 13, // 13 hours
             secrets: [sessionSecret],
-            secure: false, // Allow insecure cookies in test
+            secure: process.env.NODE_ENV === 'development' ? false : true,
           });
 
           const sessionStorage = createCookieSessionStorage({
