@@ -286,7 +286,7 @@ export default function DnsZonesPage() {
       },
       {
         key: 'refresh',
-        label: 'Refresh',
+        label: 'Refresh nameservers',
         variant: 'default',
         hidden: (row) => !row.status?.domainRef?.name,
         action: (row) => refreshDomain(row),
