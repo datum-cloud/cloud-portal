@@ -56,7 +56,7 @@
     "@react-router/node": "^7.13.0",
     "@react-router/serve": "^7.13.0",
     "@sentry/react-router": "^10.39.0",
-    "@stepperize/react": "^5.1.8",
+    "@stepperize/react": "^6.0.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-table": "^8.21.3",

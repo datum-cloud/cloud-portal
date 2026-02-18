@@ -33,7 +33,7 @@ import React, { useMemo } from 'react';
 import { Form, useNavigate, useSubmit } from 'react-router';
 import { useAuthenticityToken } from 'remix-utils/csrf/react';
 
-const { useStepper } = defineStepper(
+const { useStepper, steps } = defineStepper(
   {
     id: 'metadata',
     label: 'Metadata',
@@ -99,14 +99,14 @@ export const ExportPolicyStepperForm = ({
 
   const [form, fields] = useForm({
     id: 'export-policy-form',
-    constraint: getZodConstraint(stepper.current.schema),
+    constraint: getZodConstraint(stepper.state.current.data.schema),
     shouldValidate: 'onBlur',
     shouldRevalidate: 'onBlur',
     defaultValue: initialValues,
     onValidate({ formData }) {
-      const parsed = parseWithZod(formData, { schema: stepper.current.schema });
+      const parsed = parseWithZod(formData, { schema: stepper.state.current.data.schema });
       if (parsed.status === 'success') {
-        stepper.setMetadata(stepper.current.id, parsed.value ?? {});
+        stepper.metadata.set(stepper.state.current.data.id, parsed.value ?? {});
       }
       return parsed;
     },
@@ -115,10 +115,10 @@ export const ExportPolicyStepperForm = ({
       event.stopPropagation();
       const data = submission?.status === 'success' ? submission.value : {};
 
-      if (stepper.isLast) {
+      if (stepper.state.isLast) {
         // Collect all metadata from all steps
-        const allMetadata: any = stepper.all.reduce((acc, step) => {
-          const stepMetadata = stepper.getMetadata(step.id);
+        const allMetadata: any = stepper.state.all.reduce((acc, step) => {
+          const stepMetadata = stepper.metadata.get(step.id);
           return { ...acc, ...(stepMetadata || {}) };
         }, {});
 
@@ -160,7 +160,7 @@ export const ExportPolicyStepperForm = ({
           replace: true,
         });
       } else {
-        stepper.next();
+        stepper.navigation.next();
       }
     },
   });
@@ -170,10 +170,10 @@ export const ExportPolicyStepperForm = ({
   }, [defaultValue]);
 
   const handleBack = () => {
-    if (stepper.isFirst) {
+    if (stepper.state.isFirst) {
       navigate(-1);
     } else {
-      stepper.prev();
+      stepper.navigation.prev();
     }
   };
 
@@ -200,12 +200,14 @@ export const ExportPolicyStepperForm = ({
             )}
             <nav aria-label="Export Policy Steps" className="group">
               <ol className="relative ml-4 border-s border-gray-200 dark:border-gray-700 dark:text-gray-400">
-                {stepper.all.map((step, index, array) => (
+                {steps.map((step, index, array) => (
                   <React.Fragment key={step.id}>
                     <li
                       className={cn(
                         'ms-7',
-                        index < array.length - 1 && stepper.current.id !== step.id ? 'mb-4' : ''
+                        index < array.length - 1 && stepper.state.current.data.id !== step.id
+                          ? 'mb-4'
+                          : ''
                       )}>
                       <span className="absolute -start-4 flex size-8 items-center justify-center rounded-full bg-gray-100 ring-4 ring-white dark:bg-gray-700 dark:ring-gray-900">
                         {React.cloneElement(step.icon(), {
@@ -217,13 +219,13 @@ export const ExportPolicyStepperForm = ({
                         <p className="text-muted-foreground text-sm">{step.description}</p>
                       </div>
                     </li>
-                    {stepper.current.id === step.id && !isPending ? (
+                    {stepper.state.current.data.id === step.id && !isPending ? (
                       <div className="flex-1 py-6 pl-7">
-                        {stepper.switch({
+                        {stepper.flow.switch({
                           metadata: () => (
                             <MetadataForm
                               isEdit={isEdit}
-                              defaultValue={stepper.getMetadata('metadata') as MetadataSchema}
+                              defaultValue={stepper.metadata.get('metadata') as MetadataSchema}
                               fields={
                                 fields as unknown as ReturnType<typeof useForm<MetadataSchema>>[1]
                               }
@@ -238,7 +240,7 @@ export const ExportPolicyStepperForm = ({
                                 >[1]
                               }
                               defaultValue={
-                                stepper.getMetadata('sources') as ExportPolicySourcesSchema
+                                stepper.metadata.get('sources') as ExportPolicySourcesSchema
                               }
                             />
                           ),
@@ -251,9 +253,11 @@ export const ExportPolicyStepperForm = ({
                                   typeof useForm<UpdateExportPolicySchema>
                                 >[1]
                               }
-                              defaultValue={stepper.getMetadata('sinks') as ExportPolicySinksSchema}
+                              defaultValue={
+                                stepper.metadata.get('sinks') as ExportPolicySinksSchema
+                              }
                               sourceList={
-                                stepper.getMetadata('sources')
+                                stepper.metadata.get('sources')
                                   ?.sources as ExportPolicySourceFieldSchema[]
                               }
                             />
@@ -263,10 +267,10 @@ export const ExportPolicyStepperForm = ({
                         <div className="mt-4 flex items-center justify-end gap-2 border-t pt-4">
                           <div className="flex items-center gap-2">
                             <Button type="quaternary" theme="borderless" onClick={handleBack}>
-                              {stepper.isFirst ? 'Return to List' : 'Back'}
+                              {stepper.state.isFirst ? 'Return to List' : 'Back'}
                             </Button>
                             <Button htmlType="submit" disabled={isPending} loading={isPending}>
-                              {stepper.isLast ? (isEdit ? 'Save' : 'Create') : 'Next'}
+                              {stepper.state.isLast ? (isEdit ? 'Save' : 'Create') : 'Next'}
                             </Button>
                           </div>
                         </div>
