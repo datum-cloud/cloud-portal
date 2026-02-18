@@ -120,8 +120,8 @@ export default [
             ),
           ]),
 
-          // Proxies
-          route('proxy', 'routes/project/detail/edge/proxy/layout.tsx', [
+          // Edge
+          route('edge', 'routes/project/detail/edge/proxy/layout.tsx', [
             index('routes/project/detail/edge/proxy/index.tsx'),
 
             route(
@@ -130,12 +130,7 @@ export default [
               { id: 'proxy-detail' },
               [
                 index('routes/project/detail/edge/proxy/detail/index.tsx'),
-
-                route('', 'routes/project/detail/edge/proxy/detail/tabs/layout.tsx', [
-                  // Tabs Layout
-                  route('overview', 'routes/project/detail/edge/proxy/detail/tabs/overview.tsx'),
-                  route('metrics', 'routes/project/detail/edge/proxy/detail/tabs/metrics.tsx'),
-                ]),
+                route('overview', 'routes/project/detail/edge/proxy/detail/overview.tsx'),
               ]
             ),
           ]),

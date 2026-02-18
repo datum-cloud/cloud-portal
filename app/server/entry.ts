@@ -104,6 +104,8 @@ app.use(
         'https://*.githubusercontent.com', // GitHub user avatars
         'https://avatars.githubusercontent.com', // GitHub avatars (alternative domain)
         'https://*.cloudfront.net',
+        'https://*.cartocdn.com', // Leaflet map tiles (CARTO basemaps - basemaps.cartocdn.com)
+        'https://*.basemaps.cartocdn.com', // Tile subdomains (a.basemaps, b.basemaps, etc.)
       ],
       // Allow scripts - in dev mode, allow unsafe-inline and unsafe-eval for Vite HMR
       scriptSrc: [
@@ -123,8 +125,11 @@ app.use(
       scriptSrcAttr: [NONCE, ...(isDev ? ["'unsafe-inline'"] : [])],
       // Allow inline styles for third-party widgets
       styleSrc: ["'self'", "'unsafe-inline'", 'https://*.jsdelivr.net', 'https://*.googleapis.com'],
-      upgradeInsecureRequests: [],
+      // Only in production: upgrade HTTP→HTTPS. Omit in dev so Safari (and others) can use http://localhost
+      ...(isDev ? {} : { upgradeInsecureRequests: [] }),
     },
+    // Disable HSTS in dev so Safari doesn't force HTTPS for localhost
+    strictTransportSecurity: !isDev,
   })
 );
 

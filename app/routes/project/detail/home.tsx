@@ -105,7 +105,7 @@ export default function ProjectHomePage() {
   return (
     <div className="mx-auto w-full">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex w-full flex-col items-start justify-start gap-4 md:flex-row md:items-center md:justify-between md:gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-1 md:flex-row md:items-center">
           <h1 className="truncate text-2xl font-medium">{project?.description}</h1>
           <p className="text-icon-primary text-xs md:ml-auto">

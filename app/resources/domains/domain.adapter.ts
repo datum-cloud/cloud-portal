@@ -12,7 +12,9 @@ export function toDomain(raw: ComDatumapisNetworkingV1AlphaDomain): Domain {
     namespace: raw.metadata?.namespace ?? '',
     description: raw.metadata?.annotations?.['kubernetes.io/description'],
     resourceVersion: raw.metadata?.resourceVersion ?? '',
-    createdAt: raw.metadata?.creationTimestamp ?? new Date(),
+    createdAt: raw.metadata?.creationTimestamp
+      ? new Date(raw.metadata.creationTimestamp)
+      : new Date(),
     domainName: raw.spec?.domainName ?? '',
     status: raw.status,
     desiredRegistrationRefreshAttempt: raw.spec?.desiredRegistrationRefreshAttempt ?? '',

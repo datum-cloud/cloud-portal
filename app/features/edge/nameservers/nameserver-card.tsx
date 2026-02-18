@@ -29,14 +29,14 @@ export const NameserverCard = ({
   );
 
   return (
-    <Card className="relative gap-6 overflow-hidden rounded-xl px-3 py-8 shadow">
-      <CardHeader>
+    <Card className="relative gap-6 overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
+      <CardHeader className="px-0 sm:px-6">
         <CardTitle className="flex items-center justify-between gap-2">
           <span className="text-lg font-medium">{title}</span>
           {actions}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0 sm:px-6 sm:pb-4">
         <NameserverTable data={displayData} registration={registration} />
       </CardContent>
     </Card>

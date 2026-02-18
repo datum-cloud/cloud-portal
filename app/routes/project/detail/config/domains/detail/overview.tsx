@@ -95,10 +95,10 @@ export default function DomainOverviewPage() {
       </Col>
       {isPending && (
         <>
-          <Col span={12}>
+          <Col span={24} xs={{ span: 24 }} sm={{ span: 24 }} md={{ span: 24 }} lg={{ span: 12 }}>
             <QuickSetupCard domain={effectiveDomain} projectId={projectId ?? ''} />
           </Col>
-          <Col span={12}>
+          <Col span={24} xs={{ span: 24 }} sm={{ span: 24 }} md={{ span: 24 }} lg={{ span: 12 }}>
             <DomainVerificationCard domain={effectiveDomain} />
           </Col>
         </>

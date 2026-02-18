@@ -16,10 +16,14 @@ export const DangerCard = ({
   onDelete: () => void;
 }) => {
   return (
-    <Card className="border-destructive rounded-xl p-0 shadow-none">
-      <CardContent className="flex items-center justify-between gap-2 px-8 py-5">
+    <Card className="border-destructive overflow-hidden rounded-xl px-3 py-4 shadow-none sm:pt-6 sm:pb-4">
+      <CardContent className="flex flex-col items-end justify-between gap-4 p-0 sm:px-6 sm:pb-4 md:flex-row md:items-center md:justify-between md:gap-2">
         <div className="flex items-center gap-8">
-          <Icon icon={TriangleAlertIcon} size={34} className="text-destructive stroke-1" />
+          <Icon
+            icon={TriangleAlertIcon}
+            size={34}
+            className="text-destructive hidden self-start stroke-1 sm:block"
+          />
           <div className="text-destructive flex max-w-xl flex-col gap-2">
             <span className="text-sm font-semibold">{title}</span>
             <span className="text-1xs leading-relaxed font-normal">{description}</span>

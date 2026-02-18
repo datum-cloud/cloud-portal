@@ -58,6 +58,7 @@ interface PrometheusAPIRequest {
   step?: string;
   metricFormat?: MetricFormat;
   label?: string; // For labels API calls
+  match?: string; // For labels API: series selector to scope label values
   // Additional API parameters for custom configurations
   [key: string]: any;
 }

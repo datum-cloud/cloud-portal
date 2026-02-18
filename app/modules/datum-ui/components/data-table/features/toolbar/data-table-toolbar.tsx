@@ -309,16 +309,14 @@ export const DataTableToolbar = ({
 
       {/* Compact Toolbar Row */}
 
-      <DataTableFilter className="flex items-center justify-between gap-4">
+      <DataTableFilter className="flex w-full flex-row items-start justify-between gap-4">
         {/* Left Section: Search */}
-        <div className={cn('flex flex-1 items-center gap-3', leftSectionClassName)}>
-          {searchConfig && (
-            <DataTableToolbarSearch config={searchConfig} className="w-full rounded-md" />
-          )}
+        <div className={cn('flex w-full items-center gap-3 md:w-auto', leftSectionClassName)}>
+          {searchConfig && <DataTableToolbarSearch config={searchConfig} className="rounded-md" />}
         </div>
 
         {/* Right Section: Row Count + Multi-actions + Inline/Primary Filters + Dropdown Filters + Actions */}
-        <div className={cn('flex items-center justify-end gap-3', rightSectionClassName)}>
+        <div className={cn('flex flex-wrap items-center justify-end gap-3', rightSectionClassName)}>
           {/* Row count (shows "X of Y selected" when rows are selected) */}
           {toolbarConfig.showRowCount && <DataTableToolbarRowCount />}
 

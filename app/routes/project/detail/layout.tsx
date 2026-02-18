@@ -15,7 +15,15 @@ import { ValidationError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
-import { AreaChartIcon, FolderDot, HomeIcon, NetworkIcon, SettingsIcon } from 'lucide-react';
+import {
+  ChartSplineIcon,
+  FileLockIcon,
+  GaugeIcon,
+  HomeIcon,
+  LayersIcon,
+  SettingsIcon,
+  SignpostIcon,
+} from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
 
@@ -108,61 +116,55 @@ export default function ProjectLayout() {
         icon: HomeIcon,
       },
       {
-        title: 'Runtime',
+        title: 'AI Edge',
         href: getPathWithParams(paths.project.detail.proxy.root, {
           projectId,
         }),
-        type: 'collapsible',
-        icon: NetworkIcon,
+        icon: GaugeIcon,
         disabled: !isReady,
-        children: [
-          {
-            title: 'DNS',
-            href: getPathWithParams(paths.project.detail.dnsZones.root, {
-              projectId,
-            }),
-            type: 'link',
-          },
-          {
-            title: 'Proxy',
-            href: getPathWithParams(paths.project.detail.proxy.root, {
-              projectId,
-            }),
-            type: 'link',
-          },
-        ],
+        type: 'link',
+        showSeparatorAbove: true,
+      },
+      // {
+      //   title: 'Tunnels',
+      //   href: '/',
+      //   icon: NetworkIcon,
+      //   disabled: true,
+      //   type: 'link',
+      // },
+      {
+        title: 'DNS',
+        href: getPathWithParams(paths.project.detail.dnsZones.root, {
+          projectId,
+        }),
+        icon: SignpostIcon,
+        disabled: !isReady,
+        type: 'link',
+      },
+      {
+        title: 'Domains',
+        href: getPathWithParams(paths.project.detail.domains.root, {
+          projectId,
+        }),
+        type: 'link',
+        icon: LayersIcon,
+        disabled: !isReady,
       },
       {
         title: 'Metrics',
         href: getPathWithParams(paths.project.detail.metrics.root, { projectId }),
         type: 'link',
-        icon: AreaChartIcon,
+        icon: ChartSplineIcon,
         disabled: !isReady,
       },
       {
-        title: 'Assets',
-        href: getPathWithParams(paths.project.detail.config.root, {
+        title: 'Secrets',
+        href: getPathWithParams(paths.project.detail.config.secrets.root, {
           projectId,
         }),
-        type: 'collapsible',
-        icon: FolderDot,
+        type: 'link',
+        icon: FileLockIcon,
         disabled: !isReady,
-        children: [
-          {
-            title: 'Domains',
-            href: getPathWithParams(paths.project.detail.domains.root, {
-              projectId,
-            }),
-            type: 'link',
-          },
-          {
-            title: 'Secrets',
-            href: getPathWithParams(paths.project.detail.config.secrets.root, {
-              projectId,
-            }),
-            type: 'link',
-          },
-        ],
       },
       {
         title: 'Project Settings',
@@ -170,6 +172,8 @@ export default function ProjectLayout() {
         type: 'link',
         disabled: !isReady,
         icon: SettingsIcon,
+        showSeparatorAbove: true,
+        showSeparatorBelow: true,
         tabChildLinks: [settingsGeneral, settingsActivity, settingsQuotas, settingsNotifications],
       },
     ];

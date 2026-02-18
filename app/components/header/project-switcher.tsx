@@ -59,7 +59,7 @@ export const ProjectSwitcher = ({
         })}
         className="flex w-fit items-center justify-between gap-2.5 text-left">
         <Icon icon={FolderRoot} className="text-icon-primary h-3.5 w-fit" />
-        <span className="max-w-[100px] truncate text-xs leading-3.5 sm:max-w-36 md:max-w-none">
+        <span className="truncate text-xs leading-3.5 sm:max-w-36 md:max-w-none">
           {currentProject?.displayName}
         </span>
       </Link>

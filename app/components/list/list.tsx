@@ -33,18 +33,18 @@ export const List = ({ items, className, itemClassName, labelClassName }: ListPr
           <div
             key={index}
             className={cn(
-              'border-table-accent dark:border-quaternary flex w-full items-center gap-2 py-3 [&:not(:last-child)]:border-b',
+              'border-table-accent dark:border-quaternary flex w-full flex-col gap-2 py-3 not-last:border-b sm:flex-row sm:items-center',
               itemClassName,
               item.className
             )}>
             <div
               className={cn(
-                'flex min-w-[200px] justify-start text-left text-sm font-semibold',
+                'flex min-w-0 items-center justify-start gap-1.5 text-left text-sm font-semibold sm:min-w-[200px]',
                 labelClassName
               )}>
               {item.label}
             </div>
-            <div className="flex justify-end text-right text-sm font-normal break-words">
+            <div className="flex justify-start text-left text-sm font-normal wrap-break-word sm:justify-end sm:text-right">
               {item.content}
             </div>
           </div>

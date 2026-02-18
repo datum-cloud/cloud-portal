@@ -18,7 +18,7 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: Organization 
         to={getPathWithParams(paths.org.detail.projects.root, { orgId: currentOrg?.name })}
         className="flex w-fit items-center justify-between gap-3 text-left">
         <Icon icon={Building} className="text-icon-primary h-3.5 w-fit" />
-        <span className="max-w-[120px] truncate text-xs leading-3.5 sm:max-w-36 md:max-w-none">
+        <span className="truncate text-xs leading-3.5 sm:max-w-36 md:max-w-none">
           {currentOrg?.displayName ?? currentOrg?.name}
         </span>
         {currentOrg?.type === 'Personal' && (

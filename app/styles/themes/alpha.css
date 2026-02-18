@@ -158,6 +158,7 @@ Scope variables to the theme class so we can swap themes by class
   --icon-tertiary: var(--app-dark-utility-5);
   --icon-quaternary: var(--app-dark-utility-2);
   --icon-quinary: var(--app-dark-utility-1);
+  --icon-header: var(--canyon-clay-links);
 
   --stepper-line: var(--glacier-mist-800);
   --stepper-label: var(--app-dark-utility-4);
@@ -305,6 +306,7 @@ Scope variables to the theme class so we can swap themes by class
     --icon-tertiary: var(--app-dark-utility-3);
     --icon-quaternary: var(--app-dark-utility-2);
     --icon-quinary: var(--app-dark-utility-1);
+    --icon-header: var(--aurora-moss);
 
     --stepper-line: var(--app-dark-utility-2);
     --stepper-label: var(--app-dark-utility-3);
@@ -352,6 +354,7 @@ TAILWIND CUSTOM UTILITIES FOR THEME
   --color-icon-tertiary: var(--icon-tertiary);
   --color-icon-quaternary: var(--icon-quaternary);
   --color-icon-quinary: var(--icon-quinary);
+  --color-icon-header: var(--icon-header);
 
   /* Toast */
   --color-toast-error-background: var(--toast-error-background);

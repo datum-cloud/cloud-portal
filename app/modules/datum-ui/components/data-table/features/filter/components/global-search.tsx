@@ -150,7 +150,7 @@ export function GlobalSearchFilter({
       label={label}
       description={enhancedDescription}
       disabled={disabled}
-      className={cn('min-w-80', className)} // Wider than single-column search
+      className={cn('min-w-full md:min-w-80', className)} // Wider than single-column search
       inputClassName={inputClassName}
     />
   );

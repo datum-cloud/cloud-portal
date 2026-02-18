@@ -1,20 +1,25 @@
+import { ProxyAdvancedConfigDialog } from '@/features/edge/proxy/proxy-advanced-config-dialog';
+import type { ProxyAdvancedConfigDialogRef } from '@/features/edge/proxy/proxy-advanced-config-dialog';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { type HttpProxy } from '@/resources/http-proxies';
 import { Badge, Button, Card, CardContent, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
-import { CopyIcon, GlobeIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { CopyIcon, GlobeIcon, PencilIcon } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
 
 export const HttpProxyHostnamesCard = ({
-  endpoint,
   status,
   customHostnames,
+  proxy,
+  projectId,
 }: {
-  endpoint?: string;
   status: HttpProxy['status'];
   customHostnames?: string[];
+  proxy?: HttpProxy;
+  projectId?: string;
 }) => {
+  const advancedConfigDialogRef = useRef<ProxyAdvancedConfigDialogRef>(null);
   const [_, copy] = useCopyToClipboard();
   const [copiedText, setCopiedText] = useState('');
   const [copied, setCopied] = useState(false);
@@ -33,50 +38,63 @@ export const HttpProxyHostnamesCard = ({
     });
   };
 
-  const hostnames: { hostname: string; valid: boolean; message?: string }[] = useMemo(() => {
-    const defaultHostnames = status?.hostnames ?? [];
+  const verifiedHostnames = status?.hostnames ?? [];
 
-    const system =
-      defaultHostnames.map((hostname: string) => {
-        return {
-          hostname,
-          valid: true,
-        };
-      }) ?? [];
+  const hostnames: { hostname: string; valid: boolean; verified: boolean; message?: string }[] =
+    useMemo(() => {
+      const defaultHostnames = verifiedHostnames;
 
-    const custom =
-      (customHostnames ?? [])
-        ?.filter((hostname) => !defaultHostnames.includes(hostname))
-        ?.map((hostname) => {
-          const hostNameCondition = status?.conditions?.find(
-            (condition: { type: string; status: string; message: string }) =>
-              condition.type === 'HostnamesVerified' && condition.status === 'False'
-          );
-          const valid = !hostNameCondition?.message.includes('hostname');
+      const system =
+        defaultHostnames.map((hostname: string) => {
           return {
             hostname,
-            valid,
-            message: valid ? undefined : hostNameCondition?.message,
+            valid: true,
+            verified: true, // System hostnames are always verified
           };
         }) ?? [];
-    return [...system, ...custom];
-  }, [status, customHostnames]);
+
+      const custom =
+        (customHostnames ?? [])
+          ?.filter((hostname) => !defaultHostnames.includes(hostname))
+          ?.map((hostname) => {
+            const hostNameCondition = status?.conditions?.find(
+              (condition: { type: string; status: string; message: string }) =>
+                condition.type === 'HostnamesVerified' && condition.status === 'False'
+            );
+            const valid = !hostNameCondition?.message.includes('hostname');
+            // Custom hostnames are verified if they appear in status.hostnames
+            const verified = defaultHostnames.includes(hostname);
+            return {
+              hostname,
+              valid,
+              verified,
+              message: valid ? undefined : hostNameCondition?.message,
+            };
+          }) ?? [];
+      return [...system, ...custom];
+    }, [status, customHostnames, verifiedHostnames]);
 
   return (
-    <Card className="w-full p-0 shadow-md">
-      <CardContent className="flex flex-col gap-5 px-9 py-8">
+    <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
+      <CardContent className="flex flex-col gap-5 p-0 sm:px-6 sm:pb-4">
         <div className="flex items-center gap-2.5">
           <Icon icon={GlobeIcon} size={20} className="text-secondary stroke-2" />
           <span className="text-base font-semibold">Hostnames</span>
+          <Button
+            type="primary"
+            theme="solid"
+            size="xs"
+            className="ml-auto"
+            onClick={() => {
+              if (proxy) {
+                advancedConfigDialogRef.current?.show(proxy);
+              }
+            }}>
+            <Icon icon={PencilIcon} size={12} />
+            Edit hostnames
+          </Button>
         </div>
-        {endpoint && (
-          <div className="text-sm font-normal">
-            These endpoints will forward requests to your backend:{' '}
-            <Badge type="quaternary" theme="outline">
-              {endpoint}
-            </Badge>
-          </div>
-        )}
+
         {(hostnames ?? [])?.length > 0 && (
           <div className="flex flex-col gap-2.5">
             {hostnames?.map((val) => {
@@ -84,18 +102,25 @@ export const HttpProxyHostnamesCard = ({
                 <div
                   key={val.hostname}
                   className="border-input bg-background flex items-center justify-between gap-2 rounded-md border p-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Tooltip message={val.valid ? 'Valid' : val.message}>
                       <Badge
                         type={val.valid ? 'primary' : 'danger'}
                         className={cn(
-                          '!text-xs',
+                          'text-xs!',
                           val.valid ? 'pointer-events-none' : 'cursor-pointer'
                         )}>
                         {val.valid ? 'HTTP/HTTPS' : 'Invalid'}
                       </Badge>
                     </Tooltip>
-                    <span className="text-xs font-medium break-all">{val.hostname}</span>
+                    {val.verified && (
+                      <Badge type="success" theme="solid" className="text-xs!">
+                        Verified
+                      </Badge>
+                    )}
+                    <Tooltip message={val.hostname}>
+                      <span className="text-xs font-medium wrap-anywhere">{val.hostname}</span>
+                    </Tooltip>
                   </div>
                   <Button
                     type="quaternary"
@@ -112,6 +137,9 @@ export const HttpProxyHostnamesCard = ({
           </div>
         )}
       </CardContent>
+      {proxy && projectId && (
+        <ProxyAdvancedConfigDialog ref={advancedConfigDialogRef} projectId={projectId} />
+      )}
     </Card>
   );
 };

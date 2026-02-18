@@ -11,6 +11,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/modules/datum-ui/components/dropdown';
+import { CheckCircle2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 // Track task IDs that have already triggered an auto-open.
@@ -44,7 +45,7 @@ export function TaskQueueDropdown() {
   // If there are any tasks that are not running or pending, show the dismiss button.
   const hasDismissable = tasks.some((t) => t.status !== 'running' && t.status !== 'pending');
 
-  if (tasks.length === 0) return null;
+  // if (tasks.length === 0) return null;
 
   return (
     <>
@@ -56,14 +57,21 @@ export function TaskQueueDropdown() {
         <DropdownMenuContent align="end" className="w-96 rounded-lg p-0">
           <TaskPanelHeader />
           <div className="max-h-[350px] overflow-y-auto">
-            {tasks.map((task) => (
-              <TaskPanelItem
-                key={task.id}
-                task={task}
-                contextLabel={getContextLabel(task.metadata)}
-                onCancel={() => cancel(task.id)}
-              />
-            ))}
+            {tasks.length === 0 && !activeSummary ? (
+              <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
+                <CheckCircle2 className="text-muted-foreground/30 mb-3 h-12 w-12" />
+                <p className="text-muted-foreground text-sm">No tasks currently scheduled</p>
+              </div>
+            ) : (
+              tasks.map((task) => (
+                <TaskPanelItem
+                  key={task.id}
+                  task={task}
+                  contextLabel={getContextLabel(task.metadata)}
+                  onCancel={() => cancel(task.id)}
+                />
+              ))
+            )}
           </div>
           {hasDismissable && (
             <button

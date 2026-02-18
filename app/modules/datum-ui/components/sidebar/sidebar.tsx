@@ -74,12 +74,50 @@ const SidebarProvider = ({
   const [hasSubLayout, setHasSubLayout] = React.useState(false);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const hoverLockRef = React.useRef(false);
-  const previousHasSubLayoutRef = React.useRef(false);
+  const userClosedSidebarRef = React.useRef(false);
+
+  // Below md (768px): start collapsed. At md and above: use defaultOpen (e.g. true).
+  const getInitialOpen = () => {
+    if (typeof window === 'undefined') return defaultOpen;
+    return window.innerWidth >= 768 ? defaultOpen : false;
+  };
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
-  const [_open, _setOpen] = React.useState(defaultOpen);
+  const [_open, _setOpen] = React.useState(getInitialOpen);
   const open = openProp ?? _open;
+
+  // When viewport goes below md, collapse the sidebar (and close mobile sheet).
+  // Reset "user closed" when entering mobile so that when we reach lg again we auto-open.
+  React.useEffect(() => {
+    if (isMobile) {
+      userClosedSidebarRef.current = false;
+      _setOpen(false);
+      setOpenMobile(false);
+    }
+  }, [isMobile]);
+
+  // Below lg (1024px): close sidebar. At lg+: open if the user didn't explicitly close it.
+  const LG_BREAKPOINT = 1024;
+  React.useEffect(() => {
+    if (isMobile) return;
+    const mql = window.matchMedia(`(min-width: ${LG_BREAKPOINT}px)`);
+    const onChange = () => {
+      if (window.innerWidth >= LG_BREAKPOINT) {
+        if (!userClosedSidebarRef.current) _setOpen(true);
+      } else {
+        _setOpen(false);
+      }
+    };
+    mql.addEventListener('change', onChange);
+    if (window.innerWidth < LG_BREAKPOINT) {
+      _setOpen(false);
+    } else if (!userClosedSidebarRef.current && !open) {
+      _setOpen(true);
+    }
+    return () => mql.removeEventListener('change', onChange);
+  }, [isMobile]);
+
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === 'function' ? value(open) : value;
@@ -124,6 +162,8 @@ const SidebarProvider = ({
     }
 
     const newState = !open;
+    if (!newState) userClosedSidebarRef.current = true;
+    else userClosedSidebarRef.current = false;
     setOpen(newState);
 
     // If closing, ensure hover state is also cleared.
@@ -142,6 +182,7 @@ const SidebarProvider = ({
       return;
     }
 
+    userClosedSidebarRef.current = true;
     setOpen(false);
     setIsHovered(false);
     if (hoverTimeoutRef.current) {
@@ -183,15 +224,6 @@ const SidebarProvider = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleSidebar]);
-
-  // Auto-collapse sidebar when a sub layout is present
-  // Only collapse when transitioning from no sub layout to having a sub layout
-  React.useEffect(() => {
-    if (hasSubLayout && !previousHasSubLayoutRef.current && !isMobile && open) {
-      setOpen(false);
-    }
-    previousHasSubLayoutRef.current = hasSubLayout;
-  }, [hasSubLayout, isMobile, open, setOpen]);
 
   // Determine the effective open state, considering hover if enabled.
   const effectiveOpen = open || (expandOnHover && isHovered);
@@ -330,6 +362,7 @@ const Sidebar = ({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
+          onOpenAutoFocus={(e) => e.preventDefault()}
           className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
           style={
             {
@@ -481,7 +514,7 @@ const SidebarInset = ({ className, ...props }: React.ComponentProps<'main'>) => 
     <main
       data-slot="sidebar-inset"
       className={cn(
-        'bg-background relative flex w-full flex-1 flex-col',
+        'bg-background relative flex w-full min-w-0 flex-1 flex-col',
         'md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
         className
       )}
@@ -528,7 +561,7 @@ const SidebarSeparator = ({ className, ...props }: React.ComponentProps<typeof S
     <Separator
       data-slot="sidebar-separator"
       data-sidebar="separator"
-      className={cn('bg-sidebar-border mx-2 w-auto', className)}
+      className={cn('bg-sidebar-border w-full', className)}
       {...props}
     />
   );

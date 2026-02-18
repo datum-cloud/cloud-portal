@@ -124,6 +124,7 @@ export default function DnsZoneDetailLayout() {
       sidebarHeader={
         <div className="flex flex-col gap-5.5">
           <BackButton
+            className="hidden md:flex"
             to={getPathWithParams(paths.project.detail.dnsZones.root, {
               projectId,
             })}>

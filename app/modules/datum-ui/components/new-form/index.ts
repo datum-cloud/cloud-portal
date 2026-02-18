@@ -94,6 +94,7 @@ import {
   useWatchAll,
   useStepper,
 } from './hooks';
+import { FormInputGroup } from '@datum-ui/components/new-form/components/form-input-group';
 
 /**
  * Form compound component
@@ -149,6 +150,7 @@ export const Form = {
   RadioItem: FormRadioItem,
   CopyBox: FormCopyBox,
   Autocomplete: FormAutocomplete,
+  InputGroup: FormInputGroup,
 
   // Advanced
   When: FormWhen,

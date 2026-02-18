@@ -7,6 +7,8 @@ export {
   type HttpProxyList,
   type CreateHttpProxyInput,
   type UpdateHttpProxyInput,
+  trafficProtectionModeSchema,
+  type TrafficProtectionMode,
   // Re-exported validation schemas
   httpProxyHostnameSchema,
   httpProxySchema,
@@ -37,4 +39,14 @@ export {
 } from './http-proxy.queries';
 
 // Watch hooks exports
-export { useHttpProxiesWatch, useHttpProxyWatch } from './http-proxy.watch';
+export { useHttpProxiesWatch, useHttpProxyWatch, waitForHttpProxyReady } from './http-proxy.watch';
+
+// Utility exports
+export {
+  getWafModeWithParanoia,
+  parseWafModeWithParanoia,
+  formatWafProtectionDisplay,
+} from './http-proxy.utils';
+
+// Health check exports
+export { checkProxyHealth, type ProxyHealthCheckResult } from './http-proxy.health';

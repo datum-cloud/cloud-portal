@@ -5,6 +5,7 @@ import { notificationsRoutes } from './notifications';
 import { permissionsRoutes } from './permissions';
 import { prometheusRoutes } from './prometheus';
 import { proxyRoutes } from './proxy';
+import { proxyHealthRoutes } from './proxy-health';
 import { userRoutes } from './user';
 import { watchRoutes } from './watch';
 import { authGuardMiddleware } from '@/server/middleware/auth';
@@ -35,6 +36,7 @@ export function createApiApp() {
 
   // Routes
   api.route('/proxy', proxyRoutes);
+  api.route('/proxy-health', proxyHealthRoutes);
   api.route('/graphql', graphqlRoutes);
   api.route('/cloudvalid', cloudvalidRoutes);
   api.route('/prometheus', prometheusRoutes);

@@ -93,7 +93,10 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
   const { resolvedTheme } = useTheme();
 
   return (
-    <html lang="en" className="theme-alpha overflow-x-hidden" suppressHydrationWarning>
+    <html
+      lang="en"
+      className="theme-alpha bg-background overflow-x-hidden overscroll-none"
+      suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

@@ -12,6 +12,11 @@ export interface UsePrometheusLabelsOptions {
   label: string;
 
   /**
+   * Optional Prometheus series selector to scope label values (e.g. '{job="api"}')
+   */
+  match?: string;
+
+  /**
    * Whether the query is enabled
    * @default true
    */
@@ -79,6 +84,7 @@ export interface UsePrometheusLabelsResult {
  */
 export function usePrometheusLabels({
   label,
+  match,
   enabled = true,
   transform,
   filter,
@@ -91,10 +97,11 @@ export function usePrometheusLabels({
     isFetching,
     refetch,
   } = usePrometheusAPIQuery<string[]>(
-    ['prometheus-api', 'labels', label],
+    ['prometheus-api', 'labels', label, match],
     {
       type: 'labels',
       label,
+      ...(match && { match }),
     },
     { enabled }
   );
