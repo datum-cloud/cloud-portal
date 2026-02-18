@@ -5,19 +5,16 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - 'docs/**'
-      - 'README.md'
+      - "docs/**"
+      - "README.md"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  NODE_ENV: production
-  CYPRESS_BASE_URL: http://localhost:3000
   CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
-  AUTH_OIDC_ISSUER: https://auth.staging.env.datum.net
-  AUTH_OIDC_CLIENT_ID: '325848903272435738'
+
   BUN_CACHE: ~/.bun/install/cache
 
 jobs:
@@ -128,7 +125,7 @@ jobs:
           key: build-${{ github.sha }}
 
   tests:
-    needs: build
+    needs: [build]
     name: Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -150,61 +147,18 @@ jobs:
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
 
-      - name: Restore Build Cache
-        uses: actions/cache@v5
-        with:
-          path: build
-          key: build-${{ github.sha }}
-
-      - name: Setup Cypress
-        run: |
-          echo "Installing Cypress..."
-          bunx cypress install
-          echo "Verifying Cypress installation..."
-          bunx cypress verify
-
-      - name: Setup Environment
-        run: |
-          cat > .env << EOF
-          CYPRESS_BASE_URL=${CYPRESS_BASE_URL}
-          NODE_ENV=test
-          CYPRESS=true
-          AUTH_OIDC_ISSUER=${AUTH_OIDC_ISSUER}
-          AUTH_OIDC_CLIENT_ID=${AUTH_OIDC_CLIENT_ID}
-          EOF
-
       - name: Run Unit Tests
         id: unit
         env:
           NODE_ENV: test
-          CYPRESS: 'true'
+          CYPRESS: "true"
         run: bun run test:unit:prod
-
-      - name: Run E2E Tests
-        id: e2e
-        env:
-          NODE_ENV: test
-          CYPRESS: 'true'
-        run: bun run test:e2e:prod
-
-      - name: Upload Artifacts
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: cypress-artifacts-${{ github.run_id }}
-          path: |
-            cypress/videos
-            cypress/screenshots
-            cypress/results
-          retention-days: 7
-          compression-level: 9
-          if-no-files-found: warn
 
   status-check:
     needs: [install, lint, typecheck, build, tests]
     name: Final Status Check
-    runs-on: ubuntu-latest
     if: always()
+    runs-on: ubuntu-latest
     steps:
       - name: Check Workflow Status
         run: |

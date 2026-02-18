@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // ***********************************************************
 // This example support/component.ts is processed and
 // loaded automatically before your test files.
@@ -15,7 +14,6 @@
 // ***********************************************************
 // Import commands.js using ES2015 syntax:
 // Ensure global app styles are loaded:
-import './commands';
 import { RemixStub } from './remixStub';
 import '@/styles/root.css';
 import '@testing-library/cypress/add-commands';
@@ -24,7 +22,6 @@ import React from 'react';
 import { MemoryRouter, MemoryRouterProps, Route, Routes } from 'react-router';
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       /**
@@ -57,7 +54,6 @@ Cypress.Commands.add('mount', (component, options = {}) => {
     initialIndex = 0,
     path = '/login',
     ...mountOptions
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = options as any;
 
   const wrapped = (

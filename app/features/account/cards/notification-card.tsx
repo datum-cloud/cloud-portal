@@ -163,7 +163,6 @@ export const AccountNotificationSettingsCard = () => {
           if (removalByGroupName.has(contactGroupName)) return;
 
           const contactGroupNamespace = groupNamespaceByName.get(contactGroupName);
-          console.log('CONTACT GROUP NAMESPACE', contactGroupNamespace);
           await createRemoval.mutateAsync({
             name: generateId(contactGroupName, { prefix: 'cgmr' }),
             contactGroupName,

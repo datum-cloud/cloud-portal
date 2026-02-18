@@ -1,0 +1,170 @@
+name: Preview Environment
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - main
+  repository_dispatch:
+    types: [preview-environment-ready]
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+  packages: write
+  attestations: write
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number || github.event.client_payload.pr_number }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-trigger-preview:
+    if: github.event_name == 'pull_request'
+    name: Build and Trigger Preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+  publish-container-image:
+    if: github.event_name == 'pull_request'
+    needs: build-and-trigger-preview
+    name: Build and Publish Container Image
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+      attestations: write
+    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@v1.9.0
+    with:
+      image-name: cloud-portal
+      image-tag: pr-${{ github.event.pull_request.number }}
+    secrets: inherit
+
+  publish-kustomize-bundles:
+    if: github.event_name == 'pull_request'
+    name: Publish Kustomize Bundles
+    needs: [publish-container-image]
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@v1.9.0
+    with:
+      bundle-name: ghcr.io/datum-cloud/cloud-portal-kustomize
+      bundle-path: config
+      image-overlays: config/base
+      image-name: ghcr.io/datum-cloud/cloud-portal
+      image-tag: pr-${{ github.event.pull_request.number }}
+      bundle-tag: pr-${{ github.event.pull_request.number }}
+    secrets: inherit
+
+  trigger-preview-environment:
+    if: github.event_name == 'pull_request'
+    name: Trigger Preview Environment Creation
+    needs: [publish-container-image, publish-kustomize-bundles]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Preview Environment Creation
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.INFRA_REPO_TOKEN }}
+          repository: datum-cloud/infra
+          event-type: create-preview-environment
+          client-payload: |
+            {
+              "pr_number": ${{ github.event.pull_request.number }},
+              "external_repo": "${{ github.repository }}",
+              "external_pr_number": ${{ github.event.pull_request.number }},
+              "head_ref": "${{ github.head_ref }}",
+              "sha": "${{ github.event.pull_request.head.sha }}",
+              "image_tag": "pr-${{ github.event.pull_request.number }}",
+              "bundle_tag": "pr-${{ github.event.pull_request.number }}"
+            }
+
+  run-tests-against-preview:
+    if: github.event_name == 'repository_dispatch' && github.event.action == 'preview-environment-ready'
+    name: Run Tests Against Preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Extract Preview URL
+        id: preview-info
+        run: |
+          PREVIEW_URL="${{ github.event.client_payload.preview_url }}"
+          PREVIEW_NAMESPACE="${{ github.event.client_payload.preview_namespace }}"
+          SESSION_SECRET="${{ github.event.client_payload.session_secret }}"
+
+          echo "preview_url=${PREVIEW_URL}" >> "$GITHUB_OUTPUT"
+          echo "preview_namespace=${PREVIEW_NAMESPACE}" >> "$GITHUB_OUTPUT"
+          echo "session_secret=${SESSION_SECRET}" >> "$GITHUB_OUTPUT"
+
+          echo "🚀 Preview Environment Ready!"
+          echo "Preview URL: ${PREVIEW_URL}"
+          echo "Namespace: ${PREVIEW_NAMESPACE}"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Restore Dependencies Cache
+        id: cache-deps
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.bun/install/cache
+            **/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+
+      - name: Install Dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Setup Cypress
+        run: |
+          echo "Installing Cypress..."
+          bunx cypress install
+          echo "Verifying Cypress installation..."
+          bunx cypress verify
+
+      - name: Setup Environment
+        run: |
+          cat > .env << EOF
+          CYPRESS_BASE_URL=${{ steps.preview-info.outputs.preview_url }}
+          NODE_ENV=test
+          CYPRESS=true
+          SESSION_SECRET=${{ steps.preview-info.outputs.session_secret }}
+          EOF
+
+      - name: Verify Preview URL is accessible
+        run: |
+          echo "Testing connectivity to ${{ steps.preview-info.outputs.preview_url }}..."
+          curl -f -s -o /dev/null -w "%{http_code}" ${{ steps.preview-info.outputs.preview_url }}/_healthz
+
+      - name: Run E2E Tests Against Preview
+        env:
+          NODE_ENV: test
+          CYPRESS: "true"
+          CYPRESS_BASE_URL: ${{ steps.preview-info.outputs.preview_url }}
+          SESSION_SECRET: ${{ steps.preview-info.outputs.session_secret }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          SUB: ${{ secrets.SUB }}
+        run: bun run test:e2e:preview
+
+      - name: Upload Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: cypress-artifacts-preview-${{ github.event.client_payload.pr_number }}
+          path: |
+            cypress/videos
+            cypress/screenshots
+            cypress/results
+          retention-days: 7
+          compression-level: 9
+          if-no-files-found: warn
