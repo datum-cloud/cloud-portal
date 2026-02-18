@@ -77,7 +77,7 @@ import React, {
   type ReactNode,
   type Ref,
 } from 'react';
-import { renderToString } from 'react-dom/server';
+import { renderToString } from 'react-dom/server.browser';
 import {
   useMap,
   useMapEvents,
