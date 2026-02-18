@@ -206,13 +206,13 @@ function FormStepperContent({
   defaultValues,
   id,
 }: FormStepperContentProps) {
-  const { useStepper, utils } = stepperDef;
+  const { useStepper } = stepperDef;
   const stepper = useStepper();
 
   // Find current step config
   const currentStepConfig = React.useMemo(
-    () => steps.find((s) => s.id === stepper.current.id) ?? steps[0],
-    [steps, stepper.current.id]
+    () => steps.find((s) => s.id === stepper.state.current.data.id) ?? steps[0],
+    [steps, stepper.state.current.data.id]
   );
 
   // Merge all schemas into one combined schema
@@ -223,19 +223,18 @@ function FormStepperContent({
     const allMetadata = steps.reduce(
       (acc, step) => ({
         ...acc,
-        ...(stepper.getMetadata(step.id as any) || {}),
+        ...(stepper.metadata.get(step.id as any) || {}),
       }),
       {}
     );
     return { ...defaultValues, ...allMetadata };
-  }, [steps, stepper, defaultValues, stepper.current.id]); // Include current.id to recompute on step change
+  }, [steps, stepper, defaultValues, stepper.state.current.data.id]); // Include current.id to recompute on step change
 
   return (
     <StepForm
-      key={stepper.current.id} // Force remount on step change
+      key={stepper.state.current.data.id} // Force remount on step change
       steps={steps}
       stepper={stepper}
-      utils={utils}
       currentStepConfig={currentStepConfig}
       combinedSchema={combinedSchema}
       storedValues={storedValues}
@@ -255,7 +254,6 @@ function FormStepperContent({
 interface StepFormProps {
   steps: StepConfig[];
   stepper: any;
-  utils: any;
   currentStepConfig: StepConfig;
   combinedSchema: z.ZodObject<any>;
   storedValues: Record<string, unknown>;
@@ -269,7 +267,6 @@ interface StepFormProps {
 function StepForm({
   steps,
   stepper,
-  utils,
   currentStepConfig,
   combinedSchema,
   storedValues,
@@ -303,17 +300,20 @@ function StepForm({
 
       // Store current step's validated data in metadata
       if (submission.value) {
-        stepper.setMetadata(stepper.current.id as any, submission.value as Record<string, unknown>);
+        stepper.metadata.set(
+          stepper.state.current.data.id as any,
+          submission.value as Record<string, unknown>
+        );
       }
 
-      if (stepper.isLast) {
+      if (stepper.state.isLast) {
         // Final step - collect all metadata and complete
         setIsSubmitting(true);
         try {
           const allData = steps.reduce(
             (acc, step) => ({
               ...acc,
-              ...(stepper.getMetadata(step.id as any) || {}),
+              ...(stepper.metadata.get(step.id as any) || {}),
             }),
             {}
           );
@@ -328,9 +328,9 @@ function StepForm({
         }
       } else {
         // Move to next step
-        const nextStepId = utils.getNext(stepper.current.id as any)?.id;
+        const nextStepId = stepper.lookup.getNext(stepper.state.current.data.id as any)?.id;
         if (nextStepId) {
-          stepper.goTo(nextStepId as any);
+          stepper.navigation.goTo(nextStepId as any);
           onStepChange?.(nextStepId, 'next');
         }
       }
@@ -354,35 +354,35 @@ function StepForm({
         }
       });
       if (Object.keys(currentData).length > 0) {
-        stepper.setMetadata(stepper.current.id as any, currentData);
+        stepper.metadata.set(stepper.state.current.data.id as any, currentData);
       }
     }
 
-    const prevStepId = utils.getPrev(stepper.current.id as any)?.id;
+    const prevStepId = stepper.lookup.getPrev(stepper.state.current.data.id as any)?.id;
     if (prevStepId) {
-      stepper.goTo(prevStepId as any);
+      stepper.navigation.goTo(prevStepId as any);
       onStepChange?.(prevStepId, 'prev');
     }
-  }, [stepper, utils, onStepChange]);
+  }, [stepper, onStepChange]);
 
   const goTo = React.useCallback(
     (stepId: string) => {
-      const currentIndex = utils.getIndex(stepper.current.id as any);
-      const targetIndex = utils.getIndex(stepId as any);
+      const currentIndex = stepper.lookup.getIndex(stepper.state.current.data.id as any);
+      const targetIndex = stepper.lookup.getIndex(stepId as any);
 
       // Only allow going back without validation
       if (targetIndex < currentIndex) {
-        stepper.goTo(stepId as any);
+        stepper.navigation.goTo(stepId as any);
         onStepChange?.(stepId, 'prev');
       }
       // Going forward requires validation - use next() instead
     },
-    [stepper, utils, onStepChange]
+    [stepper, onStepChange]
   );
 
   // Helper to get step data from metadata
   const getStepData = React.useCallback(
-    (stepId: string) => stepper.getMetadata(stepId as any) as Record<string, unknown> | undefined,
+    (stepId: string) => stepper.metadata.get(stepId as any) as Record<string, unknown> | undefined,
     [stepper]
   );
 
@@ -391,7 +391,7 @@ function StepForm({
     return steps.reduce(
       (acc, step) => ({
         ...acc,
-        ...(stepper.getMetadata(step.id as any) || {}),
+        ...(stepper.metadata.get(step.id as any) || {}),
       }),
       {}
     );
@@ -402,19 +402,19 @@ function StepForm({
     () => ({
       steps,
       current: currentStepConfig,
-      currentIndex: utils.getIndex(stepper.current.id as any),
+      currentIndex: stepper.lookup.getIndex(stepper.state.current.data.id as any),
       next,
       prev,
       goTo,
-      isFirst: stepper.isFirst,
-      isLast: stepper.isLast,
+      isFirst: stepper.state.isFirst,
+      isLast: stepper.state.isLast,
       getStepData,
       getAllStepData,
       utils: {
-        getIndex: (id: string) => utils.getIndex(id as any),
+        getIndex: (id: string) => stepper.lookup.getIndex(id as any),
       },
     }),
-    [steps, currentStepConfig, stepper, utils, next, prev, goTo, getStepData, getAllStepData]
+    [steps, currentStepConfig, stepper, next, prev, goTo, getStepData, getAllStepData]
   );
 
   // Form context value
@@ -434,12 +434,12 @@ function StepForm({
   const renderProps: FormStepperRenderProps = {
     steps,
     current: currentStepConfig,
-    currentIndex: utils.getIndex(stepper.current.id as any),
+    currentIndex: stepper.lookup.getIndex(stepper.state.current.data.id as any),
     next,
     prev,
     goTo,
-    isFirst: stepper.isFirst,
-    isLast: stepper.isLast,
+    isFirst: stepper.state.isFirst,
+    isLast: stepper.state.isLast,
     getStepData,
     getAllStepData,
   };

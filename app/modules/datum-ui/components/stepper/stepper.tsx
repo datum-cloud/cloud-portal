@@ -20,7 +20,12 @@ const useStepperProvider = (): Stepper.ConfigProps => {
 const defineStepper = <const Steps extends Stepperize.Step[]>(
   ...steps: Steps
 ): Stepper.DefineProps<Steps> => {
-  const { Scoped, useStepper, ...rest } = Stepperize.defineStepper(...steps);
+  const {
+    Scoped,
+    useStepper,
+    steps: stepList,
+    Stepper: StepperizePrimitives,
+  } = Stepperize.defineStepper(...steps);
 
   const StepperContainer = ({
     children,
@@ -41,9 +46,10 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
   };
 
   return {
-    ...rest,
+    steps: stepList,
     useStepper,
     Stepper: {
+      ...StepperizePrimitives,
       Provider: ({
         variant = 'horizontal',
         labelOrientation = 'horizontal',
@@ -76,17 +82,16 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
       },
       Step: ({ children, className, icon, ...props }) => {
         const { variant, labelOrientation } = useStepperProvider();
-        const { current } = useStepper();
+        const stepper = useStepper();
 
-        const utils = rest.utils;
-        const steps = rest.steps;
+        const steps = stepList;
 
-        const stepIndex = utils.getIndex(props.of);
+        const stepIndex = stepper.lookup.getIndex(props.of);
         const step = steps[stepIndex];
-        const currentIndex = utils.getIndex(current.id);
+        const currentIndex = stepper.lookup.getIndex(stepper.state.current.data.id);
 
-        const isLast = utils.getLast().id === props.of;
-        const isActive = current.id === props.of;
+        const isLast = stepper.lookup.getLast().id === props.of;
+        const isActive = stepper.state.current.data.id === props.of;
 
         const dataState = getStepState(currentIndex, stepIndex);
         const childMap = useStepChildren(children);
@@ -144,7 +149,11 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
                 aria-setsize={steps.length}
                 aria-selected={isActive}
                 onKeyDown={(e) =>
-                  onStepKeyDown(e, utils.getNext(props.of), utils.getPrev(props.of))
+                  onStepKeyDown(
+                    e,
+                    stepper.lookup.getNext(props.of),
+                    stepper.lookup.getPrev(props.of)
+                  )
                 }
                 {...props}>
                 {icon ?? stepIndex + 1}
